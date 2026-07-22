@@ -68,8 +68,17 @@ public final class PageTypeResolver {
     if (Crud.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (ListingBackend.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (getAllFields(type).stream().anyMatch(field -> MetricCard.class.equals(field.getType()))) {
+      // Typed dashboard on the wire, but still rendered as a plain form — hint the archetype.
+      ArchetypeAdvisor.advise(type);
       return PageType.DASHBOARD;
     }
+    if (PageInference.composesWelcome(type)) {
+      // Page-level inference renders this class as the Welcome landing (@AutoPage). The wire
+      // normally gets this from the InferredWelcome bridge's @PageTemplate; resolving it here
+      // too keeps every resolver call site (and PageFingerprint) consistent with the ports.
+      return PageType.LANDING;
+    }
+    ArchetypeAdvisor.advise(type);
     return PageType.FORM;
   }
 

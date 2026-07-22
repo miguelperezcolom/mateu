@@ -31,6 +31,7 @@ from mateu_uidl import (
 )
 from mateu_uidl.components import MetricCard
 
+from . import page_inference
 from .reflection import view_fields
 
 #: Archetype base classes per family. Check order matters where archetypes nest: HeroSearch IS
@@ -65,4 +66,7 @@ def page_type_of(cls) -> str:
         isinstance(f.type, type) and issubclass(f.type, MetricCard) for f in view_fields(cls)
     ):
         return PageType.DASHBOARD.value
+    if page_inference.composes_welcome(cls):
+        # Page-level inference renders this class as the Welcome landing (@auto_page).
+        return PageType.LANDING.value
     return PageType.FORM.value

@@ -190,6 +190,7 @@ from mateu_uidl import components as fluent
 from . import labels_aside_inference, layout_inference
 from .naming import camel_case, humanize
 from .page_type_inference import page_type_of
+from . import page_inference
 from .reflection import class_flag, methods_with, view_fields
 from .registry import normalize, type_name
 
@@ -592,6 +593,12 @@ class ReflectionMapper:
             return self.compose_welcome(instance)
         if isinstance(instance, ComponentTreeSupplier):
             return instance.component()
+        # Page-level inference (@auto_page): a plain class whose structure spells an archetype
+        # is composed as it — the Python analogue of Java's InferredDashboard/InferredWelcome.
+        if page_inference.composes_dashboard(type(instance)):
+            return self.compose_dashboard(instance)
+        if page_inference.composes_welcome(type(instance)):
+            return self.compose_welcome(instance)
         return None
 
     def _component_fields(self, instance):
@@ -608,7 +615,7 @@ class ReflectionMapper:
             return panel.title
         return self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
 
-    def compose_dashboard(self, instance: Dashboard) -> fluent.DashboardLayout:
+    def compose_dashboard(self, instance) -> fluent.DashboardLayout:
         items: list[fluent.Component] = []
         pending: list[fluent.MetricCard] = []
 
@@ -637,7 +644,9 @@ class ReflectionMapper:
             else:
                 items.append(value)
         flush()
-        return fluent.DashboardLayout(columns=instance.columns(), items=tuple(items))
+        # A Dashboard subclass configures its columns; an @auto_page plain class keeps auto-fit.
+        columns = instance.columns() if isinstance(instance, Dashboard) else 0
+        return fluent.DashboardLayout(columns=columns, items=tuple(items))
 
     def compose_foldout(self, instance: Foldout) -> fluent.FoldoutLayout:
         overview: fluent.Component | None = None
@@ -695,7 +704,7 @@ class ReflectionMapper:
         content.append(tab_layout)
         return self.client(HorizontalLayoutMetadata(spacing=True), None, content)
 
-    def compose_welcome(self, instance: Welcome) -> ClientSideComponent:
+    def compose_welcome(self, instance) -> ClientSideComponent:
         ctas: list[fluent.Component] = []
         tiles: list[fluent.Component] = []
         for f, value in self._component_fields(instance):
@@ -716,13 +725,22 @@ class ReflectionMapper:
                 )
             else:
                 tiles.append(value)
+        if isinstance(instance, Welcome):
+            hero_title = instance.hero_title()
+            hero_subtitle = instance.hero_subtitle()
+            hero_image = instance.hero_image()
+        else:
+            # @auto_page plain class: the hero title is the declared @title; subtitle and
+            # image have no declarative source — setting them is a reason to subclass Welcome.
+            hero_title = getattr(type(instance), "__mateu_title__", None)
+            hero_subtitle = hero_image = None
         content = [
             self.map_component(
                 fluent.HeroSection(
                     id="hero",
-                    title=instance.hero_title(),
-                    subtitle=instance.hero_subtitle(),
-                    image=instance.hero_image(),
+                    title=hero_title,
+                    subtitle=hero_subtitle,
+                    image=hero_image,
                     centered=True,
                     content=tuple(ctas),
                 )

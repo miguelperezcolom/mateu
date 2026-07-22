@@ -818,6 +818,23 @@ def auto_layout(arg=True):
     return deco
 
 
+def auto_page(arg=True):
+    """Class-level: let Mateu infer the page ARCHETYPE from the declared information — the
+    page-altitude sibling of ``@auto_layout`` (the Python analogue of Java's ``@AutoPage``).
+    A plain class declaring MetricCard fields composes the Dashboard archetype; a class
+    declaring only Button fields and panel components composes the Welcome landing. Explicit
+    always wins (archetype subclasses are never rewritten); ``@auto_page(False)`` opts out."""
+    if isinstance(arg, type):  # used bare: @auto_page
+        arg.__mateu_auto_page__ = True
+        return arg
+
+    def deco(cls: type) -> type:
+        cls.__mateu_auto_page__ = bool(arg)
+        return cls
+
+    return deco
+
+
 def read_only(cls: type) -> type:
     """Class-level: render every field of the view as read-only (the analogue of Java's
     ``@ReadOnly``). Also enables the read-only-only layout inference (sections as tabs)."""

@@ -40,7 +40,18 @@ public class NewCustomerForm {
 
 Nothing in this class says "accordion", "tabs" or "radio" — yet the rendered form keeps the four required fields visible, collapses the six optional ones into a **More options** panel, and renders `segment` as radio buttons.
 
-Inference is **deterministic**: every decision is based on the declared structure — number of sections, estimated visual weight of the fields, required vs optional — never on runtime data. The same class always renders the same way, and adding one field never flips the whole layout.
+Inference is **deterministic**: every decision is based on the declared structure — number of sections, estimated visual weight of the fields, required vs optional — never on runtime data. The same class always renders the same way.
+
+Determinism is not the same as **stability under model evolution**, though: the rules are threshold-based, so adding or removing a field *can* flip the inferred layout when the class crosses a threshold (that is the point of inference — the presentation follows the information). To make that visible instead of surprising, Mateu logs a **one-time warning** when a class under `@AutoLayout` sits within 2 weight units (or one section) of a threshold:
+
+```text
+WARN @AutoLayout stability: com.acme.NewCustomerForm is close to the 'fold-optionals'
+threshold: weight 15 is within 2 units of the threshold (16) — adding or removing a
+field may flip the inferred layout. Pin the layout with explicit annotations
+(@Section, @Tab, @FoldedLayout…) if it must not change as the model evolves.
+```
+
+If a screen's layout must not change as the model evolves, pin it with explicit annotations — explicit always wins, so inference steps aside.
 
 ### The weight unit
 
@@ -81,6 +92,65 @@ The rule applies to read-only views only: on an **editable** form, hiding groups
 An enum field with up to **4 constants** renders as radio buttons instead of a dropdown: every option is exposed at a glance for the cost of one extra row. Beyond 4 constants the dropdown stays, as it is denser.
 
 To force radio buttons regardless of the enum size — with or without `@AutoLayout` — annotate the field with `@UseRadioButtons` (equivalent to `@Stereotype(FieldStereotype.radio)`, but self-documenting).
+
+## Page-level inference: `@AutoPage`
+
+The same idea, one altitude up: `@AutoLayout` infers the presentation of a *form*; `@AutoPage`
+infers the page **archetype** from the declared information.
+
+```java
+@UI("/ops")
+@AutoPage
+public class Ops {
+
+  MetricCard revenue   = MetricCard.builder().title("Revenue").value("1.2").unit("M€").build();
+  MetricCard occupancy = MetricCard.builder().title("Occupancy").value("87%").build();
+
+  @Panel(title = "Monthly sales")
+  Text sales = ...;
+}
+```
+
+Nothing in this class extends `Dashboard` — yet it renders as one: the consecutive `MetricCard`
+fields group into the KPI scoreboard band, the `@Panel` field becomes a titled tile on the grid,
+and the page is typed `dashboard` on the wire. Actions keep routing to your class.
+
+![A plain @AutoPage class rendered as a dashboard](/images/docs/layout-inference/auto-page-dashboard.png)
+
+Demo: `/auto-dashboard-demo` in `demo-admin-panel` (`InferredOpsDashboard`) — compare with
+`/dashboard-demo` (`SalesDashboard`), which declares the same intent by subclassing.
+
+The same applies to landings: a class declaring **only** `Button` fields and `@Panel` tiles — no
+data fields — composes the `Welcome` archetype: buttons become hero calls-to-action (the hero
+title comes from `@Title`) and panels become highlight tiles. A single data field keeps the class
+a form: a page made only of calls-to-action is a landing; a form that happens to have a button is
+not.
+
+Rules are deliberately few and only cover archetypes that are **fully derivable** from the
+declared fields (today: the dashboard and welcome rules). Shapes that resemble an archetype but would need
+information you didn't declare — like `CollectionDetail`'s id/title functions — are not composed;
+instead Mateu logs a one-time hint naming the archetype so you can adopt it explicitly.
+
+Explicit always wins: archetype subclasses, listing backends and fluent component trees are never
+rewritten, `@AutoPage(false)` opts a class out under the global `mateu.layout.inference` property,
+and extending the archetype remains the way to take fine control (e.g. `columns()`).
+
+`@AutoPage` has full backend parity: `[AutoPage]` in C# and `@auto_page` in Python apply the same
+rules and emit the same wire.
+
+### Guarding against flips in CI
+
+Inference means a model change can legitimately flip a page's template. To make that a reviewed
+decision instead of a surprise, pin your screens' fingerprints in a golden test:
+
+```java
+assertThat(PageFingerprint.of(Ops.class))
+    .isEqualTo("pageType=dashboard composes=dashboard");
+```
+
+`PageFingerprint.of(...)` captures the page-level decisions (`pageType` + composed archetype);
+when a change flips one, the test fails with a readable diff. The runtime
+[threshold-proximity warning](#staying-in-control) covers the form-level rules the same way.
 
 ## Staying in control
 
