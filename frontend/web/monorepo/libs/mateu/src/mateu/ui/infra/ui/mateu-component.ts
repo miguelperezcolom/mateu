@@ -824,6 +824,18 @@ export class MateuComponent extends ComponentElement {
         vaadin-card.mateu-section > vaadin-vertical-layout {
             gap: max(0.45rem, var(--lumo-space-s));
         }
+
+        /* A pinned section (@Section(sticky=true)) must be OPAQUE — the section cards are frameless
+           (transparent), so without a background the content scrolling underneath bleeds through the
+           pinned band. Give it the base color + a small horizontal pad so the band isn't flush, a
+           z-index above the in-flow content, and a hairline to mark where it ends. */
+        vaadin-card.mateu-section--sticky {
+            background: var(--lumo-base-color, #fff);
+            --vaadin-card-background: var(--lumo-base-color, #fff);
+            z-index: 2;
+            padding-block: var(--lumo-space-xs);
+            box-shadow: 0 1px 0 0 var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
+        }
   `
 }
 
