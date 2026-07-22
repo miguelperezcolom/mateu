@@ -1,69 +1,62 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MenuBar from "@mateu/shared/apiClients/dtos/componentmetadata/MenuBar";
-import { html, LitElement, nothing, render } from "lit";
+import { html, LitElement, nothing } from "lit";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/ContextMenu";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import Component from "@mateu/shared/apiClients/dtos/Component";
-import { appData, appState } from "@domain/state.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import type { MenuBarItem } from "@vaadin/menu-bar";
+
+/*
+ * Design-system-neutral menu renderers — a plain button strip / native <details> dropdowns, no
+ * `@vaadin`. The Vaadin adapter (apps/vaadin/renderers/renderMenu) overrides MenuBar/ContextMenu
+ * with vaadin-menu-bar / vaadin-context-menu for full fidelity.
+ */
+
+const renderOption = (container: LitElement, option: MenuOption, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): unknown => {
+    if (option.separator) {
+        return html`<span style="align-self: stretch; width: 1px; background: var(--lumo-contrast-20pct, rgba(0,0,0,.2));"></span>`
+    }
+    if (option.submenus) {
+        return html`
+            <details style="position: relative;">
+                <summary style="cursor: pointer; list-style: none; padding: .35rem .7rem; border-radius: var(--lumo-border-radius-m, 6px);">
+                    ${option.component ? renderComponent(container, option.component, baseUrl, state, data, appState, appData) : option.label} ▾
+                </summary>
+                <div style="display: flex; flex-direction: column; gap: .1rem; padding: .3rem; min-width: 10rem;
+                            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); border-radius: var(--lumo-border-radius-m, 6px);
+                            background: var(--lumo-base-color, #fff); box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.15));">
+                    ${option.submenus.map(sub => renderOption(container, sub, baseUrl, state, data, appState, appData))}
+                </div>
+            </details>
+        `
+    }
+    return html`
+        <span class="${option.className ?? ''}"
+              style="cursor: ${option.disabled ? 'default' : 'pointer'}; opacity: ${option.disabled ? .5 : 1};
+                     padding: .35rem .7rem; border-radius: var(--lumo-border-radius-m, 6px);
+                     ${option.selected ? 'background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12));' : ''}">
+            ${option.component ? renderComponent(container, option.component, baseUrl, state, data, appState, appData) : option.label}
+        </span>
+    `
+}
+
+export const renderMenuBar = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState?: ComponentState, appData?: ComponentData) => {
+    const metadata = component.metadata as MenuBar
+    return html`
+        <div style="display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; ${component.style}"
+             class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+            ${metadata.options?.map(option => renderOption(container, option, baseUrl, state, data, appState ?? {}, appData ?? {}))}
+        </div>
+    `
+}
+
 export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu
-
+    // Neutral fallback: render the wrapped content (the context-menu popup itself is a Vaadin-only
+    // enhancement, reinstated by the adapter override).
     return html`
-        <vaadin-context-menu .items=${mapItems(container, metadata.menu, baseUrl, state, data, appState, appData)} 
-                             style="${component.style}" 
-                             class="${component.cssClasses}"
-                             open-on="${metadata.activateOnLeftClick?'click':nothing}"
-                             slot="${component.slot??nothing}">
+        <div style="${component.style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${renderComponent(container, metadata.wrapped, baseUrl, state, data, appState, appData)}
-        </vaadin-context-menu>
-            `
-}
-
-export const renderMenuBar = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData) => {
-    const metadata = component.metadata as MenuBar
-
-    return html`
-        <vaadin-menu-bar .items=${mapItems(container, metadata.options, baseUrl, state, data, appState, appData)}
-                         style="${component.style}" class="${component.cssClasses}"
-                         slot="${component.slot??nothing}">
-        </vaadin-menu-bar>
-            `
-}
-
-const createItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    const item = document.createElement('vaadin-context-menu-item');
-    render(renderComponent(container, component, baseUrl, state, data, appState, appData), item)
-    return item
-}
-
-const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): MenuBarItem[] => {
-    return options.map(option => {
-        if (option.submenus) {
-            return {
-                text: option.component?undefined:option.label,
-                route: option.path,
-                checked: option.selected,
-                disabled: option.disabled,
-                className: option.className,
-                component: option.component?createItem(container, option.component, baseUrl, state, data, appState, appData):undefined,
-                children: mapItems(container, option.submenus, baseUrl, state, data, appState, appData)
-            }
-        }
-        if (option.separator) {
-            return {
-                component: 'hr'
-            }
-        }
-        return {
-            text: option.component?undefined:option.label,
-            route: option.path,
-            checked: option.selected,
-            disabled: option.disabled,
-            className: option.className,
-            component: option.component?createItem(container, option.component, baseUrl, state, data, appState, appData):undefined,
-        }
-    })
+        </div>
+    `
 }

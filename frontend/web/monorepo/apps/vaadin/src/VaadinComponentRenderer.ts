@@ -7,6 +7,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts"
 import { renderVirtualList } from "./renderers/renderVirtualList"
 import { renderNotification } from "./renderers/renderNotification"
 import * as vLayouts from "./renderers/renderLayouts"
+import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -41,6 +42,9 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.BoardLayoutRow]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutRow(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.BoardLayoutItem]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutItem(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Scroller]: (c, comp, b, s, d, as, ad) => vLayouts.renderScroller(c, comp, b, s, d, as, ad),
+    // Menu subsystem
+    [ComponentMetadataType.MenuBar]: (c, comp, b, s, d) => renderMenuBar(c, comp, b, s, d),
+    [ComponentMetadataType.ContextMenu]: (c, comp, b, s, d, as, ad) => renderContextMenu(c, comp, b, s, d, as, ad),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
