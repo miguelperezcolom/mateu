@@ -7608,9 +7608,11 @@ id="${e.id}"
                     <div class="app-body">
                         <aside class="app-drawer p-s" @navigation-requested="${e.updateRoute}">
                             ${t.menu&&t.totalMenuOptions>10?o`
-                                <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${v=>Xu(v,e)}">
-                                    <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
-                                </vaadin-text-field>
+                                <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
+                                    <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${v=>Xu(v,e)}">
+                                        <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
+                                    </vaadin-text-field>
+                                </div>
                                 `:l}
                             <vaadin-side-nav class="side-nav">
                                 ${e.renderSideNav(d,void 0)}
@@ -9685,6 +9687,8 @@ id="${e.id}"
         vaadin-text-field::part(label),
         vaadin-text-area::part(label),
         vaadin-combo-box::part(label),
+        vaadin-multi-select-combo-box::part(label),
+        vaadin-select::part(label),
         vaadin-date-picker::part(label),
         vaadin-time-picker::part(label),
         vaadin-number-field::part(label),
@@ -9694,6 +9698,12 @@ id="${e.id}"
             font-size: var(--mateu-label-font-size, var(--lumo-font-size-s));
             padding-bottom: var(--mateu-label-padding-bottom, 7px);
             line-height: var(--mateu-label-line-height, 1.2);
+            /* Let long labels wrap onto several lines instead of truncating with an ellipsis
+               (e.g. "Tiempo esperando" / "Tipo hab. contratada" in a dense multi-column form). */
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            height: auto;
         }
   `;ce([b()],Y.prototype,"ui5FieldComponentsReady",2);ce([u()],Y.prototype,"component",2);ce([u()],Y.prototype,"field",2);ce([u()],Y.prototype,"baseUrl",2);ce([u()],Y.prototype,"state",2);ce([u()],Y.prototype,"data",2);ce([u()],Y.prototype,"appState",2);ce([u()],Y.prototype,"appData",2);ce([u()],Y.prototype,"labelAlreadyRendered",2);ce([b()],Y.prototype,"colorPickerOpened",2);ce([b()],Y.prototype,"colorPickerValue",2);ce([b()],Y.prototype,"filteredIcons",2);ce([b()],Y.prototype,"navLinkOffset",2);Y=ce([k("mateu-field")],Y);const mh=(e,t,a,r,i,s,n,d)=>{const c=t.metadata;return o`
         <mateu-field

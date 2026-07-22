@@ -244,9 +244,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-body">
                         <aside class="app-drawer p-s" @navigation-requested="${container.updateRoute}">
                             ${metadata.menu && metadata.totalMenuOptions > 10?html`
-                                <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e: any) => filterMenu(e, container)}">
-                                    <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
-                                </vaadin-text-field>
+                                <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
+                                    <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e: any) => filterMenu(e, container)}">
+                                        <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
+                                    </vaadin-text-field>
+                                </div>
                                 `:nothing}
                             <vaadin-side-nav class="side-nav">
                                 ${container.renderSideNav(items, undefined)}
