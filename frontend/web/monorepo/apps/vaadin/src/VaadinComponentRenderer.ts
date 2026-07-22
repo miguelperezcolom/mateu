@@ -9,6 +9,9 @@ import { renderNotification } from "./renderers/renderNotification"
 import * as vLayouts from "./renderers/renderLayouts"
 import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
 import { renderField } from "./fields/renderField"
+import { renderGrid } from "./grid/gridRenderer"
+import { renderTableElement, renderCrudTable } from "./grid/renderTable"
+import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -49,6 +52,9 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.ContextMenu]: (c, comp, b, s, d, as, ad) => renderContextMenu(c, comp, b, s, d, as, ad),
     // Field subsystem
     [ComponentMetadataType.FormField]: (c, comp, b, s, d, as, ad, lar) => renderField(c, comp, b, s, d, as, ad, lar),
+    // Grid subsystem
+    [ComponentMetadataType.Grid]: (c, comp, b, s, d, as, ad) => renderGrid(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Table]: (c, comp, b, s, d, as, ad) => renderTableElement(c, comp, b, s, d, as, ad),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
@@ -64,6 +70,12 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
             return widget(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
         }
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+    }
+
+    // Crud listing table: the Vaadin adapter renders the vaadin-grid based <mateu-table> instead
+    // of the core's neutral HTML table (BasicComponentRenderer.renderTableComponent).
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult {
+        return renderCrudTable(container, component, baseUrl, state, appState, appData)
     }
 
 }

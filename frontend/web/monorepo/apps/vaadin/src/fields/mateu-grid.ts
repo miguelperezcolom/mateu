@@ -13,7 +13,7 @@ import './mateu-field'
 import { modifiersMatch } from '@components/shortcuts'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import { renderColumnOrGroup } from "../grid/renderColumn.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import {GridActiveItemChangedEvent, GridItemToggleEvent, GridSelectedItemsChangedEvent} from "@vaadin/grid/all-imports";
 import { badge } from "@infra/ui/badgeStyles.ts";

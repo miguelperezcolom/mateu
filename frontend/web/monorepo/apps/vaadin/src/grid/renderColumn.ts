@@ -19,7 +19,7 @@ import {
     renderActionCell,
     renderButtonCell,
     renderMenuCell
-} from "@infra/ui/renderers/columnRenderers/menuColumnRenderer.ts";
+} from "./menuColumnRenderer.ts";
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";

@@ -25,7 +25,6 @@ import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
 import './mateu-pagination'
-import './mateu-table'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";

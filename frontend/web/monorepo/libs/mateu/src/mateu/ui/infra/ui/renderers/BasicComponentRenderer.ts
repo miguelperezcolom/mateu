@@ -11,6 +11,7 @@ import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { isUnsupportedType, renderUnsupported } from "@infra/ui/renderers/unsupportedRenderer.ts";
+import { renderNeutralTable } from "@infra/ui/renderers/neutralTableRenderer.ts";
 
 export abstract class BasicComponentRenderer implements ComponentRenderer {
 
@@ -57,20 +58,11 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         `
     }
 
-    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult {
-        return html`
-        <mateu-table id="${container.id}"
-                     .metadata="${component?.metadata}"
-                     .data="${container.data}"
-                     .state="${state}"
-                     .appState="${appState}"
-                     .appData="${appData}"
-                     .emptyStateMessage="${state[component?.id!]?.emptyStateMessage}"
-                     @sort-direction-changed="${container.directionChanged}"
-                     @fetch-more-elements="${container.fetchMoreElements}"
-                     baseUrl="${baseUrl}"
-        ></mateu-table>
-        `
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, _baseUrl: string | undefined, state: ComponentState, _data: ComponentData, _appState: ComponentState, _appData: ComponentData): TemplateResult {
+        // DS-neutral crud listing table. The Vaadin adapter overrides this with the vaadin-grid
+        // based <mateu-table> (sorting/editing/virtual scroll); sapui5 with its ui5-table.
+        const rows = (container.data?.[container.id] as any)?.page?.content ?? []
+        return renderNeutralTable(component!, rows, state[component?.id!]?.emptyStateMessage as string | undefined)
     }
     /** Short renderer name for diagnostics/conformance. Subclasses should override. */
     rendererName(): string {

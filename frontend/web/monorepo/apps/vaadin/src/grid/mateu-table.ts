@@ -36,7 +36,7 @@ import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/g
 import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import { renderColumnOrGroup } from "./renderColumn.ts";
 
 
 @customElement('mateu-table')

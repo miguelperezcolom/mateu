@@ -6,7 +6,7 @@ import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
 import { html, LitElement, nothing } from "lit";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { columnBodyRenderer } from "@vaadin/grid/lit";
-import { columnRenderer, renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import { columnRenderer, renderColumnOrGroup } from "./renderColumn.ts";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 

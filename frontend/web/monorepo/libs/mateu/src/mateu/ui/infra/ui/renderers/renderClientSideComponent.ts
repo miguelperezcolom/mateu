@@ -19,7 +19,7 @@ import {
 } from "@infra/ui/renderers/renderLayouts";
 import {renderAvatar, renderAvatarGroup} from "@infra/ui/renderers/avatarRenderer";
 import { renderVirtualList } from "@infra/ui/renderers/virtualRenderer";
-import { renderGrid } from "@infra/ui/renderers/gridRenderer";
+import { renderNeutralTable, gridRows } from "@infra/ui/renderers/neutralTableRenderer.ts";
 import { renderMessageList } from "@infra/ui/renderers/messageListRenderer";
 import { renderContextMenu, renderMenuBar } from "@infra/ui/renderers/menuRenderer";
 import { customFieldRenderer } from "@infra/ui/renderers/customFieldRenderer";
@@ -215,19 +215,8 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
 
             </mateu-form>`
     },
-    [ComponentMetadataType.Table]: ({ container, component, baseUrl, state, data, appState, appData }) => html`<mateu-table
-                        id="${component.id}"
-        baseUrl="${baseUrl}"
-            .metadata="${component.metadata}"
-            .state="${state}"
-                        .data="${data}"
-                        .appState="${appState}"
-                        .appDate="${appData}"
-                        style="${component.style}" class="${component.cssClasses}"
-                        slot="${component.slot??nothing}"
-            >
-             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-            </mateu-table>`,
+    [ComponentMetadataType.Table]: ({ component, state, data }) =>
+        renderNeutralTable(component, ((component.id ? data?.[component.id] : undefined)?.page?.content ?? gridRows(component, state))),
     [ComponentMetadataType.Crud]: full(renderCrud),
     [ComponentMetadataType.App]: ({ container, component, baseUrl, state, data, appState, appData }) => html`
             <mateu-app
@@ -275,7 +264,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.MessageList]: ({ component }) => renderMessageList(component),
     [ComponentMetadataType.CustomField]: full(customFieldRenderer),
     [ComponentMetadataType.MenuBar]: ({ container, component, baseUrl, state, data }) => renderMenuBar(container, component, baseUrl, state, data),
-    [ComponentMetadataType.Grid]: full(renderGrid),
+    [ComponentMetadataType.Grid]: ({ component, state }) => renderNeutralTable(component, gridRows(component, state)),
     [ComponentMetadataType.VirtualList]: full(renderVirtualList),
     [ComponentMetadataType.FormSection]: full(renderFormSection),
     [ComponentMetadataType.FormSubSection]: full(renderFormSubSection),
