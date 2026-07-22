@@ -1,27 +1,346 @@
-/* App-level styles for the Redwood Spectra renderer. The Redwood look itself comes from the Oracle
-   JET / Redwood CSS loaded from the CDN in index.html; this file only holds the shell layout and
-   the Lumo→Redwood token bridge our shared components read (filled in as we build components up). */
+/*
+ * App-level styles for the Redwood Spectra renderer.
+ *
+ * The Redwood look of oj-c/oj-sp components comes from Oracle's CDN CSS (index.html). This file:
+ *   1. bridges the Lumo custom properties the SHARED libs/mateu components read onto the
+ *      Redwood tokens (so mateu-filter-bar, mateu-page, mateu-content-header… look Redwood),
+ *   2. paints the page canvas + the Redwood color strip under page headers (the
+ *      --mateu-page-* design hooks mateu-page exposes),
+ *   3. styles the hand-built Redwood pieces of the renderer (section cards, read-only fields,
+ *      table chrome, pagination, sort chips).
+ */
 
 html, body {
   height: 100%;
   margin: 0;
 }
 
+body {
+  font-family: 'Oracle Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f1efed; /* Redwood template canvas */
+  color: #161513;            /* Redwood warm ink */
+}
+
 #ui-container {
   min-height: 100vh;
 }
 
-/* Lumo→Redwood token bridge: the shared libs/mateu components style themselves with --lumo-*
-   custom properties; map them onto Redwood's tokens so they inherit the Redwood palette. Extend
-   this as components are ported (see redwood-oj/src/index.css for the full RDS 24C bridge). */
+/* --------------------------------------------------------------------------
+ * Lumo→Redwood token bridge (values = RDS 24C, extracted from the live OJET Redwood theme)
+ * ------------------------------------------------------------------------ */
 :root {
-  --lumo-base-color: var(--oj-core-bg-color-content, #fff);
-  --lumo-body-text-color: var(--oj-core-text-color-primary, #1a1a1a);
-  --lumo-secondary-text-color: var(--oj-core-text-color-secondary, #5a5a5a);
-  --lumo-primary-color: var(--oj-core-brand-color, #1b6ea5);
-  --lumo-primary-text-color: var(--oj-core-brand-text-color, #1b6ea5);
-  --lumo-border-radius-m: 6px;
-  --lumo-border-radius-l: 12px;
-  --lumo-font-size-s: 0.875rem;
-  --lumo-font-size-l: 1.125rem;
+  --lumo-base-color: #f1efed;
+  --lumo-body-text-color: #161513;
+  --lumo-primary-color: #227e9e;
+  --lumo-primary-color-50pct: rgba(34, 126, 158, 0.5);
+  --lumo-primary-color-10pct: rgba(34, 126, 158, 0.1);
+  --lumo-primary-text-color: #0e7297;
+  --lumo-primary-contrast-color: #ffffff;
+  --lumo-error-color: #b3311f;
+  --lumo-error-text-color: #b3311f;
+  --lumo-error-color-50pct: rgba(179, 49, 31, 0.5);
+  --lumo-error-color-10pct: rgba(179, 49, 31, 0.1);
+  --lumo-success-color: #436b1d;
+  --lumo-success-text-color: #436b1d;
+  --lumo-success-color-50pct: rgba(67, 107, 29, 0.5);
+  --lumo-success-color-10pct: rgba(67, 107, 29, 0.1);
+  --lumo-header-text-color: #161513;
+  --lumo-secondary-text-color: rgba(22, 21, 19, 0.70);
+  --lumo-tertiary-text-color: rgba(22, 21, 19, 0.55);
+  --lumo-disabled-text-color: rgba(22, 21, 19, 0.43);
+  --lumo-contrast: #161513;
+  --lumo-contrast-90pct: rgba(22, 21, 19, 0.9);
+  --lumo-contrast-80pct: rgba(22, 21, 19, 0.8);
+  --lumo-contrast-70pct: rgba(22, 21, 19, 0.7);
+  --lumo-contrast-60pct: rgba(22, 21, 19, 0.6);
+  --lumo-contrast-50pct: rgba(22, 21, 19, 0.5);
+  --lumo-contrast-40pct: rgba(22, 21, 19, 0.4);
+  --lumo-contrast-30pct: rgba(22, 21, 19, 0.3);
+  --lumo-contrast-20pct: rgba(22, 21, 19, 0.2);
+  --lumo-contrast-10pct: rgba(22, 21, 19, 0.1);
+  --lumo-contrast-5pct: rgba(22, 21, 19, 0.05);
+  --lumo-border-radius-s: 2px;
+  --lumo-border-radius-m: 4px;
+  --lumo-border-radius-l: 6px;
+  --lumo-font-family: 'Oracle Sans', sans-serif;
+  --lumo-font-size-xs: 0.75rem;
+  --lumo-font-size-s: 0.859rem;
+  --lumo-font-size-m: 1rem;
+  --lumo-font-size-l: 1.25rem;
+  --lumo-font-size-xl: 1.5rem;
+  --lumo-font-size-xxl: 1.75rem;
+  --lumo-line-height-m: 1.5;
+  --lumo-line-height-s: 1.35;
+  --lumo-space-xs: 0.25rem;
+  --lumo-space-s: 0.5rem;
+  --lumo-space-m: 1rem;
+  --lumo-space-l: 1.5rem;
+  --lumo-space-xl: 2rem;
+  --lumo-size-m: 2.75rem;   /* Redwood control height: 44px */
+  --lumo-size-s: 2.25rem;
+  --lumo-size-xs: 1.75rem;
+  --lumo-icon-size-s: 16px;
+  --lumo-icon-size-m: 20px;
+}
+
+/* --------------------------------------------------------------------------
+ * mateu-page design hooks: canvas-colored header + the Redwood color strip
+ * ------------------------------------------------------------------------ */
+:root {
+  --mateu-page-header-bg: #f1efed;
+  --mateu-page-band-h: 6px;
+  --mateu-page-band-image: url('/assets/redwood-color-strip.png');
+}
+
+/* The app shell canvas */
+mateu-ui {
+  background-color: #f1efed;
+}
+
+/* Page content width (RDS page templates: capped at 1408px, 24px gutters) */
+mateu-page .page-body,
+mateu-page .page-header-wrap > * {
+  max-width: 1408px;
+}
+
+/* --------------------------------------------------------------------------
+ * Hand-built Redwood pieces (cards, read-only fields, table chrome, pagination)
+ * ------------------------------------------------------------------------ */
+
+.mateu-oj-card {
+  background: #ffffff;
+  border: 1px solid rgba(22, 21, 19, 0.12);
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-sizing: border-box;
+}
+
+.mateu-oj-card + .mateu-oj-card {
+  margin-top: 16px;
+}
+
+.mateu-oj-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mateu-oj-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #161513;
+}
+
+.mateu-oj-card-subtitle {
+  font-size: 0.859rem;
+  color: rgba(22, 21, 19, 0.70);
+  margin-top: 2px;
+}
+
+.mateu-oj-card-content {
+  min-width: 0;
+}
+
+.mateu-oj-card-footer {
+  margin-top: 12px;
+  border-top: 1px solid rgba(22, 21, 19, 0.12);
+  padding-top: 12px;
+}
+
+.mateu-oj-card-media img {
+  width: 100%;
+  display: block;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Read-only field (Redwood read-only pattern: small label over plain value) */
+.mateu-oj-field-ro {
+  min-width: 0;
+  padding: 6px 0;
+}
+
+.mateu-oj-field-ro-label {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(22, 21, 19, 0.70);
+  margin-bottom: 2px;
+}
+
+.mateu-oj-field-ro-value {
+  font-size: 1rem;
+  color: #161513;
+}
+
+.mateu-oj-field-help {
+  font-size: 0.75rem;
+  color: rgba(22, 21, 19, 0.70);
+  margin-top: 4px;
+}
+
+.mateu-oj-toggle,
+.mateu-oj-datetime,
+.mateu-oj-upload {
+  min-width: 0;
+}
+
+.mateu-oj-datetime {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mateu-oj-upload-preview {
+  max-width: 240px;
+  max-height: 180px;
+  object-fit: contain;
+  border: 1px solid rgba(22, 21, 19, 0.12);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.mateu-oj-colorswatch {
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  border: 1px solid rgba(22, 21, 19, 0.3);
+  border-radius: 4px;
+}
+
+.mateu-oj-richtext {
+  min-width: 0;
+}
+
+/* Table chrome */
+.mateu-oj-tablewrap {
+  background: #ffffff;
+  border: 1px solid rgba(22, 21, 19, 0.12);
+  border-radius: 8px;
+  padding: 4px 8px 8px;
+}
+
+.mateu-oj-table {
+  width: 100%;
+}
+
+.mateu-oj-table-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: rgba(22, 21, 19, 0.70);
+}
+
+.mateu-oj-cell-right {
+  text-align: right;
+}
+
+.mateu-oj-sortbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 8px 4px;
+}
+
+.mateu-oj-sortbar:empty {
+  display: none;
+}
+
+.mateu-oj-sortchip {
+  font-family: 'Oracle Sans', sans-serif;
+  font-size: 0.859rem;
+  color: #0e7297;
+  background: transparent;
+  border: 1px solid rgba(22, 21, 19, 0.2);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.mateu-oj-sortchip.is-active {
+  background: rgba(34, 126, 158, 0.1);
+  border-color: #227e9e;
+  font-weight: 700;
+}
+
+.mateu-oj-sortchip:hover {
+  background: rgba(34, 126, 158, 0.06);
+}
+
+/* Pagination */
+.mateu-oj-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 4px;
+}
+
+.mateu-oj-pagination-info {
+  font-size: 0.859rem;
+  color: rgba(22, 21, 19, 0.70);
+  margin-right: auto;
+}
+
+/* Cards-grid crud layout (the catalog pattern) */
+.mateu-oj-cardsgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.mateu-oj-rowcard {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+
+.mateu-oj-rowcard:hover {
+  box-shadow: 0 2px 8px rgba(22, 21, 19, 0.18);
+}
+
+.mateu-oj-rowcard-field {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+/* Scoreboard: metric cards in a responsive row */
+.mateu-oj-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Tabs: mateu-oj-tabs is light DOM, so Lit appends the tab bar AFTER the projected panels;
+   flex + order keeps the strip visually on top. */
+mateu-oj-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+mateu-oj-tabs > oj-c-tab-bar {
+  order: -1;
+}
+
+/* Tabs content spacing */
+.mateu-oj-tab-content {
+  padding-top: 16px;
+}
+
+/* Accordion spacing */
+.mateu-oj-accordion > oj-c-collapsible {
+  margin-bottom: 8px;
+}
+
+.mateu-oj-accordion-body {
+  padding: 12px 16px;
+}
+
+/* Chart slab */
+.mateu-oj-chart {
+  background: #ffffff;
+  border: 1px solid rgba(22, 21, 19, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+  display: inline-block;
+  min-width: 320px;
 }

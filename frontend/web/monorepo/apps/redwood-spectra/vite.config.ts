@@ -29,13 +29,17 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: {
-      // Dev server proxies the Mateu backend (the explorer service runs on :8595).
-      '/fluent/mateu': 'http://localhost:8595',
-      '/mateu': 'http://localhost:8595',
-      '/myassets': 'http://localhost:8595',
-      '/sse': 'http://localhost:8595',
-      '/upload': 'http://localhost:8595',
-    },
+    proxy: Object.fromEntries([
+      // Dev server proxies the Mateu backend (demo-admin-panel runs on :8592).
+      // Same "vaadin style" shape the other renderer apps use, so e2e/conformance.sh can
+      // inject its '^/.*/mateu/v3' entry and retarget everything at the SUT.
+      '/fluent/mateu',
+      '/mateu',
+      '/myassets',
+      '/sse',
+      // Regex (not the '/upload' prefix): the file-upload endpoint is exactly /upload, and a
+      // prefix entry would also swallow the /uploadable-image SPA route (vite prefix matching).
+      '^/upload$',
+    ].map(path => [path, { target: 'http://localhost:8592' }])),
   },
 })

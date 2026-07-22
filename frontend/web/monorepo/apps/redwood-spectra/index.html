@@ -10,7 +10,15 @@
   <!-- Oracle Redwood theme + fonts, from Oracle's public CDN (referenced, NOT bundled).
        Same source the Spectra Shell / Visual Builder pages use. -->
   <link rel="stylesheet" id="redwoodcss"
-        href="https://static.oracle.com/cdn/jet/19.0.0/default/css/redwood/oj-redwood-min.css">
+        href="https://static.oracle.com/cdn/jet/19.0.0-2604.8/default/css/redwood/oj-redwood-min.css">
+  <!-- The oj-c/oj-sp components read --oj-c-EXPERIMENTAL-DO-NOT-USE-* custom properties, which
+       oj-redwood-min.css does NOT define. Oracle serves them as two separate stylesheets:
+       theme.styles.css (the Redwood palette) + Theme-redwood/theme.css (the per-component
+       mappings). Both are required for real Redwood chrome (verified against Oracle's CDN). -->
+  <link rel="stylesheet" id="redwood-preact-palette"
+        href="https://static.oracle.com/cdn/jet/19.0.0-2604.8/3rdparty/oraclejet-preact/amd/Common/themes/redwood/theme.styles.css">
+  <link rel="stylesheet" id="redwood-preact-theme"
+        href="https://static.oracle.com/cdn/jet/19.0.0-2604.8/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css">
   <link rel="stylesheet" id="oraclefont"
         href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css">
   <link rel="stylesheet" id="uxiconfont"
