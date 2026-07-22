@@ -1,31 +1,20 @@
 import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import '@vaadin/details'
-import '@vaadin/scroller'
-import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
-import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
-import { AppLayout } from "@vaadin/app-layout";
+
+// DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
+// (sapui5 overrides the rendering methods; the Vaadin renderer's chrome now renders neutrally too.)
+export type MenuBarItem = { text?: string; route?: string; checked?: boolean; disabled?: boolean; className?: string; component?: unknown; children?: MenuBarItem[]; [key: string]: unknown }
+type MenuBarItemSelectedEvent = CustomEvent<{ value: MenuBarItem }>
+type AppLayout = HTMLElement & { drawerOpened?: boolean }
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
@@ -317,7 +306,7 @@ export class MateuApp extends ComponentElement {
             <div class="cmd-backdrop" @click=${() => { this.commandPaletteOpen = false; this.commandPaletteQuery = '' }}>
                 <div class="cmd-palette" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="cmd-search-wrapper">
-                        <vaadin-icon icon="vaadin:search" class="cmd-search-icon"></vaadin-icon>
+                        <span class="cmd-search-icon" aria-hidden="true">⌕</span>
                         <input
                             class="cmd-input"
                             placeholder="Go to…"
@@ -390,7 +379,7 @@ export class MateuApp extends ComponentElement {
                 }}
             >
                 ${option.icon
-                    ? html`<vaadin-icon icon="${option.icon}" class="rail-icon"></vaadin-icon>`
+                    ? html`<span class="rail-icon" aria-hidden="true"></span>`
                     : html`<div class="rail-icon-placeholder">${option.label.charAt(0).toUpperCase()}</div>`
                 }
                 <span class="rail-label">${option.label}</span>
@@ -433,7 +422,7 @@ export class MateuApp extends ComponentElement {
                                 }
                             }}
                         >
-                            ${sub.icon ? html`<vaadin-icon icon="${sub.icon}" style="font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;"></vaadin-icon>` : nothing}
+                            ${sub.icon ? html`<span style="font-size: 1.5rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;" aria-hidden="true">▸</span>` : nothing}
                             <div class="nav-tile-title">${sub.label}</div>
                             ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
                         </div>
@@ -574,19 +563,20 @@ export class MateuApp extends ComponentElement {
     renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
-                <vaadin-details summary="${option.label}" theme="reverse">
-                    <vaadin-vertical-layout>
+                <details class="left-menu-group">
+                    <summary>${option.label}</summary>
+                    <div style="display: flex; flex-direction: column;">
                         ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
-                    </vaadin-vertical-layout>
-                </vaadin-details>
+                    </div>
+                </details>
 `
         }
-        return html`<vaadin-button theme="tertiary" 
+        return html`<button class="left-menu-item"
                 @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
-        >${option.label}</vaadin-button>`
+        >${option.label}</button>`
     }
 
-    @query('vaadin-app-layout')
+    @query('.mateu-app-layout')
     vaadinAppLayout: AppLayout | undefined
 
     navItemSelected = (e: Event & {
@@ -623,18 +613,13 @@ export class MateuApp extends ComponentElement {
                 return html`
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
-                                <vaadin-side-nav-item
-                                .path="${(item.route && !item.children)?item.route:undefined}"
-                                .pathAliases="${[this.baseUrl + (item.route?item.route:'')]}"
-                                slot="${slot}"
-                                ?expanded="${item.selected}"
-                                >
-                                    ${item.icon?html`
-                                        <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
-                                    `:nothing}
-                                    ${item.text}
-                                    ${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}
-                                </vaadin-side-nav-item>
+                                <div class="side-nav-item ${item.selected?'side-nav-item--active':''}" slot="${slot}">
+                                    <button class="side-nav-link"
+                                            @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
+                                        ${item.text}
+                                    </button>
+                                    ${item.children ? html`<div class="side-nav-children">${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}</div>` : nothing}
+                                </div>
                         `}
 
                             `})}`:nothing
@@ -686,6 +671,52 @@ export class MateuApp extends ComponentElement {
     }
 
     static styles = css`
+        /* DS-neutral app chrome (replaces vaadin-app-layout / menu-bar / tabs / side-nav). */
+        .m-hl { display: flex; flex-direction: row; }
+        .m-vl { display: flex; flex-direction: column; }
+        .m-scroll { overflow: auto; }
+        .m-md { display: flex; width: 100%; height: 100%; }
+        .m-md > .m-scroll { flex: 1; min-width: 0; }
+        .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
+        .m-app-layout > .app-navbar { display: flex; align-items: center; gap: .5rem; height: 4rem; flex-shrink: 0; padding: 0 .75rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        .m-app-layout > .app-body { display: flex; flex: 1; min-height: 0; }
+        .app-drawer { width: 16rem; flex-shrink: 0; overflow: auto; border-right: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); padding: .5rem 0; }
+        .m-app-layout:not(.drawer-open) > .app-body > .app-drawer { display: none; }
+        .drawer-toggle { border: none; background: transparent; font-size: 1.2rem; cursor: pointer; padding: .3rem .5rem; border-radius: var(--lumo-border-radius-m, 6px); }
+        .drawer-toggle:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+        .drawer-search { padding: .4rem .6rem; border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.2)); border-radius: var(--lumo-border-radius-m, 6px); box-sizing: border-box; font: inherit; }
+
+        /* top nav (menu-on-top) */
+        .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }
+        .app-nav-item { border: none; background: transparent; font: inherit; padding: .4rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); cursor: pointer; color: var(--lumo-body-text-color, #1a1a1a); white-space: nowrap; }
+        .app-nav-item:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+        .app-nav-item.active { color: var(--lumo-primary-text-color, #1676f3); font-weight: 600; }
+        .app-nav-group { position: relative; }
+        .app-nav-group > summary { list-style: none; cursor: pointer; }
+        .app-nav-group[open] > summary::after { content: ''; }
+        .app-nav-dropdown { position: absolute; z-index: 50; display: flex; flex-direction: column; min-width: 11rem; padding: .3rem; background: var(--lumo-base-color, #fff); border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); border-radius: var(--lumo-border-radius-m, 8px); box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.15)); }
+        .app-nav-dropdown .app-nav-item { text-align: left; }
+
+        /* header action buttons + icon buttons */
+        .app-action-btn { font: inherit; font-weight: 600; padding: .35rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); border: 1px solid transparent; cursor: pointer; }
+        .app-action-btn.primary { background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); }
+        .app-icon-btn { border: none; background: transparent; cursor: pointer; font-size: 1.1rem; padding: .3rem .5rem; border-radius: var(--lumo-border-radius-m, 6px); line-height: 1; }
+        .app-icon-btn:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+
+        /* tabs variant */
+        .app-tabs { display: flex; gap: .1rem; align-items: flex-end; }
+        .app-tab { border: none; background: transparent; font: inherit; padding: .6rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; color: var(--lumo-secondary-text-color, #667); }
+        .app-tab.active { color: var(--lumo-primary-text-color, #1676f3); border-bottom-color: var(--lumo-primary-color, #1676f3); font-weight: 600; }
+
+        /* side nav (hamburger drawer) + left menu (tiles) */
+        .side-nav-item { display: flex; flex-direction: column; }
+        .side-nav-link { text-align: left; border: none; background: transparent; font: inherit; padding: .5rem 1rem; cursor: pointer; color: inherit; }
+        .side-nav-link:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+        .side-nav-item--active > .side-nav-link { color: var(--lumo-primary-text-color, #1676f3); font-weight: 600; }
+        .side-nav-children { padding-left: 1rem; }
+        .left-menu-item { display: block; width: 100%; text-align: left; border: none; background: transparent; font: inherit; padding: .5rem .75rem; cursor: pointer; border-radius: var(--lumo-border-radius-m, 6px); color: inherit; }
+        .left-menu-item:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+        .left-menu-group > summary { cursor: pointer; padding: .5rem .75rem; font-weight: 600; }
 
         .app-content {
             padding-left: 2rem;

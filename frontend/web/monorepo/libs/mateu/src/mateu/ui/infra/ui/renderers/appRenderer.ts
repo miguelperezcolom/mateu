@@ -1,13 +1,12 @@
 import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
-import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import "@infra/ui/mateu-vaadin-app-context-picker.ts";
+import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
-import { Notification } from "@vaadin/notification";
-import "@vaadin/menu-bar";
+import { notify } from "@application/Notifier.ts";
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -23,7 +22,7 @@ const runHeaderAction = async (metadata: App, container: MateuApp, actionId: str
     try {
         await dispatchAppHeaderAction(metadata, container, actionId)
     } catch (e) {
-        Notification.show('La acción falló: ' + e, { position: 'bottom-start', duration: 6000, theme: 'error' })
+        notify({ text: 'La acción falló: ' + e, position: 'bottomStart', duration: 6000, variant: 'error' }, container)
     }
 }
 
@@ -33,26 +32,40 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled) return nothing
     return html`${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
-        <mateu-vaadin-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-vaadin-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
-        <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
-            .items="${[{ text: action.label, children: action.children!.map(child => ({ text: child.label, actionId: child.actionId })) }]}"
-            @item-selected="${(e: CustomEvent) => {
-                const id = (e.detail?.value as { actionId?: string } | undefined)?.actionId
-                if (id) runHeaderAction(metadata, container, id)
-            }}"></vaadin-menu-bar>` : html`
-        <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">
-            ${action.icon ? html`<vaadin-icon icon="${action.icon}" slot="prefix"></vaadin-icon>` : nothing}${action.label}
-        </vaadin-button>`)}`
+        <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
+        <details class="app-nav-group" style="margin-left: 0.5rem; flex-shrink: 0;">
+            <summary class="app-action-btn primary">${action.label}</summary>
+            <div class="app-nav-dropdown">
+                ${action.children!.map(child => html`<button class="app-nav-item" @click="${() => child.actionId && runHeaderAction(metadata, container, child.actionId)}">${child.label}</button>`)}
+            </div>
+        </details>` : html`
+        <button class="app-action-btn primary" style="margin-left: 0.5rem; flex-shrink: 0;"
+            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.label}</button>`)}`
 }
+
+// DS-neutral top navigation from the app menu items (was a vaadin-menu-bar). Reuses the existing
+// itemSelected handler by synthesizing its { detail: { value } } event shape.
+const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls = '') => html`
+    <div class="app-nav ${cls}">
+        ${items.map(item => (item.children && (item.children as MenuBarItem[]).length) ? html`
+            <details class="app-nav-group">
+                <summary class="app-nav-item">${item.text}</summary>
+                <div class="app-nav-dropdown">
+                    ${(item.children as MenuBarItem[]).map(child => html`
+                        <button class="app-nav-item" @click="${() => onSelect(child)}">${child.text}</button>`)}
+                </div>
+            </details>` : html`
+            <button class="app-nav-item ${item.checked ? 'active' : ''}" @click="${() => onSelect(item)}">${item.text}</button>`)}
+    </div>`
+
+const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
+    handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
 
 const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
-        <vaadin-button theme="tertiary icon" @click="${container.toggleTheme}"
+        <button class="app-icon-btn" @click="${container.toggleTheme}"
             title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
-            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
-            <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
-        </vaadin-button>
+            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">${container.isDark ? '☀' : '🌙'}</button>
     ` : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
@@ -122,8 +135,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
         return html`
             <div class="app chromeless">
                 <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="height: 100%;">
-                    <vaadin-master-detail-layout>
-                        <vaadin-scroller style="height: 100%;">
+                    <div class="m-md">
+                        <div class="m-scroll" style="height: 100%;">
                             <mateu-api-caller>
                                 <mateu-ux
                                         route="${chooseRoute(_state, container, metadata)}"
@@ -139,9 +152,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                        </vaadin-scroller>
+                        </div>
                         ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                    </vaadin-master-detail-layout>
+                    </div>
                 </div>
                 <slot></slot>
             </div>
@@ -160,7 +173,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     ${metadata.variant == AppVariant.MEDIATOR?html`
 
                         ${metadata.layout == 'SPLIT'?html`
-                            <vaadin-master-detail-layout>
+                            <div class="m-md">
                                 <mateu-api-caller>
                                     <div style="display: block; width: calc(100% - 1rem);">
                                     <mateu-ux
@@ -196,7 +209,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     </div>
                                 </mateu-api-caller>
 
-                            </vaadin-master-detail-layout>
+                            </div>
                         `:html`
                             <mateu-api-caller>
                                 <mateu-ux
@@ -218,79 +231,74 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         
 `:nothing}
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
-                <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
-                    <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
-                    <h2 slot="navbar" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
-                    <vaadin-horizontal-layout slot="navbar" style="margin-left: auto; align-items: center;">
-                        <slot name="widgets"></slot>
-                        ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
-                    </vaadin-horizontal-layout>
-                    <vaadin-scroller slot="drawer" class="p-s"
-                                     @navigation-requested="${container.updateRoute}">
-                        ${metadata.menu && metadata.totalMenuOptions > 10?html`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e:any) => filterMenu(e, container)}">
-                                <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
-                            </vaadin-text-field>
-                            `:nothing}
-
-                        <vaadin-side-nav .onNavigate="${container.navItemSelected}">
-                            ${container.renderSideNav(items, undefined)}
-                        </vaadin-side-nav>
-                    </vaadin-scroller>
-                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
-                                <mateu-api-caller>
-                                    <mateu-ux
-                                            route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
-                                            baseUrl="${chooseBaseUrl(container, metadata)}"
-                                            consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                            serverSideType="${chooseAppServerSideType(container, metadata)}"
-                                            uriPrefix="${chooseUriPrefix(container, metadata)}"
-                                            style="width: 100%;"
-                                            .appState="${appState}"
-                                            .appData="${appData}"
-                                            instant="${container.instant}"
-                                            @navigation-requested="${container.updateRoute}"
-                                    ></mateu-ux>
-                                </mateu-api-caller>
-                            </vaadin-scroller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
+                    <header class="app-navbar">
+                        <button class="drawer-toggle" title="Menu"
+                                @click="${(e: Event) => (e.target as HTMLElement).closest('.m-app-layout')?.classList.toggle('drawer-open')}">☰</button>
+                        <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${metadata.title}</h2><p style="margin: 0;">${metadata.subtitle}</p>
+                        <div class="m-hl" style="margin-left: auto; align-items: center;">
+                            <slot name="widgets"></slot>
+                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                        </div>
+                    </header>
+                    <div class="app-body">
+                        <aside class="app-drawer p-s" @navigation-requested="${container.updateRoute}">
+                            ${metadata.menu && metadata.totalMenuOptions > 10?html`
+                                <input class="drawer-search" placeholder="⌕ Search…" style="width: calc(100% - 20px); margin: 0 10px;"
+                                       @input="${(e: any) => filterMenu({ detail: { value: e.target.value } } as CustomEvent, container)}">
+                                `:nothing}
+                            <nav class="side-nav">
+                                ${container.renderSideNav(items, undefined)}
+                            </nav>
+                        </aside>
+                        <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="flex: 1; min-width: 0;">
+                            <div class="m-md">
+                                <div class="m-scroll" style="height: 100%;">
+                                    <mateu-api-caller>
+                                        <mateu-ux
+                                                route="${chooseRoute(_state, container, metadata)}"
+                                                id="ux_${container.id}"
+                                                baseUrl="${chooseBaseUrl(container, metadata)}"
+                                                consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                                serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                                uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                                style="width: 100%;"
+                                                .appState="${appState}"
+                                                .appData="${appData}"
+                                                instant="${container.instant}"
+                                                @navigation-requested="${container.updateRoute}"
+                                        ></mateu-ux>
+                                    </mateu-api-caller>
+                                </div>
+                                ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            </div>
+                        </div>
                     </div>
-                </vaadin-app-layout>
+                </div>
 
             `:nothing}
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
-                <vaadin-vertical-layout style="width: 100%; height: 100vh; overflow: hidden;">
-                    <vaadin-horizontal-layout
+                <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
+                    <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             theme="spacing"
                             @navigation-requested="${container.updateRoute}">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <vaadin-horizontal-layout style="align-items: center;">
+                        <div class="m-hl" style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </vaadin-horizontal-layout>
+                        </div>
                         </a>
-                        <vaadin-menu-bar
-                                .items="${items}"
-                                @item-selected="${container.itemSelected}"
-                                theme="dropdown-indicators"
-                                style="flex-grow: 1; min-width: 0; margin-left: 4rem; margin-top: 1.3rem;"
-                                class="menu"
-                        >
-                        </vaadin-menu-bar>
-                        <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
+                        ${renderNeutralNav(items, fireSelect(container, container.itemSelected), 'menu-on-top')}
+                        <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
-                        </vaadin-horizontal-layout>
-                    </vaadin-horizontal-layout>
+                        </div>
+                    </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
@@ -306,43 +314,36 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
-                            </vaadin-scroller>
+                            </div>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                        </div>
                     </div>
-                </vaadin-vertical-layout>
+                </div>
 
             `:nothing}
 
             ${metadata.variant == AppVariant.TILES?html`
-                <vaadin-vertical-layout style="width: 100%; height: 100vh; overflow: hidden;">
-                    <vaadin-horizontal-layout
+                <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
+                    <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             theme="spacing"
                             @navigation-requested="${container.updateRoute}">
                         <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <vaadin-horizontal-layout style="align-items: center;">
+                        <div class="m-hl" style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </vaadin-horizontal-layout>
+                        </div>
                         </a>
-                        <vaadin-menu-bar
-                                .items="${container.mapItemsForTiles(metadata.menu)}"
-                                @item-selected="${container.itemSelectedTiles}"
-                                theme="dropdown-indicators"
-                                style="flex-grow: 1; min-width: 0; margin-left: 4rem; margin-top: 1.3rem;"
-                                class="menu"
-                        >
-                        </vaadin-menu-bar>
-                        <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
+                        ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
+                        <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
-                        </vaadin-horizontal-layout>
-                    </vaadin-horizontal-layout>
+                        </div>
+                    </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
@@ -358,12 +359,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
-                            </vaadin-scroller>
+                            </div>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                        </div>
                         `}
                     </div>
-                </vaadin-vertical-layout>
+                </div>
             `:nothing}
 
             ${metadata.variant == AppVariant.RAIL?html`
@@ -371,8 +372,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     ${container.renderRail(metadata.menu)}
                     ${container.railOpenOption ? container.renderRailSubPanel(container.railOpenOption) : nothing}
                     <div style="flex: 1; overflow: hidden; padding: 2rem 2rem 0; height: 100vh; box-sizing: border-box; background-color: var(--lumo-contrast-10pct);">
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
@@ -388,26 +389,26 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
-                            </vaadin-scroller>
+                            </div>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                        </div>
                     </div>
                 </div>
             `:nothing}
 
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
-                <vaadin-horizontal-layout>
-                    <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
-                        <vaadin-vertical-layout
+                <div class="m-hl">
+                    <div class="m-scroll" style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
+                        <div class="m-vl"
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
-                        </vaadin-vertical-layout>
-                    </vaadin-scroller>
+                        </div>
+                    </div>
                     <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
@@ -423,11 +424,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
-                            </vaadin-scroller>
+                            </div>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                        </div>
                     </div>
-                </vaadin-horizontal-layout>
+                </div>
 
 
             `:nothing}
@@ -441,36 +442,31 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
                 <div>
                     <div>
-                        <vaadin-horizontal-layout 
+                        <div class="m-hl" 
                                 style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
                             <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                            <vaadin-horizontal-layout style="align-items: center;">
+                            <div class="m-hl" style="align-items: center;">
                                 ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                                 ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                            </vaadin-horizontal-layout>
+                            </div>
                             </a>
-                            <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
-                                         style="box-shadow: unset; flex-grow: 1; min-width: 0;"
-                                         class="${container.component?.cssClasses}">
-                                ${metadata.menu.map(option => {
-                                    return html`
-                                <vaadin-tab 
+                            <div class="app-tabs" style="flex-grow: 1; min-width: 0;">
+                                ${metadata.menu.map((option, i) => html`
+                                <button class="app-tab ${i === container.getSelectedIndex(metadata.menu) ? 'active' : ''}"
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
-                                >${option.label}</vaadin-tab>
-                            `
-                                })}
-                            </vaadin-tabs>
-                            <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
+                                >${option.label}</button>`)}
+                            </div>
+                            <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
                                 ${renderContextSelectors(metadata, container)}
-                            </vaadin-horizontal-layout>
-                        </vaadin-horizontal-layout>
+                            </div>
+                        </div>
                     </div>
                     <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
-                        <vaadin-master-detail-layout>
-                            <vaadin-scroller style="height: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
@@ -486,9 +482,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
-                            </vaadin-scroller>
+                            </div>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
-                        </vaadin-master-detail-layout>
+                        </div>
                     </div>
                 </div>
             
@@ -498,12 +494,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <button class="app-fab" style="bottom: ${(metadata.sseUrl ? 5.5 : 1.5) + idx * 4}rem; right: 1.5rem;"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
-                    <vaadin-icon icon="${fab.icon}"></vaadin-icon>
+                    <span aria-hidden="true">+</span>
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
                 <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
-                    <vaadin-icon icon="vaadin:comments-o"></vaadin-icon>
+                    <span aria-hidden="true">💬</span>
                 </button>
             ` : nothing}
             ${container.renderCommandPalette()}
