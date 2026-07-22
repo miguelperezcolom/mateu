@@ -1,2 +1,5 @@
 node_modules
 dist
+
+# VBCS export reference app — generated Grunt/component-exchange output (80M+ of Oracle assets)
+apps/redwood/build
