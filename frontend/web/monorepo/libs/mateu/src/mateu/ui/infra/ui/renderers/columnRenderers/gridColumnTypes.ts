@@ -4,7 +4,7 @@
  * core to Vaadin at the source level and on the core-clean ratchet).
  *
  * At runtime the grid still passes its own objects (vaadin's GridItemModel and the
- * <vaadin-grid-column> element); these are structural supertypes covering exactly what the
+ * vaadin-grid-column element); these are structural supertypes covering exactly what the
  * renderers read (`item`, `index`, the column's `path`, and any `xcolumn` payload attached to it).
  */
 

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" class="oj-html" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQUIELTITULODELAPAGINA</title>
+  <!-- AQUIFAVICON -->
+
+  <!-- Oracle Redwood theme + fonts, from Oracle's public CDN (referenced, NOT bundled).
+       Same source the Spectra Shell / Visual Builder pages use. -->
+  <link rel="stylesheet" id="redwoodcss"
+        href="https://static.oracle.com/cdn/jet/19.0.0/default/css/redwood/oj-redwood-min.css">
+  <link rel="stylesheet" id="oraclefont"
+        href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css">
+  <link rel="stylesheet" id="uxiconfont"
+        href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css">
+
+  <link rel="stylesheet" href="/src/index.css">
+
+  <!-- The oj bootstrap (require.config against the Oracle CDN + OJET/Spectra load) runs first;
+       it loads the Vite ESM entry (src/index.ts) and mounts the Lit root once OJET is ready. -->
+  <script type="module" src="/src/oj-bootstrap.ts"></script>
+</head>
+
+<!-- data-oj-binding-provider="preact" is REQUIRED: the oj-c-* (VComponents) silently do not
+     render without it (see project note). -->
+<body class="oj-body oj-web-applayout-body" data-oj-binding-provider="preact">
+  <div id="landing-loader" class="oj-flex oj-sm-justify-content-center oj-sm-padding-8x">Loading…</div>
+
+  <!-- The Lit root (<mateu-ui>) is mounted here by src/oj-bootstrap.ts AFTER the Oracle JET AMD
+       modules have loaded and the preact binding provider is set (mounting it before OJET is ready
+       means oj-c-* never upgrade). -->
+  <div id="ui-container" style="display:none;"></div>
+
+  <!-- The AP-generated controllers inject the routed <mateu-ui baseUrl="/route"> between these
+       markers, into an inert <template> that the bootstrap adopts into #ui-container. -->
+  <template id="mateu-ui-holder">
+    <!-- AQUIUI -->
+    <!-- HASTAAQUIUI -->
+  </template>
+</body>
+</html>

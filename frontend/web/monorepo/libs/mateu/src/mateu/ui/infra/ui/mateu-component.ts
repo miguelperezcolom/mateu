@@ -690,7 +690,7 @@ export class MateuComponent extends ComponentElement {
 
 
     // Select a tab whose @Tab(shortcut=...) matches the keystroke. The shortcut travels in the
-    // DOM as data-shortcut on each <vaadin-tab>, so this is a pure DOM lookup scoped to this
+    // DOM as data-shortcut on each vaadin-tab, so this is a pure DOM lookup scoped to this
     // component's render root (nested mateu-components keep their own tabs in their own shadow root).
     private _collectShortcutTabs(): HTMLElement[] {
         const root = this.renderRoot

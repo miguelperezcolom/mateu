@@ -49,3 +49,11 @@ import '@vaadin/board'
 import '@vaadin/text-field'
 import '@vaadin/side-nav'
 import '@vaadin/details'
+
+// Vaadin master-detail-layout feature flag. Lives HERE (the Vaadin adapter), not in the neutral
+// core — importing '@vaadin/*' above defines window.Vaadin, so the flag is safe to set now. Moved
+// out of mateu-ux.ts as part of keeping the core 0-Vaadin (a non-Vaadin renderer crashed on it).
+{
+  const V = (window as any).Vaadin
+  if (V) (V.featureFlags ??= {}).masterDetailLayoutComponent = true
+}

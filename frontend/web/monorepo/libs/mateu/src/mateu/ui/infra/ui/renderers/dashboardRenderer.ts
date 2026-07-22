@@ -4,6 +4,7 @@ import DashboardPanel from "@mateu/shared/apiClients/dtos/componentmetadata/Dash
 import DashboardLayout from "@mateu/shared/apiClients/dtos/componentmetadata/DashboardLayout";
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
 const cardSurface = `
@@ -51,7 +52,7 @@ export const renderMetricCard = (component: ClientSideComponent) => {
         >
             <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666);">${metadata.title}</span>
-                ${metadata.icon?html`<vaadin-icon icon="${metadata.icon}" style="color: var(--lumo-tertiary-text-color, #999); width: 1.1em; height: 1.1em;"></vaadin-icon>`:nothing}
+                ${metadata.icon?icon(metadata.icon, 'color: var(--lumo-tertiary-text-color, #999); width: 1.1em; height: 1.1em;'):nothing}
             </div>
             <div style="display: flex; align-items: baseline; gap: .35rem;">
                 <span style="font-size: var(--lumo-font-size-xxxl, 2rem); font-weight: 600; line-height: 1.1;">${metadata.value}</span>

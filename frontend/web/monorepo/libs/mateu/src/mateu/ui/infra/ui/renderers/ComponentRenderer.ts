@@ -43,6 +43,15 @@ export interface ComponentRenderer {
      * element). Absent → mateu-content-header renders its default vaadin-button arrows.
      */
     renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult
+
+    /**
+     * A single icon by wire name (e.g. 'vaadin:plus', 'lumo:menu'). This is the "icon port": the core
+     * renderers never emit a design-system icon element directly — they call the shared `icon()` helper
+     * (renderers/neutralIcon.ts), which delegates here. The Vaadin adapter maps the name to a vaadin-icon element;
+     * a DS renderer maps it to its own iconset (or its neutral placeholder). Absent → the neutral
+     * fallback (a semantic <span data-icon> placeholder with no glyph).
+     */
+    renderIcon?(icon: string, style?: string, cssClasses?: string): TemplateResult
 }
 
 export class ComponentRendererSingleton {

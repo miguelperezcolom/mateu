@@ -6,6 +6,10 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts"
 import { renderVirtualList } from "./renderers/renderVirtualList"
 import { renderNotification } from "./renderers/renderNotification"
+import { renderProgressBar } from "./renderers/renderProgressBar"
+import { renderDetails } from "./renderers/renderDetails"
+import { renderAvatar, renderAvatarGroup } from "./renderers/renderAvatar"
+import { renderCard } from "./renderers/renderCard"
 import * as vLayouts from "./renderers/renderLayouts"
 import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
 import { renderField } from "./fields/renderField"
@@ -14,6 +18,10 @@ import { renderTableElement, renderCrudTable } from "./grid/renderTable"
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderPopover } from "./renderers/renderPopover"
 import { renderVaadinToolbarButton, renderVaadinPeerNav } from "./renderers/renderToolbarButton"
+import { renderVaadinIcon } from "./renderers/renderIcon"
+import { renderButton as renderVaadinButton } from "./renderers/renderButton"
+import { renderMessageInput as renderVaadinMessageInput, renderMessageList as renderVaadinMessageList } from "./renderers/renderMessages"
+import { renderConfirmDialog as renderVaadinConfirmDialog } from "./renderers/renderConfirmDialog"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -37,6 +45,15 @@ type WidgetRenderer = (
 const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.VirtualList]: (c, comp, b, s, d, as, ad) => renderVirtualList(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Notification]: (_c, comp) => renderNotification(comp),
+    [ComponentMetadataType.ProgressBar]: (_c, comp, _b, s) => renderProgressBar(comp, s),
+    [ComponentMetadataType.Details]: (c, comp, b, s, d, as, ad) => renderDetails(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Avatar]: (_c, comp, _b, s, d) => renderAvatar(comp, s, d),
+    [ComponentMetadataType.AvatarGroup]: (_c, comp) => renderAvatarGroup(comp),
+    [ComponentMetadataType.Card]: (c, comp, b, s, d, as, ad) => renderCard(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Button]: (_c, comp, _b, s, d) => renderVaadinButton(comp, s, d),
+    [ComponentMetadataType.MessageInput]: (_c, comp) => renderVaadinMessageInput(comp),
+    [ComponentMetadataType.MessageList]: (_c, comp) => renderVaadinMessageList(comp),
+    [ComponentMetadataType.ConfirmDialog]: (c, comp, b, s, d, as, ad) => renderVaadinConfirmDialog(c, comp, b, s, d, as, ad),
     // Layout subsystem (moved from the core switch — pixel-perfect vaadin-* layout elements)
     [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderFormLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.HorizontalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderHorizontalLayout(c, comp, b, s, d, as, ad),
@@ -90,6 +107,11 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
 
     renderPeerNav(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult {
         return renderVaadinPeerNav(peerNav)
+    }
+
+    // Icon port → vaadin-icon (the core `icon()` helper delegates here; core stays @vaadin-free).
+    renderIcon(icon: string, style?: string, cssClasses?: string): TemplateResult {
+        return renderVaadinIcon(icon, style, cssClasses)
     }
 
 }

@@ -5,6 +5,7 @@ import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageC
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab.ts";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 
 export const renderPage = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, standalone?: boolean) => {
     const metadata = component.metadata as PageComponent
@@ -38,7 +39,7 @@ export const renderPage = (container: LitElement, component: ClientSideComponent
                     composed: true
                 }))}"
                 title="${fab.label}">
-                <vaadin-icon icon="${fab.icon}"></vaadin-icon>
+                ${icon(fab.icon)}
             </button>
         `)}
 </mateu-page>
