@@ -8,7 +8,12 @@ import './mateu-debug-overlay'
 import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
+import {registerNeutralNotifier} from "@infra/notify/neutralNotifier.ts";
 import {nanoid} from "nanoid";
+
+// Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
+// override it with setNotifier after importing mateu-ui.
+registerNeutralNotifier()
 
 
 @customElement('mateu-ui')
