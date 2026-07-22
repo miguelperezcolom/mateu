@@ -4595,7 +4595,7 @@ id="${e.id}"
         .crud-btn[theme~="primary"] { border-color: transparent; background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); }
 
         .m-listbox { display: flex; flex-direction: column; }
-        .m-item { padding: .5rem .75rem; border-radius: var(--lumo-border-radius-m, 6px); }
+        .m-item { padding: .5rem 0; border-radius: var(--lumo-border-radius-m, 6px); }
         .m-item[selected], .m-item[data-selected] { background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12)); }
         .m-formlayout { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--lumo-space-m, 1rem); }
 
