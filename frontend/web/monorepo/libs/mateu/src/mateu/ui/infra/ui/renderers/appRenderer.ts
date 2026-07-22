@@ -33,14 +33,14 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     return html`${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
-        <details class="app-nav-group" style="margin-left: 0.5rem; flex-shrink: 0;">
-            <summary class="app-action-btn primary">${action.label}</summary>
-            <div class="app-nav-dropdown">
-                ${action.children!.map(child => html`<button class="app-nav-item" @click="${() => child.actionId && runHeaderAction(metadata, container, child.actionId)}">${child.label}</button>`)}
-            </div>
-        </details>` : html`
-        <button class="app-action-btn primary" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.icon ? html`<vaadin-icon icon="${action.icon}" style="margin-right: .35rem;"></vaadin-icon>` : nothing}${action.label}</button>`)}`
+        <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            .items="${[{ text: action.label, children: action.children!.map(child => ({ text: child.label, actionId: child.actionId })) }]}"
+            @item-selected="${(e: CustomEvent) => {
+                const id = (e.detail?.value as { actionId?: string } | undefined)?.actionId
+                if (id) runHeaderAction(metadata, container, id)
+            }}"></vaadin-menu-bar>` : html`
+        <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.icon ? html`<vaadin-icon icon="${action.icon}" slot="prefix"></vaadin-icon>` : nothing}${action.label}</vaadin-button>`)}`
 }
 
 // DS-neutral top navigation from the app menu items (was a vaadin-menu-bar). Reuses the existing
@@ -63,11 +63,11 @@ const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (
 
 const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
-        <button class="app-icon-btn" @click="${container.toggleTheme}"
+        <vaadin-button theme="tertiary icon" @click="${container.toggleTheme}"
             title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
-        </button>
+        </vaadin-button>
     ` : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
@@ -235,8 +235,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
                 <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
                     <header class="app-navbar">
-                        <button class="drawer-toggle" title="Menu"
-                                @click="${(e: Event) => (e.target as HTMLElement).closest('.m-app-layout')?.classList.toggle('drawer-open')}">☰</button>
+                        <vaadin-button theme="tertiary contrast icon" class="drawer-toggle" title="Menu"
+                                @click="${(e: Event) => (e.currentTarget as HTMLElement).closest('.m-app-layout')?.classList.toggle('drawer-open')}">
+                            <vaadin-icon icon="vaadin:menu"></vaadin-icon>
+                        </vaadin-button>
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${metadata.title}</h2><p style="margin: 0;">${metadata.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>

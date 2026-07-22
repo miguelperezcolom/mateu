@@ -7459,14 +7459,11 @@ id="${e.id}"
     `;Ua([u()],Kt.prototype,"app",2);Ua([u()],Kt.prototype,"baseUrl",2);Ua([b()],Kt.prototype,"opened",2);Ua([b()],Kt.prototype,"notifications",2);Kt=Ua([k("mateu-notification-bell")],Kt);const Is=e=>{if(!e||!("querySelectorAll"in e))return null;for(const t of e.querySelectorAll("*")){if(t.tagName?.toLowerCase()==="mateu-component")return t;const a=Is(t.shadowRoot);if(a)return a}return null},Ju=async(e,t,a)=>{const r=t.renderRoot??t,i=Is(r);await ws.runAction(Xt,t.baseUrl??"",e.rootRoute||"_no_route","",a,i?.id??"app-header-action",{},e.serverSideType??"",{},{},i??t,!0,void 0,!1,"")},br=async(e,t,a)=>{try{await Ju(e,t,a)}catch(r){Vt({text:"La acción falló: "+r,position:"bottomStart",duration:6e3,variant:"error"},t)}},wa=(e,t)=>{const a=e.contextSelectors??[],r=e.contextActions??[];return a.length===0&&r.length===0&&!e.notificationsEnabled?l:o`${e.notificationsEnabled?o`
         <mateu-notification-bell .app="${e}" .baseUrl="${t.baseUrl??""}"></mateu-notification-bell>`:l}${a.map(i=>o`
         <mateu-app-context-picker .selector="${i}" .app="${e}" .baseUrl="${t.baseUrl??""}"></mateu-app-context-picker>`)}${r.map(i=>(i.children?.length??0)>0?o`
-        <details class="app-nav-group" style="margin-left: 0.5rem; flex-shrink: 0;">
-            <summary class="app-action-btn primary">${i.label}</summary>
-            <div class="app-nav-dropdown">
-                ${i.children.map(s=>o`<button class="app-nav-item" @click="${()=>s.actionId&&br(e,t,s.actionId)}">${s.label}</button>`)}
-            </div>
-        </details>`:o`
-        <button class="app-action-btn primary" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${()=>i.actionId&&br(e,t,i.actionId)}" title="${i.label}">${i.icon?o`<vaadin-icon icon="${i.icon}" style="margin-right: .35rem;"></vaadin-icon>`:l}${i.label}</button>`)}`},gr=(e,t,a="")=>o`
+        <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            .items="${[{text:i.label,children:i.children.map(s=>({text:s.label,actionId:s.actionId}))}]}"
+            @item-selected="${s=>{const n=s.detail?.value?.actionId;n&&br(e,t,n)}}"></vaadin-menu-bar>`:o`
+        <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            @click="${()=>i.actionId&&br(e,t,i.actionId)}" title="${i.label}">${i.icon?o`<vaadin-icon icon="${i.icon}" slot="prefix"></vaadin-icon>`:l}${i.label}</vaadin-button>`)}`},gr=(e,t,a="")=>o`
     <div class="app-nav ${a}">
         ${e.map(r=>r.children&&r.children.length?o`
             <details class="app-nav-group">
@@ -7478,11 +7475,11 @@ id="${e.id}"
             </details>`:o`
             <button class="app-nav-item ${r.checked?"active":""}" @click="${()=>t(r)}">${r.text}</button>`)}
     </div>`,yr=(e,t)=>a=>t.call(e,{detail:{value:a}}),Ha=(e,t)=>e.themeToggle?o`
-        <button class="app-icon-btn" @click="${t.toggleTheme}"
+        <vaadin-button theme="tertiary icon" @click="${t.toggleTheme}"
             title="${t.isDark?"Switch to light mode":"Switch to dark mode"}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             <vaadin-icon icon="${t.isDark?"vaadin:sun-o":"vaadin:moon"}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
-        </button>
+        </vaadin-button>
     `:l,Xu=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},$r=(e,t,a)=>{const r=at(e,t,a),i=ie(t,a);return r=="list"||r==i?"new":r},at=(e,t,a)=>{const r=e?._route;if(r!=null&&(r===""||r.startsWith("/"))){const i=a.homeRoute??"",s=i.indexOf("?"),n=s>=0?i.substring(s+1):"",d=ie(t,a)+r;if(!n)return d;const c=d.indexOf("?")>=0?"&":"?";return d+c+n}return t.selectedRoute?t.selectedRoute:a.homeRoute},ie=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,Be=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:t.homeBaseUrl,je=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Ve=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Qu=(e,t,a,r,i,s,n)=>{if(t.chromeless)return o`
             <div class="app chromeless">
                 <div class="${"app-content"+(e.pageCompact?" no-padding":"")}" style="height: 100%;">
@@ -7573,8 +7570,10 @@ id="${e.id}"
             ${t.variant==it.HAMBURGUER_MENU?o`
                 <div class="mateu-app-layout m-app-layout ${t.drawerClosed?"":"drawer-open"} ${t?.cssClasses}" style="${t?.style}">
                     <header class="app-navbar">
-                        <button class="drawer-toggle" title="Menu"
-                                @click="${v=>v.target.closest(".m-app-layout")?.classList.toggle("drawer-open")}">☰</button>
+                        <vaadin-button theme="tertiary contrast icon" class="drawer-toggle" title="Menu"
+                                @click="${v=>v.currentTarget.closest(".m-app-layout")?.classList.toggle("drawer-open")}">
+                            <vaadin-icon icon="vaadin:menu"></vaadin-icon>
+                        </vaadin-button>
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${t.title}</h2><p style="margin: 0;">${t.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
