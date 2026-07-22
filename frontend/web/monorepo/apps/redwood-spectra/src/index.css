@@ -34,6 +34,14 @@ html, body {
   --lumo-secondary-text-color: var(--oj-core-text-color-secondary, #5a5a5a);
   --lumo-primary-color: var(--oj-core-brand-color, #1b6ea5);
   --lumo-primary-text-color: var(--oj-core-brand-text-color, #1b6ea5);
+  --lumo-primary-contrast-color: var(--oj-core-brand-contrast-color, #fff);
+  --lumo-primary-color-50pct: color-mix(in srgb, var(--lumo-primary-color), transparent 50%);
+  /* Contrast/tint levels — borders, dividers and hover fills. The shared components use these
+     throughout (nav-tile borders, side-nav/button hovers, card outlines); without them the borders
+     were invisible on Redwood. Mapped to Oracle's divider/neutral tokens with rgba fallbacks. */
+  --lumo-contrast-5pct: var(--oj-core-neutral-color-30, rgba(22, 21, 19, 0.05));
+  --lumo-contrast-10pct: var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  --lumo-contrast-20pct: var(--oj-core-neutral-color-90, rgba(22, 21, 19, 0.22));
   --lumo-border-radius-m: 6px;
   --lumo-border-radius-l: 12px;
   --lumo-font-size-s: 0.875rem;
