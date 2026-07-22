@@ -9,6 +9,7 @@ import { renderNotification } from "./renderers/renderNotification"
 import { renderProgressBar } from "./renderers/renderProgressBar"
 import { renderDetails } from "./renderers/renderDetails"
 import { renderAvatar, renderAvatarGroup } from "./renderers/renderAvatar"
+import { renderCard } from "./renderers/renderCard"
 import * as vLayouts from "./renderers/renderLayouts"
 import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
 import { renderField } from "./fields/renderField"
@@ -44,6 +45,7 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.Details]: (c, comp, b, s, d, as, ad) => renderDetails(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Avatar]: (_c, comp, _b, s, d) => renderAvatar(comp, s, d),
     [ComponentMetadataType.AvatarGroup]: (_c, comp) => renderAvatarGroup(comp),
+    [ComponentMetadataType.Card]: (c, comp, b, s, d, as, ad) => renderCard(c, comp, b, s, d, as, ad),
     // Layout subsystem (moved from the core switch — pixel-perfect vaadin-* layout elements)
     [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderFormLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.HorizontalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderHorizontalLayout(c, comp, b, s, d, as, ad),
