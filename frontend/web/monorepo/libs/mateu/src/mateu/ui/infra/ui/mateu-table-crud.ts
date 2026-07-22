@@ -1,23 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/dialog"
-import "@vaadin/upload"
-import { dialogRenderer, dialogFooterRenderer } from "@vaadin/dialog/lit"
-import "@vaadin/grid"
-import { columnBodyRenderer } from "@vaadin/grid/lit"
-import "@vaadin/card"
 import './mateu-filter-bar'
 import './mateu-column-chooser'
 import type { ColumnChooserEntry } from './mateu-column-chooser'
@@ -28,7 +11,7 @@ import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import {Notification} from "@vaadin/notification";
+import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import {ButtonColor} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor.ts";
@@ -41,7 +24,6 @@ import {
     railColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
-import {Card} from "@vaadin/card";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 
@@ -283,11 +265,7 @@ export class MateuTableCrud extends LitElement {
     }
 
     notify = (message: string) => {
-        Notification.show(message, {
-            position: 'bottom-end',
-            theme: 'error',
-            duration: 3000
-        });
+        showToast({ text: message, position: 'bottomEnd', variant: 'error', duration: 3000 }, this)
     }
 
     pageChanged(e: CustomEvent) {
@@ -409,11 +387,11 @@ export class MateuTableCrud extends LitElement {
                 return custom
             }
             return html`
-                <vaadin-button
+                <button class="crud-btn"
                         data-action-id="${button.id}"
                         theme="${buttonTheme(button) || nothing}"
                         @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                >${this.evalLabel(button.label)}</vaadin-button>
+                >${this.evalLabel(button.label)}</button>
             `
         }
 
@@ -482,19 +460,19 @@ export class MateuTableCrud extends LitElement {
                             : (item as any).action?.methodNameInCrud ? (item as any).action
                             : { methodNameInCrud: col.id, label: col.label, icon: null, disabled: false }
                         buttons.push(html`
-                            <vaadin-button theme="tertiary small" title="${action.label || nothing}"
+                            <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${nothing}
                                 ${action.label ?? nothing}
-                            </vaadin-button>`)
+                            </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
                         const actions: any[] = val?.actions ?? []
                         actions.forEach(action => buttons.push(html`
-                            <vaadin-button theme="tertiary small" title="${action.label || nothing}"
+                            <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${nothing}
                                 ${action.label ?? nothing}
-                            </vaadin-button>`))
+                            </button>`))
                     }
                 }
                 return buttons.length ? html`
@@ -504,10 +482,10 @@ export class MateuTableCrud extends LitElement {
             }
 
             return html`
-                <vaadin-list-box style="width: 100%;">
-                    ${rows.length === 0 ? html`<vaadin-item disabled>${emptyStateTemplate(emptyMsg)}</vaadin-item>` : nothing}
+                <div class="m-listbox" style="width: 100%;">
+                    ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                     ${rows.map(item => html`
-                        <vaadin-item
+                        <div class="m-item"
                             ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             @click="${() => {
                                 if (idField && item[idField] !== undefined) {
@@ -522,12 +500,12 @@ export class MateuTableCrud extends LitElement {
                                 ${secCols.map(c => html`<span>${c.label}: ${formatListValue(c, item)}</span>`)}
                             </div>
                             ${renderListActionButtons(item)}
-                        </vaadin-item>
+                        </div>
                     `)}
-                </vaadin-list-box>`
+                </div>`
         }
 
-        const handleCardClick = (dispatcher: Card, actionId: string, item: any) => {
+        const handleCardClick = (dispatcher: HTMLElement, actionId: string, item: any) => {
             const idField = this.identifierFieldName
             if (idField && item[idField] !== undefined) {
                 this.state = { ...this.state, _selectedId: String(item[idField]) }
@@ -574,19 +552,19 @@ export class MateuTableCrud extends LitElement {
                             : (item as any).action?.methodNameInCrud ? (item as any).action
                             : { methodNameInCrud: col.id, label: col.label, icon: null, disabled: false }
                         buttons.push(html`
-                            <vaadin-button theme="tertiary" title="${action.label || nothing}"
+                            <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${nothing}
                                 ${action.label ?? nothing}
-                            </vaadin-button>`)
+                            </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
                         const actions: any[] = val?.actions ?? []
                         actions.forEach(action => buttons.push(html`
-                            <vaadin-button theme="tertiary" title="${action.label || nothing}"
+                            <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${nothing}
                                 ${action.label ?? nothing}
-                            </vaadin-button>`))
+                            </button>`))
                     }
                 }
                 return buttons.length ? html`
@@ -599,16 +577,15 @@ export class MateuTableCrud extends LitElement {
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
                     ${rows.length === 0 ? html`<div style="grid-column: 1 / -1;">${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                     ${rows.map(item => html`
-                        <vaadin-card
-                            clickable
+                        <div class="crud-card"
                             ?data-selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             style="cursor: pointer;"
                             @click="${(e: Event) => isSelector
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
-                                : handleCardClick(e.target as Card, 'view', item)}"
+                                : handleCardClick(e.target as HTMLElement, 'view', item)}"
                         >
-                            ${imageCols.length ? html`<img slot="media" src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover;" />` : nothing}
-                            ${titleCol ? html`<div slot="title">${item[titleCol.id] ?? ''}</div>` : nothing}
+                            ${imageCols.length ? html`<img src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />` : nothing}
+                            ${titleCol ? html`<div class="crud-card-title">${item[titleCol.id] ?? ''}</div>` : nothing}
                             <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
                                 ${dataCols.map(col => html`
                                     <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
@@ -618,7 +595,7 @@ export class MateuTableCrud extends LitElement {
                                 `)}
                             </div>
                             ${renderCardActionButtons(item)}
-                        </vaadin-card>
+                        </div>
                     `)}
                 </div>`
         }
@@ -630,10 +607,10 @@ export class MateuTableCrud extends LitElement {
             return html`
                 <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
                     <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
-                        <vaadin-list-box style="width: 100%;">
-                            ${rows.length === 0 ? html`<vaadin-item disabled>${emptyStateTemplate(emptyMsg)}</vaadin-item>` : nothing}
+                        <div class="m-listbox" style="width: 100%;">
+                            ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                             ${rows.map(item => html`
-                                <vaadin-item
+                                <div class="m-item"
                                     ?selected="${this.selectedItem === item}"
                                     @click="${() => { this.selectedItem = item }}"
                                     style="cursor: pointer;"
@@ -642,21 +619,20 @@ export class MateuTableCrud extends LitElement {
                                     <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
                                         ${secCols.map(c => html`${formatListValue(c, item)} `)}
                                     </div>
-                                </vaadin-item>
+                                </div>
                             `)}
-                        </vaadin-list-box>
+                        </div>
                     </div>
                     <div style="flex: 1; padding: var(--lumo-space-m); overflow-y: auto;">
                         ${this.selectedItem ? html`
-                            <vaadin-form-layout>
+                            <div class="m-formlayout">
                                 ${allCols.map(col => html`
-                                    <vaadin-text-field
-                                        label="${col.label}"
-                                        .value="${String(this.selectedItem[col.id] ?? '')}"
-                                        readonly
-                                    ></vaadin-text-field>
+                                    <label style="display: flex; flex-direction: column; gap: .1rem; font-size: var(--lumo-font-size-s, .875rem);">
+                                        <span style="color: var(--lumo-secondary-text-color, #667);">${col.label}</span>
+                                        <span>${String(this.selectedItem[col.id] ?? '')}</span>
+                                    </label>
                                 `)}
-                            </vaadin-form-layout>
+                            </div>
                         ` : html`
                             <p style="color: var(--lumo-secondary-text-color);">Select a row to view details.</p>
                         `}
@@ -690,21 +666,6 @@ export class MateuTableCrud extends LitElement {
             })
             const treeRows = sanitize(rows)
 
-            const dataProvider = (params: any, callback: any) => {
-                const items = params.parentItem ? (params.parentItem.children ?? []) : treeRows
-                callback(items, items.length)
-            }
-
-            const findById = (items: any[], id: string): any => {
-                for (const it of items ?? []) {
-                    if (idField && String(it[idField]) === id) return it
-                    const found = findById(it.children, id)
-                    if (found) return found
-                }
-                return undefined
-            }
-            const selectedItem = (idField && selectedId !== undefined) ? findById(treeRows, String(selectedId)) : undefined
-
             const openRow = (e: Event, item: any, action: string) => {
                 e.stopPropagation()
                 if (idField && item[idField] !== undefined) {
@@ -713,36 +674,31 @@ export class MateuTableCrud extends LitElement {
                 this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: action, parameters: item }, bubbles: true, composed: true }))
             }
 
+            // DS-neutral tree table: rows rendered recursively, children always expanded and
+            // indented (no vaadin-grid dataProvider / expand-collapse).
+            const renderTreeRow = (item: any, depth: number): unknown => html`
+                <tr class="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId) ? 'selected' : ''}"
+                    style="cursor: pointer;" @click="${(e: Event) => openRow(e, item, 'view')}">
+                    ${treeCol ? html`<td style="padding-left: ${depth * 1.2 + 0.6}rem;">${item[treeCol.id] ?? ''}</td>` : nothing}
+                    ${restCols.map((c: any) => c.id === 'select'
+                        ? html`<td><button class="crud-btn small" @click="${(e: Event) => { e.stopPropagation(); this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'action-on-row-select', parameters: { _clickedRow: item } }, bubbles: true, composed: true })) }}">Select</button></td>`
+                        : html`<td>${item[c.id] ?? ''}</td>`)}
+                    ${navigable ? html`<td style="text-align: end;">${item?.viewable === false ? nothing : html`<button class="crud-btn small" @click="${(e: Event) => openRow(e, item, 'view')}">View</button>`}</td>` : nothing}
+                </tr>
+                ${(item.children ?? []).map((ch: any) => renderTreeRow(ch, depth + 1))}
+            `
             return html`
-                <vaadin-grid
-                    style="width: 100%;"
-                    all-rows-visible
-                    .itemHasChildrenPath="${'children'}"
-                    .itemIdPath="${idField ?? 'id'}"
-                    .dataProvider="${dataProvider}"
-                    .selectedItems="${selectedItem ? [selectedItem] : []}"
-                >
-                    ${treeCol ? html`<vaadin-grid-tree-column path="${treeCol.id}" header="${treeCol.label ?? nothing}" flex-grow="1"></vaadin-grid-tree-column>` : nothing}
-                    ${navigable ? html`
-                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${columnBodyRenderer((item: any) => item?.viewable === false ? nothing : html`
-                        <vaadin-button theme="tertiary small" @click="${(e: Event) => openRow(e, item, 'view')}">View</vaadin-button>
-                    `, [])}></vaadin-grid-column>` : nothing}
-                    ${restCols.map(c => c.id === 'select'
-                        // the lookup selector's Select column: same dispatch as the flat grids'
-                        // renderActionCell, so picking a TREE node round-trips through selected()
-                        ? html`<vaadin-grid-column width="7rem" flex-grow="0" text-align="end" header="${c.label ?? nothing}" ${columnBodyRenderer((item: any) => html`
-                            <vaadin-button theme="tertiary small" @click="${(e: Event) => {
-                                e.stopPropagation()
-                                this.dispatchEvent(new CustomEvent('action-requested', {
-                                    detail: { actionId: 'action-on-row-select', parameters: { _clickedRow: item } },
-                                    bubbles: true,
-                                    composed: true
-                                }))
-                            }}">Select</vaadin-button>
-                        `, [])}></vaadin-grid-column>`
-                        : html`<vaadin-grid-column path="${c.id}" header="${c.label ?? nothing}" auto-width></vaadin-grid-column>`)}
-                    <span slot="empty-state">${emptyStateTemplate(emptyMsg)}</span>
-                </vaadin-grid>`
+                <table class="crud-table">
+                    <thead><tr>
+                        ${treeCol ? html`<th>${treeCol.label ?? nothing}</th>` : nothing}
+                        ${restCols.map((c: any) => html`<th>${c.label ?? nothing}</th>`)}
+                        ${navigable ? html`<th></th>` : nothing}
+                    </tr></thead>
+                    <tbody>
+                        ${treeRows.length === 0 ? html`<tr><td colspan="99" style="padding: 1.5rem; text-align: center; color: var(--lumo-secondary-text-color, #888);">${emptyStateTemplate(emptyMsg)}</td></tr>` : nothing}
+                        ${treeRows.map((item: any) => renderTreeRow(item, 0))}
+                    </tbody>
+                </table>`
         }
 
         // A renderer can claim all crud grid layouts (list/cards/masterDetail/tree, not just
@@ -756,9 +712,9 @@ export class MateuTableCrud extends LitElement {
             ` : nothing}
             ${!rendererOwnsLayouts && gridLayout === 'list' ? renderTwoLineList()
             : !rendererOwnsLayouts && gridLayout === 'cards' ? (metadata.contentHeight ? html`
-                <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
+                <div class="m-scroll" style="width: 100%; height: ${metadata.contentHeight};">
                     ${renderCards()}
-                </vaadin-scroller>
+                </div>
             ` : renderCards())
             : !rendererOwnsLayouts && gridLayout === 'masterDetail' ? renderMasterDetail()
             : !rendererOwnsLayouts && gridLayout === 'tree' ? renderTree()
@@ -767,23 +723,26 @@ export class MateuTableCrud extends LitElement {
         `
 
         const paginationHtml = metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)
-        const importDialog = html`
-            <vaadin-dialog
-                .opened="${this.showImportDialog}"
-                header-title="Import"
-                @opened-changed="${(e: CustomEvent) => { this.showImportDialog = e.detail.value }}"
-                ${dialogRenderer(() => html`
-                    <vaadin-upload
-                        target="/upload"
-                        max-files="1"
-                        @upload-success="${this.handleImportUploadSuccess}"
-                    ></vaadin-upload>
-                `, [this.showImportDialog])}
-                ${dialogFooterRenderer(() => html`
-                    <vaadin-button @click="${() => { this.showImportDialog = false }}">Cancel</vaadin-button>
-                `, [])}
-            ></vaadin-dialog>
-        `
+        const importDialog = this.showImportDialog ? html`
+            <div class="crud-modal-backdrop" @click="${(e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false }}">
+                <div class="crud-modal">
+                    <h3 style="margin: 0 0 .75rem;">Import</h3>
+                    <input type="file" @change="${(e: Event) => {
+                        const file = (e.target as HTMLInputElement).files?.[0]
+                        if (file) {
+                            const fd = new FormData(); fd.append('file', file)
+                            fetch('/upload', { method: 'POST', body: fd })
+                                .then(r => r.json())
+                                .then(detail => this.handleImportUploadSuccess({ detail } as unknown as CustomEvent))
+                                .catch(() => this.notify('Import failed'))
+                        }
+                    }}">
+                    <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                        <button class="crud-btn" @click="${() => { this.showImportDialog = false }}">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        ` : nothing
 
         if (this.standalone) {
             return html`
@@ -843,6 +802,42 @@ export class MateuTableCrud extends LitElement {
 
     static styles = css`
         ${badge}
+        /* DS-neutral crud widgets (replace vaadin-button/card/grid/list-box/form-layout/dialog). */
+        .crud-btn {
+            font: inherit; font-weight: 500;
+            padding: .4rem .9rem; border-radius: var(--lumo-border-radius-m, 6px);
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.2));
+            background: var(--lumo-base-color, #fff); color: var(--lumo-body-text-color, #1a1a1a); cursor: pointer;
+        }
+        .crud-btn:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+        .crud-btn.small, .crud-btn[theme~="small"] { padding: .2rem .55rem; font-size: var(--lumo-font-size-s, .875rem); }
+        .crud-btn[theme~="tertiary"] { border-color: transparent; background: transparent; color: var(--lumo-primary-text-color, #1676f3); }
+        .crud-btn[theme~="primary"] { border-color: transparent; background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); }
+
+        .m-listbox { display: flex; flex-direction: column; }
+        .m-item { padding: .5rem .75rem; border-radius: var(--lumo-border-radius-m, 6px); }
+        .m-item[selected], .m-item[data-selected] { background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12)); }
+        .m-formlayout { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--lumo-space-m, 1rem); }
+
+        .crud-card {
+            display: flex; flex-direction: column;
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            border-radius: var(--lumo-border-radius-l, 12px);
+            padding: .8rem 1rem; background: var(--lumo-base-color, #fff);
+            transition: box-shadow .15s, transform .15s;
+        }
+        .crud-card:hover { box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.12)); }
+        .crud-card[data-selected] { border-color: var(--lumo-primary-color, #1676f3); }
+        .crud-card-title { font-weight: 600; }
+
+        .crud-table { border-collapse: collapse; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
+        .crud-table th { text-align: left; padding: .45rem .6rem; border-bottom: 2px solid var(--lumo-contrast-20pct, rgba(0,0,0,.2)); font-weight: 600; color: var(--lumo-secondary-text-color, #556); white-space: nowrap; }
+        .crud-table td { padding: .4rem .6rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)); }
+        .crud-table tbody tr:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+        .crud-table tr.selected { background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12)); }
+
+        .crud-modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); padding: 1rem; }
+        .crud-modal { background: var(--lumo-base-color, #fff); color: var(--lumo-body-text-color, #1a1a1a); border-radius: var(--lumo-border-radius-l, 12px); box-shadow: var(--lumo-box-shadow-xl, 0 12px 40px rgba(0,0,0,.3)); padding: 1.2rem; max-width: min(90vw, 28rem); }
         vaadin-card[clickable] {
             transition: box-shadow 0.15s, transform 0.15s;
         }

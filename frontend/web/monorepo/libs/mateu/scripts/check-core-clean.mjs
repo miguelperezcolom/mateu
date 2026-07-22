@@ -18,9 +18,10 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const srcRoot = join(root, 'src')
 
-// Ratchet ceiling: the current number of ui/infra files importing @vaadin (static OR dynamic).
-// Lower it as the Vaadin rendering is relocated into apps/vaadin. Goal: 0.
-const INFRA_VAADIN_CEILING = 1
+// GOAL REACHED (0): the whole core (domain + application + shared + ui/infra) is now free of any
+// `@vaadin` import — all Vaadin rendering lives in the apps/vaadin adapter. This stays at 0 so any
+// re-introduced @vaadin import in the core fails the check; move it to apps/vaadin instead.
+const INFRA_VAADIN_CEILING = 0
 
 const HARD_CLEAN = [
     'src/mateu/ui/domain',
