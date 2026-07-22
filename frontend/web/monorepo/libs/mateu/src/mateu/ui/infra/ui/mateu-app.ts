@@ -306,7 +306,7 @@ export class MateuApp extends ComponentElement {
             <div class="cmd-backdrop" @click=${() => { this.commandPaletteOpen = false; this.commandPaletteQuery = '' }}>
                 <div class="cmd-palette" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="cmd-search-wrapper">
-                        <span class="cmd-search-icon" aria-hidden="true">⌕</span>
+                        <vaadin-icon icon="vaadin:search" class="cmd-search-icon"></vaadin-icon>
                         <input
                             class="cmd-input"
                             placeholder="Go to…"
@@ -379,7 +379,7 @@ export class MateuApp extends ComponentElement {
                 }}
             >
                 ${option.icon
-                    ? html`<span class="rail-icon" aria-hidden="true"></span>`
+                    ? html`<vaadin-icon icon="${option.icon}" class="rail-icon"></vaadin-icon>`
                     : html`<div class="rail-icon-placeholder">${option.label.charAt(0).toUpperCase()}</div>`
                 }
                 <span class="rail-label">${option.label}</span>
@@ -422,7 +422,7 @@ export class MateuApp extends ComponentElement {
                                 }
                             }}
                         >
-                            ${sub.icon ? html`<span style="font-size: 1.5rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;" aria-hidden="true">▸</span>` : nothing}
+                            ${sub.icon ? html`<vaadin-icon icon="${sub.icon}" style="font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;"></vaadin-icon>` : nothing}
                             <div class="nav-tile-title">${sub.label}</div>
                             ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
                         </div>
@@ -616,7 +616,7 @@ export class MateuApp extends ComponentElement {
                                 <div class="side-nav-item ${item.selected?'side-nav-item--active':''}" slot="${slot}">
                                     <button class="side-nav-link"
                                             @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
-                                        ${item.text}
+                                        ${item.icon ? html`<vaadin-icon icon="vaadin:dashboard" style="margin-right: .4rem; --iron-icon-width: 1em; --iron-icon-height: 1em;"></vaadin-icon>` : nothing}${item.text}
                                     </button>
                                     ${item.children ? html`<div class="side-nav-children">${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}</div>` : nothing}
                                 </div>

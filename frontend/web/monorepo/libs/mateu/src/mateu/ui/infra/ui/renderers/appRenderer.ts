@@ -40,7 +40,7 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
             </div>
         </details>` : html`
         <button class="app-action-btn primary" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.label}</button>`)}`
+            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.icon ? html`<vaadin-icon icon="${action.icon}" style="margin-right: .35rem;"></vaadin-icon>` : nothing}${action.label}</button>`)}`
 }
 
 // DS-neutral top navigation from the app menu items (was a vaadin-menu-bar). Reuses the existing
@@ -65,7 +65,9 @@ const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
         <button class="app-icon-btn" @click="${container.toggleTheme}"
             title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
-            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">${container.isDark ? '☀' : '🌙'}</button>
+            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
+            <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
+        </button>
     ` : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
@@ -494,12 +496,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <button class="app-fab" style="bottom: ${(metadata.sseUrl ? 5.5 : 1.5) + idx * 4}rem; right: 1.5rem;"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
-                    <span aria-hidden="true">+</span>
+                    <vaadin-icon icon="${fab.icon}"></vaadin-icon>
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
                 <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
-                    <span aria-hidden="true">💬</span>
+                    <vaadin-icon icon="vaadin:comments-o"></vaadin-icon>
                 </button>
             ` : nothing}
             ${container.renderCommandPalette()}
