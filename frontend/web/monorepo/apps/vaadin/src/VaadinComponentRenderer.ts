@@ -13,6 +13,7 @@ import { renderGrid } from "./grid/gridRenderer"
 import { renderTableElement, renderCrudTable } from "./grid/renderTable"
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderPopover } from "./renderers/renderPopover"
+import { renderVaadinToolbarButton, renderVaadinPeerNav } from "./renderers/renderToolbarButton"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -79,6 +80,16 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
     // of the core's neutral HTML table (BasicComponentRenderer.renderTableComponent).
     renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult {
         return renderCrudTable(container, component, baseUrl, state, appState, appData)
+    }
+
+    // Page/crud header buttons + peer-object arrows render as vaadin-button (the core header uses
+    // native buttons by default).
+    renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+        return renderVaadinToolbarButton(button, label, onClick)
+    }
+
+    renderPeerNav(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult {
+        return renderVaadinPeerNav(peerNav)
     }
 
 }

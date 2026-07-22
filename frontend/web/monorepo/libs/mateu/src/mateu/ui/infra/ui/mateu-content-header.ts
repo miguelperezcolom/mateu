@@ -1,8 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
-import '@vaadin/button'
-import '@vaadin/icon'
-import '@vaadin/icons'
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
@@ -24,6 +21,16 @@ export const buttonTheme = (button: Button): string | undefined => {
     if (button.buttonStyle) parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
     if (button.size && button.size !== 'none' && button.size !== 'normal') parts.push(button.size)
     return parts.length ? parts.join(' ') : undefined
+}
+
+/** Maps a Button's theme to DS-neutral CSS classes for the native fallback button. */
+export const neutralButtonClass = (button: Button): string => {
+    const t = buttonTheme(button) ?? ''
+    const c: string[] = []
+    if (t.includes('primary')) c.push('primary')
+    if (t.includes('tertiary')) c.push('tertiary')
+    if (t.includes('error') || button.color === 'error') c.push('danger')
+    return c.join(' ')
 }
 
 export const isNavButton = (id: string | undefined): boolean =>
@@ -70,13 +77,14 @@ export class MateuContentHeader extends LitElement {
         if (custom) {
             return custom
         }
+        // DS-neutral default button (the Vaadin adapter provides a vaadin-button via the
+        // renderToolbarButton hook; icons are the adapter's job).
         return html`
-        <vaadin-button
+        <button class="mtb ${neutralButtonClass(button)}"
                 data-action-id="${button.id}"
-                theme="${buttonTheme(button) || nothing}"
                 @click="${() => this.handleButtonClick(button.actionId)}"
                 ?disabled="${button.disabled}"
-        >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
+        >${label}</button>
     `
     }
 
@@ -87,18 +95,14 @@ export class MateuContentHeader extends LitElement {
         if (custom) return custom
         return html`
             <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
-                <vaadin-button theme="tertiary icon" class="peer-nav-prev"
+                <button class="mtb tertiary peer-nav-prev"
                         title="${peerNav.prevLabel ?? 'Previous'}"
                         ?disabled="${!peerNav.prevRoute}"
-                        @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">
-                    <vaadin-icon icon="vaadin:angle-left"></vaadin-icon>
-                </vaadin-button>
-                <vaadin-button theme="tertiary icon" class="peer-nav-next"
+                        @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">‹</button>
+                <button class="mtb tertiary peer-nav-next"
                         title="${peerNav.nextLabel ?? 'Next'}"
                         ?disabled="${!peerNav.nextRoute}"
-                        @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">
-                    <vaadin-icon icon="vaadin:angle-right"></vaadin-icon>
-                </vaadin-button>
+                        @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">›</button>
             </div>
         `
     }
@@ -209,6 +213,21 @@ export class MateuContentHeader extends LitElement {
             align-self: center;
             margin: 0 4px;
         }
+
+        /* DS-neutral toolbar button (the Vaadin adapter overrides via renderToolbarButton) */
+        .mtb {
+            font: inherit; font-weight: 500;
+            padding: .4rem .9rem; border-radius: var(--lumo-border-radius-m, 6px);
+            border: 1px solid var(--lumo-contrast-30pct, rgba(0,0,0,.25));
+            background: var(--lumo-base-color, #fff); color: var(--lumo-body-text-color, #1a1a1a);
+            cursor: pointer;
+        }
+        .mtb:hover:not(:disabled) { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+        .mtb:disabled { opacity: .5; cursor: default; }
+        .mtb.primary { background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); border-color: transparent; }
+        .mtb.tertiary { background: transparent; border-color: transparent; color: var(--lumo-primary-text-color, #1676f3); }
+        .mtb.danger { color: var(--lumo-error-text-color, #c0392b); border-color: var(--lumo-error-color-50pct, rgba(192,57,43,.5)); }
+        .mtb.danger.primary { background: var(--lumo-error-color, #c0392b); color: #fff; border-color: transparent; }
 
         ${badge}
     `

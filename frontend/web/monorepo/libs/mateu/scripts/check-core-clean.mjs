@@ -20,7 +20,7 @@ const srcRoot = join(root, 'src')
 
 // Ratchet ceiling: the current number of ui/infra files importing @vaadin (static OR dynamic).
 // Lower it as the Vaadin rendering is relocated into apps/vaadin. Goal: 0.
-const INFRA_VAADIN_CEILING = 8
+const INFRA_VAADIN_CEILING = 7
 
 const HARD_CLEAN = [
     'src/mateu/ui/domain',
