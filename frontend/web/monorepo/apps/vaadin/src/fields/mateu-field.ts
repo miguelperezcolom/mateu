@@ -2116,6 +2116,7 @@ export class MateuField extends LitElement {
         :host vaadin-text-area,
         :host vaadin-combo-box,
         :host vaadin-multi-select-combo-box,
+        :host vaadin-select,
         :host vaadin-email-field,
         :host vaadin-password-field,
         :host vaadin-custom-field {
@@ -2165,6 +2166,8 @@ export class MateuField extends LitElement {
         vaadin-text-field::part(label),
         vaadin-text-area::part(label),
         vaadin-combo-box::part(label),
+        vaadin-multi-select-combo-box::part(label),
+        vaadin-select::part(label),
         vaadin-date-picker::part(label),
         vaadin-time-picker::part(label),
         vaadin-number-field::part(label),
@@ -2173,7 +2176,13 @@ export class MateuField extends LitElement {
         vaadin-custom-field::part(label) {
             font-size: var(--mateu-label-font-size, var(--lumo-font-size-s));
             padding-bottom: var(--mateu-label-padding-bottom, 7px);
-            line-height: var(--mateu-label-line-height, 1);
+            line-height: var(--mateu-label-line-height, 1.2);
+            /* Let long labels wrap onto several lines instead of truncating with an ellipsis
+               (e.g. "Tiempo esperando" / "Tipo hab. contratada" in a dense multi-column form). */
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            height: auto;
         }
   `
 }

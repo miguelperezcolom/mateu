@@ -810,7 +810,32 @@ export class MateuComponent extends ComponentElement {
         vaadin-card.image-on-right::part(media) {
             grid-column: 3;
         }
-        
+
+        /* Reflective @Section forms render as frameless cards (no border/padding). Give them
+           breathing room so nothing reads as cramped: 1.5rem between stacked sections, and 0.5rem
+           between a section's title and its content. The section title h3 carries an inline
+           margin:0, so we space the wrapping vertical-layout rather than fighting the inline style.
+           The max(floor, token) keeps the section HEADINGS legible even under @Compact — which
+           shrinks --lumo-space-* to ~0.18-0.45rem and would otherwise glue the 18px titles to their
+           content; the field rows stay compact because their spacing is the raw (shrunk) token. */
+        vaadin-vertical-layout:has(> vaadin-card.mateu-section) {
+            gap: max(0.9rem, var(--lumo-space-l));
+        }
+        vaadin-card.mateu-section > vaadin-vertical-layout {
+            gap: max(0.45rem, var(--lumo-space-s));
+        }
+
+        /* A pinned section (@Section(sticky=true)) must be OPAQUE — the section cards are frameless
+           (transparent), so without a background the content scrolling underneath bleeds through the
+           pinned band. Give it the base color + a small horizontal pad so the band isn't flush, a
+           z-index above the in-flow content, and a hairline to mark where it ends. */
+        vaadin-card.mateu-section--sticky {
+            background: var(--lumo-base-color, #fff);
+            --vaadin-card-background: var(--lumo-base-color, #fff);
+            z-index: 2;
+            padding-block: var(--lumo-space-xs);
+            box-shadow: 0 1px 0 0 var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
+        }
   `
 }
 

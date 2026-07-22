@@ -255,8 +255,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-body">
                         <aside class="app-drawer p-s" @navigation-requested="${container.updateRoute}">
                             ${metadata.menu && metadata.totalMenuOptions > 10?html`
-                                <input class="drawer-search" placeholder="Search…" style="width: calc(100% - 20px); margin: 0 10px;"
-                                       @input="${(e: any) => filterMenu({ detail: { value: e.target.value } } as CustomEvent, container)}">
+                                <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
+                                    <input class="drawer-search" placeholder="Search…" style="width: calc(100% - 20px); margin: 0 10px;"
+                                           @input="${(e: any) => filterMenu({ detail: { value: e.target.value } } as CustomEvent, container)}">
+                                </div>
                                 `:nothing}
                             <nav class="side-nav">
                                 ${container.renderSideNav(items, undefined)}

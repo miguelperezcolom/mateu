@@ -139,6 +139,12 @@ export class MateuPage extends LitElement {
             this.dismissedStaticBannerIndices = new Set()
         }
         if (changedProperties.has('component')) {
+            // Embedded (level>0) pages — e.g. a ModelViewComponent inside a drawer/dialog — sit
+            // inside a host card, so the top-level header->content / inter-block spacing must not
+            // apply (it stacks with the host's own chrome and leaves a big empty gap). Reflect it
+            // as an attribute the styles below key off.
+            const level = (this.component?.metadata as PageComponent)?.level ?? 0
+            this.toggleAttribute('data-nested', level > 0)
             this._scheduleStaticBannerTimeouts()
             this.dispatchEvent(new CustomEvent('compact-changed', {
                 detail: { compact: !!this.component?.style?.includes('--mateu-compact:1') },
@@ -479,10 +485,28 @@ export class MateuPage extends LitElement {
         .form-content {
             width: 100%;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            /* Space the top-level content blocks — full-width bands, @Zones rows and the button bar
+               are slotted siblings with no spacing of their own, so e.g. a check-in reservation
+               summary band abutted the first section. Floored so @Compact stays dense. */
+            gap: max(0.9rem, var(--lumo-space-l));
+        }
+
+        /* Embedded (level>0) pages sit inside a host card/drawer — drop the top-level breathing
+           room so the host's chrome + these margins don't leave a big empty gap. */
+        :host([data-nested]) .form-content {
+            gap: var(--lumo-space-s);
+        }
+        :host([data-nested]) .page-body {
+            margin-top: 0;
         }
 
         .page-body {
             width: 100%;
+            /* breathing room between the page header (title + toolbar) and the first section;
+               the floor keeps the gap legible under @Compact (which shrinks --lumo-space-l to ~7px) */
+            margin-top: max(0.9rem, var(--lumo-space-l));
         }
 
         .sticky-header {
