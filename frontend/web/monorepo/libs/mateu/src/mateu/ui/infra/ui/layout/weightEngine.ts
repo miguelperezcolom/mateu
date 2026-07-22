@@ -31,12 +31,18 @@ export function selectColumnLayout(cols: GridColumn[], availableWidthPx: number)
     const units = availableWidthPx / PX_PER_UNIT
     const r = totalWeight / units
 
-    if (r <= 1.0) return 'table'
+    // Too many columns to scan as a row → master/detail regardless of how light they are.
+    if (cols.length > 10) return 'masterDetail'
+
+    // A table tolerates a fair amount of overflow (columns ellipsis-truncate and the grid scrolls
+    // horizontally), so keep it well past the point where content stops fitting exactly — otherwise
+    // a merely-narrow container (e.g. a lookup dialog) degrades to cards far too eagerly.
+    if (r <= 1.7) return 'table'
 
     const compact = cols.filter(c => c.identifier || (c.priority ?? Number.MAX_SAFE_INTEGER) <= 2)
     const compactWeight = compact.reduce((s, c) => s + columnWeight(c), 0)
 
-    if (r > 1.6 || cols.length > 10) return 'masterDetail'
+    if (r > 2.4) return 'masterDetail'
 
     if (compact.length > 0 && compactWeight <= 8.0) return 'list'
 

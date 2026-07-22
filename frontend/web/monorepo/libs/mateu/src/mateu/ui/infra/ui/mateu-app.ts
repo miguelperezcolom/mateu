@@ -306,7 +306,7 @@ export class MateuApp extends ComponentElement {
             <div class="cmd-backdrop" @click=${() => { this.commandPaletteOpen = false; this.commandPaletteQuery = '' }}>
                 <div class="cmd-palette" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="cmd-search-wrapper">
-                        <span class="cmd-search-icon" aria-hidden="true">⌕</span>
+                        <vaadin-icon icon="vaadin:search" class="cmd-search-icon"></vaadin-icon>
                         <input
                             class="cmd-input"
                             placeholder="Go to…"
@@ -379,7 +379,7 @@ export class MateuApp extends ComponentElement {
                 }}
             >
                 ${option.icon
-                    ? html`<span class="rail-icon" aria-hidden="true"></span>`
+                    ? html`<vaadin-icon icon="${option.icon}" class="rail-icon"></vaadin-icon>`
                     : html`<div class="rail-icon-placeholder">${option.label.charAt(0).toUpperCase()}</div>`
                 }
                 <span class="rail-label">${option.label}</span>
@@ -422,7 +422,7 @@ export class MateuApp extends ComponentElement {
                                 }
                             }}
                         >
-                            ${sub.icon ? html`<span style="font-size: 1.5rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;" aria-hidden="true">▸</span>` : nothing}
+                            ${sub.icon ? html`<vaadin-icon icon="${sub.icon}" style="font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;"></vaadin-icon>` : nothing}
                             <div class="nav-tile-title">${sub.label}</div>
                             ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
                         </div>
@@ -563,17 +563,17 @@ export class MateuApp extends ComponentElement {
     renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
-                <details class="left-menu-group">
-                    <summary>${option.label}</summary>
-                    <div style="display: flex; flex-direction: column;">
+                <vaadin-details opened class="left-menu-group">
+                    <div slot="summary">${option.label}</div>
+                    <vaadin-vertical-layout>
                         ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
-                    </div>
-                </details>
+                    </vaadin-vertical-layout>
+                </vaadin-details>
 `
         }
-        return html`<button class="left-menu-item"
+        return html`<vaadin-button theme="tertiary" class="left-menu-item"
                 @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
-        >${option.label}</button>`
+        >${option.label}</vaadin-button>`
     }
 
     @query('.mateu-app-layout')
@@ -613,13 +613,14 @@ export class MateuApp extends ComponentElement {
                 return html`
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
-                                <div class="side-nav-item ${item.selected?'side-nav-item--active':''}" slot="${slot}">
-                                    <button class="side-nav-link"
-                                            @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
-                                        ${item.text}
-                                    </button>
-                                    ${item.children ? html`<div class="side-nav-children">${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}</div>` : nothing}
-                                </div>
+                                <vaadin-side-nav-item
+                                        class="${item.selected?'side-nav-item--active':''}"
+                                        slot="${slot}"
+                                        ?expanded="${!!item.children}"
+                                        @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
+                                    ${item.icon ? html`<vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>` : nothing}${item.text}
+                                    ${item.children ? this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children') : nothing}
+                                </vaadin-side-nav-item>
                         `}
 
                             `})}`:nothing
@@ -677,6 +678,10 @@ export class MateuApp extends ComponentElement {
         .m-scroll { overflow: auto; }
         .m-md { display: flex; width: 100%; height: 100%; }
         .m-md > .m-scroll { flex: 1; min-width: 0; }
+        /* the AI chat panel: shown when open (slot="detail"), hidden when closed — replaces the
+           vaadin-master-detail-layout detail slot that used to toggle it. */
+        mateu-chat[slot="detail-hidden"] { display: none; }
+        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; }
         .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
         .m-app-layout > .app-navbar { display: flex; align-items: center; gap: .5rem; height: 4rem; flex-shrink: 0; padding: 0 .75rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
         .m-app-layout > .app-body { display: flex; flex: 1; min-height: 0; }

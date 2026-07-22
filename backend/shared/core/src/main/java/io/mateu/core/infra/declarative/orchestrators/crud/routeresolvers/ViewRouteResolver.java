@@ -22,7 +22,15 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
 
   @Override
   public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
-    var id = route.substring(orchestrator.getConsumedRoute(httpRequest).length() + 1);
+    // This is the catch-all resolver (supports() == true), so guard the id extraction: only strip
+    // the consumedRoute prefix when the route actually lives under it (route = consumedRoute/{id});
+    // otherwise take the last path segment. Prevents a StringIndexOutOfBoundsException when a route
+    // that is not a sub-route of consumedRoute falls through here.
+    var consumedRoute = orchestrator.getConsumedRoute(httpRequest);
+    var id =
+        route.startsWith(consumedRoute + "/")
+            ? route.substring(consumedRoute.length() + 1)
+            : route.substring(route.lastIndexOf('/') + 1);
     var view = orchestrator.view(orchestrator.toId(id), httpRequest);
     httpRequest.setAttribute("selectedItem", view);
     return new OrchestrationResult(

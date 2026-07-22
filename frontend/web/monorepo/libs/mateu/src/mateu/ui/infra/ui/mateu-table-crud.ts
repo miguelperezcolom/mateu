@@ -462,7 +462,7 @@ export class MateuTableCrud extends LitElement {
                         buttons.push(html`
                             <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${nothing}
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
                                 ${action.label ?? nothing}
                             </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
@@ -470,7 +470,7 @@ export class MateuTableCrud extends LitElement {
                         actions.forEach(action => buttons.push(html`
                             <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${nothing}
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
                                 ${action.label ?? nothing}
                             </button>`))
                     }
@@ -554,7 +554,7 @@ export class MateuTableCrud extends LitElement {
                         buttons.push(html`
                             <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${nothing}
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
                                 ${action.label ?? nothing}
                             </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
@@ -562,7 +562,7 @@ export class MateuTableCrud extends LitElement {
                         actions.forEach(action => buttons.push(html`
                             <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${nothing}
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
                                 ${action.label ?? nothing}
                             </button>`))
                     }
@@ -747,7 +747,7 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); background: var(--mateu-section-bg, transparent); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+                <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
                     <div style="flex-shrink: 0;">
                         <mateu-content-header
                             .metadata="${metadata}"
@@ -785,7 +785,7 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </div>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); background: var(--mateu-section-bg, transparent); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+            <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
                 <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
@@ -815,7 +815,7 @@ export class MateuTableCrud extends LitElement {
         .crud-btn[theme~="primary"] { border-color: transparent; background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); }
 
         .m-listbox { display: flex; flex-direction: column; }
-        .m-item { padding: .5rem .75rem; border-radius: var(--lumo-border-radius-m, 6px); }
+        .m-item { padding: .5rem 0; border-radius: var(--lumo-border-radius-m, 6px); }
         .m-item[selected], .m-item[data-selected] { background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12)); }
         .m-formlayout { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--lumo-space-m, 1rem); }
 
