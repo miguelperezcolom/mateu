@@ -479,6 +479,12 @@ export class MateuPage extends LitElement {
         .form-content {
             width: 100%;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            /* Space the top-level content blocks — full-width bands, @Zones rows and the button bar
+               are slotted siblings with no spacing of their own, so e.g. a check-in reservation
+               summary band abutted the first section. Floored so @Compact stays dense. */
+            gap: max(0.9rem, var(--lumo-space-l));
         }
 
         .page-body {
