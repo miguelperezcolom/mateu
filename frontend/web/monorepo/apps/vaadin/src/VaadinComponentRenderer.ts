@@ -6,6 +6,7 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts"
 import { renderVirtualList } from "./renderers/renderVirtualList"
 import { renderNotification } from "./renderers/renderNotification"
+import * as vLayouts from "./renderers/renderLayouts"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -28,6 +29,18 @@ type WidgetRenderer = (
 const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.VirtualList]: (c, comp, b, s, d, as, ad) => renderVirtualList(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Notification]: (_c, comp) => renderNotification(comp),
+    // Layout subsystem (moved from the core switch — pixel-perfect vaadin-* layout elements)
+    [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderFormLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.HorizontalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderHorizontalLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.VerticalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderVerticalLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.SplitLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderSplitLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.MasterDetailLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderMasterDetailLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.TabLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderTabLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.AccordionLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderAccordionLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.BoardLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayout(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.BoardLayoutRow]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutRow(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.BoardLayoutItem]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutItem(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Scroller]: (c, comp, b, s, d, as, ad) => vLayouts.renderScroller(c, comp, b, s, d, as, ad),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
