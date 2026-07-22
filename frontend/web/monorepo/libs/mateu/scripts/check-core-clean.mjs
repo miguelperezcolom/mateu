@@ -5,9 +5,14 @@
  * Enforces two things:
  *  1. HARD invariant — the domain, application and shared (DTO) layers must NOT import any
  *     `@vaadin/*` package. These are the design-system-agnostic core; a leak here is a bug.
- *  2. RATCHET — the number of `ui/infra` files still importing `@vaadin/*` may only go DOWN.
- *     This is the migration debt of the "invert the default" refactor (Level 2): as Vaadin
+ *  2. RATCHET (imports) — the number of `ui/infra` files still importing `@vaadin/*` may only go
+ *     DOWN. This is the migration debt of the "invert the default" refactor (Level 2): as Vaadin
  *     rendering moves into the Vaadin adapter (apps/vaadin), lower CEILING accordingly.
+ *  3. RATCHET (tags) — the number of `ui/infra` files still EMITTING a `<vaadin-*>` element tag may
+ *     only go DOWN. A `<vaadin-…>` tag needs no import, so it slips past check #1/#2, yet it renders
+ *     inert under any non-Vaadin renderer (redwood/sapui5/…) — the exact contamination those
+ *     renderers must not inherit. The fix per type: make the neutral renderer render a native /
+ *     DS-neutral element, and move the Vaadin-fidelity version into apps/vaadin's widget map.
  *
  * Run: `node scripts/check-core-clean.mjs` (also wired as `yarn check:core`).
  */
@@ -33,6 +38,12 @@ const INFRA = 'src/mateu/ui/infra'
 // static `import ... from '@vaadin/x'` / side-effect `import '@vaadin/x'` OR dynamic `import('@vaadin/x')`
 const VAADIN_IMPORT = /(?:import|from)\s+['"]@vaadin\/|import\s*\(\s*['"]@vaadin\//
 
+// a rendered `<vaadin-*>` element tag (needs no import; leaks the DS into non-Vaadin renderers).
+const VAADIN_TAG = /<vaadin-[a-z]/
+// Ratchet: files under ui/infra that still emit a <vaadin-*> tag. LOWER as renderers are made
+// DS-neutral (their Vaadin fidelity moving into apps/vaadin). Goal: 0.
+const INFRA_VAADIN_TAG_CEILING = 22
+
 function walk(dir) {
     const out = []
     for (const entry of readdirSync(dir)) {
@@ -45,6 +56,10 @@ function walk(dir) {
 
 function importsVaadin(file) {
     return VAADIN_IMPORT.test(readFileSync(file, 'utf8'))
+}
+
+function emitsVaadinTag(file) {
+    return !file.endsWith('.test.ts') && VAADIN_TAG.test(readFileSync(file, 'utf8'))
 }
 
 let failed = false
@@ -73,6 +88,22 @@ if (count > INFRA_VAADIN_CEILING) {
     console.log(`✓ ${INFRA} — ${count}/${INFRA_VAADIN_CEILING} @vaadin files (ratchet)`)
     if (count < INFRA_VAADIN_CEILING) {
         console.log(`  → progress! lower INFRA_VAADIN_CEILING in this script to ${count}.`)
+    }
+}
+
+// 3. Ratchet on ui/infra <vaadin-*> element TAGS
+const infraTagFiles = walk(join(root, INFRA)).filter(emitsVaadinTag)
+const tagCount = infraTagFiles.length
+if (tagCount > INFRA_VAADIN_TAG_CEILING) {
+    failed = true
+    console.error(`\n✗ RATCHET BROKEN (tags): ${INFRA} has ${tagCount} files emitting <vaadin-*>, ceiling is ${INFRA_VAADIN_TAG_CEILING}.`)
+    console.error(`    A new <vaadin-*> tag leaked into the core. Render a native/DS-neutral element and`)
+    console.error(`    move the Vaadin version into apps/vaadin's widget map instead.`)
+    infraTagFiles.map((f) => relative(srcRoot, f)).forEach((f) => console.error(`    ${f}`))
+} else {
+    console.log(`✓ ${INFRA} — ${tagCount}/${INFRA_VAADIN_TAG_CEILING} <vaadin-*> tag files (ratchet)`)
+    if (tagCount < INFRA_VAADIN_TAG_CEILING) {
+        console.log(`  → progress! lower INFRA_VAADIN_TAG_CEILING in this script to ${tagCount}.`)
     }
 }
 
