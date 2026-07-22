@@ -2116,6 +2116,7 @@ export class MateuField extends LitElement {
         :host vaadin-text-area,
         :host vaadin-combo-box,
         :host vaadin-multi-select-combo-box,
+        :host vaadin-select,
         :host vaadin-email-field,
         :host vaadin-password-field,
         :host vaadin-custom-field {
