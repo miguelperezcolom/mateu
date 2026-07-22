@@ -46,17 +46,13 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
 // DS-neutral top navigation from the app menu items (was a vaadin-menu-bar). Reuses the existing
 // itemSelected handler by synthesizing its { detail: { value } } event shape.
 const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls = '') => html`
-    <div class="app-nav ${cls}">
-        ${items.map(item => (item.children && (item.children as MenuBarItem[]).length) ? html`
-            <details class="app-nav-group">
-                <summary class="app-nav-item">${item.text}</summary>
-                <div class="app-nav-dropdown">
-                    ${(item.children as MenuBarItem[]).map(child => html`
-                        <button class="app-nav-item" @click="${() => onSelect(child)}">${child.text}</button>`)}
-                </div>
-            </details>` : html`
-            <button class="app-nav-item ${item.checked ? 'active' : ''}" @click="${() => onSelect(item)}">${item.text}</button>`)}
-    </div>`
+    <vaadin-menu-bar
+            .items="${items}"
+            @item-selected="${(e: CustomEvent) => onSelect(e.detail.value as MenuBarItem)}"
+            theme="dropdown-indicators"
+            class="menu ${cls}"
+            style="flex-grow: 1; min-width: 0;"
+    ></vaadin-menu-bar>`
 
 const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
     handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
@@ -248,12 +244,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="app-body">
                         <aside class="app-drawer p-s" @navigation-requested="${container.updateRoute}">
                             ${metadata.menu && metadata.totalMenuOptions > 10?html`
-                                <input class="drawer-search" placeholder="⌕ Search…" style="width: calc(100% - 20px); margin: 0 10px;"
-                                       @input="${(e: any) => filterMenu({ detail: { value: e.target.value } } as CustomEvent, container)}">
+                                <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e: any) => filterMenu(e, container)}">
+                                    <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
+                                </vaadin-text-field>
                                 `:nothing}
-                            <nav class="side-nav">
+                            <vaadin-side-nav class="side-nav">
                                 ${container.renderSideNav(items, undefined)}
-                            </nav>
+                            </vaadin-side-nav>
                         </aside>
                         <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="flex: 1; min-width: 0;">
                             <div class="m-md">
@@ -456,12 +453,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
                             </div>
                             </a>
-                            <div class="app-tabs" style="flex-grow: 1; min-width: 0;">
-                                ${metadata.menu.map((option, i) => html`
-                                <button class="app-tab ${i === container.getSelectedIndex(metadata.menu) ? 'active' : ''}"
+                            <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
+                                         style="box-shadow: unset; flex-grow: 1; min-width: 0;"
+                                         class="${container.component?.cssClasses}">
+                                ${metadata.menu.map(option => html`
+                                <vaadin-tab
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
-                                >${option.label}</button>`)}
-                            </div>
+                                >${option.label}</vaadin-tab>`)}
+                            </vaadin-tabs>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
                                 ${renderContextSelectors(metadata, container)}

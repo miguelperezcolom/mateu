@@ -4925,25 +4925,26 @@ id="${e.id}"
                 </div>
             </div>
         `,this.goHome=()=>{const e=this.component.metadata;this.selectRoute(e.route,"_page","",void 0,void 0,void 0)},this.selectRoute=(e,t,a,r,i,s)=>{qt.confirmLeave()&&this._selectRoute(e,t,a,r,i,s)},this._selectRoute=(e,t,a,r,i,s)=>{{this.selectedConsumedRoute=e,this.selectedBaseUrl=r,this.selectedRoute=t,this.selectedServerSideType=i,this.selectedUriPrefix=s,this.instant=ge(),this.state&&this.state._route!=null&&(this.state._route=void 0);let n=this.baseUrl??"";n.indexOf("://")<0&&(n.startsWith("/")||(n="/"+n),n=window.location.origin+n),n.endsWith("/")&&(t??"").startsWith("/")&&(t=(t??"").substring(1));let d=new URL(n+t);if(e&&d.pathname.startsWith(e)){const c=d.pathname.substring(e.length);d=new URL(d.origin+(c||"/"))}if((window.location.pathname||d.pathname)&&window.location.pathname!=d.pathname){let c=d.pathname;d.search&&(c+=d.search),c&&!c.startsWith("/")&&(c="/"+c),this.baseUrl&&c.startsWith(this.baseUrl)&&(c=c.substring(this.baseUrl.length));let p=c;this.selectedUriPrefix&&(p.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?p=this.selectedUriPrefix+p.substring(1):!p.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?p=this.selectedUriPrefix+"/"+p:p=this.selectedUriPrefix+p),p=="/_page"&&(p=""),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:p},bubbles:!0,composed:!0}))}}},this.mapItems=(e,t)=>e.map(a=>{if(a.submenus&&a.submenus.length>0){let r=this.mapItems(a.submenus,t);return t&&a.label.toLowerCase().includes(t)&&(r=this.mapItems(a.submenus,"")),r&&r.length>0?{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected,children:r}:void 0}if(a.separator)return t?void 0:{component:"hr"};if(!t||a.label.toLowerCase().includes(t))return{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected}}).filter(a=>a!=null),this.getSelectedIndex=e=>{if(e){const t=this.getSelectedOption(e);if(t)return e.indexOf(t)}return NaN},this.renderOptionOnLeftMenu=e=>e.submenus&&e.submenus.length>0?o`
-                <details class="left-menu-group">
-                    <summary>${e.label}</summary>
-                    <div style="display: flex; flex-direction: column;">
+                <vaadin-details opened class="left-menu-group">
+                    <div slot="summary">${e.label}</div>
+                    <vaadin-vertical-layout>
                         ${e.submenus.map(t=>o`${this.renderOptionOnLeftMenu(t)}`)}
-                    </div>
-                </details>
-`:o`<button class="left-menu-item"
+                    </vaadin-vertical-layout>
+                </vaadin-details>
+`:o`<vaadin-button theme="tertiary" class="left-menu-item"
                 @click="${()=>this.selectRoute(e.consumedRoute,e.route,e.actionId,e.baseUrl,e.serverSideType,e.uriPrefix)}"
-        >${e.label}</button>`,this.navItemSelected=e=>{if(e.path==this.selectedRoute&&e.consumedRoute==this.selectedConsumedRoute&&e.baseUrl==this.selectedBaseUrl&&e.serverSideType==this.selectedServerSideType){const t=this.shadowRoot?.querySelector("mateu-ux");t&&t.setAttribute("instant",ge())}else this.selectRoute(e.consumedRoute,e.path,e.actionId,e.baseUrl,e.serverSideType,e.uriPrefix);this.component.metadata.drawerClosed&&this.vaadinAppLayout&&(this.vaadinAppLayout.drawerOpened=!1)},this.renderSideNav=(e,t)=>e?o`
+        >${e.label}</vaadin-button>`,this.navItemSelected=e=>{if(e.path==this.selectedRoute&&e.consumedRoute==this.selectedConsumedRoute&&e.baseUrl==this.selectedBaseUrl&&e.serverSideType==this.selectedServerSideType){const t=this.shadowRoot?.querySelector("mateu-ux");t&&t.setAttribute("instant",ge())}else this.selectRoute(e.consumedRoute,e.path,e.actionId,e.baseUrl,e.serverSideType,e.uriPrefix);this.component.metadata.drawerClosed&&this.vaadinAppLayout&&(this.vaadinAppLayout.drawerOpened=!1)},this.renderSideNav=(e,t)=>e?o`
             ${e.map(a=>{const r=a;return o`
 
                         ${r.component=="hr"?o`<hr slot="children"/>`:o`
-                                <div class="side-nav-item ${r.selected?"side-nav-item--active":""}" slot="${t}">
-                                    <button class="side-nav-link"
-                                            @click="${()=>{r.route&&!r.children&&this.selectRoute(void 0,r.route,void 0,this.baseUrl,void 0,void 0)}}">
-                                        ${r.icon?o`<vaadin-icon icon="vaadin:dashboard" style="margin-right: .4rem; --iron-icon-width: 1em; --iron-icon-height: 1em;"></vaadin-icon>`:l}${r.text}
-                                    </button>
-                                    ${r.children?o`<div class="side-nav-children">${this.renderSideNav(r.children,"children")}</div>`:l}
-                                </div>
+                                <vaadin-side-nav-item
+                                        class="${r.selected?"side-nav-item--active":""}"
+                                        slot="${t}"
+                                        ?expanded="${!!r.children}"
+                                        @click="${()=>{r.route&&!r.children&&this.selectRoute(void 0,r.route,void 0,this.baseUrl,void 0,void 0)}}">
+                                    ${r.icon?o`<vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>`:l}${r.text}
+                                    ${r.children?this.renderSideNav(r.children,"children"):l}
+                                </vaadin-side-nav-item>
                         `}
 
                             `})}`:l,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)}}createRenderRoot(){return V.mustUseShadowRoot()?super.createRenderRoot():this}fetchGlobalSearch(e){const t=this.component?.metadata;if(t?.globalSearchEnabled){if(clearTimeout(this._globalSearchTimer),!e){this.commandPaletteDataHits=[];return}this._globalSearchTimer=setTimeout(async()=>{try{const r=(await Xt.runAction(this.baseUrl??"",t.rootRoute??"","","_globalsearch","cmd-palette",void 0,t.serverSideType,{},{searchText:e},this,!0))?.fragments?.map(i=>i.data).find(i=>i&&i._globalsearch);this.commandPaletteDataHits=r?._globalsearch??[]}catch{this.commandPaletteDataHits=[]}},250)}}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute("theme")==="dark",this._commandPaletteHandler=e=>{this.component?.metadata?.commandCenterEnabled||((e.metaKey||e.ctrlKey)&&e.key==="k"&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0),e.key==="Escape"&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery=""))},document.addEventListener("keydown",this._commandPaletteHandler),qt.install(),this.addEventListener("compact-changed",this._compactHandler),this.addEventListener("mateu-open-ai",this._openAiHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener("keydown",this._commandPaletteHandler),this.removeEventListener("compact-changed",this._compactHandler),this.removeEventListener("mateu-open-ai",this._openAiHandler)}updated(e){if(super.updated(e),Pc(this),this.component){const a=this.component.metadata;if(a){const r=a;if(r.favicon){let i=document.querySelector("link[rel~='icon']");i||(i=document.createElement("link"),i.rel="icon",document.head.appendChild(i)),i.href=r.favicon}e.has("component")&&(this.selectedRoute=r.homeRoute,this.selectedConsumedRoute=r.homeConsumedRoute,this.selectedServerSideType=r.homeServerSideType,this.selectedBaseUrl=r.homeBaseUrl,this.selectedUriPrefix=r.homeUriPrefix)}}e.has("commandPaletteOpen")&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(".cmd-input")?.focus()},0)}render(){return V.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};M.styles=$`
@@ -7464,17 +7465,13 @@ id="${e.id}"
             @item-selected="${s=>{const n=s.detail?.value?.actionId;n&&br(e,t,n)}}"></vaadin-menu-bar>`:o`
         <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
             @click="${()=>i.actionId&&br(e,t,i.actionId)}" title="${i.label}">${i.icon?o`<vaadin-icon icon="${i.icon}" slot="prefix"></vaadin-icon>`:l}${i.label}</vaadin-button>`)}`},gr=(e,t,a="")=>o`
-    <div class="app-nav ${a}">
-        ${e.map(r=>r.children&&r.children.length?o`
-            <details class="app-nav-group">
-                <summary class="app-nav-item">${r.text}</summary>
-                <div class="app-nav-dropdown">
-                    ${r.children.map(i=>o`
-                        <button class="app-nav-item" @click="${()=>t(i)}">${i.text}</button>`)}
-                </div>
-            </details>`:o`
-            <button class="app-nav-item ${r.checked?"active":""}" @click="${()=>t(r)}">${r.text}</button>`)}
-    </div>`,yr=(e,t)=>a=>t.call(e,{detail:{value:a}}),Ha=(e,t)=>e.themeToggle?o`
+    <vaadin-menu-bar
+            .items="${e}"
+            @item-selected="${r=>t(r.detail.value)}"
+            theme="dropdown-indicators"
+            class="menu ${a}"
+            style="flex-grow: 1; min-width: 0;"
+    ></vaadin-menu-bar>`,yr=(e,t)=>a=>t.call(e,{detail:{value:a}}),Ha=(e,t)=>e.themeToggle?o`
         <vaadin-button theme="tertiary icon" @click="${t.toggleTheme}"
             title="${t.isDark?"Switch to light mode":"Switch to dark mode"}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
@@ -7583,12 +7580,13 @@ id="${e.id}"
                     <div class="app-body">
                         <aside class="app-drawer p-s" @navigation-requested="${e.updateRoute}">
                             ${t.menu&&t.totalMenuOptions>10?o`
-                                <input class="drawer-search" placeholder="⌕ Search…" style="width: calc(100% - 20px); margin: 0 10px;"
-                                       @input="${v=>Xu({detail:{value:v.target.value}},e)}">
+                                <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${v=>Xu(v,e)}">
+                                    <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
+                                </vaadin-text-field>
                                 `:l}
-                            <nav class="side-nav">
+                            <vaadin-side-nav class="side-nav">
                                 ${e.renderSideNav(d,void 0)}
-                            </nav>
+                            </vaadin-side-nav>
                         </aside>
                         <div class="${"app-content"+(e.pageCompact?" no-padding":"")}" style="flex: 1; min-width: 0;">
                             <div class="m-md">
@@ -7791,12 +7789,14 @@ id="${e.id}"
                                 ${t.title?o`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:l}
                             </div>
                             </a>
-                            <div class="app-tabs" style="flex-grow: 1; min-width: 0;">
-                                ${t.menu.map((v,f)=>o`
-                                <button class="app-tab ${f===e.getSelectedIndex(t.menu)?"active":""}"
+                            <vaadin-tabs selected="${e.getSelectedIndex(t.menu)}"
+                                         style="box-shadow: unset; flex-grow: 1; min-width: 0;"
+                                         class="${e.component?.cssClasses}">
+                                ${t.menu.map(v=>o`
+                                <vaadin-tab
                                         @click="${()=>e.selectRoute(v.consumedRoute,v.route,v.actionId,v.baseUrl,v.serverSideType,v.uriPrefix)}"
-                                >${v.label}</button>`)}
-                            </div>
+                                >${v.label}</vaadin-tab>`)}
+                            </vaadin-tabs>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
                                 ${wa(t,e)}

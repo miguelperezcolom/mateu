@@ -563,17 +563,17 @@ export class MateuApp extends ComponentElement {
     renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
-                <details class="left-menu-group">
-                    <summary>${option.label}</summary>
-                    <div style="display: flex; flex-direction: column;">
+                <vaadin-details opened class="left-menu-group">
+                    <div slot="summary">${option.label}</div>
+                    <vaadin-vertical-layout>
                         ${option.submenus.map(child => html`${this.renderOptionOnLeftMenu(child)}`)}
-                    </div>
-                </details>
+                    </vaadin-vertical-layout>
+                </vaadin-details>
 `
         }
-        return html`<button class="left-menu-item"
+        return html`<vaadin-button theme="tertiary" class="left-menu-item"
                 @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
-        >${option.label}</button>`
+        >${option.label}</vaadin-button>`
     }
 
     @query('.mateu-app-layout')
@@ -613,13 +613,14 @@ export class MateuApp extends ComponentElement {
                 return html`
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
-                                <div class="side-nav-item ${item.selected?'side-nav-item--active':''}" slot="${slot}">
-                                    <button class="side-nav-link"
-                                            @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
-                                        ${item.icon ? html`<vaadin-icon icon="vaadin:dashboard" style="margin-right: .4rem; --iron-icon-width: 1em; --iron-icon-height: 1em;"></vaadin-icon>` : nothing}${item.text}
-                                    </button>
-                                    ${item.children ? html`<div class="side-nav-children">${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}</div>` : nothing}
-                                </div>
+                                <vaadin-side-nav-item
+                                        class="${item.selected?'side-nav-item--active':''}"
+                                        slot="${slot}"
+                                        ?expanded="${!!item.children}"
+                                        @click="${() => { if (item.route && !item.children) this.selectRoute(undefined, item.route as string, undefined, this.baseUrl, undefined, undefined) }}">
+                                    ${item.icon ? html`<vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>` : nothing}${item.text}
+                                    ${item.children ? this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children') : nothing}
+                                </vaadin-side-nav-item>
                         `}
 
                             `})}`:nothing
