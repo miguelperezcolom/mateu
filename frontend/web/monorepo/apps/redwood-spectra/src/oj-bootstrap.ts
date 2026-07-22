@@ -172,6 +172,7 @@ async function loadOjet() {
         'oj-sp/css-additions/loader',
         'oj-sp/simple-ui-shell/loader',
         // oj-c form controls used by the Redwood FormField widget (renderRedwoodField).
+        'oj-c/button',
         'oj-c/input-text',
         'oj-c/input-number',
         'oj-c/select-single',

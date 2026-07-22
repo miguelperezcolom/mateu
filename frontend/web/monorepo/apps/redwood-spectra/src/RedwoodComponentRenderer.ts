@@ -5,6 +5,7 @@ import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideCompone
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { ComponentState, ComponentData } from '@infra/ui/renderers/types'
 import { renderRedwoodField } from './fields/renderRedwoodField'
+import { renderRedwoodButton } from './fields/renderRedwoodButton'
 import {
   renderDashboardLayout,
   renderScoreboard,
@@ -35,6 +36,7 @@ type WidgetRenderer = (
 const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
   [ComponentMetadataType.FormField]: (c, comp, b, s, d, as, ad, lar) =>
     renderRedwoodField(c, comp, b, s, d, as, ad, lar),
+  [ComponentMetadataType.Button]: (_c, comp, _b, s, d) => renderRedwoodButton(comp, s, d),
   // Dashboard family → Oracle Spectra dashboard components.
   [ComponentMetadataType.DashboardLayout]: (c, comp, b, s, d, as, ad) => renderDashboardLayout(c, comp, b, s, d, as, ad),
   [ComponentMetadataType.Scoreboard]: (c, comp, b, s, d, as, ad) => renderScoreboard(c, comp, b, s, d, as, ad),
