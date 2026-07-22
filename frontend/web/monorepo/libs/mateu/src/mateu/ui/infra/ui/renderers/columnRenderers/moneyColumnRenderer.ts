@@ -1,6 +1,5 @@
 import { html } from "lit";
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
-import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
+import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 
 export const renderMoneyCell = (item: any,
                                  _model: GridItemModel<any>,

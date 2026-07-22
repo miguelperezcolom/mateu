@@ -1,5 +1,4 @@
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
-import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
+import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { LitElement } from "lit";
 

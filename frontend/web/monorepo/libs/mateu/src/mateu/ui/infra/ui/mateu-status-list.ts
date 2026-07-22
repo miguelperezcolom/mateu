@@ -2,7 +2,6 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import StatusItem from "@mateu/shared/apiClients/dtos/componentmetadata/StatusItem";
 import { chipStyles } from "@infra/ui/uxShared.ts";
-import "@vaadin/button";
 
 /**
  * Bordered list of rows with an icon (or a circular initials avatar), a title + muted description,
@@ -60,7 +59,19 @@ export class MateuStatusList extends LitElement {
             font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-secondary-text-color, #888);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        vaadin-button { flex: 0 0 auto; }
+        /* DS-neutral small action button */
+        .row-action {
+            flex: 0 0 auto;
+            font: inherit; font-weight: 600;
+            font-size: var(--lumo-font-size-xs, .75rem);
+            padding: .25rem .7rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.2));
+            background: var(--lumo-base-color, #fff);
+            color: var(--lumo-primary-text-color, #1a73e8);
+            cursor: pointer;
+        }
+        .row-action:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
     `]
 
     private runAction(item: StatusItem) {
@@ -96,7 +107,7 @@ export class MateuStatusList extends LitElement {
                         </div>
                         ${item.status ? html`<span class="chip ${item.statusColor ?? ''}">${item.status}</span>` : nothing}
                         ${item.actionLabel && item.actionId
-                            ? html`<vaadin-button theme="small" @click="${() => this.runAction(item)}">${item.actionLabel}</vaadin-button>`
+                            ? html`<button class="row-action" @click="${() => this.runAction(item)}">${item.actionLabel}</button>`
                             : nothing}
                     </div>
                 `)}

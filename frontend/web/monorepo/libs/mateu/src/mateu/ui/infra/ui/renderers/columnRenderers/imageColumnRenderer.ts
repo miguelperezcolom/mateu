@@ -1,6 +1,5 @@
 import { html } from "lit";
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
-import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
+import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 
 export const renderImageCell = (item: any,

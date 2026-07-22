@@ -1,7 +1,6 @@
 import { html } from "lit";
-import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
+import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/StatusType.ts";
-import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 
 export const renderStatusCell = (item: any,
                                  _model: GridItemModel<any>,

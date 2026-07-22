@@ -1,6 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing} from "lit";
-import '@vaadin/vertical-layout'
 import {appData, appState} from "@domain/state";
 import './mateu-ux'
 import './mateu-api-caller'

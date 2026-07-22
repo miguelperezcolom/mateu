@@ -1,6 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement } from "lit";
-import '@vaadin/vertical-layout'
 import { upstream } from "@domain/state";
 import '../mateu-ux'
 import Component from "@mateu/shared/apiClients/dtos/Component";
@@ -85,8 +84,8 @@ export class MateuTestBench extends LitElement {
     render() {
        return html`
            <mateu-ui baseurl="${this.baseUrl}" journeytypeid="_" overrides="${this.overrides}"></mateu-ui>
-           <vaadin-button @click="${this.loadTableData}">Table Data</vaadin-button>
-           <vaadin-button @click="${this.loadTableCrudData1}">Table Crud Data 1</vaadin-button>
+           <button @click="${this.loadTableData}">Table Data</button>
+           <button @click="${this.loadTableCrudData1}">Table Crud Data 1</button>
        `
     }
 

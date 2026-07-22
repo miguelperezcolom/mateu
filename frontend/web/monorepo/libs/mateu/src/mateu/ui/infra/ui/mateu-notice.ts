@@ -1,6 +1,5 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
-import "@vaadin/button";
 
 const THEME_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' }
 
@@ -73,7 +72,17 @@ export class MateuNotice extends LitElement {
         .body.inline { flex-direction: row; align-items: center; gap: .8rem; flex-wrap: wrap; }
         .body.inline .text { flex: 0 0 auto; }
         .body.inline .content { flex: 1 1 12rem; min-width: 0; }
-        vaadin-button { flex: 0 0 auto; }
+        /* ghost action button: blends with the themed strip via currentColor (DS-neutral) */
+        .notice-action {
+            flex: 0 0 auto;
+            font: inherit; font-weight: 600;
+            font-size: var(--lumo-font-size-xs, .75rem);
+            padding: .2rem .7rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            border: 1px solid currentColor;
+            background: transparent; color: inherit; cursor: pointer;
+        }
+        .notice-action:hover { background: rgba(0,0,0,.06); }
         .status { flex: 0 0 auto; font-weight: 600; font-size: var(--lumo-font-size-xs, .75rem); }
         /* pastel background + dark ink per theme (always-light pastels, like the page banners) */
         .info    { background: #e3f0fb; } .info .text, .info .status       { color: #1a5dad; }
@@ -111,7 +120,7 @@ export class MateuNotice extends LitElement {
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}
                 </div>
                 ${this.actionLabel && this.actionId
-                    ? html`<vaadin-button theme="small" @click="${() => this.runAction()}">${this.actionLabel}</vaadin-button>`
+                    ? html`<button class="notice-action" @click="${() => this.runAction()}">${this.actionLabel}</button>`
                     : this.status
                         ? html`<span class="status">${this.status}</span>`
                         : nothing}
