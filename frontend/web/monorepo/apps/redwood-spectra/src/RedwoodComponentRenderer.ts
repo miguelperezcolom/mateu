@@ -173,6 +173,15 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
     `
   }
 
+  /** CRUD/page toolbar buttons (New/Delete/Save/…) → authentic oj-c-button. */
+  renderToolbarButton(_button: unknown, label: string, onClick: () => void): TemplateResult {
+    return html`<oj-c-button
+      label=${label}
+      chroming="outlined"
+      @ojAction=${() => onClick()}
+    ></oj-c-button>`
+  }
+
   // The icon port for Redwood. Wire icon names are Vaadin/Lumo iconset names; there is no 1:1 map to
   // Oracle's ojux font, so the common app-chrome + action icons resolve to self-contained Unicode
   // glyphs (reliable, no font dependency). Unknown names fall back to a small neutral dot.

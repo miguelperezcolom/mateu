@@ -7815,6 +7815,10 @@ import{S as Ks,a as Ys,n as ke,b as Js}from"./vendor.js";import{i as $,n as u,e 
         </oj-sp-global-header>
         <div slot="stretchingContents" class="oj-sp-rw-ask-oracle-page-container">${p}</div>
       </oj-sp-simple-ui-shell>
-    `}renderIcon(t,r,a){const s=(t||"").replace(/^(vaadin|lumo):/,""),o=Au[s];return i`<span class="mateu-icon ${a??""}" data-icon="${t}" aria-hidden="true"
+    `}renderToolbarButton(t,r,a){return i`<oj-c-button
+      label=${r}
+      chroming="outlined"
+      @ojAction=${()=>a()}
+    ></oj-c-button>`}renderIcon(t,r,a){const s=(t||"").replace(/^(vaadin|lumo):/,""),o=Au[s];return i`<span class="mateu-icon ${a??""}" data-icon="${t}" aria-hidden="true"
                       style="display:inline-flex; align-items:center; justify-content:center; width:1em; height:1em; line-height:1; ${r??""}"
                 >${o??"•"}</span>`}}const Au={menu:"☰",search:"🔍","sun-o":"☀",moon:"🌙","comments-o":"💬",comment:"💬",plus:"+",minus:"−",check:"✓",close:"✕",edit:"✎",trash:"🗑",dashboard:"▦",bell:"🔔",user:"👤",cog:"⚙",filter:"≡",download:"⤓",upload:"⤑",refresh:"↻","angle-left":"‹","angle-right":"›","angle-down":"⌄","angle-up":"⌃",ellipsis:"⋯","ellipsis-dots-v":"⋮"};j.set(new zu);j.setUseShadowRoot(!1);
