@@ -27,21 +27,6 @@ public class Persons extends Crud<
     }
 
     @Override
-    public String toId(String id) {
-        return id;
-    }
-
-    @Override
-    public Class editorClass() {
-        return PersonEditorView.class;
-    }
-
-    @Override
-    public Class creationFormClass() {
-        return PersonCreationForm.class;
-    }
-
-    @Override
     public Object save(HttpRequest httpRequest) {
         var editor = httpRequest.getComponentState(PersonEditorView.class);
         editor.save(httpRequest);

@@ -190,7 +190,23 @@ public abstract class Crud<
     return "History";
   }
 
-  public abstract String toId(String id);
+  /** The id type, read off the concrete subclass's {@code extends Crud<...>} signature. */
+  public Class<IdType> idClass() {
+    return getGenericClass(this.getClass(), Crud.class, "IdType");
+  }
+
+  /**
+   * Maps the raw id from the route into the typed {@code IdType} used to look the row up. The
+   * default converts the string automatically when the id is a string (or a supertype of it), a
+   * well-known scalar ({@code Integer}, {@code Long}, {@code UUID}, an enum, …) or a type with a
+   * single-{@code String} constructor; for any other id type it throws, asking the crud to override
+   * this method. Override it too whenever the route id needs decoding/normalising before the
+   * lookup.
+   */
+  @SuppressWarnings("unchecked")
+  public IdType toId(String id) {
+    return (IdType) CrudIdConverter.convert(id, idClass(), getClass());
+  }
 
   public abstract CrudAdapter<Editor, CreationForm, Filters, Row, IdType> adapter();
 
@@ -222,9 +238,24 @@ public abstract class Crud<
     return adapter().getEditor(id, httpRequest);
   }
 
-  public abstract Class<Editor> editorClass();
+  /**
+   * The editor form class. Defaults to the {@code Editor} type argument read off the concrete
+   * subclass's {@code extends Crud<...>} signature — override only when it can't be derived
+   * reflectively (e.g. {@link FilteredAutoCrud}, whose editor is the generic {@code
+   * AutoNamedView}).
+   */
+  public Class<Editor> editorClass() {
+    return getGenericClass(this.getClass(), Crud.class, "Editor");
+  }
 
-  public abstract Class<CreationForm> creationFormClass();
+  /**
+   * The creation form class. Defaults to the {@code CreationForm} type argument read off the
+   * concrete subclass's {@code extends Crud<...>} signature — override only when it can't be
+   * derived reflectively.
+   */
+  public Class<CreationForm> creationFormClass() {
+    return getGenericClass(this.getClass(), Crud.class, "CreationForm");
+  }
 
   public abstract Object save(HttpRequest httpRequest);
 

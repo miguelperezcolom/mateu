@@ -16,11 +16,6 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> {
 
   @Override
-  public String toId(String id) {
-    return id;
-  }
-
-  @Override
   public CrudAdapter<AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> adapter() {
     return new CrudAdapter<>() {
       @Override
