@@ -23,7 +23,12 @@ import { renderWelcome } from './welcome/renderRedwoodWelcome'
 import { renderRedwoodEmptyState } from './emptystate/renderRedwoodEmptyState'
 import { renderRedwoodSection } from './section/renderRedwoodSection'
 import { renderRedwoodBreadcrumbs } from './breadcrumbs/renderRedwoodBreadcrumbs'
-import { renderRedwoodAvatar, renderRedwoodProgressBar } from './display/renderRedwoodLeaves'
+import {
+  renderRedwoodAvatar,
+  renderRedwoodProgressBar,
+  renderRedwoodBadge,
+  renderRedwoodMeter,
+} from './display/renderRedwoodLeaves'
 
 type WidgetRenderer = (
   container: LitElement,
@@ -67,6 +72,8 @@ const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = 
   // Leaf display components → authentic oj-c-*.
   [ComponentMetadataType.Avatar]: (_c, comp) => renderRedwoodAvatar(comp),
   [ComponentMetadataType.ProgressBar]: (_c, comp) => renderRedwoodProgressBar(comp),
+  [ComponentMetadataType.Badge]: (_c, comp) => renderRedwoodBadge(comp),
+  [ComponentMetadataType.Meter]: (_c, comp) => renderRedwoodMeter(comp),
 }
 
 /**
