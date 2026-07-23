@@ -29,6 +29,7 @@ import {
   renderRedwoodBadge,
   renderRedwoodMeter,
 } from './display/renderRedwoodLeaves'
+import { renderRedwoodTabs } from './tabs/renderRedwoodTabs'
 
 type WidgetRenderer = (
   container: LitElement,
@@ -74,6 +75,8 @@ const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = 
   [ComponentMetadataType.ProgressBar]: (_c, comp) => renderRedwoodProgressBar(comp),
   [ComponentMetadataType.Badge]: (_c, comp) => renderRedwoodBadge(comp),
   [ComponentMetadataType.Meter]: (_c, comp) => renderRedwoodMeter(comp),
+  // Tabs → authentic oj-c-tab-bar (mateu-spectra-tabs).
+  [ComponentMetadataType.TabLayout]: (c, comp, b, s, d, as, ad) => renderRedwoodTabs(c, comp, b, s, d, as, ad),
 }
 
 /**

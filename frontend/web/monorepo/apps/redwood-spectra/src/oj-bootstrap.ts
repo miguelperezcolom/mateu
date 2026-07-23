@@ -127,6 +127,7 @@ async function loadOjet() {
         'oj-c/progress-bar',
         'oj-c/badge',
         'oj-c/meter-bar',
+        'oj-c/tab-bar',
         // oj-sp dashboard leaf components (renderRedwoodDashboard).
         'oj-sp/dashboard-panel/loader',
         'oj-sp/scoreboard-metric-card/loader',
