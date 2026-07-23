@@ -61,13 +61,13 @@ describe('selectColumnLayout', () => {
         expect(selectColumnLayout(cols, 12 * PX_PER_UNIT)).toBe('table')
     })
 
-    it('keeps table on moderate overflow (a table scrolls / truncates)', () => {
-        // 12 units in ~8 units of width → r = 1.5 (≤ 1.7)
+    it('degrades once the table no longer fits (r > 1.0, no compact subset)', () => {
+        // 4 text columns = 12 units; width 10 units → r = 1.2 (> 1.0, ≤ 1.6) → cards
         const cols = [col(), col(), col(), col()]
-        expect(selectColumnLayout(cols, 8 * PX_PER_UNIT)).toBe('table')
+        expect(selectColumnLayout(cols, 10 * PX_PER_UNIT)).toBe('cards')
     })
 
-    it('returns masterDetail when heavily overweight (ratio > 2.4)', () => {
+    it('returns masterDetail when overweight (ratio > 1.6)', () => {
         // 12 units in 4 units of width → r = 3.0
         const cols = [col(), col(), col(), col()]
         expect(selectColumnLayout(cols, 4 * PX_PER_UNIT)).toBe('masterDetail')
@@ -86,8 +86,8 @@ describe('selectColumnLayout', () => {
             col({ priority: 5 }),                         // 3.0
             col({ priority: 5 }),                         // 3.0
         ]
-        // total 11 units; width for r = 2.0 (between 1.7 and 2.4)
-        expect(selectColumnLayout(cols, 5.5 * PX_PER_UNIT)).toBe('list')
+        // total 11 units; width 8 units → r ≈ 1.375 (between 1.0 and 1.6)
+        expect(selectColumnLayout(cols, 8 * PX_PER_UNIT)).toBe('list')
     })
 
     it('returns cards when there is no compact subset but an image column', () => {
@@ -96,21 +96,21 @@ describe('selectColumnLayout', () => {
             col({ priority: 9 }),         // 3.0
             col({ priority: 9 }),         // 3.0
         ]
-        // total 10 units; r = 2.0
-        expect(selectColumnLayout(cols, 5 * PX_PER_UNIT)).toBe('cards')
+        // total 10 units; width 7 units → r ≈ 1.43 (≤ 1.6)
+        expect(selectColumnLayout(cols, 7 * PX_PER_UNIT)).toBe('cards')
     })
 
     it('returns cards for 4-8 plain columns without compact subset', () => {
         const cols = [col({ priority: 9 }), col({ priority: 9 }), col({ priority: 9 }), col({ priority: 9 })]
-        // total 12 units; r = 2.0
-        expect(selectColumnLayout(cols, 6 * PX_PER_UNIT)).toBe('cards')
+        // total 12 units; width 8 units → r = 1.5 (≤ 1.6), 4 plain cols → cards
+        expect(selectColumnLayout(cols, 8 * PX_PER_UNIT)).toBe('cards')
     })
 
     it('falls back to masterDetail when nothing else applies', () => {
         // 3 plain columns, no compact subset, no image/html → not list, not cards
         const cols = [col({ priority: 9 }), col({ priority: 9 }), col({ priority: 9 })]
-        // total 9 units; r = 2.0
-        expect(selectColumnLayout(cols, 4.5 * PX_PER_UNIT)).toBe('masterDetail')
+        // total 9 units; width 7 units → r ≈ 1.29 (≤ 1.6); 3 plain cols (not 4–8) → fallback
+        expect(selectColumnLayout(cols, 7 * PX_PER_UNIT)).toBe('masterDetail')
     })
 })
 
