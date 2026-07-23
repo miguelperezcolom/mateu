@@ -11,7 +11,8 @@ import { renderDetails } from "./renderers/renderDetails"
 import { renderAvatar, renderAvatarGroup } from "./renderers/renderAvatar"
 import { renderCard } from "./renderers/renderCard"
 import * as vLayouts from "./renderers/renderLayouts"
-import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
+import { renderMenuBar, renderContextMenu, renderTopNav as renderVaadinTopNav } from "./renderers/renderMenu"
+import { MenuBarItem } from "@infra/ui/mateu-app"
 import { renderField } from "./fields/renderField"
 import { renderGrid } from "./grid/gridRenderer"
 import { renderTableElement, renderCrudTable } from "./grid/renderTable"
@@ -115,6 +116,11 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
     // Icon port → vaadin-icon (the core `icon()` helper delegates here; core stays @vaadin-free).
     renderIcon(icon: string, style?: string, cssClasses?: string): TemplateResult {
         return renderVaadinIcon(icon, style, cssClasses)
+    }
+
+    // App shell top navigation → vaadin-menu-bar (the core shell renders a neutral <details> strip).
+    renderTopNav(items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls?: string): TemplateResult {
+        return renderVaadinTopNav(items, onSelect, cls)
     }
 
 }

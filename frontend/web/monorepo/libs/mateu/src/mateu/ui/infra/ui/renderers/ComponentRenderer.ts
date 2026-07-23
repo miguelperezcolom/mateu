@@ -1,6 +1,6 @@
 import { LitElement, TemplateResult } from "lit";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
-import { MateuApp } from "@infra/ui/mateu-app.ts";
+import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -52,6 +52,14 @@ export interface ComponentRenderer {
      * fallback (a semantic <span data-icon> placeholder with no glyph).
      */
     renderIcon?(icon: string, style?: string, cssClasses?: string): TemplateResult
+
+    /**
+     * The app shell's top navigation (menu-on-top). Absent → the shell renders its DS-neutral
+     * <details> strip (renderNeutralNav, no @vaadin). The Vaadin adapter overrides this with a
+     * <vaadin-menu-bar> so the shell chrome uses Vaadin components like the rest of the renderer.
+     * `onSelect` is the shell's existing menu-item handler (fires container.itemSelected).
+     */
+    renderTopNav?(items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls?: string): TemplateResult
 }
 
 export class ComponentRendererSingleton {
