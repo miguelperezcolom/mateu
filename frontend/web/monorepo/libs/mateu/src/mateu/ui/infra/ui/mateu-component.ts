@@ -28,7 +28,6 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import './mateu-chart'
 import './mateu-bpmn'
 import './mateu-workflow'
-import './mateu-workflow-elk'
 import './mateu-form-editor'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'

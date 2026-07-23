@@ -24,7 +24,6 @@ const FULL_BLEED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Kanban,
     ComponentMetadataType.Bpmn,
     ComponentMetadataType.Workflow,
-    ComponentMetadataType.WorkflowElk,
     ComponentMetadataType.Map,
 ])
 

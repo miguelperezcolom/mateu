@@ -364,11 +364,6 @@
   resolved "https://registry.npmjs.org/@open-wc/dedupe-mixin/-/dedupe-mixin-1.4.0.tgz"
   integrity sha512-Sj7gKl1TLcDbF7B6KUhtvr+1UCxdhMbNY5KxdU5IfMFWqL8oy1ZeAcCANjoB1TL0AJTcPmcCFsCbHf8X2jGDUA==
 
-"@patternfly/patternfly@^6.5.2":
-  version "6.6.0"
-  resolved "https://registry.npmjs.org/@patternfly/patternfly/-/patternfly-6.6.0.tgz"
-  integrity sha512-drZ4wYFQdhYY+VxLIl8PqbYnJoEa0UrNhiUkMCKkgMVNPxmCfNa1d2eEA97tnp2aYew15jQp+MaZcQIQIG8wVg==
-
 "@petamoriken/float16@^3.4.7":
   version "3.9.3"
   resolved "https://registry.npmjs.org/@petamoriken/float16/-/float16-3.9.3.tgz"
@@ -744,11 +739,6 @@
     "@types/argparse" "1.0.38"
     argparse "~1.0.9"
     string-argv "~0.3.1"
-
-"@salesforce-ux/design-system-2@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.npmjs.org/@salesforce-ux/design-system-2/-/design-system-2-2.0.4.tgz"
-  integrity sha512-22gDByTBsKyiMj6eJQk1LcA4Z8ILDf0fBsf6AR0YYlXJ1fo/hX5FNW9O0xYtMX12/fadDDKO1AjMW0sUptzrOg==
 
 "@sap-theming/theming-base-content@11.36.4":
   version "11.36.4"
@@ -2601,11 +2591,6 @@ dunder-proto@^1.0.1:
     call-bind-apply-helpers "^1.0.1"
     es-errors "^1.3.0"
     gopd "^1.2.0"
-
-elkjs@^0.11.1:
-  version "0.11.1"
-  resolved "https://registry.npmjs.org/elkjs/-/elkjs-0.11.1.tgz"
-  integrity sha512-zxxR9k+rx5ktMwT/FwyLdPCrq7xN6e4VGGHH8hA01vVYKjTFik7nHOxBnAYtrgYUB1RpAiLvA1/U2YraWxyKKg==
 
 entities@^7.0.1:
   version "7.0.1"

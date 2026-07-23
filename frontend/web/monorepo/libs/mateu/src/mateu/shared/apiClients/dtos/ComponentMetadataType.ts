@@ -64,7 +64,6 @@ export enum ComponentMetadataType {
     FormSubSection="FormSubSection",
     Bpmn="Bpmn",
     Workflow="Workflow",
-    WorkflowElk="WorkflowElk",
     FormEditor="FormEditor",
     MetricCard = "MetricCard",
     Scoreboard = "Scoreboard",

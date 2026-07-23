@@ -64,7 +64,6 @@ import { renderCrud } from "@infra/ui/renderers/crudRenderer.ts";
 import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
 import {renderChat} from "@infra/ui/renderers/chatRenderer.ts";
 import {renderWorkflow} from "@infra/ui/renderers/workflowRenderer.ts";
-import {renderWorkflowElk} from "@infra/ui/renderers/workflowElkRenderer.ts";
 import {renderFormEditor} from "@infra/ui/renderers/formEditorRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import {
@@ -170,7 +169,6 @@ const full =
 const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => TemplateResult>> = {
     [ComponentMetadataType.Bpmn]: ({ component }) => renderBpmn(component),
     [ComponentMetadataType.Workflow]: ({ component }) => renderWorkflow(component),
-    [ComponentMetadataType.WorkflowElk]: ({ component }) => renderWorkflowElk(component),
     [ComponentMetadataType.FormEditor]: ({ component }) => renderFormEditor(component),
     [ComponentMetadataType.Page]: full(renderPage),
     [ComponentMetadataType.Div]: full(renderDiv),

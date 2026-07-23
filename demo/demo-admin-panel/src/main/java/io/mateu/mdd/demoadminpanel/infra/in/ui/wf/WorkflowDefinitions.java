@@ -13,7 +13,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import static io.mateu.uidl.fluent.Component.createComponent;
 
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Service
@@ -21,7 +20,6 @@ import static io.mateu.uidl.fluent.Component.createComponent;
 @RequiredArgsConstructor
 public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
 
-    final WorkflowDefinitionEditor graphEditor;
     final WorkflowDefinitionRepository repository;
 
     @Override
@@ -39,12 +37,6 @@ public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
         throw new Exception("No configured");
     }
 
-    @ViewToolbarButton
-    public Object graphEditor(WorkflowDefinition definition, HttpRequest httpRequest) {
-        return Dialog.builder()
-                .content(createComponent(graphEditor.load(definition.id())))
-                .build();
-    }
 /*
     @ViewToolbarButton
     public UICommand createWorkingCopy(WorkflowDefinition definition, HttpRequest httpRequest) {

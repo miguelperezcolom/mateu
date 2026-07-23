@@ -11,7 +11,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.MapComponentMapper
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MenuBarMapper.mapMenuBarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MicroFrontendMapper.mapMicroFrontendToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.VirtualListMapper.mapVirtualListToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.WorkflowElkMapper.mapWorkflowElkToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.WorkflowMapper.mapWorkflowToDto;
 
 import io.mateu.dtos.ComponentDto;
@@ -33,9 +32,6 @@ final class WidgetComponentDispatcher {
     }
     if (component instanceof Workflow workflow) {
       return mapWorkflowToDto(workflow);
-    }
-    if (component instanceof WorkflowElk workflowElk) {
-      return mapWorkflowElkToDto(workflowElk);
     }
     if (component instanceof FormEditor formEditor) {
       return mapFormEditorToDto(formEditor);

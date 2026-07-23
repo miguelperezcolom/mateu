@@ -98,7 +98,7 @@ export const handleButtonClick = (event: Event) => {
  * table/filter-bar/pagination and — via rendersCrudLayouts() — also its list/cards/
  * masterDetail/tree layouts; Chart/Bpmn render canvas/SVG; mateu-map renders an OpenLayers
  * canvas; mateu-markdown renders plain HTML typography; CookieConsent renders plain markup;
- * and, since parity phase 2, the Chat side panel and the Workflow/WorkflowElk/FormEditor SVG
+ * and, since parity phase 2, the Chat side panel and the Workflow/FormEditor SVG
  * editors use neutral plain-HTML chrome — no Vaadin components left in any of them).
  *
  * Anything else renders a visible <mateu-unsupported> placeholder instead of silently falling
@@ -167,7 +167,6 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Map,
     ComponentMetadataType.Chat,
     ComponentMetadataType.Workflow,
-    ComponentMetadataType.WorkflowElk,
     ComponentMetadataType.FormEditor,
     ComponentMetadataType.MetricCard,
     ComponentMetadataType.Scoreboard,
