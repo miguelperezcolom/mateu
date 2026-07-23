@@ -54,7 +54,7 @@ public class StockCrud extends AutoCrud<StockCrud.StockItem> {
   }
 
   @Override
-  public CrudRepository<StockItem> repository() {
+  public CrudRepository<StockItem> store() {
     return new CrudRepository<>() {
 
       @Override

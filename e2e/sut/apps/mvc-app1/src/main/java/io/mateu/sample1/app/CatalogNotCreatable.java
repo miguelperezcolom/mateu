@@ -22,7 +22,7 @@ import java.util.Optional;
 public class CatalogNotCreatable extends AutoCrud<CatalogNotCreatable.Product> {
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudRepository<Product> store() {
         return new ProductRepository();
     }
 

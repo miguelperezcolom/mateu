@@ -73,7 +73,7 @@ class AggregatesSyncTest {
   @Title("Sales")
   public static class SalesCrud extends AutoCrud<Sale> {
     @Override
-    public CrudRepository<Sale> repository() {
+    public CrudRepository<Sale> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Sale> findById(String id) {

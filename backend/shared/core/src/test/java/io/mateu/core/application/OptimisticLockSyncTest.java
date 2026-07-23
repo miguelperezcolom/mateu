@@ -55,7 +55,7 @@ class OptimisticLockSyncTest {
   @Title("Articles")
   public static class ArticlesCrud extends AutoCrud<Article> {
     @Override
-    public CrudRepository<Article> repository() {
+    public CrudRepository<Article> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Article> findById(String id) {

@@ -22,7 +22,7 @@ import java.util.UUID;
 public class FullCrud extends AutoCrud<FullCrud.Task> {
 
     @Override
-    public CrudRepository<Task> repository() {
+    public CrudRepository<Task> store() {
         return new TaskRepository();
     }
 

@@ -24,7 +24,7 @@ public class Errors extends AutoCrud<Error> {
     final ErrorCrudRepository repository;
 
     @Override
-    public CrudRepository<Error> repository() {
+    public CrudRepository<Error> store() {
         return repository;
     }
 }

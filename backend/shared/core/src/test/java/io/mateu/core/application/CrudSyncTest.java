@@ -96,7 +96,7 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<Item> repository() {
+    public CrudRepository<Item> store() {
       return itemsRepository();
     }
   }
@@ -152,7 +152,7 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<StockItem> repository() {
+    public CrudRepository<StockItem> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<StockItem> findById(String id) {
@@ -210,7 +210,7 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<Item> repository() {
+    public CrudRepository<Item> store() {
       return itemsRepository();
     }
   }

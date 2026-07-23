@@ -19,7 +19,7 @@ import java.util.Optional;
 public class FilterableCatalog extends AutoCrud<FilterableCatalog.Employee> {
 
     @Override
-    public CrudRepository<Employee> repository() {
+    public CrudRepository<Employee> store() {
         return new EmployeeRepository();
     }
 

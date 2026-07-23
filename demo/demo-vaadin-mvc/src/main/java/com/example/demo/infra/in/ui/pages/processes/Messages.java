@@ -24,7 +24,7 @@ public class Messages extends AutoCrud<Message> {
     final MessageCrudRepository repository;
 
     @Override
-    public CrudRepository<Message> repository() {
+    public CrudRepository<Message> store() {
         return repository;
     }
 }

@@ -23,7 +23,7 @@ public class Reservations extends AutoCrud<Reservation> {
     final ReservationRepository repository;
 
     @Override
-    public CrudRepository<Reservation> repository() {
+    public CrudRepository<Reservation> store() {
         return repository;
     }
 

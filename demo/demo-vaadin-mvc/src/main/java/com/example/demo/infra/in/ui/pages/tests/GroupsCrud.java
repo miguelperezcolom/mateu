@@ -80,7 +80,7 @@ class Adapter implements CrudRepository<Grupo> {
 //@Trigger(type = TriggerType.OnLoad, route = "search", timeoutMillis = 4000, times = -1)
 public class GroupsCrud extends AutoCrud<Grupo> {
     @Override
-    public CrudRepository<Grupo> repository() {
+    public CrudRepository<Grupo> store() {
         return new Adapter();
     }
 

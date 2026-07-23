@@ -101,7 +101,7 @@ class Product2Repository implements CrudRepository<Product2> {
 public class Products2 extends AutoCrud<Product2> {
 
     @Override
-    public CrudRepository<Product2> repository() {
+    public CrudRepository<Product2> store() {
         return new Product2Repository();
     }
 

@@ -24,7 +24,7 @@ public class Steps extends AutoCrud<Step> {
     final StepCrudRepository repository;
 
     @Override
-    public CrudRepository<Step> repository() {
+    public CrudRepository<Step> store() {
         return repository;
     }
 }

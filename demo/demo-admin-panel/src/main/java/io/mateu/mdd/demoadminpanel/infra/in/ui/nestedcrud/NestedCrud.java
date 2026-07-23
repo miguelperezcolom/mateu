@@ -15,7 +15,7 @@ public class NestedCrud extends AutoCrud<Level1View> {
 
 
     @Override
-    public CrudRepository<Level1View> repository() {
+    public CrudRepository<Level1View> store() {
         return repo;
     }
 }

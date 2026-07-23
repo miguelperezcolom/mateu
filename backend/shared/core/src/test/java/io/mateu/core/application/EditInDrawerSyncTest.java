@@ -64,7 +64,7 @@ class EditInDrawerSyncTest {
     }
 
     @Override
-    public CrudRepository<Book> repository() {
+    public CrudRepository<Book> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Book> findById(String id) {

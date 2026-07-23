@@ -50,7 +50,7 @@ public class CustomLabelsCrud extends AutoCrud<CustomLabelsCrud.Item> {
     }
 
     @Override
-    public CrudRepository<Item> repository() {
+    public CrudRepository<Item> store() {
         return new ItemRepo();
     }
 

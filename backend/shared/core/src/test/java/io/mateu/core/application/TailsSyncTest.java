@@ -95,7 +95,7 @@ class TailsSyncTest {
     static String closedId;
 
     @Override
-    public CrudRepository<Ticket> repository() {
+    public CrudRepository<Ticket> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Ticket> findById(String id) {

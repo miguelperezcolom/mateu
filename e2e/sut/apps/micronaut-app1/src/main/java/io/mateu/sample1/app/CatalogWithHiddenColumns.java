@@ -19,7 +19,7 @@ import java.util.Optional;
 public class CatalogWithHiddenColumns extends AutoCrud<CatalogWithHiddenColumns.Order> {
 
     @Override
-    public CrudRepository<Order> repository() {
+    public CrudRepository<Order> store() {
         return new OrderRepository();
     }
 

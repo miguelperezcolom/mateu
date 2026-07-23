@@ -73,7 +73,7 @@ class ItemRepository implements CrudRepository<Item> {
 public class ItemsCatalog extends AutoCrud<Item> {
 
     @Override
-    public CrudRepository<Item> repository() {
+    public CrudRepository<Item> store() {
         return new ItemRepository();
     }
 }

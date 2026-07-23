@@ -11,7 +11,7 @@ import java.util.Optional;
 public class Countries extends AutoCrud<Country> {
 
     @Override
-    public CrudRepository<Country> repository() {
+    public CrudRepository<Country> store() {
         return new CrudRepository<>() {
             @Override
             public Optional<Country> findById(String id) {

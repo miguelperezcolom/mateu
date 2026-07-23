@@ -56,7 +56,7 @@ public class ContactsDrawerCrud extends AutoCrud<ContactsDrawerCrud.Contact> {
   }
 
   @Override
-  public CrudRepository<Contact> repository() {
+  public CrudRepository<Contact> store() {
     return new CrudRepository<>() {
 
       @Override

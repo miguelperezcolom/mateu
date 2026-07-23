@@ -23,7 +23,7 @@ public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
     final WorkflowDefinitionRepository repository;
 
     @Override
-    public io.mateu.uidl.interfaces.CrudRepository<WorkflowDefinition> repository() {
+    public io.mateu.uidl.interfaces.CrudRepository<WorkflowDefinition> store() {
         return repository;
     }
 

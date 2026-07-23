@@ -16,7 +16,7 @@ public class UsersPage extends AutoCrud<User> {
     }
 
     @Override
-    public CrudRepository<User> repository() {
+    public CrudRepository<User> store() {
         return userRepository;
     }
 }

@@ -13,7 +13,7 @@ public class Processes extends AutoCrud<Process> {
     final ProcessCrudRepository repository;
 
     @Override
-    public CrudRepository<Process> repository() {
+    public CrudRepository<Process> store() {
         return repository;
     }
 }

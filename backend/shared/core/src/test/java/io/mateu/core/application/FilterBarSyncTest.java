@@ -85,7 +85,7 @@ class FilterBarSyncTest {
   public static class CatalogCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudRepository<Product> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Product> findById(String id) {
@@ -121,7 +121,7 @@ class FilterBarSyncTest {
   public static class GadgetCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Gadget> {
     @Override
-    public CrudRepository<Gadget> repository() {
+    public CrudRepository<Gadget> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Gadget> findById(String id) {

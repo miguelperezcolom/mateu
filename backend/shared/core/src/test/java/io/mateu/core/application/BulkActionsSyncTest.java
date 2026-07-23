@@ -63,7 +63,7 @@ class BulkActionsSyncTest {
   public static class InvoicesCrud extends AutoCrud<Invoice> {
 
     @Override
-    public CrudRepository<Invoice> repository() {
+    public CrudRepository<Invoice> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Invoice> findById(String id) {

@@ -19,7 +19,7 @@ import java.util.Optional;
 public class Products extends AutoCrud<Products.Product> {
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudRepository<Product> store() {
         return new ProductRepository();
     }
 

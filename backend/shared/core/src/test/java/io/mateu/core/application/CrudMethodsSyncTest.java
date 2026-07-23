@@ -72,7 +72,7 @@ class CrudMethodsSyncTest {
     }
 
     @Override
-    public CrudRepository<Job> repository() {
+    public CrudRepository<Job> store() {
       return new CrudRepository<>() {
         @Override
         public Optional<Job> findById(String id) {

@@ -31,7 +31,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
       @Override
       public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
-        resolveStore().deleteAllById(selectedIds);
+        store().deleteAllById(selectedIds);
       }
 
       @Override
@@ -60,8 +60,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     T rowFilters = entityClass().isInstance(filters) ? (T) filters : null;
     var spec = ListingSummarySpec.of(rowClass());
     var data =
-        new ListingData<>(
-            resolveStore().find(searchText, rowFilters, spec.prependGroupSort(pageable)));
+        new ListingData<>(store().find(searchText, rowFilters, spec.prependGroupSort(pageable)));
     return withSummaries(data, spec, searchText, rowFilters, List.of());
   }
 
@@ -84,7 +83,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var spec = ListingSummarySpec.of(rowClass());
     var data =
         new ListingData<>(
-            resolveStore().find(searchText, rowFilters, criteria, spec.prependGroupSort(pageable)));
+            store().find(searchText, rowFilters, criteria, spec.prependGroupSort(pageable)));
     return withSummaries(data, spec, searchText, rowFilters, criteria);
   }
 
@@ -103,14 +102,13 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
       return data;
     }
     var summaries =
-        resolveStore()
-            .summaries(searchText, rowFilters, criteria, spec.aggregates(), spec.groupBy());
+        store().summaries(searchText, rowFilters, criteria, spec.aggregates(), spec.groupBy());
     return data.withAggregates(summaries.totals()).withGroups(summaries.groups());
   }
 
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {
-    var entity = resolveStore().findById(id).orElseThrow();
-    return new AutoNamedView<>(entityClass(), entity, resolveStore());
+    var entity = store().findById(id).orElseThrow();
+    return new AutoNamedView<>(entityClass(), entity, store());
   }
 
   @SneakyThrows
@@ -126,7 +124,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var instance =
         MateuBeanProvider.getBean(InstanceFactory.class)
             .newInstance(entityClass(), data, httpRequest);
-    return new AutoNamedView<>(entityClass(), (T) instance, resolveStore());
+    return new AutoNamedView<>(entityClass(), (T) instance, store());
   }
 
   @SneakyThrows
@@ -181,9 +179,9 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   public Object updateRow(Map<String, Object> row, HttpRequest httpRequest) {
     var entity = (T) MateuInstanceFactory.newInstance(entityClass(), row, httpRequest);
-    OptimisticLock.check(entity, resolveStore().findById(entity.id()), httpRequest);
+    OptimisticLock.check(entity, store().findById(entity.id()), httpRequest);
     OptimisticLock.bump(entity);
-    resolveStore().save(entity);
+    store().save(entity);
     return io.mateu.uidl.data.Message.success("Saved");
   }
 
@@ -214,33 +212,6 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     return fetchRows(searchText, (Filters) filters, criteria, pageable, httpRequest);
   }
 
-  /**
-   * The data-access port for this crud's entity. Implement this (or, on pre-3.0-alpha.257 code, the
-   * deprecated {@link #repository()} — one of the two must be provided).
-   */
-  public CrudStore<T> store() {
-    return null;
-  }
-
-  /**
-   * @deprecated renamed to {@link #store()}; still honored when {@code store()} is not overridden.
-   */
-  @Deprecated(since = "3.0-alpha.257", forRemoval = true)
-  @SuppressWarnings("removal")
-  public CrudRepository<T> repository() {
-    return null;
-  }
-
-  /** Resolves the store, preferring {@link #store()} and falling back to {@link #repository()}. */
-  private CrudStore<T> resolveStore() {
-    var store = store();
-    if (store != null) {
-      return store;
-    }
-    var repository = repository();
-    if (repository != null) {
-      return repository;
-    }
-    throw new UnsupportedOperationException(getClass().getSimpleName() + " must implement store()");
-  }
+  /** The data-access port for this crud's entity. */
+  public abstract CrudStore<T> store();
 }
