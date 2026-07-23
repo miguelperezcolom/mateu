@@ -14,10 +14,10 @@
     "lit": "^3.3.1",
     "mateu": "*",
     "minimatch": "^10.2.3",
-    "marked": "^15.0.11"
+    "marked": "^18.0.7"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "typescript": "~7.0.2",
+    "vite": "^8.1.5"
   }
 }
