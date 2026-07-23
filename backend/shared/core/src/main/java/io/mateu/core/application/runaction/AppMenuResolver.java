@@ -11,6 +11,8 @@ import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
@@ -139,6 +141,12 @@ public class AppMenuResolver {
     }
 
     if (actionable == null) {
+      // The route may point at a menu group (children but no page of its own, e.g. /workflow):
+      // render a section-index page instead of letting the frontend show "Not found".
+      var group = AppMenuActionableFinder.findGroup(app, route, consumedRoute, httpRequest);
+      if (group != null && group.submenu() != null && !group.submenu().isEmpty()) {
+        return Mono.just(buildSectionIndex(group, route));
+      }
       return Mono.empty();
     }
     return ActionableDispatcher.dispatch(
@@ -198,6 +206,37 @@ public class AppMenuResolver {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
+
+  /**
+   * Builds a section-index page for a menu group route (e.g. {@code /workflow}): the group's label
+   * as the page title and a clickable list of its child options, so an intermediate menu route
+   * lands on a usable page instead of "Not found". Child links are absolutised against the group
+   * route; {@link RemoteMenu} children keep their own route.
+   */
+  private static Object buildSectionIndex(Menu group, String route) {
+    var base = route.endsWith("/") ? route.substring(0, route.length() - 1) : route;
+    var title =
+        group.label() != null && !group.label().isBlank()
+            ? group.label()
+            : io.mateu.uidl.Humanizer.toUpperCaseFirst(base.substring(base.lastIndexOf('/') + 1));
+    List<Component> links =
+        group.submenu().stream()
+            .filter(child -> !(child instanceof MenuSeparator))
+            .map(
+                child -> {
+                  String target =
+                      (child instanceof RemoteMenu remoteMenu)
+                          ? remoteMenu.route()
+                          : base + child.path();
+                  return (Component) new Anchor(child.label(), target);
+                })
+            .toList();
+    return PageView.builder()
+        .title(title)
+        .contentItem(
+            VerticalLayout.builder().content(links).style("gap: .5rem; padding: .5rem 0;").build())
+        .build();
+  }
 
   @SneakyThrows
   AppShell toApp(
