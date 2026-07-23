@@ -46,57 +46,6 @@ const loadScript = (src: string): Promise<void> =>
 /** Register the Redwood adapter, then adopt the routed <mateu-ui> the AP controllers injected into
  * the inert holder into #ui-container and reveal it. mateu-ui boots the neutral core, which renders
  * through the registered RedwoodComponentRenderer — now that OJET + the preact provider are ready. */
-const WIRE_TO_PAGELAYOUT: Record<string, string> = {
-  fixed: 'fixedWidth',
-  full: 'fullWidth',
-  edge: 'edgeToEdge',
-}
-
-/** Keep the shell's `pageLayout` in sync with the RDS page-width the core resolves per route and
- * stamps as `data-page-width` on <mateu-ux> (which lives inside <mateu-ui>'s shadow root). Poll until
- * mateu-ux exists, then a MutationObserver tracks it across navigations. */
-function syncPageLayout(shell: HTMLElement & { pageLayout?: string }, ui: Element): void {
-  // mateu-ui renders in LIGHT DOM by default (no shadow root), so mateu-ux is a light-DOM descendant;
-  // check the shadow root too in case a future config turns shadow DOM on.
-  const findUx = (): Element | null =>
-    (ui as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot?.querySelector('mateu-ux') ??
-    ui.querySelector('mateu-ux')
-  const read = () => {
-    const ux = findUx()
-    const mode = ux?.getAttribute('data-page-width') // 'fixed' | 'full' | 'edge'
-    const layout = mode ? WIRE_TO_PAGELAYOUT[mode] : undefined
-    if (layout) shell.pageLayout = layout
-    // The content cap element `.oj-sp-rw-ask-oracle-page-container` reads the shell's width VARS via
-    // `max-width: var(--oj-sp-simple-uishell-max-content-width)` etc. In fixedWidth it inherits the
-    // :root defaults (1392 cap, auto margins, 24px gutters). But the shell's pageLayout override of
-    // those vars (set on its stretching container) doesn't reach our slotted content in the post-mount
-    // flow, so drive the vars DIRECTLY on the page container for full/edge (uses the shell's own rule).
-    const pc = shell.querySelector('.oj-sp-rw-ask-oracle-page-container') as HTMLElement | null
-    if (pc && layout) {
-      if (layout === 'fullWidth' || layout === 'edgeToEdge') {
-        pc.style.setProperty('--oj-sp-simple-uishell-max-content-width', '100%')
-        pc.style.setProperty('--oj-sp-simple-uishell-max-content-width-margin', '0')
-        pc.style.setProperty('--oj-sp-simple-uishell-max-content-width-padding', layout === 'edgeToEdge' ? '0' : '24px')
-      } else {
-        pc.style.removeProperty('--oj-sp-simple-uishell-max-content-width')
-        pc.style.removeProperty('--oj-sp-simple-uishell-max-content-width-margin')
-        pc.style.removeProperty('--oj-sp-simple-uishell-max-content-width-padding')
-      }
-    }
-  }
-  let observer: MutationObserver | undefined
-  let ticks = 0
-  const timer = setInterval(() => {
-    const ux = findUx()
-    if (ux && !observer) {
-      observer = new MutationObserver(read)
-      observer.observe(ux, { attributes: true, attributeFilter: ['data-page-width'] })
-      read()
-    }
-    if (observer || ++ticks > 60) clearInterval(timer)
-  }, 250)
-}
-
 async function mountLitRoot() {
   await import('@/index') // defines <mateu-ui> + registers the RedwoodComponentRenderer
   const container = document.getElementById('ui-container')
@@ -121,21 +70,11 @@ async function mountLitRoot() {
     ui = el
   }
 
-  // Wrap the whole routed UI in the AUTHENTIC Spectra shell — it owns the RDS page frame (fixed cap
-  // 1408/centered · full · edge-to-edge). The content must live inside `.oj-sp-rw-ask-oracle-page-
-  // container` (the element the shell CSS applies the max-width cap to); the shell's `pageLayout`
-  // (synced from the wire page width) drives which of the three modes.
-  const pageContainer = document.createElement('div')
-  pageContainer.setAttribute('slot', 'stretchingContents')
-  pageContainer.className = 'oj-sp-rw-ask-oracle-page-container'
-  pageContainer.appendChild(ui)
-
-  const shell = document.createElement('oj-sp-simple-ui-shell') as HTMLElement & { pageLayout?: string }
-  shell.appendChild(pageContainer)
-  container.appendChild(shell)
-  shell.pageLayout = 'fixedWidth'
-  syncPageLayout(shell, ui)
-
+  // Mount <mateu-ui> BARE. The authentic Spectra shell (oj-sp-simple-ui-shell) is created by
+  // RedwoodComponentRenderer.renderAppComponent (the App component owns the shell: globalHeader =
+  // oj-sp-global-header + Ask-Oracle nav, stretchingContents = routed content). The shell's pageLayout
+  // is kept in sync there via the pageLayoutSync directive (finds the descendant mateu-ux).
+  container.appendChild(ui)
   container.style.display = ''
   document.getElementById('landing-loader')?.remove()
 }
@@ -166,11 +105,18 @@ async function loadOjet() {
       [
         'ojs/ojbootstrap',
         'ojs/ojarraydataprovider',
+        // ArrayTreeDataProvider backs the Ask-Oracle product-map nav (mateu-spectra-nav) — a tree of
+        // the app menu. Stashed on window like the flat one.
+        'ojs/ojarraytreedataprovider',
         // The authentic Redwood page frame: the Spectra shell owns the fixed/full/edge width anatomy
         // (applied in RedwoodComponentRenderer.renderAppComponent). css-additions injects the shell
         // layout CSS the pageLayout width classes resolve their rules from.
         'oj-sp/css-additions/loader',
         'oj-sp/simple-ui-shell/loader',
+        // Authentic app shell chrome: the Redwood global header + the Ask-Oracle product-map nav
+        // (renderAppComponent's globalHeader + mateu-spectra-nav).
+        'oj-sp/global-header/loader',
+        'oj-sp/ask-oracle-product-map/loader',
         // oj-c form controls used by the Redwood FormField widget (renderRedwoodField).
         'oj-c/button',
         'oj-c/input-text',
@@ -184,11 +130,19 @@ async function loadOjet() {
         'oj-sp/foldout-panel-summarizing/loader',
         // oj-sp welcome/hero page (renderRedwoodWelcome).
         'oj-sp/welcome-page/loader',
+        // oj-sp empty state (renderRedwoodEmptyState) + section (renderRedwoodSection).
+        'oj-sp/empty-state/loader',
+        'oj-sp/section/loader',
+        // oj-sp breadcrumbs (renderRedwoodBreadcrumbs) — data-driven via ojarraydataprovider (above).
+        'oj-sp/breadcrumb-container/loader',
       ],
-      (_bootstrap: unknown, arrayDataProvider: unknown) => {
+      (_bootstrap: unknown, arrayDataProvider: unknown, arrayTreeDataProvider: unknown) => {
         const adp = arrayDataProvider as { default?: unknown; ArrayDataProvider?: unknown }
         ;(window as unknown as { __mateuArrayDataProvider?: unknown }).__mateuArrayDataProvider =
           adp?.default ?? adp?.ArrayDataProvider ?? arrayDataProvider
+        const atdp = arrayTreeDataProvider as { default?: unknown; ArrayTreeDataProvider?: unknown }
+        ;(window as unknown as { __mateuArrayTreeDataProvider?: unknown }).__mateuArrayTreeDataProvider =
+          atdp?.default ?? atdp?.ArrayTreeDataProvider ?? arrayTreeDataProvider
         resolve()
       },
       reject,

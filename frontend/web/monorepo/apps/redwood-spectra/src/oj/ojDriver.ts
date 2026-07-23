@@ -14,7 +14,16 @@ export interface OjBindings {
    * property name, and for ordinary html attrs (class/style). Undefined values are removed.
    */
   attrs?: Record<string, string | undefined>
+  /**
+   * addEventListener bindings keyed by the JET custom-event name (e.g. `spPrimaryAction`,
+   * `spAction`). Attached idempotently — a re-render replaces the previous listener for the same
+   * event name, so listeners never stack.
+   */
+  events?: Record<string, (e: Event) => void>
 }
+
+// Per-element store of the listeners applyOj attached, so a re-render can swap them without stacking.
+const OJ_LISTENERS = Symbol('ojListeners')
 
 /** Element-position directive that applies {props, attrs} to the bound element. */
 class ApplyOjDirective extends Directive {
@@ -38,6 +47,13 @@ class ApplyOjDirective extends Directive {
       if (value === undefined) el.removeAttribute(key)
       else el.setAttribute(key, value)
     }
+    const store = (el[OJ_LISTENERS as unknown as string] ??= {}) as Record<string, EventListener>
+    for (const [name, handler] of Object.entries(bindings.events ?? {})) {
+      const prev = store[name]
+      if (prev) el.removeEventListener(name, prev)
+      el.addEventListener(name, handler as EventListener)
+      store[name] = handler as EventListener
+    }
     return nothing
   }
 }
@@ -53,9 +69,10 @@ export function ojElement(
   cfg: {
     props?: Record<string, unknown>
     attrs?: Record<string, string | undefined>
+    events?: Record<string, (e: Event) => void>
     children?: TemplateResult | typeof nothing
   },
 ): TemplateResult {
   const t = unsafeStatic(tag)
-  return staticHtml`<${t} ${applyOj({ props: cfg.props, attrs: cfg.attrs })}>${cfg.children ?? nothing}</${t}>`
+  return staticHtml`<${t} ${applyOj({ props: cfg.props, attrs: cfg.attrs, events: cfg.events })}>${cfg.children ?? nothing}</${t}>`
 }

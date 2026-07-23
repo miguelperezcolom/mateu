@@ -11,10 +11,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@oracle/oraclejet-preact": "19.0.9",
     "lit": "^3.3.1",
+    "marked": "^15.0.11",
     "mateu": "*",
-    "minimatch": "^10.2.3",
-    "marked": "^15.0.11"
+    "minimatch": "^10.2.3"
   },
   "devDependencies": {
     "typescript": "~5.8.3",

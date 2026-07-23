@@ -1,9 +1,14 @@
-import { LitElement, html, type TemplateResult } from 'lit'
+import { LitElement, html, nothing, type TemplateResult } from 'lit'
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
+import { renderApp } from '@infra/ui/renderers/appRenderer'
+import { MateuApp } from '@infra/ui/mateu-app'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
+import App from '@mateu/shared/apiClients/dtos/componentmetadata/App'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { ComponentState, ComponentData } from '@infra/ui/renderers/types'
+import { pageLayoutSync } from './shell/pageLayoutSync'
+import './shell/mateu-spectra-nav' // registers <mateu-spectra-nav>
 import { renderRedwoodField } from './fields/renderRedwoodField'
 import { renderRedwoodButton } from './fields/renderRedwoodButton'
 import {
@@ -15,6 +20,9 @@ import {
 import { renderEntityHeader, renderCard } from './overview/renderRedwoodOverview'
 import { renderFoldout } from './foldout/renderRedwoodFoldout'
 import { renderWelcome } from './welcome/renderRedwoodWelcome'
+import { renderRedwoodEmptyState } from './emptystate/renderRedwoodEmptyState'
+import { renderRedwoodSection } from './section/renderRedwoodSection'
+import { renderRedwoodBreadcrumbs } from './breadcrumbs/renderRedwoodBreadcrumbs'
 
 type WidgetRenderer = (
   container: LitElement,
@@ -49,6 +57,12 @@ const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = 
   [ComponentMetadataType.FoldoutLayout]: (c, comp, b, s, d, as, ad) => renderFoldout(c, comp, b, s, d, as, ad),
   // Welcome / hero → Oracle Spectra welcome page.
   [ComponentMetadataType.HeroSection]: (c, comp, b, s, d, as, ad) => renderWelcome(c, comp, b, s, d, as, ad),
+  // Empty state → Oracle Spectra oj-sp-empty-state.
+  [ComponentMetadataType.EmptyState]: (_c, comp) => renderRedwoodEmptyState(comp),
+  // Form section → Oracle Spectra oj-sp-section.
+  [ComponentMetadataType.FormSection]: (c, comp, b, s, d, as, ad) => renderRedwoodSection(c, comp, b, s, d, as, ad),
+  // Breadcrumbs → Oracle Spectra oj-sp-breadcrumb-container.
+  [ComponentMetadataType.Breadcrumbs]: (_c, comp) => renderRedwoodBreadcrumbs(comp),
 }
 
 /**
@@ -80,6 +94,69 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
       return widget(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
     return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+  }
+
+  /**
+   * The AUTHENTIC Spectra app shell. Instead of the neutral rail/hamburger chrome, we mount the real
+   * `oj-sp-simple-ui-shell` with `oj-sp-global-header` (title + the Ask-Oracle nav palette + theme
+   * toggle) in its globalHeader slot, and the routed content in stretchingContents. The content pane
+   * is produced by the neutral renderer in CHROMELESS mode (just the mateu-ux router outlet + chat),
+   * so we reuse all its routing wiring and only swap the chrome. Runs in light DOM (mateu-app renders
+   * to light DOM here) so the oj-sp components upgrade.
+   */
+  renderAppComponent(
+    container: MateuApp,
+    component: ClientSideComponent | undefined,
+    baseUrl: string | undefined,
+    state: ComponentState,
+    data: ComponentData,
+    appState: ComponentState,
+    appData: ComponentData,
+  ): TemplateResult {
+    const metadata = component?.metadata as App | undefined
+    if (!metadata) {
+      return super.renderAppComponent(container, component, baseUrl, state, data, appState, appData)
+    }
+    // Chromeless apps already have no chrome — let the neutral path handle them (content + FAB).
+    if (metadata.chromeless) {
+      return super.renderAppComponent(container, component, baseUrl, state, data, appState, appData)
+    }
+
+    // The routed content pane: neutral renderer in chromeless mode = mateu-api-caller > mateu-ux (+ chat).
+    const content = renderApp(
+      container,
+      { ...metadata, chromeless: true } as App,
+      baseUrl,
+      state,
+      data,
+      appState,
+      appData,
+    )
+
+    return html`
+      <oj-sp-simple-ui-shell ${pageLayoutSync()}>
+        <oj-sp-global-header slot="globalHeader">
+          <span
+            slot="start"
+            class="mateu-spectra-app-title"
+            style="font-weight:700; font-size:1rem; white-space:nowrap; color:#fff;"
+            >${metadata.title ?? ''}</span
+          >
+          <mateu-spectra-nav slot="center" .menu=${metadata.menu ?? []}></mateu-spectra-nav>
+          ${metadata.themeToggle
+            ? html`<button
+                slot="end"
+                title="Toggle theme"
+                @click=${container.toggleTheme}
+                style="width:2.25rem; height:2.25rem; border:none; border-radius:50%; background:transparent; color:#fff; font-size:1.1rem; cursor:pointer;"
+              >
+                ${container.isDark ? '☀' : '🌙'}
+              </button>`
+            : nothing}
+        </oj-sp-global-header>
+        <div slot="stretchingContents" class="oj-sp-rw-ask-oracle-page-container">${content}</div>
+      </oj-sp-simple-ui-shell>
+    `
   }
 
   // The icon port for Redwood. Wire icon names are Vaadin/Lumo iconset names; there is no 1:1 map to

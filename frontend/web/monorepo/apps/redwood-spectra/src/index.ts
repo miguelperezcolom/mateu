@@ -9,6 +9,7 @@
  * Oracle JET / Spectra are loaded from the CDN by oj-bootstrap.ts BEFORE this module's <mateu-ui>
  * is revealed (oj-c-* VComponents need OJET + the preact binding provider ready first).
  */
+import './oj-preact' // Oracle oj-c-* preact component CSS (not on the CDN) — styles the form controls.
 import '@infra/ui/mateu-ui'
 import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { RedwoodComponentRenderer } from './RedwoodComponentRenderer'
