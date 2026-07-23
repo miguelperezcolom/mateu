@@ -9,7 +9,7 @@ import { DEFAULT_CENTER, parsePosition, parseZoom } from "./mapPosition";
  * Wraps OpenLayers directly (the same engine vaadin-map wraps) with an OSM tile layer, so the
  * Map component no longer depends on the commercially-licensed vaadin-map element and renders
  * the same under every renderer. OpenLayers (~1 MB) is lazy-loaded so it stays out of the
- * initial bundle, mirroring mateu-bpmn/mateu-chart/mateu-workflow-elk.
+ * initial bundle, mirroring mateu-bpmn/mateu-chart.
  */
 @customElement('mateu-map')
 export class MateuMap extends LitElement {

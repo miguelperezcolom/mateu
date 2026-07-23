@@ -60,7 +60,6 @@ describe('resolvePageWidth', () => {
             ComponentMetadataType.Kanban,
             ComponentMetadataType.Bpmn,
             ComponentMetadataType.Workflow,
-            ComponentMetadataType.WorkflowElk,
             ComponentMetadataType.Map,
         ]) {
             const layout = clientSide(ComponentMetadataType.VerticalLayout, {}, [clientSide(type)])

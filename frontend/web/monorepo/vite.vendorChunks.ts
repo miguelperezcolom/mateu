@@ -9,7 +9,7 @@
 //
 // vendor-highcharts, vendor-diagrams and vendor-chartjs come out as async
 // chunks: they are only reached through dynamic import() in libs/mateu (see
-// mateu-bpmn.ts, mateu-workflow-elk.ts, mateu-chart.ts and elementRenderer.ts),
+// mateu-bpmn.ts, mateu-chart.ts and elementRenderer.ts),
 // so they are downloaded only when a screen actually renders a chart/diagram.
 // Groups that a renderer does not use simply produce no chunk.
 export const vendorChunks = (id: string): string | undefined => {
@@ -29,7 +29,7 @@ export const vendorChunks = (id: string): string | undefined => {
         || pkg === 'quick-lru' || pkg === 'web-worker') return 'vendor-ol'
     if (pkg === 'bpmn-js' || pkg === 'diagram-js' || pkg === 'diagram-js-direct-editing'
         || pkg.startsWith('bpmn-') || pkg === 'moddle' || pkg === 'moddle-xml'
-        || pkg === 'didi' || pkg === 'saxen' || pkg === 'ids' || pkg === 'elkjs'
+        || pkg === 'didi' || pkg === 'saxen' || pkg === 'ids'
         || pkg === 'min-dash' || pkg === 'min-dom' || pkg === 'tiny-svg'
         || pkg === 'path-intersection' || pkg === 'object-refs'
         || pkg === 'component-event' || pkg === 'domify'

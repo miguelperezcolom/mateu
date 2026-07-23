@@ -93,7 +93,6 @@ final class YamlUidlMapperFactory {
         new NamedType(VerticalLayout.class, "VerticalLayout"),
         new NamedType(VirtualList.class, "VirtualList"),
         new NamedType(Workflow.class, "Workflow"),
-        new NamedType(WorkflowElk.class, "WorkflowElk"),
         new NamedType(ContentLink.class, "ContentLink"),
         new NamedType(FieldLink.class, "FieldLink"),
         new NamedType(Menu.class, "Menu"),
