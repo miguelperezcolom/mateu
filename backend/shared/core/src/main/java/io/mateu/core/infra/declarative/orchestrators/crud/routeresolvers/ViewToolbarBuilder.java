@@ -67,13 +67,22 @@ final class ViewToolbarBuilder {
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
-    if (!orchestrator.readOnly()) {
+    if (!orchestrator.readOnly() && !hiddenByEntity(finalEntity, "new", httpRequest)) {
       toolbar.add(new Button(orchestrator.addAnotherLabel(), "new"));
     }
-    if (!viewReadOnly(item, orchestrator)) {
+    if (!viewReadOnly(item, orchestrator) && !hiddenByEntity(finalEntity, "edit", httpRequest)) {
       toolbar.add(new Button(orchestrator.editLabel(), "edit"));
     }
     return toolbar;
+  }
+
+  /**
+   * Lets the viewed entity hide a built-in view action ({@code "new"} / {@code "edit"}) per
+   * instance state by implementing {@link VisibilitySupplier} — same mechanism already used for its
+   * {@link Toolbar} buttons.
+   */
+  private static boolean hiddenByEntity(Object entity, String action, HttpRequest httpRequest) {
+    return entity instanceof VisibilitySupplier vs && vs.isHidden(action, httpRequest);
   }
 
   private static boolean viewReadOnly(Object item, Crud orchestrator) {
