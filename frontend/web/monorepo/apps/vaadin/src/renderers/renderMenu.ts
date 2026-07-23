@@ -8,8 +8,20 @@ import Component from "@mateu/shared/apiClients/dtos/Component";
 import { appData, appState } from "@domain/state.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import type { MenuBarItem } from "@vaadin/menu-bar";
+import type { MenuBarItem as AppMenuBarItem } from "@infra/ui/mateu-app.ts";
 import "@vaadin/menu-bar";
 import "@vaadin/context-menu";
+
+// The app shell's top navigation (menu-on-top), rendered as a vaadin-menu-bar — the Vaadin
+// override for the DS-neutral <details> strip (renderNeutralNav). Items arrive already mapped by
+// MateuApp.mapItems; a top item with children becomes a dropdown that closes on select / outside
+// click (native <details> did neither). onSelect is the shell's existing itemSelected handler.
+export const renderTopNav = (items: AppMenuBarItem[], onSelect: (item: AppMenuBarItem) => void, cls?: string) => html`
+    <vaadin-menu-bar
+        .items=${items as unknown as MenuBarItem[]}
+        class="${cls ?? nothing}"
+        @item-selected=${(e: CustomEvent) => onSelect((e.detail as { value: AppMenuBarItem }).value)}>
+    </vaadin-menu-bar>`
 export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu
 

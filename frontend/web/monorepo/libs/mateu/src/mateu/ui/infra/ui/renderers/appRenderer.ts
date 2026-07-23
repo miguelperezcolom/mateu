@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
@@ -303,7 +304,13 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
                         </div>
                         </a>
-                        ${renderNeutralNav(items, fireSelect(container, container.itemSelected), 'menu-on-top')}
+                        ${(() => {
+                            const onSelect = fireSelect(container, container.itemSelected)
+                            // The active renderer may supply its own chrome menu (the Vaadin adapter
+                            // returns a <vaadin-menu-bar>); otherwise fall back to the neutral strip.
+                            return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top')
+                                ?? renderNeutralNav(items, onSelect, 'menu-on-top')
+                        })()}
                         <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
