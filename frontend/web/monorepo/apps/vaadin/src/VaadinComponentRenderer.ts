@@ -1,4 +1,4 @@
-import { LitElement, type TemplateResult } from 'lit';
+import { LitElement, html, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
@@ -24,6 +24,7 @@ import { renderButton as renderVaadinButton } from "./renderers/renderButton"
 import { renderMessageInput as renderVaadinMessageInput, renderMessageList as renderVaadinMessageList } from "./renderers/renderMessages"
 import { renderConfirmDialog as renderVaadinConfirmDialog } from "./renderers/renderConfirmDialog"
 import { renderVaadinFoldout } from "./renderers/renderVaadinFoldout"
+import "./grid/mateu-vaadin-tree"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -101,6 +102,19 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
     // of the core's neutral HTML table (BasicComponentRenderer.renderTableComponent).
     renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult {
         return renderCrudTable(container, component, baseUrl, state, appState, appData)
+    }
+
+    // Crud tree layout (tree lookup selector): a real vaadin-grid tree instead of the core's neutral
+    // always-expanded HTML tree table (matches the inline mateu-vaadin-tree-select).
+    renderTreeComponent(_container: MateuTableCrud, tree: { rows: unknown[], columns: { id: string, label?: string }[], idField: string | undefined, navigable: boolean, selectedId: string | undefined }): TemplateResult {
+        return html`
+            <mateu-vaadin-tree
+                    .rows="${tree.rows}"
+                    .columns="${tree.columns}"
+                    .idField="${tree.idField}"
+                    .navigable="${tree.navigable}"
+                    .selectedId="${tree.selectedId}"
+            ></mateu-vaadin-tree>`
     }
 
     // Page/crud header buttons + peer-object arrows render as vaadin-button (the core header uses

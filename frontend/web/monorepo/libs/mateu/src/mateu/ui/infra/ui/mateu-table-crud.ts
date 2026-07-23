@@ -707,6 +707,22 @@ export class MateuTableCrud extends LitElement {
         // Vaadin-flavoured templates below. See ComponentRenderer.rendersCrudLayouts.
         const rendererOwnsLayouts = componentRenderer.get()?.rendersCrudLayouts?.() === true
 
+        // The tree layout: a renderer may override just this one with its own DS treegrid (Vaadin
+        // renders a real vaadin-grid-tree-column); otherwise the shared DS-neutral renderTree() runs.
+        const treeContent = () => {
+            const r = componentRenderer.get()
+            if (r?.renderTreeComponent) {
+                return r.renderTreeComponent(this, {
+                    rows,
+                    columns: allCols.map(c => ({ id: c.id, label: c.label })),
+                    idField: this.identifierFieldName,
+                    navigable: !!allCols[0]?.actionId,
+                    selectedId: this.state._selectedId ?? this.appState?._splitDetailId,
+                })
+            }
+            return renderTree()
+        }
+
         const contentHtml = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
@@ -718,7 +734,7 @@ export class MateuTableCrud extends LitElement {
                 </div>
             ` : renderCards())
             : !rendererOwnsLayouts && gridLayout === 'masterDetail' ? renderMasterDetail()
-            : !rendererOwnsLayouts && gridLayout === 'tree' ? renderTree()
+            : !rendererOwnsLayouts && gridLayout === 'tree' ? treeContent()
             : componentRenderer.get()?.renderTableComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
         `

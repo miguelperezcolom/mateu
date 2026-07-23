@@ -45,6 +45,22 @@ export interface ComponentRenderer {
     renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult
 
     /**
+     * The crud `tree` grid layout (a Selector Listing with gridLayout=tree — e.g. a tree lookup
+     * dialog). Absent → mateu-table-crud renders its DS-neutral, always-expanded HTML tree table
+     * with plain Select/View buttons. The Vaadin adapter overrides this with a real vaadin-grid +
+     * vaadin-grid-tree-column (collapsible) and vaadin-button Select/View, matching the inline
+     * mateu-vaadin-tree-select. The Select/View clicks dispatch the same `action-requested` events
+     * (`action-on-row-select` / `view`) the shared tree emits, so the wire contract is unchanged.
+     */
+    renderTreeComponent?(container: MateuTableCrud, tree: {
+        rows: unknown[]
+        columns: { id: string, label?: string }[]
+        idField: string | undefined
+        navigable: boolean
+        selectedId: string | undefined
+    }): TemplateResult
+
+    /**
      * A single icon by wire name (e.g. 'vaadin:plus', 'lumo:menu'). This is the "icon port": the core
      * renderers never emit a design-system icon element directly — they call the shared `icon()` helper
      * (renderers/neutralIcon.ts), which delegates here. The Vaadin adapter maps the name to a vaadin-icon element;
