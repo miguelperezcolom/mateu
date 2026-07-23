@@ -60,6 +60,37 @@ public class HomeRouteResolver {
     return Optional.empty();
   }
 
+  /**
+   * Like {@link #getSelectedOption} but for a route that points at a menu <em>group</em> itself (no
+   * trailing leaf) — e.g. {@code /workflow}, whose children are {@code /workflow/...}. Returns the
+   * {@link Menu} whose accumulated path equals the route, or empty if the route reaches a leaf or
+   * matches nothing. Used to render a section-index page instead of "Not found".
+   */
+  public static Optional<Menu> getSelectedGroup(
+      String route, Collection<? extends Actionable> actionables, String prefix) {
+    if (route.startsWith(prefix)) {
+      route = route.substring(prefix.length());
+    }
+    if (route.startsWith("/")) {
+      route = route.substring(1);
+    }
+    var token = route.split("/")[0];
+    if (!"".equals(token)) {
+      token = "/" + token;
+      for (Actionable actionable : actionables) {
+        if (token.equals(actionable.path()) && actionable instanceof Menu menu) {
+          var remaining = Arrays.stream(route.split("/")).skip(1).collect(Collectors.joining("/"));
+          if (remaining.isBlank()) {
+            return Optional.of(menu);
+          }
+          String cleanPrefix = !"".equals(prefix) && !"/".equals(prefix) ? prefix : "";
+          return getSelectedGroup(remaining, menu.submenu(), cleanPrefix + token);
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
   static String getHomeUriPrefix(Optional<? extends Actionable> selectedOption) {
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
       return remoteMenu.path();
