@@ -23,6 +23,7 @@ import { renderWelcome } from './welcome/renderRedwoodWelcome'
 import { renderRedwoodEmptyState } from './emptystate/renderRedwoodEmptyState'
 import { renderRedwoodSection } from './section/renderRedwoodSection'
 import { renderRedwoodBreadcrumbs } from './breadcrumbs/renderRedwoodBreadcrumbs'
+import { renderRedwoodAvatar, renderRedwoodProgressBar } from './display/renderRedwoodLeaves'
 
 type WidgetRenderer = (
   container: LitElement,
@@ -63,6 +64,9 @@ const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = 
   [ComponentMetadataType.FormSection]: (c, comp, b, s, d, as, ad) => renderRedwoodSection(c, comp, b, s, d, as, ad),
   // Breadcrumbs → Oracle Spectra oj-sp-breadcrumb-container.
   [ComponentMetadataType.Breadcrumbs]: (_c, comp) => renderRedwoodBreadcrumbs(comp),
+  // Leaf display components → authentic oj-c-*.
+  [ComponentMetadataType.Avatar]: (_c, comp) => renderRedwoodAvatar(comp),
+  [ComponentMetadataType.ProgressBar]: (_c, comp) => renderRedwoodProgressBar(comp),
 }
 
 /**

@@ -122,6 +122,9 @@ async function loadOjet() {
         'oj-c/input-text',
         'oj-c/input-number',
         'oj-c/select-single',
+        // oj-c leaf display components (renderRedwoodLeaves).
+        'oj-c/avatar',
+        'oj-c/progress-bar',
         // oj-sp dashboard leaf components (renderRedwoodDashboard).
         'oj-sp/dashboard-panel/loader',
         'oj-sp/scoreboard-metric-card/loader',
