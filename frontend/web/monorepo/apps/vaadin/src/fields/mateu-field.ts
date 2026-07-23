@@ -804,9 +804,20 @@ export class MateuField extends LitElement {
                         icon="vaadin:copy"
                         title="Copiar"
                         style="cursor: pointer; color: var(--lumo-secondary-text-color);"
-                        @click="${() => navigator.clipboard.writeText(strValue).catch(() => {})}"
+                        @click="${() => this.copyValue(strValue)}"
                 ></vaadin-icon>` : nothing}</vaadin-text-field>
 `
+    }
+
+    // Copies the read-only field's value to the clipboard and confirms with a short toast.
+    private copyValue(value: string) {
+        navigator.clipboard.writeText(value)
+            .then(() => Notification.show('Copied', {
+                position: 'bottom-end',
+                theme: 'success',
+                duration: 2000,
+            }))
+            .catch(() => {})
     }
 
     private renderFileField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {

@@ -22,6 +22,7 @@ import { renderVaadinIcon } from "./renderers/renderIcon"
 import { renderButton as renderVaadinButton } from "./renderers/renderButton"
 import { renderMessageInput as renderVaadinMessageInput, renderMessageList as renderVaadinMessageList } from "./renderers/renderMessages"
 import { renderConfirmDialog as renderVaadinConfirmDialog } from "./renderers/renderConfirmDialog"
+import { renderVaadinFoldout } from "./renderers/renderVaadinFoldout"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -76,6 +77,8 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.Table]: (c, comp, b, s, d, as, ad) => renderTableElement(c, comp, b, s, d, as, ad),
     // Overlay widgets
     [ComponentMetadataType.Popover]: (c, comp, b, s, d, as, ad) => renderPopover(c, comp, b, s, d, as, ad),
+    // Foldout → Vaadin carousel variant (always-expanded sections + sticky-first overview)
+    [ComponentMetadataType.FoldoutLayout]: (c, comp, b, s, d, as, ad) => renderVaadinFoldout(c, comp, b, s, d, as, ad),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
