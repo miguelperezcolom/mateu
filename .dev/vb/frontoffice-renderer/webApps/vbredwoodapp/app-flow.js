@@ -292,7 +292,8 @@ define([
       // resumen de pasos). Se muestra al entrar y al cancelar; empezar/cancelar es CLIENTE (no Mateu).
       this.wizardOverview = ko.observable(true);
       // El paso RESULTADO de Mateu (recap read-only) NO viene en el rail y no trae botones de
-      // navegación; al detectarlo salimos del guided-process y mostramos el recap por la rama de texto.
+      // navegación; al detectarlo activamos completion-status='on' → panel de completación NATIVO
+      // del oj-sp-guided-process (slot completionStep con el recap).
       this.wizardResult = ko.observable(false);
       this.wizardMenuRoute = '';
     }
@@ -310,9 +311,13 @@ define([
     }
     getGuidedPrimary() {
       // Debe ser SIEMPRE un objeto válido: el oj-sp-guided-process lee primary-action.progressState
-      // y un null lo hace petar. En el resultado salimos del proceso (isWizard=false), así que este
-      // valor deja de usarse; nunca devolvemos null.
+      // y un null lo hace petar.
       return { label: this.wizardAdvanceLabel(), progressState: 'off' };
+    }
+    // completion-status del oj-sp-guided-process: 'on' en el paso RESULTADO de Mateu → el componente
+    // pinta su PANEL DE COMPLETACIÓN nativo (slot completionStep con el recap). 'off' el resto.
+    getGuidedCompletion() {
+      return this.wizardResult() ? 'on' : 'off';
     }
     getFormFields() {
       return this.formFields;
@@ -567,20 +572,9 @@ define([
     }
     // spBeforeStepNavigate: el guided-process pide ir a otro paso. Dirección por currentStep/nextStep:
     // adelante → la acción de avance del wire (next/completar); atrás → 'back'.
-    // Estado de RESULTADO (recap read-only) para la rama de texto VB, tras salir del guided-process.
-    _wizardResultState() {
-      // this.formFields es un ko.observableArray → hay que invocarlo para obtener el array.
-      const resumen =
-        this.formFields()
-          .map((f) => f.value)
-          .filter((v) => v != null && String(v).trim() !== '')
-          .join(' · ') || 'Completado';
-      return { isWizard: false, isForm: false, isFoldout: false, isTable: false, greeting: resumen };
-    }
     async guidedStepChange(event) {
-      // Al completar, el guided-process dispara TAMBIÉN este evento tras sp-primary-action; si ya
-      // estamos en el resultado NO re-montamos el proceso: devolvemos el mismo estado de recap.
-      if (this.wizardResult()) return this._wizardResultState();
+      // En el resultado (panel de completación) no hay navegación de pasos: ignorar clics del rail.
+      if (this.wizardResult()) return { isWizard: true, isForm: false, isFoldout: false, isTable: false, greeting: '' };
       const d = (event && event.detail) || {};
       const cur = parseInt(d.currentStep, 10); // NaN si venimos del overview ("")
       const nxt = parseInt(d.nextStep, 10);
@@ -620,10 +614,9 @@ define([
       // ¿Sigue siendo wizard (hay ProgressSteps)? → paso siguiente/resultado; si no, texto/form.
       if (findSteps(host.tree)) {
         this._applyWizard(host);
-        // RESULTADO: el oj-sp-guided-process no reacciona a cambios de current-step/steps/primary
-        // post-init (solo su slot es reactivo), así que SALIMOS de él y mostramos el recap read-only
-        // (los campos del paso resultado de Mateu) por la rama de texto VB. Cero apaños de estilo.
-        if (this.wizardResult()) return this._wizardResultState();
+        // Paso siguiente O paso RESULTADO: en ambos seguimos en el guided-process. El resultado
+        // (wizardResult) lo pinta el PANEL DE COMPLETACIÓN nativo (completion-status='on' + slot
+        // completionStep), reactivo vía getGuidedCompletion(); no salimos del componente.
         return { isWizard: true, isForm: false, isFoldout: false, isTable: false, greeting: '' };
       }
       const nfields = this._buildFormFields(host, host.state || {});

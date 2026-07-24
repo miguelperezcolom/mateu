@@ -13,6 +13,7 @@
       steps="[[ $application.functions.getGuidedSteps() ]]"
       current-step="[[ $application.functions.getGuidedCurrent() ]]"
       primary-action="[[ $application.functions.getGuidedPrimary() ]]"
+      completion-status="[[ $application.functions.getGuidedCompletion() ]]"
       on-sp-primary-action="[[ $listeners.guidedPrimary ]]"
       on-sp-before-step-navigate="[[ $listeners.guidedStep ]]"
       on-sp-cancel="[[ $listeners.guidedCancel ]]"
@@ -27,6 +28,19 @@
               <oj-bind-if test="[[ !field.data.isNumber ]]">
                 <oj-c-input-text label-hint="[[ field.data.label ]]" value="[[ field.data.value ]]" :data-field="[[ field.data.fieldId ]]"></oj-c-input-text>
               </oj-bind-if>
+            </div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+
+      <!-- Panel de COMPLETACIÓN nativo del guided-process (completion-status='on'): el recap del paso
+           resultado de Mateu. Los campos del paso resultado (getFormFields) como pares label/valor. -->
+      <div slot="completionStep" class="oj-sm-padding-6x">
+        <oj-bind-for-each data="[[ $application.functions.getFormFields() ]]">
+          <template data-oj-as="field">
+            <div class="oj-sm-margin-4x-bottom">
+              <div class="oj-text-color-secondary oj-typography-body-sm"><oj-bind-text value="[[ field.data.label ]]"></oj-bind-text></div>
+              <div class="oj-typography-heading-sm"><oj-bind-text value="[[ field.data.value ]]"></oj-bind-text></div>
             </div>
           </template>
         </oj-bind-for-each>

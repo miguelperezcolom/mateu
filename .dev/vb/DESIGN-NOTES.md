@@ -310,18 +310,24 @@ del wire por paso. Contrato:
   - **El paso RESULTADO no está en el rail** (`ProgressSteps` sólo lista los pasos reales, todos `done`) y no
     trae botones de navegación (`collectActions(tree)==[]`). Se detecta con `isResult = pos>=steps.length &&
     !advance` (en `_applyWizard`, marca `wizardResult`).
-  - **El `oj-sp-guided-process` sólo es reactivo en su SLOT** (los form-fields), NO en `current-step`/`steps`/
-    `primary-action` tras el init → intentar pintar el recap DENTRO del proceso no funciona. Solución VB-pura:
-    al detectar el resultado se **SALE del guided-process** (`isWizard:false`) y se muestra el recap por la rama
-    de TEXTO ya existente (`greeting` = join de los valores de los form-fields del paso resultado). Cero HTML/CSS
-    extra. Ver `_wizardResultState()`.
+  - **PANEL DE COMPLETACIÓN NATIVO del oj-sp-guided-process** (el componente lo trae de fábrica): propiedad
+    **`completion-status`** (`"on"`/`"off"`) → al ponerla `"on"` el componente oculta el step + rail y muestra
+    su panel de completación, cuyo contenido va en el **slot `completionStep`** (`<oj-bind-slot
+    name="completionStep">`). El bridge: `getGuidedCompletion()` devuelve `'on'` cuando `wizardResult` (reactivo,
+    el viewModel escucha el cambio de `completionStatus` y hace `displayCompletionStep(...)` + scroll-to-top);
+    en el template, `completion-status="[[ getGuidedCompletion() ]]"` + un `<div slot="completionStep">` que
+    pinta los campos del paso resultado (getFormFields) como pares label/valor con tipografía OJET estándar.
+    NO se sale del componente: el wizard se completa DENTRO del guided-process (UX Spectra correcto). `_wizardStep`
+    en el resultado sigue devolviendo `isWizard:true`.
   - **Gotchas que costaron sangre**: (a) `getGuidedPrimary()` NUNCA debe devolver `null` — el componente lee
     `primary-action.progressState` y un null lanza *síncronamente* dentro del observable write de `_applyWizard`;
     (b) al `completar`, el componente dispara `sp-primary-action` (`guidedPrimary`) — y a veces también
-    `sp-before-step-navigate` (`guidedStepChange`); la guarda `if (wizardResult()) return _wizardResultState()`
-    en `guidedStepChange` evita re-montar el proceso encima del recap; (c) `this.formFields` es un
-    `ko.observableArray` → hay que invocarlo (`this.formFields()`) para mapear.
-  - Evidencia: `shots/fase8-guided-process.png` (recap "Reserva de Ana · 3 noches (Doble).").
+    `sp-before-step-navigate` (`guidedStepChange`); la guarda `if (wizardResult()) return {isWizard:true…}` en
+    `guidedStepChange` evita re-navegar sobre el panel de completación; (c) un intento previo de pintar el recap
+    fuera del componente falló porque el guided-process sólo es reactivo en su slot, NO en `current-step`/`steps`;
+    el `completion-status` SÍ es reactivo → por eso el panel nativo es la solución correcta.
+  - Evidencia: `shots/fase8-wizard-result.png` (panel de completación con "Resumen: Reserva de Ana · 3 noches
+    (Doble).").
 - **AHORA usa el `oj-sp-guided-process` REAL** (Spectra), driven por Mateu:
   - Se le pasa `steps` (`[{id, title, status}]`; status **`success`** para pasos hechos / `none`; el paso
     ACTUAL lo marca la propiedad **`current-step`** (=posición), NO el status), `primary-action` (`{label}`).
