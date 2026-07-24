@@ -386,6 +386,29 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   — `innerText` no ve valores de inputs.
 - Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
 
+## Fase 9 — HECHA (pendiente de verificación visual del usuario)
+
+- **Isla embebida end-to-end** (`/island-host`, en Gestion): el host es un form normal y la
+  frontera (`collectIslands`: ServerSide interior, id `_guestNote`) se carga como SUPERFICIE
+  PROPIA — `loadRouteInto(base, reg, frontera.route, frontera.id)` (initiator = id de frontera
+  → mediador + contenido + outbound estampado, TODO genérico ya existente). Sus acciones
+  (Edit/Save/Cancel) se postean contra su contexto y las respuestas vuelven dirigidas a él:
+  **solo la isla se re-proyecta — el host NI SE TOCA** (verificado: una edición local sin
+  guardar en el host, room=999, sobrevive a Edit y a Save de la isla).
+- **Route-flip del mediador (la mecánica documentada, ahora implementada)**: `edit`/`save`
+  responden un fragment STATE-ONLY con `state._route` nuevo (`/edit`→`/view`) = "recarga mi
+  ruta interna": `composeInnerRoute(outbound.route, flip)` = base + flip + marcadores query
+  (`/guest-note/edit?_embeddedMediator=1&_inline=1`) y reload con el outbound del contexto.
+- **Helpers con FRONTERA**: `collectFields`/`collectActions` ya NO cruzan ServerSide interiores
+  (los campos/acciones de la isla se colaban en el form del host — test 19).
+- **GOTCHA VB CRÍTICO**: las variables VB van tras PROXIES — cada lectura puede devolver un
+  wrapper distinto → NUNCA comparar por identidad (`after.tree === before.tree` falla aunque
+  el reducer preserve refs). Detección del flip por criterio SEMÁNTICO (increment state-only).
+  Esto también matiza el "structural sharing" del diseño: vale DENTRO de una pasada del
+  reducer, no entre lecturas de la variable.
+- Tests 20/20. Evidencia: `shots/fase9.png` (host+isla en vista), `fase9-edit.png` (isla en
+  edición con el host intacto), `fase9-saved.png` (guardado, vista con la nota nueva).
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

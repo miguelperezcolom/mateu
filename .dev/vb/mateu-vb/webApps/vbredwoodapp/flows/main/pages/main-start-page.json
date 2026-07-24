@@ -23,6 +23,11 @@
     "mateuToastText": {
       "type": "string",
       "defaultValue": ""
+    },
+    "mateuIslandDraft": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "edición en curso del form de la isla"
     }
   },
   "metadata": {},
@@ -106,6 +111,27 @@
       "chains": [
         {
           "chain": "wizardCancel"
+        }
+      ]
+    },
+    "mateuIslandFieldChanged": {
+      "chains": [
+        {
+          "chain": "islandFieldEdited",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuIslandActionClicked": {
+      "chains": [
+        {
+          "chain": "runMateuIslandAction",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}"
+          }
         }
       ]
     }

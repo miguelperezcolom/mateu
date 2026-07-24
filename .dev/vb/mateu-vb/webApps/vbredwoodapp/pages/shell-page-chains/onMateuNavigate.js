@@ -54,6 +54,16 @@ define([
         reg = bridge.reduceContexts(reg, increment);
       }
 
+      // islas embebidas: cada frontera ServerSide del host se carga como superficie
+      // propia (initiator = id de la frontera → sus fragments van a SU contexto)
+      let hostForIslands = reg.contexts[bridge.HOST_ID];
+      const islands = hostForIslands ? bridge.collectIslands(hostForIslands.tree) : [];
+      const firstIsland = islands.length ? islands[0] : null;
+      if (firstIsland) {
+        reg = await bridge.loadRouteInto(base, reg, firstIsland.route, firstIsland.id, { appState });
+      }
+      $application.variables.mateuIslandId = firstIsland ? firstIsland.id : '';
+
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;
 
@@ -64,6 +74,11 @@ define([
 
       $application.variables.mateuFoldout = bridge.foldoutOf(host);
       $application.variables.mateuWizard = bridge.wizardOf(host);
+      const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
+      $application.variables.mateuIsland = islandContext
+        ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state),
+            actions: bridge.actionsOf(islandContext.tree) }
+        : null;
 
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;

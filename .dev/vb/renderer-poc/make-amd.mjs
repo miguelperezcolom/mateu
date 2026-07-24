@@ -50,6 +50,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    composeInnerRoute,
     runMateuAction,
   };
 });

@@ -20,27 +20,30 @@
 
 export const HOST_ID = '__root__'
 
-/** Helper de RENDER: recorre un subárbol y recolecta todo nodo con fieldId (un FormField). */
-export function collectFields(node, out = []) {
-  if (!node || typeof node !== 'object') return out
-  if (node.fieldId) out.push(node)
-  for (const k of Object.keys(node)) {
-    const v = node[k]
-    if (Array.isArray(v)) v.forEach((x) => collectFields(x, out))
-    else if (v && typeof v === 'object') collectFields(v, out)
+/** Recorrido que NO cruza fronteras de isla: un ServerSide INTERIOR es otra superficie
+ *  (sus campos/acciones pertenecen a su propio contexto, no al host). */
+function walkWithinSurface(node, visit) {
+  const walk = (n, isRoot) => {
+    if (!n || typeof n !== 'object') return
+    if (!isRoot && n.type === 'ServerSide') return // frontera de isla: parar
+    visit(n)
+    for (const v of Object.values(n)) {
+      if (Array.isArray(v)) v.forEach((x) => walk(x, false))
+      else if (v && typeof v === 'object') walk(v, false)
+    }
   }
+  walk(node, true)
+}
+
+/** Helper de RENDER: recolecta los FormFields de la superficie (sin cruzar islas). */
+export function collectFields(node, out = []) {
+  walkWithinSurface(node, (n) => { if (n.fieldId) out.push(n) })
   return out
 }
 
-/** Helper de RENDER: recolecta botones/acciones (actionId + label, sin fieldId). */
+/** Helper de RENDER: recolecta botones/acciones de la superficie (sin cruzar islas). */
 export function collectActions(node, out = []) {
-  if (!node || typeof node !== 'object') return out
-  if (node.actionId && node.label && !node.fieldId) out.push(node)
-  for (const k of Object.keys(node)) {
-    const v = node[k]
-    if (Array.isArray(v)) v.forEach((x) => collectActions(x, out))
-    else if (v && typeof v === 'object') collectActions(v, out)
-  }
+  walkWithinSurface(node, (n) => { if (n.actionId && n.label && !n.fieldId) out.push(n) })
   return out
 }
 

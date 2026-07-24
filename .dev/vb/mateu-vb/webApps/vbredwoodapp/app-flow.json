@@ -396,6 +396,15 @@
       "type": "string",
       "defaultValue": "",
       "description": "primera hoja del menú — destino del Cancel del guided-process"
+    },
+    "mateuIsland": {
+      "type": "any",
+      "description": "proyección de la isla embebida ({fields, actions}); null = la página no tiene isla"
+    },
+    "mateuIslandId": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "contextId de la isla (id de la frontera ServerSide, p.ej. _guestNote)"
     }
   },
   "userConfig": {

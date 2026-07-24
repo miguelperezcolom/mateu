@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { composeInnerRoute } from './transport.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
@@ -279,6 +280,24 @@ test('wizardOf proyecta los pasos y el paso actual; el form del paso fluye como 
   assert.deepEqual(Object.keys(metadata), ['name', 'email'])
   // …y los botones de navegación son acciones normales
   assert.deepEqual(actionsOf(host.tree).map((a) => a.actionId).sort(), ['back', 'next'])
+})
+
+// 19) Fronteras (Fase 9): los campos/acciones de una ISLA no se cuelan en el form del host.
+test('el host de una isla no ve los campos ni las acciones del otro lado de la frontera', () => {
+  const { contexts } = reduceContexts(empty(), fx('island-host'))
+  const host = contexts[HOST_ID]
+  const metadata = dynFormMetadataOf(host.tree)
+  assert.deepEqual(Object.keys(metadata), ['room', 'status']) // sin paxName/note (de la isla)
+  assert.ok(!actionsOf(host.tree).some((a) => a.actionId === 'edit')) // el Edit es de la isla
+})
+
+// 20) Route-flip de mediador/isla: la ruta interna conserva los marcadores query.
+test('composeInnerRoute: base + flip + marcadores (?_embeddedMediator sigue viajando)', () => {
+  assert.equal(
+    composeInnerRoute('/guest-note?_embeddedMediator=1&_inline=1', '/edit'),
+    '/guest-note/edit?_embeddedMediator=1&_inline=1')
+  assert.equal(composeInnerRoute('/products', '/new'), '/products/new')
+  assert.equal(composeInnerRoute('/x?m=1', '/'), '/x?m=1')
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

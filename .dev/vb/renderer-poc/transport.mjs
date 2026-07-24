@@ -37,6 +37,16 @@ export async function bootstrapShell(base, initiator = 'shell') {
   return res.json()
 }
 
+/** Ruta INTERNA de un mediador/isla tras un flip de state._route: base del outbound +
+ *  flip + marcadores query (los ?_embeddedMediator=1&_inline=1 deben seguir viajando). */
+export function composeInnerRoute(outboundRoute, flip) {
+  if (!flip || flip === '/' ) return outboundRoute
+  const queryIndex = outboundRoute.indexOf('?')
+  const base = queryIndex >= 0 ? outboundRoute.slice(0, queryIndex) : outboundRoute
+  const query = queryIndex >= 0 ? outboundRoute.slice(queryIndex) : ''
+  return base + flip + query
+}
+
 /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…). */
 export const loadRoute = (base, route, initiator = '', extra = {}) =>
   callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
