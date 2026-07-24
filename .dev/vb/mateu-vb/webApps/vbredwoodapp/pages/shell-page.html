@@ -99,7 +99,9 @@
       start-opened="[[ $application.variables.mateuNavDrawerOpen ]]"
       on-oj-before-close="[[ $listeners.navDrawerClosed ]]">
 
-      <div slot="start" class="oj-sm-padding-4x-vertical">
+      <!-- 280px = ancho estándar del navigation drawer (patrón del cookbook JET/RDS);
+           oj-drawer-layout dimensiona el panel por su contenido, no expone variable -->
+      <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px">
         <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
           selection="[[ $application.variables.mateuSelectedRoute ]]"
           on-selection-changed="[[ $listeners.navDrawerSelected ]]">

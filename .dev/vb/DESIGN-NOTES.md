@@ -306,7 +306,12 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   `oj-navigation-list` jerárquico en el slot start — **abierto de inicio**, **no se oculta al
   navegar** (marca el item activo vía `selection`); la hamburguesa solo lo pliega/despliega y
   el contenido se desplaza (3ª ronda de feedback del usuario — la 2ª versión usaba un popup
-  modal que se cerraba al navegar); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
+  modal que se cerraba al navegar). **¿Navigator empaquetado?** NO hay: `oj-sp-navigator` y
+  `oj-sp-ask-oracle-navigation-list` requieren el entramado de módulos FA (probados en vivo:
+  0×0, `oj-pending-subtree-hidden`; sus datos llevan module/focusViewId/productFamily) — las
+  propias plantillas de VB (app "empty") montan la nav izquierda igual que nosotros:
+  `oj-navigation-list` en un drawer. Ancho del panel: 280px en el contenedor del slot start
+  (patrón cookbook JET/RDS; oj-drawer-layout dimensiona por contenido y no expone variable); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
   hamburguesa; hojas = `oj-button` borderless con la ruta en data-route, grupos =
   `oj-menu-button` + `oj-menu`). Gotcha: `oj-navigation-list` parsea su `<ul>` en el init y los
   `li` estampados por `oj-bind-for-each` llegan DESPUÉS → hay que llamar a `refresh()` al abrir
