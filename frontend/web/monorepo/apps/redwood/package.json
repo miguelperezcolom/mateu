@@ -1,0 +1,21 @@
+{
+  "name": "redwood",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Mateu renderer built as an Oracle OJET-native island: the authentic Redwood shell (Oracle's oj-web-applayout CSS from the CDN) + real oj-c/oj-sp/oj-dynamic content components, driven by the ported pure-TS MateuViewController over the shared Mateu sync wire protocol. Rebuilt from scratch against real Visual Builder code.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/redwood-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/redwood-lit/src/main/resources/static",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lit": "^3.3.1",
+    "mateu": "*"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2"
+  }
+}

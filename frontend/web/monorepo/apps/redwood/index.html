@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" class="oj-html" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQUIELTITULODELAPAGINA</title>
+  <!-- AQUIFAVICON -->
+
+  <!-- Oracle Redwood theme + fonts + icon font, from Oracle's public CDN (referenced, NOT bundled).
+       The same stylesheet the Visual Builder Redwood apps use — it provides every oj-web-applayout-*,
+       oj-flex-*, oj-typography-*, oj-badge and design-token (--oj-*) class the app shell relies on,
+       so the chrome needs no OJET component / binding provider. -->
+  <link rel="stylesheet" id="redwoodcss"
+        href="https://static.oracle.com/cdn/jet/19.0.0/default/css/redwood/oj-redwood-min.css">
+  <link rel="stylesheet" id="oraclefont"
+        href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css">
+  <link rel="stylesheet" id="uxiconfont"
+        href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css">
+
+  <script type="module" src="/src/main.ts"></script>
+</head>
+
+<!-- data-oj-binding-provider="preact" is REQUIRED for the oj-c-* / oj-sp-* VComponents to upgrade
+     (they render into the light-DOM content area, never inside a shadow root). -->
+<body class="oj-body oj-web-applayout-body" data-oj-binding-provider="preact">
+  <div id="landing-loader" class="mateu-landing-loader">Loading…</div>
+
+  <!-- The whole app renders here (shell chrome + routed content) in light DOM. -->
+  <div id="app-root"></div>
+
+  <!-- The AP-generated controllers inject the routed <mateu-ui baseUrl="/route" pathPrefix="…"> into
+       this inert template; main.ts reads its attributes (never upgrades it). -->
+  <template id="mateu-ui-holder">
+    <!-- AQUIUI -->
+    <!-- HASTAAQUIUI -->
+  </template>
+</body>
+</html>

@@ -1,0 +1,211 @@
+/*
+ * Redwood renderer chrome styles.
+ *
+ * The heavy lifting (design tokens --oj-*, typography, oj-web-applayout-*, oj-flex-*, oj-badge,
+ * oj-ux-ico-* icon font) comes from Oracle's own oj-redwood-min.css (loaded from the CDN in
+ * index.html). Here we only lay out the shell frame (header height, nav rail, content padding) and
+ * the content placeholder, all in terms of Redwood tokens with safe fallbacks — so it always looks
+ * native Redwood, light or dark.
+ */
+
+:root {
+  --mateu-header-h: 3.25rem;
+  --mateu-nav-w: 17rem;
+  --mateu-nav-w-collapsed: 3.5rem;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--oj-core-bg-color-content, #f1efed);
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+  font-family: var(--oj-html-font-family, 'Oracle Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+#app-root {
+  height: 100%;
+}
+
+.mateu-landing-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+
+/* ── shell frame ─────────────────────────────────────────────────────────────────────── */
+
+.mateu-redwood-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+
+.mateu-header {
+  height: var(--mateu-header-h);
+  min-height: var(--mateu-header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--oj-core-spacing-3x, 0.75rem);
+  background: var(--oj-core-bg-color-content, #fff);
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  box-shadow: var(--oj-private-app-layout-web-header-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.06));
+  z-index: 2;
+}
+
+.mateu-header-bar {
+  width: 100%;
+}
+
+.mateu-app-title {
+  margin-inline-start: 0.5rem;
+  text-decoration: none;
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+}
+
+.mateu-icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+.mateu-icon-button:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}
+
+.mateu-header-end {
+  margin-inline-start: auto;
+}
+.mateu-header-avatar {
+  font-size: 1.4rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  margin-inline-end: 0.5rem;
+}
+
+.mateu-shell-body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── nav rail ────────────────────────────────────────────────────────────────────────── */
+
+.mateu-nav-rail {
+  width: var(--mateu-nav-w);
+  min-width: var(--mateu-nav-w);
+  overflow-y: auto;
+  background: var(--oj-core-bg-color-content, #fff);
+  border-inline-end: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  transition: width 0.15s ease, min-width 0.15s ease;
+  padding: var(--oj-core-spacing-2x, 0.5rem) 0;
+}
+.mateu-nav-rail.collapsed {
+  width: var(--mateu-nav-w-collapsed);
+  min-width: var(--mateu-nav-w-collapsed);
+}
+.mateu-nav-rail.collapsed .mateu-nav-label,
+.mateu-nav-rail.collapsed .mateu-nav-group-label span:last-child {
+  display: none;
+}
+
+.mateu-nav-list,
+.mateu-nav-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mateu-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  margin: 0.1rem 0.5rem;
+  border-radius: var(--oj-button-border-radius, 0.5rem);
+  color: var(--oj-navigation-list-item-label-color, var(--oj-core-text-color-primary, #1b1b1b));
+  text-decoration: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mateu-nav-item:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}
+.mateu-nav-item.active {
+  background: var(--oj-palette-brand-10, rgba(19, 90, 107, 0.1));
+  color: var(--oj-navigation-list-item-label-color-selected, var(--oj-palette-brand-130, #0a5a6b));
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--oj-palette-brand-100, #135a6b);
+}
+
+.mateu-nav-icon {
+  font-size: 1.1rem;
+  width: 1.25rem;
+  text-align: center;
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+.mateu-nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mateu-nav-separator {
+  height: 1px;
+  background: var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  margin: 0.4rem 0.75rem;
+}
+
+/* ── content area ────────────────────────────────────────────────────────────────────── */
+
+.mateu-content-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--oj-core-spacing-6x, 1.5rem) var(--oj-core-spacing-8x, 2rem);
+}
+
+.mateu-content-loading,
+.mateu-content-error {
+  padding: 2rem;
+}
+.mateu-content-error {
+  color: var(--oj-message-error-icon-color, #c74634);
+}
+
+.mateu-page {
+  max-width: 1408px;
+  margin: 0 auto;
+}
+.mateu-page-title {
+  margin: 0 0 1rem;
+}
+
+.mateu-placeholder-card {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-placeholder-json {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  white-space: pre-wrap;
+}
