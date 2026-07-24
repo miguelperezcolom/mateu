@@ -205,6 +205,26 @@ Navegar a una ruta-listado pinta una `oj-table` Redwood alimentada por las filas
 - Falta (refinamiento): la **smart-search bar** y el **estado vacío** de una collection Redwood — el core
   de Fase 4 (tabla con filas) está. Evidencia: `frontoffice-renderer/shots/fase4-table.png`.
 
+### Fase 5 — CRUD real vía mediador (2026-07-24) — CONTRATO CLAVE
+
+El contrato mediador del AutoCrud (el "~3 sequential loads"), reverse-engineered y funcionando (listing):
+- **Un crud carga por `handleRoute` con `actionId=""` (vacío), NO `__load__`** (que va a `handleAction`, y el
+  crud no lo soporta → `UnsupportedOperationException: __load__ not supported`). `MultiView.handleRoute` solo
+  actúa si `actionId == null || actionId == ""`. OJO en el bridge: `actionId || '__load__'` colapsa `""`→`__load__`
+  (usar `actionId == null ? '__load__' : actionId`). `""` también sirve para pantallas normales → unificar.
+- **Paso 1** (`route`, `""`, sst=app): el crud devuelve un `ServerSide` que envuelve un `App` con
+  **`variant="MEDIATOR"`** (dice "recárgame con mi serverSideType"). Detectar ese App-MEDIATOR en el árbol.
+- **Paso 2** (`route`, `""`, sst=**el crud**, **consumedRoute = la ruta del crud**): resuelve la LISTING
+  (`ListRouteResolver` exige `route == consumedRoute` del crud — si `consumedRoute` va vacío, NO resuelve).
+  Devuelve la estructura: nodos `GridColumn` + acciones `search`/`new`/`view`/`delete`.
+- **Paso 3** (`route`, `"search"`, sst=el crud, consumedRoute=ruta crud): las FILAS llegan en un fragment
+  data-only en **`fragment.data.crud.page.content`** (un `Page` con `content`=array de filas; cada fila trae
+  `_rowNumber`, `id` y los campos de columna).
+- Columnas = `GridColumn` (dedup; excluir `_select`); tabla = `oj-table` + `ArrayDataProvider('@index')`.
+- **PENDIENTE (resto de Fase 5)**: `new` (form create) → `persist` → refrescar; `view`/`edit` (con id de fila)
+  → form → `persist`; `delete`. Reusan el render de formulario (Fase 3) + `_search()` para refrescar.
+  Evidencia listing: `frontoffice-renderer/shots/fase5-crud-listing.png`.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
