@@ -1,0 +1,26 @@
+<!--
+  mateu-node — fragmento VB recursivo (el análogo VB de `renderClientSideComponent`).
+  Renderiza UN nodo Mateu según su tipo. Regla dura: SOLO markup de los ejemplos de VB
+  (componentes/clases oj-*/oj-sp-* y bindings oj-bind-*), CERO CSS propio, CERO markup inventado.
+  Cada fase añade UNA rama (Fase 1 = Text). Los hijos se pintan recursando en el MISMO fragmento
+  (oj-vb-fragment auto-referente), como los pages/fragments de .dev/vb/frontoffice.
+
+  Entrada: $variables.node = un nodo del árbol del contexto (ver reduceContexts). Para un ClientSide
+  el DTO va en node.metadata; para un ServerSide, al nivel superior (node.children es el contenido).
+-->
+
+<!-- ServerSide / contenedor: pinta sus hijos, cada uno en su propio mateu-node -->
+<oj-bind-if test="[[ $variables.node.children &amp;&amp; $variables.node.children.length ]]">
+  <oj-bind-for-each data="[[ $variables.node.children ]]">
+    <template>
+      <oj-vb-fragment name="mateu-node" params='{{ {"node": $current.data} }}'></oj-vb-fragment>
+    </template>
+  </oj-bind-for-each>
+</oj-bind-if>
+
+<!-- Hoja Text (ClientSide con metadata.type === 'Text') -->
+<oj-bind-if test="[[ ($variables.node.metadata &amp;&amp; $variables.node.metadata.type) === 'Text' ]]">
+  <span class="oj-typography-heading-sm">
+    <oj-bind-text value="[[ $variables.node.metadata.text ]]"></oj-bind-text>
+  </span>
+</oj-bind-if>

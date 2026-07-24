@@ -13,41 +13,42 @@ El entregable es un **kit AMD portable** para el runtime requirejs de VB, no un 
 backend. Este directorio es el **hogar de desarrollo** del core (JS puro, testeable en Node) + tooling de captura
 + fixtures + los artefactos VB que se irán añadiendo. Sin paso de build que VB no pueda reproducir.
 
+## Regla dura de presentación: VB PURO, sin añadidos
+
+**No puede haber NADA de HTML ni CSS que no venga de los ejemplos de VB.** La capa de presentación es 100%
+VB: el chrome lo pinta el pack **`oj-sp` (Spectra)** (el `app-flow.js` del ejemplo solo hace
+`define(['oj-sp/spectra-shell/config/config'], …)` — todo el shell/header/navigator viene de ahí), y los nodos
+se pintan con **fragmentos VB** cuyo template usa solo componentes/clases `oj-*`/`oj-sp-*` tal cual aparecen en
+los ejemplos (`.dev/vb/frontoffice`). **Cero CSS propio, cero markup inventado, cero "dibujar a mano".** Si algo
+no lo pinta un componente Oracle, esa es la señal de PARAR y resolverlo con el componente correcto, no aproximarlo.
+
+> Por esto **no hay harness local de UI**: cualquier HTML/CSS que escribiéramos para "previsualizar" fuera de VB
+> sería un añadido no-VB. La validación visual se hace **dentro de una app VB real** (como exige el roadmap).
+> En local solo se prueban la **lógica** (reducer, en Node) y el **contrato de wire** (fixtures) — nada visual.
+
 ## Estructura
 
 ```
-src/core/reduceContexts.mjs   ← EL núcleo del bridge (reducer puro + helpers de render). Single source.
-                                 En la app VB serán métodos de app-flow.js; aquí, funciones libres testeables.
+src/core/reduceContexts.mjs   ← EL núcleo del bridge (reducer puro + helpers). LÓGICA, sin HTML/CSS. Single source.
+                                 En la app VB es el módulo AMD del app-flow; aquí, funciones libres testeables.
 tools/capture.mjs             ← Fase 0: POST loads/acciones contra un Mateu vivo → vuelca increments REALES.
 fixtures/real/*.json          ← increments capturados (contrato de wire real, no sintético).
 test/*.test.mjs               ← tests de contrato del reducer contra los fixtures reales (node:test).
+vb/                           ← artefactos de PRESENTACIÓN VB (fragmentos `mateu-node`, app-flow), autorados
+                                 SOLO con markup de los ejemplos. Se ejecutan/validan dentro de VB.
 ```
 
 ## Uso
 
 ```bash
-# Tests del core (node:test, sin VB)
+# Tests del core (node:test, sin VB) — LÓGICA
 npm test            # o: node --test test/
 
 # Fase 0 — capturar increments reales contra un backend Mateu vivo
-npm run capture -- --base http://localhost:8595
-# vuelca fixtures/real/<name>.json para cada superficie del lote
-```
+npm run capture -- --base http://localhost:9001   # SUT de este proyecto (demo-redwood-vb)
 
-## Dev harness (probar la UI localmente)
-
-`harness/` renderiza los increments de un backend Mateu vivo con chrome Redwood auténtico (tema Redwood de
-OJET + OracleFont desde el CDN de Oracle, el MISMO origen que carga VB). No necesita build: es HTML + ESM.
-
-```bash
-# 1) Backend SUT en :9001
-cd ../../../.. && (cd demo/demo-redwood-vb && mvn -o spring-boot:run)   # o: java -jar target/*.jar
-
-# 2) Servir el harness (desde la raíz de la app, para que resuelvan /harness y /src)
-cd frontend/web/monorepo/apps/redwood-vb && python3 -m http.server 9002 --bind 127.0.0.1
-
-# 3) Abrir http://127.0.0.1:9002/harness/index.html  — o capturar:
-node tools/shot.mjs --url http://127.0.0.1:9002/harness/index.html --out shots/fase1.png
+# Backend SUT en :9001 (sirve solo la API /mateu/v3; sin renderer)
+#   cd ../../../.. && (cd demo/demo-redwood-vb && mvn -o spring-boot:run)
 ```
 
 ## Estado
@@ -57,9 +58,6 @@ node tools/shot.mjs --url http://127.0.0.1:9002/harness/index.html --out shots/f
     (`type`, `serverSideType`, `route`, `children`, `pageType`, `pageWidth`, `initialData`, `actions`, …),
     **no** bajo `component.metadata`. El árbol de contenido va en `component.children`. Los ClientSide sí llevan
     el DTO en `.metadata`. 15 tests de contrato verdes.
-- **Fase 1 (en curso)**: hola mundo dentro del shell. `harness/` + `demo-redwood-vb` (:9001) renderizan un
-  nodo `Text` con chrome Redwood (tira RDS + tema/fuente OJET del CDN). Evidencia: `shots/fase1.png`.
-  - **Honestidad sobre la puerta visual**: aprobada como **aproximación fiel local** (tema + OracleFont
-    reales). La validación DEFINITIVA del chrome `oj-sp` (global-header/navigator del pack Spectra) queda
-    para **dentro de una app VB real**, como exige el roadmap — el header del harness es `oj-web-applayout`
-    hecho a mano y se sustituye por `oj-sp-global-header`/`oj-sp-navigator` al portar a VB.
+- **Fase 1 (en curso)**: hola mundo. Backend `demo-redwood-vb` (:9001) sirve una Page con un `Text`; la
+  presentación es el fragmento VB `vb/mateu-node` (rama `Text`) sobre el shell `oj-sp` — validación visual
+  DENTRO de VB. El harness local hecho a mano (HTML/CSS propios) fue **eliminado** por violar la regla pura-VB.

@@ -125,6 +125,23 @@ contrato en `apps/redwood-vb/test/contract.test.mjs` (verdes). **Corrección imp
   FilteredAutoCrud, ver memoria `feedback_redwood_oj_harness`) — recapturar cuando el backend lo sirva.
 - Las capturas de 2 pasos (abrir Drawer=`Add`, `State` push, save) faltan: se añaden al llegar a 1.2/Fase 5.
 
+### Regla dura de presentación (decisión 2026-07-24)
+
+**NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
+El chrome lo pinta `oj-sp`/Spectra (el `app-flow.js` del ejemplo solo hace
+`define(['oj-sp/spectra-shell/config/config'], …)`); los nodos, fragmentos VB con markup `oj-*`/`oj-bind-*`
+tal cual en los ejemplos. Consecuencias:
+- **No hay harness/preview local de UI.** Un intento inicial de harness (index.html + CSS propios aproximando
+  el chrome Redwood) se **eliminó** por violar esta regla. En local solo se prueba la **lógica** (reducer, Node)
+  y el **contrato de wire** (fixtures). La validación **visual** se hace **dentro de una app VB real**.
+- La presentación vive en `apps/redwood-vb/vb/`: `app-flow.js` (AMD bridge, sin markup) + `mateu-node.html`
+  (fragmento recursivo, solo `oj-bind-*` + clases `oj-*`). El core (`src/core/reduceContexts.mjs`) es LÓGICA
+  pura, sin HTML/CSS, y se carga en VB como módulo AMD `redwood-vb/reduceContexts`.
+- El backend SUT del proyecto es `demo/demo-redwood-vb` (**:9001**), renderer-agnóstico: sirve solo la API
+  `/mateu/v3` (sin dependencia de ningún renderer). Su único cliente es el kit VB.
+- **Fase 1**: HomePage (`Text`) servida en :9001; presentación = fragmento `vb/mateu-node` rama `Text` sobre el
+  shell Spectra → puerta visual DENTRO de VB.
+
 ## Builtins de action chain de VB
 
 **Confirmados** (vistos en `.dev/vb/dashboard/**/*.json`):
