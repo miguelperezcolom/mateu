@@ -48,13 +48,9 @@
             <artifactId>mvc-core</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- Redwood renderer kept on the classpath so :9001 ALSO serves a native oj-c rendering of
-             the same screens — the "native Redwood" reference side of each visual gate. -->
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>redwood-lit</artifactId>
-            <version>${mateu.version}</version>
-        </dependency>
+        <!-- No frontend renderer dependency ON PURPOSE: this SUT serves only the /mateu/v3 API
+             (renderer-agnostic). The one and only client is the redwood-vb bridge kit / dev harness.
+             We deliberately do NOT lean on any existing Redwood renderer. -->
     </dependencies>
 
     <build>
