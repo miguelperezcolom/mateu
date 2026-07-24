@@ -25,6 +25,10 @@
     "headerMsg": {
       "type": "string",
       "defaultValue": ""
+    },
+    "isFoldout": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "metadata": {},

@@ -16,10 +16,12 @@ define([
   'oj-c/input-number',
   'oj-c/button',
   'oj-c/select-single',
+  'oj-sp/foldout-layout/loader',
+  'oj-sp/foldout-panel/loader',
   'ojs/ojarraydataprovider',
   'ojs/ojarraytreedataprovider',
   'knockout',
-], function (_nav, _table, _it, _in, _btn, _sel, ArrayDataProvider, ArrayTreeDataProvider, ko) {
+], function (_nav, _table, _it, _in, _btn, _sel, _fl, _fp, ArrayDataProvider, ArrayTreeDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -97,6 +99,42 @@ define([
         const v = node[k];
         if (Array.isArray(v)) v.forEach((x) => collectColumns(x, out, seen));
         else if (v && typeof v === 'object') collectColumns(v, out, seen);
+      });
+    }
+    return out;
+  }
+
+  // Busca el nodo FoldoutLayout (Fase 7); devuelve su metadata o null.
+  function findFoldout(node) {
+    if (!node || typeof node !== 'object') return null;
+    const m = metaOf(node);
+    if (m.type === 'FoldoutLayout') return m;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) {
+          const r = findFoldout(v[j]);
+          if (r) return r;
+        }
+      } else if (v && typeof v === 'object') {
+        const r = findFoldout(v);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  // Mapa slot→texto de los hijos slotted (overview, panel-0, …). Fase 7 = contenido Text.
+  function slotTexts(node, out) {
+    out = out || {};
+    if (node && typeof node === 'object') {
+      const m = metaOf(node);
+      if (node.slot && m.type === 'Text') out[node.slot] = m.text;
+      Object.keys(node).forEach((k) => {
+        const v = node[k];
+        if (Array.isArray(v)) v.forEach((x) => slotTexts(x, out));
+        else if (v && typeof v === 'object') slotTexts(v, out);
       });
     }
     return out;
@@ -203,6 +241,9 @@ define([
       // el for-each de la cabecera debe re-renderizar cuando lleguen).
       this.contextSelectors = ko.observableArray([]);
       this.contextActions = ko.observableArray([]);
+      // Foldout (Fase 7): overview + paneles plegables.
+      this.foldoutOverview = ko.observable('');
+      this.foldoutPanels = ko.observableArray([]);
     }
 
     getNavData() {
@@ -217,6 +258,12 @@ define([
     getTableColumns() {
       // Lee el observable DENTRO del binding → oj-table se re-renderiza al cambiar de listado.
       return this.tableColumns();
+    }
+    getFoldoutOverview() {
+      return this.foldoutOverview();
+    }
+    getFoldoutPanels() {
+      return this.foldoutPanels();
     }
 
     // Fase 6: selectores de @AppContext de la cabecera (oj-c-select-single por campo).
@@ -333,6 +380,22 @@ define([
       };
       const state = host.state || {};
 
+      // 0) ¿Foldout? (un FoldoutLayout) → overview + paneles oj-sp-foldout.
+      const fl = findFoldout(host.tree);
+      if (fl) {
+        const slots = slotTexts(host.tree);
+        this.foldoutOverview(slots.overview || '');
+        this.foldoutPanels(
+          (fl.panels || []).map((p, i) => ({
+            title: p.title,
+            subtitle: p.subtitle,
+            text: slots['panel-' + i] || '',
+          })),
+        );
+        this.formFields([]);
+        return { isFoldout: true, isTable: false, isForm: false, isCrud: false, greeting: '' };
+      }
+
       // A) ¿Listado CRUD? (expone la acción 'search') → columnas GridColumn + search para las filas.
       if (hasActionId(inc, 'search')) {
         this.isCrud = true;
@@ -340,7 +403,7 @@ define([
         this.tableColumns(collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows(await this._search());
         this.formFields([]);
-        return { isTable: true, isForm: false, isCrud: true, greeting: '' };
+        return { isFoldout: false, isTable: true, isForm: false, isCrud: true, greeting: '' };
       }
       // B) ¿Listado simple? (un FormField-grid) → tabla oj-table.
       const gridNode = findGridField(host.tree);
@@ -350,7 +413,7 @@ define([
         this.tableColumns(collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows((state[gmeta.fieldId] || []).slice());
         this.formFields([]);
-        return { isTable: true, isForm: false, isCrud: false, greeting: '' };
+        return { isFoldout: false, isTable: true, isForm: false, isCrud: false, greeting: '' };
       }
       this.isCrud = false;
       // C) ¿Formulario? (FormFields) → inputs oj-c-*.
@@ -377,6 +440,7 @@ define([
       );
       this.crudSaveActionId = null; // un form normal (Profile) NO es create/edit de crud
       return {
+        isFoldout: false,
         isTable: false,
         isForm: fields.length > 0,
         isCrud: false,

@@ -54,6 +54,32 @@
   </div>
 
   <div class="oj-flex-item oj-sm-padding-4x">
+    <!-- Foldout (Fase 7): overview + paneles plegables oj-sp -->
+    <oj-bind-if test="[[ $variables.isFoldout ]]">
+      <oj-sp-foldout-layout>
+        <div slot="overview" class="oj-sm-padding-4x">
+          <span class="oj-typography-body-lg">
+            <oj-bind-text value="[[ $functions.getFoldoutOverview() ]]"></oj-bind-text>
+          </span>
+        </div>
+        <oj-bind-for-each data="[[ $functions.getFoldoutPanels() ]]">
+          <template data-oj-as="pnl">
+            <oj-sp-foldout-panel>
+              <div class="oj-sm-padding-4x">
+                <h3 class="oj-typography-heading-xs">
+                  <oj-bind-text value="[[ pnl.data.title ]]"></oj-bind-text>
+                </h3>
+                <div class="oj-text-color-secondary oj-typography-body-sm oj-sm-margin-2x-bottom">
+                  <oj-bind-text value="[[ pnl.data.subtitle ]]"></oj-bind-text>
+                </div>
+                <oj-bind-text value="[[ pnl.data.text ]]"></oj-bind-text>
+              </div>
+            </oj-sp-foldout-panel>
+          </template>
+        </oj-bind-for-each>
+      </oj-sp-foldout-layout>
+    </oj-bind-if>
+
     <!-- Listado (tabla) -->
     <oj-bind-if test="[[ $variables.isTable ]]">
       <!-- Toolbar CRUD (Fase 5): Nuevo/Editar/Borrar -->
@@ -128,7 +154,7 @@
     </oj-bind-if>
 
     <!-- Contenido de texto -->
-    <oj-bind-if test="[[ !$variables.isForm &amp;&amp; !$variables.isTable ]]">
+    <oj-bind-if test="[[ !$variables.isForm &amp;&amp; !$variables.isTable &amp;&amp; !$variables.isFoldout ]]">
       <div class="oj-flex">
         <h1 class="oj-flex-item oj-sm-12 oj-md-12">
           <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>

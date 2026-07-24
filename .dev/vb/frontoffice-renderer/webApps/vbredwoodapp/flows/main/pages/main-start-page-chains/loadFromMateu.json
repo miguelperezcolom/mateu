@@ -43,6 +43,9 @@
         },
         "$page.variables.saveMsg": {
           "source": "{{ '' }}"
+        },
+        "$page.variables.isFoldout": {
+          "source": "{{ $chain.results.loadRoute.isFoldout }}"
         }
       }
     }
