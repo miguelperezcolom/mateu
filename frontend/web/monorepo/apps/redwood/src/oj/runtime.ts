@@ -32,8 +32,9 @@ export interface OjRuntime {
   ArrayDataProvider: new (data: unknown[], options?: unknown) => unknown
   /** Backs tree navs / hierarchical rows. */
   ArrayTreeDataProvider: new (data: unknown[], options?: unknown) => unknown
-  /** Drives oj-dynamic-form / oj-dynamic-table from a JSON field/column metadata description. */
-  JsonMetadataProvider: new (data: unknown, metadata: unknown) => unknown
+  /** Drives oj-dynamic-form / oj-dynamic-table from a JSON field/column metadata description.
+   *  Constructed with a single config object: `{ data: { properties: { <id>: {type,labelHint,…} } } }`. */
+  JsonMetadataProvider: new (config: unknown) => unknown
 }
 
 declare global {

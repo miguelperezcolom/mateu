@@ -4,6 +4,7 @@ import type { OjRuntime } from '../oj/runtime'
 import { interpolate } from '../core/expressions'
 import { renderField } from './fields/renderField'
 import { renderButton } from './leaves/renderButton'
+import { renderCrud } from './table/renderCrud'
 
 export type Json = Record<string, any>
 
@@ -73,6 +74,11 @@ export function renderComponent(node: unknown, ctx: RenderCtx): TemplateResult |
 
     case 'FormRow':
       return html`<div class="mateu-form-row">${renderChildren(node, ctx)}</div>`
+
+    case 'Crud':
+    case 'Crudl':
+    case 'Listing':
+      return renderCrud(node, m, ctx)
 
     // ── leaves ──────────────────────────────────────────────────────────────────────
     case 'FormField':

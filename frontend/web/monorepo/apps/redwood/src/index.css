@@ -315,3 +315,88 @@ body {
 .mateu-text {
   margin: 0.25rem 0;
 }
+
+/* ── crud / listing (Phase 2) ─────────────────────────────────────────────────────────── */
+
+.mateu-crud {
+  max-width: 1408px;
+  margin: 0 auto;
+}
+.mateu-crud-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.mateu-crud-titles h1 {
+  margin: 0;
+}
+.mateu-crud-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mateu-crud-search {
+  margin-bottom: 0.75rem;
+  max-width: 22rem;
+}
+.mateu-crud-search-native {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.25));
+  border-radius: 1.25rem;
+  font: inherit;
+  width: 22rem;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+}
+.mateu-crud-table {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-empty {
+  padding: 2.5rem;
+  text-align: center;
+}
+.mateu-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+.mateu-page-btn {
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  background: var(--oj-core-bg-color-content, #fff);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.mateu-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mateu-native-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.mateu-native-table th,
+.mateu-native-table td {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.08));
+}
+.mateu-native-table th {
+  font-weight: 600;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.02));
+}
