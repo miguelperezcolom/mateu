@@ -136,7 +136,64 @@
   </div>
 </oj-drawer-popup>
 
-<oj-bind-if test="[[ !!$application.variables.mateuFormMetadata ]]">
+<!-- Wizard (Fase 8): el tren + panel del oj-sp-guided-process auténtico; el form del paso
+     (widgetFor) y los botones Back/Next del wire van DENTRO de su slot de contenido -->
+<oj-bind-if test="[[ !!$application.variables.mateuWizard ]]">
+  <oj-sp-guided-process id="mateuWizardEl"
+    process-title="[[ $application.variables.mateuHostTitle ]]"
+    steps="[[ $application.variables.mateuWizard.steps ]]"
+    current-step="[[ $application.variables.mateuWizard.currentStep ]]"
+    primary-action="[[ $application.variables.mateuWizardPrimary ]]"
+    on-sp-primary-action="[[ $listeners.mateuWizardPrimaryAction ]]"
+    on-sp-before-next="[[ $listeners.mateuWizardContinue ]]">
+    <div class="oj-sm-padding-4x">
+      <oj-form-layout id="mateuWizardForm">
+        <oj-bind-for-each data="[[ $application.variables.mateuFormFieldsList ]]">
+          <template>
+            <oj-bind-if test="[[ $current.data.isText ]]">
+              <oj-input-text
+                label-hint="[[ $current.data.label ]]"
+                value="[[ $current.data.value ]]"
+                required="[[ $current.data.required ]]"
+                readonly="[[ $current.data.readonly ]]"
+                :data-field-id="[[ $current.data.fieldId ]]"
+                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $current.data.isNumber ]]">
+              <oj-input-number
+                label-hint="[[ $current.data.label ]]"
+                value="[[ $current.data.value ]]"
+                required="[[ $current.data.required ]]"
+                readonly="[[ $current.data.readonly ]]"
+                :data-field-id="[[ $current.data.fieldId ]]"
+                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+              <oj-switch
+                label-hint="[[ $current.data.label ]]"
+                value="[[ $current.data.value ]]"
+                readonly="[[ $current.data.readonly ]]"
+                :data-field-id="[[ $current.data.fieldId ]]"
+                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+            </oj-bind-if>
+          </template>
+        </oj-bind-for-each>
+      </oj-form-layout>
+      <div class="oj-flex oj-sm-margin-6x-top">
+        <oj-bind-for-each data="[[ $application.variables.mateuFormActions ]]">
+          <template>
+            <oj-button class="oj-sm-margin-2x-end"
+              :data-action-id="[[ $current.data.actionId ]]"
+              chroming="[[ $current.data.chroming ]]"
+              on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+  </oj-sp-guided-process>
+</oj-bind-if>
+
+<oj-bind-if test="[[ !!$application.variables.mateuFormMetadata && !$application.variables.mateuWizard ]]">
   <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
       <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>

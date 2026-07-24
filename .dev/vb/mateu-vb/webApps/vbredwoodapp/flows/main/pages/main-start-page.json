@@ -77,6 +77,20 @@
           "chain": "runMateuSearch"
         }
       ]
+    },
+    "mateuWizardContinue": {
+      "chains": [
+        {
+          "chain": "wizardNext"
+        }
+      ]
+    },
+    "mateuWizardPrimaryAction": {
+      "chains": [
+        {
+          "chain": "wizardNext"
+        }
+      ]
     }
   },
   "imports": {
@@ -116,6 +130,9 @@
       },
       "oj-sp-foldout-panel": {
         "path": "oj-sp/foldout-panel/loader"
+      },
+      "oj-sp-guided-process": {
+        "path": "oj-sp/guided-process/loader"
       }
     }
   }

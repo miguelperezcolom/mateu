@@ -36,6 +36,8 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu BookingFoldout booking;
 
+  @Menu io.mateu.mdd.demovb.infra.in.ui.checkout.CheckoutWizard checkout;
+
   @Menu GestionMenu gestion;
 
   @Override

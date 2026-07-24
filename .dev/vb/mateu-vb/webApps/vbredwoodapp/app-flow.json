@@ -368,6 +368,19 @@
     "mateuFoldout": {
       "type": "any",
       "description": "proyección del FoldoutLayout (overview + paneles con textos); null = no es un foldout"
+    },
+    "mateuWizard": {
+      "type": "any",
+      "description": "proyección del wizard ({steps,currentStep} para el guided-process); null = no es un wizard"
+    },
+    "mateuWizardForwardId": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "actionId de avance del paso (next/confirm) — lo dispara el Continue del guided-process"
+    },
+    "mateuWizardPrimary": {
+      "type": "any",
+      "description": "primaryAction del guided-process en el último paso del tren ({label} de confirm); null en el resto"
     }
   },
   "userConfig": {

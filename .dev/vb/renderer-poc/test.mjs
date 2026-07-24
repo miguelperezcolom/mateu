@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
-  overlayOf, eventTriggersOf, shellNavOf, foldoutOf,
+  overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -263,6 +263,22 @@ test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus te
   assert.equal(foldout.panels[0].subtitle, 'Charges and refunds')
   assert.equal(foldout.panels[2].open, false) // Notes arranca plegado
   assert.deepEqual(foldout.panels[0].texts, ['02/05 · Deposit · 620 €', '12/08 · Balance · pending'])
+})
+
+// 18) Wizard (Fase 8): ProgressSteps del wire → tren del guided-process; el paso actual
+//     viaja como status 'current' y los campos/botones del paso van por las ramas existentes.
+test('wizardOf proyecta los pasos y el paso actual; el form del paso fluye como form normal', () => {
+  const { contexts } = reduceContexts(empty(), fx('load-wizard'))
+  const host = contexts[HOST_ID]
+  const wizard = wizardOf(host)
+  assert.deepEqual(wizard.steps.map((s) => s.id), ['cliente', 'envio', 'pago'])
+  assert.equal(wizard.currentStep, 'cliente')
+  assert.equal(host.pageType, 'process')
+  // el paso actual es un form normal para el switch widgetFor…
+  const metadata = dynFormMetadataOf(host.tree)
+  assert.deepEqual(Object.keys(metadata), ['name', 'email'])
+  // …y los botones de navegación son acciones normales
+  assert.deepEqual(actionsOf(host.tree).map((a) => a.actionId).sort(), ['back', 'next'])
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

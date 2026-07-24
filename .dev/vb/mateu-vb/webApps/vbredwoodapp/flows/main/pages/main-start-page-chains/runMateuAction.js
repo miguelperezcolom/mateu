@@ -81,6 +81,7 @@ define([
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
       $application.variables.mateuFoldout = bridge.foldoutOf(hostAfter);
+      $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
 
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
@@ -89,6 +90,23 @@ define([
       $application.variables.mateuFormFieldsList = summary.fields;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
+      const wizardNow = $application.variables.mateuWizard;
+      if (wizardNow) {
+        const forward = summary.actions.find((a) => a.actionId !== 'back');
+        $application.variables.mateuWizardForwardId = forward ? forward.actionId : '';
+        $application.variables.mateuFormActions = summary.actions.filter((a) => a.actionId === 'back');
+        const lastStep = wizardNow.steps.length
+          ? wizardNow.steps[wizardNow.steps.length - 1].id : null;
+        // el guided-process lee primaryAction.label incondicionalmente: NUNCA null;
+        // availableFromStep hace que solo aparezca en el último paso del tren
+        $application.variables.mateuWizardPrimary = forward
+          ? { label: forward.label, availableFromStep: lastStep }
+          : { label: 'Done', disabled: true, availableFromStep: '__none__' };
+      } else {
+        $application.variables.mateuWizardForwardId = '';
+        $application.variables.mateuWizardPrimary = { label: '', disabled: true, availableFromStep: '__none__' };
+      }
+
       if (!overlayNow) {
         $page.variables.mateuDraft = {};
       }

@@ -353,6 +353,27 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   (`collectTexts`) — el dispatcher recursivo general sigue pendiente (fases posteriores).
 - Tests 17/17 (fixture `load-foldout.json`). Evidencia: `shots/fase7.png`, `fase7-folded.png`.
 
+## Fase 8 — HECHA (pendiente de verificación visual del usuario)
+
+- **Guided process end-to-end**: demo-vb `/checkout` (`CheckoutWizard extends Wizard`, 3 pasos +
+  resultado, `@WizardProgress(STEPS)`) → wire: `ProgressSteps` con `steps [{id,title,status:
+  current|upcoming|done}]` + Card del paso (form normal) + botones back/next (acciones normales)
+  + `pageType process`; el estado cross-step viaja en el state (position + mapas por paso +
+  campos aplanados). Proyección `wizardOf(ctx)` (steps con alias `title` — el rail del
+  componente lee ese campo — + currentStep). Tests 18/18, fixture `load-wizard.json`.
+- **`oj-sp-guided-process` auténtico**: template completo — banda ilustrada Redwood, rail
+  derecho con contador `N|M` + lista de pasos, footer propio. Integración: el form del paso
+  (widgetFor) va en su slot default; su **Continue** dispara `spBeforeNext` → acción de avance
+  del wire (la proyección separa back [slot] / forward [Continue]); en el ÚLTIMO paso del tren
+  el Continue desaparece y manda el **`primaryAction`** ({label: confirm del wire,
+  `availableFromStep`: último paso}) → `spPrimaryAction`. GOTCHA: el componente lee
+  `primaryAction.label` INCONDICIONALMENTE — nunca pasarle null (usar availableFromStep
+  '__none__' + disabled para ocultarlo). Su Cancel abre su propio diálogo destructivo (nativo,
+  sin cablear). Verificado: 1→2→3→Confirm→"Pedido confirmado para Ada · envío a Calle Mayor 1
+  (Madrid)" (cross-step OK). Gotcha de sondas: el resultado va en un input readonly —
+  `innerText` no ve valores de inputs.
+- Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

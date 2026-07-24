@@ -45,6 +45,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     shellNavOf,
     collectTexts,
     foldoutOf,
+    wizardOf,
     callMateu,
     bootstrapShell,
     loadRoute,

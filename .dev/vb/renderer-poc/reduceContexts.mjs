@@ -170,6 +170,21 @@ export function foldoutOf(ctx) {
   }
 }
 
+/** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → tren del guided-process
+ *  ({id,label} + currentStep por id). null si la página no es un wizard. En la pantalla de
+ *  resultado todos los pasos van 'done' → currentStep = el último. */
+export function wizardOf(ctx) {
+  const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
+  if (!node) return null
+  const md = node.metadata
+  const steps = (md.steps || []).map((s) => ({ id: s.id, label: s.title || s.id, title: s.title || s.id, status: s.status }))
+  const current = steps.find((s) => s.status === 'current')
+  return {
+    steps,
+    currentStep: current ? current.id : (steps.length ? steps[steps.length - 1].id : null),
+  }
+}
+
 /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
  *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
  *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
