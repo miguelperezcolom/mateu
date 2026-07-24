@@ -1,22 +1,70 @@
 <!-- Copyright (c) 2026, Oracle and/or its affiliates -->
 
+<!-- SHELL Redwood: cabecera (selectores @AppContext + acciones) + oj-drawer-layout con el
+     navigator en el slot start (chrome persistente) y el contenido (oj-vb-content → main-start-page)
+     en el área principal. Así el contenido a ancho completo (Foldout edge-to-edge) llena el área
+     a la DERECHA del menú en vez de irse debajo. Todo bindea $application.functions/variables. -->
 <div id="pageContent" class="oj-web-applayout-page">
-    <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
-
-      <div class="oj-flex">
-        <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12"
-          on-sp-close="[[$listeners.messagesBannerSpClose]]"
-          ></oj-sp-messages-banner>
-      </div>
-      
-      <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
-
-      <div class="oj-flex">
-        <!-- Renders flow content -->
-        <oj-vb-content id="vbRouterContent" class="oj-flex-item" config="[[vbRouterFlow]]">
-    
-        </oj-vb-content>
-    
-      </div>
-    </div>
+  <!-- Cabecera (Fase 6) -->
+  <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x-horizontal oj-sm-padding-2x-top">
+    <span class="oj-flex-item"></span>
+    <oj-bind-for-each data="[[ $application.functions.getContextSelectors() ]]">
+      <template data-oj-as="sel">
+        <div class="oj-flex-item-initial oj-sm-margin-2x-start" style="width: 12rem">
+          <oj-c-select-single
+            label-hint="[[ sel.data.label ]]"
+            data="[[ sel.data.dp ]]"
+            item-text="label"
+            value="[[ sel.data.value ]]"
+            on-value-changed="[[ sel.data.onChange ]]"
+          ></oj-c-select-single>
+        </div>
+      </template>
+    </oj-bind-for-each>
+    <oj-bind-for-each data="[[ $application.functions.getHeaderActions() ]]">
+      <template data-oj-as="act">
+        <oj-c-button
+          class="oj-sm-margin-1x-start"
+          label="[[ act.data.label ]]"
+          :data-action-id="[[ act.data.actionId ]]"
+          on-oj-action="[[ $listeners.headerAction ]]"
+        ></oj-c-button>
+      </template>
+    </oj-bind-for-each>
   </div>
+  <div class="oj-flex oj-sm-padding-2x-horizontal oj-text-color-secondary" style="min-height: 1.25rem">
+    <oj-bind-text value="[[ $application.variables.headerMsg ]]"></oj-bind-text>
+  </div>
+
+  <div class="oj-web-applayout-content-nopad oj-web-spacing oj-flex">
+    <oj-drawer-layout start-opened="true">
+      <!-- Navigator (Fase 2/6) — chrome persistente del shell -->
+      <div slot="start" style="min-width: 15rem; max-width: 15rem">
+        <oj-navigation-list
+          data="[[ $application.functions.getNavData() ]]"
+          drill-mode="collapsible"
+          on-selection-changed="[[ $listeners.navSelect ]]"
+          class="oj-navigationlist-nofollow-link"
+        >
+          <template slot="itemTemplate" data-oj-as="item">
+            <li :id="[[ item.data.route ]]">
+              <a style="cursor: pointer">
+                <oj-bind-text value="[[ item.data.label ]]"></oj-bind-text>
+              </a>
+            </li>
+          </template>
+        </oj-navigation-list>
+      </div>
+
+      <!-- Contenido -->
+      <div class="oj-flex-item" style="min-width: 0">
+        <oj-sp-messages-banner
+          data="[[ $variables.messagesBannerADP ]]"
+          on-sp-close="[[$listeners.messagesBannerSpClose]]"
+        ></oj-sp-messages-banner>
+        <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
+        <oj-vb-content id="vbRouterContent" config="[[vbRouterFlow]]"></oj-vb-content>
+      </div>
+    </oj-drawer-layout>
+  </div>
+</div>

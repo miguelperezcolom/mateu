@@ -1,112 +1,17 @@
 {
   "title": "",
   "description": "",
-  "variables": {
-    "greeting": {
-      "type": "string",
-      "defaultValue": "Cargando…"
-    },
-    "isForm": {
-      "type": "boolean",
-      "defaultValue": false
-    },
-    "isTable": {
-      "type": "boolean",
-      "defaultValue": false
-    },
-    "isCrud": {
-      "type": "boolean",
-      "defaultValue": false
-    },
-    "saveMsg": {
-      "type": "string",
-      "defaultValue": ""
-    },
-    "headerMsg": {
-      "type": "string",
-      "defaultValue": ""
-    },
-    "isFoldout": {
-      "type": "boolean",
-      "defaultValue": false
-    }
-  },
+  "variables": {},
   "metadata": {},
   "types": {},
   "chains": {},
   "eventListeners": {
-    "vbEnter": {
-      "chains": [
-        {
-          "chainId": "loadFromMateu"
-        }
-      ]
-    },
-    "navSelect": {
-      "chains": [
-        {
-          "chainId": "navigateToRoute",
-          "parameters": {
-            "selection": "{{ $event.detail.value }}"
-          }
-        }
-      ]
-    },
-    "saveForm": {
-      "chains": [
-        {
-          "chainId": "saveForm"
-        }
-      ]
-    },
-    "tableSelect": {
-      "chains": [
-        {
-          "chainId": "tableSelect",
-          "parameters": {
-            "event": "{{ $event }}"
-          }
-        }
-      ]
-    },
-    "crudNew": {
-      "chains": [
-        {
-          "chainId": "crudNew"
-        }
-      ]
-    },
-    "crudEdit": {
-      "chains": [
-        {
-          "chainId": "crudEdit"
-        }
-      ]
-    },
-    "crudDelete": {
-      "chains": [
-        {
-          "chainId": "crudDelete"
-        }
-      ]
-    },
-    "crudCancel": {
-      "chains": [
-        {
-          "chainId": "crudCancel"
-        }
-      ]
-    },
-    "headerAction": {
-      "chains": [
-        {
-          "chainId": "headerAction",
-          "parameters": {
-            "event": "{{ $event }}"
-          }
-        }
-      ]
-    }
+    "saveForm": { "chains": [ { "chainId": "saveForm" } ] },
+    "tableSelect": { "chains": [ { "chainId": "tableSelect", "parameters": { "event": "{{ $event }}" } } ] },
+    "crudNew": { "chains": [ { "chainId": "crudNew" } ] },
+    "crudEdit": { "chains": [ { "chainId": "crudEdit" } ] },
+    "crudDelete": { "chains": [ { "chainId": "crudDelete" } ] },
+    "crudCancel": { "chains": [ { "chainId": "crudCancel" } ] }
   },
   "imports": {}
 }

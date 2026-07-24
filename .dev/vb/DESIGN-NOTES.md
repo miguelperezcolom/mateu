@@ -269,6 +269,26 @@ Redwood real (paneles plegables side-by-side, barra RDS, header "Parent page", c
   como contenido hijo, no como propiedad del panel. Evidencia: `shots/fase7-foldout.png`.
 - Para contenido más rico que Text (Markdown/Chart) haría falta ampliar el dispatcher (pendiente).
 
+### Refactor nav→shell Spectra (2026-07-24) — arquitectura correcta
+
+Antes: navigator + cabecera + contenido vivían TODOS en la página de contenido (main-start-page), en una fila
+flex → una página edge-to-edge (Foldout) se iba DEBAJO del menú. Ahora, arquitectura Redwood correcta:
+- **El bridge entero vive en `app-flow.js`** (módulo de APLICACIÓN) → shell y contenido comparten
+  `$application.functions` (todos los métodos) y `$application.variables` (greeting/isForm/isTable/isCrud/
+  isFoldout/saveMsg/headerMsg). Depende de `oj-sp/spectra-shell/config/config` (chrome) + requiere ahí TODOS
+  los custom elements (nav/table/oj-c/foldout/**ojdrawerlayout**).
+- **`shell-page.html`** = cabecera (selectores/acciones) + **`oj-drawer-layout`** con el `oj-navigation-list`
+  en el slot `start` (chrome persistente) y `oj-vb-content` (→ main-start-page) en el área principal. El
+  content-item lleva `min-width:0` (permite que el hijo full-width no desborde). `vbEnter`→`bootShell` (loadApp
+  + loadRoute primera); `navSelect`→`shellNavigate`; `headerAction`→`shellHeaderAction`. Chains en
+  `pages/shell-page-chains/` llaman `[[ $application.functions ]]` y asignan `$application.variables`.
+- **`main-start-page`** = SOLO contenido (foldout/tabla/form/texto + toolbar crud), bindeando `$application`.
+  Su `.js` queda vacío. Chains de contenido (saveForm/tableSelect/crud*) migradas a `$application`.
+- **Coordinación sin listeners**: la navegación (shell) actualiza `$application.variables` → el contenido
+  re-renderiza por reactividad de las app-variables. Un solo `AppModule` (scope aplicación) mantiene el estado.
+- Resultado: navigator a la izquierda (drawer con divisor), contenido a la DERECHA; el Foldout edge-to-edge
+  llena el área de contenido. Evidencia: `shots/shell-nav-refactor.png` + `shots/fase7-foldout.png`.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**

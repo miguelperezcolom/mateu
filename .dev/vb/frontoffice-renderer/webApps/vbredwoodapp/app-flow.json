@@ -248,7 +248,36 @@
     }
   },
   "types": {},
-  "variables": {},
+  "variables": {
+    "greeting": {
+      "type": "string",
+      "defaultValue": "Cargando…"
+    },
+    "saveMsg": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "headerMsg": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "isForm": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "isTable": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "isCrud": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "isFoldout": {
+      "type": "boolean",
+      "defaultValue": false
+    }
+  },
   "userConfig": {
     "type": "vb/DefaultSecurityProvider",
     "configuration": {},

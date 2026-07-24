@@ -16,13 +16,13 @@
     "assign": {
       "module": "vb/action/builtin/assignVariablesAction",
       "parameters": {
-        "$page.variables.saveMsg": {
+        "$application.variables.saveMsg": {
           "source": "{{ $chain.results.save.message }}"
         },
-        "$page.variables.isForm": {
+        "$application.variables.isForm": {
           "source": "{{ $chain.results.save.isForm }}"
         },
-        "$page.variables.isTable": {
+        "$application.variables.isTable": {
           "source": "{{ $chain.results.save.isTable }}"
         }
       }

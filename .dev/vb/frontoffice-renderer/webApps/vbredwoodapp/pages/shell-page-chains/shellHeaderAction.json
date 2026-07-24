@@ -1,0 +1,13 @@
+{
+  "description": "Dispara una accion de cabecera y muestra su mensaje.",
+  "root": "go",
+  "variables": { "event": { "required": true, "type": "any", "input": "fromCaller" } },
+  "actions": {
+    "go": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $application.functions ]]", "functionName": "headerAction", "params": ["{{ $variables.event }}"] },
+      "outcomes": { "success": "assign" }
+    },
+    "assign": { "module": "vb/action/builtin/assignVariablesAction", "parameters": { "$application.variables.headerMsg": { "source": "{{ $chain.results.go.message }}" } } }
+  }
+}

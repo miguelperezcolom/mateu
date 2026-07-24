@@ -11,9 +11,9 @@
     "assign": {
       "module": "vb/action/builtin/assignVariablesAction",
       "parameters": {
-        "$page.variables.isForm": { "source": "{{ $chain.results.go.isForm }}" },
-        "$page.variables.isTable": { "source": "{{ $chain.results.go.isTable }}" },
-        "$page.variables.saveMsg": { "source": "{{ '' }}" }
+        "$application.variables.isForm": { "source": "{{ $chain.results.go.isForm }}" },
+        "$application.variables.isTable": { "source": "{{ $chain.results.go.isTable }}" },
+        "$application.variables.saveMsg": { "source": "{{ '' }}" }
       }
     }
   }

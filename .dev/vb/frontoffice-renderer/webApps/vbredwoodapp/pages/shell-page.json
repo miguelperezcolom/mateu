@@ -28,6 +28,33 @@
       }
     },
     "eventListeners": {
+    "vbEnter": {
+      "chains": [
+        {
+          "chainId": "bootShell"
+        }
+      ]
+    },
+    "navSelect": {
+      "chains": [
+        {
+          "chainId": "shellNavigate",
+          "parameters": {
+            "selection": "{{ $event.detail.value }}"
+          }
+        }
+      ]
+    },
+    "headerAction": {
+      "chains": [
+        {
+          "chainId": "shellHeaderAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "application:spShowToast": {
       "chains": [
         {

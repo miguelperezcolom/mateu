@@ -1,165 +1,85 @@
 <!-- Copyright (c) 2026, Oracle and/or its affiliates -->
 
-<!-- Fases 2–6: cabecera (selectores de @AppContext + acciones) + navigator Redwood con
-     submenús + área de contenido (tabla CRUD / formulario / texto).
-     Solo markup oj-* de los ejemplos, sin CSS propio. -->
-
-<!-- Cabecera (Fase 6): selectores de contexto + acciones de cabecera, a la derecha -->
-<div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x-horizontal oj-sm-padding-2x-top">
-  <span class="oj-flex-item"></span>
-  <oj-bind-for-each data="[[ $functions.getContextSelectors() ]]">
-    <template data-oj-as="sel">
-      <div class="oj-flex-item-initial oj-sm-margin-2x-start" style="width: 12rem">
-        <oj-c-select-single
-          label-hint="[[ sel.data.label ]]"
-          data="[[ sel.data.dp ]]"
-          item-text="label"
-          value="[[ sel.data.value ]]"
-          on-value-changed="[[ sel.data.onChange ]]"
-        ></oj-c-select-single>
+<!-- CONTENIDO (el navigator + cabecera viven en el shell-page). Bindea $application.functions /
+     $application.variables (el bridge está en app-flow.js). Solo markup oj-* de los ejemplos. -->
+<div class="oj-sm-padding-4x">
+  <!-- Foldout (Fase 7): overview + paneles plegables oj-sp -->
+  <oj-bind-if test="[[ $application.variables.isFoldout ]]">
+    <oj-sp-foldout-layout>
+      <div slot="overview" class="oj-sm-padding-4x">
+        <span class="oj-typography-body-lg">
+          <oj-bind-text value="[[ $application.functions.getFoldoutOverview() ]]"></oj-bind-text>
+        </span>
       </div>
-    </template>
-  </oj-bind-for-each>
-  <oj-bind-for-each data="[[ $functions.getHeaderActions() ]]">
-    <template data-oj-as="act">
-      <oj-c-button
-        class="oj-sm-margin-1x-start"
-        label="[[ act.data.label ]]"
-        :data-action-id="[[ act.data.actionId ]]"
-        on-oj-action="[[ $listeners.headerAction ]]"
-      ></oj-c-button>
-    </template>
-  </oj-bind-for-each>
-</div>
-<div class="oj-flex oj-sm-padding-2x-horizontal oj-text-color-secondary" style="min-height: 1.25rem">
-  <oj-bind-text value="[[ $variables.headerMsg ]]"></oj-bind-text>
-</div>
-
-<div class="oj-web-applayout-content-nopad oj-flex">
-  <div class="oj-flex-item" style="min-width: 15rem; max-width: 15rem">
-    <oj-navigation-list
-      data="[[ $functions.getNavData() ]]"
-      drill-mode="collapsible"
-      on-selection-changed="[[ $listeners.navSelect ]]"
-      class="oj-navigationlist-nofollow-link"
-    >
-      <template slot="itemTemplate" data-oj-as="item">
-        <li :id="[[ item.data.route ]]">
-          <a style="cursor: pointer">
-            <oj-bind-text value="[[ item.data.label ]]"></oj-bind-text>
-          </a>
-        </li>
-      </template>
-    </oj-navigation-list>
-  </div>
-
-  <div class="oj-flex-item oj-sm-padding-4x">
-    <!-- Foldout (Fase 7): overview + paneles plegables oj-sp -->
-    <oj-bind-if test="[[ $variables.isFoldout ]]">
-      <oj-sp-foldout-layout>
-        <div slot="overview" class="oj-sm-padding-4x">
-          <span class="oj-typography-body-lg">
-            <oj-bind-text value="[[ $functions.getFoldoutOverview() ]]"></oj-bind-text>
-          </span>
-        </div>
-        <oj-bind-for-each data="[[ $functions.getFoldoutPanels() ]]">
-          <template data-oj-as="pnl">
-            <oj-sp-foldout-panel>
-              <div class="oj-sm-padding-4x">
-                <h3 class="oj-typography-heading-xs">
-                  <oj-bind-text value="[[ pnl.data.title ]]"></oj-bind-text>
-                </h3>
-                <div class="oj-text-color-secondary oj-typography-body-sm oj-sm-margin-2x-bottom">
-                  <oj-bind-text value="[[ pnl.data.subtitle ]]"></oj-bind-text>
-                </div>
-                <oj-bind-text value="[[ pnl.data.text ]]"></oj-bind-text>
+      <oj-bind-for-each data="[[ $application.functions.getFoldoutPanels() ]]">
+        <template data-oj-as="pnl">
+          <oj-sp-foldout-panel>
+            <div class="oj-sm-padding-4x">
+              <h3 class="oj-typography-heading-xs"><oj-bind-text value="[[ pnl.data.title ]]"></oj-bind-text></h3>
+              <div class="oj-text-color-secondary oj-typography-body-sm oj-sm-margin-2x-bottom">
+                <oj-bind-text value="[[ pnl.data.subtitle ]]"></oj-bind-text>
               </div>
-            </oj-sp-foldout-panel>
-          </template>
-        </oj-bind-for-each>
-      </oj-sp-foldout-layout>
-    </oj-bind-if>
-
-    <!-- Listado (tabla) -->
-    <oj-bind-if test="[[ $variables.isTable ]]">
-      <!-- Toolbar CRUD (Fase 5): Nuevo/Editar/Borrar -->
-      <oj-bind-if test="[[ $variables.isCrud ]]">
-        <div class="oj-flex oj-sm-margin-2x-bottom">
-          <oj-c-button
-            class="oj-sm-margin-1x-end"
-            label="Nuevo"
-            chroming="callToAction"
-            on-oj-action="[[ $listeners.crudNew ]]"
-          ></oj-c-button>
-          <oj-c-button
-            class="oj-sm-margin-1x-end"
-            label="Editar"
-            on-oj-action="[[ $listeners.crudEdit ]]"
-          ></oj-c-button>
-          <oj-c-button
-            label="Borrar"
-            on-oj-action="[[ $listeners.crudDelete ]]"
-          ></oj-c-button>
-        </div>
-      </oj-bind-if>
-      <oj-table
-        data="[[ $functions.getTableData() ]]"
-        columns="[[ $functions.getTableColumns() ]]"
-        selection-mode.row="single"
-        on-selected-changed="[[ $listeners.tableSelect ]]"
-        aria-label="Listado"
-        class="oj-table"
-        style="width: 100%"
-      ></oj-table>
-    </oj-bind-if>
-
-    <!-- Formulario (Fase 3 + crud create/edit) -->
-    <oj-bind-if test="[[ $variables.isForm ]]">
-      <div class="oj-form-layout oj-sm-margin-4x-bottom" style="max-width: 32rem">
-        <oj-bind-for-each data="[[ $functions.getFormFields() ]]">
-          <template data-oj-as="field">
-            <div class="oj-sm-margin-2x-bottom">
-              <oj-bind-if test="[[ field.data.isNumber ]]">
-                <oj-c-input-number
-                  label-hint="[[ field.data.label ]]"
-                  value="[[ field.data.value ]]"
-                  :data-field="[[ field.data.fieldId ]]"
-                ></oj-c-input-number>
-              </oj-bind-if>
-              <oj-bind-if test="[[ !field.data.isNumber ]]">
-                <oj-c-input-text
-                  label-hint="[[ field.data.label ]]"
-                  value="[[ field.data.value ]]"
-                  :data-field="[[ field.data.fieldId ]]"
-                ></oj-c-input-text>
-              </oj-bind-if>
+              <oj-bind-text value="[[ pnl.data.text ]]"></oj-bind-text>
             </div>
-          </template>
-        </oj-bind-for-each>
-        <div class="oj-flex">
-          <oj-c-button
-            class="oj-sm-margin-1x-end"
-            label="Guardar"
-            chroming="callToAction"
-            on-oj-action="[[ $listeners.saveForm ]]"
-          ></oj-c-button>
-          <oj-bind-if test="[[ $variables.isCrud ]]">
-            <oj-c-button label="Cancelar" on-oj-action="[[ $listeners.crudCancel ]]"></oj-c-button>
-          </oj-bind-if>
-        </div>
-      </div>
-      <div class="oj-text-color-secondary">
-        <oj-bind-text value="[[ $variables.saveMsg ]]"></oj-bind-text>
-      </div>
-    </oj-bind-if>
+          </oj-sp-foldout-panel>
+        </template>
+      </oj-bind-for-each>
+    </oj-sp-foldout-layout>
+  </oj-bind-if>
 
-    <!-- Contenido de texto -->
-    <oj-bind-if test="[[ !$variables.isForm &amp;&amp; !$variables.isTable &amp;&amp; !$variables.isFoldout ]]">
-      <div class="oj-flex">
-        <h1 class="oj-flex-item oj-sm-12 oj-md-12">
-          <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>
-        </h1>
+  <!-- Listado (tabla) -->
+  <oj-bind-if test="[[ $application.variables.isTable ]]">
+    <oj-bind-if test="[[ $application.variables.isCrud ]]">
+      <div class="oj-flex oj-sm-margin-2x-bottom">
+        <oj-c-button class="oj-sm-margin-1x-end" label="Nuevo" chroming="callToAction" on-oj-action="[[ $listeners.crudNew ]]"></oj-c-button>
+        <oj-c-button class="oj-sm-margin-1x-end" label="Editar" on-oj-action="[[ $listeners.crudEdit ]]"></oj-c-button>
+        <oj-c-button label="Borrar" on-oj-action="[[ $listeners.crudDelete ]]"></oj-c-button>
       </div>
     </oj-bind-if>
-  </div>
+    <oj-table
+      data="[[ $application.functions.getTableData() ]]"
+      columns="[[ $application.functions.getTableColumns() ]]"
+      selection-mode.row="single"
+      on-selected-changed="[[ $listeners.tableSelect ]]"
+      aria-label="Listado"
+      class="oj-table"
+      style="width: 100%"
+    ></oj-table>
+  </oj-bind-if>
+
+  <!-- Formulario (Fase 3 + crud create/edit) -->
+  <oj-bind-if test="[[ $application.variables.isForm ]]">
+    <div class="oj-form-layout oj-sm-margin-4x-bottom" style="max-width: 32rem">
+      <oj-bind-for-each data="[[ $application.functions.getFormFields() ]]">
+        <template data-oj-as="field">
+          <div class="oj-sm-margin-2x-bottom">
+            <oj-bind-if test="[[ field.data.isNumber ]]">
+              <oj-c-input-number label-hint="[[ field.data.label ]]" value="[[ field.data.value ]]" :data-field="[[ field.data.fieldId ]]"></oj-c-input-number>
+            </oj-bind-if>
+            <oj-bind-if test="[[ !field.data.isNumber ]]">
+              <oj-c-input-text label-hint="[[ field.data.label ]]" value="[[ field.data.value ]]" :data-field="[[ field.data.fieldId ]]"></oj-c-input-text>
+            </oj-bind-if>
+          </div>
+        </template>
+      </oj-bind-for-each>
+      <div class="oj-flex">
+        <oj-c-button class="oj-sm-margin-1x-end" label="Guardar" chroming="callToAction" on-oj-action="[[ $listeners.saveForm ]]"></oj-c-button>
+        <oj-bind-if test="[[ $application.variables.isCrud ]]">
+          <oj-c-button label="Cancelar" on-oj-action="[[ $listeners.crudCancel ]]"></oj-c-button>
+        </oj-bind-if>
+      </div>
+    </div>
+    <div class="oj-text-color-secondary">
+      <oj-bind-text value="[[ $application.variables.saveMsg ]]"></oj-bind-text>
+    </div>
+  </oj-bind-if>
+
+  <!-- Contenido de texto -->
+  <oj-bind-if test="[[ !$application.variables.isForm &amp;&amp; !$application.variables.isTable &amp;&amp; !$application.variables.isFoldout ]]">
+    <div class="oj-flex">
+      <h1 class="oj-flex-item oj-sm-12 oj-md-12">
+        <oj-bind-text value="[[ $application.variables.greeting ]]"></oj-bind-text>
+      </h1>
+    </div>
+  </oj-bind-if>
 </div>
