@@ -190,6 +190,21 @@ estado editado. Gotchas:
 - Los campos: `FormField` con `fieldId`, `dataType` (string/integer/…), `stereotype`, `label`; los VALORES en
   `component.initialData`. Evidencia: `frontoffice-renderer/shots/fase3-form-save.png`.
 
+### Fase 4 — listado (2026-07-24) — gotchas
+
+Navegar a una ruta-listado pinta una `oj-table` Redwood alimentada por las filas de Mateu. Gotchas:
+- **AutoCrud NO carga por `__load__`**: responde `UnsupportedOperationException: __load__ not supported`
+  (su flujo mediador de ~3 cargas usa otras acciones). Para un listado directo se usó un **campo `List<Row>`
+  (stereotype grid)**, cargable por `__load__`. (Integrar el flujo AutoCrud completo = fase posterior.)
+- **`oj-table` hay que `require()`irla** (`ojs/ojtable`), como el resto.
+- **Estructura del grid**: `FormField` con `stereotype='grid'`, `dataType='array'`; las **columnas** son nodos
+  `GridColumn` (`id`, `label`; excluir `_select`, la de selección); las **filas** viven en
+  `component.initialData[fieldId]` (array de objetos con las claves = ids de columna).
+- **DataProvider**: `ArrayDataProvider(rows, {keyAttributes:'@index'})` (las filas no traen id) + columnas
+  `[{headerText, field}]`. Los `FormField`/`GridColumn` vienen **duplicados** (children + metadata) → dedup.
+- Falta (refinamiento): la **smart-search bar** y el **estado vacío** de una collection Redwood — el core
+  de Fase 4 (tabla con filas) está. Evidencia: `frontoffice-renderer/shots/fase4-table.png`.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
