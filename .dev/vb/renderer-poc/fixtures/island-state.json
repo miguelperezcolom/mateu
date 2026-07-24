@@ -1,0 +1,4 @@
+{
+  "fragments": [{ "targetComponentId": "cardex-island", "action": "ReplaceKeepData", "component": null, "state": { "paxName": "Grace" } }],
+  "commands": [], "messages": [], "banners": []
+}

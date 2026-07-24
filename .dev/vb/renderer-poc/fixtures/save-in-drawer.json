@@ -1,0 +1,10 @@
+{
+  "fragments": [],
+  "messages": [ { "text": "Saved", "variant": "success" } ],
+  "commands": [
+    { "type": "MarkAsClean", "data": null, "targetComponentId": "drawer-contact" },
+    { "type": "CloseModal",  "data": null, "targetComponentId": "drawer-contact" },
+    { "type": "RunAction",   "data": { "route": "/contacts", "actionId": "search", "params": {} }, "targetComponentId": "__root__" }
+  ],
+  "banners": []
+}

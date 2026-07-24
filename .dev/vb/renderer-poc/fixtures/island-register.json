@@ -1,0 +1,12 @@
+{
+  "fragments": [{
+    "targetComponentId": "cardex-island",
+    "action": "Replace",
+    "component": { "type": "ClientSide", "id": "cardex-island", "metadata": {
+      "type": "Form",
+      "fields": [ { "fieldId": "paxName", "dataType": "string", "label": "Guest", "readOnly": true } ]
+    }},
+    "state": { "cardex-island": { "paxName": "Ada" } }
+  }],
+  "commands": [], "messages": [], "banners": []
+}

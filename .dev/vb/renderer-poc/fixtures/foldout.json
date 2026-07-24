@@ -1,0 +1,17 @@
+{
+  "fragments": [{
+    "targetComponentId": "__root__", "action": "Replace",
+    "component": { "type": "ClientSide", "id": "fo-1",
+      "metadata": { "type": "FoldoutLayout", "pageType": "detail", "pageWidth": "edgeToEdge" },
+      "children": [
+        { "type": "ClientSide", "id": "fo-ov", "metadata": { "type": "Card", "title": "Overview" },
+          "children": [ { "type": "ClientSide", "metadata": { "type": "FormField", "fieldId": "bookingId", "dataType": "string", "label": "Booking" } } ] },
+        { "type": "ClientSide", "id": "fo-p1", "metadata": { "type": "FoldoutPanel", "title": "Guest", "open": true },
+          "children": [ { "type": "ClientSide", "metadata": { "type": "FormField", "fieldId": "guest", "dataType": "string", "label": "Guest" } } ] },
+        { "type": "ClientSide", "id": "fo-p2", "metadata": { "type": "FoldoutPanel", "title": "Payment", "open": false },
+          "children": [ { "type": "ClientSide", "metadata": { "type": "FormField", "fieldId": "total", "dataType": "money", "label": "Total" } } ] }
+      ] }
+  }],
+  "componentState": { "bookingId": "BK-9", "guest": "Ada", "total": 320 },
+  "commands": [], "messages": [], "banners": []
+}

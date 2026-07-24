@@ -1,0 +1,17 @@
+{
+  "fragments": [{
+    "targetComponentId": "__root__",
+    "action": "Replace",
+    "component": { "type": "ClientSide", "id": "form-1", "metadata": {
+      "type": "Form",
+      "fields": [
+        { "fieldId": "name", "dataType": "string",  "label": "Name", "required": true,  "readOnly": false },
+        { "fieldId": "age",  "dataType": "integer", "label": "Age",  "required": false, "readOnly": false }
+      ],
+      "buttons": [ { "actionId": "save", "label": "Save", "buttonStyle": "primary" } ]
+    }}
+  }],
+  "componentState": { "name": "Ada", "age": 36 },
+  "commands": [ { "type": "SetWindowTitle", "data": "Person", "targetComponentId": "__root__" } ],
+  "messages": [], "banners": []
+}
