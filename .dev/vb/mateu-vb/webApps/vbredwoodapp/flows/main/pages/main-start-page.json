@@ -101,6 +101,13 @@
           }
         }
       ]
+    },
+    "mateuWizardCancel": {
+      "chains": [
+        {
+          "chain": "wizardCancel"
+        }
+      ]
     }
   },
   "imports": {

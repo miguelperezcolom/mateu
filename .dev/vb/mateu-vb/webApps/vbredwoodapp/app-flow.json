@@ -391,6 +391,11 @@
       "type": "string",
       "defaultValue": "",
       "description": "current-step efectivo del guided-process ('' = overview)"
+    },
+    "mateuHomeRoute": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "primera hoja del menú — destino del Cancel del guided-process"
     }
   },
   "userConfig": {

@@ -377,8 +377,12 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   con triggeredFrom 'step' ejecuta los 'back' necesarios contra Mateu (fromIdx−toIdx veces);
   hacia DELANTE por el rail no navega (se restaura el paso mostrado imperativamente — el evento
   es cancelable pero el chain corre async y preventDefault llega tarde). El slot no lleva
-  botones (footer/rail del componente navegan). Verificado: overview→Start→1→2→3→Confirm→
-  "Pedido confirmado…", rail marcando cada paso, rail-back conservando el estado. Gotcha de sondas: el resultado va en un input readonly
+  botones (footer/rail del componente navegan). **Cancel** (`spCancel` — el componente lo
+  despacha a pelo, sin diálogo en este camino): abandonar el proceso → navegar a la home
+  (`mateuHomeRoute`, la primera hoja del menú, guardada en el bootstrap); al reentrar el wizard
+  arranca de cero (instancia fresca por request). Verificado: overview→Start→1→2→3→Confirm→
+  "Pedido confirmado…", rail marcando cada paso, rail-back conservando el estado, Cancel→home
+  y reentrada al overview. Gotcha de sondas: el resultado va en un input readonly
   — `innerText` no ve valores de inputs.
 - Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
 

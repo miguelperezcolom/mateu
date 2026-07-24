@@ -51,6 +51,7 @@ define([
       const firstLeaf = nav.menuTree.find((entry) => !entry.hasChildren);
       const firstGroup = nav.menuTree.find((entry) => entry.hasChildren);
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
+      $application.variables.mateuHomeRoute = first ? first.id : '';
       if (first) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
