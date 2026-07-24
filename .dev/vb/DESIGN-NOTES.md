@@ -150,6 +150,28 @@ index quedan sin sustituir en standalone pero el runtime arranca igual. node_mod
 variables `mateuRegistry`/`mateuAppState`, la chain `applyIncrement`, y que el host page pinte el contexto
 `__root__` desde la API de Mateu (`demo-redwood-vb` en :9001, CORS abierto). Probar con el flujo de arriba.
 
+### Fases 1–2 cableadas en frontoffice-renderer (2026-07-24) — gotchas
+
+Fase 1 (Text) y Fase 2 (navigator desde el menú) funcionan en local. Todo en la página de contenido
+`webApps/vbredwoodapp/flows/main/pages/main-start-page.*` (bridge en el `.js`; chains en `main-start-page-chains/`).
+Gotchas descubiertos (valen para todas las fases):
+- **eventListeners de página referencian chains por `"chainId"`**, no `"chain"` (esto último hace que VB intente
+  cargar la chain como script → "Script error").
+- **Contrato mediador**: cargar una ruta de MENÚ (`/home`) devuelve la App otra vez, NO el contenido. Para el
+  contenido hay que enviar en el body el `serverSideType` + `consumedRoute` del item de menú (`RunActionRqDto`).
+  Las rutas STANDALONE (fuera del menú) sí devuelven contenido directo. La app NO puede estar en `""` si sus
+  pantallas de contenido comparten ruta con el menú (colisión) — pero moverla de `""` cambia el baseUrl del
+  endpoint (`/mateu/v3/...` → 404); solución: app en `""` + cargar contenido por el contrato mediador.
+- **Componentes oj no auto-incluidos**: el paso `dependencyResolver` del build falla (501) en standalone, así que
+  un `oj-navigation-list` (u otro componente no declarado) NO se registra salvo que se **`require()` en el módulo
+  de página** (`define(['ojs/ojnavigationlist', …])`). Sin eso, el elemento queda sin upgradear (bindings en crudo).
+- **Etiqueta de menú** = nombre de clase/campo (`Home`/`Reports`/`Settings`), no el `@Title`. El item lleva
+  `label`, `route`, `serverSideType`, `consumedRoute`, `path`.
+- **Navigator** = `oj-navigation-list` con `data="[[ $functions.getNavData() ]]"` (un DataProvider sobre un
+  `ko.observableArray` que loadApp rellena) + `on-selection-changed="[[ $listeners.navSelect ]]"` → chain que
+  recarga solo el contenido (`selection` = `{{ $event.detail.value }}` = la ruta). Evidencia: `frontoffice-renderer/
+  shots/fase2-navigation.png` (estado activo Redwood en el item seleccionado).
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
