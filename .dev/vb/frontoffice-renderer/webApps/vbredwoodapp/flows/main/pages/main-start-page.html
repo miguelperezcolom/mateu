@@ -21,6 +21,17 @@
   </div>
 
   <div class="oj-flex-item oj-sm-padding-4x">
+    <!-- Listado (tabla) -->
+    <oj-bind-if test="[[ $variables.isTable ]]">
+      <oj-table
+        data="[[ $functions.getTableData() ]]"
+        columns="[[ $functions.getTableColumns() ]]"
+        aria-label="Listado"
+        class="oj-table"
+        style="width: 100%"
+      ></oj-table>
+    </oj-bind-if>
+
     <!-- Formulario -->
     <oj-bind-if test="[[ $variables.isForm ]]">
       <div class="oj-form-layout oj-sm-margin-4x-bottom" style="max-width: 32rem">

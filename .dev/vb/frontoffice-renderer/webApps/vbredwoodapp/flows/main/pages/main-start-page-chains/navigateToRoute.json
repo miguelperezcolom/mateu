@@ -31,6 +31,9 @@
         "$page.variables.isForm": {
           "source": "{{ $chain.results.loadRoute.isForm }}"
         },
+        "$page.variables.isTable": {
+          "source": "{{ $chain.results.loadRoute.isTable }}"
+        },
         "$page.variables.saveMsg": {
           "source": "{{ '' }}"
         }

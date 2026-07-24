@@ -11,12 +11,13 @@
  */
 define([
   'ojs/ojnavigationlist',
+  'ojs/ojtable',
   'oj-c/input-text',
   'oj-c/input-number',
   'oj-c/button',
   'ojs/ojarraydataprovider',
   'knockout',
-], function (_nav, _it, _in, _btn, ArrayDataProvider, ko) {
+], function (_nav, _table, _it, _in, _btn, ArrayDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -53,6 +54,46 @@ define([
       if (t) return t;
     }
     return null;
+  }
+
+  // Busca el FormField-grid (un listado: stereotype 'grid'); devuelve su nodo o null.
+  function findGridField(node) {
+    if (!node || typeof node !== 'object') return null;
+    const m = metaOf(node);
+    if (m.type === 'FormField' && m.stereotype === 'grid') return node;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) {
+          const r = findGridField(v[j]);
+          if (r) return r;
+        }
+      } else if (v && typeof v === 'object') {
+        const r = findGridField(v);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  // Columnas del grid (GridColumn) deduplicadas por id, excluyendo la de selección.
+  function collectColumns(node, out, seen) {
+    out = out || [];
+    seen = seen || {};
+    if (node && typeof node === 'object') {
+      const m = metaOf(node);
+      if (m.type === 'GridColumn' && m.id && m.id !== '_select' && !seen[m.id]) {
+        seen[m.id] = true;
+        out.push({ id: m.id, label: m.label || m.caption || m.id });
+      }
+      Object.keys(node).forEach((k) => {
+        const v = node[k];
+        if (Array.isArray(v)) v.forEach((x) => collectColumns(x, out, seen));
+        else if (v && typeof v === 'object') collectColumns(v, out, seen);
+      });
+    }
+    return out;
   }
 
   // Deep-search: los FormField anidan en metadata, no solo en children. Se deduplica por fieldId
@@ -104,6 +145,10 @@ define([
       this.formFields = ko.observableArray([]);
       this.formData = {};
       this.current = { route: '', serverSideType: null, consumedRoute: null };
+      // Estado de la tabla (Fase 4): filas observables + columnas.
+      this.tableRows = ko.observableArray([]);
+      this.tableDP = new ArrayDataProvider(this.tableRows, { keyAttributes: '@index' });
+      this.tableColumns = [];
     }
 
     getNavData() {
@@ -111,6 +156,12 @@ define([
     }
     getFormFields() {
       return this.formFields;
+    }
+    getTableData() {
+      return this.tableDP;
+    }
+    getTableColumns() {
+      return this.tableColumns;
     }
 
     async loadApp() {
@@ -140,8 +191,18 @@ define([
         serverSideType: host.serverSideType || item.serverSideType,
         consumedRoute: host.consumedRoute != null ? host.consumedRoute : item.consumedRoute,
       };
-      const fields = collectFields(host.tree);
       const state = host.state || {};
+      // 1) ¿Listado? (un FormField-grid) → tabla oj-table.
+      const gridNode = findGridField(host.tree);
+      if (gridNode) {
+        const gmeta = metaOf(gridNode);
+        this.tableColumns = collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id }));
+        this.tableRows((state[gmeta.fieldId] || []).slice());
+        this.formFields([]);
+        return { isTable: true, isForm: false, greeting: '' };
+      }
+      // 2) ¿Formulario? (FormFields) → inputs oj-c-*.
+      const fields = collectFields(host.tree);
       const self = this;
       this.formData = {};
       fields.forEach((f) => {
@@ -162,7 +223,11 @@ define([
           };
         }),
       );
-      return { isForm: fields.length > 0, greeting: firstText(host.tree) || '(sin contenido)' };
+      return {
+        isTable: false,
+        isForm: fields.length > 0,
+        greeting: firstText(host.tree) || '(sin contenido)',
+      };
     }
 
     // Fase 3: reenvía el estado editado con actionId 'save' y devuelve el mensaje.
