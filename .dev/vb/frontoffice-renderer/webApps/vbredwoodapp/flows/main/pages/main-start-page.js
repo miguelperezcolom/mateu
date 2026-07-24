@@ -176,10 +176,12 @@ define([
       this.formFields = ko.observableArray([]);
       this.formData = {};
       this.current = { route: '', serverSideType: null, consumedRoute: null };
-      // Estado de la tabla (Fase 4): filas observables + columnas.
+      // Estado de la tabla (Fase 4): filas Y columnas observables (si las columnas fueran un array
+      // plano, oj-table las leería una sola vez y al cambiar de listado mantendría las viejas —las
+      // filas nuevas solo casarían en las columnas comunes—).
       this.tableRows = ko.observableArray([]);
       this.tableDP = new ArrayDataProvider(this.tableRows, { keyAttributes: '@index' });
-      this.tableColumns = [];
+      this.tableColumns = ko.observableArray([]);
     }
 
     getNavData() {
@@ -192,7 +194,8 @@ define([
       return this.tableDP;
     }
     getTableColumns() {
-      return this.tableColumns;
+      // Lee el observable DENTRO del binding → oj-table se re-renderiza al cambiar de listado.
+      return this.tableColumns();
     }
 
     async loadApp() {
@@ -240,7 +243,7 @@ define([
 
       // A) ¿Listado CRUD? (expone la acción 'search') → columnas GridColumn + search para las filas.
       if (hasActionId(inc, 'search')) {
-        this.tableColumns = collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id }));
+        this.tableColumns(collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows(await this._search());
         this.formFields([]);
         return { isTable: true, isForm: false, greeting: '' };
@@ -249,7 +252,7 @@ define([
       const gridNode = findGridField(host.tree);
       if (gridNode) {
         const gmeta = metaOf(gridNode);
-        this.tableColumns = collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id }));
+        this.tableColumns(collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows((state[gmeta.fieldId] || []).slice());
         this.formFields([]);
         return { isTable: true, isForm: false, greeting: '' };
