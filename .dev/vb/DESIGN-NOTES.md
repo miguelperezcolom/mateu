@@ -172,6 +172,24 @@ Gotchas descubiertos (valen para todas las fases):
   recarga solo el contenido (`selection` = `{{ $event.detail.value }}` = la ruta). Evidencia: `frontoffice-renderer/
   shots/fase2-navigation.png` (estado activo Redwood en el item seleccionado).
 
+### Fase 3 — formulario editable (2026-07-24) — gotchas
+
+Navegar a una ruta-formulario pinta los `FormField` como inputs `oj-c-*` auténticos y Guardar reenvía el
+estado editado. Gotchas:
+- **`oj-c-*` hay que `require()`irlos** en el módulo de página (`define(['oj-c/input-text','oj-c/input-number',
+  'oj-c/button', …])`), igual que `oj-navigation-list` — el build standalone no los incluye.
+- **FormFields duplicados**: el árbol referencia los nodos en `children` Y en `metadata`, así que un walk
+  ingenuo los cuenta 2 veces → **deduplicar por `fieldId`**.
+- **Two-way NO fiable en `oj-bind-for-each`**: bindear `value="{{ field.data.value }}"` (o `on-value-changed`)
+  a un observable/handler ANIDADO por item NO escribe de vuelta (el for-each clona el item). El `.value` del
+  componente `oj-c` en el DOM SÍ es correcto → al guardar, **leer los valores del DOM** (`[data-field]`).
+- **Las ACCIONES van al COMPONENTE de contenido, no al app**: la CARGA de una ruta de menú usa el contexto del
+  item (sst=app) para resolver el mediador, pero `save` (y cualquier acción) debe enviar el `serverSideType` +
+  `route` + `consumedRoute` del CONTENIDO cargado (p.ej. `Profile`) — capturarlos del host context tras reducir.
+  Si se envía con el sst del app, el servidor no aplica el `componentState` y responde con los valores default.
+- Los campos: `FormField` con `fieldId`, `dataType` (string/integer/…), `stereotype`, `label`; los VALORES en
+  `component.initialData`. Evidencia: `frontoffice-renderer/shots/fase3-form-save.png`.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
