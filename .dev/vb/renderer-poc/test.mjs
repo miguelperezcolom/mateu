@@ -12,6 +12,7 @@ import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
+  welcomeOf, generalOverviewOf, itemOverviewOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -310,6 +311,26 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
   const foldout = reduceContexts(empty(), fx('load-foldout')).contexts[HOST_ID]
   assert.equal(foldout.pageWidth, 'edgeToEdge')
   assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })
+})
+
+// 22) Arquetipos compuestos: welcome, general overview e item overview se proyectan del núcleo.
+test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos', () => {
+  const welcome = welcomeOf(reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID])
+  assert.equal(welcome.title, 'VB Demo front desk')
+  assert.equal(welcome.primaryCta.label, 'Start checkout')
+  assert.equal(welcome.secondaryCtaId, 'goProducts')
+  assert.deepEqual(welcome.tiles.map((t) => t.title), ['1 · Browse the catalog', '2 · Guided checkout', '3 · Track the booking'])
+  const overview = generalOverviewOf(reduceContexts(empty(), fx('load-requisitions')).contexts[HOST_ID])
+  assert.equal(overview.title, 'Requisition 204')
+  assert.match(overview.subtitle, /Processing/)
+  assert.equal(overview.switcherField, 'record')
+  assert.equal(overview.switcherValue, 'r1')
+  assert.equal(overview.facts.find((f) => f.label === 'Amount').value.includes('12.480'), true)
+  assert.deepEqual(overview.cards.map((c) => c.title), ['Details', 'Approval'])
+  const item = itemOverviewOf(reduceContexts(empty(), fx('load-chair')).contexts[HOST_ID])
+  assert.equal(item.key.texts.length, 5)
+  assert.deepEqual(item.tabs.map((t) => t.label), ['Specifications', 'Reviews'])
+  assert.match(item.tabs[1].texts[0], /4.6/)
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

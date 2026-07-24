@@ -30,6 +30,8 @@ public class VbHome implements AppActionsSupplier {
   @AppContext(label = "Hotel")
   Hotel hotel;
 
+  @Menu WelcomePage welcome;
+
   @Menu HelloPage hello;
 
   @Menu ProductsCrud products;
@@ -37,6 +39,10 @@ public class VbHome implements AppActionsSupplier {
   @Menu BookingFoldout booking;
 
   @Menu io.mateu.mdd.demovb.infra.in.ui.checkout.CheckoutWizard checkout;
+
+  @Menu RequisitionsOverview requisitions;
+
+  @Menu ChairOverview chair;
 
   @Menu GestionMenu gestion;
 

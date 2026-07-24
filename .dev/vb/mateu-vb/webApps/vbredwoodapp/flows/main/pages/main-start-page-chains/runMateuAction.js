@@ -109,6 +109,22 @@ define([
       if (!overlayNow) {
         $page.variables.mateuDraft = {};
       }
+      // arquetipos compuestos (welcome / general overview / item overview)
+      const welcome = bridge.welcomeOf(hostAfter);
+      const overviewProjection = bridge.generalOverviewOf(hostAfter);
+      const itemProjection = bridge.itemOverviewOf(hostAfter);
+      $application.variables.mateuWelcome = welcome;
+      $application.variables.mateuOverview = overviewProjection;
+      $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
+      $application.variables.mateuItemOv = itemProjection;
+      $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
+        ? itemProjection.tabs[0].texts : [];
+      if (welcome || overviewProjection || itemProjection) {
+        // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
+        $application.variables.mateuFormMetadata = null;
+        $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormActions = [];
+      }
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local

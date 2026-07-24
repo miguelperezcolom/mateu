@@ -200,6 +200,92 @@ define([], () => {
     }
   }
 
+  /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
+  function findAllByType(tree, type) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (!isRoot && n.type === 'ServerSide') return
+      if (n.metadata && n.metadata.type === type) out.push(n)
+      for (const v of Object.values(n)) {
+        if (Array.isArray(v)) v.forEach((x) => walk(x, false))
+        else if (v && typeof v === 'object') walk(v, false)
+      }
+    }
+    walk(tree, true)
+    return out
+  }
+
+  /** Card → {title, texts} (el título del Card es un componente Text anidado). */
+  function cardOf(node) {
+    const md = (node && node.metadata) || {}
+    return { title: collectTexts(md.title)[0] || '', texts: collectTexts(md.content) }
+  }
+
+  /** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
+  function welcomeOf(ctx) {
+    const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
+    if (!hero) return null
+    const md = hero.metadata
+    const ctas = actionsOf(hero)
+    const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => ({
+      title: panel.metadata.title || '',
+      texts: collectTexts(panel),
+    }))
+    return {
+      title: md.title || '',
+      subtitle: md.subtitle || '',
+      ctas,
+      primaryCta: ctas.length ? { label: ctas[0].label } : { label: '' },
+      primaryCtaId: ctas.length ? ctas[0].actionId : '',
+      secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
+      secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
+      tiles,
+    }
+  }
+
+  /** Arquetipo GENERAL OVERVIEW: switcher de registro + EntityHeader + cards. */
+  function generalOverviewOf(ctx) {
+    const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
+    if (!header) return null
+    const md = header.metadata
+    const switcher = collectFields(ctx.tree).find((f) => f.options && f.options.length)
+    const state = ctx.state || {}
+    const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
+    const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
+    if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
+    const cards = findAllByType(ctx.tree, 'Card')
+      .map(cardOf)
+      .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
+    return {
+      title: md.title || '',
+      subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
+      facts,
+      switcherField: switcher ? switcher.fieldId : '',
+      switcherOptions: switcher
+        ? switcher.options.map((o) => ({ value: o.value, label: o.label }))
+        : [],
+      switcherValue: switcher ? state[switcher.fieldId] : null,
+      cards,
+    }
+  }
+
+  /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
+  function itemOverviewOf(ctx) {
+    const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
+    if (!tabLayout) return null
+    const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+    const tabs = findAllByType(ctx.tree, 'Tab').map((tab, i) => ({
+      id: 'itab-' + i,
+      label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
+      texts: collectTexts(tab),
+    }))
+    return {
+      key: keyCard ? cardOf(keyCard) : { title: '', texts: [] },
+      tabs,
+    }
+  }
+
   /** Puerta 1.3: banners de página (Page.metadata.banners) → items del
    *  oj-sp-messages-banner del starter (MessagesBannerType). */
   function bannersOf(ctx) {
@@ -665,6 +751,11 @@ define([], () => {
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    findAllByType,
+    cardOf,
+    welcomeOf,
+    generalOverviewOf,
+    itemOverviewOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

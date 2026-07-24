@@ -28,6 +28,22 @@
       "type": "any",
       "defaultValue": {},
       "description": "edición en curso del form de la isla"
+    },
+    "overviewADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $application.variables.mateuOverviewOptions }}",
+        "keyAttributes": "value"
+      }
+    },
+    "overviewSelectConfig": {
+      "type": "any",
+      "defaultValue": {
+        "data": "{{ $page.variables.overviewADP }}",
+        "itemText": "label",
+        "labelHint": "Record"
+      },
+      "description": "selectObject del header-general-overview (el DataProvider va DENTRO del objeto)"
     }
   },
   "metadata": {},
@@ -134,6 +150,46 @@
           }
         }
       ]
+    },
+    "welcomePrimary": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuWelcome.primaryCtaId }}"
+          }
+        }
+      ]
+    },
+    "welcomeSecondary": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuWelcome.secondaryCtaId }}"
+          }
+        }
+      ]
+    },
+    "overviewSwitched": {
+      "chains": [
+        {
+          "chain": "onOverviewSwitch",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "itemTabChanged": {
+      "chains": [
+        {
+          "chain": "onItemTabSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -176,6 +232,15 @@
       },
       "oj-sp-guided-process": {
         "path": "oj-sp/guided-process/loader"
+      },
+      "oj-sp-header-welcome-banner": {
+        "path": "oj-sp/header-welcome-banner/loader"
+      },
+      "oj-sp-header-general-overview": {
+        "path": "oj-sp/header-general-overview/loader"
+      },
+      "oj-tab-bar": {
+        "path": "ojs/ojtabbar"
       }
     }
   }

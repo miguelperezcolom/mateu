@@ -433,6 +433,30 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   demo), edgeToEdge = 0 (Booking mide padding 0). Medición RDS 24C.
 - Tests 21/21. Evidencia: `shots/gates-banner.png` (banner INFO Redwood en Hello).
 
+## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
+
+- Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +
+  Buttons + DashboardLayout/DashboardPanel; general overview = FormField switcher (options) +
+  EntityHeader {title,subtitle,badges,facts,metric} + Cards; item overview = Card (key info) +
+  TabLayout/Tab. Proyecciones `welcomeOf`/`generalOverviewOf`/`itemOverviewOf` (+ `cardOf`,
+  `findAllByType`); cuando hay arquetipo, el form genérico se suprime. Tests 22/22; fixtures
+  load-welcome/requisitions/chair.
+- **Welcome** → `oj-sp-header-welcome-banner` (pageTitle/descriptionText + primaryAction/
+  secondaryAction integrados → spPrimary/SecondaryAction → acciones del wire; CTA navega);
+  tiles como `div.oj-panel` (clase de sistema JET) + tipografías.
+- **General Overview** → `oj-sp-header-general-overview`: contextualInfo = facts [{label,value}]
+  (+ métrica como fact); **el switcher de registro ES el TÍTULO** (`oj-sp-data-switcher` con
+  caret — aparece cuando `selectObject.data` es un DataProvider NO vacío; el objeto se compone
+  en una variable con referencia a otra variable — `{"data": "{{ $page.variables.overviewADP }}"}`
+  SÍ resuelve); on-select-object-value-changed → acción `switchRecord` del arquetipo (empírico:
+  también vale recargar con el state). GOTCHA de sondas: los facts van en un conveyor-belt y
+  `innerText` no los reporta (usar textContent).
+- **Item Overview** → panel `oj-panel` con los datos clave + `oj-tab-bar` clásico (ul/li +
+  refresh() tras el stamping, mismo gotcha que navigation-list); selección de tab client-side
+  (los tabs viajan enteros en el árbol).
+- Evidencia: `shots/arch-welcome.png`, `arch-overview.png`, `arch-overview-switched.png`,
+  `arch-item.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

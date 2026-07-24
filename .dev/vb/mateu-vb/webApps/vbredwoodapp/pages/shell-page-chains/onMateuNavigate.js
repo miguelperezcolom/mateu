@@ -118,6 +118,27 @@ define([
       }
 
 
+      // arquetipos compuestos (welcome / general overview / item overview)
+      const welcome = bridge.welcomeOf(host);
+      const overviewProjection = bridge.generalOverviewOf(host);
+      const itemProjection = bridge.itemOverviewOf(host);
+      $application.variables.mateuWelcome = welcome;
+      $application.variables.mateuOverview = overviewProjection;
+      $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
+      $application.variables.mateuItemOv = itemProjection;
+      $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
+        ? itemProjection.tabs[0].texts : [];
+      if (itemProjection) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
+        } catch (ignored) { /* aún sin montar */ }
+      }
+      if (welcome || overviewProjection || itemProjection) {
+        // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
+        $application.variables.mateuFormMetadata = null;
+        $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormActions = [];
+      }
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
       const banners = bridge.bannersOf(host);

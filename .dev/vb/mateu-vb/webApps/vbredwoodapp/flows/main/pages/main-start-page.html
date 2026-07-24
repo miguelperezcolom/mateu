@@ -51,6 +51,94 @@
       </oj-sp-foldout-layout>
 </oj-bind-if>
 
+
+<!-- Arquetipo WELCOME: banner de bienvenida Redwood (CTAs integrados) + tiles -->
+<oj-bind-if test="[[ !!$application.variables.mateuWelcome ]]">
+  <oj-sp-header-welcome-banner id="mateuWelcomeBanner"
+    page-title="[[ $application.variables.mateuWelcome.title ]]"
+    description-text="[[ $application.variables.mateuWelcome.subtitle ]]"
+    primary-action="[[ $application.variables.mateuWelcome.primaryCta ]]"
+    secondary-action="[[ $application.variables.mateuWelcome.secondaryCta ]]"
+    on-sp-primary-action="[[ $listeners.welcomePrimary ]]"
+    on-sp-secondary-action="[[ $listeners.welcomeSecondary ]]"></oj-sp-header-welcome-banner>
+  <div class="oj-flex oj-sm-margin-6x-top">
+    <oj-bind-for-each data="[[ $application.variables.mateuWelcome.tiles ]]">
+      <template>
+        <div class="oj-flex-item oj-sm-12 oj-md-4">
+          <div class="oj-panel oj-sm-margin-2x">
+            <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+            <oj-bind-for-each data="[[ $current.data.texts ]]">
+              <template>
+                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+              </template>
+            </oj-bind-for-each>
+          </div>
+        </div>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-bind-if>
+
+<!-- Arquetipo GENERAL OVERVIEW: header Redwood con switcher de registro + facts + cards -->
+<oj-bind-if test="[[ !!$application.variables.mateuOverview ]]">
+  <oj-sp-header-general-overview id="mateuOverviewHeader"
+    page-title="[[ $application.variables.mateuOverview.title ]]"
+    page-subtitle="[[ $application.variables.mateuOverview.subtitle ]]"
+    contextual-info="[[ $application.variables.mateuOverview.facts ]]"
+    select-object="[[ $variables.overviewSelectConfig ]]"
+    select-object-value="[[ $application.variables.mateuOverview.switcherValue ]]"
+    on-select-object-value-changed="[[ $listeners.overviewSwitched ]]"></oj-sp-header-general-overview>
+  <div class="oj-flex oj-sm-margin-6x-top">
+    <oj-bind-for-each data="[[ $application.variables.mateuOverview.cards ]]">
+      <template>
+        <div class="oj-flex-item oj-sm-12 oj-md-6">
+          <div class="oj-panel oj-sm-margin-2x">
+            <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+            <oj-bind-for-each data="[[ $current.data.texts ]]">
+              <template>
+                <div class="oj-typography-body-md oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+              </template>
+            </oj-bind-for-each>
+          </div>
+        </div>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-bind-if>
+
+<!-- Arquetipo ITEM OVERVIEW: datos clave a la izquierda + tabs a la derecha -->
+<oj-bind-if test="[[ !!$application.variables.mateuItemOv ]]">
+  <div class="oj-flex">
+    <div class="oj-flex-item oj-sm-12 oj-md-4">
+      <div class="oj-panel oj-sm-margin-2x">
+        <oj-bind-for-each data="[[ $application.variables.mateuItemOv.key.texts ]]">
+          <template>
+            <div class="oj-typography-body-md oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+    <div class="oj-flex-item oj-sm-12 oj-md-8">
+      <oj-tab-bar id="mateuItemTabs" on-selection-changed="[[ $listeners.itemTabChanged ]]">
+        <ul>
+          <oj-bind-for-each data="[[ $application.variables.mateuItemOv.tabs ]]">
+            <template>
+              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+            </template>
+          </oj-bind-for-each>
+        </ul>
+      </oj-tab-bar>
+      <div class="oj-sm-padding-4x">
+        <oj-bind-for-each data="[[ $application.variables.mateuItemTabTexts ]]">
+          <template>
+            <div class="oj-typography-body-md oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+  </div>
+</oj-bind-if>
+
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
   <div class="oj-flex oj-sm-align-items-center">
     <div class="oj-flex-item oj-sm-12 oj-md-8">

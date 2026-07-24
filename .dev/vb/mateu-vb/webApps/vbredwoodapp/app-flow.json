@@ -427,6 +427,28 @@
       "type": "any",
       "defaultValue": [],
       "description": "keys de los banners mostrados (para retirarlos al navegar)"
+    },
+    "mateuWelcome": {
+      "type": "any",
+      "description": "proyección del arquetipo Welcome (hero + CTAs + tiles)"
+    },
+    "mateuOverview": {
+      "type": "any",
+      "description": "proyección del General Overview (switcher + header + cards)"
+    },
+    "mateuItemOv": {
+      "type": "any",
+      "description": "proyección del Item Overview (key info + tabs)"
+    },
+    "mateuOverviewOptions": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "opciones del switcher de registro"
+    },
+    "mateuItemTabTexts": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "textos del tab seleccionado del item overview"
     }
   },
   "userConfig": {
