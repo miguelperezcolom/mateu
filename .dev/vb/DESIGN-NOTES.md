@@ -221,9 +221,17 @@ El contrato mediador del AutoCrud (el "~3 sequential loads"), reverse-engineered
   data-only en **`fragment.data.crud.page.content`** (un `Page` con `content`=array de filas; cada fila trae
   `_rowNumber`, `id` y los campos de columna).
 - Columnas = `GridColumn` (dedup; excluir `_select`); tabla = `oj-table` + `ArrayDataProvider('@index')`.
-- **PENDIENTE (resto de Fase 5)**: `new` (form create) → `persist` → refrescar; `view`/`edit` (con id de fila)
-  → form → `persist`; `delete`. Reusan el render de formulario (Fase 3) + `_search()` para refrescar.
-  Evidencia listing: `frontoffice-renderer/shots/fase5-crud-listing.png`.
+- **New/Edit/Delete (HECHO)**:
+  - **New**: cargar `/{crud}/new` (actionId="") → form de creación (fields vacíos) → guardar con actionId
+    **`create`** (`PersistActionHandler`) → re-`search()` para refrescar.
+  - **Edit**: seleccionar fila → cargar `/{crud}/{id}/edit` (actionId="") → form poblado → guardar con actionId
+    **`save`** → re-search. (Cargar `/{crud}/{id}` sin `/edit` da la VISTA read-only con botón Edit.)
+  - **Delete**: actionId **`delete`** con `componentState.crud_selected_items = [fila completa]`
+    (`getSelectedRows` lee esa clave). La fila SE BORRA aunque el re-render post-delete emita un
+    `"id is null"` inofensivo → ignorar el mensaje y re-search.
+  - Selección de fila: `oj-table selection-mode.row="single"` + `on-selected-changed` →
+    `e.detail.value.row` (un KeySet; con `keyAttributes:'@index'` el valor es el índice de fila).
+  - Evidencia: `frontoffice-renderer/shots/fase5-crud-full.png` (toolbar Nuevo/Editar/Borrar + tabla).
 
 ### Regla dura de presentación (decisión 2026-07-24)
 
