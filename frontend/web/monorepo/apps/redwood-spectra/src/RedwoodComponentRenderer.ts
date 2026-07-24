@@ -1,4 +1,4 @@
-import { LitElement, html, nothing, type TemplateResult } from 'lit'
+import { LitElement, html, type TemplateResult } from 'lit'
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import { renderApp } from '@infra/ui/renderers/appRenderer'
@@ -147,26 +147,29 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
       appData,
     )
 
+    // The global-header's logo + home icon both fire ojSpHomeClick → navigate to the app home route.
+    // (No theme toggle: Redwood has no dark mode.)
+    const homeRoute = metadata.homeRoute || metadata.route || ''
+    const onHome = (e: Event) => {
+      const t = e.currentTarget as HTMLElement
+      t.dispatchEvent(new CustomEvent('route-changed', { detail: { route: homeRoute }, bubbles: true, composed: true }))
+      t.dispatchEvent(new CustomEvent('navigate-to-requested', { detail: { route: homeRoute }, bubbles: true, composed: true }))
+    }
+
     return html`
       <oj-sp-simple-ui-shell ${pageLayoutSync()}>
-        <oj-sp-global-header slot="globalHeader">
+        <oj-sp-global-header slot="globalHeader" @ojSpHomeClick=${onHome}>
           <span
             slot="start"
             class="mateu-spectra-app-title"
             style="font-weight:700; font-size:1rem; white-space:nowrap; color:#fff;"
             >${metadata.title ?? ''}</span
           >
-          <mateu-spectra-nav slot="center" .menu=${metadata.menu ?? []}></mateu-spectra-nav>
-          ${metadata.themeToggle
-            ? html`<button
-                slot="end"
-                title="Toggle theme"
-                @click=${container.toggleTheme}
-                style="width:2.25rem; height:2.25rem; border:none; border-radius:50%; background:transparent; color:#fff; font-size:1.1rem; cursor:pointer;"
-              >
-                ${container.isDark ? '☀' : '🌙'}
-              </button>`
-            : nothing}
+          <mateu-spectra-nav
+            slot="center"
+            .menu=${metadata.menu ?? []}
+            .appTitle=${metadata.title ?? ''}
+          ></mateu-spectra-nav>
         </oj-sp-global-header>
         <div slot="stretchingContents" class="oj-sp-rw-ask-oracle-page-container">${content}</div>
       </oj-sp-simple-ui-shell>

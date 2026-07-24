@@ -29,6 +29,9 @@ export class MateuSpectraNav extends LitElement {
   /** The Mateu app menu tree (App DTO `menu`). */
   @property({ attribute: false }) menu: MenuNode[] = []
 
+  /** App title — used to label the synthetic category that holds the top-level leaf routes. */
+  @property({ attribute: false }) appTitle = ''
+
   @state() private open = false
 
   private overlay?: HTMLElement
@@ -63,6 +66,32 @@ export class MateuSpectraNav extends LitElement {
     return out
   }
 
+  /**
+   * The Ask-Oracle product-map treats TOP-LEVEL nodes as categories (headers) and only navigates on
+   * their children — so a top-level LEAF route (e.g. a `@Menu RouteLink`) would be dead. Wrap all
+   * top-level leaves under one synthetic category (the app title) so they become navigable 2nd-level
+   * items; top-level groups stay as their own categories.
+   */
+  private buildRootTree(): MapNode[] {
+    const nodes = (this.menu ?? []).filter((n) => !n.separator)
+    const leaves = nodes.filter((n) => !n.submenus?.length)
+    const groups = nodes.filter((n) => n.submenus?.length)
+    const out: MapNode[] = []
+    if (leaves.length) {
+      out.push({
+        id: '__general__',
+        label: this.appTitle || 'Menú',
+        url: '',
+        children: leaves.map((n, i) => ({ id: `leaf-${i}`, label: n.label ?? '', url: n.route ?? '', children: [] })),
+      })
+    }
+    groups.forEach((n, i) => {
+      const id = `grp-${i}`
+      out.push({ id, label: n.label ?? '', url: n.route ?? '', children: this.toMapTree(n.submenus ?? [], id) })
+    })
+    return out
+  }
+
   private navigate(route: string): void {
     this.open = false
     this.dispatchEvent(new CustomEvent('route-changed', { detail: { route }, bubbles: true, composed: true }))
@@ -92,7 +121,7 @@ export class MateuSpectraNav extends LitElement {
       optionsKeys?: unknown
     }
     pm.setAttribute('style', 'display:block; width:100%; height:100%;')
-    pm.data = new ATDP(this.toMapTree(this.menu), { keyAttributes: 'id', childrenAttribute: 'children' })
+    pm.data = new ATDP(this.buildRootTree(), { keyAttributes: 'id', childrenAttribute: 'children' })
     pm.optionsKeys = { label: 'label', url: 'url' }
     pm.addEventListener('ojSpNavigate', (e: Event) => {
       const d = (e as CustomEvent).detail as Record<string, unknown> | undefined
