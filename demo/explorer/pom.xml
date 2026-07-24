@@ -47,10 +47,10 @@
             <artifactId>mvc-core</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- Redwood Spectra renderer (Vite + Lit; Oracle JET/Spectra from the CDN at runtime) -->
+        <!-- Redwood renderer (OJET-native island; Oracle JET / Spectra / Dynamic UI from the CDN) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood-spectra-lit</artifactId>
+            <artifactId>redwood-lit</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>
