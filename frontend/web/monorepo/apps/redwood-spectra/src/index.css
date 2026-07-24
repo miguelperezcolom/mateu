@@ -188,6 +188,27 @@ html, body {
   box-shadow: var(--oj-core-box-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
   padding: 1rem 1.25rem;
 }
+
+/* Sections read like the Redwood foldout: a clean band on the page canvas, NOT a white bordered
+   card-in-card. Drop the card chrome for `@Section` cards (marked `mateu-section` by the core) and
+   give the section title the Redwood accent underline (the oj-sp-section signature). Nested subform
+   cards keep their frame, so they remain the only boxed sub-entity. */
+.mateu-rw-card.mateu-section {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+.mateu-rw-card.mateu-section > .rw-card-content > div > h1,
+.mateu-rw-card.mateu-section > .rw-card-content > div > h2,
+.mateu-rw-card.mateu-section > .rw-card-content > div > h3 {
+  font-size: 1.15rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--oj-core-color-warning-2, #c9a227);
+  display: inline-block;
+}
 .rw-card-title {
   font-size: 1.05rem;
   font-weight: 600;
