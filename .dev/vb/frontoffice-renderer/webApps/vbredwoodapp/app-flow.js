@@ -291,6 +291,9 @@ define([
       // El guided-process tiene una pantalla de OVERVIEW inicial (currentStep="" → botón Start +
       // resumen de pasos). Se muestra al entrar y al cancelar; empezar/cancelar es CLIENTE (no Mateu).
       this.wizardOverview = ko.observable(true);
+      // El paso RESULTADO de Mateu (recap read-only) NO viene en el rail y no trae botones de
+      // navegación; al detectarlo salimos del guided-process y mostramos el recap por la rama de texto.
+      this.wizardResult = ko.observable(false);
       this.wizardMenuRoute = '';
     }
 
@@ -306,6 +309,9 @@ define([
       return this.wizardOverview() ? '' : String(this.wizardPosition());
     }
     getGuidedPrimary() {
+      // Debe ser SIEMPRE un objeto válido: el oj-sp-guided-process lee primary-action.progressState
+      // y un null lo hace petar. En el resultado salimos del proceso (isWizard=false), así que este
+      // valor deja de usarse; nunca devolvemos null.
       return { label: this.wizardAdvanceLabel(), progressState: 'off' };
     }
     getFormFields() {
@@ -533,10 +539,17 @@ define([
       const ps = findSteps(host.tree);
       const steps = (ps && ps.steps) || [];
       const pos = steps.filter((s) => s.status === 'done' || s.done).length;
+      // Botón primario = la acción que NO es 'back' (next/completar…).
+      const actions = collectActions(host.tree);
+      const advance = actions.filter((a) => a.actionId !== 'back')[0];
+      // RESULTADO: todos los pasos del rail hechos Y sin acción de avance → recap read-only de Mateu.
+      // (El paso resultado NO está en el rail; _wizardStep sale del guided-process y lo muestra aparte.)
+      const isResult = steps.length > 0 && pos >= steps.length && !advance;
+      this.wizardResult(isResult);
+      // Rail del oj-sp-guided-process: id/title/status ('success' hecho / 'none'). El paso ACTUAL lo
+      // marca la propiedad current-step, no el status.
       this.wizardTotal(steps.length);
       this.wizardPosition(pos);
-      // Steps para el rail del oj-sp-guided-process: id/title/status. El status de oj-sp usa
-      // 'success' (paso hecho) / 'none'; el paso ACTUAL lo marca la propiedad current-step, no el status.
       this.wizardSteps(
         steps.map((s, i) => ({
           id: String(i),
@@ -544,9 +557,6 @@ define([
           status: i < pos ? 'success' : 'none',
         })),
       );
-      // Botón primario = la acción que NO es 'back' (next/completar…).
-      const actions = collectActions(host.tree);
-      const advance = actions.filter((a) => a.actionId !== 'back')[0];
       this.wizardAdvanceId = advance ? advance.actionId : 'next';
       this.wizardAdvanceLabel(advance ? advance.label : 'Siguiente');
     }
@@ -557,7 +567,20 @@ define([
     }
     // spBeforeStepNavigate: el guided-process pide ir a otro paso. Dirección por currentStep/nextStep:
     // adelante → la acción de avance del wire (next/completar); atrás → 'back'.
+    // Estado de RESULTADO (recap read-only) para la rama de texto VB, tras salir del guided-process.
+    _wizardResultState() {
+      // this.formFields es un ko.observableArray → hay que invocarlo para obtener el array.
+      const resumen =
+        this.formFields()
+          .map((f) => f.value)
+          .filter((v) => v != null && String(v).trim() !== '')
+          .join(' · ') || 'Completado';
+      return { isWizard: false, isForm: false, isFoldout: false, isTable: false, greeting: resumen };
+    }
     async guidedStepChange(event) {
+      // Al completar, el guided-process dispara TAMBIÉN este evento tras sp-primary-action; si ya
+      // estamos en el resultado NO re-montamos el proceso: devolvemos el mismo estado de recap.
+      if (this.wizardResult()) return this._wizardResultState();
       const d = (event && event.detail) || {};
       const cur = parseInt(d.currentStep, 10); // NaN si venimos del overview ("")
       const nxt = parseInt(d.nextStep, 10);
@@ -597,6 +620,10 @@ define([
       // ¿Sigue siendo wizard (hay ProgressSteps)? → paso siguiente/resultado; si no, texto/form.
       if (findSteps(host.tree)) {
         this._applyWizard(host);
+        // RESULTADO: el oj-sp-guided-process no reacciona a cambios de current-step/steps/primary
+        // post-init (solo su slot es reactivo), así que SALIMOS de él y mostramos el recap read-only
+        // (los campos del paso resultado de Mateu) por la rama de texto VB. Cero apaños de estilo.
+        if (this.wizardResult()) return this._wizardResultState();
         return { isWizard: true, isForm: false, isFoldout: false, isTable: false, greeting: '' };
       }
       const nfields = this._buildFormFields(host, host.state || {});

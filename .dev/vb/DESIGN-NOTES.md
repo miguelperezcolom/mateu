@@ -301,12 +301,27 @@ del wire por paso. Contrato:
   + `oj-progress-bar` (position/(total-1)).
 - **Navegación**: `wizardNav(event)` lee `data-action-id`, reenvía el ESTADO ACUMULADO (`wizardState` =
   `initialData` del último paso) + las ediciones del paso actual (DOM `[data-field]`), y re-renderiza.
-- **LIMITACIÓN CONOCIDA**: la **completación→resultado** falla. El wizard tiene pasos ANIDADOS
-  (`estancia: {noches,…}`) y su `WizardStateSerializer` (flatten/unflatten) espera una forma de componentState
-  que no reproduje — probado plano, anidado y combinado; el objeto del paso actual queda `null` en el server
-  (`"estancia is null"` al `completar`). La NAVEGACIÓN del proceso guiado funciona; falta clavar el contrato de
-  estado del wizard (capturar lo que envía un frontend Mateu real ayudaría). Evidencia:
-  `shots/fase8-guided-process.png`.
+- **COMPLETACIÓN → RESULTADO (RESUELTO 2026-07-25)**: el recap final ya se muestra (antes: pantalla en blanco).
+  - **Contrato de estado clavado**: el server manda los campos del paso ACTUAL **planos** en el `state`
+    (`{position, datos:{…}, estancia:null, nombre, email}` en el paso 1; en el paso 2 el bridge añade
+    `noches`/`tipoHabitacion` planos leídos del DOM `[data-field]`). `onHydrated` reconstruye el step con
+    `data.get("<paramDelRecord>")` → **el módulo demo DEBE compilar con `-parameters`** (si no, los params del
+    record son `arg0/arg1` → `int noches`=null → NPE). Verificado: `EstanciaStep` construye bien con `noches:3`.
+  - **El paso RESULTADO no está en el rail** (`ProgressSteps` sólo lista los pasos reales, todos `done`) y no
+    trae botones de navegación (`collectActions(tree)==[]`). Se detecta con `isResult = pos>=steps.length &&
+    !advance` (en `_applyWizard`, marca `wizardResult`).
+  - **El `oj-sp-guided-process` sólo es reactivo en su SLOT** (los form-fields), NO en `current-step`/`steps`/
+    `primary-action` tras el init → intentar pintar el recap DENTRO del proceso no funciona. Solución VB-pura:
+    al detectar el resultado se **SALE del guided-process** (`isWizard:false`) y se muestra el recap por la rama
+    de TEXTO ya existente (`greeting` = join de los valores de los form-fields del paso resultado). Cero HTML/CSS
+    extra. Ver `_wizardResultState()`.
+  - **Gotchas que costaron sangre**: (a) `getGuidedPrimary()` NUNCA debe devolver `null` — el componente lee
+    `primary-action.progressState` y un null lanza *síncronamente* dentro del observable write de `_applyWizard`;
+    (b) al `completar`, el componente dispara `sp-primary-action` (`guidedPrimary`) — y a veces también
+    `sp-before-step-navigate` (`guidedStepChange`); la guarda `if (wizardResult()) return _wizardResultState()`
+    en `guidedStepChange` evita re-montar el proceso encima del recap; (c) `this.formFields` es un
+    `ko.observableArray` → hay que invocarlo (`this.formFields()`) para mapear.
+  - Evidencia: `shots/fase8-guided-process.png` (recap "Reserva de Ana · 3 noches (Doble).").
 - **AHORA usa el `oj-sp-guided-process` REAL** (Spectra), driven por Mateu:
   - Se le pasa `steps` (`[{id, title, status}]`; status **`success`** para pasos hechos / `none`; el paso
     ACTUAL lo marca la propiedad **`current-step`** (=posición), NO el status), `primary-action` (`{label}`).
@@ -317,7 +332,8 @@ del wire por paso. Contrato:
   - **ANCHO**: `oj-drawer-layout` encogía su `main-content` al ancho natural del contenido (774px) → se
     cambió a un **`oj-flex` simple** (nav `flex 0 0 15rem` + contenido `flex 1 1 auto; min-width:0` +
     `oj-vb-content display:block; width:100%`). Ahora el guided-process (y tabla/foldout) llenan el ancho.
-  - Sigue en pie la LIMITACIÓN del estado del wizard en la completación (serialización de pasos anidados).
+  - La completación → resultado ya funciona (ver arriba): al detectar el paso resultado se sale del proceso
+    y se pinta el recap por la rama de texto.
 
 ### Regla dura de presentación (decisión 2026-07-24)
 
