@@ -18,6 +18,7 @@ public class RedwoodVbApp {
   @Menu Home home;
   @Menu Profile profile;
   @Menu Products products;
+  @Menu Contacts contacts;
   @Menu Reports reports;
   @Menu Settings settings;
 }
