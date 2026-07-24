@@ -1,5 +1,5 @@
 {
-  "description": "Fase 3: reenvía el estado editado del formulario (actionId 'save') y muestra el mensaje.",
+  "description": "Fase 3/5: guarda el form. En crud (create/edit) vuelve al listado; si no, muestra el mensaje.",
   "root": "save",
   "variables": {},
   "actions": {
@@ -18,6 +18,12 @@
       "parameters": {
         "$page.variables.saveMsg": {
           "source": "{{ $chain.results.save.message }}"
+        },
+        "$page.variables.isForm": {
+          "source": "{{ $chain.results.save.isForm }}"
+        },
+        "$page.variables.isTable": {
+          "source": "{{ $chain.results.save.isTable }}"
         }
       }
     }

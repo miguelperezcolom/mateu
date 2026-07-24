@@ -34,6 +34,9 @@
         "$page.variables.isTable": {
           "source": "{{ $chain.results.loadRoute.isTable }}"
         },
+        "$page.variables.isCrud": {
+          "source": "{{ $chain.results.loadRoute.isCrud }}"
+        },
         "$page.variables.saveMsg": {
           "source": "{{ '' }}"
         }

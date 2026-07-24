@@ -182,6 +182,13 @@ define([
       this.tableRows = ko.observableArray([]);
       this.tableDP = new ArrayDataProvider(this.tableRows, { keyAttributes: '@index' });
       this.tableColumns = ko.observableArray([]);
+      // Estado CRUD (Fase 5). isCrud → la listing es un AutoCrud (toolbar Nuevo/Editar/Borrar).
+      // crudSaveActionId = 'create'|'save' según estemos creando o editando; formRoute = la ruta
+      // del form (/new o /{id}/edit); selectedRowIndex = fila seleccionada en la tabla.
+      this.isCrud = false;
+      this.crudSaveActionId = null;
+      this.crudFormRoute = null;
+      this.selectedRowIndex = -1;
     }
 
     getNavData() {
@@ -243,20 +250,24 @@ define([
 
       // A) ¿Listado CRUD? (expone la acción 'search') → columnas GridColumn + search para las filas.
       if (hasActionId(inc, 'search')) {
+        this.isCrud = true;
+        this.selectedRowIndex = -1;
         this.tableColumns(collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows(await this._search());
         this.formFields([]);
-        return { isTable: true, isForm: false, greeting: '' };
+        return { isTable: true, isForm: false, isCrud: true, greeting: '' };
       }
       // B) ¿Listado simple? (un FormField-grid) → tabla oj-table.
       const gridNode = findGridField(host.tree);
       if (gridNode) {
+        this.isCrud = false;
         const gmeta = metaOf(gridNode);
         this.tableColumns(collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows((state[gmeta.fieldId] || []).slice());
         this.formFields([]);
-        return { isTable: true, isForm: false, greeting: '' };
+        return { isTable: true, isForm: false, isCrud: false, greeting: '' };
       }
+      this.isCrud = false;
       // C) ¿Formulario? (FormFields) → inputs oj-c-*.
       const fields = collectFields(host.tree);
       const self = this;
@@ -279,11 +290,78 @@ define([
           };
         }),
       );
+      this.crudSaveActionId = null; // un form normal (Profile) NO es create/edit de crud
       return {
         isTable: false,
         isForm: fields.length > 0,
+        isCrud: false,
         greeting: firstText(host.tree) || '(sin contenido)',
       };
+    }
+
+    // ── Fase 5: New / Edit / Delete ────────────────────────────────────────────────
+    onTableSelect(e) {
+      const row = e && e.detail && e.detail.value && e.detail.value.row;
+      const vals = row && row.values ? Array.from(row.values()) : [];
+      this.selectedRowIndex = vals.length ? vals[0] : -1;
+    }
+
+    // Carga el form de creación/edición de un crud y prepara formFields (como Fase 3).
+    async _loadCrudForm(route, saveActionId) {
+      const inc = await callMateu(route, '', this.current.serverSideType, this.current.consumedRoute);
+      const host = reduceContexts({ contexts: {}, stack: [], shell: null }, inc).contexts[HOST_ID] || {};
+      const fields = collectFields(host.tree);
+      const state = host.state || {};
+      const self = this;
+      this.formData = {};
+      fields.forEach((f) => {
+        this.formData[f.fieldId] = state[f.fieldId] != null ? state[f.fieldId] : '';
+      });
+      this.formFields(
+        fields.map((f) => ({
+          fieldId: f.fieldId,
+          label: f.label,
+          dataType: f.dataType,
+          isNumber: f.dataType === 'integer' || f.dataType === 'number' || f.dataType === 'decimal',
+          value: this.formData[f.fieldId],
+          onChange: function (e) {
+            self.formData[f.fieldId] = e.detail.value;
+          },
+        })),
+      );
+      this.crudSaveActionId = saveActionId;
+      this.crudFormRoute = route;
+    }
+
+    async newForm() {
+      await this._loadCrudForm(this.current.route + '/new', 'create');
+      return { isForm: true, isTable: false };
+    }
+
+    async editSelected() {
+      if (this.selectedRowIndex < 0) return { ok: false };
+      const row = this.tableRows()[this.selectedRowIndex] || {};
+      await this._loadCrudForm(this.current.route + '/' + row.id + '/edit', 'save');
+      return { ok: true, isForm: true, isTable: false };
+    }
+
+    async deleteSelected() {
+      if (this.selectedRowIndex < 0) return { ok: false };
+      const row = this.tableRows()[this.selectedRowIndex] || {};
+      await callMateu(this.current.route, 'delete', this.current.serverSideType, this.current.consumedRoute, {
+        crud_selected_items: [row],
+      });
+      this.selectedRowIndex = -1;
+      this.tableRows(await this._search());
+      return { ok: true };
+    }
+
+    // Vuelve al listado del crud (refresca las filas).
+    async backToList() {
+      this.crudSaveActionId = null;
+      this.selectedRowIndex = -1;
+      this.tableRows(await this._search());
+      return { isForm: false, isTable: true };
     }
 
     // Fase 5: las filas de un listado CRUD llegan por la acción 'search' (data.crud.page.content).
@@ -310,6 +388,22 @@ define([
       for (let i = 0; i < els.length; i++) {
         state[els[i].getAttribute('data-field')] = els[i].value;
       }
+      // Modo CRUD (Fase 5): create/edit → persistir con 'create'|'save' en la ruta del form y
+      // VOLVER al listado refrescado. Modo normal (Profile, Fase 3): actionId 'save' y mostrar msg.
+      if (this.crudSaveActionId) {
+        const inc = await callMateu(
+          this.crudFormRoute,
+          this.crudSaveActionId,
+          this.current.serverSideType,
+          this.current.consumedRoute,
+          state,
+        );
+        const msg = (inc.messages || [])[0];
+        this.crudSaveActionId = null;
+        this.selectedRowIndex = -1;
+        this.tableRows(await this._search());
+        return { message: msg ? msg.text || msg.title : '', isForm: false, isTable: true };
+      }
       const inc = await callMateu(
         this.current.route,
         'save',
@@ -318,7 +412,7 @@ define([
         state,
       );
       const msg = (inc.messages || [])[0];
-      return { message: msg ? msg.text || msg.title : 'Guardado' };
+      return { message: msg ? msg.text || msg.title : 'Guardado', isForm: true, isTable: false };
     }
   }
 

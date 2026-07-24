@@ -1,0 +1,11 @@
+{
+  "description": "Fase 5: borra la fila seleccionada y refresca (se queda en el listado).",
+  "root": "go",
+  "variables": {},
+  "actions": {
+    "go": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $functions ]]", "functionName": "deleteSelected" }
+    }
+  }
+}

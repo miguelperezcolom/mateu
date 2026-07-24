@@ -23,16 +23,38 @@
   <div class="oj-flex-item oj-sm-padding-4x">
     <!-- Listado (tabla) -->
     <oj-bind-if test="[[ $variables.isTable ]]">
+      <!-- Toolbar CRUD (Fase 5): Nuevo/Editar/Borrar -->
+      <oj-bind-if test="[[ $variables.isCrud ]]">
+        <div class="oj-flex oj-sm-margin-2x-bottom">
+          <oj-c-button
+            class="oj-sm-margin-1x-end"
+            label="Nuevo"
+            chroming="callToAction"
+            on-oj-action="[[ $listeners.crudNew ]]"
+          ></oj-c-button>
+          <oj-c-button
+            class="oj-sm-margin-1x-end"
+            label="Editar"
+            on-oj-action="[[ $listeners.crudEdit ]]"
+          ></oj-c-button>
+          <oj-c-button
+            label="Borrar"
+            on-oj-action="[[ $listeners.crudDelete ]]"
+          ></oj-c-button>
+        </div>
+      </oj-bind-if>
       <oj-table
         data="[[ $functions.getTableData() ]]"
         columns="[[ $functions.getTableColumns() ]]"
+        selection-mode.row="single"
+        on-selected-changed="[[ $listeners.tableSelect ]]"
         aria-label="Listado"
         class="oj-table"
         style="width: 100%"
       ></oj-table>
     </oj-bind-if>
 
-    <!-- Formulario -->
+    <!-- Formulario (Fase 3 + crud create/edit) -->
     <oj-bind-if test="[[ $variables.isForm ]]">
       <div class="oj-form-layout oj-sm-margin-4x-bottom" style="max-width: 32rem">
         <oj-bind-for-each data="[[ $functions.getFormFields() ]]">
@@ -55,7 +77,17 @@
             </div>
           </template>
         </oj-bind-for-each>
-        <oj-c-button label="Guardar" on-oj-action="[[ $listeners.saveForm ]]"></oj-c-button>
+        <div class="oj-flex">
+          <oj-c-button
+            class="oj-sm-margin-1x-end"
+            label="Guardar"
+            chroming="callToAction"
+            on-oj-action="[[ $listeners.saveForm ]]"
+          ></oj-c-button>
+          <oj-bind-if test="[[ $variables.isCrud ]]">
+            <oj-c-button label="Cancelar" on-oj-action="[[ $listeners.crudCancel ]]"></oj-c-button>
+          </oj-bind-if>
+        </div>
       </div>
       <div class="oj-text-color-secondary">
         <oj-bind-text value="[[ $variables.saveMsg ]]"></oj-bind-text>
@@ -63,7 +95,7 @@
     </oj-bind-if>
 
     <!-- Contenido de texto -->
-    <oj-bind-if test="[[ !$variables.isForm ]]">
+    <oj-bind-if test="[[ !$variables.isForm &amp;&amp; !$variables.isTable ]]">
       <div class="oj-flex">
         <h1 class="oj-flex-item oj-sm-12 oj-md-12">
           <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>

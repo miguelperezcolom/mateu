@@ -1,0 +1,11 @@
+{
+  "description": "Fase 5: guarda la fila seleccionada de la tabla (para Editar/Borrar).",
+  "root": "sel",
+  "variables": { "event": { "required": true, "type": "any", "input": "fromCaller" } },
+  "actions": {
+    "sel": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $functions ]]", "functionName": "onTableSelect", "params": ["{{ $variables.event }}"] }
+    }
+  }
+}

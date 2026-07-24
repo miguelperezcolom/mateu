@@ -14,6 +14,10 @@
       "type": "boolean",
       "defaultValue": false
     },
+    "isCrud": {
+      "type": "boolean",
+      "defaultValue": false
+    },
     "saveMsg": {
       "type": "string",
       "defaultValue": ""
@@ -44,6 +48,44 @@
       "chains": [
         {
           "chainId": "saveForm"
+        }
+      ]
+    },
+    "tableSelect": {
+      "chains": [
+        {
+          "chainId": "tableSelect",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "crudNew": {
+      "chains": [
+        {
+          "chainId": "crudNew"
+        }
+      ]
+    },
+    "crudEdit": {
+      "chains": [
+        {
+          "chainId": "crudEdit"
+        }
+      ]
+    },
+    "crudDelete": {
+      "chains": [
+        {
+          "chainId": "crudDelete"
+        }
+      ]
+    },
+    "crudCancel": {
+      "chains": [
+        {
+          "chainId": "crudCancel"
         }
       ]
     }

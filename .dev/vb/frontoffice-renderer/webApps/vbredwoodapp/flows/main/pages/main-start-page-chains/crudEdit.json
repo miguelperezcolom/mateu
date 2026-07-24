@@ -1,0 +1,20 @@
+{
+  "description": "Fase 5: abre el form de edición de la fila seleccionada.",
+  "root": "go",
+  "variables": {},
+  "actions": {
+    "go": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $functions ]]", "functionName": "editSelected" },
+      "outcomes": { "success": "assign" }
+    },
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.isForm": { "source": "{{ $chain.results.go.isForm }}" },
+        "$page.variables.isTable": { "source": "{{ $chain.results.go.isTable }}" },
+        "$page.variables.saveMsg": { "source": "{{ '' }}" }
+      }
+    }
+  }
+}
