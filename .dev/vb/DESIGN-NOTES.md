@@ -341,6 +341,40 @@ del wire por paso. Contrato:
   - La completación → resultado ya funciona (ver arriba): al detectar el paso resultado se sale del proceso
     y se pinta el recap por la rama de texto.
 
+### Fase 9 — Archetypes de página: Welcome / ItemOverview / GeneralOverview (2026-07-25)
+
+Tres archetypes de Mateu renderizados por el bridge VB. Demos backend en `demo/demo-redwood-vb`
+(`WelcomeVb` `/welcome-vb`, `ItemOverviewVb` `/item-overview-vb`, `GeneralOverviewVb` `/general-overview-vb`,
+en el menú). El bridge **detecta cada uno por su firma de componentes wire** (como findFoldout/findSteps)
+y construye un view-model que pinta un template acotado — SÓLO clases/elementos OJET de los ejemplos VB
+(`oj-panel`, `oj-flex`, `oj-typography-*`, `oj-badge`, `oj-c-button`, `oj-c-select-single`, `oj-bind-dom`).
+
+- **Estructura wire**: cada nodo = `{ type:'ClientSide', metadata:{type,…}, children:[…] }`. `metaOf()` da la
+  metadata; los hijos viven en `node.children` (layouts top-level) O en `metadata.content` (records anidados:
+  Card.title/content, VerticalLayout.content). Helpers `findFirst(tree,type)` (descende por TODO, incl.
+  metadata) y `kidsOf(node)` (children ó metadata.content) normalizan ambos.
+- **Welcome** (firma: `HeroSection` + `DashboardLayout`): hero centrado (title/subtitle + `Button` hijos como
+  CTAs) + tiles (`DashboardPanel` → Text) en grid. Los CTA hacen dispatch de su `actionId`; el `Message` sale
+  como toast en `headerMsg` (var app; `messageToast` es del shell, NO se puede asignar desde el módulo).
+- **ItemOverview** (firma: `TabLayout`): key-info `Card` fija a la izquierda (`position:sticky`) + pestañas a
+  la derecha. Contenido = `Markdown` → HTML con un convertidor mínimo (`mdToHtml`: headings/bold/listas/tablas)
+  inyectado por `oj-bind-dom` (`HtmlUtils.stringToNodeArray`, el modo OJET nativo para HTML dinámico). Las
+  pestañas cambian EN CLIENTE (observable `itemTab`, sin ida al server — todo el contenido ya está en el árbol).
+  NOTA: `ojs/ojtabbar` da 404 en este bundle CDN → romper el `define` mata la app; se sustituyó `oj-tab-bar`
+  por una tira de `oj-c-button` (chroming solid/borderless según la activa).
+- **GeneralOverview** (firma: `EntityHeader`): switcher (`FormField` select `record` → `oj-c-select-single`
+  con ArrayDataProvider) + `EntityHeader` (title + badges `oj-badge` + subtitle + facts label/valor + métrica)
+  + property cards. Cambiar el switcher → acción `switchRecord` con `componentState.record` → reconstruye el
+  overview en sitio (patrón _wizardStep). GOTCHA: el overview va envuelto en una Card RAÍZ (title=null,
+  content=Div); las cards reales (Líneas/Datos) anidan en `metadata.content` → el colector desciende por
+  children Y content y sólo colecciona Cards CON título.
+- **Reactividad sin tocar chains**: los modelos viven en ko.observables (`welcomeModel`/`generalOverviewModel`/
+  `itemOverviewModel`); el template bindea `$application.functions.isWelcome()` etc. (reactivo al leer el
+  observable). loadRoute los resetea a null al entrar (una navegación redefine el que aplique) y el branch de
+  texto añade `&& !isWelcome() && …`. Así no hubo que añadir variables ni tocar la chain shellNavigate.
+- Evidencia: `shots/fase9-welcome.png`, `shots/fase9-item-overview.png`, `shots/fase9-general-overview.png`.
+  Verificado end-to-end (render + interacciones: pestañas, switcher server-side, CTA).
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**

@@ -119,8 +119,152 @@
     </div>
   </oj-bind-if>
 
+  <!-- Welcome archetype (Fase 9): hero centrado con CTAs + tiles en grid -->
+  <oj-bind-if test="[[ $application.functions.isWelcome() ]]">
+    <div class="oj-flex oj-sm-flex-direction-column oj-sm-align-items-center oj-sm-padding-6x-vertical oj-sm-padding-4x-horizontal">
+      <h1 class="oj-typography-heading-xl oj-sm-margin-1x-bottom" style="text-align: center">
+        <oj-bind-text value="[[ $application.functions.getWelcome().heroTitle ]]"></oj-bind-text>
+      </h1>
+      <div class="oj-typography-subheading-md oj-text-color-secondary oj-sm-margin-4x-bottom" style="text-align: center">
+        <oj-bind-text value="[[ $application.functions.getWelcome().heroSubtitle ]]"></oj-bind-text>
+      </div>
+      <div class="oj-flex oj-sm-justify-content-center">
+        <oj-bind-for-each data="[[ $application.functions.getWelcome().buttons ]]">
+          <template data-oj-as="b">
+            <oj-c-button
+              class="oj-sm-margin-1x-horizontal"
+              label="[[ b.data.label ]]"
+              chroming="[[ b.data.primary ? 'callToAction' : 'outlined' ]]"
+              :data-action-id="[[ b.data.actionId ]]"
+              on-oj-action="[[ $listeners.welcomeAction ]]"
+            ></oj-c-button>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+    <div class="oj-flex oj-sm-flex-wrap oj-sm-padding-4x-horizontal">
+      <oj-bind-for-each data="[[ $application.functions.getWelcome().tiles ]]">
+        <template data-oj-as="t">
+          <div class="oj-flex-item oj-sm-padding-2x" style="flex: 1 1 18rem; min-width: 16rem">
+            <div class="oj-panel oj-sm-padding-4x" style="height: 100%">
+              <h3 class="oj-typography-heading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ t.data.title ]]"></oj-bind-text></h3>
+              <div class="oj-text-color-secondary"><oj-bind-text value="[[ t.data.text ]]"></oj-bind-text></div>
+            </div>
+          </div>
+        </template>
+      </oj-bind-for-each>
+    </div>
+  </oj-bind-if>
+
+  <!-- ItemOverview archetype (Fase 9): key-info fija a la izquierda + pestañas a la derecha -->
+  <oj-bind-if test="[[ $application.functions.isItemOverview() ]]">
+    <div class="oj-flex oj-sm-flex-wrap oj-sm-padding-4x" style="gap: 1.5rem; align-items: flex-start">
+      <div class="oj-flex-item-initial oj-panel oj-sm-padding-4x" style="flex: 0 0 22rem; position: sticky; top: 1rem">
+        <oj-bind-dom config="[[ $application.functions.getItemOverview().keyContent.dom ]]"></oj-bind-dom>
+      </div>
+      <div class="oj-flex-item" style="flex: 1 1 24rem; min-width: 0">
+        <div class="oj-flex oj-sm-flex-wrap oj-sm-margin-3x-bottom" style="gap: 0.25rem; border-bottom: 1px solid var(--oj-core-divider-color, #e0e0e0)">
+          <oj-bind-for-each data="[[ $application.functions.getItemOverview().tabs ]]">
+            <template data-oj-as="tab">
+              <oj-c-button
+                display="[[ 'label' ]]"
+                chroming="[[ $current.index === $application.functions.getItemTab() ? 'solid' : 'borderless' ]]"
+                label="[[ tab.data.label ]]"
+                :data-tab-index="[[ '' + $current.index ]]"
+                on-oj-action="[[ $listeners.itemTabSelect ]]"
+              ></oj-c-button>
+            </template>
+          </oj-bind-for-each>
+        </div>
+        <div class="oj-sm-padding-2x">
+          <oj-bind-for-each data="[[ $application.functions.getItemOverview().tabs ]]">
+            <template data-oj-as="tab">
+              <oj-bind-if test="[[ $current.index === $application.functions.getItemTab() ]]">
+                <oj-bind-dom config="[[ tab.data.content.dom ]]"></oj-bind-dom>
+              </oj-bind-if>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </div>
+    </div>
+  </oj-bind-if>
+
+  <!-- GeneralOverview archetype (Fase 9): switcher de registro + EntityHeader + property cards -->
+  <oj-bind-if test="[[ $application.functions.isGeneralOverview() ]]">
+    <div class="oj-sm-padding-4x">
+      <div class="oj-sm-margin-4x-bottom" style="max-width: 22rem">
+        <oj-c-select-single
+          label-hint="Registro"
+          data="[[ $application.functions.getGeneralOverview().switcher.dp ]]"
+          item-text="label"
+          value="[[ $application.functions.getGeneralOverview().switcher.value ]]"
+          on-value-changed="[[ $listeners.switchRecord ]]"
+        ></oj-c-select-single>
+      </div>
+
+      <div class="oj-panel oj-sm-padding-4x oj-sm-margin-4x-bottom">
+        <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap">
+          <h2 class="oj-typography-heading-lg oj-sm-margin-2x-end"><oj-bind-text value="[[ $application.functions.getGeneralOverview().header.title ]]"></oj-bind-text></h2>
+          <oj-bind-for-each data="[[ $application.functions.getGeneralOverview().header.badges ]]">
+            <template data-oj-as="bd">
+              <span class="oj-sm-margin-1x-end" :class="[[ 'oj-badge oj-badge-' + bd.data.color ]]"><oj-bind-text value="[[ bd.data.label ]]"></oj-bind-text></span>
+            </template>
+          </oj-bind-for-each>
+        </div>
+        <div class="oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $application.functions.getGeneralOverview().header.subtitle ]]"></oj-bind-text></div>
+        <div class="oj-flex oj-sm-flex-wrap oj-sm-margin-4x-top oj-sm-align-items-flex-end" style="gap: 2rem">
+          <oj-bind-for-each data="[[ $application.functions.getGeneralOverview().header.facts ]]">
+            <template data-oj-as="ft">
+              <div>
+                <div class="oj-text-color-secondary oj-typography-body-sm"><oj-bind-text value="[[ ft.data.label ]]"></oj-bind-text></div>
+                <div class="oj-typography-body-md"><oj-bind-text value="[[ ft.data.value ]]"></oj-bind-text></div>
+              </div>
+            </template>
+          </oj-bind-for-each>
+          <div style="margin-left: auto; text-align: right">
+            <div class="oj-text-color-secondary oj-typography-body-sm"><oj-bind-text value="[[ $application.functions.getGeneralOverview().header.metricLabel ]]"></oj-bind-text></div>
+            <div class="oj-typography-heading-md"><oj-bind-text value="[[ $application.functions.getGeneralOverview().header.metricValue ]]"></oj-bind-text></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="oj-flex oj-sm-flex-wrap" style="gap: 1.5rem; align-items: flex-start">
+        <oj-bind-for-each data="[[ $application.functions.getGeneralOverview().cards ]]">
+          <template data-oj-as="card">
+            <div class="oj-flex-item oj-panel oj-sm-padding-4x" style="flex: 1 1 20rem; min-width: 16rem">
+              <h3 class="oj-typography-heading-sm oj-sm-margin-3x-bottom"><oj-bind-text value="[[ card.data.title ]]"></oj-bind-text></h3>
+              <oj-bind-if test="[[ card.data.content &amp;&amp; card.data.content.kind === 'statusList' ]]">
+                <oj-bind-for-each data="[[ card.data.content.items ]]">
+                  <template data-oj-as="it">
+                    <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom" style="gap: 0.5rem">
+                      <span :class="[[ 'oj-badge oj-badge-' + (it.data.color === 'success' ? 'success' : 'neutral') ]]"><oj-bind-text value="[[ it.data.status ]]"></oj-bind-text></span>
+                      <span><oj-bind-text value="[[ it.data.title ]]"></oj-bind-text></span>
+                    </div>
+                  </template>
+                </oj-bind-for-each>
+              </oj-bind-if>
+              <oj-bind-if test="[[ card.data.content &amp;&amp; card.data.content.kind === 'stack' ]]">
+                <oj-bind-for-each data="[[ card.data.content.items ]]">
+                  <template data-oj-as="ln">
+                    <div class="oj-sm-margin-1x-bottom"><oj-bind-text value="[[ ln.data.text ]]"></oj-bind-text></div>
+                  </template>
+                </oj-bind-for-each>
+              </oj-bind-if>
+              <oj-bind-if test="[[ card.data.content &amp;&amp; card.data.content.kind === 'markdown' ]]">
+                <oj-bind-dom config="[[ card.data.content.dom ]]"></oj-bind-dom>
+              </oj-bind-if>
+              <oj-bind-if test="[[ card.data.content &amp;&amp; card.data.content.kind === 'text' ]]">
+                <div><oj-bind-text value="[[ card.data.content.text ]]"></oj-bind-text></div>
+              </oj-bind-if>
+            </div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+  </oj-bind-if>
+
   <!-- Contenido de texto -->
-  <oj-bind-if test="[[ !$application.variables.isForm &amp;&amp; !$application.variables.isTable &amp;&amp; !$application.variables.isFoldout &amp;&amp; !$application.variables.isWizard ]]">
+  <oj-bind-if test="[[ !$application.variables.isForm &amp;&amp; !$application.variables.isTable &amp;&amp; !$application.variables.isFoldout &amp;&amp; !$application.variables.isWizard &amp;&amp; !$application.functions.isWelcome() &amp;&amp; !$application.functions.isItemOverview() &amp;&amp; !$application.functions.isGeneralOverview() ]]">
     <div class="oj-flex">
       <h1 class="oj-flex-item oj-sm-12 oj-md-12">
         <oj-bind-text value="[[ $application.variables.greeting ]]"></oj-bind-text>

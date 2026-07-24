@@ -18,8 +18,9 @@ define([
   'ojs/ojprogress-bar',
   'ojs/ojarraydataprovider',
   'ojs/ojarraytreedataprovider',
+  'ojs/ojhtmlutils',
   'knockout',
-], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, _gp, _pb, ArrayDataProvider, ArrayTreeDataProvider, ko) {
+], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, _gp, _pb, ArrayDataProvider, ArrayTreeDataProvider, HtmlUtils, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -163,6 +164,124 @@ define([
     return null;
   }
 
+  // ── Fase 9: archetypes de página (Welcome / GeneralOverview / ItemOverview) ──────────
+  // Cada nodo wire = { type:'ClientSide', metadata:{type,…campos}, children:[…] }. metaOf() da la
+  // metadata; los hijos viven en node.children (layouts top-level) o en metadata.content (records
+  // anidados como Card.content / VerticalLayout.content). Estos helpers normalizan ambos.
+
+  // Primer descendiente (incl. él mismo) cuyo metadata.type === type.
+  function findFirst(node, type) {
+    if (!node || typeof node !== 'object') return null;
+    if (metaOf(node).type === type) return node;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) {
+          const r = findFirst(v[j], type);
+          if (r) return r;
+        }
+      } else if (v && typeof v === 'object') {
+        const r = findFirst(v, type);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  // Hijos directos de un nodo: node.children, o metadata.content si es lista.
+  function kidsOf(node) {
+    const md = metaOf(node);
+    if (node && Array.isArray(node.children) && node.children.length) return node.children;
+    if (Array.isArray(md.content)) return md.content;
+    return [];
+  }
+
+  // Descriptor de contenido para el template (bounded): text / markdown / statusList / stack.
+  function contentDescriptor(x) {
+    if (!x) return { kind: 'text', text: '' };
+    const md = metaOf(x);
+    switch (md.type) {
+      case 'Text':
+        return { kind: 'text', text: md.text || '' };
+      case 'Markdown':
+        return { kind: 'markdown', dom: htmlDom(mdToHtml(md.markdown || md.text || '')) };
+      case 'StatusList':
+        return {
+          kind: 'statusList',
+          items: (md.items || []).map((i) => ({ title: i.title, status: i.status, color: i.statusColor })),
+        };
+      case 'VerticalLayout':
+      case 'HorizontalLayout':
+        return { kind: 'stack', items: kidsOf(x).map(contentDescriptor) };
+      default:
+        return { kind: 'text', text: md.text || '' };
+    }
+  }
+
+  // Markdown → HTML mínimo (headings, bold/italic, listas, tablas, párrafos). Se inyecta con
+  // oj-bind-dom (HtmlUtils.stringToNodeArray) — el modo OJET nativo para HTML dinámico.
+  function mdToHtml(md) {
+    if (!md) return '';
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const inline = (s) =>
+      esc(s)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    const lines = String(md).split('\n');
+    const H = ['', 'lg', 'md', 'sm', 'xs'];
+    let html = '';
+    let i = 0;
+    while (i < lines.length) {
+      const l = lines[i];
+      if (/^\s*\|.*\|\s*$/.test(l) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+        const cells = (x) => x.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+        const head = cells(l);
+        i += 2;
+        let body = '';
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
+          body += '<tr>' + cells(lines[i]).map((c) => '<td>' + inline(c) + '</td>').join('') + '</tr>';
+          i++;
+        }
+        html +=
+          '<table class="oj-table oj-table-data-cell-no-padding" style="width:auto"><thead><tr>' +
+          head.map((c) => '<th style="text-align:left;padding-right:1.5rem">' + inline(c) + '</th>').join('') +
+          '</tr></thead><tbody>' +
+          body +
+          '</tbody></table>';
+        continue;
+      }
+      const hm = l.match(/^(#{1,4})\s+(.*)/);
+      if (hm) {
+        const lv = hm[1].length;
+        html += '<h' + lv + ' class="oj-typography-heading-' + H[lv] + '">' + inline(hm[2]) + '</h' + lv + '>';
+        i++;
+        continue;
+      }
+      if (/^\s*[-*]\s+/.test(l)) {
+        let items = '';
+        while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+          items += '<li>' + inline(lines[i].replace(/^\s*[-*]\s+/, '')) + '</li>';
+          i++;
+        }
+        html += '<ul>' + items + '</ul>';
+        continue;
+      }
+      if (!l.trim()) {
+        i++;
+        continue;
+      }
+      html += '<p style="margin:0.25rem 0">' + inline(l) + '</p>';
+      i++;
+    }
+    return html;
+  }
+
+  // Config para <oj-bind-dom> a partir de un string HTML.
+  function htmlDom(html) {
+    return { view: HtmlUtils.stringToNodeArray('<div>' + (html || '') + '</div>'), data: {} };
+  }
+
   // Mapa slot→texto de los hijos slotted (overview, panel-0, …). Fase 7 = contenido Text.
   function slotTexts(node, out) {
     out = out || {};
@@ -296,6 +415,11 @@ define([
       // del oj-sp-guided-process (slot completionStep con el recap).
       this.wizardResult = ko.observable(false);
       this.wizardMenuRoute = '';
+      // Fase 9: modelos de los archetypes de página (null = no activo → su rama no se pinta).
+      this.welcomeModel = ko.observable(null);
+      this.generalOverviewModel = ko.observable(null);
+      this.itemOverviewModel = ko.observable(null);
+      this.itemTab = ko.observable(0); // pestaña seleccionada del ItemOverview (cliente)
     }
 
     getNavData() {
@@ -318,6 +442,64 @@ define([
     // pinta su PANEL DE COMPLETACIÓN nativo (slot completionStep con el recap). 'off' el resto.
     getGuidedCompletion() {
       return this.wizardResult() ? 'on' : 'off';
+    }
+    // ── Fase 9: archetypes de página ───────────────────────────────────────────────
+    isWelcome() {
+      return !!this.welcomeModel();
+    }
+    getWelcome() {
+      return this.welcomeModel() || {};
+    }
+    isGeneralOverview() {
+      return !!this.generalOverviewModel();
+    }
+    getGeneralOverview() {
+      return this.generalOverviewModel() || {};
+    }
+    isItemOverview() {
+      return !!this.itemOverviewModel();
+    }
+    getItemOverview() {
+      return this.itemOverviewModel() || { tabs: [] };
+    }
+    getItemTab() {
+      return this.itemTab();
+    }
+    // Welcome: un CTA → dispatch de su actionId; su Message se muestra como toast (messageToast).
+    async welcomeAction(event) {
+      const el = event && event.currentTarget;
+      const actionId = el && el.getAttribute('data-action-id');
+      if (!actionId) return { message: '' };
+      const inc = await callMateu(
+        this.current.route,
+        actionId,
+        this.current.serverSideType,
+        this.current.consumedRoute,
+        {},
+      );
+      const msg = (inc.messages || [])[0];
+      return { message: msg ? msg.text || msg.title : '' };
+    }
+    // GeneralOverview: cambiar el registro del switcher → acción switchRecord con el nuevo record;
+    // se reconstruye el overview en sitio (mismo patrón que _wizardStep).
+    async switchRecord(event) {
+      const value = event && event.detail && event.detail.value;
+      if (value == null || value === this.goValue) return;
+      const inc = await callMateu(
+        this.current.route,
+        'switchRecord',
+        this.current.serverSideType,
+        this.current.consumedRoute,
+        { record: value, _overview: {} },
+      );
+      const host = reduceContexts({ contexts: {}, stack: [], shell: null }, inc).contexts[HOST_ID] || {};
+      this._buildGeneralOverview(host);
+    }
+    // ItemOverview: seleccionar pestaña (cliente, sin ida al server — todo el contenido ya está).
+    selectItemTab(event) {
+      const el = event && event.currentTarget;
+      const idx = el && el.getAttribute('data-tab-index');
+      if (idx != null) this.itemTab(Number(idx));
     }
     getFormFields() {
       return this.formFields;
@@ -450,6 +632,10 @@ define([
               : item.consumedRoute || '',
       };
       const state = host.state || {};
+      // Fase 9: limpiar los modelos de archetype (una nueva navegación redefine el que aplique).
+      this.welcomeModel(null);
+      this.generalOverviewModel(null);
+      this.itemOverviewModel(null);
 
       // 0) ¿Foldout? (un FoldoutLayout) → overview + paneles oj-sp-foldout.
       const fl = findFoldout(host.tree);
@@ -495,6 +681,22 @@ define([
         this.crudSaveActionId = null;
         return { isWizard: true, isFoldout: false, isTable: false, isForm: false, isCrud: false, greeting: '' };
       }
+      const ARCH = { isWizard: false, isFoldout: false, isTable: false, isForm: false, isCrud: false, greeting: '' };
+      // W2) Welcome archetype (HeroSection + DashboardLayout) → hero con CTAs + tiles.
+      if (findFirst(host.tree, 'HeroSection') && findFirst(host.tree, 'DashboardLayout')) {
+        this._buildWelcome(host);
+        return ARCH;
+      }
+      // W3) ItemOverview archetype (TabLayout) → key-info + pestañas.
+      if (findFirst(host.tree, 'TabLayout')) {
+        this._buildItemOverview(host);
+        return ARCH;
+      }
+      // W4) GeneralOverview archetype (EntityHeader) → switcher + cabecera + cards.
+      if (findFirst(host.tree, 'EntityHeader')) {
+        this._buildGeneralOverview(host);
+        return ARCH;
+      }
       // C) ¿Formulario? (FormFields) → inputs oj-c-*.
       const fields = this._buildFormFields(host, state);
       this.crudSaveActionId = null; // un form normal (Profile) NO es create/edit de crud
@@ -533,6 +735,90 @@ define([
         }),
       );
       return fields;
+    }
+
+    // ── Fase 9: builders de los archetypes de página ───────────────────────────────
+    // Welcome: HeroSection (title/subtitle + Buttons) + DashboardLayout (DashboardPanel → Text).
+    _buildWelcome(host) {
+      const hero = findFirst(host.tree, 'HeroSection');
+      const dash = findFirst(host.tree, 'DashboardLayout');
+      const hm = metaOf(hero || {});
+      const buttons = (hero ? kidsOf(hero) : [])
+        .filter((c) => metaOf(c).type === 'Button')
+        .map((c) => {
+          const b = metaOf(c);
+          return { label: b.label, actionId: b.actionId, primary: b.buttonStyle === 'primary' };
+        });
+      const tiles = (dash ? kidsOf(dash) : [])
+        .filter((c) => metaOf(c).type === 'DashboardPanel')
+        .map((c) => {
+          const t = findFirst(c, 'Text');
+          return { title: metaOf(c).title || '', text: t ? metaOf(t).text : '' };
+        });
+      this.welcomeModel({ heroTitle: hm.title || '', heroSubtitle: hm.subtitle || '', buttons: buttons, tiles: tiles });
+    }
+
+    // GeneralOverview: switcher (FormField select 'record') + EntityHeader + Cards (StatusList /
+    // VerticalLayout de Text). Card.title/content anidan en metadata (no en children).
+    _buildGeneralOverview(host) {
+      const sw = collectFields(host.tree).filter((f) => f.fieldId === 'record')[0];
+      const swField = findFirst(host.tree, 'FormField');
+      const options = (metaOf(swField || {}).options || []).map((o) => ({ value: o.value, label: o.label }));
+      this.goValue = (host.state || {}).record || (options[0] && options[0].value) || '';
+      // oj-badge sólo entiende success/warning/danger/info/neutral → mapeamos los colores de Chip.
+      const badgeColor = (c) =>
+        c === 'success' || c === 'warning' || c === 'danger' || c === 'info' ? c : 'neutral';
+      const eh = findFirst(host.tree, 'EntityHeader');
+      const h = metaOf(eh || {});
+      const header = {
+        title: h.title || '',
+        subtitle: h.subtitle || '',
+        badges: (h.badges || []).map((b) => ({ label: b.label, color: badgeColor(b.color) })),
+        facts: (h.facts || []).map((f) => ({ label: f.label, value: f.value })),
+        metricLabel: h.metricLabel || '',
+        metricValue: h.metricValue || '',
+      };
+      // Cards de propiedades: la Card RAÍZ del overview es un wrapper (title=null, content=Div); las
+      // cards reales (Líneas/Datos) van ANIDADAS en metadata.content. Descendemos por children Y por
+      // content (record único o lista) y coleccionamos sólo las Card CON título.
+      const cards = [];
+      const descend = (x, fn) => {
+        if (!x || typeof x !== 'object') return;
+        const md = metaOf(x);
+        if (Array.isArray(x.children)) x.children.forEach(fn);
+        if (Array.isArray(md.content)) md.content.forEach(fn);
+        else if (md.content && typeof md.content === 'object') fn(md.content);
+      };
+      (function collect(node) {
+        if (!node || typeof node !== 'object') return;
+        const c = metaOf(node);
+        if (c.type === 'Card' && c.title) {
+          cards.push({
+            title: metaOf(c.title).text || '',
+            content: c.content ? contentDescriptor(c.content) : null,
+          });
+          return; // card real → no descendemos más
+        }
+        descend(node, collect);
+      })(host.tree);
+      const dp = new ArrayDataProvider(options, { keyAttributes: 'value' });
+      this.generalOverviewModel({ switcher: { options: options, value: this.goValue, dp: dp }, header: header, cards: cards });
+    }
+
+    // ItemOverview: Card key-info (metadata.content = Markdown) + TabLayout (Tab → Markdown).
+    _buildItemOverview(host) {
+      const keyCard = findFirst(host.tree, 'Card');
+      const keyContent = keyCard ? metaOf(keyCard).content : null;
+      const keyDom = keyContent ? contentDescriptor(keyContent) : { kind: 'text', text: '' };
+      const tl = findFirst(host.tree, 'TabLayout');
+      const tabs = (tl ? kidsOf(tl) : [])
+        .filter((c) => metaOf(c).type === 'Tab')
+        .map((c) => {
+          const inner = kidsOf(c)[0] || (metaOf(c).content ? { metadata: metaOf(c).content } : null);
+          return { label: metaOf(c).label || metaOf(c).caption || '', content: contentDescriptor(inner) };
+        });
+      this.itemTab(0);
+      this.itemOverviewModel({ keyContent: keyDom, tabs: tabs });
     }
 
     // Prepara la vista de un paso del wizard: campos + progreso + los botones reales del wire.

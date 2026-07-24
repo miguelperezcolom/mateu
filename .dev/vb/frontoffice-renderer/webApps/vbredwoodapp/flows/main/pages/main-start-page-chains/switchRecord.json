@@ -1,0 +1,8 @@
+{
+  "description": "Fase 9: cambio de registro en el switcher de GeneralOverview → reconstruye el overview.",
+  "root": "go",
+  "variables": { "event": { "required": true, "type": "any", "input": "fromCaller" } },
+  "actions": {
+    "go": { "module": "vb/action/builtin/callModuleFunctionAction", "parameters": { "module": "[[ $application.functions ]]", "functionName": "switchRecord", "params": ["{{ $variables.event }}"] } }
+  }
+}

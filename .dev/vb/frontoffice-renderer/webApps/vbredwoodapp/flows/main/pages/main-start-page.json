@@ -74,6 +74,36 @@
           "chainId": "guidedCancel"
         }
       ]
+    },
+    "welcomeAction": {
+      "chains": [
+        {
+          "chainId": "welcomeAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "switchRecord": {
+      "chains": [
+        {
+          "chainId": "switchRecord",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "itemTabSelect": {
+      "chains": [
+        {
+          "chainId": "itemTabSelect",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
     }
   },
   "imports": {}

@@ -1,0 +1,8 @@
+{
+  "description": "Fase 9: selección de pestaña en ItemOverview (cliente, sin ida al server).",
+  "root": "go",
+  "variables": { "event": { "required": true, "type": "any", "input": "fromCaller" } },
+  "actions": {
+    "go": { "module": "vb/action/builtin/callModuleFunctionAction", "parameters": { "module": "[[ $application.functions ]]", "functionName": "selectItemTab", "params": ["{{ $variables.event }}"] } }
+  }
+}
