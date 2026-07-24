@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@oracle/oraclejet-preact": "19.0.9",
     "lit": "^3.3.1",
     "mateu": "*"
   },

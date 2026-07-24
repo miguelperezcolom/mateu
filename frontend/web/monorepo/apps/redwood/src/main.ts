@@ -1,3 +1,4 @@
+import './oj/preactCss' // Oracle oj-c-* component CSS (externalized from the CDN JS) — styles the controls.
 import './index.css'
 import { MateuOjApp } from './app/MateuOjApp'
 

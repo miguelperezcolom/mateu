@@ -209,3 +209,109 @@ body {
   color: var(--oj-core-text-color-secondary, #5b5b5b);
   white-space: pre-wrap;
 }
+
+/* ── content: layouts, cards, forms, fields (Phase 1) ─────────────────────────────────── */
+
+.mateu-vlayout {
+  display: flex;
+  flex-direction: column;
+}
+.mateu-vlayout.full {
+  width: 100%;
+}
+.mateu-hlayout {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mateu-page-subtitle {
+  margin: -0.5rem 0 1.25rem;
+}
+
+.mateu-card {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+.mateu-card-title {
+  margin-bottom: 0.25rem;
+}
+.mateu-card-subtitle {
+  margin-bottom: 0.75rem;
+}
+
+.mateu-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.mateu-form-row {
+  display: grid;
+  grid-template-columns: repeat(var(--mateu-form-cols, 1), minmax(0, 1fr));
+  gap: 0.25rem 1.5rem;
+  align-items: start;
+}
+
+.mateu-field {
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+.mateu-field oj-c-input-text,
+.mateu-field oj-c-input-number,
+.mateu-field oj-c-select-single,
+.mateu-field oj-c-text-area,
+.mateu-field oj-c-checkbox {
+  width: 100%;
+  display: block;
+}
+.mateu-field-error {
+  color: var(--oj-message-error-icon-color, #c74634);
+  margin-top: 0.15rem;
+}
+
+.mateu-field-plain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.08));
+}
+
+/* native fallbacks (only used when the OJET CDN is unreachable) */
+.mateu-native-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+.mateu-native-field input,
+.mateu-native-field select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.25));
+  border-radius: 0.4rem;
+  font: inherit;
+}
+.mateu-native-button {
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 1.1rem;
+  height: 2.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--oj-palette-brand-100, #135a6b);
+  background: #fff;
+  color: var(--oj-palette-brand-130, #0a5a6b);
+}
+.mateu-native-button.callToAction {
+  background: var(--oj-palette-brand-100, #135a6b);
+  color: #fff;
+}
+
+.mateu-text {
+  margin: 0.25rem 0;
+}
