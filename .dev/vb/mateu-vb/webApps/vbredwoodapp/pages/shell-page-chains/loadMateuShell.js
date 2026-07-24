@@ -30,6 +30,7 @@ define([
       $application.variables.mateuMenuTabs = nav.mode === 'tabs';
       $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
       $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
+      $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // abierto de inicio
       $application.variables.mateuMenuTree = nav.menuTree;
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
@@ -38,6 +39,13 @@ define([
       $application.variables.mateuShellSST = nav.serverSideType || '';
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
+      }
+
+      if (nav.mode === 'drawer') {
+        // el navigation-list parsea su <ul> en el init; los li estampados llegan después
+        try {
+          await Actions.callComponentMethod(context, { selector: '#mateuNavList', method: 'refresh' });
+        } catch (ignored) { /* aún no montado: el refresh del toggle lo cubrirá */ }
       }
 
       const firstLeaf = nav.menuTree.find((entry) => !entry.hasChildren);

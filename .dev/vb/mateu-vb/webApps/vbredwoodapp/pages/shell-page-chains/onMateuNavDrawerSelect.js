@@ -34,7 +34,7 @@ define([
       if (group) {
         return; // el clic en el grupo solo expande/colapsa
       }
-      $application.variables.mateuNavDrawerOpen = false;
+      // el navigator es PERSISTENTE: navegar no lo cierra
       await Actions.callChain(context, {
         chain: 'onMateuNavigate',
         params: { event: { detail: { currentId: route } } },

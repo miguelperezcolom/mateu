@@ -302,9 +302,11 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   sync** — el bridge navega por la ruta TERMINAL (recorta el prefijo del padre; `shellNavOf`).
   **La VARIANTE del wire manda** (afinado con DOS rondas de feedback del usuario) — TRES modos
   en `shellNavOf().mode`: `TABS` → in-app navigation inferior; **`HAMBURGUER_MENU`/`TILES` →
-  hamburguesa que ABRE un `oj-drawer-popup` edge=start con `oj-navigation-list` jerárquico**
-  (drill-mode collapsible, como el navigator FA; los grupos se expanden, las hojas navegan y
-  cierran el drawer); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
+  navigator PERSISTENTE**: `oj-drawer-layout` (reflow, NO popup) DEBAJO del header con
+  `oj-navigation-list` jerárquico en el slot start — **abierto de inicio**, **no se oculta al
+  navegar** (marca el item activo vía `selection`); la hamburguesa solo lo pliega/despliega y
+  el contenido se desplaza (3ª ronda de feedback del usuario — la 2ª versión usaba un popup
+  modal que se cerraba al navegar); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
   hamburguesa; hojas = `oj-button` borderless con la ruta en data-route, grupos =
   `oj-menu-button` + `oj-menu`). Gotcha: `oj-navigation-list` parsea su `<ul>` en el init y los
   `li` estampados por `oj-bind-for-each` llegan DESPUÉS → hay que llamar a `refresh()` al abrir

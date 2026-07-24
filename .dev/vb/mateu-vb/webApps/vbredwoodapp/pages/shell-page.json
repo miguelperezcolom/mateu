@@ -129,10 +129,7 @@
     "hamburgerClicked": {
       "chains": [
         {
-          "chain": "toggleMateuNavDrawer",
-          "parameters": {
-            "open": true
-          }
+          "chain": "toggleMateuNavDrawer"
         }
       ]
     },
@@ -199,11 +196,11 @@
       "oj-option": {
         "path": "ojs/ojoption"
       },
-      "oj-drawer-popup": {
-        "path": "ojs/ojdrawerpopup"
-      },
       "oj-navigation-list": {
         "path": "ojs/ojnavigationlist"
+      },
+      "oj-drawer-layout": {
+        "path": "ojs/ojdrawerlayout"
       }
     }
   },

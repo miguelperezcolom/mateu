@@ -14,12 +14,13 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.open
+     * @param {boolean} params.open  sin valor = alternar (la hamburguesa pliega/despliega)
      */
     async run(context, { open }) {
       const { $application } = context;
-      $application.variables.mateuNavDrawerOpen = !!open;
-      if (open) {
+      const next = open == null ? !$application.variables.mateuNavDrawerOpen : !!open;
+      $application.variables.mateuNavDrawerOpen = next;
+      if (next) {
         // el navigation-list parsea su <ul> en el init; los li estampados por
         // oj-bind-for-each llegan después → refresh para que los decore
         try {

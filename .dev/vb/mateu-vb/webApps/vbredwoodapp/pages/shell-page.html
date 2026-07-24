@@ -92,13 +92,16 @@
         on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
     </oj-bind-if>
 
-    <!-- Navigator-drawer (HAMBURGUER_MENU): panel IZQUIERDO con oj-navigation-list
-         jerárquico (grupos colapsables); navegar cierra el drawer -->
-    <oj-drawer-popup id="mateuNavDrawer" edge="start" modality="modal"
-      opened="[[ $application.variables.mateuNavDrawerOpen ]]"
+    <!-- Navigator PERSISTENTE (HAMBURGUER_MENU): oj-drawer-layout (reflow) DEBAJO del
+         header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
+         y el contenido se desplaza -->
+    <oj-drawer-layout id="mateuNavDrawer"
+      start-opened="[[ $application.variables.mateuNavDrawerOpen ]]"
       on-oj-before-close="[[ $listeners.navDrawerClosed ]]">
-      <div class="oj-sm-padding-4x-vertical">
+
+      <div slot="start" class="oj-sm-padding-4x-vertical">
         <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
+          selection="[[ $application.variables.mateuSelectedRoute ]]"
           on-selection-changed="[[ $listeners.navDrawerSelected ]]">
           <ul>
             <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
@@ -122,26 +125,26 @@
           </ul>
         </oj-navigation-list>
       </div>
-    </oj-drawer-popup>
 
-    <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
+      <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
 
-      <div class="oj-flex">
-        <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12"
-          on-sp-close="[[$listeners.messagesBannerSpClose]]"
-          ></oj-sp-messages-banner>
+        <div class="oj-flex">
+          <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12"
+            on-sp-close="[[$listeners.messagesBannerSpClose]]"
+            ></oj-sp-messages-banner>
+        </div>
+
+        <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
+
+        <div class="oj-flex">
+          <!-- Renders flow content -->
+          <oj-vb-content id="vbRouterContent" class="oj-flex-item" config="[[vbRouterFlow]]">
+
+          </oj-vb-content>
+
+        </div>
       </div>
-
-      <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
-
-      <div class="oj-flex">
-        <!-- Renders flow content -->
-        <oj-vb-content id="vbRouterContent" class="oj-flex-item" config="[[vbRouterFlow]]">
-
-        </oj-vb-content>
-
-      </div>
-    </div>
+    </oj-drawer-layout>
   </div>
 
 </oj-sp-simple-ui-shell>
