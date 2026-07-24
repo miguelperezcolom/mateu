@@ -17,6 +17,7 @@ import io.mateu.uidl.fluent.AppVariant;
 public class RedwoodVbApp {
   @Menu Home home;
   @Menu Profile profile;
+  @Menu Products products;
   @Menu Reports reports;
   @Menu Settings settings;
 }
