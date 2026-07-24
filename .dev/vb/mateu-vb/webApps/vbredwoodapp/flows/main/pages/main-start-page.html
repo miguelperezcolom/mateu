@@ -19,10 +19,11 @@
 </oj-bind-if>
 
 
-<!-- Foldout (Fase 7): overview + paneles laterales con los oj-sp-foldout-* auténticos -->
+<!-- Foldout (Fase 7): overview + paneles laterales con los oj-sp-foldout-* auténticos.
+     SIN wrappers flex: el layout necesita un ancho ACOTADO por su padre para activar su
+     lógica responsive (plegado + scroll + dots); dentro de un flex-item con min-width:auto
+     se desborda y cree que todo cabe -->
 <oj-bind-if test="[[ !!$application.variables.mateuFoldout ]]">
-  <div class="oj-flex">
-    <div class="oj-flex-item oj-sm-12">
       <oj-sp-foldout-layout id="mateuFoldoutEl">
         <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuHostTitle ]]">
           <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.texts ]]">
@@ -44,8 +45,6 @@
           </template>
         </oj-bind-for-each>
       </oj-sp-foldout-layout>
-    </div>
-  </div>
 </oj-bind-if>
 
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">

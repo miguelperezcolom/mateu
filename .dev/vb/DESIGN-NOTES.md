@@ -340,8 +340,13 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   `panelTitle`, contenido en el slot default). El chrome es el RDS real: barra de acento dorada
   bajo cada título, superficies, breadcrumb "Parent page" y page-dots del propio componente.
 - **Interacción**: el clic va en el CONTENEDOR del panel (no en el título) — los paneles se
-  reparten el espacio y al enfocar uno los demás se pliegan (con viewport estrecho se ve el
-  plegado a tira); los dots navegan. Sin botones de plegado por cabecera: así es el componente.
+  reparten el espacio y al enfocar uno los demás se pliegan; los dots (`a.pagination-dot`)
+  navegan. **Gotcha CRÍTICO de layout (post-verificación: "los dots no hacían nada")**: la
+  lógica responsive del foldout solo se activa si su ancho está ACOTADO — el `oj-vb-content`
+  del starter es un flex-item con `min-width:auto`, así que el contenido ancho DESBORDABA
+  (scrollWidth === clientWidth → el componente creía que todo cabía). Fix estándar:
+  `min-width:0` en el `oj-vb-content` de shell-page (aplica a CUALQUIER contenido ancho:
+  foldouts, tablas, planning…) y sin wrappers flex alrededor del foldout en la página.
 - Limitaciones anotadas: `open=false` (Notes plegado de inicio) NO tiene API en
   `oj-sp-foldout-panel` (todos arrancan visibles); `subtitle` no existe como prop (se pinta
   como primera línea del contenido); el contenido de los paneles se proyecta como TEXTOS
