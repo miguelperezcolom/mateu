@@ -1,0 +1,20 @@
+{
+  "commands": [],
+  "messages": [
+    {
+      "variant": "error",
+      "position": null,
+      "title": "UnsupportedOperationException",
+      "text": "__load__ not supported by ProductsCrud",
+      "duration": 3000,
+      "undoLabel": null,
+      "undoActionId": null,
+      "undoParameters": null
+    }
+  ],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

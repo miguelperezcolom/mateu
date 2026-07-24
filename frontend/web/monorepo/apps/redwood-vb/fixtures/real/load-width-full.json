@@ -1,0 +1,122 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "a26da47f-6da1-45ca-93e4-efe65d06fa9c",
+        "serverSideType": "io.mateu.explorer.ui.WidthFull",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": true,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "Full width — fluid, 24px side gutters",
+                  "size": "l",
+                  "noMargins": false
+                },
+                "id": "cda01385-5aca-4ea9-9d45-ac76aa9ad56f",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Card",
+                  "media": null,
+                  "headerPrefix": null,
+                  "header": null,
+                  "title": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Content slab",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "fc75b842-f2e3-42a1-9c7c-942e860007ea",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "subtitle": null,
+                  "headerSuffix": null,
+                  "content": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Markdown",
+                      "markdown": "This page uses **`@PageWidth(FULL_WIDTH)`**.\n\nThe content slab is **fluid and uncapped** — it grows with the viewport, keeping a constant\n24px gutter on each side. Good for dense, data-heavy screens (grids, dashboards).\n"
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "footer": null,
+                  "variants": null
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": "width:100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": null,
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": "fullWidth",
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

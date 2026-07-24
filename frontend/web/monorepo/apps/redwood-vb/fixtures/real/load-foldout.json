@@ -1,0 +1,105 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "d587689b-dd47-4c64-8e5a-a9b6936fe648",
+        "serverSideType": "io.mateu.explorer.ui.FoldoutDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "FoldoutLayout",
+              "panels": [
+                {
+                  "title": "Payments",
+                  "subtitle": "Charges and refunds",
+                  "icon": null,
+                  "open": true
+                },
+                {
+                  "title": "Notes",
+                  "subtitle": "Front-desk notes",
+                  "icon": null,
+                  "open": false
+                }
+              ],
+              "headerTitle": "Booking 2026-08117",
+              "badges": [],
+              "orientation": "vertical",
+              "navigation": null,
+              "overviewEditActionId": null
+            },
+            "id": "io.mateu.explorer.ui.FoldoutDemo",
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Markdown",
+                  "markdown": "### Booking 2026-08117\n\n**Guest:** Jane Smith\n**Hotel:** Playa Azul\n**Dates:** 12–19 Aug 2026\n**Room:** Double superior, sea view\n**Status:** Confirmed\n\nTotal: **1.240 €** · Paid: 620 €\n"
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": "overview"
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Markdown",
+                  "markdown": "| Date | Concept | Amount |\n|---|---|---|\n| 02/05 | Deposit | 620 € |\n| 12/08 | Balance | pending |\n"
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": "panel-0"
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Markdown",
+                  "markdown": "- Late checkout requested (until 14:00)\n- Allergy: shellfish\n- Anniversary trip — welcome amenity sent\n"
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": "panel-1"
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": null,
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": "edgeToEdge",
+        "pageType": "detail"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

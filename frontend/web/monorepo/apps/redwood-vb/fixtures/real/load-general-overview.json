@@ -1,0 +1,962 @@
+{
+  "commands": [
+    {
+      "targetComponentId": null,
+      "type": "SetWindowTitle",
+      "data": "Requisitions"
+    }
+  ],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "4a6a7b67-e5d5-4969-9d9c-6f18123fe732",
+        "serverSideType": "io.mateu.explorer.ui.GeneralOverviewDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Page",
+              "id": null,
+              "favicon": null,
+              "pageTitle": "General overview demo",
+              "icon": null,
+              "title": "Requisitions",
+              "level": 0,
+              "readOnly": false,
+              "subtitle": null,
+              "status": null,
+              "breadcrumbs": null,
+              "badges": [],
+              "kpis": [],
+              "banners": [],
+              "actions": null,
+              "toolbar": [],
+              "buttons": [],
+              "avatar": null,
+              "header": [],
+              "footer": [],
+              "fabs": [],
+              "toc": null,
+              "peerNav": null,
+              "timestamp": null,
+              "pageWidth": null,
+              "pageType": "detail"
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Card",
+                  "media": null,
+                  "headerPrefix": null,
+                  "header": null,
+                  "title": null,
+                  "subtitle": null,
+                  "headerSuffix": null,
+                  "content": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Div",
+                      "content": null
+                    },
+                    "id": "fieldId",
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 2,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "record",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [
+                                        {
+                                          "value": "r1",
+                                          "label": "Requisition 204",
+                                          "description": null,
+                                          "image": null,
+                                          "imageStyle": null,
+                                          "icon": null,
+                                          "children": []
+                                        },
+                                        {
+                                          "value": "r2",
+                                          "label": "Requisition 205",
+                                          "description": null,
+                                          "image": null,
+                                          "imageStyle": null,
+                                          "icon": null,
+                                          "children": []
+                                        },
+                                        {
+                                          "value": "r3",
+                                          "label": "Requisition 206",
+                                          "description": null,
+                                          "image": null,
+                                          "imageStyle": null,
+                                          "icon": null,
+                                          "children": []
+                                        }
+                                      ],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": false,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": false,
+                                      "link": null
+                                    },
+                                    "id": "record",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  },
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "VerticalLayout",
+                                          "spacing": true,
+                                          "padding": false,
+                                          "margin": false,
+                                          "spacingVariant": null,
+                                          "horizontalAlignment": null,
+                                          "justification": null,
+                                          "wrap": false,
+                                          "flexGrows": null,
+                                          "fullWidth": true,
+                                          "style": null
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "EntityHeader",
+                                              "title": "Requisition 204",
+                                              "badges": [
+                                                {
+                                                  "label": "Processing",
+                                                  "color": "warning"
+                                                }
+                                              ],
+                                              "subtitle": "Purchase requisition",
+                                              "facts": [
+                                                {
+                                                  "label": "Business Unit",
+                                                  "value": "Vision Operations"
+                                                },
+                                                {
+                                                  "label": "Preparer ID",
+                                                  "value": "100.100.004.256.766"
+                                                },
+                                                {
+                                                  "label": "Lines",
+                                                  "value": "3"
+                                                }
+                                              ],
+                                              "metricLabel": "Amount",
+                                              "metricValue": "12.480,50 €",
+                                              "metricCaption": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "HorizontalLayout",
+                                              "spacing": true,
+                                              "padding": false,
+                                              "margin": false,
+                                              "spacingVariant": null,
+                                              "verticalAlignment": null,
+                                              "justification": null,
+                                              "wrap": false,
+                                              "flexGrows": null,
+                                              "fullWidth": true,
+                                              "style": null
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Card",
+                                                  "media": null,
+                                                  "headerPrefix": null,
+                                                  "header": null,
+                                                  "title": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "Text",
+                                                      "container": "div",
+                                                      "attributes": {},
+                                                      "text": "Lines",
+                                                      "size": null,
+                                                      "noMargins": false
+                                                    },
+                                                    "id": "4668a661-b6bf-4622-bd5b-aeacbfc8434a",
+                                                    "children": [],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "subtitle": null,
+                                                  "headerSuffix": null,
+                                                  "content": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "StatusList",
+                                                      "items": [
+                                                        {
+                                                          "id": null,
+                                                          "icon": null,
+                                                          "avatar": null,
+                                                          "title": "Portátiles (x12)",
+                                                          "description": null,
+                                                          "status": "OK",
+                                                          "statusColor": "success",
+                                                          "actionLabel": null,
+                                                          "actionId": null
+                                                        },
+                                                        {
+                                                          "id": null,
+                                                          "icon": null,
+                                                          "avatar": null,
+                                                          "title": "Monitores 27\" (x12)",
+                                                          "description": null,
+                                                          "status": "OK",
+                                                          "statusColor": "success",
+                                                          "actionLabel": null,
+                                                          "actionId": null
+                                                        },
+                                                        {
+                                                          "id": null,
+                                                          "icon": null,
+                                                          "avatar": null,
+                                                          "title": "Docking stations (x12)",
+                                                          "description": null,
+                                                          "status": "OK",
+                                                          "statusColor": "success",
+                                                          "actionLabel": null,
+                                                          "actionId": null
+                                                        }
+                                                      ],
+                                                      "compact": false,
+                                                      "frameless": true,
+                                                      "rowActionId": null
+                                                    },
+                                                    "id": null,
+                                                    "children": [],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "footer": null,
+                                                  "variants": null
+                                                },
+                                                "id": "fieldId",
+                                                "children": [],
+                                                "style": "flex: 1; min-width: 20rem;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Card",
+                                                  "media": null,
+                                                  "headerPrefix": null,
+                                                  "header": null,
+                                                  "title": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "Text",
+                                                      "container": "div",
+                                                      "attributes": {},
+                                                      "text": "Approval",
+                                                      "size": null,
+                                                      "noMargins": false
+                                                    },
+                                                    "id": "f2c2c967-1d5b-4ea4-acb0-dcf5d9a1ec55",
+                                                    "children": [],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "subtitle": null,
+                                                  "headerSuffix": null,
+                                                  "content": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "VerticalLayout",
+                                                      "spacing": true,
+                                                      "padding": false,
+                                                      "margin": false,
+                                                      "spacingVariant": null,
+                                                      "horizontalAlignment": null,
+                                                      "justification": null,
+                                                      "wrap": false,
+                                                      "flexGrows": null,
+                                                      "fullWidth": false,
+                                                      "style": null
+                                                    },
+                                                    "id": null,
+                                                    "children": [
+                                                      {
+                                                        "type": "ClientSide",
+                                                        "metadata": {
+                                                          "type": "Text",
+                                                          "container": "div",
+                                                          "attributes": {},
+                                                          "text": "Requested by: 100.100.004.256.766",
+                                                          "size": null,
+                                                          "noMargins": false
+                                                        },
+                                                        "id": "083229c2-a55d-4691-a446-7251bd0f5e77",
+                                                        "children": [],
+                                                        "style": null,
+                                                        "cssClasses": null,
+                                                        "slot": null
+                                                      },
+                                                      {
+                                                        "type": "ClientSide",
+                                                        "metadata": {
+                                                          "type": "Text",
+                                                          "container": "div",
+                                                          "attributes": {},
+                                                          "text": "Status: Processing",
+                                                          "size": null,
+                                                          "noMargins": false
+                                                        },
+                                                        "id": "07cf511a-4a63-4e7a-b8a9-13dc08ce2354",
+                                                        "children": [],
+                                                        "style": null,
+                                                        "cssClasses": null,
+                                                        "slot": null
+                                                      }
+                                                    ],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "footer": null,
+                                                  "variants": null
+                                                },
+                                                "id": "fieldId",
+                                                "children": [],
+                                                "style": "flex: 1; min-width: 16rem;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": "align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": null,
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 2
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "flex: 1; min-width: 0; width:100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "footer": null,
+                  "variants": [
+                    "outlined"
+                  ]
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": "",
+                "cssClasses": "mateu-section",
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {
+          "_overview": {},
+          "record": "r1"
+        },
+        "style": "",
+        "cssClasses": "",
+        "actions": [
+          {
+            "id": "nested-form-action-_overview-content_create",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_create-and-stay",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_add",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_select",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_selected",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_prev",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_next",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_save",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_remove",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_move-up",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_move-down",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-content_cancel",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_create",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_create-and-stay",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_add",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_select",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_selected",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_prev",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_next",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_save",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_remove",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_move-up",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_move-down",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-_overview-flexGrows_cancel",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "switchRecord",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [
+          {
+            "type": "OnLoad",
+            "actionId": "",
+            "timeoutMillis": 0,
+            "times": 0,
+            "condition": null
+          }
+        ],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "detail"
+      },
+      "state": {
+        "record": "r1",
+        "currentRequest": {
+          "baseUrl": "",
+          "parameterNames": []
+        },
+        "currentRequest-baseUrl": "",
+        "currentRequest-parameterNames": []
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

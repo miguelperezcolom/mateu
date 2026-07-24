@@ -1,0 +1,435 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "3d3aac97-9873-4573-b582-f1846565bf24",
+        "serverSideType": "io.mateu.explorer.ui.WizardDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": false,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": false,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "h2",
+                  "attributes": {},
+                  "text": "Wizard",
+                  "size": null,
+                  "noMargins": false
+                },
+                "id": "814115af-a340-428d-aa7f-c7e202d9ce0e",
+                "children": [],
+                "style": "margin: 0;",
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "ProgressBar",
+                  "indeterminate": false,
+                  "min": 0,
+                  "max": 3,
+                  "value": 0,
+                  "valueKey": null,
+                  "text": "Guest",
+                  "theme": null
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": "width: 100%;",
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Div",
+                  "content": null
+                },
+                "id": "fieldId",
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Card",
+                      "media": null,
+                      "headerPrefix": null,
+                      "header": null,
+                      "title": null,
+                      "subtitle": null,
+                      "headerSuffix": null,
+                      "content": {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "Div",
+                          "content": null
+                        },
+                        "id": "fieldId",
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 2,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormField",
+                                          "fieldId": "name",
+                                          "dataType": "string",
+                                          "stereotype": "regular",
+                                          "observed": false,
+                                          "autofocus": false,
+                                          "label": "Name",
+                                          "placeholder": null,
+                                          "cssClasses": null,
+                                          "description": "",
+                                          "badges": [],
+                                          "attributes": [],
+                                          "colspan": 1,
+                                          "rightAligned": false,
+                                          "bold": false,
+                                          "options": [],
+                                          "remoteCoordinates": null,
+                                          "initialValue": null,
+                                          "readOnly": false,
+                                          "required": false,
+                                          "style": "",
+                                          "columns": [],
+                                          "inlineEditing": false,
+                                          "onItemSelectionActionId": null,
+                                          "rowSelectionShortcut": null,
+                                          "formPosition": null,
+                                          "formStyle": null,
+                                          "formTheme": null,
+                                          "formColumns": 0,
+                                          "sliderMin": 0,
+                                          "sliderMax": 100,
+                                          "stepButtonsVisible": false,
+                                          "step": 0,
+                                          "itemIdPath": null,
+                                          "detailPath": null,
+                                          "useButtonForDetail": false,
+                                          "minHeightWhenDetailVisible": null,
+                                          "optionsColumns": 1,
+                                          "mainFilter": false,
+                                          "treeLeavesOnly": false,
+                                          "multiline": false,
+                                          "propertyRow": false,
+                                          "link": null
+                                        },
+                                        "id": "name",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormField",
+                                          "fieldId": "email",
+                                          "dataType": "string",
+                                          "stereotype": "regular",
+                                          "observed": false,
+                                          "autofocus": false,
+                                          "label": "Email",
+                                          "placeholder": null,
+                                          "cssClasses": null,
+                                          "description": "",
+                                          "badges": [],
+                                          "attributes": [],
+                                          "colspan": 1,
+                                          "rightAligned": false,
+                                          "bold": false,
+                                          "options": [],
+                                          "remoteCoordinates": null,
+                                          "initialValue": null,
+                                          "readOnly": false,
+                                          "required": false,
+                                          "style": "",
+                                          "columns": [],
+                                          "inlineEditing": false,
+                                          "onItemSelectionActionId": null,
+                                          "rowSelectionShortcut": null,
+                                          "formPosition": null,
+                                          "formStyle": null,
+                                          "formTheme": null,
+                                          "formColumns": 0,
+                                          "sliderMin": 0,
+                                          "sliderMax": 100,
+                                          "stepButtonsVisible": false,
+                                          "step": 0,
+                                          "itemIdPath": null,
+                                          "detailPath": null,
+                                          "useButtonForDetail": false,
+                                          "minHeightWhenDetailVisible": null,
+                                          "optionsColumns": 1,
+                                          "mainFilter": false,
+                                          "treeLeavesOnly": false,
+                                          "multiline": false,
+                                          "propertyRow": false,
+                                          "link": null
+                                        },
+                                        "id": "email",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "flex: 1; min-width: 0; width:100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      "footer": null,
+                      "variants": [
+                        "outlined"
+                      ]
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": "",
+                    "cssClasses": "mateu-section",
+                    "slot": null
+                  }
+                ],
+                "style": "width: 100%; margin-top: 1rem;",
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "HorizontalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "verticalAlignment": null,
+                  "justification": "END",
+                  "wrap": false,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Button",
+                      "label": "Back",
+                      "iconOnLeft": null,
+                      "iconOnRight": null,
+                      "image": null,
+                      "color": "normal",
+                      "variant": null,
+                      "buttonStyle": null,
+                      "size": null,
+                      "autofocus": false,
+                      "disabled": true,
+                      "actionId": "back",
+                      "parameters": null,
+                      "shortcut": null,
+                      "separatorBefore": false,
+                      "children": null
+                    },
+                    "id": "back",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Button",
+                      "label": "Next",
+                      "iconOnLeft": null,
+                      "iconOnRight": null,
+                      "image": null,
+                      "color": "normal",
+                      "variant": null,
+                      "buttonStyle": null,
+                      "size": null,
+                      "autofocus": false,
+                      "disabled": false,
+                      "actionId": "next",
+                      "parameters": null,
+                      "shortcut": null,
+                      "separatorBefore": false,
+                      "children": null
+                    },
+                    "id": "next",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": "width: 100%",
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {
+          "position": 0,
+          "guest": {},
+          "stay": null,
+          "result": null,
+          "step": {
+            "name": null,
+            "email": null
+          },
+          "name": null,
+          "email": null
+        },
+        "style": "max-width:900px;margin: auto;",
+        "cssClasses": null,
+        "actions": [
+          {
+            "id": "next",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "*",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "process"
+      },
+      "state": {
+        "position": 0,
+        "guest": {},
+        "stay": null,
+        "result": null,
+        "step": {
+          "name": null,
+          "email": null
+        },
+        "name": null,
+        "email": null
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

@@ -1,0 +1,178 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "9592eb86-eba7-43c2-aa40-91456f7a9016",
+        "serverSideType": "io.mateu.explorer.ui.SectionEmptyDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": true,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Breadcrumbs",
+                  "currentItemText": "Booking 204",
+                  "breadcrumbs": [
+                    {
+                      "text": "Home",
+                      "link": "/"
+                    },
+                    {
+                      "text": "Bookings",
+                      "link": "/dashboard"
+                    }
+                  ]
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "FormSection",
+                  "title": "Booking details"
+                },
+                "id": "fieldId",
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Confirmation ABC-123",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "d7ee1799-0ee0-4b10-88bc-e57f8cffdeb2",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "2 guests · 3 nights · Deluxe room",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "c31c3544-73ce-4521-a5ec-184c2ebc091e",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "EmptyState",
+                  "icon": "🗂",
+                  "title": "No payments yet",
+                  "description": "Add a payment to see it listed here.",
+                  "actionId": "addPayment",
+                  "actionLabel": "Add payment"
+                },
+                "id": null,
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": "max-width:900px;margin: auto;",
+        "cssClasses": null,
+        "actions": [
+          {
+            "id": "addPayment",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "addPayment",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

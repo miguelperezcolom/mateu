@@ -1,0 +1,11 @@
+{
+  "name": "redwood-vb",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mateu renderer on Oracle Visual Builder — portable JS bridge kit. Plan lives in .dev/vb/.",
+  "scripts": {
+    "test": "node --test test/",
+    "capture": "node tools/capture.mjs"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "0f7698ba-fa37-49af-91e4-cb010395e599",
+        "serverSideType": "io.mateu.explorer.ui.TabsDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "TabLayout",
+              "orientation": null,
+              "variant": null,
+              "groupRelationship": null,
+              "adaptable": false
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Tab",
+                  "id": null,
+                  "active": false,
+                  "label": "Overview",
+                  "shortcut": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Booking 204 · Deluxe room · 3 nights.",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "79df1c9c-e0d4-4190-963e-481542f92ca4",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "",
+                "cssClasses": "",
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Tab",
+                  "id": null,
+                  "active": false,
+                  "label": "Guests",
+                  "shortcut": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "2 adults · Ms. Vision (lead guest).",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "fc10a8b9-26c3-46e9-b18d-8a858c23ebb2",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "",
+                "cssClasses": "",
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Tab",
+                  "id": null,
+                  "active": false,
+                  "label": "Payment",
+                  "shortcut": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Balance 12.480,50 € · Visa ····4242.",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "7d7b7704-7d8a-4eb2-9464-d002c0e11cac",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "",
+                "cssClasses": "",
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": "max-width:900px;margin: auto;",
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

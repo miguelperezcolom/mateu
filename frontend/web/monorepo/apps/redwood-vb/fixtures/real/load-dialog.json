@@ -1,0 +1,137 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "9f9cb924-895c-42b4-b2ea-ef9b594144a8",
+        "serverSideType": "io.mateu.explorer.ui.DialogDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": false,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "A Mateu Dialog rendered inside the authentic Spectra shell.",
+                  "size": null,
+                  "noMargins": false
+                },
+                "id": "cb7aa2bb-fc23-480a-ae2b-a2513757c465",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Button",
+                  "label": "Open dialog",
+                  "iconOnLeft": null,
+                  "iconOnRight": null,
+                  "image": null,
+                  "color": "normal",
+                  "variant": null,
+                  "buttonStyle": null,
+                  "size": null,
+                  "autofocus": false,
+                  "disabled": false,
+                  "actionId": "openDialog",
+                  "parameters": null,
+                  "shortcut": null,
+                  "separatorBefore": false,
+                  "children": null
+                },
+                "id": "1cd310b8-a307-4c47-a0b0-3f2e797c9c45",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": "max-width:900px;margin: auto;",
+        "cssClasses": null,
+        "actions": [
+          {
+            "id": "openDialog",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "openDialog",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

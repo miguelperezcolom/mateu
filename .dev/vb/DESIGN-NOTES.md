@@ -107,6 +107,24 @@ dar por buena la Fase 9 (app anidada).
   DashboardLayout, Scoreboard, MetricCard, DashboardPanel, FoldoutLayout, HeroSection, EntityHeader, TaskQueue,
   Crud/Table/Grid, + hojas).
 
+### Fase 0 — hallazgos con captura REAL (2026-07-24, explorer en :8595)
+
+Capturado con `apps/redwood-vb/tools/capture.mjs` → `apps/redwood-vb/fixtures/real/*.json`; 15 tests de
+contrato en `apps/redwood-vb/test/contract.test.mjs` (verdes). **Corrección importante del contrato**: el
+`component` de un fragment tiene DOS formas y se leen distinto:
+- **ServerSide** (el mediador de una vista enrutada): `{ type:"ServerSide", id, serverSideType, route, children,
+  initialData, pageType, pageWidth, actions, triggers, rules, … }` — campos al **NIVEL SUPERIOR**, SIN
+  `.metadata`. El contenido va en `children` (ClientSide). El `state` del contexto se siembra de `initialData`.
+- **ClientSide** (App shell + hojas UI): `{ type:"ClientSide", metadata:{…DTO tipado…}, id, children, slot, … }`
+  — el tipo real y los datos están en `component.metadata` (p.ej. `metadata.type:"App"` con `menu`, `variant`,
+  `homeRoute`, `sseUrl`, `contextSelectors`, `contextActions`, `themeToggle`, …).
+- Por eso `metaOf = fr.component?.metadata || fr.component` es correcto (ClientSide→metadata; ServerSide→él mismo).
+- `pageType` real por superficie (confirmado): landing/dashboard/detail/form/process. `pageWidth` puede venir
+  `null` (el renderer lo infiere) — la puerta 1.6 valida los tres modos igualmente.
+- **Known gap**: `/products` (AutoCrud) devuelve increment VACÍO en el explorer (regresión backend
+  FilteredAutoCrud, ver memoria `feedback_redwood_oj_harness`) — recapturar cuando el backend lo sirva.
+- Las capturas de 2 pasos (abrir Drawer=`Add`, `State` push, save) faltan: se añaden al llegar a 1.2/Fase 5.
+
 ## Builtins de action chain de VB
 
 **Confirmados** (vistos en `.dev/vb/dashboard/**/*.json`):

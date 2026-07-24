@@ -1,0 +1,122 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "45964bea-b1b9-4d5b-bdcd-4be1bf337c60",
+        "serverSideType": "io.mateu.explorer.ui.WidthEdge",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": true,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "Edge to edge — content touches the edges",
+                  "size": "l",
+                  "noMargins": false
+                },
+                "id": "71dd6f50-d8ff-42d8-ba1e-2cce07eb8f5b",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Card",
+                  "media": null,
+                  "headerPrefix": null,
+                  "header": null,
+                  "title": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Content slab",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "65383b39-0dc0-4640-a81f-9a4321a38bca",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "subtitle": null,
+                  "headerSuffix": null,
+                  "content": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Markdown",
+                      "markdown": "This page uses **`@PageWidth(EDGE_TO_EDGE)`**.\n\nThe content spans the full content area with **no side gutters** — for canvases that need\nevery pixel: gantt/planning boards, maps, full-bleed foldouts.\n"
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "footer": null,
+                  "variants": null
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": "width:100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": null,
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": "edgeToEdge",
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

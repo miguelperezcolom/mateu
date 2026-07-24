@@ -1,0 +1,195 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "d410b47c-824f-40bf-9431-bb9dc5b5820d",
+        "serverSideType": "io.mateu.explorer.ui.DashboardDemo",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "DashboardLayout",
+              "columns": 0
+            },
+            "id": "io.mateu.explorer.ui.DashboardDemo",
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Scoreboard"
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "MetricCard",
+                      "title": "Revenue",
+                      "value": "1.2",
+                      "unit": "M€",
+                      "trend": "up",
+                      "trendLabel": "+8% vs last month",
+                      "icon": null,
+                      "description": null,
+                      "actionId": null
+                    },
+                    "id": null,
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "MetricCard",
+                      "title": "Orders",
+                      "value": "3,421",
+                      "unit": null,
+                      "trend": "up",
+                      "trendLabel": "+112",
+                      "icon": null,
+                      "description": null,
+                      "actionId": null
+                    },
+                    "id": null,
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "MetricCard",
+                      "title": "Returns",
+                      "value": "87",
+                      "unit": null,
+                      "trend": "down",
+                      "trendLabel": "-12% vs last month",
+                      "icon": null,
+                      "description": null,
+                      "actionId": null
+                    },
+                    "id": null,
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "MetricCard",
+                      "title": "NPS",
+                      "value": "62",
+                      "unit": null,
+                      "trend": "neutral",
+                      "trendLabel": "stable",
+                      "icon": null,
+                      "description": null,
+                      "actionId": null
+                    },
+                    "id": null,
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "DashboardPanel",
+                  "title": "Monthly sales",
+                  "subtitle": "Units sold per month",
+                  "colSpan": 2,
+                  "rowSpan": 1
+                },
+                "id": "sales",
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Markdown",
+                      "markdown": "| Month | Units |\n|---|---|\n| May | 1,240 |\n| Jun | 1,510 |\n| Jul | 1,980 |\n"
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "DashboardPanel",
+                  "title": "Channel mix",
+                  "subtitle": "Sales by channel",
+                  "colSpan": 1,
+                  "rowSpan": 1
+                },
+                "id": "channels",
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Markdown",
+                      "markdown": "- **Direct** — 46%\n- **Marketplace** — 31%\n- **Agencies** — 23%\n"
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": null,
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "dashboard"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

@@ -1,0 +1,122 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ServerSide",
+        "id": "eeb94da3-f1c3-4a39-9b67-e94b40e2e371",
+        "serverSideType": "io.mateu.explorer.ui.WidthFixed",
+        "route": "_empty",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": true,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "Fixed width — capped at 1408px, centered",
+                  "size": "l",
+                  "noMargins": false
+                },
+                "id": "be8b029e-0fcc-4f3a-97a1-6e14d16aff3c",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Card",
+                  "media": null,
+                  "headerPrefix": null,
+                  "header": null,
+                  "title": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Text",
+                      "container": "div",
+                      "attributes": {},
+                      "text": "Content slab",
+                      "size": null,
+                      "noMargins": false
+                    },
+                    "id": "349a825c-8a56-4ff6-9c57-bf316de713b7",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "subtitle": null,
+                  "headerSuffix": null,
+                  "content": {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Markdown",
+                      "markdown": "This page uses **`@PageWidth(FIXED)`**.\n\nThe content slab is capped at **1408px** and centered, so the page canvas shows at the\nsides on wide screens. This is the Redwood default for most detail and form pages.\n"
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": null,
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  "footer": null,
+                  "variants": null
+                },
+                "id": "fieldId",
+                "children": [],
+                "style": "width:100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": null,
+        "cssClasses": null,
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": "fixed",
+        "pageType": "form"
+      },
+      "state": {},
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}
