@@ -45,13 +45,7 @@ export function renderComponent(node: unknown, ctx: RenderCtx): TemplateResult |
       return renderChildren(node, ctx)
 
     case 'Page':
-      return html`
-        <div class="mateu-page">
-          ${m['title'] ? html`<h1 class="oj-typography-heading-lg mateu-page-title">${interpolate(String(m['title']), ctxScope(ctx))}</h1>` : nothing}
-          ${m['subtitle'] ? html`<p class="oj-typography-body-md oj-text-color-secondary mateu-page-subtitle">${interpolate(String(m['subtitle']), ctxScope(ctx))}</p>` : nothing}
-          ${renderChildren(node, ctx)}
-        </div>
-      `
+      return renderPage(node, m, ctx)
 
     case 'VerticalLayout':
       return html`<div class="mateu-vlayout ${m['fullWidth'] ? 'full' : ''}" style=${styleFor(node, m['spacing'] ? 'gap:1rem;' : 'gap:0;')}>
@@ -101,6 +95,33 @@ export function renderChildren(node: unknown, ctx: RenderCtx): TemplateResult {
 }
 
 // ── container helpers ─────────────────────────────────────────────────────────────────
+
+/** Normalise a toolbar/buttons item to its metadata (wire nests some as ClientSide, some raw). */
+function metaItems(arr: unknown): Json[] {
+  return (Array.isArray(arr) ? arr : []).map((i) => ((i as Json)['metadata'] as Json) ?? (i as Json))
+}
+
+function renderPage(node: unknown, m: Json, ctx: RenderCtx): TemplateResult {
+  const title = m['title'] ? interpolate(String(m['title']), ctxScope(ctx)) : ''
+  const subtitle = m['subtitle'] ? interpolate(String(m['subtitle']), ctxScope(ctx)) : ''
+  const toolbar = metaItems(m['toolbar'])
+  const buttons = metaItems(m['buttons'])
+  return html`
+    <div class="mateu-page">
+      ${title || toolbar.length
+        ? html`<div class="mateu-page-header">
+            <div class="mateu-page-header-titles">
+              ${title ? html`<h1 class="oj-typography-heading-lg mateu-page-title">${title}</h1>` : nothing}
+              ${subtitle ? html`<p class="oj-typography-body-md oj-text-color-secondary mateu-page-subtitle">${subtitle}</p>` : nothing}
+            </div>
+            ${toolbar.length ? html`<div class="mateu-page-toolbar">${toolbar.map((b) => renderButton({}, b, ctx))}</div>` : nothing}
+          </div>`
+        : nothing}
+      ${renderChildren(node, ctx)}
+      ${buttons.length ? html`<div class="mateu-page-buttons">${buttons.map((b) => renderButton({}, b, ctx))}</div>` : nothing}
+    </div>
+  `
+}
 
 function renderCard(node: unknown, m: Json, ctx: RenderCtx): TemplateResult {
   const title = m['title'] ? interpolate(String(m['title']), ctxScope(ctx)) : ''

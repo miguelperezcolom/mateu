@@ -400,3 +400,27 @@ body {
   color: var(--oj-core-text-color-secondary, #5b5b5b);
   background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.02));
 }
+
+/* ── page header / action buttons (Phase 3) ───────────────────────────────────────────── */
+
+.mateu-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.mateu-page-header-titles h1 {
+  margin: 0;
+}
+.mateu-page-toolbar,
+.mateu-page-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mateu-page-buttons {
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}

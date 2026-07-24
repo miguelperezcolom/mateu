@@ -69,5 +69,14 @@ export function ojElement(
   },
 ): TemplateResult {
   const t = unsafeStatic(tag)
-  return staticHtml`<${t} ${applyOj({ props: cfg.props, attrs: cfg.attrs, events: cfg.events })}>${cfg.children ?? nothing}</${t}>`
+  const bindings = applyOj({ props: cfg.props, attrs: cfg.attrs, events: cfg.events })
+  // CRITICAL: for a LEAF oj element (no slotted children) emit NO child expression. Oracle JET
+  // VComponents render their OWN internal DOM as light-DOM children; a Lit ChildPart marker inside
+  // the element would be ejected by that internal DOM, and the next re-render throws "ChildPart has
+  // no parentNode". A childless element has no ChildPart, so Lit treats it as an opaque leaf and
+  // safely reuses it across re-renders (applyOj just re-sets the props).
+  if (cfg.children === undefined || cfg.children === nothing) {
+    return staticHtml`<${t} ${bindings}></${t}>`
+  }
+  return staticHtml`<${t} ${bindings}>${cfg.children}</${t}>`
 }
