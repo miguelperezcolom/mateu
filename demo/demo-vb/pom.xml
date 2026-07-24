@@ -6,19 +6,19 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.5</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>io.mateu.explorer</groupId>
-    <artifactId>explorer</artifactId>
+    <groupId>io.mateu.mdd</groupId>
+    <artifactId>demo-vb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>explorer</name>
-    <description>Mateu Explorer — a Spring Boot MVC demo service rendered with the Oracle Redwood renderer.</description>
-
+    <name>demo-vb</name>
+    <description>Backend de soporte del renderer Mateu-sobre-VB (Visual Builder / Redwood).
+        Sirve las pantallas de referencia de cada fase del roadmap (.dev/vb/RENDERER-ROADMAP.md)
+        en el puerto 9005 y expone la API estándar /mateu/v3 con CORS abierto para que la app VB
+        (bridge JS) pueda consumirla desde otro origen.</description>
     <properties>
         <java.version>21</java.version>
-        <mateu.version>0.0.1-MATEU</mateu.version>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -36,21 +36,23 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Mateu: framework AP (generates the controllers), the Spring MVC runtime, and the renderer -->
+        <!-- here mateu dependencies -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-mvc</artifactId>
-            <version>${mateu.version}</version>
+            <version>0.0.1-MATEU</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mvc-core</artifactId>
-            <version>${mateu.version}</version>
+            <version>0.0.1-MATEU</version>
         </dependency>
+        <!-- vaadin-lit only serves as the visual cross-check while the VB renderer is built;
+             the VB bridge consumes the JSON API directly -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>${mateu.version}</version>
+            <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>
 
@@ -87,7 +89,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>${mateu.version}</version>
+                                    <version>0.0.1-MATEU</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -107,7 +109,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>${mateu.version}</version>
+                                    <version>0.0.1-MATEU</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>

@@ -1,0 +1,616 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "",
+      "type": "SetWindowTitle",
+      "data": "Island host"
+    }
+  ],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "",
+      "component": {
+        "type": "ServerSide",
+        "id": "554f77ea-a9fb-44b4-907f-c524aae84573",
+        "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.IslandHostPage",
+        "route": "",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Page",
+              "id": null,
+              "favicon": null,
+              "pageTitle": "Island host page",
+              "icon": null,
+              "title": "Island host",
+              "level": 0,
+              "readOnly": false,
+              "subtitle": null,
+              "status": null,
+              "breadcrumbs": null,
+              "badges": [],
+              "kpis": [],
+              "banners": [],
+              "actions": null,
+              "toolbar": [],
+              "buttons": [],
+              "avatar": null,
+              "header": [],
+              "footer": [],
+              "fabs": [],
+              "toc": null,
+              "peerNav": null,
+              "timestamp": null,
+              "pageWidth": null,
+              "pageType": "form"
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "VerticalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "horizontalAlignment": null,
+                  "justification": null,
+                  "wrap": false,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Card",
+                      "media": null,
+                      "headerPrefix": null,
+                      "header": null,
+                      "title": null,
+                      "subtitle": null,
+                      "headerSuffix": null,
+                      "content": {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "Text",
+                              "container": "h3",
+                              "attributes": {},
+                              "text": "Estancia",
+                              "size": null,
+                              "noMargins": false
+                            },
+                            "id": "195b3902-5ec5-444a-9f87-ce44a8b9a2a2",
+                            "children": [],
+                            "style": " flex: 1; margin: 0;",
+                            "cssClasses": null,
+                            "slot": null
+                          },
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 2,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormField",
+                                          "fieldId": "room",
+                                          "dataType": "string",
+                                          "stereotype": "regular",
+                                          "observed": false,
+                                          "autofocus": false,
+                                          "label": "Room",
+                                          "placeholder": null,
+                                          "cssClasses": null,
+                                          "description": "",
+                                          "badges": [],
+                                          "attributes": [],
+                                          "colspan": 1,
+                                          "rightAligned": false,
+                                          "bold": false,
+                                          "options": [],
+                                          "remoteCoordinates": null,
+                                          "initialValue": null,
+                                          "readOnly": false,
+                                          "required": false,
+                                          "style": "",
+                                          "columns": [],
+                                          "inlineEditing": false,
+                                          "onItemSelectionActionId": null,
+                                          "rowSelectionShortcut": null,
+                                          "formPosition": null,
+                                          "formStyle": null,
+                                          "formTheme": null,
+                                          "formColumns": 0,
+                                          "sliderMin": 0,
+                                          "sliderMax": 100,
+                                          "stepButtonsVisible": false,
+                                          "step": 0,
+                                          "itemIdPath": null,
+                                          "detailPath": null,
+                                          "useButtonForDetail": false,
+                                          "minHeightWhenDetailVisible": null,
+                                          "optionsColumns": 1,
+                                          "mainFilter": false,
+                                          "treeLeavesOnly": false,
+                                          "multiline": false,
+                                          "propertyRow": false,
+                                          "link": null
+                                        },
+                                        "id": "room",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormField",
+                                          "fieldId": "status",
+                                          "dataType": "string",
+                                          "stereotype": "regular",
+                                          "observed": false,
+                                          "autofocus": false,
+                                          "label": "Status",
+                                          "placeholder": null,
+                                          "cssClasses": null,
+                                          "description": "",
+                                          "badges": [],
+                                          "attributes": [],
+                                          "colspan": 1,
+                                          "rightAligned": false,
+                                          "bold": false,
+                                          "options": [],
+                                          "remoteCoordinates": null,
+                                          "initialValue": null,
+                                          "readOnly": false,
+                                          "required": false,
+                                          "style": "",
+                                          "columns": [],
+                                          "inlineEditing": false,
+                                          "onItemSelectionActionId": null,
+                                          "rowSelectionShortcut": null,
+                                          "formPosition": null,
+                                          "formStyle": null,
+                                          "formTheme": null,
+                                          "formColumns": 0,
+                                          "sliderMin": 0,
+                                          "sliderMax": 100,
+                                          "stepButtonsVisible": false,
+                                          "step": 0,
+                                          "itemIdPath": null,
+                                          "detailPath": null,
+                                          "useButtonForDetail": false,
+                                          "minHeightWhenDetailVisible": null,
+                                          "optionsColumns": 1,
+                                          "mainFilter": false,
+                                          "treeLeavesOnly": false,
+                                          "multiline": false,
+                                          "propertyRow": false,
+                                          "link": null
+                                        },
+                                        "id": "status",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      "footer": null,
+                      "variants": [
+                        "outlined"
+                      ]
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": "flex: 1; min-width: 0; width:100%;",
+                    "cssClasses": "mateu-section",
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Card",
+                      "media": null,
+                      "headerPrefix": null,
+                      "header": null,
+                      "title": null,
+                      "subtitle": null,
+                      "headerSuffix": null,
+                      "content": {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 2,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ServerSide",
+                                            "id": "_guestNote",
+                                            "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNoteView",
+                                            "route": "/guest-note?_embeddedMediator=1&_inline=1",
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "App",
+                                                  "route": "/guest-note",
+                                                  "variant": "MEDIATOR",
+                                                  "layout": "SINGLE_SLOT",
+                                                  "icon": null,
+                                                  "logo": null,
+                                                  "title": null,
+                                                  "subtitle": null,
+                                                  "favicon": null,
+                                                  "menu": [],
+                                                  "totalMenuOptions": 0,
+                                                  "homeRoute": "/guest-note?_embeddedMediator=1&_inline=1",
+                                                  "homeConsumedRoute": "/guest-note",
+                                                  "homeBaseUrl": "",
+                                                  "homeServerSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNoteView",
+                                                  "homeUriPrefix": null,
+                                                  "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNoteView",
+                                                  "loginUrl": null,
+                                                  "welcomeMessage": null,
+                                                  "logoutUrl": null,
+                                                  "apps": [],
+                                                  "drawerClosed": false,
+                                                  "style": "width: 100%;",
+                                                  "cssClasses": null,
+                                                  "home": null,
+                                                  "rootRoute": "/island-host",
+                                                  "sseUrl": null,
+                                                  "mcpUrl": null,
+                                                  "uploadUrl": null,
+                                                  "fabs": [],
+                                                  "themeToggle": false,
+                                                  "contextSelectors": [],
+                                                  "contextActions": [],
+                                                  "notificationsEnabled": false,
+                                                  "globalSearchEnabled": false,
+                                                  "commandCenterEnabled": false,
+                                                  "chromeless": false
+                                                },
+                                                "id": "_guestNote_app",
+                                                "children": [],
+                                                "style": "width: 100%;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "initialData": {
+                                              "_embeddedMediator": true,
+                                              "_inline": true
+                                            },
+                                            "style": "width: 100%;",
+                                            "cssClasses": null,
+                                            "actions": [
+                                              {
+                                                "id": "edit",
+                                                "validationRequired": false,
+                                                "confirmationRequired": false,
+                                                "rowsSelectedRequired": false,
+                                                "confirmationTexts": null,
+                                                "modalStyle": null,
+                                                "modalTitle": null,
+                                                "customEvent": null,
+                                                "href": null,
+                                                "js": null,
+                                                "background": false,
+                                                "sse": false,
+                                                "fieldsToValidate": null,
+                                                "bubble": false,
+                                                "shortcut": null
+                                              },
+                                              {
+                                                "id": "save",
+                                                "validationRequired": true,
+                                                "confirmationRequired": false,
+                                                "rowsSelectedRequired": false,
+                                                "confirmationTexts": null,
+                                                "modalStyle": null,
+                                                "modalTitle": null,
+                                                "customEvent": null,
+                                                "href": null,
+                                                "js": null,
+                                                "background": false,
+                                                "sse": false,
+                                                "fieldsToValidate": null,
+                                                "bubble": false,
+                                                "shortcut": null
+                                              },
+                                              {
+                                                "id": "cancel-edit",
+                                                "validationRequired": false,
+                                                "confirmationRequired": false,
+                                                "rowsSelectedRequired": false,
+                                                "confirmationTexts": null,
+                                                "modalStyle": null,
+                                                "modalTitle": null,
+                                                "customEvent": null,
+                                                "href": null,
+                                                "js": null,
+                                                "background": false,
+                                                "sse": false,
+                                                "fieldsToValidate": null,
+                                                "bubble": false,
+                                                "shortcut": null
+                                              }
+                                            ],
+                                            "triggers": [],
+                                            "rules": [],
+                                            "validations": [],
+                                            "slot": null,
+                                            "containerId": null,
+                                            "confirmOnNavigationIfDirty": false,
+                                            "emitsName": null,
+                                            "pageWidth": null,
+                                            "pageType": null
+                                          },
+                                          "colspan": 2
+                                        },
+                                        "id": "fieldId",
+                                        "children": [],
+                                        "style": "width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      "footer": null,
+                      "variants": [
+                        "outlined"
+                      ]
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": "flex: 1; min-width: 0; width:100%;",
+                    "cssClasses": "mateu-section",
+                    "slot": null
+                  }
+                ],
+                "style": "width: 100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {},
+        "style": "",
+        "cssClasses": "",
+        "actions": [
+          {
+            "id": "nested-form-action-guestNote-edit",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-guestNote-save",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-guestNote-cancel-edit",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {
+        "room": "204",
+        "status": "Checked-in"
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

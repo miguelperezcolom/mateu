@@ -1,0 +1,15 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "4e9be1f7-ee20-4d6e-9344-41c5eee05fc5",
+      "type": "NavigateTo",
+      "data": "/products"
+    }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

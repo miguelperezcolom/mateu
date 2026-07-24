@@ -55,8 +55,6 @@
     <module>helidon-mp</module>
       <module>shared/frontend/redhat-lit</module>
     <module>shared/frontend/redwood-oj-lit</module>
-    <module>shared/frontend/redwood-spectra-lit</module>
-    <module>shared/frontend/redwood-lit</module>
     <module>shared/frontend/sapui5-lit</module>
   </modules>
 

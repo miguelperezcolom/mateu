@@ -1,124 +1,156 @@
 // Batería de tests del renderer — corre en Node, SIN VB.
-// Valida el reducer (routing por id + semántica de acciones + efectos + shell) contra
-// increments de ejemplo. Sustituye fixtures/*.json por increments REALES capturados
-// (ver capture.mjs) y estos mismos asserts se vuelven tests de contrato del renderer.
+// v3: valida el reducer contra increments REALES (fixtures/real/*.json, capturados con
+// capture.mjs contra demo/demo-vb :9005) — son tests de CONTRATO del wire, no sintéticos.
+// Regenerar fixtures: arrancar demo/demo-vb (mvn spring-boot:run, :9005) y `node capture.mjs`.
 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { reduceContexts, collectFields, collectActions, HOST_ID } from './reduceContexts.mjs'
+import {
+  reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
+} from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const fx = (name) => JSON.parse(readFileSync(join(here, 'fixtures', name), 'utf8'))
+const fx = (name) => JSON.parse(readFileSync(join(here, 'fixtures', 'real', name + '.json'), 'utf8'))
 const empty = () => ({ contexts: {}, stack: [], shell: null })
-const fieldIds = (tree) => collectFields(tree).map((f) => f.fieldId)
+const fieldIds = (tree) => [...new Set(collectFields(tree).map((f) => f.fieldId))]
 
 let pass = 0
 const test = (name, fn) => { fn(); console.log(`  ✓ ${name}`); pass++ }
 
-// 1) Carga inicial (form): el contexto host guarda el ÁRBOL; los campos se derivan al render.
-test('carga inicial registra el host con tree; los campos se derivan del árbol', () => {
-  const { contexts, stack, effects } = reduceContexts(empty(), fx('load-form.json'))
+// 1) Bootstrap: el App configura la shell (menú→navigator) y no crea contexto de contenido.
+test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
+  const { contexts, shell } = reduceContexts(empty(), fx('app'))
+  assert.equal(Object.keys(contexts).length, 0)
+  assert.equal(shell.title, 'VB Demo')
+  assert.deepEqual(shell.menu.map((m) => m.route), ['/hello', '/person', '/products', '/islandHost'])
+})
+
+// 2) Carga de un form: target '' → host; el contexto guarda tree + state del fragment.
+test('load-form registra el host: tree, state del fragment, pageType, docTitle', () => {
+  const { contexts, stack, effects } = reduceContexts(empty(), fx('load-form'))
   assert.equal(stack.length, 0)
-  assert.equal(contexts[HOST_ID].kind, 'host')
-  assert.ok(contexts[HOST_ID].tree, 'guarda el árbol')
-  assert.deepEqual(fieldIds(contexts[HOST_ID].tree), ['name', 'age'])
-  assert.deepEqual(collectActions(contexts[HOST_ID].tree).map((a) => a.actionId), ['save'])
-  assert.equal(contexts[HOST_ID].state.name, 'Ada')
+  const c = contexts[HOST_ID]
+  assert.equal(c.kind, 'host')
+  assert.equal(c.tree.type, 'ServerSide')
+  assert.equal(c.pageType, 'form')
+  assert.deepEqual(fieldIds(c.tree), ['name', 'age'])
+  assert.equal(c.state.name, 'Ada')
+  assert.ok(collectActions(c.tree).some((a) => a.actionId === 'save'))
   assert.equal(effects.docTitle, 'Person')
 })
 
-// 2) item-overview: MISMO registro que un form — host con tree, sólo cambia el pageType.
-test('item-overview se registra IGUAL que un form (host + tree), pageType=detail', () => {
-  const { contexts } = reduceContexts(empty(), fx('item-overview.json'))
-  const c = contexts[HOST_ID]
-  assert.equal(c.kind, 'host')
-  assert.equal(c.pageType, 'detail')
-  assert.equal(c.pageWidth, 'fixed')
-  assert.equal(c.tree.metadata.type, 'HorizontalLayout')       // árbol rico, no aplanado
-  assert.deepEqual(fieldIds(c.tree), ['sku', 'price', 'description', 'qty']) // campos anidados en Card+Tabs
-  assert.equal(c.state.sku, 'A-100')
+// 3) Save: fragment State-only cuyo target es el ECO del initiator (aquí, el uuid del árbol)
+//    → merge de estado conservando el árbol; el toast sale como efecto.
+test('save-form: State-only por eco de id → merge sin perder el árbol + toast', () => {
+  let reg = reduceContexts(empty(), fx('load-form'))
+  const treeRef = reg.contexts[HOST_ID].tree
+  reg = reduceContexts(reg, fx('save-form'))
+  const c = reg.contexts[HOST_ID]
+  assert.equal(c.state.name, 'Grace')
+  assert.equal(c.state.age, 41)
+  assert.equal(c.tree, treeRef) // árbol conservado (misma ref: structural sharing)
+  assert.deepEqual(reg.effects.toasts, [{ text: 'Saved Grace', variant: 'success' }])
 })
 
-// 3) foldout: idem — el reducer no distingue; el dispatcher recursivo lo pintará por tipo.
-test('foldout se registra IGUAL (host + tree), pageType=detail, pageWidth=edgeToEdge', () => {
-  const { contexts } = reduceContexts(empty(), fx('foldout.json'))
-  const c = contexts[HOST_ID]
-  assert.equal(c.tree.metadata.type, 'FoldoutLayout')
-  assert.equal(c.pageWidth, 'edgeToEdge')
-  assert.deepEqual(fieldIds(c.tree), ['bookingId', 'guest', 'total'])
-})
-
-// 4) form, item-overview y foldout producen la MISMA forma de contexto host.
-test('form / item-overview / foldout comparten forma de contexto (unificación)', () => {
-  const shape = (name) => {
-    const c = reduceContexts(empty(), fx(name)).contexts[HOST_ID]
-    return { kind: c.kind, hasTree: !!c.tree, hasState: !!c.state }
-  }
-  const expected = { kind: 'host', hasTree: true, hasState: true }
-  assert.deepEqual(shape('load-form.json'), expected)
-  assert.deepEqual(shape('item-overview.json'), expected)
-  assert.deepEqual(shape('foldout.json'), expected)
-})
-
-// 5) App: NO crea contexto de contenido — configura la shell (menú→nav, título, ancho).
-test('App configura la shell y no crea contexto de contenido', () => {
-  const { contexts, shell } = reduceContexts(empty(), fx('app.json'))
-  assert.equal(Object.keys(contexts).length, 0)               // ningún contexto de página
-  assert.equal(shell.title, 'Admin')
-  assert.equal(shell.variant, 'MENU_ON_TOP')
-  assert.deepEqual(shell.menu.map((m) => m.route), ['/products', '/orders'])
-  assert.deepEqual(shell.appContext.map((s) => s.fieldName), ['hotel'])
-})
-
-// 6) App + contenido: la shell y el host conviven (flujo real: shell primero, luego la ruta).
-test('App y luego una página conviven: shell + contexto host', () => {
-  let reg = reduceContexts(empty(), fx('app.json'))
-  reg = reduceContexts(reg, fx('item-overview.json'))
-  assert.equal(reg.shell.title, 'Admin')                       // shell preservada
-  assert.equal(reg.contexts[HOST_ID].tree.metadata.type, 'HorizontalLayout')
-})
-
-// 7) Add → drawer apilado (guarda su propio tree); el host no se toca.
-test('Add crea un drawer con su tree y lo apila sin tocar el host', () => {
-  let reg = reduceContexts(empty(), fx('item-overview.json'))
-  reg = reduceContexts(reg, fx('open-drawer.json'))
-  assert.deepEqual(reg.stack, ['drawer-contact'])
-  assert.equal(reg.contexts['drawer-contact'].kind, 'drawer')
-  assert.deepEqual(fieldIds(reg.contexts['drawer-contact'].tree), ['email'])
-  assert.equal(reg.contexts[HOST_ID].tree.metadata.type, 'HorizontalLayout') // intacto
-})
-
-// 8) Guardar-en-drawer → CloseModal cierra por puro estado; toast + runAction como efectos.
-test('guardar-en-drawer cierra el drawer y emite toast + runAction', () => {
-  let reg = reduceContexts(empty(), fx('load-form.json'))
-  reg = reduceContexts(reg, fx('open-drawer.json'))
-  const { contexts, stack, effects } = reduceContexts(reg, fx('save-in-drawer.json'))
-  assert.deepEqual(stack, [])
-  assert.equal(contexts['drawer-contact'], undefined)
-  assert.deepEqual(effects.toasts, [{ text: 'Saved', variant: 'success' }])
-  assert.deepEqual(effects.runActions, [{ route: '/contacts', actionId: 'search', params: {} }])
-})
-
-// 9) Isla: direccionada por id; un State posterior fusiona sin perder el árbol.
-test('isla por id: State fusiona conservando el árbol; host intacto', () => {
-  let reg = reduceContexts(empty(), fx('load-form.json'))
-  reg = reduceContexts(reg, fx('island-register.json'))
-  assert.equal(reg.contexts['cardex-island'].kind, 'island')
-  assert.equal(reg.contexts['cardex-island'].state.paxName, 'Ada')
-  reg = reduceContexts(reg, fx('island-state.json'))
-  assert.equal(reg.contexts['cardex-island'].state.paxName, 'Grace') // fusionado
-  assert.deepEqual(fieldIds(reg.contexts['cardex-island'].tree), ['paxName']) // árbol conservado
-  assert.deepEqual(fieldIds(reg.contexts[HOST_ID].tree), ['name', 'age'])     // host intacto
-})
-
-// 10) NavigateTo interno → efecto route; no toca el registro.
-test('NavigateTo interno produce efecto route sin tocar el registro', () => {
-  const before = reduceContexts(empty(), fx('load-form.json'))
-  const { effects, contexts } = reduceContexts(before, fx('navigate.json'))
-  assert.deepEqual(effects.navigate, { route: '/orders/42' })
+// 4) NavigateTo interno → efecto route; el registro no se toca.
+test('navigate produce efecto route sin tocar el registro', () => {
+  const before = reduceContexts(empty(), fx('load-form'))
+  const { effects, contexts } = reduceContexts(before, fx('navigate'))
+  assert.deepEqual(effects.navigate, { route: '/products' })
   assert.ok(contexts[HOST_ID])
 })
 
-console.log(`\n${pass} tests OK`)
+// 5) Crud: llega como MEDIADOR (ServerSide → child App chromeless) direccionado al initiator;
+//    mediatorOf da la info para la segunda carga (contenido).
+test('load-listing: mediador registrado por eco del initiator; mediatorOf → rootRoute/SST', () => {
+  const { contexts, shell } = reduceContexts(empty(), fx('load-listing'))
+  const c = contexts['crud1']
+  assert.ok(c, 'contexto crud1 (eco del initiator)')
+  assert.equal(c.kind, 'island')
+  assert.equal(shell, null) // un App de mediador NO configura la shell
+  const info = mediatorOf(c)
+  assert.equal(info.rootRoute, '/products')
+  assert.match(info.serverSideType, /ProductsCrud$/)
+})
+
+// 6) La segunda carga (contenido del mediador) REEMPLAZA el contexto del mediador por el
+//    listado; el host de al lado no cambia de ref (re-render quirúrgico).
+test('load-listing-content reemplaza crud1 con el listado sin tocar otros contextos', () => {
+  let reg = reduceContexts(empty(), fx('load-form'))
+  const hostRef = () => reg.contexts[HOST_ID]
+  const hostBefore = hostRef()
+  reg = reduceContexts(reg, fx('load-listing'))
+  reg = reduceContexts(reg, fx('load-listing-content'))
+  const c = reg.contexts['crud1']
+  assert.equal(mediatorOf(c), null) // ya no es el mediador: es el contenido
+  assert.equal(c.tree.children[0].metadata.type, 'Page')
+  assert.equal(hostBefore, hostRef()) // host intacto, MISMA ref
+})
+
+// 7) Add → drawer apilado; el estado inicial del drawer viene de metadata.initialData.
+test('open-drawer apila un overlay con initialData y anatomía del Drawer', () => {
+  let reg = reduceContexts(empty(), fx('load-listing'))
+  reg = reduceContexts(reg, fx('open-drawer'))
+  assert.equal(reg.stack.length, 1)
+  const ov = reg.contexts[reg.stack[0]]
+  assert.equal(ov.kind, 'drawer')
+  assert.equal(ov.tree.metadata.type, 'Drawer')
+  assert.equal(ov.title, 'New')
+  assert.equal(ov.position, 'end')
+  assert.equal(ov.width, '36rem')
+  assert.deepEqual(ov.state, { id: null, name: null, price: 0, active: false })
+})
+
+// 8) Guardar-en-drawer: CloseModal cierra por puro estado Y emite el evento del bus con el
+//    que el listado suscrito se refresca; MarkAsClean sin target aplica al initiator.
+test('save-in-drawer: pop del stack + evento mateu-crud:saved-in-drawer + toast', () => {
+  let reg = reduceContexts(empty(), fx('load-listing'))
+  reg = reduceContexts(reg, fx('open-drawer'))
+  const drawerId = reg.stack[0]
+  reg = reduceContexts(reg, fx('save-in-drawer'), { initiator: drawerId })
+  assert.deepEqual(reg.stack, [])
+  assert.equal(reg.contexts[drawerId], undefined)
+  assert.deepEqual(reg.effects.events, [{ name: 'mateu-crud:saved-in-drawer', detail: null }])
+  assert.equal(reg.effects.toasts[0].variant, 'success')
+})
+
+// 9) Host con isla embebida: la frontera es un ServerSide interior con id de campo y los
+//    marcadores en initialData — el dispatcher monta ahí un mateu-node anidado.
+test('island-host: collectIslands encuentra la frontera _guestNote con sus marcadores', () => {
+  const { contexts } = reduceContexts(empty(), fx('island-host'))
+  const islands = collectIslands(contexts[HOST_ID].tree)
+  assert.equal(islands.length, 1)
+  assert.equal(islands[0].id, '_guestNote')
+  assert.match(islands[0].route, /_embeddedMediator=1/)
+  assert.equal(islands[0].initialData._embeddedMediator, true)
+})
+
+// 10) Ciclo de la isla: mediador → contenido → edit → save, SIEMPRE direccionado a
+//     '_guestNote' por el eco del initiator; el host nunca cambia de ref.
+test('ciclo de isla: cada paso repinta solo _guestNote; host misma ref todo el tiempo', () => {
+  let reg = reduceContexts(empty(), fx('island-host'))
+  const hostRef = reg.contexts[HOST_ID]
+  for (const step of ['island-load', 'island-content', 'island-edit', 'island-save']) {
+    reg = reduceContexts(reg, fx(step))
+    assert.ok(reg.contexts['_guestNote'], `contexto _guestNote tras ${step}`)
+    assert.equal(reg.contexts[HOST_ID], hostRef, `host intacto tras ${step}`)
+  }
+  assert.equal(mediatorOf({ tree: fx('island-load').fragments[0].component }) != null, true)
+  assert.deepEqual(fieldIds(reg.contexts['_guestNote'].tree), ['paxName', 'note'])
+})
+
+// 11) State-only sobre una isla: MERGE conservando el árbol (un push del host no borra la isla).
+test('State-only sobre la isla fusiona estado sin perder el árbol', () => {
+  let reg = reduceContexts(empty(), fx('island-host'))
+  reg = reduceContexts(reg, fx('island-content'))
+  const treeRef = reg.contexts['_guestNote'].tree
+  reg = reduceContexts(reg, {
+    fragments: [{ targetComponentId: '_guestNote', state: { note: 'cambiada' } }],
+  })
+  assert.equal(reg.contexts['_guestNote'].tree, treeRef)
+  assert.equal(reg.contexts['_guestNote'].state.note, 'cambiada')
+})
+
+console.log(`\n${pass} tests OK (contrato de wire real)`)

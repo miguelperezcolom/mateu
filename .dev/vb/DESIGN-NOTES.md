@@ -19,10 +19,24 @@ que consume el `UIIncrementDto` estándar y lo pinta con los componentes `oj-sp`
 VB = "un renderer más"; el backend de Mateu **no se toca**. Decisión tomada: la traducción vive en un **bridge JS
 dentro de la app VB** (no server-side, no hosting de Mateu en el runtime de chains de VB).
 
-## Arquitectura (el núcleo, ya validado en el POC)
+## Arquitectura (el núcleo, ya validado en el POC **contra wire real**)
 
-- **Transporte**: `callMateu(baseUrl, route, actionId, state)` → `POST /{base}/mateu/v3/components/_/action` →
-  `UIIncrementDto`. (Service Connection en prod; `fetch` para el bootstrap.)
+- **Transporte (CONFIRMADO 2026-07-24 contra demo/demo-vb :9005)** — DOS endpoints:
+  - **Bootstrap de la shell**: `POST /{base}/mateu/v3/components/_/action` con `{route:'', actionId:'__load__'}`
+    → fragmento App (menú, variant, contextSelectors). Es el ÚNICO uso de ese endpoint; la ruta raíz NO
+    resuelve por sync.
+  - **Todo lo demás**: `POST /{base}/mateu/v3/sync/{route sin barra | _no_route}` con body
+    `{serverSideType, appState, componentState, parameters, initiatorComponentId, consumedRoute, route, actionId}`
+    (= `AxiosMateuApiClient.runAction`). Las CARGAS usan `actionId: ''` (¡`__load__` da
+    "not supported" en orquestadores!).
+- **Eco del initiator (la clave del ruteo)**: `targetComponentId` de cada fragment es el ECO del
+  `initiatorComponentId` de la request (`''` → host), y el server DERIVA los ids internos del initiator
+  (`crud1` → `crud1_app`, `crud1_list`): la unicidad de ids entre superficies es responsabilidad del
+  CLIENTE — el bridge postea SIEMPRE con el contextId de la superficie como initiator.
+- **Mediadores (crud, isla)**: la 1ª carga devuelve un ServerSide cuyo child0 es un App **chromeless**
+  (variant MEDIATOR); el CONTENIDO llega con una 2ª request igual + `consumedRoute` = `rootRoute` del App
+  interior + `serverSideType` = su `homeServerSideType` (sin ellos: el mediador otra vez o "No value
+  present"). `mediatorOf(ctx)` en el reducer extrae esa info.
 - **`reduceContexts(reg, increment)`** — reducer PURO (mismo código que serán métodos de `app-flow.js`):
   - Registro = `contexts` (mapa `targetComponentId → contexto`, host = `__root__`) + `stack` (drawers abiertos)
     + `shell` (cuando llega un `App`).
@@ -92,10 +106,25 @@ Redwood buscaban el `mateu-ux` por id y lo remontaban imperativamente → rompí
 `oj-bind-for-each` sin repintar todo (observabilidad Knockout/JET) — probar DENTRO de una app VB real antes de
 dar por buena la Fase 9 (app anidada).
 
-## Contrato de wire (confirmado en libs/mateu/.../dtos)
+## Contrato de wire (CONFIRMADO con increments reales — fixtures/real/*.json)
 
-- `UIIncrement { messages, commands, fragments, banners, componentState }`
-- `UIFragment { targetComponentId, component, data, state, action: Add|Replace|ReplaceKeepData }`
+- `UIIncrement { messages, commands, fragments, banners, appendBanners, appData, appState }`
+- `UIFragment { targetComponentId, component, data, state, action: Add|Replace|ReplaceKeepData }` —
+  **el estado del componente viaja en `fragment.state`** (p.ej. `{name:'Ada', age:36}` en la carga,
+  y el save responde un fragment State-only con el estado nuevo + el toast en `messages`).
+- **Raíz de fragmento**: `ServerSide { id, serverSideType, route, pageType, pageWidth, initialData,
+  actions, triggers, children:[ClientSide{metadata:{type:Page|App,…}}] }` para contenido enrutado;
+  `ClientSide` con `metadata.type:'App'` solo en el bootstrap (shell) — un App de MEDIADOR llega
+  SIEMPRE envuelto en un ServerSide y es contenido, no shell.
+- **Drawer (Add)**: raíz ClientSide `metadata.type:'Drawer'` con `headerTitle/position/width/size/…`
+  y **`metadata.initialData`** = estado inicial del form del drawer; el contenido va en
+  `metadata.content` (patrón Card), NO en `children`.
+- **CloseModal lleva `data.eventName`** (p.ej. `mateu-crud:saved-in-drawer`): al cerrar hay que
+  EMITIR ese evento por el bus @SubscribeTo — así refresca el listado del crud (los ServerSide
+  llevan `triggers`). El reducer ya lo emite como efecto `events`.
+- **Frontera de isla embebida**: nodo ServerSide INTERIOR del árbol del host, con id = nombre de
+  campo (`_guestNote`), `route` con `?_embeddedMediator=1&_inline=1` y esos marcadores también en
+  `initialData`. `collectIslands(tree)` las localiza para montar el `mateu-node` anidado.
 - `UICommand { type, data, targetComponentId }` — tipos: `SetWindowTitle`, `SetFavicon`, `DispatchEvent`,
   `NavigateTo`, `PushStateToHistory`, `RunAction`, `MarkAsDirty`, `MarkAsClean`, `DownloadFile`, `CloseModal`,
   `AddContentToHead`, `AddContentToBody`.
@@ -131,16 +160,30 @@ de `app-flow.js`; (2) artefactos VB (chains JSON, fragment `mateu-node`, host-pa
 AMD/UMD del MISMO core. Autocontenido, agnóstico de la app, portátil. "Hecho" = app VB vacía en Oracle + importar
 el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código propio. Detalle en el roadmap.
 
+## Estado del proyecto (2026-07-24, rama `redwood-fable`)
+
+- **Hecho — paso previo del roadmap**: backend de soporte `demo/demo-vb` (Spring MVC, **puerto 9005**
+  para no chocar con las otras instancias del proceso en otros clones; CORS abierto) con una pantalla por
+  fase: `/hello` (F1), app raíz con menú (F2), `/person` (F3), `/products` crud editInDrawer (F4–5),
+  `/island-host` + isla `GuestNoteView` (F9). `capture.mjs` captura los 13 flujos reales →
+  `fixtures/real/*.json`, y `test.mjs` (11 tests) valida el reducer **contra ese wire real** (los
+  fixtures sintéticos se borraron). Regenerar: arrancar demo-vb (`mvn spring-boot:run`) + `node capture.mjs`.
+- Los renderers antiguos `apps/redwood` y `apps/redwood-spectra` (+ sus módulos `-lit`) fueron BORRADOS
+  en esta rama; demo-admin-panel y explorer vuelven a vaadin-lit. Regla del proyecto: **cero HTML/CSS
+  propio — siempre componentes VB/Redwood auténticos**.
+- Resueltos del plan original: el "Replace con target desconocido cae en HOST_ID" ya no aplica (el ruteo
+  es por eco del initiator + fallback por `tree.id`); `PushStateToHistory` y `DispatchEvent` ya están
+  mapeados en el reducer (efectos `urlPush`/`events`).
+
 ## Próximo paso al retomar
 
-1. `capture.mjs` (15 líneas, en el roadmap) contra un backend Mateu vivo (p.ej. un demo) → volcar increments
-   REALES a `renderer-poc/fixtures/` y correr `test.mjs` para fijar el contrato de wire.
-2. **Fase 1** del roadmap: hola mundo dentro del `oj-sp-simple-ui-shell` real → puerta visual del chrome.
-   No avanzar sin que la captura sea indistinguible de una app Redwood nativa.
-3. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
+1. **Fase 1** del roadmap: hola mundo (`/hello` de demo-vb) dentro del `oj-sp-simple-ui-shell` real →
+   puerta visual del chrome. No avanzar sin que la captura sea indistinguible de una app Redwood nativa.
+   ⚠ El proceso se PARA al final de cada fase para verificación visual del usuario.
+2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3
    comandos UI → efectos, 1.4 resolución de ruta (4 campos de ruta salientes + composición), 1.5 sync con la
    URL (PushStateToHistory + deep-link + back/forward + dirtyGuard), y 1.6 (VISUAL) estilos alrededor del
    contenido = los tres modos de `pageWidth` (fixed/fullWidth/edgeToEdge) fieles a la medición RDS 24C.
-   Verifican en VB real lo que la sección "State & aplicación de increments" diseña y el POC valida solo en Node.
-   OJO: el reducer aún no mapea `PushStateToHistory` (hoy solo `NavigateTo`) — 1.5 lo añade.
+3. Pendiente de capturar cuando toque: foldout/item-overview (F7+, añadir pantallas a demo-vb),
+   un `PushStateToHistory` real (navegación de crud sin drawer) y el spike de SSE/LongTask en VB hosteado.
