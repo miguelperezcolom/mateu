@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
-  overlayOf, eventTriggersOf, shellNavOf,
+  overlayOf, eventTriggersOf, shellNavOf, foldoutOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -251,6 +251,18 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const menu = nav.headerActions.find((a) => a.hasChildren)
   assert.deepEqual(menu.children.map((c) => c.actionId), ['exportPdf', 'exportExcel'])
   assert.match(nav.serverSideType, /VbHome$/)
+})
+
+// 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
+test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {
+  const { contexts } = reduceContexts(empty(), fx('load-foldout'))
+  const foldout = foldoutOf(contexts[HOST_ID])
+  assert.equal(foldout.overview.texts.length, 6)
+  assert.match(foldout.overview.texts[0], /Jane Smith/)
+  assert.deepEqual(foldout.panels.map((p) => p.title), ['Payments', 'Guest profile', 'Notes'])
+  assert.equal(foldout.panels[0].subtitle, 'Charges and refunds')
+  assert.equal(foldout.panels[2].open, false) // Notes arranca plegado
+  assert.deepEqual(foldout.panels[0].texts, ['02/05 · Deposit · 620 €', '12/08 · Balance · pending'])
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

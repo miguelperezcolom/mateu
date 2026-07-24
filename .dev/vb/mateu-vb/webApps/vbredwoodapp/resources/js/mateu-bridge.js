@@ -142,6 +142,39 @@ define([], () => {
     }
   }
 
+  /** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
+  function collectTexts(node, out = []) {
+    if (!node || typeof node !== 'object') return out
+    if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
+      out.push(node.metadata.text)
+    }
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v)) v.forEach((x) => collectTexts(x, out))
+      else if (v && typeof v === 'object') collectTexts(v, out)
+    }
+    return out
+  }
+
+  /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
+   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout. */
+  function foldoutOf(ctx) {
+    const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
+    if (!node) return null
+    const md = node.metadata
+    const children = node.children || []
+    const bySlot = {}
+    for (const child of children) bySlot[child.slot || ''] = child
+    return {
+      overview: { texts: collectTexts(bySlot['overview']) },
+      panels: (md.panels || []).map((panel, i) => ({
+        title: panel.title || '',
+        subtitle: panel.subtitle || '',
+        open: panel.open !== false,
+        texts: collectTexts(bySlot['panel-' + i]),
+      })),
+    }
+  }
+
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
    *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
    *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
@@ -573,6 +606,8 @@ define([], () => {
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    collectTexts,
+    foldoutOf,
     callMateu,
     bootstrapShell,
     loadRoute,

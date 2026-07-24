@@ -19,6 +19,35 @@
 </oj-bind-if>
 
 
+<!-- Foldout (Fase 7): overview + paneles laterales con los oj-sp-foldout-* auténticos -->
+<oj-bind-if test="[[ !!$application.variables.mateuFoldout ]]">
+  <div class="oj-flex">
+    <div class="oj-flex-item oj-sm-12">
+      <oj-sp-foldout-layout id="mateuFoldoutEl">
+        <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuHostTitle ]]">
+          <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.texts ]]">
+            <template>
+              <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+            </template>
+          </oj-bind-for-each>
+        </oj-sp-foldout-panel>
+        <oj-bind-for-each data="[[ $application.variables.mateuFoldout.panels ]]">
+          <template>
+            <oj-sp-foldout-panel panel-title="[[ $current.data.title ]]">
+              <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+              <oj-bind-for-each data="[[ $current.data.texts ]]">
+                <template>
+                  <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                </template>
+              </oj-bind-for-each>
+            </oj-sp-foldout-panel>
+          </template>
+        </oj-bind-for-each>
+      </oj-sp-foldout-layout>
+    </div>
+  </div>
+</oj-bind-if>
+
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
   <div class="oj-flex oj-sm-align-items-center">
     <div class="oj-flex-item oj-sm-12 oj-md-8">

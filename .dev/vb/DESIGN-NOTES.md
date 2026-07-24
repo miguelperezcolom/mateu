@@ -331,6 +331,23 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
 - Tests 16/16 (`shellNavOf`); fixtures regenerados (menú con grupo + selectores + acciones).
   Evidencia: `shots/fase6-submenu.png`, `fase6-context.png`, `fase6-header.png`.
 
+## Fase 7 — HECHA (pendiente de verificación visual del usuario)
+
+- **Foldout end-to-end**: demo-vb `/booking` (`BookingFoldout extends Foldout`: overview +
+  3 `@Panel`) → wire `FoldoutLayout` (cabeceras en `metadata.panels` {title,subtitle,icon,open},
+  contenido SLOTTED `overview`/`panel-N`, pageWidth edgeToEdge) → proyección `foldoutOf(ctx)`
+  (+`collectTexts`) → **`oj-sp-foldout-layout` + `oj-sp-foldout-panel` auténticos** (prop
+  `panelTitle`, contenido en el slot default). El chrome es el RDS real: barra de acento dorada
+  bajo cada título, superficies, breadcrumb "Parent page" y page-dots del propio componente.
+- **Interacción**: el clic va en el CONTENEDOR del panel (no en el título) — los paneles se
+  reparten el espacio y al enfocar uno los demás se pliegan (con viewport estrecho se ve el
+  plegado a tira); los dots navegan. Sin botones de plegado por cabecera: así es el componente.
+- Limitaciones anotadas: `open=false` (Notes plegado de inicio) NO tiene API en
+  `oj-sp-foldout-panel` (todos arrancan visibles); `subtitle` no existe como prop (se pinta
+  como primera línea del contenido); el contenido de los paneles se proyecta como TEXTOS
+  (`collectTexts`) — el dispatcher recursivo general sigue pendiente (fases posteriores).
+- Tests 17/17 (fixture `load-foldout.json`). Evidencia: `shots/fase7.png`, `fase7-folded.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

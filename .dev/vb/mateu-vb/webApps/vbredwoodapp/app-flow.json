@@ -364,6 +364,10 @@
     "mateuNavDrawerOpen": {
       "type": "boolean",
       "defaultValue": false
+    },
+    "mateuFoldout": {
+      "type": "any",
+      "description": "proyección del FoldoutLayout (overview + paneles con textos); null = no es un foldout"
     }
   },
   "userConfig": {

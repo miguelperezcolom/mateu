@@ -110,6 +110,12 @@
       },
       "oj-drawer-popup": {
         "path": "ojs/ojdrawerpopup"
+      },
+      "oj-sp-foldout-layout": {
+        "path": "oj-sp/foldout-layout/loader"
+      },
+      "oj-sp-foldout-panel": {
+        "path": "oj-sp/foldout-panel/loader"
       }
     }
   }

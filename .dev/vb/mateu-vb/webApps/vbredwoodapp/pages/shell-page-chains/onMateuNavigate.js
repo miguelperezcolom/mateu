@@ -62,6 +62,8 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
+      $application.variables.mateuFoldout = bridge.foldoutOf(host);
+
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuHostText = summary.text;

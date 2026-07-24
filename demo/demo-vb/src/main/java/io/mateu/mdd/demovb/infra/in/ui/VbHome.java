@@ -34,6 +34,8 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu ProductsCrud products;
 
+  @Menu BookingFoldout booking;
+
   @Menu GestionMenu gestion;
 
   @Override
