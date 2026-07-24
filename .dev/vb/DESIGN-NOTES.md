@@ -254,6 +254,21 @@ El contrato mediador del AutoCrud (el "~3 sequential loads"), reverse-engineered
   de la cabecera/tabla se bindean a `getX()` que LEE el observable, así re-renderizan cuando loadApp (async)
   los rellena (si no, salen vacíos porque el bind ocurre antes). Evidencia: `shots/fase6-complex-app.png`.
 
+### Fase 7 — Foldout con oj-sp REAL (2026-07-24)
+
+**Primer uso del pack `oj-sp` (Spectra) auténtico** — el `oj-sp-foldout-layout`/`-panel` renderiza el foldout
+Redwood real (paneles plegables side-by-side, barra RDS, header "Parent page", control de overflow "•••").
+- Disponible en el CDN: `oj-sp/foldout-layout/loader` + `oj-sp/foldout-panel/loader` (require en el módulo).
+  El bundle de VB (app-flow.json) lista muchos `oj-sp/*/loader` — usables igual.
+- Wire: nodo `FoldoutLayout` con `panels[]` (title/subtitle/open) + contenido en **slots** (`overview`,
+  `panel-0`, `panel-1`, …). Extraer: `findFoldout` + `slotTexts` (map slot→texto, Fase 7 = contenido Text).
+- HTML: `<oj-sp-foldout-layout>` con `<div slot="overview">` + for-each de `<oj-sp-foldout-panel>`.
+- **Gotcha**: las PROPIEDADES `title`/`subtitle` de `oj-sp-foldout-panel` quedan LITERALES dentro de
+  `oj-bind-for-each` (colisión con el atributo nativo `title` + limitación de binding de propiedad en el root
+  del template). Los bindings de HIJOS (`<oj-bind-text>` dentro del panel) SÍ resuelven → renderizar el título
+  como contenido hijo, no como propiedad del panel. Evidencia: `shots/fase7-foldout.png`.
+- Para contenido más rico que Text (Markdown/Chart) haría falta ampliar el dispatcher (pendiente).
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
