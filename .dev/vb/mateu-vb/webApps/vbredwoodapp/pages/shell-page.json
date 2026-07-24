@@ -55,6 +55,16 @@
         }
       ]
     },
+    "menuNavAction": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "onMateuNavigate"
+        }
+      ]
+    },
     "contextChanged": {
       "chains": [
         {

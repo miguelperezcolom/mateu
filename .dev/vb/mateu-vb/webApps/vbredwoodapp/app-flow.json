@@ -258,7 +258,11 @@
   "variables": {
     "mateuRegistry": {
       "type": "any",
-      "defaultValue": { "contexts": {}, "stack": [], "shell": null },
+      "defaultValue": {
+        "contexts": {},
+        "stack": [],
+        "shell": null
+      },
       "description": "El registro del bridge (contexts/stack/shell) — scope de aplicación para sobrevivir a la navegación"
     },
     "mateuNavItems": {
@@ -312,15 +316,6 @@
       "defaultValue": {},
       "description": "contexto de aplicación (@AppContext) — viaja como appState en CADA request"
     },
-    "mateuNavGroups": {
-      "type": "any",
-      "defaultValue": {},
-      "description": "grupos del menú (route → {label, children con rutas TERMINALES})"
-    },
-    "mateuSubmenu": {
-      "type": "any",
-      "description": "grupo seleccionado ({label, children}) — el contenido pinta su landing de submenú"
-    },
     "mateuContextSelectors": {
       "type": "any",
       "defaultValue": [],
@@ -338,8 +333,23 @@
     },
     "mateuDrawer": {
       "type": "any",
-      "defaultValue": { "title": "", "fields": [], "actions": [], "state": {} },
+      "defaultValue": {
+        "title": "",
+        "fields": [],
+        "actions": [],
+        "state": {}
+      },
       "description": "proyección del overlay superior (drawer del crud): título + campos + acciones"
+    },
+    "mateuMenuTabs": {
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "true = menú plano (tabs); false = hamburguesa + oj-menu anidado (la variante del wire manda)"
+    },
+    "mateuMenuTree": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "menú jerárquico para el oj-menu de la hamburguesa (children con rutas TERMINALES)"
     }
   },
   "userConfig": {

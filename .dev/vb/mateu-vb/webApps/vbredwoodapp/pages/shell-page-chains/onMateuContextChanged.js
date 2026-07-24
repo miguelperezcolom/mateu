@@ -40,8 +40,7 @@ define([
             : selector);
 
       const route = $application.variables.mateuSelectedRoute;
-      const groups = $application.variables.mateuNavGroups || {};
-      if (route && !groups[route]) {
+      if (route) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: route } }, force: true },

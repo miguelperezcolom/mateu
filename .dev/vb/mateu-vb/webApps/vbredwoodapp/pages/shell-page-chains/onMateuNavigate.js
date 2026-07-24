@@ -27,6 +27,7 @@ define([
 
       const detail = (event && (event.detail || event)) || {};
       const route = detail.currentId != null ? detail.currentId
+        : detail.selectedValue != null ? detail.selectedValue
         : detail.value != null ? detail.value : detail.route;
       if (route == null || route === '') {
         return;
@@ -35,22 +36,6 @@ define([
       if (!force && route === $application.variables.mateuSelectedRoute) {
         return;
       }
-
-      // grupo del menú → landing de submenú en el contenido, sin request
-      const groups = $application.variables.mateuNavGroups || {};
-      if (groups[route]) {
-        $application.variables.mateuSelectedRoute = route;
-        $application.variables.mateuSubmenu = groups[route];
-        $application.variables.mateuHostTitle = groups[route].label;
-        $application.variables.mateuHostText = '';
-        $application.variables.mateuFormMetadata = null;
-        $application.variables.mateuFormFieldsList = [];
-        $application.variables.mateuFormActions = [];
-        $application.variables.mateuListing = null;
-        $application.variables.mateuListingRows = [];
-        return;
-      }
-      $application.variables.mateuSubmenu = null;
 
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};

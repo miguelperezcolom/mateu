@@ -144,26 +144,31 @@ export function overlayOf(reg) {
 export function shellNavOf(reg) {
   const shell = reg.shell || {}
   const items = []
-  const groups = {}
+  const menuTree = []
+  let hasGroups = false
   for (const option of shell.menu || []) {
     const route = option.route || option.path
     const label = option.caption || option.label || route
     const children = option.submenus || option.submenu || []
     items.push({ id: route, label, icon: option.icon || undefined })
-    if (children.length) {
-      groups[route] = {
-        label,
-        children: children.map((child) => {
-          const childRoute = child.route || child.path || ''
-          const terminal = childRoute.indexOf(route + '/') === 0 ? childRoute.slice(route.length) : childRoute
-          return { id: terminal, label: child.caption || child.label || terminal }
-        }),
-      }
-    }
+    if (children.length) hasGroups = true
+    menuTree.push({
+      id: route,
+      label,
+      hasChildren: children.length > 0,
+      children: children.map((child) => {
+        const childRoute = child.route || child.path || ''
+        const terminal = childRoute.indexOf(route + '/') === 0 ? childRoute.slice(route.length) : childRoute
+        return { id: terminal, label: child.caption || child.label || terminal }
+      }),
+    })
   }
   return {
+    // la VARIANTE del wire manda: menú plano (TABS) → in-app navigation; profundo/denso
+    // (MENU_ON_TOP, HAMBURGUER_MENU, TILES…) → hamburguesa + oj-menu anidado
+    mode: shell.variant === 'TABS' && !hasGroups ? 'tabs' : 'hamburger',
     items,
-    groups,
+    menuTree,
     selectors: (shell.appContext || []).map((selector) => ({
       fieldName: selector.fieldName,
       label: selector.label || selector.fieldName,

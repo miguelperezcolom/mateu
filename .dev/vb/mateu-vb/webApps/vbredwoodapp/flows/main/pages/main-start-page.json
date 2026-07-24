@@ -1,5 +1,4 @@
 {
-
   "title": "",
   "description": "Contenido alimentado por Mateu: título + form / listado + drawer del crud; la carga la orquesta la shell",
   "variables": {
@@ -69,16 +68,6 @@
         }
       ]
     },
-    "mateuSubmenuSelected": {
-      "chains": [
-        {
-          "parameters": {
-            "event": "{{ $event }}"
-          },
-          "chain": "mateuSubmenuNavigate"
-        }
-      ]
-    },
     "mateuSearchAction": {
       "chains": [
         {
@@ -121,9 +110,6 @@
       },
       "oj-drawer-popup": {
         "path": "ojs/ojdrawerpopup"
-      },
-      "oj-navigation-list": {
-        "path": "ojs/ojnavigationlist"
       }
     }
   }

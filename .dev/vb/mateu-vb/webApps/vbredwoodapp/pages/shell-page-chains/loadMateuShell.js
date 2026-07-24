@@ -27,7 +27,8 @@ define([
       const nav = bridge.shellNavOf(reg);
       const appState = $application.variables.mateuAppState || {};
       $application.variables.mateuNavItems = nav.items;
-      $application.variables.mateuNavGroups = nav.groups;
+      $application.variables.mateuMenuTabs = nav.mode === 'tabs';
+      $application.variables.mateuMenuTree = nav.menuTree;
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
@@ -37,7 +38,9 @@ define([
         document.title = reg.shell.title;
       }
 
-      const first = nav.items.find((item) => !nav.groups[item.id]) || nav.items[0];
+      const firstLeaf = nav.menuTree.find((entry) => !entry.hasChildren);
+      const firstGroup = nav.menuTree.find((entry) => entry.hasChildren);
+      const first = firstLeaf || (firstGroup && firstGroup.children[0]);
       if (first) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',

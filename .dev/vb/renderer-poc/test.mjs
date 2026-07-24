@@ -240,7 +240,9 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })
   assert.deepEqual(nav.items.map((i) => i.id), ['/hello', '/products', '/gestion'])
-  const group = nav.groups['/gestion']
+  // menú profundo → la shell cambia a hamburguesa + oj-menu anidado (la variante del wire manda)
+  assert.equal(nav.mode, 'hamburger')
+  const group = nav.menuTree.find((m) => m.hasChildren)
   assert.equal(group.label, 'Gestion')
   // la ruta compuesta (/gestion/person) NO resuelve por sync → se navega por la terminal
   assert.deepEqual(group.children.map((c) => c.id), ['/person', '/island-host'])

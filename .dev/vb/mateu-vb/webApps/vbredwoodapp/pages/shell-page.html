@@ -5,6 +5,37 @@
 <oj-sp-simple-ui-shell id="shell">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader">
+    <!-- menú profundo (variante != TABS): hamburguesa + oj-menu ANIDADO (oj-option con
+         oj-menu hijo = submenú, el patrón JET auténtico) -->
+    <div slot="start">
+      <oj-bind-if test="[[ !$application.variables.mateuMenuTabs ]]">
+        <oj-menu-button id="mateuHamburger" chroming="borderless" display="icons">
+          <span slot="startIcon" class="oj-ux-ico-menu"></span>
+          Menu
+          <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
+            <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
+              <template>
+                <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                  <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                  <oj-option>
+                    <span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    <oj-menu>
+                      <oj-bind-for-each data="[[ $current.data.children ]]">
+                        <template>
+                          <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                        </template>
+                      </oj-bind-for-each>
+                    </oj-menu>
+                  </oj-option>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </oj-menu>
+        </oj-menu-button>
+      </oj-bind-if>
+    </div>
     <!-- selectores @AppContext + acciones de cabecera del App de Mateu, en el slot end -->
     <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
       <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
@@ -48,12 +79,14 @@
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 
-    <!-- Menú del App de Mateu (shell.menu) → in-app navigation Redwood; la selección
-         dispara la carga de la ruta sin recargar la shell -->
-    <oj-sp-in-app-navigation id="mateuNav"
-      navigation-items="[[ $application.variables.mateuNavItems ]]"
-      selection="[[ $application.variables.mateuSelectedRoute ]]"
-      on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
+    <!-- Menú PLANO (variante TABS): in-app navigation Redwood; la selección dispara la
+         carga de la ruta sin recargar la shell -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
+      <oj-sp-in-app-navigation id="mateuNav"
+        navigation-items="[[ $application.variables.mateuNavItems ]]"
+        selection="[[ $application.variables.mateuSelectedRoute ]]"
+        on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
+    </oj-bind-if>
 
     <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
 
