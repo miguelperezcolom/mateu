@@ -1,16 +1,27 @@
 {
-  "description": "Fase 8: cancelar el guided-process → salir del wizard (primera ruta).",
-  "root": "go",
+  "description": "Fase 8: cancelar → DESMONTA el guided-process, recarga el wizard y lo re-monta en overview.",
+  "root": "hide",
   "variables": {},
   "actions": {
-    "go": { "module": "vb/action/builtin/callModuleFunctionAction", "parameters": { "module": "[[ $application.functions ]]", "functionName": "guidedCancel" }, "outcomes": { "success": "assign" } },
-    "assign": { "module": "vb/action/builtin/assignVariablesAction", "parameters": {
+    "hide": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": { "$application.variables.isWizard": { "source": "{{ false }}" } },
+      "outcomes": { "success": "go" }
+    },
+    "go": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $application.functions ]]", "functionName": "guidedCancel" },
+      "outcomes": { "success": "assign" }
+    },
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
         "$application.variables.isWizard": { "source": "{{ $chain.results.go.isWizard }}" },
         "$application.variables.isForm": { "source": "{{ $chain.results.go.isForm }}" },
         "$application.variables.isFoldout": { "source": "{{ $chain.results.go.isFoldout }}" },
         "$application.variables.isTable": { "source": "{{ $chain.results.go.isTable }}" },
-        "$application.variables.isCrud": { "source": "{{ $chain.results.go.isCrud }}" },
         "$application.variables.greeting": { "source": "{{ $chain.results.go.greeting }}" }
-      } }
+      }
+    }
   }
 }

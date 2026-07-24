@@ -288,6 +288,10 @@ define([
       this.wizardSteps = ko.observableArray([]); // [{id,title,status}] para el rail del guided-process
       this.wizardAdvanceId = 'next'; // acción del botón primario (next/completar)
       this.wizardAdvanceLabel = ko.observable('Siguiente');
+      // El guided-process tiene una pantalla de OVERVIEW inicial (currentStep="" → botón Start +
+      // resumen de pasos). Se muestra al entrar y al cancelar; empezar/cancelar es CLIENTE (no Mateu).
+      this.wizardOverview = ko.observable(true);
+      this.wizardMenuRoute = '';
     }
 
     getNavData() {
@@ -298,7 +302,8 @@ define([
       return this.wizardSteps();
     }
     getGuidedCurrent() {
-      return String(this.wizardPosition());
+      // "" → pantalla de overview inicial; si no, el paso actual.
+      return this.wizardOverview() ? '' : String(this.wizardPosition());
     }
     getGuidedPrimary() {
       return { label: this.wizardAdvanceLabel(), progressState: 'off' };
@@ -471,8 +476,10 @@ define([
         return { isWizard: false, isFoldout: false, isTable: true, isForm: false, isCrud: false, greeting: '' };
       }
       this.isCrud = false;
-      // W) ¿Wizard? (proceso guiado: hay ProgressSteps) → form del paso + progreso + botones del wire.
+      // W) ¿Wizard? (proceso guiado: hay ProgressSteps) → overview inicial + pasos.
       if (findSteps(host.tree)) {
+        this.wizardMenuRoute = route;
+        this.wizardOverview(true); // entrar al wizard = mostrar la pantalla de overview (Start)
         this._applyWizard(host);
         this.crudSaveActionId = null;
         return { isWizard: true, isFoldout: false, isTable: false, isForm: false, isCrud: false, greeting: '' };
@@ -552,14 +559,24 @@ define([
     // adelante → la acción de avance del wire (next/completar); atrás → 'back'.
     async guidedStepChange(event) {
       const d = (event && event.detail) || {};
-      const cur = parseInt(d.currentStep, 10);
+      const cur = parseInt(d.currentStep, 10); // NaN si venimos del overview ("")
       const nxt = parseInt(d.nextStep, 10);
-      if (!isNaN(cur) && !isNaN(nxt) && nxt < cur) return this._wizardStep('back');
+      // Desde el OVERVIEW → Start: mostrar el paso actual, SIN llamar a Mateu (ya estamos en él).
+      if (isNaN(cur)) {
+        this.wizardOverview(false);
+        return { isWizard: true, isForm: false, isFoldout: false, isTable: false, greeting: '' };
+      }
+      if (!isNaN(nxt) && nxt < cur) return this._wizardStep('back');
       return this._wizardStep(this.wizardAdvanceId);
     }
-    // Cancelar el proceso guiado → salir del wizard (volver a la primera ruta).
+    // Cancelar → recrear el guided-process en su OVERVIEW. El componente, una vez iniciado, no vuelve
+    // al overview con current-step="" solo; la chain lo DESMONTA (isWizard=false) antes de esta llamada
+    // async (el await deja al DOM quitarlo) y aquí recargamos el wizard desde el paso 1 con overview=true;
+    // al re-mostrarlo (isWizard=true) el componente se crea de cero → overview.
     async guidedCancel() {
-      return this.loadRoute(this.firstRoute || '');
+      const r = await this.loadRoute(this.wizardMenuRoute || this.firstRoute || '');
+      this.wizardOverview(true);
+      return r;
     }
 
     // Fase 8: navega el wizard con un actionId (next/back/completar…). Reenvía estado + ediciones.
