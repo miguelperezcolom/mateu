@@ -25,6 +25,7 @@ public class RedwoodVbApp implements AppActionsSupplier {
   @Menu Home home;
   @Menu Profile profile;
   @Menu Catalogo catalogo;
+  @Menu BookingFoldout foldout;
   @Menu Reports reports;
   @Menu Settings settings;
 
