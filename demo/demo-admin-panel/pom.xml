@@ -58,10 +58,10 @@
             <artifactId>mvc-core</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
-        <!-- this dependency provides the frontend component based on vaadin web components -->
+        <!-- frontend renderer: redwood-spectra (Oracle Redwood/Spectra) instead of vaadin-lit -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>redwood-spectra-lit</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>
