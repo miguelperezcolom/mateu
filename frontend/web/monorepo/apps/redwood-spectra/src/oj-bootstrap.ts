@@ -94,6 +94,10 @@ async function loadOjet() {
   // Point `oj-sp` at the Spectra CDN so its bundle files resolve. require.config MERGES paths, so
   // this only adds oj-sp and leaves Oracle's JET/Spectra config intact.
   require.config({ paths: { 'oj-sp': SPECTRA_BASE } })
+  // The oj-dynamic pack (Dynamic UI: oj-dynamic-table listings, oj-dyn-form forms) — a Component
+  // Exchange pack, but its runtime bundle IS on the public JET CDN under /jet/packs/. Point its
+  // require path there (debug/unminified so requirejs resolves the AMD modules against it).
+  require.config({ paths: { 'oj-dynamic': 'https://static.oracle.com/cdn/jet/packs/oj-dynamic/2604.1.0' } })
 
   await new Promise<void>((resolve, reject) => {
     // ojbootstrap spins up OJET + its preact binding provider (the body carries
@@ -108,6 +112,12 @@ async function loadOjet() {
         // ArrayTreeDataProvider backs the Ask-Oracle product-map nav (mateu-spectra-nav) — a tree of
         // the app menu. Stashed on window like the flat one.
         'ojs/ojarraytreedataprovider',
+        // oj-dynamic pack (position 3 — captured/stashed): JsonMetadataProvider backs both the
+        // oj-dynamic-table listings (mateu-spectra-table) and oj-dyn-form forms; the loaders register
+        // the custom elements. Kept at position 3 so the callback can capture it positionally.
+        'oj-dynamic/providers/JsonMetadataProvider',
+        'oj-dynamic/table/loader',
+        'oj-dynamic/form/loader',
         // The authentic Redwood page frame: the Spectra shell owns the fixed/full/edge width anatomy
         // (applied in RedwoodComponentRenderer.renderAppComponent). css-additions injects the shell
         // layout CSS the pageLayout width classes resolve their rules from.
@@ -142,13 +152,21 @@ async function loadOjet() {
         // oj-sp breadcrumbs (renderRedwoodBreadcrumbs) — data-driven via ojarraydataprovider (above).
         'oj-sp/breadcrumb-container/loader',
       ],
-      (_bootstrap: unknown, arrayDataProvider: unknown, arrayTreeDataProvider: unknown) => {
+      (
+        _bootstrap: unknown,
+        arrayDataProvider: unknown,
+        arrayTreeDataProvider: unknown,
+        jsonMetadataProvider: unknown,
+      ) => {
         const adp = arrayDataProvider as { default?: unknown; ArrayDataProvider?: unknown }
         ;(window as unknown as { __mateuArrayDataProvider?: unknown }).__mateuArrayDataProvider =
           adp?.default ?? adp?.ArrayDataProvider ?? arrayDataProvider
         const atdp = arrayTreeDataProvider as { default?: unknown; ArrayTreeDataProvider?: unknown }
         ;(window as unknown as { __mateuArrayTreeDataProvider?: unknown }).__mateuArrayTreeDataProvider =
           atdp?.default ?? atdp?.ArrayTreeDataProvider ?? arrayTreeDataProvider
+        const jmp = jsonMetadataProvider as { default?: unknown; JsonMetadataProvider?: unknown }
+        ;(window as unknown as { __mateuJsonMetadataProvider?: unknown }).__mateuJsonMetadataProvider =
+          jmp?.default ?? jmp?.JsonMetadataProvider ?? jsonMetadataProvider
         resolve()
       },
       reject,

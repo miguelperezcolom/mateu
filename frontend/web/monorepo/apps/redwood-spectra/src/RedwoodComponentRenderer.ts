@@ -3,6 +3,9 @@ import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import { renderApp } from '@infra/ui/renderers/appRenderer'
 import { MateuApp } from '@infra/ui/mateu-app'
+import { MateuTableCrud } from '@infra/ui/mateu-table-crud'
+import './table/mateu-spectra-table' // registers <mateu-spectra-table>
+import type { TableCol } from './table/mateu-spectra-table'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
@@ -176,6 +179,32 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
     `
   }
 
+  /** Route EVERY crud layout (table/list/cards/masterDetail) through renderTableComponent so all
+   *  listings render as the authentic oj-dynamic-table, not the auto-selected card/list layouts. */
+  rendersCrudLayouts(): boolean {
+    return true
+  }
+
+  /** Crud/grid listings → the authentic oj-dynamic-table (via mateu-spectra-table). */
+  renderTableComponent(
+    container: MateuTableCrud,
+    component: ClientSideComponent | undefined,
+    _baseUrl: string | undefined,
+    state: ComponentState,
+    _data: ComponentData,
+    _appState: ComponentState,
+    _appData: ComponentData,
+  ): TemplateResult {
+    const rows = ((container.data?.[container.id] as { page?: { content?: unknown[] } })?.page?.content ?? []) as unknown[]
+    const cols = extractDynColumns(component, rows)
+    const empty = (state?.[component?.id ?? ''] as { emptyStateMessage?: string })?.emptyStateMessage
+    return html`<mateu-spectra-table
+      .columns=${cols}
+      .rows=${rows}
+      .emptyMessage=${empty ?? ''}
+    ></mateu-spectra-table>`
+  }
+
   /** CRUD/page toolbar buttons (New/Delete/Save/…) → authentic oj-c-button. */
   renderToolbarButton(_button: unknown, label: string, onClick: () => void): TemplateResult {
     return html`<oj-c-button
@@ -225,4 +254,22 @@ const REDWOOD_ICON_GLYPHS: Record<string, string> = {
   'angle-up': '⌃',      // ⌃
   ellipsis: '⋯',        // ⋯
   'ellipsis-dots-v': '⋮', // ⋮
+}
+
+/** Build oj-dynamic-table columns from the crud/grid metadata, inferring each field's type from the data. */
+function extractDynColumns(component: ClientSideComponent | undefined, rows: unknown[]): TableCol[] {
+  const md = component?.metadata as { content?: unknown[]; columns?: unknown[] } | undefined
+  const cols = (md?.content ?? md?.columns ?? []) as Array<{ id?: string; metadata?: { label?: string } }>
+  const first = (rows?.[0] ?? {}) as Record<string, unknown>
+  return cols
+    .filter((c) => c && c.metadata)
+    .map((c) => {
+      const id = c.id ?? ''
+      const label = c.metadata?.label ?? id
+      const v = first?.[id]
+      let type = 'string'
+      if (typeof v === 'number') type = Number.isInteger(v) ? 'integer' : 'number'
+      else if (typeof v === 'boolean') type = 'boolean'
+      return { id, label, type }
+    })
 }
