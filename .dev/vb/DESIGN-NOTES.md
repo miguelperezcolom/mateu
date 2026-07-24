@@ -42,6 +42,56 @@ dentro de la app VB** (no server-side, no hosting de Mateu en el runtime de chai
 - **Saliente**: `onAction(actionId, contextId)` → `runActionChain` usa `contexts[contextId].route/state`
   (`state` es two-way → guardar = "manda el estado que ya tienes").
 
+## State & aplicación de increments (decisión 2026-07-24)
+
+**El wire separa los dos ejes**: `RunActionRqDto` lleva `componentState` **y** `appState` como mapas distintos
+(+ `parameters`, `initiatorComponentId`, `consumedRoute`, `route`, `serverSideType`, `serverSideComponentRoute`).
+El mapeo a VB respeta esa separación **por scope**:
+
+- **`appState`** (appContext, se mergea en CADA request) → **`$application.variables.mateuAppState`** (object).
+  El scope de aplicación sobrevive a la navegación → justo lo que necesita el appContext.
+- **`componentState`** (por frontera de componente, efímero) → vive dentro del **registro**, que también va en
+  **`$application`** (`$application.variables.mateuRegistry`) para **conservar islas al navegar** dentro de la
+  misma shell sin recargar.
+- **No "una variable por id"**: en VB las variables se declaran estáticamente y los ids son UUIDs de runtime.
+  Es UNA variable `object` (`@dt: object`/libre) cuyas **claves** son los ids = el `contexts` del reducer.
+  Marcadores internos (`_route`, `_embeddedMediator`, `_inline`, `_selectedId`…) viajan dentro del `state`, sin
+  trato especial.
+- **Two-way sin rutas dinámicas**: no se bindea `oj-c-*` contra `registry.contexts[<uuid>].state.<fieldId>`
+  (frágil). Cada instancia de `mateu-node` recibe su contexto como **input parameter con writeback**, expone una
+  var de fragmento `state`, y bindea local `value="{{ $variables.state.<fieldId> }}"`. El registro sigue siendo la
+  única fuente de verdad para las acciones **salientes**; el writeback mantiene la entrada sincronizada.
+- **Saliente**: `runActionChain(contextId)` arma `{ componentState: contexts[id].state, appState: mateuAppState,
+  parameters, initiatorComponentId: id, route/serverSideType/consumedRoute/serverSideComponentRoute: del contexto }`.
+
+**Aplicar un increment al target = operación de DATOS, no de DOM** (antídoto al fallo histórico: los renderers
+Redwood buscaban el `mateu-ux` por id y lo remontaban imperativamente → rompían islas/mediador):
+
+1. **Ruteo** — el reducer ya escribe cada fragment en `contexts[targetComponentId]` por clave (`Add`→overlay a
+   `stack`; `Replace/ReplaceKeepData/State`→merge; `App`→`shell`). El id es solo una clave de mapa.
+2. **Binding por id** — cada superficie lee su entrada: host (`contexts.__root__`); overlays (`oj-bind-for-each`
+   sobre `stack`, cada id→`oj-sp-drawer`/`oj-dialog` con `contexts[id]`); islas embebidas (cuando el dispatcher
+   ve una frontera `ServerSideComponent` con id propio, monta un `mateu-node` anidado a `contexts[thatId]`,
+   kind=island — el análogo VB de `mateu-component`).
+3. **Re-render quirúrgico** — el reducer es **inmutable con structural sharing**: solo las entradas tocadas
+   reciben ref nueva. `applyIncrement` reasigna `mateuRegistry` de una vez; como cada superficie está **keyed by
+   id** (`oj-bind-for-each key`, `oj-bind-if`), Knockout/JET solo repinta la superficie cuya ref cambió. Cero
+   `getElementById`.
+
+**Casos peliagudos (ya nos mordieron antes):**
+- Fragment **State-only** (sin `component`) → MERGE, no replace (el reducer conserva `tree`, línea 100). Un push
+  de estado del host no debe borrar el contenido enrutado de una isla.
+- **`_route` flips** de mediador/isla viven en `state`; cambiar `state._route` cambia la ref de esa entrada →
+  repinta solo la isla, sin remontar shell.
+- **Target desconocido en `Replace`** hoy cae en `HOST_ID` (línea 95) — es justo donde el mediador se pisaba con
+  el host. Fijarlo con captures reales (crear isla vs. pisar host).
+- **SSE/LongTask**: postear con `initiatorComponentId = contextId`; el server hace eco de `targetComponentId` →
+  aterriza por el mismo ruteo.
+
+**A verificar en el Designer**: que la reasignación top-level de `mateuRegistry` propague el diff keyed en
+`oj-bind-for-each` sin repintar todo (observabilidad Knockout/JET) — probar DENTRO de una app VB real antes de
+dar por buena la Fase 9 (app anidada).
+
 ## Contrato de wire (confirmado en libs/mateu/.../dtos)
 
 - `UIIncrement { messages, commands, fragments, banners, componentState }`
@@ -87,3 +137,10 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
    REALES a `renderer-poc/fixtures/` y correr `test.mjs` para fijar el contrato de wire.
 2. **Fase 1** del roadmap: hola mundo dentro del `oj-sp-simple-ui-shell` real → puerta visual del chrome.
    No avanzar sin que la captura sea indistinguible de una app Redwood nativa.
+3. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
+   two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3
+   comandos UI → efectos, 1.4 resolución de ruta (4 campos de ruta salientes + composición), 1.5 sync con la
+   URL (PushStateToHistory + deep-link + back/forward + dirtyGuard), y 1.6 (VISUAL) estilos alrededor del
+   contenido = los tres modos de `pageWidth` (fixed/fullWidth/edgeToEdge) fieles a la medición RDS 24C.
+   Verifican en VB real lo que la sección "State & aplicación de increments" diseña y el POC valida solo en Node.
+   OJO: el reducer aún no mapea `PushStateToHistory` (hoy solo `NavigateTo`) — 1.5 lo añade.
