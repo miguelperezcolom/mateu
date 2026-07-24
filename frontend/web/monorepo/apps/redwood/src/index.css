@@ -424,3 +424,349 @@ body {
   justify-content: flex-end;
   margin-top: 1.25rem;
 }
+
+/* ── Phase 4: tabs, dashboard, display leaves, overlays ───────────────────────────────── */
+
+.mateu-tab-strip {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  margin-bottom: 1rem;
+}
+.mateu-tab {
+  border: none;
+  background: transparent;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.mateu-tab:hover {
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+}
+.mateu-tab.active {
+  color: var(--oj-palette-brand-130, #0a5a6b);
+  border-bottom-color: var(--oj-palette-brand-100, #135a6b);
+  font-weight: 600;
+}
+
+.mateu-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+.mateu-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+}
+.mateu-metric {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-metric.clickable {
+  cursor: pointer;
+}
+.mateu-metric.clickable:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.mateu-metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0.35rem 0;
+}
+.mateu-metric-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.mateu-metric-unit {
+  font-size: 1rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+.mateu-metric-trend {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.mateu-metric-trend.up {
+  color: #2e7d32;
+}
+.mateu-metric-trend.down {
+  color: #c62828;
+}
+.mateu-metric-desc {
+  margin-top: 0.35rem;
+}
+.mateu-panel {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-panel-title {
+  margin-bottom: 0.15rem;
+}
+.mateu-panel-subtitle {
+  margin-bottom: 0.6rem;
+}
+
+.mateu-hero {
+  padding: 3rem 2rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--oj-palette-brand-20, #e6eff1), var(--oj-palette-neutral-20, #f3f1ef));
+  margin-bottom: 1.5rem;
+}
+.mateu-hero.centered {
+  text-align: center;
+}
+.mateu-hero.has-image {
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+.mateu-hero-title {
+  margin: 0 0 0.5rem;
+}
+.mateu-hero-subtitle {
+  margin: 0 0 1.25rem;
+  opacity: 0.9;
+}
+.mateu-hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mateu-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+.mateu-notice-info {
+  background: #e8f1fb;
+}
+.mateu-notice-success {
+  background: #e6f4ea;
+}
+.mateu-notice-warning {
+  background: #fdf3e3;
+}
+.mateu-notice-danger {
+  background: #fbe9e7;
+}
+.mateu-notice-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex: 0 0 auto;
+}
+.mateu-notice-text {
+  flex: 1;
+}
+.mateu-notice-action {
+  border: none;
+  background: transparent;
+  color: var(--oj-palette-brand-130, #0a5a6b);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mateu-badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.06));
+}
+
+.mateu-progress,
+.mateu-meter-track {
+  height: 0.5rem;
+  border-radius: 1rem;
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.mateu-progress-fill,
+.mateu-meter-fill {
+  height: 100%;
+  background: var(--oj-palette-brand-100, #135a6b);
+  border-radius: 1rem;
+}
+.mateu-meter {
+  margin: 0.35rem 0;
+}
+.mateu-meter-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.mateu-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mateu-avatar-initials {
+  background: var(--oj-palette-brand-100, #135a6b);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mateu-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+.mateu-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+.mateu-empty-title {
+  margin-bottom: 0.35rem;
+}
+.mateu-empty-desc {
+  margin-bottom: 1rem;
+}
+
+.mateu-separator {
+  border: none;
+  border-top: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  margin: 1rem 0;
+}
+
+.mateu-entity-header {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.mateu-entity-head-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.mateu-entity-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.mateu-entity-facts {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.mateu-fact {
+  display: flex;
+  flex-direction: column;
+}
+
+.mateu-status-list,
+.mateu-bulleted-list {
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.mateu-bulleted-list {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.mateu-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.06));
+}
+
+.mateu-md-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+.mateu-md-table th,
+.mateu-md-table td {
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+}
+.mateu-md-table th {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.03));
+  font-weight: 600;
+}
+
+/* overlays */
+.mateu-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.mateu-overlay {
+  background: var(--oj-core-bg-color-content, #fff);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+}
+.mateu-overlay.dialog {
+  border-radius: 0.75rem;
+  max-width: 90vw;
+  width: 32rem;
+  max-height: 85vh;
+}
+.mateu-overlay.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  border-radius: 0;
+  max-height: none;
+}
+.mateu-overlay.drawer-bottom {
+  top: auto;
+  height: auto;
+  max-height: 85vh;
+}
+.mateu-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+}
+.mateu-overlay-body {
+  padding: 1.25rem;
+  overflow: auto;
+}

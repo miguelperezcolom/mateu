@@ -5,6 +5,22 @@ import { interpolate } from '../core/expressions'
 import { renderField } from './fields/renderField'
 import { renderButton } from './leaves/renderButton'
 import { renderCrud } from './table/renderCrud'
+import { renderTabs } from './layout/renderTabs'
+import { renderDashboardLayout, renderDashboardPanel, renderScoreboard, renderMetricCard } from './layout/renderDashboard'
+import {
+  renderMarkdown,
+  renderNotice,
+  renderBadge,
+  renderProgressBar,
+  renderMeter,
+  renderAvatar,
+  renderHero,
+  renderEmptyState,
+  renderSeparator,
+  renderEntityHeader,
+  renderStatusList,
+  renderBulletedList,
+} from './leaves/renderDisplay'
 
 export type Json = Record<string, any>
 
@@ -74,6 +90,23 @@ export function renderComponent(node: unknown, ctx: RenderCtx): TemplateResult |
     case 'Listing':
       return renderCrud(node, m, ctx)
 
+    // ── layouts / archetypes ────────────────────────────────────────────────────────
+    case 'TabLayout':
+      return renderTabs(node, m, ctx)
+
+    case 'DashboardLayout':
+      return renderDashboardLayout(node, m, ctx)
+    case 'DashboardPanel':
+      return renderDashboardPanel(node, m, ctx)
+    case 'Scoreboard':
+      return renderScoreboard(node, m, ctx)
+    case 'MetricCard':
+      return renderMetricCard(node, m, ctx)
+
+    case 'FoldoutLayout':
+      // Overview + panels arrive as slotted children; render stacked (fold interaction TBD).
+      return html`<div class="mateu-foldout">${renderChildren(node, ctx)}</div>`
+
     // ── leaves ──────────────────────────────────────────────────────────────────────
     case 'FormField':
       return renderField(node, m, ctx)
@@ -83,6 +116,31 @@ export function renderComponent(node: unknown, ctx: RenderCtx): TemplateResult |
 
     case 'Text':
       return renderText(m, ctx)
+
+    case 'Markdown':
+      return renderMarkdown(m, ctx)
+    case 'Notice':
+      return renderNotice(m, ctx)
+    case 'Badge':
+      return renderBadge(m, ctx)
+    case 'ProgressBar':
+      return renderProgressBar(m, ctx)
+    case 'Meter':
+      return renderMeter(m, ctx)
+    case 'Avatar':
+      return renderAvatar(m, ctx)
+    case 'HeroSection':
+      return renderHero(node, m, ctx)
+    case 'EmptyState':
+      return renderEmptyState(m, ctx)
+    case 'Separator':
+      return renderSeparator(m)
+    case 'EntityHeader':
+      return renderEntityHeader(node, m, ctx)
+    case 'StatusList':
+      return renderStatusList(m, ctx)
+    case 'BulletedList':
+      return renderBulletedList(m, ctx)
 
     default:
       // Unknown / not-yet-ported: render children so containers still show their content.

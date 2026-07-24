@@ -1,9 +1,15 @@
-import { nothing, render, type TemplateResult } from 'lit'
-import { MateuSession, type NavTarget } from '../core/MateuSession'
+import { html, nothing, render, type TemplateResult } from 'lit'
+import { MateuSession, type NavTarget, type OverlayOpenerContext } from '../core/MateuSession'
 import { MateuViewController, type RenderedView } from '../core/MateuViewController'
 import { loadOjet, type OjRuntime } from '../oj/runtime'
 import { renderShell, type AppMeta, type MenuItem } from '../views/shell/renderShell'
 import { renderView, type RenderContext } from '../views/renderView'
+import { renderComponent, type RenderCtx } from '../views/renderComponent'
+
+interface Overlay {
+  node: Json
+  controller: MateuViewController
+}
 
 type Json = Record<string, any>
 
@@ -37,6 +43,7 @@ export class MateuOjApp {
   private activeRoute = ''
   private navCollapsed = false
   private view: RenderedView = { component: null, state: {}, data: null, loading: true, error: null, version: 0 }
+  private overlays: Overlay[] = []
 
   constructor(cfg: MateuOjAppConfig) {
     this.baseUrl = (cfg.baseUrl ?? '').replace(/\/+$/, '')
@@ -106,7 +113,30 @@ export class MateuOjApp {
     this.session.openView = (target: NavTarget) => {
       this.navigateTo(target.route, target.consumedRoute, target.serverSideType)
     }
-    // Overlays wired in Phase 3/4.
+    this.session.openOverlay = (component, state, _data, opener?: OverlayOpenerContext) => {
+      const node = component as Json
+      const ctrl = new MateuViewController(this.session)
+      ctrl.onRender = () => this.renderAll()
+      if (opener) {
+        ctrl.currentRoute = opener.route
+        ctrl.currentConsumedRoute = opener.consumedRoute
+        ctrl.currentServerSideType = opener.serverSideType
+      }
+      const init = ((node['metadata'] as Json)?.['initialData'] as Json) ?? (state as Json) ?? {}
+      ctrl.currentComponentState = { ...init }
+      this.overlays.push({ node, controller: ctrl })
+      this.renderAll()
+    }
+    this.session.closeTopOverlay = () => {
+      this.overlays.pop()
+      this.renderAll()
+    }
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.overlays.length) {
+        this.overlays.pop()
+        this.renderAll()
+      }
+    })
   }
 
   // ── navigation ──────────────────────────────────────────────────────────────────────
@@ -147,17 +177,57 @@ export class MateuOjApp {
   private renderAll(): void {
     const ctx: RenderContext = { controller: this.content, runtime: this.runtime }
     const content: TemplateResult | typeof nothing = renderView(this.view, ctx)
-    render(
-      renderShell(this.app, this.activeRoute, this.navCollapsed, {
-        onNavigate: this.onNavigate,
-        onToggleNav: () => {
-          this.navCollapsed = !this.navCollapsed
-          this.renderAll()
-        },
-        onHome: () => this.navigateTo(this.app.homeRoute ?? '', this.app.homeConsumedRoute ?? '', this.app.homeServerSideType ?? ''),
-      }, content),
-      this.root,
-    )
+    const shell = renderShell(this.app, this.activeRoute, this.navCollapsed, {
+      onNavigate: this.onNavigate,
+      onToggleNav: () => {
+        this.navCollapsed = !this.navCollapsed
+        this.renderAll()
+      },
+      onHome: () => this.navigateTo(this.app.homeRoute ?? '', this.app.homeConsumedRoute ?? '', this.app.homeServerSideType ?? ''),
+    }, content)
+    render(html`${shell}${this.overlays.map((o) => this.renderOverlay(o))}`, this.root)
+  }
+
+  /** Render a Dialog / Drawer overlay: backdrop + panel with the content driven by its own
+   *  controller (seeded with the opener's navigation context so its buttons dispatch on the host). */
+  private renderOverlay(overlay: Overlay): TemplateResult {
+    const m = (overlay.node['metadata'] as Json) ?? {}
+    const isDrawer = String(m['type']) === 'Drawer'
+    const title = String(m['headerTitle'] ?? m['title'] ?? '')
+    const subtitle = String(m['subtitle'] ?? '')
+    const position = String(m['position'] ?? 'end')
+    const width = String(m['width'] ?? (isDrawer ? '36rem' : ''))
+    const content = m['content'] as unknown
+    const ctx: RenderCtx = {
+      controller: overlay.controller,
+      runtime: this.runtime,
+      state: overlay.controller.currentComponentState,
+      data: null,
+    }
+    const close = () => {
+      const i = this.overlays.indexOf(overlay)
+      if (i >= 0) this.overlays.splice(i, 1)
+      this.renderAll()
+    }
+    const panelStyle = isDrawer ? `width:${width}; ${position === 'start' ? 'left:0;' : position === 'bottom' ? 'left:0;right:0;bottom:0;width:auto;' : 'right:0;'}` : ''
+    return html`
+      <div class="mateu-overlay-backdrop" @click=${close}>
+        <div
+          class="mateu-overlay ${isDrawer ? 'drawer drawer-' + position : 'dialog'}"
+          style=${panelStyle}
+          @click=${(e: Event) => e.stopPropagation()}
+        >
+          <div class="mateu-overlay-header">
+            <div>
+              ${title ? html`<div class="mateu-overlay-title oj-typography-heading-sm">${title}</div>` : nothing}
+              ${subtitle ? html`<div class="oj-typography-body-sm oj-text-color-secondary">${subtitle}</div>` : nothing}
+            </div>
+            <button class="mateu-icon-button" aria-label="Close" @click=${close}><span class="oj-ux-ico-close"></span></button>
+          </div>
+          <div class="mateu-overlay-body">${content ? renderComponent(content, ctx) : nothing}</div>
+        </div>
+      </div>
+    `
   }
 }
 
