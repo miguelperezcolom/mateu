@@ -372,8 +372,13 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   necesita **`display:'on'`** o sale con oj-disabled (apagado, sin marca de selección); el
   status de Mateu NO se emite (el indicador espera otro enum). current-step efectivo en var
   aparte (`mateuWizardShownStep`: '' al entrar = overview; el paso real tras cada acción).
-  Verificado: overview→Start→1→2→3→Confirm→"Pedido confirmado…" con el rail marcando cada paso
-  y footer limpio (Back/Cancel/Confirm). Gotcha de sondas: el resultado va en un input readonly
+  **Atrás = clic en el RAIL** (feedback: un Back en el contenido contradice al Cancel del
+  footer): `spBeforeStepNavigate` (detail {currentStep,nextStep,triggeredFrom:'continue'|'step'})
+  con triggeredFrom 'step' ejecuta los 'back' necesarios contra Mateu (fromIdx−toIdx veces);
+  hacia DELANTE por el rail no navega (se restaura el paso mostrado imperativamente — el evento
+  es cancelable pero el chain corre async y preventDefault llega tarde). El slot no lleva
+  botones (footer/rail del componente navegan). Verificado: overview→Start→1→2→3→Confirm→
+  "Pedido confirmado…", rail marcando cada paso, rail-back conservando el estado. Gotcha de sondas: el resultado va en un input readonly
   — `innerText` no ve valores de inputs.
 - Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
 

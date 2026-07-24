@@ -145,7 +145,8 @@
     current-step="[[ $application.variables.mateuWizardShownStep ]]"
     primary-action="[[ $application.variables.mateuWizardPrimary ]]"
     on-sp-primary-action="[[ $listeners.mateuWizardPrimaryAction ]]"
-    on-sp-before-next="[[ $listeners.mateuWizardContinue ]]">
+    on-sp-before-next="[[ $listeners.mateuWizardContinue ]]"
+    on-sp-before-step-navigate="[[ $listeners.mateuWizardStepNavigate ]]">
     <div class="oj-sm-padding-4x">
       <oj-form-layout id="mateuWizardForm">
         <oj-bind-for-each data="[[ $application.variables.mateuFormFieldsList ]]">

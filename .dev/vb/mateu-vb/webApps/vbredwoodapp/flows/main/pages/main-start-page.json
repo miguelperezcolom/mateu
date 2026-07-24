@@ -91,6 +91,16 @@
           "chain": "wizardNext"
         }
       ]
+    },
+    "mateuWizardStepNavigate": {
+      "chains": [
+        {
+          "chain": "wizardStepNavigate",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
