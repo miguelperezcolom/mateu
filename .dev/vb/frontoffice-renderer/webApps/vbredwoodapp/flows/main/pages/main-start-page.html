@@ -1,7 +1,29 @@
 <!-- Copyright (c) 2026, Oracle and/or its affiliates -->
 
-<div class="oj-sp-public-primary-content-container oj-sm-padding-2x">
-<div class="oj-flex">
-  <h1 class="oj-flex-item oj-sm-12 oj-md-12"><oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text></h1>
-</div>
+<!-- Fase 2: navigator Redwood (oj-navigation-list) alimentado por el menú de Mateu +
+     área de contenido. Seleccionar una opción recarga SOLO el contenido (loadRoute),
+     sin recargar la shell. Solo markup oj-* de los ejemplos, sin CSS propio. -->
+<div class="oj-web-applayout-content-nopad oj-flex">
+  <div class="oj-flex-item" style="min-width: 15rem; max-width: 15rem">
+    <oj-navigation-list
+      data="[[ $functions.getNavData() ]]"
+      on-selection-changed="[[ $listeners.navSelect ]]"
+      class="oj-navigationlist-nofollow-link"
+    >
+      <template slot="itemTemplate" data-oj-as="item">
+        <li :id="[[ item.data.route ]]">
+          <a style="cursor: pointer">
+            <oj-bind-text value="[[ item.data.label ]]"></oj-bind-text>
+          </a>
+        </li>
+      </template>
+    </oj-navigation-list>
+  </div>
+  <div class="oj-flex-item oj-sm-padding-4x">
+    <div class="oj-flex">
+      <h1 class="oj-flex-item oj-sm-12 oj-md-12">
+        <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>
+      </h1>
+    </div>
+  </div>
 </div>

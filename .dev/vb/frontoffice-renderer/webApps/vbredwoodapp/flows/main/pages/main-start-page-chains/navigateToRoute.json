@@ -1,25 +1,21 @@
 {
-  "description": "Fase 2: carga la App (menú) y el contenido de la primera ruta.",
-  "root": "loadApp",
-  "variables": {},
+  "description": "Fase 2: al seleccionar una opción del navigator, recarga SOLO el contenido de esa ruta.",
+  "root": "loadRoute",
+  "variables": {
+    "selection": {
+      "required": true,
+      "type": "any",
+      "input": "fromCaller"
+    }
+  },
   "actions": {
-    "loadApp": {
-      "module": "vb/action/builtin/callModuleFunctionAction",
-      "parameters": {
-        "module": "[[ $functions ]]",
-        "functionName": "loadApp"
-      },
-      "outcomes": {
-        "success": "loadRoute"
-      }
-    },
     "loadRoute": {
       "module": "vb/action/builtin/callModuleFunctionAction",
       "parameters": {
         "module": "[[ $functions ]]",
         "functionName": "loadRoute",
         "params": [
-          "{{ $chain.results.loadApp.firstRoute }}"
+          "{{ $variables.selection }}"
         ]
       },
       "outcomes": {

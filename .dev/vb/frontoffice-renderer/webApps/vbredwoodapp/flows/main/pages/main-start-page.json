@@ -1,12 +1,7 @@
 {
-
   "title": "",
   "description": "",
   "variables": {
-    "mateuRegistry": {
-      "type": "object",
-      "defaultValue": {}
-    },
     "greeting": {
       "type": "string",
       "defaultValue": "Cargando…"
@@ -19,8 +14,17 @@
     "vbEnter": {
       "chains": [
         {
-          "chainId": "loadFromMateu",
-          "parameters": {}
+          "chainId": "loadFromMateu"
+        }
+      ]
+    },
+    "navSelect": {
+      "chains": [
+        {
+          "chainId": "navigateToRoute",
+          "parameters": {
+            "selection": "{{ $event.detail.value }}"
+          }
         }
       ]
     }

@@ -1,9 +1,17 @@
-/* Bridge de Mateu-sobre-VB (Fase 1) — módulo de la página de contenido.
- * loadRoot(): callMateu(:9001) → reduceContexts → devuelve { registry, greeting }.
- * reduceContexts/metaOf/firstText son el MISMO core que src/core/reduceContexts.mjs (subset Fase 1),
- * portado a este módulo AMD. Sin HTML/CSS: la presentación la pinta la página/fragmento con oj-*.
+/* Bridge de Mateu-sobre-VB (Fase 2) — módulo de la página de contenido.
+ * loadApp(): callMateu('') → fragmento App → construye el menú del navigator (oj-navigation-list).
+ * loadRoute(route): callMateu(route) → reduceContexts → devuelve el contenido (Fase 2: el Text).
+ * reduceContexts/metaOf/firstText son el MISMO core que src/core/reduceContexts.mjs (subset), en AMD.
+ * Sin HTML/CSS: la presentación la pinta la página con componentes oj-* de los ejemplos.
  */
-define([], function () {
+// 'ojs/ojnavigationlist' se requiere para REGISTRAR el custom element oj-navigation-list
+// (el paso de resolución de dependencias del build no lo incluye en standalone, así que lo
+// cargamos explícitamente — es un componente core de OJET desde el CDN de jet).
+define(['ojs/ojnavigationlist', 'ojs/ojarraydataprovider', 'knockout'], function (
+  _ojNavigationList,
+  ArrayDataProvider,
+  ko,
+) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -30,7 +38,6 @@ define([], function () {
     return { contexts: contexts, stack: reg.stack || [], shell: reg.shell || null };
   }
 
-  // Fase 1: encuentra el primer nodo Text del árbol.
   function firstText(node) {
     if (!node || typeof node !== 'object') return null;
     const md = metaOf(node);
@@ -43,17 +50,56 @@ define([], function () {
     return null;
   }
 
+  // Contrato mediador: para cargar el contenido de una ruta de MENÚ hay que enviar el
+  // serverSideType + consumedRoute del item (si no, la App se devuelve a sí misma).
+  async function callMateu(route, serverSideType, consumedRoute) {
+    const body = { route: route || '', actionId: '__load__', componentState: {}, appState: {} };
+    if (serverSideType) body.serverSideType = serverSideType;
+    if (consumedRoute != null) body.consumedRoute = consumedRoute;
+    const res = await fetch(BASE + '/mateu/v3/components/_/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  }
+
   class PageModule {
-    async loadRoot() {
-      const res = await fetch(BASE + '/mateu/v3/components/_/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, appState: {} }),
-      });
-      const increment = await res.json();
-      const registry = reduceContexts({ contexts: {}, stack: [], shell: null }, increment);
-      const host = registry.contexts[HOST_ID];
-      return { registry: registry, greeting: firstText(host && host.tree) || '(sin contenido)' };
+    constructor() {
+      // El navigator (oj-navigation-list) se alimenta de este DataProvider observable;
+      // loadApp() rellena navItems y la lista se repinta sola. `menu` guarda los items
+      // completos (con serverSideType/consumedRoute) para el contrato mediador de loadRoute.
+      this.menu = [];
+      this.navItems = ko.observableArray([]);
+      this.navDP = new ArrayDataProvider(this.navItems, { keyAttributes: 'route' });
+    }
+
+    getNavData() {
+      return this.navDP;
+    }
+
+    // Carga la App (menú) desde Mateu. Devuelve la primera ruta para el contenido inicial.
+    async loadApp() {
+      const inc = await callMateu('');
+      const appFrag = (inc.fragments || []).find((f) => metaOf(f.component).type === 'App');
+      const md = appFrag ? metaOf(appFrag.component) : {};
+      this.menu = (md.menu || []).map((m) => ({
+        route: m.route,
+        label: m.caption || m.label,
+        serverSideType: m.serverSideType,
+        consumedRoute: m.consumedRoute,
+      }));
+      this.navItems(this.menu.map((m) => ({ route: m.route, label: m.label })));
+      return { firstRoute: (this.menu[0] || {}).route || '', title: md.title };
+    }
+
+    // Carga el contenido de una ruta (Fase 2: extrae el Text) vía el contrato mediador.
+    async loadRoute(route) {
+      const item = this.menu.filter((m) => m.route === route)[0] || {};
+      const inc = await callMateu(route, item.serverSideType, item.consumedRoute);
+      const reg = reduceContexts({ contexts: {}, stack: [], shell: null }, inc);
+      const host = reg.contexts[HOST_ID];
+      return { greeting: firstText(host && host.tree) || '(sin contenido)' };
     }
   }
 
