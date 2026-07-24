@@ -1,0 +1,36 @@
+<!-- Mobile only header and page title -->
+<header role="banner" class="oj-sm-flex-initial vb-web-applayout-header oj-md-hide">
+  <div role="image" class="vb-web-applayout-header-image-stripe"></div>
+  <div class="oj-flex-bar oj-sm-align-items-center vb-web-applayout-header-content">
+    <!-- Navigator toggle button will render only if we have a drawer -->
+    <oj-bind-if test="[[ document.querySelector('oj-vb-fragment[name=\'shell-drawer\']') ]]">
+      <div class="oj-flex-bar">
+        <oj-button on-oj-action="[[$listeners.toggleDrawer]]" chroming="borderless"
+                   display="icons">
+          <span slot="startIcon" class="oj-ux-ico-menu"></span>
+          <span><oj-bind-text value="[[$application.translations.app.app_title_navigation_drawer]]"></oj-bind-text></span>
+        </oj-button>
+      </div>
+    </oj-bind-if>
+    <!-- Page specific title and actions with overflow menu displayed -->
+    <div class="vb-content-header oj-flex oj-sm-flex-items-initial oj-sm-padding-2x-horizontal oj-sm-align-items-center oj-md-hide oj-sm-flex-1">
+      <div class="oj-typography-body-lg oj-typography-semi-bold oj-sm-flex-1">
+        <oj-bind-text value="[[$variables.title]]"></oj-bind-text>
+      </div>
+      <!-- Add Page specific actions etc -->
+      <oj-vb-fragment-slot name="actions" bridge="[[vbBridge]]">
+      </oj-vb-fragment-slot>
+    </div>
+  </div>
+</header>
+
+<!-- Page specific title and actions for desktop formfactor -->
+<div class="vb-content-header oj-flex oj-sm-flex-1 oj-sm-only-hide oj-sm-align-items-center">
+  <div role="image" class="vb-content-header-image-stripe"></div>
+  <div class="oj-typography-body-lg oj-typography-semi-bold oj-sm-flex-1">
+    <oj-bind-text value="[[$variables.title]]"></oj-bind-text>
+  </div>
+  <!-- Add Page specific actions etc -->
+  <oj-vb-fragment-slot name="actions" bridge="[[vbBridge]]">
+  </oj-vb-fragment-slot>
+</div>

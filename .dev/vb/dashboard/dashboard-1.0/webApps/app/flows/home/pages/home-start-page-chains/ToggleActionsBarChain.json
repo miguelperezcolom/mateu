@@ -1,0 +1,25 @@
+{
+  "description": "",
+  "root": "updateActionsBarVisibility",
+  "actions": {
+    "callFunctionToggle": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": {
+        "module": "[[ $functions ]]",
+        "functionName": "toggle"
+      }
+    },
+    "updateActionsBarVisibility": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.actionsBarVisible": {
+          "source": "{{ !$page.variables.actionsBarVisible }}"
+        }
+      },
+      "outcomes": {
+        "success": "callFunctionToggle"
+      }
+    }
+  },
+  "variables": {}
+}

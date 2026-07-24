@@ -1,0 +1,99 @@
+{
+  "description": "",
+  "routerFlow": "home",
+  "variables": {
+    "messagesADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "keyAttributes": "id",
+        "itemType": "page:messageType"
+      }
+    },
+    "openDrawer": {
+      "type": "boolean",
+      "defaultValue": "[[ $application.responsive.lgUp ]]"
+    }
+  },
+  "metadata": {},
+  "types": {
+    "messageType": {
+      "id": "string",
+      "severity": "string",
+      "category": "string",
+      "summary": "string",
+      "detail": "string",
+      "timestamp": "string",
+      "autoTimeout": "number"
+    }
+  },
+  "eventListeners": {
+    "ojNavigationListSelection": {
+      "chains": [
+        {
+          "chainId": "NavigationListSelectionChangeChain",
+          "parameters": {
+            "selection": "{{ $event.detail.value }}"
+          }
+        }
+      ]
+    },
+    "toggleNavListButtonSmallOjAction": {
+      "chains": [
+        {
+          "chainId": "toggleNavigation"
+        }
+      ]
+    },
+    "vbNotification": {
+      "chains": [
+        {
+          "chainId": "showNotification",
+          "parameters": {
+            "eventPayload": "{{ { id: $event.key, summary: $event.summary, detail: $event.message, severity: $event.type, autoTimeout: $event.displayMode === 'transient' ? 0 : -1 } }}"
+          }
+        }
+      ]
+    },
+    "onMessageClose": {
+      "chains": [
+        {
+          "chainId": "closeNotificationHandler",
+          "parameters": {
+            "eventMessage": "{{ $event.detail.message }}"
+          }
+        }
+      ]
+    }
+
+  },
+  "imports": {
+    "components": {
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-drawer-layout": {
+        "path": "ojs/ojdrawerlayout"
+      },
+      "oj-messages": {
+        "path": "ojs/ojmessages"
+      },
+      "oj-menu": {
+        "path": "ojs/ojmenu"
+      },
+      "oj-menu-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-navigation-list": {
+        "path": "ojs/ojnavigationlist"
+      },
+      "oj-option": {
+        "path": "ojs/ojoption"
+      },
+      "oj-toolbar": {
+        "path": "ojs/ojtoolbar"
+      }
+
+    }
+  },
+  "translations": {}
+}

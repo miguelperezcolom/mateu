@@ -1,0 +1,23 @@
+{
+  "root": "assignVariablesNavMenuVisible",
+  "description": "",
+  "variables": {
+    "event": {
+      "required": false,
+      "input": "fromCaller",
+      "type": {
+        "visible": "boolean"
+      }
+    }
+  },
+  "actions": {
+    "assignVariablesNavMenuVisible": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$application.variables.navMenuVisible": {
+          "source": "{{ $variables.event.visible }}"
+        }
+      }
+    }
+  }
+}

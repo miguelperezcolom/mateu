@@ -1,0 +1,21 @@
+<footer class="vb-web-applayout-footer" role="contentinfo">
+  <div role="navigation" class="vb-web-applayout-footer-content">
+    <oj-tab-bar class="oj-navigationlist-stack-icon-label"
+                        data="[[$application.variables.navigationADP]]"
+                        overflow="popup"
+                        edge="bottom"
+                        on-selection-changed="[[$listeners.onNavigation]]"
+                        selection="[[$variables.currentFlow]]">
+      <template slot="itemTemplate">
+        <li class="vb-footer-tabbar-item">
+          <a href="#" class="vb-footer-tabbar-item-content">
+            <span :class="[['oj-tabbar-item-icon oj-md-margin-3x-end oj-sm-only-margin-1x-top ' + $current.data.iconClass]]"></span>
+            <span class="vb-footer-tabbar-item-label">
+              <oj-bind-text value='[[$current.data.name]]'></oj-bind-text>
+            </span>
+          </a>
+        </li>
+      </template>
+    </oj-tab-bar>
+  </div>
+</footer>

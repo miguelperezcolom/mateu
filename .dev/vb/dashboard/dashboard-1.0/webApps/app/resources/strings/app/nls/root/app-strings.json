@@ -1,0 +1,30 @@
+{
+  "app_title_navigation_drawer": "Application Navigation Drawer",
+  "@app_title_navigation_drawer": {
+    "description": "Title for Application Navigation Drawer"
+  },
+  "app_logo_tooltip": "Application Logo",
+  "@app_logo_tooltip": {
+    "description": "Title for Application Logo"
+  },
+  "app_header_title": "My Application",
+  "@app_header_title": {
+    "description": "Title on shell header"
+  },
+  "app_footer_about_link": "About",
+  "@app_footer_about_link": {
+    "description": "About link on shell footer"
+  },
+  "app_footer_copyright": "Created with Visual Builder, Copyright © 2024",
+  "@app_footer_copyright": {
+    "description": "Copyright text on shell footer"
+  },
+  "app_title_tooltip": "Application Name",
+  "@app_title_tooltip": {
+    "description": "Tooltip on shell title text"
+  },
+  "app_sign_out": "Sign Out",
+  "@app_sign_out": {
+    "description": "Text on menu option to log out of the application"
+  }
+}

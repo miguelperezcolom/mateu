@@ -1,0 +1,47 @@
+{
+  "title": "Item 2",
+  "description": "",
+  "variables": {
+    "createPersonaChainInProgress": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "persona": {
+      "type": "object"
+    }
+  },
+  "metadata": {
+    "businessObjectsCreatePersonaMetadata": {
+      "type": "vb/DynamicLayoutMetadataProviderDescriptor",
+      "defaultValue": {
+        "endpoint": "businessObjects/create_Persona"
+      }
+    }
+  },
+  "types": {},
+  "eventListeners": {
+    "saveButtonClicked": {
+      "chains": [
+        {
+          "chain": "createPersonaChain"
+        }
+      ]
+    }
+  },
+  "imports": {
+    "components": {
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-dyn-form": {
+        "path": "oj-dyn/form/loader"
+      },
+      "oj-toolbar": {
+        "path": "ojs/ojtoolbar"
+      },
+      "oj-validation-group": {
+        "path": "ojs/ojvalidationgroup"
+      }
+   }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "root": "callFunctionFadeIn",
+  "description": "",
+  "actions": {
+    "callFunctionFadeIn": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": {
+        "module": "[[ $functions ]]",
+        "functionName": "fadeIn"
+      }
+    }
+  }
+}

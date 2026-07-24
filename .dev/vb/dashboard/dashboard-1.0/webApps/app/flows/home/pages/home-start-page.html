@@ -1,0 +1,238 @@
+<!--
+ Copyright (c) 2020, 2024 Oracle and/or its affiliates.
+ Licensed under The Universal Permissive License (UPL), Version 1.0
+ as shown at https://oss.oracle.com/licenses/upl/
+ -->
+
+<div class="oj-flex oj-sm-padding-2x">
+
+  <div class="oj-flex-item oj-flex fold-panels-parent">
+
+    <!-- show 4 boxes in line on lg (oj-lg-3); show two per row on smaller sizes (oj-sm-6 oj-md-6)  -->
+    <div
+      class="oj-flex-item oj-flex oj-sm-6 oj-md-6 oj-lg-3 oj-sm-padding-1x-horizontal fold-panel fold-panel1 fold-closed"
+      :style.min-height="[[ $application.responsive.lgUp ? '200px' : '130px' ]]">
+      <!-- style the content with shadow, rounded border and hover animation -->
+      <div class="oj-flex-item oj-flex oj-sm-flex-items-initial box-shadow box1">
+        <!-- share space (oj-md-8) with icon on md; take whole width on sm (oj-sm-12) -->
+        <div class="oj-flex-item oj-flex oj-sm-12 oj-md-8 oj-sm-padding-4x">
+          <!-- on sm center text; otherwise left aligned -->
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-heading-lg">24</span>
+          </div>
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-body-md">Open Opportunities</span>
+          </div>
+        </div>
+        <!-- share space (oj-md-4) with text on md; hide icon on sm (oj-sm-only-hide) -->
+        <div class="oj-flex-item oj-md-4 icon-style icon1 oj-sm-only-hide"
+          :style.font-size="[[ $application.variables.navMenuVisible && $page.functions.getCustomMediaQuery() ? '3rem' : '4.5rem' ]]">
+          <i :class="[['oj-ux-ico-bag']]"></i>
+        </div>
+        <!-- style box to align to the bottom with rounded border and colors  -->
+        <div class="oj-flex-item oj-flex oj-sm-padding-2x oj-sm-12 box1-inner">
+          <span class="oj-flex-item oj-flex oj-sm-justify-content-center oj-typography-subheading-xs">
+          More Info &nbsp
+          <i :class="[['oj-typography-heading-xs oj-ux-ico-arrow-circle-right']]"></i>
+        </span>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="oj-flex-item oj-flex oj-sm-6 oj-md-6 oj-lg-3 oj-sm-padding-1x-horizontal fold-panel fold-panel2 fold-closed"
+      :style.min-height="[[ $application.responsive.lgUp ? '200px' : '130px' ]]">
+      <div class="oj-flex-item oj-flex oj-sm-flex-items-initial box-shadow box2">
+        <div class="oj-flex-item oj-flex oj-sm-12 oj-md-8 oj-sm-padding-4x">
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-heading-lg">75 %</span>
+          </div>
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-body-md">Sales Target</span>
+          </div>
+        </div>
+        <div class="oj-flex-item oj-md-4 icon-style icon2 oj-sm-only-hide"
+          :style.font-size="[[ $application.variables.navMenuVisible && $page.functions.getCustomMediaQuery() ? '3rem' : '4.5rem' ]]">
+          <i :class="[['oj-ux-ico-chart-bar-v-alt']]"></i>
+        </div>
+        <div class="oj-flex-item oj-flex oj-sm-padding-2x oj-sm-12 box2-inner">
+          <span class="oj-flex-item oj-flex oj-sm-justify-content-center oj-typography-subheading-xs">
+          More Info &nbsp
+          <i :class="[['oj-typography-heading-xs oj-ux-ico-arrow-circle-right']]"></i>
+        </span>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div
+      class="oj-flex-item oj-flex oj-sm-6 oj-md-6 oj-lg-3 oj-sm-padding-1x-horizontal oj-sm-only-padding-2x-top oj-md-only-padding-2x-top fold-panel fold-panel3 fold-closed"
+      :style.min-height="[[ $application.responsive.lgUp ? '200px' : '130px' ]]">
+      <div class="oj-flex-item oj-flex oj-sm-flex-items-initial box-shadow box3">
+        <div class="oj-flex-item oj-flex oj-sm-12 oj-md-8 oj-sm-padding-4x">
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-heading-lg">16</span>
+          </div>
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-body-md">Appointments</span>
+          </div>
+        </div>
+        <div class="oj-flex-item oj-md-4 icon-style icon3 oj-sm-only-hide"
+          :style.font-size="[[ $application.variables.navMenuVisible && $page.functions.getCustomMediaQuery() ? '3rem' : '4.5rem' ]]">
+          <i :class="[['oj-ux-ico-contact-plus']]"></i>
+        </div>
+        <div class="oj-flex-item oj-flex oj-sm-padding-2x oj-sm-12 box3-inner">
+          <span class="oj-flex-item oj-flex oj-sm-justify-content-center oj-typography-subheading-xs">
+          More Info &nbsp
+          <i :class="[['oj-typography-heading-xs oj-ux-ico-arrow-circle-right']]"></i>
+        </span>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div
+      class="oj-flex-item oj-flex oj-sm-6 oj-md-6 oj-lg-3 oj-sm-padding-1x-horizontal oj-sm-only-padding-2x-top oj-md-only-padding-2x-top fold-panel fold-panel4 fold-closed"
+      :style.min-height="[[ $application.responsive.lgUp ? '200px' : '130px' ]]">
+      <div class="oj-flex-item oj-flex oj-sm-flex-items-initial box-shadow box4">
+        <div class="oj-flex-item oj-flex oj-sm-12 oj-md-8 oj-sm-padding-4x">
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-heading-lg">27</span>
+          </div>
+          <div class="oj-flex-item oj-flex oj-sm-12 oj-sm-only-justify-content-center">
+            <span class="oj-typography-body-md">Smart List</span>
+          </div>
+        </div>
+        <div class="oj-flex-item oj-md-4 icon-style icon4 oj-sm-only-hide"
+          :style.font-size="[[ $application.variables.navMenuVisible && $page.functions.getCustomMediaQuery() ? '3rem' : '4.5rem' ]]">
+          <i :class="[['oj-ux-ico-chart-pie-segment']]"></i>
+        </div>
+        <div class="oj-flex-item oj-flex oj-sm-padding-2x oj-sm-12 box4-inner">
+          <span class="oj-flex-item oj-flex oj-sm-justify-content-center oj-typography-subheading-xs">
+          More Info &nbsp
+          <i :class="[['oj-typography-heading-xs oj-ux-ico-arrow-circle-right']]"></i>
+        </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="oj-flex-item oj-flex oj-sm-padding-4x-bottom">
+
+    <!-- take whole width on md or half on lg; on lg this item has different order - is second -->
+    <!-- fixed height based on device resolution -->
+    <div id="employee-card-main" class="oj-flex-item oj-flex oj-lg-order-2 oj-md-12 oj-lg-6 oj-sm-padding-4x-top"
+      :style.min-height="[[ $application.responsive.lgUp ? '400px' : '300px' ]]">
+      <div class="oj-flex-item wrapper box-shadow oj-sm-margin-2x-start oj-sm-margin-2x-end oj-bg-neutral-0">
+        <div class="oj-flex employee-card-main"
+          :style.min-height="[[ $application.responsive.lgUp ? '200px' : '150px' ]]">
+          <div class="oj-flex-item oj-sm-12 demo-contrast-marker">
+            <h4 class="oj-typography-subheading-xl oj-sm-padding-2x-top">Steven King</h4>
+            <span class="oj-typography-body-xl">APAC Sales Manager</span>
+          </div>
+        </div>
+
+        <div class='employee-card-main-avatar'>
+          <oj-avatar src="[[ $application.path + 'resources/images/employee.png' ]]" shape="circle"
+            size="[[ $application.responsive.lgUp ? 'xl' : 'lg' ]]" class="oj-avatar-group-image"></oj-avatar>
+        </div>
+
+        <div class='employee-card-main-toggle-button'>
+          <oj-button chroming="callToAction" on-oj-action="[[$listeners.buttonAction]]">
+            <span><i :class="[[ ['oj-typography-heading-md', $page.variables.actionsBarVisible ? 'oj-ux-ico-collapse': 'oj-ux-ico-expand'] ]]"></i></span>
+          </oj-button>
+        </div>
+
+        <div class="oj-flex">
+          <div class="oj-flex-item oj-flex oj-sm-12 employee-card-main-footer">
+            <div class="oj-flex-item oj-sm-4 box-shadow oj-sm-padding-4x">
+              <h5 class="oj-typography-subheading-md">1670</h5>
+              <span class="oj-typography-body-md">SALES</span>
+            </div>
+            <div class="oj-flex-item oj-sm-4 box-shadow oj-sm-padding-4x">
+              <h5 class="oj-typography-subheading-md">19</h5>
+              <span class="oj-typography-body-md">PRODUCTS</span>
+            </div>
+            <div class="oj-flex-item oj-sm-4 box-shadow oj-sm-padding-4x">
+              <h5 class="oj-typography-subheading-md">6886</h5>
+              <span class="oj-typography-body-md">FOLLOWERS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- on lg this item order is first; takes different space on different sizes: 3 on lg; 6 on md; 12 on sm -->
+    <div id="employee-card-left"
+      class="oj-flex-item oj-flex oj-lg-order-1 oj-sm-12 oj-md-6 oj-lg-3 oj-sm-padding-4x-top main-box">
+      <div class="oj-flex-item oj-sm-12 wrapper box-shadow oj-bg-neutral-0 oj-sm-margin-2x-start oj-sm-margin-2x-end">
+        <div
+          class="oj-flex employee-card-left oj-sm-align-items-center oj-sm-padding-4x-start oj-sm-flex-direction-column">
+          <div class="oj-flex-item oj-sm-flex-initial oj-sm-padding-4x-top">
+            <span class="oj-typography-heading-md">12 items</span>
+          </div>
+          <div class="oj-flex-item oj-sm-flex-initial oj-sm-padding-4x-bottom">
+            <span class="oj-typography-subheading-sm">need attention</span>
+          </div>
+          <div class="oj-flex-item oj-sm-flex-initial oj-sm-padding-1x-bottom">
+            <oj-button chroming="callToAction">Review</oj-button>
+          </div>
+        </div>
+        <div class="oj-flex">
+          <oj-list-view class="oj-flex-item oj-sm-12 oj-md-12 oj-listview-item-padding-off employee-card-left-list"
+            data="[[ $variables.notificationData ]]">
+            <template slot="itemTemplate">
+              <oj-list-item-layout>
+                <div slot="leading">
+                  <span class="oj-typography-body-lg"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></span>
+                </div>
+                <div slot="action">
+                  <span
+                :class="[[ ['oj-badge', $current.data.badge === 1 ? 'oj-badge-info' : ( $current.data.badge === 2 ? 'oj-badge-danger' : 'oj-badge-success')] ]]"
+                ><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span>
+                </div>
+              </oj-list-item-layout>
+            </template>
+          </oj-list-view>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="employee-card-right"
+      class="oj-flex-item oj-flex oj-lg-order-2 oj-sm-12 oj-md-6 oj-lg-3 oj-sm-padding-4x-top main-box">
+      <div
+        class="oj-flex-item oj-flex oj-sm-12 box-shadow oj-sm-margin-2x-start oj-sm-margin-2x-end employee-card-right oj-sm-align-items-center">
+        <div class="oj-flex-item oj-sm-flex-1">
+          <span class="oj-typography-heading-md">Sales Pipeline</span>
+        </div>
+        <div class="oj-flex-item oj-sm-12 oj-sm-flex-initial">
+          <oj-chart type="funnel" data="[[ $variables.chartData ]]" style-defaults.three-d-effect="on"
+            animation-on-display="zoom" style="max-height: 300px">
+            <template slot="itemTemplate">
+              <oj-chart-item value="[[$current.data.value]]" group-id="[[ [$current.data.group] ]]"
+                series-id="[[$current.data.series]]">
+              </oj-chart-item>
+            </template>
+          </oj-chart>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="oj-flex-item oj-sm-flex-initial">
+    <p>Step by step instructions how to create this dashboard page can be found in the Visual Builder Cookbook in the
+      <a
+        href="https://vbcookbook.oracle.com/?page=shell&shell=dashboard-template&dashboard-template=dashboard-template-start&dashboard-template-start=recipe">Dashboard
+        Template</a> recipe. Left navigation menu is also describe there
+      in the <a
+        href="https://vbcookbook.oracle.com/?page=shell&shell=tree-navigation&tree-navigation=tree-navigation-start&tree-navigation-start=recipe">Tree
+        Navigation</a> recipe.
+    </p>
+  </div>
+
+</div>

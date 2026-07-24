@@ -1,0 +1,15 @@
+{
+    "name": "vb-application",
+    "version": "2604.1.0",
+    "description": "VB application",
+    "devDependencies": {
+        "@oracle/grunt-vb-audit": "https://static.oracle.com/cdn/vb/tools/npm/grunt-vb-audit/grunt-vb-audit-2510.0.0.tar.gz",
+        "@oracle/grunt-vb-build": "https://static.oracle.com/cdn/vb/tools/npm/grunt-vb-build/grunt-vb-build-2510.4.0.tar.gz",
+        "grunt": "^1.0.3",
+        "grunt-cli": "^1.3.2",
+        "load-grunt-tasks": "^4.0.0"
+    },
+    "com_oracle_visual_builder": {
+        "upgrade": "micro"
+    }
+}

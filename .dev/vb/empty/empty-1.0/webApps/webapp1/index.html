@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="x-ua-compatible" content="IE=edge">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://static.oracle.com">
+  <!-- vb:inject id="headContent" theme="resources/css/dt.theme.redwood" -->
+  <!-- vb:inject id="headContent" css="oracleImageGallery" -->
+  <link id="favicon-light"
+        rel="icon"
+        href="resources/images/favicon-dark.ico"
+        type="image/ico"
+        media="(prefers-color-scheme: light)">
+  <link id="favicon-dark"
+        rel="icon"
+        href="resources/images/favicon-light.ico"
+        type="image/ico"
+        media="(prefers-color-scheme: dark)">
+</head>
+
+<body class="oj-web-applayout-body vb-web-applayout-body">
+
+  <oj-vb-content config="[[vbApplication]]"></oj-vb-content>
+
+  <!-- visualBuilderScripts -->
+
+  <script id="vb_theming_script" nonce="vb_theming_script">
+      (() => {
+          // constants set by DT to enable/disable functionality at runtime
+          const DEFAULT_THEME = 'light';
+          const LIGHT_THEME_OVERRIDE = 'off';
+          const DARK_THEME_OVERRIDE = 'off';
+  
+          const pathName = window.location.pathname;
+          const paths = pathName.endsWith('/') ? pathName.slice(0, -1).split('/') : pathName.split('/');
+          const appName = paths.pop();
+          const THEME_STORAGE_KEY = `vb.uiTheme_${window.location.hostname}_${appName}`;
+          const REDWOOD_OVERRIDE_CSS = 'resources/css/redwood-overrides.css';
+          const REDWOOD_OVERRIDE_DARK_CSS = 'resources/css/redwood-overrides-dark.css';
+
+          /**
+           * Utility method to load a CSS File onto the document by creating a 'link' element and attaching it to the head
+           * @param {string} fileName
+           * @param {string} id optional id to set on the link element
+           */
+          function loadCSSFile(fileName){
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.setAttribute('data-vb-theme-link', true);
+            link.href = require.toUrl(fileName);
+            document.head.appendChild(link);
+          }
+
+          /**
+           * Loads the current theme. If the themeName parameter is provided, the current theme is set to the themeName,
+           * otherwise the current theme is retrived from  the storage flag (initialization case).
+           * @param {string|undefined} themeName
+           */
+          window.vbLoadTheme = (themeName) => {
+            let currentTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+
+            // cleanup any existing state
+            Array.from(document.head.getElementsByTagName('link')).forEach((link) => {
+              if (link.getAttribute('data-vb-theme-link')) {
+                link.parentNode.removeChild(link);
+              }
+            });
+            document.documentElement.classList.remove('vb-dark-theme');
+
+            // If DT option is set to default the app to dark theme, load the dark theme by default if no theme is currently set
+            if (DEFAULT_THEME === 'dark' && !currentTheme && !themeName ) {
+              currentTheme = 'dark';
+              window.localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+            } else if (themeName) { // themeName is passed in so use it and set the storage flag to reflect the theme
+              currentTheme = themeName;
+              window.localStorage.setItem(THEME_STORAGE_KEY, themeName);
+            } 
+            
+            // set current theme attribute on the html element. Shell UI can use this information to initilize VB variables
+            document.documentElement.setAttribute('data-vb-theme', currentTheme || 'light');
+            
+            // now load the dark theme JET override file if the theme is dark
+            const isOSDarkTheme = (currentTheme === 'os' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const isDarkTheme = (currentTheme === 'dark' || isOSDarkTheme);
+            
+            if (isDarkTheme) {
+              loadCSSFile('resources/css/oj-dark-theme-overrides.css');
+              // add a marker style on the html to indicate that this dark theme is enabled
+              document.documentElement.classList.add('vb-dark-theme');
+            }
+
+            // If DT option is set to load theme override css. 
+            if(LIGHT_THEME_OVERRIDE === 'on') {
+              loadCSSFile(REDWOOD_OVERRIDE_CSS);
+            }
+
+            // If DT option is set to load dark theme override css and we are currently in dark theme
+            if (DARK_THEME_OVERRIDE === 'on' && isDarkTheme) {
+              loadCSSFile(REDWOOD_OVERRIDE_DARK_CSS);
+            }
+          }
+  
+          // inline the initial call to load the current theme
+          window.vbLoadTheme();
+      })();
+    </script>
+
+</body>
+
+</html>

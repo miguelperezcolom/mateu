@@ -1,0 +1,69 @@
+{
+    "fields": [
+        {
+            "type": "number",
+            "name": "id",
+            "internal": false,
+            "key": true,
+            "oid": "826c3cd3-ddce-4790-865d-7a7a6dd9f278",
+            "required": true,
+            "unique": true,
+            "displayLabel": "Id"
+        },
+        {
+            "type": "datetime",
+            "name": "creationDate",
+            "internal": false,
+            "oid": "b34eed2c-f812-406d-a195-6cda20ba7fe9",
+            "displayLabel": "Created",
+            "historyType": "timeCreated"
+        },
+        {
+            "type": "datetime",
+            "name": "lastUpdateDate",
+            "internal": false,
+            "oid": "e2ddf3dd-8610-4023-9b2a-4454b68a7974",
+            "displayLabel": "Last Updated",
+            "historyType": "timeUpdated"
+        },
+        {
+            "type": "string",
+            "name": "createdBy",
+            "internal": false,
+            "oid": "84803c32-5757-451f-8b4d-c82b8a0fec67",
+            "displayLabel": "Created By",
+            "historyType": "createdBy"
+        },
+        {
+            "type": "string",
+            "name": "lastUpdatedBy",
+            "internal": false,
+            "oid": "b55f37b6-b098-490b-bca0-79623b5eea38",
+            "displayLabel": "Last Updated By",
+            "historyType": "updatedBy"
+        },
+        {
+            "type": "number",
+            "name": "versionNumber",
+            "internal": false,
+            "oid": "efe716b6-6e19-4e63-8c9b-7db5e6cb68f9",
+            "displayLabel": "Version Number",
+            "historyType": "versionNumber"
+        },
+        {
+            "type": "string",
+            "name": "nombre",
+            "oid": "b58a6307-4726-464a-b082-53fa747ce8d3",
+            "displayLabel": "Nombre"
+        },
+        {
+            "type": "number",
+            "name": "edad",
+            "oid": "fcd46775-61af-4ae2-90cd-7ef3ed2ef981",
+            "displayLabel": "Edad"
+        }
+    ],
+    "name": "Persona",
+    "oid": "9744362a-8528-47a4-a714-f8b5ea06fb52",
+    "displayLabel": "Persona"
+}

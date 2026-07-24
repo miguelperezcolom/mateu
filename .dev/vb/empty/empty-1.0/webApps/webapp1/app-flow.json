@@ -1,0 +1,289 @@
+{
+  "id": "webapp1",
+  "description": "A new VB app",
+  "defaultPage": "shell",
+  "services": {},
+  "translations": {
+    "app": {
+      "path": "./resources/strings/app/nls/app-strings"
+    }
+  },
+  "events": {
+    "changeTheme": {
+      "payloadType": {
+        "themeName": "string"
+      },
+      "description": "Theme to switch the application to. Possible values are 'dark' to switch to dark theme, 'light' to switch to the default light theme and 'os' to switch to dark theme if OS has dark theme enabled"
+    },
+    "navigateToItem": {
+      "payloadType": {
+        "item": "string"
+      },
+      "description": "Event to configure navigation between items/tabs."
+    },
+    "toggleDrawer": {
+      "description": "Event to toggle the drawer."
+    }
+  },
+  "types": {
+    "navigationItem": {
+      "id": "string",
+      "name": "string",
+      "iconClass": "string"
+    },
+    "globalHeaderItem": {
+      "id": "string",
+      "name": "string",
+      "iconClass": "string"
+    },
+    "avatarMenuItem": {
+      "id": "string",
+      "name": "string",
+      "iconClass": "string"
+    }
+  },
+  "variables": {
+    "avatarItemsADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $variables.avatarItems }}",
+        "itemType": "avatarMenuItem"
+      }
+    },
+    "currentTheme": {
+      "type": "string",
+      "description": "Current UI theme used in the application"
+    },
+    "globalHeadersADP": {
+      "type": "vb/ArrayDataProvider2",
+      "description": "The model describing the Global Applications headers",
+      "defaultValue": {
+        "keyAttributes": "id",
+        "data": "{{ $variables.globalHeadersData }}",
+        "itemType": "navigationItem"
+      }
+    },
+    "navigationADP": {
+      "type": "vb/ArrayDataProvider2",
+      "description": "The model describing the flows in the app",
+      "defaultValue": {
+        "keyAttributes": "id",
+        "data": "{{ $variables.navigationData }}",
+        "itemType": "navigationItem"
+      }
+    },
+    "avatarItems": {
+      "type": "avatarMenuItem[]",
+      "defaultValue": [
+        {
+          "name": "Sign Out",
+          "id": "signout",
+          "iconClass": "oj-ux-ico-logout"
+        }
+      ]
+    },
+    "globalHeadersData": {
+      "type": "globalHeaderItem[]",
+      "defaultValue": [
+        {
+          "name": "Example 1",
+          "id": "settings",
+          "iconClass": "oj-ux-ico-settings"
+        },
+        {
+          "name": "Example 2",
+          "id": "like",
+          "iconClass": "oj-ux-ico-thumbs-up"
+        },
+        {
+          "name": "Example 3",
+          "id": "bookmark",
+          "iconClass": "oj-ux-ico-bookmark-add"
+        }
+      ]
+    },
+    "navigationData": {
+      "type": "navigationItem[]",
+      "defaultValue": [
+        {
+          "name": "Item 1",
+          "id": "item-1",
+          "iconClass": "oj-ux-ico-list"
+        },
+        {
+          "name": "Item 2",
+          "id": "item-2",
+          "iconClass": "oj-ux-ico-list"
+        },
+        {
+          "name": "Item 3",
+          "id": "item-3",
+          "iconClass": "oj-ux-ico-list"
+        }
+      ]
+    }
+  },
+  "eventListeners": {
+    "vbResourceChanged": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "resourceChangedHandler"
+        }
+      ]
+    },
+    "vbEnter": {
+      "chains": [
+        {
+          "parameters": {},
+          "chain": "initCurrentTheme"
+        }
+      ]
+    },
+    "changeTheme": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}",
+            "themeName": "{{ $event.themeName }}"
+          },
+          "chain": "themeChangeHandler"
+        }
+      ]
+    }
+  },
+  "userConfig": {
+    "type": "vb/DefaultSecurityProvider",
+    "configuration": {},
+    "embedding": "deny"
+  },
+  "security": {},
+  "imports": {
+    "css": [
+      "/resources/css/app.css"
+    ]
+  },
+  "settings": {
+    "formDataAccess": "resources/formData/{vbFormDataId}"
+  },
+  "constants": {
+    "themeChangeUI": {
+      "type": "string",
+      "defaultValue": "off"
+    }
+  },
+  "@dt": {
+    "applicationTemplateType": "redwood"
+  },
+  "requirejs": {
+    "paths": {
+      "oj-dyn": "https://static.oracle.com/cdn/jet/packs/oj-dyn/2607.0.2/min/",
+      "oj-dynamic": "https://static.oracle.com/cdn/jet/packs/oj-dynamic/2607.0.2/min/"
+    },
+    "bundles": {
+      "oj-dyn/component-bundle": [
+        "oj-dyn/bind-field/loader",
+        "oj-dyn/bind-section/loader",
+        "oj-dyn/container/loader",
+        "oj-dyn/form/loader",
+        "oj-dyn/form/resources/nls"
+      ],
+      "oj-dynamic/common-bundle": [
+        "oj-dynamic/providers/AdfBCExtension",
+        "oj-dynamic/providers/AdfBCExtensionV0",
+        "oj-dynamic/providers/BlobLayoutMetadataProvider",
+        "oj-dynamic/providers/BlobLayoutMetadataProviderFactory",
+        "oj-dynamic/providers/ClientAugmentableMetadataProvider",
+        "oj-dynamic/providers/ComponentLayoutProvider",
+        "oj-dynamic/providers/ContainerLayoutProvider",
+        "oj-dynamic/providers/ContainerMetadataProviderFactory",
+        "oj-dynamic/providers/DefaultFetchable",
+        "oj-dynamic/providers/DynamicDataProvider",
+        "oj-dynamic/providers/DynamicLayoutMetadataProvider",
+        "oj-dynamic/providers/DynamicLayoutMetadataProviderFactory",
+        "oj-dynamic/providers/DynamicLayoutProvider",
+        "oj-dynamic/providers/Explodable",
+        "oj-dynamic/providers/Extension",
+        "oj-dynamic/providers/Fetchable",
+        "oj-dynamic/providers/HeterogeneousMetadataProvider",
+        "oj-dynamic/providers/HeterogeneousMetadataProviderFactory",
+        "oj-dynamic/providers/JsonFetchable",
+        "oj-dynamic/providers/JsonMetadataProvider",
+        "oj-dynamic/providers/JsonMetadataProviderFactory",
+        "oj-dynamic/providers/JsonMetadataSchema",
+        "oj-dynamic/providers/LocalFetchable",
+        "oj-dynamic/providers/LocalMetadataProvider",
+        "oj-dynamic/providers/LocalMetadataProviderFactory",
+        "oj-dynamic/providers/MetadataContentManager",
+        "oj-dynamic/providers/MetadataDrivenLayoutProviderMixin",
+        "oj-dynamic/providers/MetadataHelpers",
+        "oj-dynamic/providers/MetadataProviderFactory",
+        "oj-dynamic/providers/MetadataProviderManager",
+        "oj-dynamic/providers/MetadataTransformer",
+        "oj-dynamic/providers/MetadataTransformerV0",
+        "oj-dynamic/providers/OpenAPISchema",
+        "oj-dynamic/providers/ProviderUtils",
+        "oj-dynamic/providers/ResolvedLayoutCachingMetadataProvider",
+        "oj-dynamic/providers/ResolvedLayoutCachingMetadataProviderFactory",
+        "oj-dynamic/providers/ServiceFetchable",
+        "oj-dynamic/providers/ServiceMetadataProvider",
+        "oj-dynamic/providers/ServiceMetadataProviderFactory",
+        "oj-dynamic/providers/TransformState",
+        "oj-dynamic/providers/TypeDefinitions",
+        "oj-dynamic/shared/ComponentFetchAttribute",
+        "oj-dynamic/shared/DataProviderFactory",
+        "oj-dynamic/shared/DataProviderFactoryManager",
+        "oj-dynamic/shared/DefaultRestDataProvider",
+        "oj-dynamic/shared/DynamicDataProviderFactory",
+        "oj-dynamic/shared/DynamicInputContacts",
+        "oj-dynamic/shared/DynamicInputRegistry",
+        "oj-dynamic/shared/DynamicLayout",
+        "oj-dynamic/shared/DynamicLayoutContextProperty",
+        "oj-dynamic/shared/DynamicUIMetadata",
+        "oj-dynamic/shared/ExpressionManager",
+        "oj-dynamic/shared/ExtensibleMetadata",
+        "oj-dynamic/shared/JsonMetadata",
+        "oj-dynamic/shared/LayoutProvider",
+        "oj-dynamic/shared/MetadataProvider",
+        "oj-dynamic/shared/polyfills",
+        "oj-dynamic/shared/ProviderFeatures",
+        "oj-dynamic/shared/RestUtils",
+        "oj-dynamic/shared/SharedTypes",
+        "oj-dynamic/shared/UriTemplateUtils",
+        "oj-dynamic/shared/vbHelperCacheManager",
+        "oj-dynamic/utils/BusinessRuleEngine",
+        "oj-dynamic/utils/CommonUtils",
+        "oj-dynamic/utils/DynamicComponentUtil",
+        "oj-dynamic/utils/DynamicContainerUtils",
+        "oj-dynamic/utils/DynamicFormRenderUtils",
+        "oj-dynamic/utils/DynamicFormUtils",
+        "oj-dynamic/utils/DynamicInputFactory",
+        "oj-dynamic/utils/DynamicLOVUtil",
+        "oj-dynamic/utils/DynamicLayoutEngine",
+        "oj-dynamic/utils/DynamicTableUtils",
+        "oj-dynamic/utils/FilterWrapperDataProvider",
+        "oj-dynamic/utils/JetUtils",
+        "oj-dynamic/utils/KeyConversionDataProvider",
+        "oj-dynamic/utils/LayoutExpressionUtils",
+        "oj-dynamic/utils/LayoutSchemaFragments",
+        "oj-dynamic/utils/MacroTaskQueue",
+        "oj-dynamic/utils/MemoWithCapacity",
+        "oj-dynamic/utils/MetadataUtils",
+        "oj-dynamic/utils/MicroTaskQueue",
+        "oj-dynamic/utils/UtilTypes",
+        "oj-dynamic/utils/ValueStateChangesUtils"
+      ],
+      "oj-dynamic/component-bundle": [
+        "oj-dynamic/bind-field/loader",
+        "oj-dynamic/bind-section/loader",
+        "oj-dynamic/container/loader",
+        "oj-dynamic/form/loader",
+        "oj-dynamic/table/loader",
+        "oj-dynamic/table/resources/nls",
+        "oj-dynamic/form/resources/nls"
+      ]
+    }
+  }
+}

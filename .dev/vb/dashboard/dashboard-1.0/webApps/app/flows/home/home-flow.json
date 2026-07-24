@@ -1,0 +1,8 @@
+{
+  "id": "home",
+  "description": "Flow main",
+  "defaultPage": "home-start",
+  "services": {},
+  "types": {},
+  "variables": {}
+}

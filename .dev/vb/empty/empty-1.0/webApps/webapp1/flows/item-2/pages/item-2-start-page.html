@@ -1,0 +1,21 @@
+<oj-vb-fragment id="page-header" bridge="[[vbBridge]]" name="page-header">
+  <oj-vb-fragment-param name="title" value="Item 2"></oj-vb-fragment-param>
+  <template slot="actions">
+  </template>
+</oj-vb-fragment>
+<div class="oj-flex">
+  <div class="oj-flex-item oj-sm-12 oj-md-12">
+    <oj-validation-group id="persona-validation-group--356298034-1">
+      <oj-dyn-form metadata="[[ $metadata.businessObjectsCreatePersonaMetadata.provider ]]" layout="x"
+        value="{{ $variables.persona }}" operation="create" id="oj-dyn-form--356298034-1"></oj-dyn-form>
+    </oj-validation-group>
+  </div>
+</div>
+<div class="oj-flex">
+  <oj-toolbar id="oj-toolbar-for-oj-dyn-form--356298034-1" chroming="solid" class="oj-flex-item oj-sm-12 oj-md-12">
+    <oj-button label="Save" disabled="[[ $variables.createPersonaChainInProgress ]]"
+      on-oj-action="[[$listeners.saveButtonClicked]]"></oj-button>
+  </oj-toolbar>
+</div>
+
+

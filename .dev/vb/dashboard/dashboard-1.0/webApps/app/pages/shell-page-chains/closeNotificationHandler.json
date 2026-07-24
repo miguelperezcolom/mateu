@@ -1,0 +1,21 @@
+{
+  "description": "Removes the notification message when its dismiss gesture has been invoked.",
+  "variables": {
+    "eventMessage": {
+      "type": "messageType",
+      "input": "fromCaller"
+    }
+  },
+  "root": "removeMessage",
+  "actions": {
+    "removeMessage": {
+      "module": "vb/action/builtin/fireDataProviderEventAction",
+      "parameters": {
+        "target": "{{ $page.variables.messagesADP }}",
+        "remove": {
+          "keys": "{{ [ $variables.eventMessage.id ] }}"
+        }
+      }
+    }
+  }
+}

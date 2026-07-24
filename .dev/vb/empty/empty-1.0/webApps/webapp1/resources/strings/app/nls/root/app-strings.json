@@ -1,0 +1,34 @@
+{
+  "app_title_navigation_drawer": "Application Navigation Drawer",
+  "@app_title_navigation_drawer": {
+    "description": "Title for Application Navigation Drawer"
+  },
+  "app_footer_about_link": "About",
+  "@app_footer_about_link": {
+    "description": "About link on shell footer"
+  },
+  "app_footer_copyright": "Created with Visual Builder, Copyright © 2025",
+  "@app_footer_copyright": {
+    "description": "Copyright text on shell footer"
+  },
+  "app_sign_out": "Sign Out",
+  "@app_sign_out": {
+    "description": "Text on menu option to log out of the application"
+  },
+  "app_theme": "Theme",
+  "@app_theme": {
+    "description": "Text on menu button for displaying themes"
+  },
+  "app_theme_light": "Light",
+  "@app_theme_light": {
+    "description": "Text on menu option to switch to light theme"
+  },
+  "app_theme_dark": "Dark",
+  "@app_theme_dark": {
+    "description": "Text on menu option to switch to dark theme"
+  },
+  "app_theme_os": "OS",
+  "@app_theme_os": {
+    "description": "Text on menu option to use light theme or dark theme based on the client’s OS settings"
+  }
+}

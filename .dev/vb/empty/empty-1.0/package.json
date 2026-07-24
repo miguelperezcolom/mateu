@@ -1,0 +1,15 @@
+{
+    "name": "vb-project",
+    "version": "1.0.0",
+    "description": "Visual Builder Project",
+    "devDependencies": {
+        "grunt": "^1.6.1",
+        "grunt-cli": "^1.5.0",
+        "load-grunt-tasks": "^5.1.0",
+        "@oracle/grunt-vb-build": "https://static.oracle.com/cdn/vb/tools/npm/grunt-vb-build/grunt-vb-build-2604.0.6.tar.gz",
+        "@oracle/grunt-vb-audit": "https://static.oracle.com/cdn/vb/tools/npm/grunt-vb-audit/grunt-vb-audit-2604.0.2.tar.gz"
+    },
+    "com_oracle_visual_builder": {
+        "upgrade": "micro"
+    }
+}

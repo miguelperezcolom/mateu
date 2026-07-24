@@ -1,0 +1,60 @@
+{
+  "title": "Item 3",
+  "description": "",
+  "variables": {
+    "idpersona": {
+      "type": "string",
+      "input": "fromCaller",
+      "onValueChanged": {
+        "chains": [
+          {
+            "chain": "loadPersonaChain",
+            "parameters": {
+              "personaId": "{{ $variables.idpersona }}"
+            }
+          }
+        ]
+      }
+    },
+    "persona": {
+      "type": "getPersonaResponse"
+    }
+  },
+  "metadata": {},
+  "types": {
+    "@decorators.getPersonaResponse": {
+      "endpoint": "get_Persona",
+      "service": "businessObjects",
+      "path": "response"
+    },
+    "getPersonaResponse": {
+      "edad": "number",
+      "nombre": "string"
+    }
+  },
+  "eventListeners": {
+    "vbEnter": {
+      "chains": [
+        {
+          "chain": "loadPersonaChain",
+          "parameters": {
+            "personaId": "{{ $variables.idpersona }}"
+          }
+        }
+      ]
+    }
+  },
+  "imports": {
+    "components": {
+      "oj-form-layout": {
+        "path": "ojs/ojformlayout"
+      },
+      "oj-input-number": {
+        "path": "ojs/ojinputnumber"
+      },
+      "oj-input-text": {
+        "path": "ojs/ojinputtext"
+      }
+   }
+  }
+}

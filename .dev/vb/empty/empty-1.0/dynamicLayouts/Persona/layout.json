@@ -1,0 +1,43 @@
+{
+  "layoutTypes": {
+    "businessObjects": {
+      "kind": "operationRef",
+      "serviceId": "businessObjects",
+      "operations": [
+        "create_Persona"
+      ]
+    }
+  },
+  "layouts": {
+    "isDefault": {
+      "description": "Default Rule",
+      "type": "businessObjects",
+      "expression": "default"
+    },
+    "x": {
+      "type": "businessObjects",
+      "layoutType": "form",
+      "label": "x",
+      "rules": [
+        "isDefault"
+      ],
+      "layouts": {
+        "default": {
+          "layoutType": "form",
+          "layout": {
+            "displayProperties": [
+              "createdBy",
+              "creationDate",
+              "id",
+              "lastUpdateDate",
+              "lastUpdatedBy",
+              "nombre",
+              "edad"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "templates": {}
+}

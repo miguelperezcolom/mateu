@@ -1,0 +1,228 @@
+/**
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates.
+ * Licensed under The Universal Permissive License (UPL), Version 1.0
+ * as shown at https://oss.oracle.com/licenses/upl/
+ */
+
+:root {
+  /* Colors used the dashboard page: */
+  --demo-color-one:      70, 117, 83;
+  --demo-color-two:      59, 112, 135;
+  --demo-color-three:    146, 88, 101;
+  --demo-color-four:     100, 106, 115;
+  --demo-color-five:     240, 204, 113;
+  --demo-color-six:     233, 225, 202;
+
+  --demo-color-one-darker:      51, 85, 60;
+  --demo-color-two-darker:      44, 82, 102;
+  --demo-color-three-darker:    108, 63, 73;
+  --demo-color-four-darker:     73, 77, 83;
+}
+
+/* Dashboard page styling: */
+
+.icon-style {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease, font-size 1s ease;
+}
+.icon1 {
+  color: rgb(var(--demo-color-one-darker));
+}
+.icon2 {
+  color: rgb(var(--demo-color-two-darker));
+}
+.icon3 {
+  color: rgb(var(--demo-color-three-darker));
+}
+.icon4 {
+  color: rgb(var(--demo-color-four-darker));
+}
+
+.box-shadow {
+  box-shadow: 1px 1px 10px 0 rgba(var(--oj-palette-neutral-rgb-200), 0.25);
+  transition: box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
+}
+.box-shadow:hover {
+  box-shadow: 1px 1px 10px 2px rgba(var(--oj-palette-neutral-rgb-200), 0.4);
+  transform: scale(1.01);
+}
+.box-shadow:hover .icon-style {
+  transform: scale(1.2);
+}
+
+.box1 {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-one));
+  border-radius: 10px;
+}
+.box1-inner {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-one-darker));
+  height: 40px;
+  margin-top: auto;
+  border-radius: 0 0 10px 10px;
+}
+
+.box2 {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-two));
+  border-radius: 10px;
+}
+.box2-inner {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-two-darker));
+  height: 40px;
+  margin-top: auto;
+  border-radius: 0 0 10px 10px;
+}
+
+.box3 {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-three));
+  border-radius: 10px;
+}
+.box3-inner {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-three-darker));
+  height: 40px;
+  margin-top: auto;
+  border-radius: 0 0 10px 10px;
+}
+
+.box4 {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-four));
+  border-radius: 10px;
+}
+.box4-inner {
+  color: rgba(var(--oj-palette-neutral-rgb-0));
+  background-color: rgb(var(--demo-color-four-darker));
+  height: 40px;
+  margin-top: auto;
+  border-radius: 0 0 10px 10px;
+}
+
+.fold-panel {
+  transition: transform 233ms;
+  transform: perspective(2000px) rotateY(0deg);
+  transform-origin: left;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+.fold-panel.fold-closed {
+  transform: perspective(2000px) rotateY(90deg);
+}
+
+.fold-panels-parent {
+  max-height: 500px;
+  transition: max-height 500ms ease;
+}
+
+.fold-panels-parent.fold-panels-parent-closed {
+  max-height: 0;
+}
+
+#employee-card-main {
+  opacity: 0;
+}
+#employee-card-left {
+  opacity: 0;
+}
+#employee-card-right {
+  opacity: 0;
+}
+
+.main-box {
+  min-height: 400px;
+  max-height: 400px;
+}
+
+.wrapper {
+  margin: 0 auto;
+  position: relative;
+}
+
+.employee-card-main {
+  text-align: center;
+  color: #fff;
+  background-image: url("../images/redwood_backgrounds_abstracts.jpg");
+  background-size: 100% 100%;
+}
+.employee-card-main-footer {
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+}
+.employee-card-main-avatar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.employee-card-main-toggle-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.employee-card-left {
+  background-color: rgb(var(--demo-color-five));
+  color: rgba(var(--oj-palette-neutral-rgb-200));
+  background-size: 100% 100%;
+  min-height: 175px;
+}
+.employee-card-left-list {
+  max-height: 200px;
+}
+
+.employee-card-left-details {
+  position: absolute;
+  bottom: 0;
+}
+.employee-card-right {
+  text-align: center;
+  color: rgba(var(--oj-palette-neutral-rgb-200));
+  background-color: rgb(var(--demo-color-six));
+}
+
+/* Navigation menu styling: */
+
+
+/* Stable theme does not support color inversion (JET-48115)
+   and to keep the left navigation menu appearance similar to the Redwood theme 
+   with black background, the demo-contrast-marker and the demo-contrast-background 
+   are introduced here temporarily. This should not be needed since JET 12 */
+.demo-contrast-marker {
+  --oj-core-text-color-primary:   rgb(var(--oj-palette-neutral-rgb-0));
+  --oj-core-text-color-secondary: rgba(var(--oj-palette-neutral-rgb-0), .6);
+  --oj-core-text-color-disabled:  rgba(var(--oj-palette-neutral-rgb-0), .3);
+  --oj-core-bg-color-content:     rgb(var(--oj-palette-neutral-rgb-170));
+  --oj-core-bg-color-hover:       rgba(var(--oj-palette-neutral-rgb-0), .08);
+  --oj-core-bg-color-active:      rgba(var(--oj-palette-neutral-rgb-0), .12);
+  --oj-heading-text-color:        rgb(var(--oj-palette-neutral-rgb-0));
+}
+
+.demo-contrast-background {
+  background-color: RGB(var(--oj-palette-neutral-rgb-160));
+  color: var(--oj-core-text-color-primary); }
+
+.demo-contrast-marker {
+  --oj-navigation-list-item-label-color:                       var(--oj-core-text-color-secondary);
+  --oj-navigation-list-item-label-color-hover:                 var(--oj-core-text-color-primary);
+  --oj-navigation-list-item-bg-color-hover:                    var(--oj-core-bg-color-hover);
+  --oj-navigation-list-item-border-color-selected:             rgb(var(--oj-palette-brand-rgb-50));
+  --oj-navigation-list-item-label-color-selected:              var(--oj-core-text-color-primary); }
+
+.drawer-layout {
+  width: 100%
+}

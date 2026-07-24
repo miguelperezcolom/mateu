@@ -1,0 +1,73 @@
+{
+    "description": "",
+    "routerFlow": "main",
+    "variables": {
+      "messageToast": {
+        "type": "string"
+      },
+      "messagesBannerADP": {
+        "type": "vb/ArrayDataProvider2",
+        "defaultValue": {
+          "itemType": "MessagesBannerType",
+          "keyAttributes": "id"
+        }
+      },
+      "messageId": {
+        "type": "string"
+      }
+    },
+    "metadata": {},
+    "types": {
+      "MessagesBannerType": {
+        "id": "string",
+        "messageType": "string",
+        "primaryText": "string",
+        "primaryActionLabel": "string",
+        "secondaryText": "any",
+        "secondaryActionLabel": "string"
+      }
+    },
+    "eventListeners": {
+    "application:spShowToast": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "showMessageToast"
+        }
+      ]
+    },
+    "messagesBannerSpClose": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "closeMessageBanner"
+        }
+      ]
+    },
+    "vbNotification": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "showNotificationMessage"
+        }
+      ]
+    }
+    },
+    "imports": {
+    "components": {
+      "oj-sp-messages-banner": {
+        "path": "oj-sp/messages-banner/loader"
+      },
+      "oj-sp-messages-toast": {
+        "path": "oj-sp/messages-toast/loader"
+      }
+    }
+    },
+    "translations": {}
+  }

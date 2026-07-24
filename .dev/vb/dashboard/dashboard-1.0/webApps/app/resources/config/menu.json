@@ -1,0 +1,72 @@
+[
+  {
+    "id": "home",
+    "label": "Home",
+    "icon": "home"
+  },
+  {
+    "id": "gettingstarted",
+    "label": "Getting Started",
+    "icon": "education",
+    "items": [
+      {
+        "id": "download_placeholder",
+        "label": "Download",
+        "icon": "download",
+        "badge": 13,
+        "badgeType": "danger"
+      },
+      {
+        "id": "quickstart_placeholder",
+        "label": "Quick Start",
+        "icon": "clock"
+      }
+    ]
+  },
+  {
+    "id": "cookbook",
+    "label": "Cookbook",
+    "icon": "book",
+    "items": [
+      {
+        "id": "sample1_placeholder",
+        "label": "Sample 1",
+        "icon": "list"
+      },
+      {
+        "id": "sample2_placeholder",
+        "label": "Sample 2",
+        "icon": "form-layout",
+        "badge": "New",
+        "badgeType": "success"
+      }
+    ]
+  },
+  {
+    "id": "library",
+    "label": "Library",
+    "icon": "library",
+    "items": [
+      {
+        "id": "articles_placeholder",
+        "label": "Articles",
+        "icon": "custom-article-header"
+      },
+      {
+        "id": "audios_placeholder",
+        "label": "Audios",
+        "icon": "music"
+      },
+      {
+        "id": "videos_placeholder",
+        "label": "Videos",
+        "icon": "video-block"
+      },
+      {
+        "id": "magazines_placeholder",
+        "label": "Magazines",
+        "icon": "library-books"
+      }
+    ]
+  }
+]

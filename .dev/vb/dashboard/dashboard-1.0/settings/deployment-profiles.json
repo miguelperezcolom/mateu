@@ -1,0 +1,14 @@
+{
+    "profiles": [
+        {
+            "displayName": "Base configuration",
+            "id": "base_configuration",
+            "description": "Default development profile in VBCS"
+        }
+    ],
+    "defaults": {
+        "dev": "base_configuration",
+        "stage": "base_configuration",
+        "publish": "base_configuration"
+    }
+}

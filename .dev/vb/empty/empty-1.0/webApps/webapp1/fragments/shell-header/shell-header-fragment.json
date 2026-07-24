@@ -1,0 +1,49 @@
+{
+  "title": "",
+  "description": "",
+  "eventListeners": {
+    "avatarMenuAction": {
+      "chains": [
+        {
+          "chain": "avatarMenuActionChain",
+          "parameters": {
+            "menuId": "[[ $event.detail.selectedValue ]]"
+          }
+        }
+      ]
+    }
+  },
+  "events": {},
+  "imports": {
+    "components": {
+      "oj-avatar": {
+        "path": "ojs/ojavatar"
+      },
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-menu": {
+        "path": "ojs/ojmenu"
+      },
+      "oj-menu-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-option": {
+        "path": "ojs/ojoption"
+      },
+      "oj-popup": {
+        "path": "ojs/ojpopup"
+      },
+      "oj-toolbar": {
+        "path": "ojs/ojtoolbar"
+      }
+    },
+    "css": [
+      "/resources/css/shell.css"
+    ]
+  },
+  "metadata": {},
+  "types": {},
+  "variables": {},
+  "referenceable": "self"
+}

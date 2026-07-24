@@ -1,0 +1,72 @@
+{
+  "id": "xoxo",
+  "description": "A new VB app",
+  "defaultPage": "shell",
+  "services": {},
+  "translations": {
+    "app": {
+      "path": "./resources/strings/app/nls/app-strings"
+    }
+  },
+  "events": {
+    "navMenuVisible": {
+      "payloadType": {
+        "visible": "boolean"
+      }
+    }
+  },
+  "types": {},
+  "variables": {
+    "navMenuVisible": {
+      "type": "boolean",
+      "defaultValue": true
+    }
+  },
+  "eventListeners": {
+    "navMenuVisible": {
+      "chains": [
+        {
+          "chainId": "updateNavMenuVisibility",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "vbResourceChanged": {
+      "chains": [
+        {
+          "chainId": "resourceChangedHandler",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    }
+
+  },
+  "userConfig": {
+    "type": "vb/DefaultSecurityProvider",
+    "configuration": {
+      "authentication": {
+        "type": "implicit"
+      }
+   },
+    "embedding": "deny"
+  },
+  "security": {
+    "access": {
+      "requiresAuthentication": false
+    }
+  },
+  "imports": {
+    "css": [
+      "/resources/css/app.css",
+      "/resources/css/redwood-overrides.css",
+      "https://static.oracle.com/cdn/fnd/gallery/2107.2.0/images/iconfont/ojuxIconFont.min.css"
+    ]
+  },
+  "settings": {
+    "stopValidationPreLoading": true
+  }
+}

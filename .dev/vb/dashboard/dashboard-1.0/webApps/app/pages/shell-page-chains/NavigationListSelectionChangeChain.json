@@ -1,0 +1,44 @@
+{
+  "description": "",
+  "root": "if",
+  "actions": {
+
+    "navigateToVariablesSelection": {
+      "module": "vb/action/builtin/navigateAction",
+      "@dt": {
+        "targetType": "flow"
+      },
+      "parameters": {
+        "flow": "[[ $variables.selection.endsWith('_placeholder') ? 'placeholder' : 'home' ]]"
+      }
+    },
+    "assignVariablesOpenDrawer": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.openDrawer": {
+          "source": "{{ !$page.variables.openDrawer }}"
+        }
+      },
+      "outcomes": {
+        "success": "navigateToVariablesSelection"
+      }
+    },
+    "if": {
+      "module": "vb/action/builtin/ifAction",
+      "parameters": {
+        "condition": "[[ $application.responsive.lgUp ]]"
+      },
+      "outcomes": {
+        "false": "assignVariablesOpenDrawer",
+        "true": "navigateToVariablesSelection"
+      }
+    }
+  },
+  "variables": {
+    "selection": {
+      "required": true,
+      "type": "any",
+      "input": "fromCaller"
+    }
+  }
+}

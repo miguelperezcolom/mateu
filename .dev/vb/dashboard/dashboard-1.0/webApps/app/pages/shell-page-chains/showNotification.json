@@ -1,0 +1,21 @@
+{
+  "description": "Displays notifications sent by the Fire Notification action using the oj-messages component on this page.",
+  "variables": {
+    "eventPayload": {
+      "type": "messageType",
+      "input": "fromCaller"
+    }
+  },
+  "root": "displayMessage",
+  "actions": {
+    "displayMessage": {
+      "module": "vb/action/builtin/fireDataProviderEventAction",
+      "parameters": {
+        "target": "{{ $page.variables.messagesADP }}",
+        "add": {
+          "data": "{{ [ $chain.variables.eventPayload ] }}"
+        }
+      }
+    }
+  }
+}

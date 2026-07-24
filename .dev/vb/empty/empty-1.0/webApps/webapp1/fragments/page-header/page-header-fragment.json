@@ -1,0 +1,35 @@
+{
+  "title": "",
+  "description": "",
+  "events": {},
+  "eventListeners": {
+    "toggleDrawer": {
+      "chains": [
+        {
+          "chain": "application:toggleDrawerHandler"
+        }
+      ]
+    }
+  },
+  "imports": {
+    "components": {
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      }
+    }
+  },
+  "metadata": {},
+  "types": {},
+  "slots": {
+    "actions": {
+      "displayName": "Actions"
+    }
+  },
+  "variables": {
+    "title": {
+      "type": "string",
+      "input": "fromCaller"
+    }
+  },
+  "referenceable": "self"
+}

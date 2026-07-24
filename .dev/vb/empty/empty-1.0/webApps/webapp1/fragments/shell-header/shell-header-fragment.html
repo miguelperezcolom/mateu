@@ -1,0 +1,72 @@
+<header role="banner" class="oj-sm-flex-initial vb-web-applayout-header oj-sm-only-hide">
+  <div class="oj-flex-bar oj-sm-align-items-center vb-web-applayout-header-content">
+    <!-- Company logo and application title only displayed in desktop mode -->
+    <div class="oj-flex-bar-middle oj-sm-margin-4x-horizontal oj-sm-align-items-center">
+      <!-- Please Change the following for company specific logo   -->
+      <span class="oj-typography-heading-lg oj-sm-margin-2x-end oj-icon-color-warning oj-ux-ico-box"
+        title="Application Logo"
+        alt="Application Logo"></span>
+      <h1 class="oj-typography-body-md oj-typography-semi-bold" title="Application Name">
+        <oj-bind-text value="My Application"></oj-bind-text>
+      </h1>
+    </div>  
+    <div class="oj-flex-bar-end">
+        <oj-toolbar id="toolbar1">
+          <!-- Global toolbar items not displayed on phones. -->
+          <oj-bind-for-each data="[[$application.variables.globalHeadersADP]]">
+            <template>
+              <div>
+                <oj-button display="icons" label="[[ $current.data.name ]]">
+                  <span :class="[[$current.data.iconClass]]" slot="startIcon"></span>
+                </oj-button>
+              </div>
+            </template>
+          </oj-bind-for-each>
+          <oj-menu-button display="icons" chroming="borderless">
+            <span id="header-avatar" slot="endIcon" role="img" class="oj-ux-ico-contact"
+                       :aria-label="[[$application.user.fullName]]"
+                       :title="[[$application.user.fullName]]">
+            </span>
+            <oj-menu id="header-avatar-menu" slot="menu" role="navigation"
+              on-oj-menu-action="[[$listeners.avatarMenuAction]]">
+              <!-- Theme Menu Button -->
+              <oj-bind-if test="[[ $application.constants.themeChangeUI === 'on' ]]">
+                <oj-option>
+                    <span slot="startIcon" class="oj-ux-ico-theme"></span>
+                    <span><oj-bind-text value="[[$application.translations.app.app_theme]]"></oj-bind-text></span>
+                    <oj-menu>
+                      <oj-option value="theme:light">
+                        <span class="oj-menu-item-icon" :class="[[{ 'oj-ux-ico-check': ($application.variables.currentTheme === 'light') }]]" slot="startIcon">
+                        </span>
+                        <span slot="startIcon" class="oj-ux-ico-weather-sun"></span>
+                        <span><oj-bind-text value="[[$application.translations.app.app_theme_light]]"></oj-bind-text></span>
+                      </oj-option>
+                      <oj-option value="theme:dark">
+                        <span class="oj-menu-item-icon" :class="[[{ 'oj-ux-ico-check': ($application.variables.currentTheme === 'dark') }]]" slot="startIcon">
+                        </span>
+                        <span slot="startIcon" class="oj-ux-ico-weather-moon"></span>
+                        <span><oj-bind-text value="[[$application.translations.app.app_theme_dark]]"></oj-bind-text></span>
+                      </oj-option>
+                      <oj-option value="theme:os">
+                        <span class="oj-menu-item-icon" :class="[[{ 'oj-ux-ico-check': ($application.variables.currentTheme === 'os') }]]" slot="startIcon">
+                        </span>
+                        <span slot="startIcon" class="oj-ux-ico-circle-half"></span>
+                        <span><oj-bind-text value="[[$application.translations.app.app_theme_os]]"></oj-bind-text></span>
+                      </oj-option>
+                    </oj-menu>
+                </oj-option>
+              </oj-bind-if>
+              <oj-bind-for-each data="[[$application.variables.avatarItems]]">
+                <template>
+                    <oj-option>
+                      <span :class="[[ $current.data.iconClass ]]" slot="startIcon"></span>
+                      <oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text>
+                    </oj-option>
+                </template>
+              </oj-bind-for-each>
+            </oj-menu>
+          </oj-menu-button>
+        </oj-toolbar>
+      </div>
+  </div>
+</header>

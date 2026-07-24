@@ -1,0 +1,15 @@
+{
+  "description": "",
+  "root": "assignVariables",
+  "actions": {
+    "assignVariables": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.openDrawer": {
+          "source": "{{ !$page.variables.openDrawer }}"
+        }
+      }
+    }
+  },
+  "variables": {}
+}

@@ -1,0 +1,40 @@
+{
+  "title": "",
+  "description": "",
+  "eventListeners": {
+    "onNavigation": {
+      "chains": [
+        {
+          "chain": "navigationHandler",
+          "parameters": {
+            "item": "{{ $event.detail.value }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}"
+          }
+        }
+      ]
+    }
+  },
+  "events": {},
+  "imports": {
+    "components": {
+      "oj-dialog": {
+        "path": "ojs/ojdialog"
+      },
+      "oj-tab-bar": {
+        "path": "ojs/ojnavigationlist"
+      }
+    },
+    "css": [
+      "/resources/css/shell.css"
+    ]
+  },
+  "metadata": {},
+  "types": {},
+  "variables": {
+    "currentFlow": {
+      "type": "string",
+      "input": "fromCaller",
+      "defaultValue": "[[ $application.variables.navigationData[0].id ]]"
+    }
+  }
+}

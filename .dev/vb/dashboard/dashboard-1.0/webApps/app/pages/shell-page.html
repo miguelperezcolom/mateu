@@ -1,0 +1,93 @@
+<!--
+ Copyright (c) 2020, 2024 Oracle and/or its affiliates.
+ Licensed under The Universal Permissive License (UPL), Version 1.0
+ as shown at https://oss.oracle.com/licenses/upl/
+ -->
+
+<div id="pageWrapper" class="oj-offcanvas-outer-wrapper oj-offcanvas-page" style="height: 100%;">
+  <div id="page" class="oj-web-applayout-page" style="height: 100%;">
+    <header role="banner" class="oj-web-applayout-header">
+      <div class="oj-flex-bar oj-sm-align-items-center">
+        <div class="oj-flex-bar-start oj-sm-align-items-center">
+          <oj-button id="toggleNavListButton" class="toggleNavListButton oj-button-lg" chroming="borderless"
+            display="icons" on-oj-action="[[$listeners.toggleNavListButtonSmallOjAction]]">
+            <span slot="startIcon" class="oj-ux-ico-menu"></span>
+            <span>Application Navigation</span>
+          </oj-button>
+          <span
+            class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-padding-2x-start oj-sm-only-hide">Long Application Name</span>
+          <span
+            class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-padding-2x-start oj-md-hide">Short Name</span>
+        </div>
+        <div class="oj-flex-bar-end">
+          <oj-toolbar id="toolbar1">
+            <oj-menu-button id="userMenu" display="[[$application.responsive.smOnly ? 'icons' : 'all']]"
+              chroming="borderless">
+              <span slot="endIcon" :class="[[{'oj-ux-ico-human-8': $application.responsive.smOnly , 'oj-component-icon oj-button-menu-dropdown-icon': !$application.responsive.smOnly}]]"></span>
+              <oj-bind-text value="[[ $application.user.email ]]"></oj-bind-text>
+              <oj-menu id="menu1" slot="menu" style="display:none">
+                <oj-option id="out" value="out">
+                  <oj-bind-text value="[[ $application.translations.app.app_sign_out ]]"></oj-bind-text>
+                </oj-option>
+              </oj-menu>
+            </oj-menu-button>
+          </oj-toolbar>
+        </div>
+      </div>
+    </header>
+
+    <!-- for message notifications -->
+    <oj-messages id="vbDefaultNotifier" position="{}" display="general" messages="{{$page.variables.messagesADP}}"
+      on-oj-close="[[$listeners.onMessageClose]]"></oj-messages>
+
+    <div class="oj-web-applayout-content-nopad oj-web-spacing oj-flex">
+      <oj-drawer-layout start-opened="{{ $page.variables.openDrawer }}" class="drawer-layout" id="drawer-layout">
+      <div slot="start" class="demo-contrast-marker demo-contrast-background" style="min-width:300px; height:100%">
+        
+        <oj-navigation-list data="[[ $functions.getNavigationContent()]]"
+            item.selectable="[[ $page.functions.itemSelectable ]]"
+            class="oj-flex-item oj-navigationlist-nofollow-link" drill-mode="collapsible"
+            on-selection-changed="[[$listeners.ojNavigationListSelection]]"
+            expanded="[[ $functions.getExpandedMenu() ]]">
+            <template slot="itemTemplate" data-oj-as="item">
+              <li>
+                <a style="cursor: pointer">
+                  <oj-bind-if test="[[item.data.attr.node]]">
+                    <i :class="[[ 'oj-navigationlist-item-icon oj-ux-ico-' + (item.data.attr.icon ? item.data.attr.icon : 'box')]]"></i>
+                    <oj-bind-text value="[[item.data.attr.name]]"></oj-bind-text>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[!item.data.attr.node]]">
+                    <i :class="[[ 'oj-typography-body-md oj-navigationlist-item-icon oj-ux-ico-' + (item.data.attr.icon ? item.data.attr.icon : 'box') +  ' oj-sm-padding-4x-start']]"></i>
+                    <span class="oj-typography-body-md">
+                <oj-bind-text value="[[item.data.attr.name]]"></oj-bind-text>
+                </span>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[item.data.attr.badge]]">
+                    <span :class="[[ ['oj-badge', 'oj-badge-'+item.data.attr.badgeType, 'oj-navigationlist-item-end'] ]]"><oj-bind-text value="[[item.data.attr.badge]]"></oj-bind-text></span>
+                  </oj-bind-if>
+                </a>
+              </li>
+            </template>
+          </oj-navigation-list>
+      </div>
+      <div class="oj-flex-item oj-flex oj-sm-flex-direction-column tree-navigation-content-panel" style="overflow-x: auto;">
+        <!-- Where Visual Pages will be rendered -->
+        <oj-vb-content id="vbRouterContent" class="vbcs-pages-module oj-flex-item" config="[[vbRouterFlow]]" style="max-width: 100%;"></oj-vb-content>
+      </div>
+    </oj-drawer-layout>
+    </div>
+
+    <footer class="oj-web-applayout-footer" role="contentinfo">
+      <div class="oj-web-applayout-footer-item">
+        <ul>
+          <li><a id="about" href="">
+              <oj-bind-text value="[[ $application.translations.app.app_footer_about_link ]]"></oj-bind-text>
+            </a></li>
+        </ul>
+      </div>
+      <div class="oj-web-applayout-footer-item oj-text-color-secondary oj-typography-body-sm">
+        <oj-bind-text value="[[ $application.translations.app.app_footer_copyright ]]"></oj-bind-text>
+      </div>
+    </footer>
+  </div>
+</div>

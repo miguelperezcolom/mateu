@@ -1,0 +1,16 @@
+<div id="pageContent" class="oj-flex oj-sm-flex-direction-column oj-sm-flex-wrap-nowrap vb-web-applayout-page fixed-header fixed-footer">
+  <oj-vb-fragment id="shell-header" bridge="[[vbBridge]]" name="shell-header">
+  </oj-vb-fragment>
+
+  <!-- for message notifications -->
+  <oj-messages id="vbDefaultNotifier" display-options.category="none" position="{}" display="general" messages="[[$page.variables.messagesADP]]" on-oj-close="[[$listeners.onMessageClose]]"></oj-messages>
+
+  <!-- Where Visual Pages will be rendered -->
+  <oj-vb-content id="vbRouterContent" class="vb-pages-module oj-flex-item oj-flex" config="[[vbRouterFlow]]">
+
+  </oj-vb-content>
+
+  <oj-vb-fragment id="shell-footer" bridge="[[vbBridge]]" name="shell-footer">
+    <oj-vb-fragment-param name="currentFlow" value="{{ $page.currentFlow }}"></oj-vb-fragment-param>
+  </oj-vb-fragment>
+</div>

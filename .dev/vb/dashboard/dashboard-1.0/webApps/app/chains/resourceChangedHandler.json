@@ -1,0 +1,24 @@
+{
+  "root": "fireNotification1",
+  "description": "Displays a notification message when application has been updated and needs to be refreshed.",
+  "variables": {
+    "event": {
+      "required": false,
+      "input": "fromCaller",
+      "type": {
+        "error": {
+          "detail": "string"
+        }
+      }
+    }
+  },
+  "actions": {
+    "fireNotification1": {
+      "module": "vb/action/builtin/fireNotificationEventAction",
+      "parameters": {
+        "summary": "[[ $chain.variables.event.error.detail ]]",
+        "target": "leaf"
+      }
+    }
+  }
+}
