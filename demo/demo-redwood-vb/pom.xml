@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+        <relativePath/>
+    </parent>
+    <groupId>io.mateu.redwoodvb</groupId>
+    <artifactId>demo-redwood-vb</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>demo-redwood-vb</name>
+    <description>SUT backend for the Mateu-on-Visual-Builder renderer (apps/redwood-vb). Serves the
+        standard /mateu/v3 wire model on port 9001 so the VB bridge kit can render it. See
+        .dev/vb/RENDERER-ROADMAP.md.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mateu: framework AP (generates the controllers) + Spring MVC runtime -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mvc-core</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <!-- Redwood renderer kept on the classpath so :9001 ALSO serves a native oj-c rendering of
+             the same screens — the "native Redwood" reference side of each visual gate. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>redwood-lit</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                </path>
+                                <path>
+                                    <groupId>io.mateu</groupId>
+                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <version>${mateu.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
