@@ -13,7 +13,7 @@ import { ComponentState, ComponentData } from '@infra/ui/renderers/types'
 import { pageLayoutSync } from './shell/pageLayoutSync'
 import './shell/mateu-spectra-nav' // registers <mateu-spectra-nav>
 import { renderRedwoodField } from './fields/renderRedwoodField'
-import { renderRedwoodButton } from './fields/renderRedwoodButton'
+import { renderRedwoodButton, redwoodPlainButton } from './fields/renderRedwoodButton'
 import {
   renderDashboardLayout,
   renderScoreboard,
@@ -208,13 +208,15 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
     ></mateu-spectra-table>`
   }
 
-  /** CRUD/page toolbar buttons (New/Delete/Save/…) → authentic oj-c-button. */
-  renderToolbarButton(_button: unknown, label: string, onClick: () => void): TemplateResult {
-    return html`<oj-c-button
-      label=${label}
-      chroming="outlined"
-      @ojAction=${() => onClick()}
-    ></oj-c-button>`
+  /**
+   * CRUD/page toolbar buttons (New/Delete/Save/…). These are rendered by mateu-content-header, which
+   * lives inside mateu-page's SHADOW root — an oj-c-button there can't reach the body's preact binding
+   * provider ("disconnected subtree"), so use a plain Redwood-styled button (works in any context).
+   */
+  renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+    const style = (button as { buttonStyle?: string } | undefined)?.buttonStyle
+    const variant = style === 'primary' ? 'primary' : style === 'tertiary' ? 'borderless' : 'outlined'
+    return redwoodPlainButton(label, () => onClick(), variant)
   }
 
   // The icon port for Redwood. Wire icon names are Vaadin/Lumo iconset names; there is no 1:1 map to
