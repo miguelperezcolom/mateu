@@ -1,7 +1,7 @@
 {
 
   "title": "",
-  "description": "Contenido alimentado por Mateu: título + form (switch widgetFor con widgets JET) + acciones; la carga la orquesta la shell",
+  "description": "Contenido alimentado por Mateu: título + form / listado + drawer del crud; la carga la orquesta la shell",
   "variables": {
     "listingADP": {
       "type": "vb/ArrayDataProvider2",
@@ -14,7 +14,12 @@
     "mateuDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "la edición en curso: value-changed de cada campo la acumula ({fieldId: valor})"
+      "description": "edición en curso del form del host ({fieldId: valor})"
+    },
+    "mateuDrawerDraft": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "edición en curso del form del drawer"
     },
     "mateuToastText": {
       "type": "string",
@@ -44,6 +49,24 @@
             "event": "{{ $event }}"
           },
           "chain": "runMateuAction"
+        }
+      ]
+    },
+    "mateuRowSelected": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "view",
+            "parameters": "{{ $event.detail.value.data }}"
+          },
+          "chain": "runMateuAction"
+        }
+      ]
+    },
+    "mateuDrawerClosed": {
+      "chains": [
+        {
+          "chain": "mateuDrawerDismissed"
         }
       ]
     },
@@ -86,6 +109,9 @@
       },
       "oj-sp-empty-state": {
         "path": "oj-sp/empty-state/loader"
+      },
+      "oj-drawer-popup": {
+        "path": "ojs/ojdrawerpopup"
       }
     }
   }

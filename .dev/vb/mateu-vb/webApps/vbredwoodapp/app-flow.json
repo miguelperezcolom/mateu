@@ -302,6 +302,15 @@
       "type": "any",
       "defaultValue": [],
       "description": "las filas (data.crud.page.content) — el ADP de la página las envuelve"
+    },
+    "mateuDrawerOpen": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "mateuDrawer": {
+      "type": "any",
+      "defaultValue": { "title": "", "fields": [], "actions": [], "state": {} },
+      "description": "proyección del overlay superior (drawer del crud): título + campos + acciones"
     }
   },
   "userConfig": {

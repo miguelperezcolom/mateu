@@ -1,6 +1,6 @@
-/* Fase 3: two-way — cada value-changed de un campo acumula {fieldId: valor} en el borrador
- * de página (mateuDraft). Solo ediciones del usuario (updatedFrom internal): el set inicial
- * del binding también dispara value-changed y no debe ensuciar el borrador. */
+/* Two-way (Fases 3–5): cada value-changed acumula {fieldId: valor} en el borrador — el del
+ * DRAWER si hay uno abierto, el del form del host si no. Solo ediciones del usuario
+ * (updatedFrom internal): el set inicial del binding también dispara value-changed. */
 
 define([
   'vb/action/actionChain',
@@ -20,7 +20,7 @@ define([
      * @param {Object} params.event  value-changed ({detail: {value, updatedFrom}})
      */
     async run(context, { fieldId, event }) {
-      const { $page } = context;
+      const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
@@ -29,9 +29,15 @@ define([
       if (!fieldId) {
         return;
       }
-      const draft = Object.assign({}, $page.variables.mateuDraft);
-      draft[fieldId] = detail.value;
-      $page.variables.mateuDraft = draft;
+      if ($application.variables.mateuDrawerOpen) {
+        const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
+        draft[fieldId] = detail.value;
+        $page.variables.mateuDrawerDraft = draft;
+      } else {
+        const draft = Object.assign({}, $page.variables.mateuDraft);
+        draft[fieldId] = detail.value;
+        $page.variables.mateuDraft = draft;
+      }
     }
   }
 

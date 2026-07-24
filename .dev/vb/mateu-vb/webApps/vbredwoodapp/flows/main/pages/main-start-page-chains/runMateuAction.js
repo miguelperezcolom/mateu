@@ -1,7 +1,9 @@
-/* Fase 3: acción saliente — el botón manda el estado que ya tienes (host.state + la edición
- * en curso del oj-dyn-form) al backend Mateu; el increment de vuelta se reduce y sus efectos
- * se aplican: State-only → re-proyección del form, toasts → spShowToast del starter,
- * NavigateTo → evento de aplicación mateuNavigate (lo atiende la shell, dueña del menú). */
+/* Acción saliente (Fases 3–5). Manda el estado que ya tienes: si hay un drawer abierto, su
+ * estado + su borrador (las acciones del drawer del crud van contra el HOST — el drawer no
+ * lleva ServerSide propio); si no, el estado del host + el borrador del form. El increment
+ * de vuelta se reduce y sus efectos se aplican: Add → proyectar el drawer; CloseModal →
+ * cerrarlo y disparar los triggers OnCustomEvent suscritos al evento emitido (el refresco
+ * del listing viaja EN el wire); toasts; NavigateTo → evento de aplicación mateuNavigate. */
 
 define([
   'vb/action/actionChain',
@@ -19,10 +21,11 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.actionId  id de la acción Mateu (del $current del botón)
-     * @param {Object} params.event     evento ojAction (fallback: data-action-id del botón)
+     * @param {string} params.actionId    id de la acción Mateu (del $current del botón)
+     * @param {Object} params.parameters  parámetros extra (p.ej. la fila en el clic view)
+     * @param {Object} params.event       evento ojAction (fallback: data-action-id)
      */
-    async run(context, { actionId, event }) {
+    async run(context, { actionId, parameters, event }) {
       const { $application, $page } = context;
 
       let id = actionId;
@@ -37,13 +40,43 @@ define([
       const before = $application.variables.mateuRegistry;
       const host = before.contexts[bridge.HOST_ID];
       const route = $application.variables.mateuSelectedRoute;
-      // la edición en curso, acumulada por mateuFieldEdited (value-changed de cada campo)
-      const draft = $page.variables.mateuDraft || {};
-      const componentState = Object.assign({}, host && host.state, draft);
+      const overlayBefore = bridge.overlayOf(before);
+      const componentState = overlayBefore
+        ? Object.assign({}, overlayBefore.state, $page.variables.mateuDrawerDraft)
+        : Object.assign({}, host && host.state, $page.variables.mateuDraft);
 
-      const increment = await bridge.runMateuAction(base, host, route, id, componentState);
-      const reg = bridge.reduceContexts(before, increment);
+      const increment = await bridge.runMateuAction(
+        base, host, route, id, componentState, { parameters: parameters || {} });
+      let reg = bridge.reduceContexts(before, increment);
+      const effects = reg.effects;
+
+      // eventos del bus (CloseModal/DispatchEvent) → triggers OnCustomEvent suscritos
+      for (const busEvent of effects.events) {
+        const hostNow = reg.contexts[bridge.HOST_ID];
+        for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
+          const listing = bridge.listingOf(hostNow);
+          const refresh = await bridge.runMateuAction(
+            base, hostNow, route, triggerActionId,
+            Object.assign({}, hostNow.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
+          );
+          reg = bridge.reduceContexts(reg, refresh);
+        }
+      }
+
       $application.variables.mateuRegistry = reg;
+
+      // proyecciones: drawer, listing, form
+      const overlayNow = bridge.overlayOf(reg);
+      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], state: {} };
+      $application.variables.mateuDrawerOpen = !!overlayNow;
+      if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
+        $page.variables.mateuDrawerDraft = {};
+      }
+
+      const hostAfter = reg.contexts[bridge.HOST_ID];
+      const listingSummary = bridge.listingOf(hostAfter);
+      $application.variables.mateuListing = listingSummary;
+      $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
@@ -52,23 +85,25 @@ define([
       $application.variables.mateuFormFieldsList = summary.fields;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
-      $page.variables.mateuDraft = {};
+      if (!overlayNow) {
+        $page.variables.mateuDraft = {};
+      }
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
-      for (const toast of reg.effects.toasts) {
+      for (const toast of effects.toasts) {
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',
           method: 'open',
         });
       }
-      if (reg.effects.docTitle) {
-        document.title = reg.effects.docTitle;
+      if (effects.docTitle) {
+        document.title = effects.docTitle;
       }
-      if (reg.effects.navigate && reg.effects.navigate.route) {
+      if (effects.navigate && effects.navigate.route) {
         await Actions.fireEvent(context, {
           name: 'application:mateuNavigate',
-          payload: { route: reg.effects.navigate.route },
+          payload: { route: effects.navigate.route },
         });
       }
     }

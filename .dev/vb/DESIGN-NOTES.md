@@ -265,6 +265,29 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   las sondas deben buscar el h1 CON texto, no el primero.
 - Evidencia: `shots/fase4.png`, `fase4-search.png`, `fase4-empty.png`.
 
+## Fase 5 — HECHA (pendiente de verificación visual del usuario)
+
+- **CRUD completo en drawer**: New (toolbar del wire) y clic-en-fila → drawer `oj-drawer-popup`
+  (edge end, modal) con el form widgetFor del contenido del Drawer de Mateu; Save/`create` →
+  `CloseModal(mateu-crud:saved-in-drawer)` → el chain dispara los triggers `OnCustomEvent`
+  suscritos (search) → el listado refresca; toast del starter. Esc/✕ descarta por puro estado
+  (`dismissOverlay`, sin evento — el camino "dismissed without saving"); Cancel va al server
+  (`cancel-new`/`cancel-edit` → CloseModal). Verificado end-to-end: alta Monitor + edición
+  Laptop 1200→999 persistidas y refrescadas.
+- **Contrato fijado**: clic de fila = actionId `view` con la FILA como `parameters` (así lo
+  dispatcha mateu-table-crud) → Add Drawer "Edit" con `initialData` = la fila; el drawer NO
+  lleva ServerSide interior → sus acciones se postean contra el HOST (outbound del listing);
+  drawer New→`cancel-new`/`create`, Edit→`cancel-edit`/`save`. Fixture nuevo
+  `open-edit-drawer.json`; tests 15/15 (overlayOf/eventTriggersOf/dismissOverlay).
+- VB: fila seleccionable (`selection-mode.row single` + `firstSelectedRowChanged` → view);
+  gotcha: `oj-drawer-popup` con `opened` one-way cierra con Esc SOLO si el foco está dentro
+  (comportamiento modal correcto); listener en `ojBeforeClose`. El AbortError "stale fetch"
+  de oj-table en consola es una optimización propia del componente, benigno.
+- Pendiente anotado: el botón Delete del toolbar renderiza pero la selección-para-borrar
+  (`crud_selected_items`) no está cableada aún; formateo de columnas (money/boolean) también
+  pendiente. Evidencia: `shots/fase5-list.png`, `fase5-new.png`, `fase5-created.png`,
+  `fase5-edit.png`, `fase5-edited.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

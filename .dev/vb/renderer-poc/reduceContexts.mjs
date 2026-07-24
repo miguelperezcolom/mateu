@@ -98,6 +98,62 @@ export function actionsOf(tree) {
   return out
 }
 
+/** Helper de RENDER: lista de campos para el switch widgetFor (isText/isNumber/isBoolean
+ *  PRECOMPUTADOS — los bindings VB deben ser paths simples), con el valor sacado del state. */
+export function fieldListOf(tree, state) {
+  const metadata = dynFormMetadataOf(tree)
+  if (!metadata) return []
+  const s = state || {}
+  return Object.keys(metadata).map((fieldId) => {
+    const f = metadata[fieldId]
+    return {
+      fieldId,
+      label: f.displayName,
+      required: f.required,
+      readonly: f.readonly,
+      isNumber: f.type === 'number',
+      isBoolean: f.type === 'boolean',
+      isText: f.type !== 'number' && f.type !== 'boolean',
+      value: s[fieldId] == null ? null : s[fieldId],
+    }
+  })
+}
+
+/** Proyección del OVERLAY superior del stack (drawer del crud): título + campos + acciones.
+ *  null si no hay overlays. Sus acciones se postean contra el HOST (el drawer no lleva
+ *  ServerSide propio — confirmado en el wire). */
+export function overlayOf(reg) {
+  const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+  if (!id || !reg.contexts[id]) return null
+  const ctx = reg.contexts[id]
+  return {
+    id,
+    title: ctx.title || '',
+    position: ctx.position || 'end',
+    width: ctx.width,
+    state: ctx.state || {},
+    fields: fieldListOf(ctx.tree, ctx.state),
+    actions: actionsOf(ctx.tree),
+  }
+}
+
+/** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
+export function dismissOverlay(reg) {
+  if (!reg.stack || !reg.stack.length) return reg
+  const id = reg.stack[reg.stack.length - 1]
+  const contexts = { ...reg.contexts }
+  delete contexts[id]
+  return { ...reg, contexts, stack: reg.stack.slice(0, -1) }
+}
+
+/** Acciones suscritas a un evento del bus (@SubscribeTo): p.ej. el listing refresca con
+ *  'search' cuando el CloseModal del drawer emite mateu-crud:saved-in-drawer. */
+export function eventTriggersOf(ctx, eventName) {
+  return ((ctx && ctx.tree && ctx.tree.triggers) || [])
+    .filter((t) => t.type === 'OnCustomEvent' && t.eventName === eventName && t.actionId)
+    .map((t) => t.actionId)
+}
+
 /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
@@ -108,23 +164,7 @@ export function summarizeHost(reg, route) {
   const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
   const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
   const state = host.state || {}
-  // lista de campos para el switch widgetFor (isNumber/isBoolean/isText PRECOMPUTADOS:
-  // los bindings VB deben ser paths simples, sin ternarios ni comparaciones)
-  const fields = formMetadata
-    ? Object.keys(formMetadata).map((fieldId) => {
-        const f = formMetadata[fieldId]
-        return {
-          fieldId,
-          label: f.displayName,
-          required: f.required,
-          readonly: f.readonly,
-          isNumber: f.type === 'number',
-          isBoolean: f.type === 'boolean',
-          isText: f.type !== 'number' && f.type !== 'boolean',
-          value: state[fieldId] == null ? null : state[fieldId],
-        }
-      })
-    : []
+  const fields = formMetadata ? fieldListOf(host.tree, state) : []
   return {
     // la Page de un listado no lleva título (viaja en la metadata del Crudl) → caption del menú
     title: pageMetadata.title || (option && (option.caption || option.label)) || '',

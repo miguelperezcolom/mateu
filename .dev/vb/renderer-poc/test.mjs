@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
+  overlayOf, eventTriggersOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -204,6 +205,33 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.equal(after.total, 3)
   assert.equal(after.isEmpty, false)
   assert.ok(after.toolbar.some((b) => b.label === 'New'))
+})
+
+// 15) CRUD en drawer (Fase 5): new→Add proyectable; view→drawer Edit con la fila;
+//     save→CloseModal(eventName) y el trigger OnCustomEvent del listing pide 'search'.
+test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresco suscrito', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  reg = reduceContexts(reg, fx('open-drawer'))
+  let overlay = overlayOf(reg)
+  assert.equal(overlay.title, 'New')
+  assert.deepEqual(overlay.fields.map((f) => f.fieldId), ['id', 'name', 'price', 'active'])
+  assert.ok(overlay.fields.find((f) => f.fieldId === 'price').isNumber)
+  assert.deepEqual(overlay.actions.map((a) => a.actionId), ['cancel-new', 'create'])
+  // guardar: cierra por estado y emite el evento del bus…
+  reg = reduceContexts(reg, fx('save-in-drawer'))
+  assert.equal(overlayOf(reg), null)
+  const eventName = reg.effects.events[0].name
+  assert.equal(eventName, 'mateu-crud:saved-in-drawer')
+  // …que el listing tiene suscrito a 'search' (el refresco viaja EN el wire)
+  assert.deepEqual(eventTriggersOf(reg.contexts[HOST_ID], eventName), ['search'])
+  // edit: el clic de fila (view + parameters=fila) abre el drawer con la fila cargada
+  reg = reduceContexts(reg, fx('open-edit-drawer'))
+  overlay = overlayOf(reg)
+  assert.equal(overlay.title, 'Edit')
+  assert.equal(overlay.state.name, 'Laptop')
+  assert.deepEqual(overlay.actions.map((a) => a.actionId).sort(), ['cancel-edit', 'delete', 'save'].filter((x) => overlay.actions.some((a) => a.actionId === x)))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)
