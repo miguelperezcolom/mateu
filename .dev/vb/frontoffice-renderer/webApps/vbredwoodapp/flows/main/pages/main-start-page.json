@@ -5,6 +5,14 @@
     "greeting": {
       "type": "string",
       "defaultValue": "Cargando…"
+    },
+    "isForm": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "saveMsg": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "metadata": {},
@@ -25,6 +33,13 @@
           "parameters": {
             "selection": "{{ $event.detail.value }}"
           }
+        }
+      ]
+    },
+    "saveForm": {
+      "chains": [
+        {
+          "chainId": "saveForm"
         }
       ]
     }

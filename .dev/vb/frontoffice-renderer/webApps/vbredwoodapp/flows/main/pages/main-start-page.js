@@ -1,36 +1,41 @@
-/* Bridge de Mateu-sobre-VB (Fase 2) — módulo de la página de contenido.
- * loadApp(): callMateu('') → fragmento App → construye el menú del navigator (oj-navigation-list).
- * loadRoute(route): callMateu(route) → reduceContexts → devuelve el contenido (Fase 2: el Text).
- * reduceContexts/metaOf/firstText son el MISMO core que src/core/reduceContexts.mjs (subset), en AMD.
+/* Bridge de Mateu-sobre-VB (Fases 1–3) — módulo de la página de contenido.
+ * loadApp():   callMateu('') → fragmento App → menú del navigator (oj-navigation-list).
+ * loadRoute(): callMateu(route, sst, consumedRoute) → contenido. Si el árbol tiene FormFields,
+ *              expone el formulario (campos oj-c-* two-way); si no, extrae el Text.
+ * save():      reenvía el estado del formulario (actionId 'save') y devuelve el mensaje resultante.
+ * El core (metaOf/reduceContexts/firstText) es paridad de src/core/reduceContexts.mjs, en AMD.
  * Sin HTML/CSS: la presentación la pinta la página con componentes oj-* de los ejemplos.
+ *
+ * Se requieren los custom elements usados en la página (el build en standalone no los resuelve):
+ * oj-navigation-list + los oj-c-* del formulario.
  */
-// 'ojs/ojnavigationlist' se requiere para REGISTRAR el custom element oj-navigation-list
-// (el paso de resolución de dependencias del build no lo incluye en standalone, así que lo
-// cargamos explícitamente — es un componente core de OJET desde el CDN de jet).
-define(['ojs/ojnavigationlist', 'ojs/ojarraydataprovider', 'knockout'], function (
-  _ojNavigationList,
-  ArrayDataProvider,
-  ko,
-) {
+define([
+  'ojs/ojnavigationlist',
+  'oj-c/input-text',
+  'oj-c/input-number',
+  'oj-c/button',
+  'ojs/ojarraydataprovider',
+  'knockout',
+], function (_nav, _it, _in, _btn, ArrayDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
   const HOST_ID = '__root__';
 
-  // Contrato real: ClientSide lleva el DTO en .metadata; ServerSide, al nivel superior.
   const metaOf = (n) => (n && (n.metadata || n)) || {};
 
   function reduceContexts(reg, increment) {
     const contexts = Object.assign({}, reg.contexts);
     (increment.fragments || []).forEach((fr) => {
       const md = metaOf(fr.component);
-      if (md.type === 'App') return; // una App configura la shell, no es contenido
+      if (md.type === 'App') return;
       const id = fr.targetComponentId || HOST_ID;
       const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {} };
       contexts[id] = Object.assign({}, prev, {
         tree: fr.component || prev.tree,
         route: md.route != null ? md.route : prev.route,
         serverSideType: md.serverSideType != null ? md.serverSideType : prev.serverSideType,
+        consumedRoute: md.consumedRoute != null ? md.consumedRoute : prev.consumedRoute,
         pageType: md.pageType != null ? md.pageType : prev.pageType,
         state: md.initialData || fr.data || prev.state,
       });
@@ -50,10 +55,33 @@ define(['ojs/ojnavigationlist', 'ojs/ojarraydataprovider', 'knockout'], function
     return null;
   }
 
-  // Contrato mediador: para cargar el contenido de una ruta de MENÚ hay que enviar el
-  // serverSideType + consumedRoute del item (si no, la App se devuelve a sí misma).
-  async function callMateu(route, serverSideType, consumedRoute) {
-    const body = { route: route || '', actionId: '__load__', componentState: {}, appState: {} };
+  // Deep-search: los FormField anidan en metadata, no solo en children. Se deduplica por fieldId
+  // (el árbol referencia los nodos en children Y en metadata, así que aparecen 2 veces).
+  function collectFields(node, out, seen) {
+    out = out || [];
+    seen = seen || {};
+    if (node && typeof node === 'object') {
+      const m = metaOf(node);
+      if (m.type === 'FormField' && m.fieldId && !seen[m.fieldId]) {
+        seen[m.fieldId] = true;
+        out.push({ fieldId: m.fieldId, label: m.label, dataType: m.dataType, required: !!m.required });
+      }
+      Object.keys(node).forEach((k) => {
+        const v = node[k];
+        if (Array.isArray(v)) v.forEach((x) => collectFields(x, out, seen));
+        else if (v && typeof v === 'object') collectFields(v, out, seen);
+      });
+    }
+    return out;
+  }
+
+  async function callMateu(route, actionId, serverSideType, consumedRoute, componentState) {
+    const body = {
+      route: route || '',
+      actionId: actionId || '__load__',
+      componentState: componentState || {},
+      appState: {},
+    };
     if (serverSideType) body.serverSideType = serverSideType;
     if (consumedRoute != null) body.consumedRoute = consumedRoute;
     const res = await fetch(BASE + '/mateu/v3/components/_/action', {
@@ -66,19 +94,25 @@ define(['ojs/ojnavigationlist', 'ojs/ojarraydataprovider', 'knockout'], function
 
   class PageModule {
     constructor() {
-      // El navigator (oj-navigation-list) se alimenta de este DataProvider observable;
-      // loadApp() rellena navItems y la lista se repinta sola. `menu` guarda los items
-      // completos (con serverSideType/consumedRoute) para el contrato mediador de loadRoute.
       this.menu = [];
       this.navItems = ko.observableArray([]);
       this.navDP = new ArrayDataProvider(this.navItems, { keyAttributes: 'route' });
+      // Estado del formulario actual. formData (plano, por fieldId) es la fuente de verdad para el
+      // save: cada input hace value one-way + on-value-changed → escribe aquí (el two-way de
+      // oj-bind-for-each a un observable anidado NO escribe de vuelta —clona el item—, por eso el
+      // closure de onChange captura el fieldId y actualiza formData directamente).
+      this.formFields = ko.observableArray([]);
+      this.formData = {};
+      this.current = { route: '', serverSideType: null, consumedRoute: null };
     }
 
     getNavData() {
       return this.navDP;
     }
+    getFormFields() {
+      return this.formFields;
+    }
 
-    // Carga la App (menú) desde Mateu. Devuelve la primera ruta para el contenido inicial.
     async loadApp() {
       const inc = await callMateu('');
       const appFrag = (inc.fragments || []).find((f) => metaOf(f.component).type === 'App');
@@ -90,16 +124,66 @@ define(['ojs/ojnavigationlist', 'ojs/ojarraydataprovider', 'knockout'], function
         consumedRoute: m.consumedRoute,
       }));
       this.navItems(this.menu.map((m) => ({ route: m.route, label: m.label })));
-      return { firstRoute: (this.menu[0] || {}).route || '', title: md.title };
+      return { firstRoute: (this.menu[0] || {}).route || '' };
     }
 
-    // Carga el contenido de una ruta (Fase 2: extrae el Text) vía el contrato mediador.
     async loadRoute(route) {
       const item = this.menu.filter((m) => m.route === route)[0] || {};
-      const inc = await callMateu(route, item.serverSideType, item.consumedRoute);
+      // La CARGA usa el contexto del item de menú (app) para resolver el mediador…
+      const inc = await callMateu(route, '__load__', item.serverSideType, item.consumedRoute);
       const reg = reduceContexts({ contexts: {}, stack: [], shell: null }, inc);
-      const host = reg.contexts[HOST_ID];
-      return { greeting: firstText(host && host.tree) || '(sin contenido)' };
+      const host = reg.contexts[HOST_ID] || {};
+      // …pero las ACCIONES (save) van al COMPONENTE de contenido cargado (p.ej. Profile), con su
+      // propio serverSideType/route/consumedRoute — no el del app.
+      this.current = {
+        route: host.route != null ? host.route : route,
+        serverSideType: host.serverSideType || item.serverSideType,
+        consumedRoute: host.consumedRoute != null ? host.consumedRoute : item.consumedRoute,
+      };
+      const fields = collectFields(host.tree);
+      const state = host.state || {};
+      const self = this;
+      this.formData = {};
+      fields.forEach((f) => {
+        this.formData[f.fieldId] = state[f.fieldId] != null ? state[f.fieldId] : '';
+      });
+      this.formFields(
+        fields.map((f) => {
+          const fieldId = f.fieldId;
+          return {
+            fieldId: fieldId,
+            label: f.label,
+            dataType: f.dataType,
+            isNumber: f.dataType === 'integer' || f.dataType === 'number' || f.dataType === 'decimal',
+            value: this.formData[fieldId],
+            onChange: function (e) {
+              self.formData[fieldId] = e.detail.value;
+            },
+          };
+        }),
+      );
+      return { isForm: fields.length > 0, greeting: firstText(host.tree) || '(sin contenido)' };
+    }
+
+    // Fase 3: reenvía el estado editado con actionId 'save' y devuelve el mensaje.
+    async save() {
+      // Fuente de verdad al guardar: el VALOR de cada componente oj-c en el DOM (el two-way /
+      // on-value-changed a través de oj-bind-for-each no propaga de forma fiable; el .value del
+      // componente sí es correcto). Cada input lleva data-field=<fieldId>.
+      const state = {};
+      const els = document.querySelectorAll('[data-field]');
+      for (let i = 0; i < els.length; i++) {
+        state[els[i].getAttribute('data-field')] = els[i].value;
+      }
+      const inc = await callMateu(
+        this.current.route,
+        'save',
+        this.current.serverSideType,
+        this.current.consumedRoute,
+        state,
+      );
+      const msg = (inc.messages || [])[0];
+      return { message: msg ? msg.text || msg.title : 'Guardado' };
     }
   }
 

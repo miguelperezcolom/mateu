@@ -1,0 +1,25 @@
+{
+  "description": "Fase 3: reenvía el estado editado del formulario (actionId 'save') y muestra el mensaje.",
+  "root": "save",
+  "variables": {},
+  "actions": {
+    "save": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": {
+        "module": "[[ $functions ]]",
+        "functionName": "save"
+      },
+      "outcomes": {
+        "success": "assign"
+      }
+    },
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.saveMsg": {
+          "source": "{{ $chain.results.save.message }}"
+        }
+      }
+    }
+  }
+}

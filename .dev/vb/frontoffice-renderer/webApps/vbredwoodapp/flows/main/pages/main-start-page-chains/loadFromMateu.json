@@ -1,5 +1,5 @@
 {
-  "description": "Fase 2: carga la App (menú) y el contenido de la primera ruta.",
+  "description": "Fases 2–3: carga la App (menú) y el contenido de la primera ruta (Text o formulario).",
   "root": "loadApp",
   "variables": {},
   "actions": {
@@ -31,6 +31,12 @@
       "parameters": {
         "$page.variables.greeting": {
           "source": "{{ $chain.results.loadRoute.greeting }}"
+        },
+        "$page.variables.isForm": {
+          "source": "{{ $chain.results.loadRoute.isForm }}"
+        },
+        "$page.variables.saveMsg": {
+          "source": "{{ '' }}"
         }
       }
     }

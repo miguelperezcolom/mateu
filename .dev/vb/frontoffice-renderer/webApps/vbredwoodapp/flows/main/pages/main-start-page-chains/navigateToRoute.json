@@ -1,5 +1,5 @@
 {
-  "description": "Fase 2: al seleccionar una opción del navigator, recarga SOLO el contenido de esa ruta.",
+  "description": "Fases 2–3: al seleccionar una opción, recarga SOLO el contenido (Text o formulario).",
   "root": "loadRoute",
   "variables": {
     "selection": {
@@ -27,6 +27,12 @@
       "parameters": {
         "$page.variables.greeting": {
           "source": "{{ $chain.results.loadRoute.greeting }}"
+        },
+        "$page.variables.isForm": {
+          "source": "{{ $chain.results.loadRoute.isForm }}"
+        },
+        "$page.variables.saveMsg": {
+          "source": "{{ '' }}"
         }
       }
     }

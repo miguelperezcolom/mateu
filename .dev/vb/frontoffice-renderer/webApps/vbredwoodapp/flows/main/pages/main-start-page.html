@@ -1,8 +1,8 @@
 <!-- Copyright (c) 2026, Oracle and/or its affiliates -->
 
-<!-- Fase 2: navigator Redwood (oj-navigation-list) alimentado por el menú de Mateu +
-     área de contenido. Seleccionar una opción recarga SOLO el contenido (loadRoute),
-     sin recargar la shell. Solo markup oj-* de los ejemplos, sin CSS propio. -->
+<!-- Fases 2–3: navigator Redwood (del menú de Mateu) + área de contenido que muestra
+     un FORMULARIO (campos oj-c-* two-way + Guardar) o un Text, según isForm.
+     Solo markup oj-* de los ejemplos, sin CSS propio. -->
 <div class="oj-web-applayout-content-nopad oj-flex">
   <div class="oj-flex-item" style="min-width: 15rem; max-width: 15rem">
     <oj-navigation-list
@@ -19,11 +19,45 @@
       </template>
     </oj-navigation-list>
   </div>
+
   <div class="oj-flex-item oj-sm-padding-4x">
-    <div class="oj-flex">
-      <h1 class="oj-flex-item oj-sm-12 oj-md-12">
-        <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>
-      </h1>
-    </div>
+    <!-- Formulario -->
+    <oj-bind-if test="[[ $variables.isForm ]]">
+      <div class="oj-form-layout oj-sm-margin-4x-bottom" style="max-width: 32rem">
+        <oj-bind-for-each data="[[ $functions.getFormFields() ]]">
+          <template data-oj-as="field">
+            <div class="oj-sm-margin-2x-bottom">
+              <oj-bind-if test="[[ field.data.isNumber ]]">
+                <oj-c-input-number
+                  label-hint="[[ field.data.label ]]"
+                  value="[[ field.data.value ]]"
+                  :data-field="[[ field.data.fieldId ]]"
+                ></oj-c-input-number>
+              </oj-bind-if>
+              <oj-bind-if test="[[ !field.data.isNumber ]]">
+                <oj-c-input-text
+                  label-hint="[[ field.data.label ]]"
+                  value="[[ field.data.value ]]"
+                  :data-field="[[ field.data.fieldId ]]"
+                ></oj-c-input-text>
+              </oj-bind-if>
+            </div>
+          </template>
+        </oj-bind-for-each>
+        <oj-c-button label="Guardar" on-oj-action="[[ $listeners.saveForm ]]"></oj-c-button>
+      </div>
+      <div class="oj-text-color-secondary">
+        <oj-bind-text value="[[ $variables.saveMsg ]]"></oj-bind-text>
+      </div>
+    </oj-bind-if>
+
+    <!-- Contenido de texto -->
+    <oj-bind-if test="[[ !$variables.isForm ]]">
+      <div class="oj-flex">
+        <h1 class="oj-flex-item oj-sm-12 oj-md-12">
+          <oj-bind-text value="[[ $variables.greeting ]]"></oj-bind-text>
+        </h1>
+      </div>
+    </oj-bind-if>
   </div>
 </div>
