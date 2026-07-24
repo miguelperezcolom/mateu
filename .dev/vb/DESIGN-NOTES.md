@@ -307,8 +307,17 @@ del wire por paso. Contrato:
   (`"estancia is null"` al `completar`). La NAVEGACIÓN del proceso guiado funciona; falta clavar el contrato de
   estado del wizard (capturar lo que envía un frontend Mateu real ayudaría). Evidencia:
   `shots/fase8-guided-process.png`.
-- oj-sp-guided-process (el componente) NO se usó: gestiona su propio flujo, incompatible con el wizard
-  server-driven de Mateu; se compuso con componentes Redwood auténticos (progress-bar + form + botones).
+- **AHORA usa el `oj-sp-guided-process` REAL** (Spectra), driven por Mateu:
+  - Se le pasa `steps` (`[{id, title, status}]`; status **`success`** para pasos hechos / `none`; el paso
+    ACTUAL lo marca la propiedad **`current-step`** (=posición), NO el status), `primary-action` (`{label}`).
+  - **Navegación**: el componente emite **`sp-before-step-navigate`** (detail `currentStep`/`nextStep`/
+    `triggeredFrom`) al pulsar Continue o un paso del rail — NO `sp-primary-action`. Comparar
+    `nextStep` vs `currentStep`: adelante → la acción de avance del wire (next/completar); atrás → `back`.
+    `sp-cancel` → salir del wizard (primera ruta).
+  - **ANCHO**: `oj-drawer-layout` encogía su `main-content` al ancho natural del contenido (774px) → se
+    cambió a un **`oj-flex` simple** (nav `flex 0 0 15rem` + contenido `flex 1 1 auto; min-width:0` +
+    `oj-vb-content display:block; width:100%`). Ahora el guided-process (y tabla/foldout) llenan el ancho.
+  - Sigue en pie la LIMITACIÓN del estado del wizard en la completación (serialización de pasos anidados).
 
 ### Regla dura de presentación (decisión 2026-07-24)
 
