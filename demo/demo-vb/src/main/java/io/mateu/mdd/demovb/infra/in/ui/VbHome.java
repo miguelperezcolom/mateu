@@ -17,6 +17,9 @@ import java.util.List;
  */
 @UI("")
 @Title("VB Demo")
+// HAMBURGUER_MENU explícito para exhibir el navigator-drawer del renderer VB
+// (AUTO daría MENU_ON_TOP con este menú: opciones visibles en el header)
+@io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU)
 public class VbHome implements AppActionsSupplier {
 
   enum Hotel {

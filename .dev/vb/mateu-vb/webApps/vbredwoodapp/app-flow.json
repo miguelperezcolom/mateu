@@ -341,15 +341,29 @@
       },
       "description": "proyección del overlay superior (drawer del crud): título + campos + acciones"
     },
-    "mateuMenuTabs": {
-      "type": "boolean",
-      "defaultValue": true,
-      "description": "true = menú plano (tabs); false = hamburguesa + oj-menu anidado (la variante del wire manda)"
-    },
     "mateuMenuTree": {
       "type": "any",
       "defaultValue": [],
       "description": "menú jerárquico para el oj-menu de la hamburguesa (children con rutas TERMINALES)"
+    },
+    "mateuMenuTabs": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "variante TABS: in-app navigation inferior"
+    },
+    "mateuMenuTopbar": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "variante MENU_ON_TOP: opciones de primer nivel visibles en el header"
+    },
+    "mateuMenuDrawerMode": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "variante HAMBURGUER_MENU/TILES: hamburguesa que abre el navigator-drawer izquierdo"
+    },
+    "mateuNavDrawerOpen": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "userConfig": {

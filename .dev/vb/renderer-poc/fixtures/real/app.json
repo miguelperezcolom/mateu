@@ -15,7 +15,7 @@
         "metadata": {
           "type": "App",
           "route": "",
-          "variant": "MENU_ON_TOP",
+          "variant": "HAMBURGUER_MENU",
           "layout": "SINGLE_SLOT",
           "icon": null,
           "logo": null,
@@ -229,7 +229,7 @@
           "commandCenterEnabled": false,
           "chromeless": false
         },
-        "id": "241904e4-ec2f-458f-b788-4186befa4e74",
+        "id": "bbfd7b32-7a40-4644-9c2d-1a3a0a6a4599",
         "children": [],
         "style": null,
         "cssClasses": null,

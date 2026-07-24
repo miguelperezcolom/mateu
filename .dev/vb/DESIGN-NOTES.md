@@ -300,12 +300,17 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
 - **Menú profundo**: un grupo `@Menu` (clase con @Menus anidados) llega en el wire como opción con
   **`submenus`** (¡no `submenu`!) y rutas COMPUESTAS (`/gestion/person`) que **NO resuelven por
   sync** — el bridge navega por la ruta TERMINAL (recorta el prefijo del padre; `shellNavOf`).
-  **La VARIANTE del wire manda** (feedback del usuario — la 1ª versión pintaba un landing):
-  menú plano (`TABS`) → in-app navigation inferior; profundo/denso (`MENU_ON_TOP`,
-  `HAMBURGUER_MENU`, `TILES`…) → **hamburguesa en el slot start del global-header + `oj-menu`
-  ANIDADO** (`oj-option` conteniendo otro `oj-menu` = submenú, el cascading menu auténtico de
-  JET; `shellNavOf().mode` + `menuTree`). Al agrupar, la heurística AUTO de Mateu cambió la
-  variante de TABS a MENU_ON_TOP — y ahora eso decide el chrome de navegación.
+  **La VARIANTE del wire manda** (afinado con DOS rondas de feedback del usuario) — TRES modos
+  en `shellNavOf().mode`: `TABS` → in-app navigation inferior; **`HAMBURGUER_MENU`/`TILES` →
+  hamburguesa que ABRE un `oj-drawer-popup` edge=start con `oj-navigation-list` jerárquico**
+  (drill-mode collapsible, como el navigator FA; los grupos se expanden, las hojas navegan y
+  cierran el drawer); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
+  hamburguesa; hojas = `oj-button` borderless con la ruta en data-route, grupos =
+  `oj-menu-button` + `oj-menu`). Gotcha: `oj-navigation-list` parsea su `<ul>` en el init y los
+  `li` estampados por `oj-bind-for-each` llegan DESPUÉS → hay que llamar a `refresh()` al abrir
+  el drawer o quedan como links crudos. El demo lleva `@App(HAMBURGUER_MENU)` explícito para
+  exhibir el drawer (quitar la anotación → AUTO → MENU_ON_TOP → topbar); ambos modos
+  verificados (`shots/fase6-navdrawer*.png`, `fase6-topbar.png`).
 - **@AppContext**: `contextSelectors` del App → `oj-select-one` compacto (clases utilitarias
   `oj-form-control-max-width-sm` + `oj-sm-flex-wrap-nowrap`) en el slot `end` del global-header;
   el valor va a `$application.variables.mateuAppState` y viaja como **appState en CADA request**

@@ -28,6 +28,8 @@ define([
       const appState = $application.variables.mateuAppState || {};
       $application.variables.mateuNavItems = nav.items;
       $application.variables.mateuMenuTabs = nav.mode === 'tabs';
+      $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
+      $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
       $application.variables.mateuMenuTree = nav.menuTree;
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,

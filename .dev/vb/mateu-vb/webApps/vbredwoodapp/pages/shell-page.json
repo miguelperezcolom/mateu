@@ -1,33 +1,33 @@
 {
-    "description": "",
-    "routerFlow": "main",
-    "variables": {
-      "messageToast": {
-        "type": "string"
-      },
-      "messagesBannerADP": {
-        "type": "vb/ArrayDataProvider2",
-        "defaultValue": {
-          "itemType": "MessagesBannerType",
-          "keyAttributes": "id"
-        }
-      },
-      "messageId": {
-        "type": "string"
+  "description": "",
+  "routerFlow": "main",
+  "variables": {
+    "messageToast": {
+      "type": "string"
+    },
+    "messagesBannerADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "itemType": "MessagesBannerType",
+        "keyAttributes": "id"
       }
     },
-    "metadata": {},
-    "types": {
-      "MessagesBannerType": {
-        "id": "string",
-        "messageType": "string",
-        "primaryText": "string",
-        "primaryActionLabel": "string",
-        "secondaryText": "any",
-        "secondaryActionLabel": "string"
-      }
-    },
-    "eventListeners": {
+    "messageId": {
+      "type": "string"
+    }
+  },
+  "metadata": {},
+  "types": {
+    "MessagesBannerType": {
+      "id": "string",
+      "messageType": "string",
+      "primaryText": "string",
+      "primaryActionLabel": "string",
+      "secondaryText": "any",
+      "secondaryActionLabel": "string"
+    }
+  },
+  "eventListeners": {
     "vbEnter": {
       "chains": [
         {
@@ -125,9 +125,49 @@
           "chain": "showNotificationMessage"
         }
       ]
-    }
     },
-    "imports": {
+    "hamburgerClicked": {
+      "chains": [
+        {
+          "chain": "toggleMateuNavDrawer",
+          "parameters": {
+            "open": true
+          }
+        }
+      ]
+    },
+    "navDrawerClosed": {
+      "chains": [
+        {
+          "chain": "toggleMateuNavDrawer",
+          "parameters": {
+            "open": false
+          }
+        }
+      ]
+    },
+    "navDrawerSelected": {
+      "chains": [
+        {
+          "chain": "onMateuNavDrawerSelect",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "topbarNavClicked": {
+      "chains": [
+        {
+          "chain": "onMateuTopbarNav",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    }
+  },
+  "imports": {
     "components": {
       "oj-sp-messages-banner": {
         "path": "oj-sp/messages-banner/loader"
@@ -158,8 +198,14 @@
       },
       "oj-option": {
         "path": "ojs/ojoption"
+      },
+      "oj-drawer-popup": {
+        "path": "ojs/ojdrawerpopup"
+      },
+      "oj-navigation-list": {
+        "path": "ojs/ojnavigationlist"
       }
     }
-    },
-    "translations": {}
-  }
+  },
+  "translations": {}
+}

@@ -12,7 +12,7 @@
       "targetComponentId": "",
       "component": {
         "type": "ServerSide",
-        "id": "891b6fda-fee5-4a51-91b3-d956a3f71087",
+        "id": "e7400b2d-a360-4d55-8e89-208da30f7bb5",
         "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.PersonForm",
         "route": "",
         "children": [

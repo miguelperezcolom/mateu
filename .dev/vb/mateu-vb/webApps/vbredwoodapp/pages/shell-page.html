@@ -5,35 +5,39 @@
 <oj-sp-simple-ui-shell id="shell">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader">
-    <!-- menú profundo (variante != TABS): hamburguesa + oj-menu ANIDADO (oj-option con
-         oj-menu hijo = submenú, el patrón JET auténtico) -->
-    <div slot="start">
-      <oj-bind-if test="[[ !$application.variables.mateuMenuTabs ]]">
-        <oj-menu-button id="mateuHamburger" chroming="borderless" display="icons">
+    <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->
+    <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode ]]">
+        <oj-button id="mateuHamburger" chroming="borderless" display="icons"
+          on-oj-action="[[ $listeners.hamburgerClicked ]]">
           <span slot="startIcon" class="oj-ux-ico-menu"></span>
           Menu
-          <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
-            <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
-              <template>
-                <oj-bind-if test="[[ !$current.data.hasChildren ]]">
-                  <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
-                </oj-bind-if>
-                <oj-bind-if test="[[ $current.data.hasChildren ]]">
-                  <oj-option>
-                    <span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
-                    <oj-menu>
-                      <oj-bind-for-each data="[[ $current.data.children ]]">
-                        <template>
-                          <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
-                        </template>
-                      </oj-bind-for-each>
-                    </oj-menu>
-                  </oj-option>
-                </oj-bind-if>
-              </template>
-            </oj-bind-for-each>
-          </oj-menu>
-        </oj-menu-button>
+        </oj-button>
+      </oj-bind-if>
+      <!-- MENU_ON_TOP: opciones de PRIMER NIVEL visibles en el header, sin hamburguesa;
+           los grupos despliegan un oj-menu -->
+      <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]">
+        <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
+          <template>
+            <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+              <oj-button chroming="borderless"
+                :data-route="[[ $current.data.id ]]"
+                on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $current.data.hasChildren ]]">
+              <oj-menu-button chroming="borderless">
+                <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
+                  <oj-bind-for-each data="[[ $current.data.children ]]">
+                    <template>
+                      <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                    </template>
+                  </oj-bind-for-each>
+                </oj-menu>
+              </oj-menu-button>
+            </oj-bind-if>
+          </template>
+        </oj-bind-for-each>
       </oj-bind-if>
     </div>
     <!-- selectores @AppContext + acciones de cabecera del App de Mateu, en el slot end -->
@@ -87,6 +91,38 @@
         selection="[[ $application.variables.mateuSelectedRoute ]]"
         on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
     </oj-bind-if>
+
+    <!-- Navigator-drawer (HAMBURGUER_MENU): panel IZQUIERDO con oj-navigation-list
+         jerárquico (grupos colapsables); navegar cierra el drawer -->
+    <oj-drawer-popup id="mateuNavDrawer" edge="start" modality="modal"
+      opened="[[ $application.variables.mateuNavDrawerOpen ]]"
+      on-oj-before-close="[[ $listeners.navDrawerClosed ]]">
+      <div class="oj-sm-padding-4x-vertical">
+        <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
+          on-selection-changed="[[ $listeners.navDrawerSelected ]]">
+          <ul>
+            <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
+              <template>
+                <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                  <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                  <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
+                    <ul>
+                      <oj-bind-for-each data="[[ $current.data.children ]]">
+                        <template>
+                          <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                        </template>
+                      </oj-bind-for-each>
+                    </ul>
+                  </li>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </ul>
+        </oj-navigation-list>
+      </div>
+    </oj-drawer-popup>
 
     <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
 

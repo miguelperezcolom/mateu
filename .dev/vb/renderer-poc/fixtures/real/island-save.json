@@ -6,7 +6,7 @@
       "targetComponentId": "_guestNote",
       "component": {
         "type": "ServerSide",
-        "id": "ecfdb61d-0670-4b21-9f2d-06518eefaa3c",
+        "id": "63b52c28-6370-4c9f-b4b9-4c135b5a30c7",
         "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNote",
         "route": "/guest-note",
         "children": [

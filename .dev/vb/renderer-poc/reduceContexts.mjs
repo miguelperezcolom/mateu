@@ -163,10 +163,15 @@ export function shellNavOf(reg) {
       }),
     })
   }
+  // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+  // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
+  // FA); MENU_ON_TOP (o TABS con grupos) → opciones de primer nivel VISIBLES en el
+  // header, dropdown oj-menu solo para los grupos
+  let mode = 'tabs'
+  if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+  else if (shell.variant === 'MENU_ON_TOP' || hasGroups) mode = 'topbar'
   return {
-    // la VARIANTE del wire manda: menú plano (TABS) → in-app navigation; profundo/denso
-    // (MENU_ON_TOP, HAMBURGUER_MENU, TILES…) → hamburguesa + oj-menu anidado
-    mode: shell.variant === 'TABS' && !hasGroups ? 'tabs' : 'hamburger',
+    mode,
     items,
     menuTree,
     selectors: (shell.appContext || []).map((selector) => ({
