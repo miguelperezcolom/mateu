@@ -37,34 +37,32 @@
   </div>
 
   <div class="oj-web-applayout-content-nopad oj-web-spacing oj-flex">
-    <oj-drawer-layout start-opened="true">
-      <!-- Navigator (Fase 2/6) — chrome persistente del shell -->
-      <div slot="start" style="min-width: 15rem; max-width: 15rem">
-        <oj-navigation-list
-          data="[[ $application.functions.getNavData() ]]"
-          drill-mode="collapsible"
-          on-selection-changed="[[ $listeners.navSelect ]]"
-          class="oj-navigationlist-nofollow-link"
-        >
-          <template slot="itemTemplate" data-oj-as="item">
-            <li :id="[[ item.data.route ]]">
-              <a style="cursor: pointer">
-                <oj-bind-text value="[[ item.data.label ]]"></oj-bind-text>
-              </a>
-            </li>
-          </template>
-        </oj-navigation-list>
-      </div>
+    <!-- Nav (ancho fijo) + contenido (flex:1) — el contenido edge-to-edge (guided-process, tabla,
+         foldout) llena TODO el ancho a la derecha del menú. -->
+    <div class="oj-flex-item-initial" style="flex: 0 0 15rem">
+      <oj-navigation-list
+        data="[[ $application.functions.getNavData() ]]"
+        drill-mode="collapsible"
+        on-selection-changed="[[ $listeners.navSelect ]]"
+        class="oj-navigationlist-nofollow-link"
+      >
+        <template slot="itemTemplate" data-oj-as="item">
+          <li :id="[[ item.data.route ]]">
+            <a style="cursor: pointer">
+              <oj-bind-text value="[[ item.data.label ]]"></oj-bind-text>
+            </a>
+          </li>
+        </template>
+      </oj-navigation-list>
+    </div>
 
-      <!-- Contenido -->
-      <div class="oj-flex-item" style="min-width: 0">
-        <oj-sp-messages-banner
-          data="[[ $variables.messagesBannerADP ]]"
-          on-sp-close="[[$listeners.messagesBannerSpClose]]"
-        ></oj-sp-messages-banner>
-        <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
-        <oj-vb-content id="vbRouterContent" config="[[vbRouterFlow]]"></oj-vb-content>
-      </div>
-    </oj-drawer-layout>
+    <div class="oj-flex-item" style="flex: 1 1 auto; min-width: 0">
+      <oj-sp-messages-banner
+        data="[[ $variables.messagesBannerADP ]]"
+        on-sp-close="[[$listeners.messagesBannerSpClose]]"
+      ></oj-sp-messages-banner>
+      <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
+      <oj-vb-content id="vbRouterContent" config="[[vbRouterFlow]]" style="display: block; width: 100%"></oj-vb-content>
+    </div>
   </div>
 </div>

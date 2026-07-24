@@ -14,11 +14,12 @@ define([
   'oj-c/select-single',
   'oj-sp/foldout-layout/loader',
   'oj-sp/foldout-panel/loader',
+  'oj-sp/guided-process/loader',
   'ojs/ojprogress-bar',
   'ojs/ojarraydataprovider',
   'ojs/ojarraytreedataprovider',
   'knockout',
-], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, _pb, ArrayDataProvider, ArrayTreeDataProvider, ko) {
+], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, _gp, _pb, ArrayDataProvider, ArrayTreeDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -281,24 +282,26 @@ define([
       // Foldout (Fase 7): overview + paneles plegables.
       this.foldoutOverview = ko.observable('');
       this.foldoutPanels = ko.observableArray([]);
-      // Wizard (Fase 8): posición/total de pasos + los botones reales del paso (back/next/completar…).
+      // Wizard (Fase 8): estado del proceso guiado (oj-sp-guided-process).
       this.wizardPosition = ko.observable(0);
       this.wizardTotal = ko.observable(0);
-      this.wizardActions = ko.observableArray([]);
+      this.wizardSteps = ko.observableArray([]); // [{id,title,status}] para el rail del guided-process
+      this.wizardAdvanceId = 'next'; // acción del botón primario (next/completar)
+      this.wizardAdvanceLabel = ko.observable('Siguiente');
     }
 
     getNavData() {
       return this.navDP;
     }
-    getWizardPct() {
-      const t = this.wizardTotal();
-      return t > 1 ? Math.round((this.wizardPosition() / (t - 1)) * 100) : 0;
+    // ── oj-sp-guided-process (Fase 8) ──────────────────────────────────────────────
+    getGuidedSteps() {
+      return this.wizardSteps();
     }
-    getWizardLabel() {
-      return 'Paso ' + (this.wizardPosition() + 1) + ' de ' + this.wizardTotal();
+    getGuidedCurrent() {
+      return String(this.wizardPosition());
     }
-    getWizardActions() {
-      return this.wizardActions();
+    getGuidedPrimary() {
+      return { label: this.wizardAdvanceLabel(), progressState: 'off' };
     }
     getFormFields() {
       return this.formFields;
@@ -393,7 +396,8 @@ define([
       // App metadata para la cabecera (Fase 6): selectores de contexto + acciones.
       this.contextSelectors(md.contextSelectors || []);
       this.contextActions(md.contextActions || []);
-      return { firstRoute: firstLeaf(tree) };
+      this.firstRoute = firstLeaf(tree);
+      return { firstRoute: this.firstRoute };
     }
 
     async loadRoute(route) {
@@ -521,14 +525,45 @@ define([
       this._buildFormFields(host, this.wizardState);
       const ps = findSteps(host.tree);
       const steps = (ps && ps.steps) || [];
+      const pos = steps.filter((s) => s.status === 'done' || s.done).length;
       this.wizardTotal(steps.length);
-      this.wizardPosition(steps.filter((s) => s.status === 'done' || s.done).length);
-      this.wizardActions(collectActions(host.tree));
+      this.wizardPosition(pos);
+      // Steps para el rail del oj-sp-guided-process: id/title/status. El status de oj-sp usa
+      // 'success' (paso hecho) / 'none'; el paso ACTUAL lo marca la propiedad current-step, no el status.
+      this.wizardSteps(
+        steps.map((s, i) => ({
+          id: String(i),
+          title: s.label || s.title || 'Paso ' + (i + 1),
+          status: i < pos ? 'success' : 'none',
+        })),
+      );
+      // Botón primario = la acción que NO es 'back' (next/completar…).
+      const actions = collectActions(host.tree);
+      const advance = actions.filter((a) => a.actionId !== 'back')[0];
+      this.wizardAdvanceId = advance ? advance.actionId : 'next';
+      this.wizardAdvanceLabel(advance ? advance.label : 'Siguiente');
     }
 
-    // Fase 8: navega el wizard con el actionId del botón pulsado (back/next/completar…).
-    async wizardNav(event) {
-      const actionId = event && event.currentTarget ? event.currentTarget.getAttribute('data-action-id') : null;
+    // Botón primario del guided-process → avanza (next/completar).
+    async guidedPrimary() {
+      return this._wizardStep(this.wizardAdvanceId);
+    }
+    // spBeforeStepNavigate: el guided-process pide ir a otro paso. Dirección por currentStep/nextStep:
+    // adelante → la acción de avance del wire (next/completar); atrás → 'back'.
+    async guidedStepChange(event) {
+      const d = (event && event.detail) || {};
+      const cur = parseInt(d.currentStep, 10);
+      const nxt = parseInt(d.nextStep, 10);
+      if (!isNaN(cur) && !isNaN(nxt) && nxt < cur) return this._wizardStep('back');
+      return this._wizardStep(this.wizardAdvanceId);
+    }
+    // Cancelar el proceso guiado → salir del wizard (volver a la primera ruta).
+    async guidedCancel() {
+      return this.loadRoute(this.firstRoute || '');
+    }
+
+    // Fase 8: navega el wizard con un actionId (next/back/completar…). Reenvía estado + ediciones.
+    async _wizardStep(actionId) {
       if (!actionId) return { isWizard: true };
       // Estado acumulado (todos los pasos) + ediciones del paso actual leídas del DOM.
       const state = Object.assign({}, this.wizardState || {});

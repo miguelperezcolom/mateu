@@ -6,13 +6,75 @@
   "types": {},
   "chains": {},
   "eventListeners": {
-    "saveForm": { "chains": [ { "chainId": "saveForm" } ] },
-    "tableSelect": { "chains": [ { "chainId": "tableSelect", "parameters": { "event": "{{ $event }}" } } ] },
-    "crudNew": { "chains": [ { "chainId": "crudNew" } ] },
-    "crudEdit": { "chains": [ { "chainId": "crudEdit" } ] },
-    "crudDelete": { "chains": [ { "chainId": "crudDelete" } ] },
-    "crudCancel": { "chains": [ { "chainId": "crudCancel" } ] },
-    "wizardAct": { "chains": [ { "chainId": "wizardNav", "parameters": { "event": "{{ $event }}" } } ] }
+    "saveForm": {
+      "chains": [
+        {
+          "chainId": "saveForm"
+        }
+      ]
+    },
+    "tableSelect": {
+      "chains": [
+        {
+          "chainId": "tableSelect",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "crudNew": {
+      "chains": [
+        {
+          "chainId": "crudNew"
+        }
+      ]
+    },
+    "crudEdit": {
+      "chains": [
+        {
+          "chainId": "crudEdit"
+        }
+      ]
+    },
+    "crudDelete": {
+      "chains": [
+        {
+          "chainId": "crudDelete"
+        }
+      ]
+    },
+    "crudCancel": {
+      "chains": [
+        {
+          "chainId": "crudCancel"
+        }
+      ]
+    },
+    "guidedPrimary": {
+      "chains": [
+        {
+          "chainId": "guidedPrimary"
+        }
+      ]
+    },
+    "guidedStep": {
+      "chains": [
+        {
+          "chainId": "guidedStep",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "guidedCancel": {
+      "chains": [
+        {
+          "chainId": "guidedCancel"
+        }
+      ]
+    }
   },
   "imports": {}
 }

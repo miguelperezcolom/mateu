@@ -3,20 +3,21 @@
 <!-- CONTENIDO (el navigator + cabecera viven en el shell-page). Bindea $application.functions /
      $application.variables (el bridge está en app-flow.js). Solo markup oj-* de los ejemplos. -->
 <div class="oj-sm-padding-4x">
-  <!-- Wizard (Fase 8): proceso guiado server-driven = progreso + form del paso + Next/Back -->
+  <!-- Wizard (Fase 8): proceso guiado AUTÉNTICO oj-sp-guided-process. El rail/pasos/botón primario
+       los pinta el componente; el form del paso va en el slot por defecto; la acción primaria
+       (Siguiente/Completar) la dirige Mateu (next/completar). -->
   <oj-bind-if test="[[ $application.variables.isWizard ]]">
-    <div style="max-width: 40rem">
-      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
-        <span class="oj-flex-item oj-typography-heading-xs">
-          <oj-bind-text value="[[ $application.functions.getWizardLabel() ]]"></oj-bind-text>
-        </span>
-      </div>
-      <oj-progress-bar
-        class="oj-sm-margin-4x-bottom"
-        value="[[ $application.functions.getWizardPct() ]]"
-        max="100"
-      ></oj-progress-bar>
-      <div class="oj-form-layout oj-sm-margin-4x-bottom">
+    <oj-sp-guided-process
+      style="width: 100%; display: block"
+      process-title="Nueva reserva"
+      steps="[[ $application.functions.getGuidedSteps() ]]"
+      current-step="[[ $application.functions.getGuidedCurrent() ]]"
+      primary-action="[[ $application.functions.getGuidedPrimary() ]]"
+      on-sp-primary-action="[[ $listeners.guidedPrimary ]]"
+      on-sp-before-step-navigate="[[ $listeners.guidedStep ]]"
+      on-sp-cancel="[[ $listeners.guidedCancel ]]"
+    >
+      <div class="oj-form-layout" style="max-width: 32rem">
         <oj-bind-for-each data="[[ $application.functions.getFormFields() ]]">
           <template data-oj-as="field">
             <div class="oj-sm-margin-2x-bottom">
@@ -30,19 +31,7 @@
           </template>
         </oj-bind-for-each>
       </div>
-      <div class="oj-flex">
-        <oj-bind-for-each data="[[ $application.functions.getWizardActions() ]]">
-          <template data-oj-as="act">
-            <oj-c-button
-              class="oj-sm-margin-1x-end"
-              label="[[ act.data.label ]]"
-              :data-action-id="[[ act.data.actionId ]]"
-              on-oj-action="[[ $listeners.wizardAct ]]"
-            ></oj-c-button>
-          </template>
-        </oj-bind-for-each>
-      </div>
-    </div>
+    </oj-sp-guided-process>
   </oj-bind-if>
 
   <!-- Foldout (Fase 7): overview + paneles plegables oj-sp -->
