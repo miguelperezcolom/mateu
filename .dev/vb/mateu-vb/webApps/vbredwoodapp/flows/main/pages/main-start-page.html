@@ -18,6 +18,29 @@
   </div>
 </oj-bind-if>
 
+<oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
+  <div class="oj-flex">
+    <div class="oj-flex-item oj-sm-12 oj-md-8">
+      <oj-input-search id="mateuSearch" class="oj-sm-margin-4x-bottom"
+        placeholder="Search"
+        on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
+    </div>
+  </div>
+  <div class="oj-flex">
+    <div class="oj-flex-item oj-sm-12 oj-md-12">
+      <oj-table id="mateuTable" class="oj-sm-12"
+        data="[[ $variables.listingADP ]]"
+        columns="[[ $application.variables.mateuListing.columns ]]">
+        <template slot="noData">
+          <oj-sp-empty-state
+            primary-text="[[ $application.variables.mateuListing.emptyStateMessage ]]"
+            secondary-text=""></oj-sp-empty-state>
+        </template>
+      </oj-table>
+    </div>
+  </div>
+</oj-bind-if>
+
 <oj-bind-if test="[[ !!$application.variables.mateuFormMetadata ]]">
   <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-6">

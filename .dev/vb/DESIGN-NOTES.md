@@ -241,6 +241,30 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   5. Los parámetros de listener en el JSON de página SÍ evalúan `$current` (el patrón
      `{{ $current.data.actionId }}` es el mecanismo para saber qué botón/campo disparó).
 
+## Fase 4 — HECHA (pendiente de verificación visual del usuario)
+
+- **Listado end-to-end**: /products pinta con `oj-table` clásico (columnas de la metadata del
+  componente **Crud** — GridColumns anidadas en `md.columns`) + `oj-input-search` (Enter →
+  `ojValueAction`) + `oj-sp-empty-state` en el slot noData. Filas envueltas en un
+  `vb/ArrayDataProvider2` de página cuyo `data` se BINDEA a la variable de aplicación
+  `mateuListingRows` (keyAttributes `_rowNumber`, siempre presente). Verificado: 3 filas,
+  búsqueda "lap" → solo Laptop (filtrado server-side), "zzz" → estado vacío.
+- **Contrato del listing (wire real)**: el ServerSide del listing trae triggers
+  `OnLoad → search` (así llegan las filas: el bridge los ejecuta tras cargar la ruta —
+  `onLoadTriggers`) y `OnCustomEvent mateu-crud:saved-in-drawer → search` (el refresco del
+  drawer, Fase 5). El search es actionId `search` con el texto en **componentState.searchText**
+  (+ `page`/`size`/`sort` — así lo lee `SearchActionHandler`; NO va en parameters). La respuesta
+  es un fragmento **DATA-ONLY**: `data.crud.page.{content,totalElements}` (clave literal `crud`).
+- **Reducer: eje `data`)**: los contextos ganan `data` (datos calculados por el server, separados
+  del `state`); un fragmento data-only MERGEA data conservando árbol y estado. `listingOf(ctx)`
+  proyecta título/columnas/filas/toolbar/emptyStateMessage; test 14.
+- **1.4 adelantado**: `loadRouteInto` estampa `ctx.outbound` (route/consumedRoute/serverSideType)
+  y `runMateuAction` reconstruye los campos de ruta desde ahí — las acciones del listing (que es
+  contenido de mediador) salen con el consumedRoute correcto sin que la superficie lo sepa.
+- Gotcha de sondas: los módulos de oj-table/search estampan `oj-dialog`s ocultos con `h1` vacíos —
+  las sondas deben buscar el h1 CON texto, no el primero.
+- Evidencia: `shots/fase4.png`, `fase4-search.png`, `fase4-empty.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

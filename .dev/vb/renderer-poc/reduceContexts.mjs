@@ -136,6 +136,57 @@ export function summarizeHost(reg, route) {
   }
 }
 
+/** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
+export function findByType(tree, type) {
+  let found = null
+  const walk = (node) => {
+    if (found || !node || typeof node !== 'object') return
+    if (node.metadata && node.metadata.type === type) { found = node; return }
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v)) v.forEach(walk)
+      else if (v && typeof v === 'object') walk(v)
+    }
+  }
+  walk(tree)
+  return found
+}
+
+/** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
+ *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
+ *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+export function listingOf(ctx) {
+  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  if (!crudNode) return null
+  const md = crudNode.metadata
+  const page = (((ctx.data || {}).crud || {}).page) || {}
+  return {
+    title: md.title || '',
+    subtitle: md.subtitle || '',
+    searchable: !!md.searchable,
+    pageSize: md.pageSize || 20,
+    emptyStateMessage: md.emptyStateMessage || 'No data.',
+    columns: (md.columns || []).map((col) => {
+      const c = col.metadata || col
+      return { headerText: c.label || c.id, field: c.id }
+    }),
+    rows: page.content || [],
+    total: page.totalElements == null ? null : page.totalElements,
+    isEmpty: (page.content || []).length === 0,
+    toolbar: (md.toolbar || []).map((b) => ({
+      actionId: b.actionId,
+      label: b.label,
+      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+    })),
+  }
+}
+
+/** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
+export function onLoadTriggers(ctx) {
+  return ((ctx && ctx.tree && ctx.tree.triggers) || [])
+    .filter((t) => t.type === 'OnLoad' && t.actionId)
+    .map((t) => t.actionId)
+}
+
 /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
 export function mediatorOf(ctx) {
   const tree = ctx?.tree
@@ -232,7 +283,7 @@ export function reduceContexts(reg, increment, opts = {}) {
 
     // Replace / ReplaceKeepData / State-only: MISMO camino para form, mediador, isla…
     const id = resolveTarget(contexts, fr.targetComponentId)
-    const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {} }
+    const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {}, data: {} }
     const ss = fr.component?.type === 'ServerSide' ? fr.component : null
     contexts[id] = {
       ...prev,
@@ -245,6 +296,11 @@ export function reduceContexts(reg, increment, opts = {}) {
         : fr.action === 'ReplaceKeepData'
           ? { ...prev.state, ...(fr.state || md.initialData || {}) }
           : (fr.state ?? md.initialData ?? prev.state),
+      // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
+      // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
+      data: !fr.component
+        ? { ...prev.data, ...(fr.data || {}) }
+        : (fr.data ?? {}),
       dirty: false,
     }
   }

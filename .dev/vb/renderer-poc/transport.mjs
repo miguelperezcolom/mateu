@@ -41,14 +41,17 @@ export async function bootstrapShell(base, initiator = 'shell') {
 export const loadRoute = (base, route, initiator = '', extra = {}) =>
   callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
 
-/** Acción saliente: arma la request desde el CONTEXTO (serverSideType + id del árbol como
- *  initiator) — "manda el estado que ya tienes". extra = consumedRoute/parameters… */
+/** Acción saliente: arma la request desde el CONTEXTO — "manda el estado que ya tienes".
+ *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
+ *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  const outbound = (ctx && ctx.outbound) || {}
   return callMateu(base, {
-    route,
+    route: outbound.route || route,
+    consumedRoute: outbound.consumedRoute || '',
     actionId,
     componentState: componentState || (ctx && ctx.state) || {},
-    serverSideType: ctx && ctx.tree && ctx.tree.serverSideType,
+    serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
     initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
     ...extra,
   })
@@ -62,15 +65,30 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
 export async function loadRouteInto(base, reg, route, targetId = '') {
   let next = reduceContexts(reg, await loadRoute(base, route, targetId))
   const ctxId = targetId === '' ? HOST_ID : targetId
+  let outbound = { route, consumedRoute: '', serverSideType: undefined }
   const info = mediatorOf(next.contexts[ctxId])
   if (info) {
+    outbound = {
+      route,
+      consumedRoute: info.rootRoute || route,
+      serverSideType: info.serverSideType,
+    }
     next = reduceContexts(
       next,
       await loadRoute(base, route, targetId, {
-        consumedRoute: info.rootRoute || route,
-        serverSideType: info.serverSideType,
+        consumedRoute: outbound.consumedRoute,
+        serverSideType: outbound.serverSideType,
       }),
     )
+  }
+  // el contexto RECUERDA cómo se cargó: las acciones salientes reconstruyen los campos
+  // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada)
+  next = {
+    ...next,
+    contexts: {
+      ...next.contexts,
+      [ctxId]: { ...next.contexts[ctxId], outbound },
+    },
   }
   return next
 }

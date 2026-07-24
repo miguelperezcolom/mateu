@@ -36,9 +36,26 @@ define([
       }
 
       const base = $application.constants.mateuBaseUrl;
-      const reg = await bridge.loadRouteInto(base, $application.variables.mateuRegistry, route);
+      let reg = await bridge.loadRouteInto(base, $application.variables.mateuRegistry, route);
+
+      // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
+      const loaded = reg.contexts[bridge.HOST_ID];
+      for (const triggerActionId of bridge.onLoadTriggers(loaded)) {
+        const listing = bridge.listingOf(loaded);
+        const increment = await bridge.runMateuAction(
+          base, loaded, route, triggerActionId,
+          Object.assign({}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
+        );
+        reg = bridge.reduceContexts(reg, increment);
+      }
+
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;
+
+      const host = reg.contexts[bridge.HOST_ID];
+      const listingSummary = bridge.listingOf(host);
+      $application.variables.mateuListing = listingSummary;
+      $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;

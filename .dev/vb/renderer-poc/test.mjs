@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
-  dynFormMetadataOf, actionsOf, summarizeHost,
+  dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -180,6 +180,30 @@ test('summarizeHost proyecta form y cae al caption del menú en un listado', () 
   const summary = summarizeHost(reg, '/products')
   assert.equal(summary.title, 'Products') // Page sin título → caption del menú
   assert.equal(summary.formMetadata, null) // pageType collection: sus FormFields son columnas
+})
+
+// 14) Listing (Fase 4): el trigger OnLoad pide 'search'; la respuesta es un fragmento
+//     DATA-ONLY que mergea en ctx.data sin tocar el árbol; listingOf proyecta columnas+filas.
+test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y filas', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = '' // simula la llegada al host
+  let reg = reduceContexts(empty(), content)
+  const host = () => reg.contexts[HOST_ID]
+  assert.deepEqual(onLoadTriggers(host()), ['search'])
+  const before = listingOf(host())
+  assert.equal(before.title, 'Products')
+  assert.deepEqual(before.columns.map((c) => c.field), ['id', 'name', 'price', 'active'])
+  assert.equal(before.isEmpty, true) // aún sin filas: el search no ha corrido
+  const treeRef = host().tree
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, search)
+  assert.equal(host().tree, treeRef) // data-only: árbol intacto
+  const after = listingOf(host())
+  assert.deepEqual(after.rows.map((r) => r.name), ['Laptop', 'Mouse', 'Keyboard'])
+  assert.equal(after.total, 3)
+  assert.equal(after.isEmpty, false)
+  assert.ok(after.toolbar.some((b) => b.label === 'New'))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

@@ -3,6 +3,14 @@
   "title": "",
   "description": "Contenido alimentado por Mateu: título + form (switch widgetFor con widgets JET) + acciones; la carga la orquesta la shell",
   "variables": {
+    "listingADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $application.variables.mateuListingRows }}",
+        "keyAttributes": "_rowNumber"
+      },
+      "description": "envuelve las filas del listing de Mateu para oj-table (_rowNumber siempre presente)"
+    },
     "mateuDraft": {
       "type": "any",
       "defaultValue": {},
@@ -38,6 +46,16 @@
           "chain": "runMateuAction"
         }
       ]
+    },
+    "mateuSearchAction": {
+      "chains": [
+        {
+          "parameters": {
+            "searchText": "{{ $event.detail.value }}"
+          },
+          "chain": "runMateuSearch"
+        }
+      ]
     }
   },
   "imports": {
@@ -59,6 +77,15 @@
       },
       "oj-sp-messages-toast": {
         "path": "oj-sp/messages-toast/loader"
+      },
+      "oj-table": {
+        "path": "ojs/ojtable"
+      },
+      "oj-input-search": {
+        "path": "ojs/ojinputsearch"
+      },
+      "oj-sp-empty-state": {
+        "path": "oj-sp/empty-state/loader"
       }
     }
   }

@@ -293,6 +293,15 @@
     "mateuFormActions": {
       "type": "any",
       "defaultValue": []
+    },
+    "mateuListing": {
+      "type": "any",
+      "description": "proyección del Crud del host (título, columnas, total, emptyStateMessage; null = no es un listado)"
+    },
+    "mateuListingRows": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "las filas (data.crud.page.content) — el ADP de la página las envuelve"
     }
   },
   "userConfig": {
