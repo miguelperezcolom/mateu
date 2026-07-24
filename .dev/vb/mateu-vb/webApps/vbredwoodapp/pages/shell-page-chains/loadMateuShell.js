@@ -52,10 +52,29 @@ define([
       const firstGroup = nav.menuTree.find((entry) => entry.hasChildren);
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
       $application.variables.mateuHomeRoute = first ? first.id : '';
-      if (first) {
+
+      // 1.5: deep-link — si la URL trae un hash (#/ruta), bootear ESA ruta
+      const deepLink = (window.location.hash || '').replace(/^#/, '');
+      const startRoute = deepLink || (first && first.id);
+      if (startRoute) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
-          params: { event: { detail: { currentId: first.id } } },
+          params: { event: { detail: { currentId: startRoute } }, fromUrl: !!deepLink },
+        });
+      }
+
+      // 1.5: back/forward — el hash es la URL de la shell; el listener reutiliza el
+      // context del chain (los scopes de VB siguen vivos tras el vbEnter)
+      if (!window.__mateuHashWired) {
+        window.__mateuHashWired = true;
+        window.addEventListener('hashchange', () => {
+          const route = (window.location.hash || '').replace(/^#/, '');
+          if (route) {
+            Actions.callChain(context, {
+              chain: 'onMateuNavigate',
+              params: { event: { detail: { currentId: route } }, fromUrl: true },
+            });
+          }
         });
       }
     }

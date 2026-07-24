@@ -28,6 +28,7 @@ define([
       if (!fieldId) {
         return;
       }
+      context.$application.variables.mateuDirty = true;
       const draft = Object.assign({}, $page.variables.mateuIslandDraft);
       draft[fieldId] = detail.value;
       $page.variables.mateuIslandDraft = draft;

@@ -11,4 +11,12 @@ import io.mateu.uidl.annotations.UI;
 public class HelloPage {
 
   String message = "Hola desde Mateu";
+
+  /** Puerta 1.3: banner de página → oj-sp-messages-banner del starter. */
+  @io.mateu.uidl.annotations.Banner(
+      theme = io.mateu.uidl.data.BannerTheme.INFO,
+      title = "Bienvenido")
+  public String welcomeBanner() {
+    return "Demo del renderer VB — todo lo que ves llega del backend Mateu";
+  }
 }

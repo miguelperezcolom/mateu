@@ -3,7 +3,11 @@
      oj-form-layout + widgets JET auténticos (oj-input-text / oj-input-number / oj-switch),
      un binding por propiedad (sin expresiones complejas: evaluador CSP de VB). -->
 
-<div class="oj-sp-public-primary-content-container oj-sm-padding-2x">
+<!-- 1.6: anatomía pageWidth (RDS 24C) — fixed 1408px centrado / fullWidth fluido / edgeToEdge 0 -->
+<div class="oj-sp-public-primary-content-container"
+  :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
+  :style.margin="[[ $application.variables.mateuPageMargin ]]"
+  :style.padding="[[ $application.variables.mateuPagePadding ]]">
 <div class="oj-flex">
   <h1 class="oj-flex-item oj-sm-12 oj-md-12"><oj-bind-text value="[[ $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
 </div>

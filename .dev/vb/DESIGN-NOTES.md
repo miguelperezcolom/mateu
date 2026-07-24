@@ -409,6 +409,30 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
 - Tests 20/20. Evidencia: `shots/fase9.png` (host+isla en vista), `fase9-edit.png` (isla en
   edición con el host intacto), `fase9-saved.png` (guardado, vista con la nota nueva).
 
+## Puertas 1.x — CERRADAS (pendiente de verificación del usuario)
+
+- **1.1 estado / 1.2 increments-al-target / 1.4 rutas**: cayeron de facto con las fases 3–9
+  (registro en $application, repintado quirúrgico probado con la isla, outbound + composeInnerRoute).
+- **1.3 comandos→efectos**: COMPLETADO con los banners — `@Banner` viaja en `Page.metadata.banners`
+  ({theme,title,description}); `bannersOf(ctx)` los mapea al `oj-sp-messages-banner` del starter.
+  GOTCHAs: el ADP se muta con `Actions.fireDataProviderEvent` (add/remove con tracking de keys —
+  asignar `.data` NO refresca) y los `messageType` van con prefijo **`general-*`**
+  (general-info/success/warning/error — el patrón del starter). PENDIENTE honesto: `RunAction` y
+  `DownloadFile` mapeados en el reducer pero SIN ejecutar en VB (no hay fixture real de su data
+  — capturar antes de implementar, regla del proyecto).
+- **1.5 sync con URL**: rutas Mateu como HASH de la shell (#/ruta — deep-linkable sin soporte del
+  server estático): deep-link en el bootstrap (el hash inicial manda sobre la primera hoja);
+  navegación → pushState (sin recarga); back/forward → hashchange → onMateuNavigate(fromUrl) —
+  el listener se registra en loadMateuShell REUTILIZANDO el context del chain (los scopes VB
+  siguen vivos tras vbEnter). **dirtyGuard**: mateuDirty (app var, lo encienden los
+  value-changed, lo apagan navegación/acciones) → confirm al salir; cancelar restaura la URL
+  (replaceState — no dispara hashchange). `PushStateToHistory` del wire → efecto urlPush
+  (mapeado; sin flujo demo que lo emita aún).
+- **1.6 anatomía pageWidth (VISUAL)**: `pageStyleOf(ctx)` → bindings :style del contenedor:
+  fixed = 1408px centrado + 24px (Person mide 1408px), fullWidth = fluido + 24px (sin página
+  demo), edgeToEdge = 0 (Booking mide padding 0). Medición RDS 24C.
+- Tests 21/21. Evidencia: `shots/gates-banner.png` (banner INFO Redwood en Hello).
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

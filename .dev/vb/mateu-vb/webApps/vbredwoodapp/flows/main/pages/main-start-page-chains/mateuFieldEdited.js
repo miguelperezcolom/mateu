@@ -29,6 +29,7 @@ define([
       if (!fieldId) {
         return;
       }
+      context.$application.variables.mateuDirty = true;
       if ($application.variables.mateuDrawerOpen) {
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
         draft[fieldId] = detail.value;

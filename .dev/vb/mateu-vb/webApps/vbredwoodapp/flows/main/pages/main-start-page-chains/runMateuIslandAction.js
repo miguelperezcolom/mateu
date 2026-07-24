@@ -68,6 +68,7 @@ define([
             actions: bridge.actionsOf(after.tree) }
         : null;
       $page.variables.mateuIslandDraft = {};
+      $application.variables.mateuDirty = false;
 
       for (const toast of reg.effects.toasts) {
         $page.variables.mateuToastText = toast.text;

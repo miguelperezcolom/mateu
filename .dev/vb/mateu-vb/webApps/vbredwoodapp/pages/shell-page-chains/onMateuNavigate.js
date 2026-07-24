@@ -22,8 +22,8 @@ define([
      * @param {Object} params.event  spSelectionChanged ({currentId}) o mateuNavigate ({route})
      * @param {boolean} params.force recargar aunque sea la misma ruta (cambio de contexto)
      */
-    async run(context, { event, force }) {
-      const { $application } = context;
+    async run(context, { event, force, fromUrl }) {
+      const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
       const route = detail.currentId != null ? detail.currentId
@@ -35,6 +35,17 @@ define([
       // el eco del writeback de selection tras cada navegación — no recargar
       if (!force && route === $application.variables.mateuSelectedRoute) {
         return;
+      }
+      // dirtyGuard (1.5): edición local sin guardar → confirmar; al cancelar, restaurar la URL
+      if (!force && $application.variables.mateuDirty) {
+        if (!window.confirm('Hay cambios sin guardar. ¿Salir de esta pantalla?')) {
+          const previous = $application.variables.mateuSelectedRoute;
+          if (previous) {
+            window.history.replaceState(null, '', '#' + previous);
+          }
+          return;
+        }
+        $application.variables.mateuDirty = false;
       }
 
       const base = $application.constants.mateuBaseUrl;
@@ -106,6 +117,34 @@ define([
         $application.variables.mateuWizardShownStep = '';
       }
 
+
+      // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
+      // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
+      const banners = bridge.bannersOf(host);
+      const staleKeys = $application.variables.mateuBannerKeys || [];
+      if (staleKeys.length) {
+        await Actions.fireDataProviderEvent(context, {
+          target: $page.variables.messagesBannerADP,
+          remove: { keys: staleKeys },
+        });
+      }
+      for (const banner of banners) {
+        await Actions.fireDataProviderEvent(context, {
+          target: $page.variables.messagesBannerADP,
+          add: { data: banner },
+        });
+      }
+      $application.variables.mateuBannerKeys = banners.map((banner) => banner.id);
+      // 1.6: anatomía pageWidth del contexto host
+      const pageStyle = bridge.pageStyleOf(host);
+      $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
+      $application.variables.mateuPageMargin = pageStyle.margin;
+      $application.variables.mateuPagePadding = pageStyle.padding;
+      // 1.5: la URL refleja la ruta (hash — deep-linkable y con back/forward)
+      if (!fromUrl && window.location.hash !== '#' + route) {
+        window.history.pushState(null, '', '#' + route);
+      }
+      $application.variables.mateuDirty = false;
 
       if (reg.effects && reg.effects.docTitle) {
         document.title = reg.effects.docTitle;

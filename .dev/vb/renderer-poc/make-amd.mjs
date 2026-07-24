@@ -43,6 +43,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    bannersOf,
+    pageStyleOf,
     collectTexts,
     foldoutOf,
     wizardOf,

@@ -11,7 +11,7 @@ import { composeInnerRoute } from './transport.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
-  overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf,
+  overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -298,6 +298,18 @@ test('composeInnerRoute: base + flip + marcadores (?_embeddedMediator sigue viaj
     '/guest-note/edit?_embeddedMediator=1&_inline=1')
   assert.equal(composeInnerRoute('/products', '/new'), '/products/new')
   assert.equal(composeInnerRoute('/x?m=1', '/'), '/x?m=1')
+})
+
+// 21) Puertas 1.3/1.6: banners de página y anatomía pageWidth.
+test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la anatomía RDS', () => {
+  const { contexts } = reduceContexts(empty(), fx('load-form'))
+  // load-form (Person) no lleva banners
+  assert.deepEqual(bannersOf(contexts[HOST_ID]), [])
+  // anatomía: person (sin pageWidth) → fixed; foldout → edgeToEdge
+  assert.equal(pageStyleOf(contexts[HOST_ID]).maxWidth, '1408px')
+  const foldout = reduceContexts(empty(), fx('load-foldout')).contexts[HOST_ID]
+  assert.equal(foldout.pageWidth, 'edgeToEdge')
+  assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

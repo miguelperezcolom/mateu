@@ -109,6 +109,7 @@ define([
       if (!overlayNow) {
         $page.variables.mateuDraft = {};
       }
+      $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
       for (const toast of effects.toasts) {

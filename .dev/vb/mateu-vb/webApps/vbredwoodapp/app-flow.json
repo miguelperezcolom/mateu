@@ -405,6 +405,28 @@
       "type": "string",
       "defaultValue": "",
       "description": "contextId de la isla (id de la frontera ServerSide, p.ej. _guestNote)"
+    },
+    "mateuDirty": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "hay edición local sin guardar (borradores) — la navegación pide confirmación (dirtyGuard 1.5)"
+    },
+    "mateuPageMaxWidth": {
+      "type": "string",
+      "defaultValue": "1408px"
+    },
+    "mateuPageMargin": {
+      "type": "string",
+      "defaultValue": "0 auto"
+    },
+    "mateuPagePadding": {
+      "type": "string",
+      "defaultValue": "24px"
+    },
+    "mateuBannerKeys": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "keys de los banners mostrados (para retirarlos al navegar)"
     }
   },
   "userConfig": {

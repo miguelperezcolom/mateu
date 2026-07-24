@@ -200,6 +200,30 @@ define([], () => {
     }
   }
 
+  /** Puerta 1.3: banners de página (Page.metadata.banners) → items del
+   *  oj-sp-messages-banner del starter (MessagesBannerType). */
+  function bannersOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    // los messageType del oj-sp-messages-banner van con prefijo general-* (patrón del starter)
+    const THEMES = { INFO: 'general-info', SUCCESS: 'general-success', WARNING: 'general-warning', DANGER: 'general-error' }
+    return (((page || {}).metadata || {}).banners || []).map((banner, i) => ({
+      id: 'mateu-banner-' + i,
+      messageType: THEMES[banner.theme] || 'general-info',
+      primaryText: banner.title || '',
+      secondaryText: banner.description || '',
+    }))
+  }
+
+  /** Puerta 1.6: anatomía RDS del ancho de página (medición Toolkit 24C) — el wrapper del
+   *  contenido aplica contexts[host].pageWidth: fixed = tope 1408px centrado con gutters
+   *  24px; fullWidth = fluido con gutters 24px; edgeToEdge = 0 márgenes. */
+  function pageStyleOf(ctx) {
+    const width = (ctx && ctx.pageWidth) || 'fixed'
+    if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
+    if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
+    return { maxWidth: '1408px', margin: '0 auto', padding: '24px' }
+  }
+
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
    *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
    *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
@@ -641,6 +665,8 @@ define([], () => {
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    bannersOf,
+    pageStyleOf,
     collectTexts,
     foldoutOf,
     wizardOf,
