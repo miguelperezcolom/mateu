@@ -36,7 +36,9 @@
     <oj-bind-text value="[[ $application.variables.headerMsg ]]"></oj-bind-text>
   </div>
 
-  <div class="oj-web-applayout-content-nopad oj-web-spacing oj-flex">
+  <!-- flex-wrap:nowrap → el contenido ancho (foldout, overview del guided-process) NO envuelve
+       debajo del menú; se queda a la derecha y el flex-item de contenido (min-width:0) lo contiene. -->
+  <div class="oj-web-applayout-content-nopad oj-web-spacing oj-flex" style="flex-wrap: nowrap">
     <!-- Nav (ancho fijo) + contenido (flex:1) — el contenido edge-to-edge (guided-process, tabla,
          foldout) llena TODO el ancho a la derecha del menú. -->
     <div class="oj-flex-item-initial" style="flex: 0 0 15rem">
