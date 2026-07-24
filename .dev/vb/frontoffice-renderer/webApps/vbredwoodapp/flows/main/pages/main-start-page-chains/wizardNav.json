@@ -1,0 +1,22 @@
+{
+  "description": "Fase 8: navega el wizard con el actionId del boton pulsado.",
+  "root": "go",
+  "variables": { "event": { "required": true, "type": "any", "input": "fromCaller" } },
+  "actions": {
+    "go": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": { "module": "[[ $application.functions ]]", "functionName": "wizardNav", "params": ["{{ $variables.event }}"] },
+      "outcomes": { "success": "assign" }
+    },
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$application.variables.isWizard": { "source": "{{ $chain.results.go.isWizard }}" },
+        "$application.variables.isForm": { "source": "{{ $chain.results.go.isForm }}" },
+        "$application.variables.isFoldout": { "source": "{{ $chain.results.go.isFoldout }}" },
+        "$application.variables.isTable": { "source": "{{ $chain.results.go.isTable }}" },
+        "$application.variables.greeting": { "source": "{{ $chain.results.go.greeting }}" }
+      }
+    }
+  }
+}

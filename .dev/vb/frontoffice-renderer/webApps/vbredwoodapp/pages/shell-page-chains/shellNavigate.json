@@ -1,20 +1,52 @@
 {
   "description": "Nav select → carga el contenido de esa ruta.",
   "root": "loadRoute",
-  "variables": { "selection": { "required": true, "type": "any", "input": "fromCaller" } },
+  "variables": {
+    "selection": {
+      "required": true,
+      "type": "any",
+      "input": "fromCaller"
+    }
+  },
   "actions": {
     "loadRoute": {
       "module": "vb/action/builtin/callModuleFunctionAction",
-      "parameters": { "module": "[[ $application.functions ]]", "functionName": "loadRoute", "params": ["{{ $variables.selection }}"] },
-      "outcomes": { "success": "assign" }
+      "parameters": {
+        "module": "[[ $application.functions ]]",
+        "functionName": "loadRoute",
+        "params": [
+          "{{ $variables.selection }}"
+        ]
+      },
+      "outcomes": {
+        "success": "assign"
+      }
     },
-    "assign": { "module": "vb/action/builtin/assignVariablesAction", "parameters": {
-  "$application.variables.greeting": { "source": "{{ $chain.results.loadRoute.greeting }}" },
-  "$application.variables.isForm": { "source": "{{ $chain.results.loadRoute.isForm }}" },
-  "$application.variables.isTable": { "source": "{{ $chain.results.loadRoute.isTable }}" },
-  "$application.variables.isCrud": { "source": "{{ $chain.results.loadRoute.isCrud }}" },
-  "$application.variables.isFoldout": { "source": "{{ $chain.results.loadRoute.isFoldout }}" },
-  "$application.variables.saveMsg": { "source": "{{ '' }}" }
-} }
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$application.variables.greeting": {
+          "source": "{{ $chain.results.loadRoute.greeting }}"
+        },
+        "$application.variables.isForm": {
+          "source": "{{ $chain.results.loadRoute.isForm }}"
+        },
+        "$application.variables.isTable": {
+          "source": "{{ $chain.results.loadRoute.isTable }}"
+        },
+        "$application.variables.isCrud": {
+          "source": "{{ $chain.results.loadRoute.isCrud }}"
+        },
+        "$application.variables.isFoldout": {
+          "source": "{{ $chain.results.loadRoute.isFoldout }}"
+        },
+        "$application.variables.saveMsg": {
+          "source": "{{ '' }}"
+        },
+        "$application.variables.isWizard": {
+          "source": "{{ $chain.results.loadRoute.isWizard }}"
+        }
+      }
+    }
   }
 }

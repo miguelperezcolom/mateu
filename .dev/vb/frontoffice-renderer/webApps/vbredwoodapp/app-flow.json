@@ -276,6 +276,10 @@
     "isFoldout": {
       "type": "boolean",
       "defaultValue": false
+    },
+    "isWizard": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "userConfig": {

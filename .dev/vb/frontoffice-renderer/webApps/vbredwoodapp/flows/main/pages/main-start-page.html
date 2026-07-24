@@ -3,6 +3,48 @@
 <!-- CONTENIDO (el navigator + cabecera viven en el shell-page). Bindea $application.functions /
      $application.variables (el bridge está en app-flow.js). Solo markup oj-* de los ejemplos. -->
 <div class="oj-sm-padding-4x">
+  <!-- Wizard (Fase 8): proceso guiado server-driven = progreso + form del paso + Next/Back -->
+  <oj-bind-if test="[[ $application.variables.isWizard ]]">
+    <div style="max-width: 40rem">
+      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+        <span class="oj-flex-item oj-typography-heading-xs">
+          <oj-bind-text value="[[ $application.functions.getWizardLabel() ]]"></oj-bind-text>
+        </span>
+      </div>
+      <oj-progress-bar
+        class="oj-sm-margin-4x-bottom"
+        value="[[ $application.functions.getWizardPct() ]]"
+        max="100"
+      ></oj-progress-bar>
+      <div class="oj-form-layout oj-sm-margin-4x-bottom">
+        <oj-bind-for-each data="[[ $application.functions.getFormFields() ]]">
+          <template data-oj-as="field">
+            <div class="oj-sm-margin-2x-bottom">
+              <oj-bind-if test="[[ field.data.isNumber ]]">
+                <oj-c-input-number label-hint="[[ field.data.label ]]" value="[[ field.data.value ]]" :data-field="[[ field.data.fieldId ]]"></oj-c-input-number>
+              </oj-bind-if>
+              <oj-bind-if test="[[ !field.data.isNumber ]]">
+                <oj-c-input-text label-hint="[[ field.data.label ]]" value="[[ field.data.value ]]" :data-field="[[ field.data.fieldId ]]"></oj-c-input-text>
+              </oj-bind-if>
+            </div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+      <div class="oj-flex">
+        <oj-bind-for-each data="[[ $application.functions.getWizardActions() ]]">
+          <template data-oj-as="act">
+            <oj-c-button
+              class="oj-sm-margin-1x-end"
+              label="[[ act.data.label ]]"
+              :data-action-id="[[ act.data.actionId ]]"
+              on-oj-action="[[ $listeners.wizardAct ]]"
+            ></oj-c-button>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+  </oj-bind-if>
+
   <!-- Foldout (Fase 7): overview + paneles plegables oj-sp -->
   <oj-bind-if test="[[ $application.variables.isFoldout ]]">
     <oj-sp-foldout-layout>
@@ -75,7 +117,7 @@
   </oj-bind-if>
 
   <!-- Contenido de texto -->
-  <oj-bind-if test="[[ !$application.variables.isForm &amp;&amp; !$application.variables.isTable &amp;&amp; !$application.variables.isFoldout ]]">
+  <oj-bind-if test="[[ !$application.variables.isForm &amp;&amp; !$application.variables.isTable &amp;&amp; !$application.variables.isFoldout &amp;&amp; !$application.variables.isWizard ]]">
     <div class="oj-flex">
       <h1 class="oj-flex-item oj-sm-12 oj-md-12">
         <oj-bind-text value="[[ $application.variables.greeting ]]"></oj-bind-text>

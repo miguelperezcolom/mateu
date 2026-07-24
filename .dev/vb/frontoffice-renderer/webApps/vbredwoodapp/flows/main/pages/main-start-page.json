@@ -11,7 +11,8 @@
     "crudNew": { "chains": [ { "chainId": "crudNew" } ] },
     "crudEdit": { "chains": [ { "chainId": "crudEdit" } ] },
     "crudDelete": { "chains": [ { "chainId": "crudDelete" } ] },
-    "crudCancel": { "chains": [ { "chainId": "crudCancel" } ] }
+    "crudCancel": { "chains": [ { "chainId": "crudCancel" } ] },
+    "wizardAct": { "chains": [ { "chainId": "wizardNav", "parameters": { "event": "{{ $event }}" } } ] }
   },
   "imports": {}
 }

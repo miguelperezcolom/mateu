@@ -14,10 +14,11 @@ define([
   'oj-c/select-single',
   'oj-sp/foldout-layout/loader',
   'oj-sp/foldout-panel/loader',
+  'ojs/ojprogress-bar',
   'ojs/ojarraydataprovider',
   'ojs/ojarraytreedataprovider',
   'knockout',
-], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, ArrayDataProvider, ArrayTreeDataProvider, ko) {
+], function (_shell, _drawer, _nav, _table, _it, _in, _btn, _sel, _fl, _fp, _pb, ArrayDataProvider, ArrayTreeDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
@@ -115,6 +116,46 @@ define([
         }
       } else if (v && typeof v === 'object') {
         const r = findFoldout(v);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  // Acciones-botón (actionId + label, sin fieldId) deduplicadas — para los botones del wizard.
+  function collectActions(node, out, seen) {
+    out = out || [];
+    seen = seen || {};
+    if (node && typeof node === 'object') {
+      const m = metaOf(node);
+      if (node.actionId && (node.label || node.caption) && !node.fieldId && !seen[node.actionId]) {
+        seen[node.actionId] = true;
+        out.push({ actionId: node.actionId, label: node.label || node.caption });
+      }
+      Object.keys(node).forEach((k) => {
+        const v = node[k];
+        if (Array.isArray(v)) v.forEach((x) => collectActions(x, out, seen));
+        else if (v && typeof v === 'object') collectActions(v, out, seen);
+      });
+    }
+    return out;
+  }
+
+  // Busca el nodo ProgressSteps (Fase 8, wizard); devuelve su metadata o null.
+  function findSteps(node) {
+    if (!node || typeof node !== 'object') return null;
+    const m = metaOf(node);
+    if (m.type === 'ProgressSteps') return m;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) {
+          const r = findSteps(v[j]);
+          if (r) return r;
+        }
+      } else if (v && typeof v === 'object') {
+        const r = findSteps(v);
         if (r) return r;
       }
     }
@@ -240,10 +281,24 @@ define([
       // Foldout (Fase 7): overview + paneles plegables.
       this.foldoutOverview = ko.observable('');
       this.foldoutPanels = ko.observableArray([]);
+      // Wizard (Fase 8): posición/total de pasos + los botones reales del paso (back/next/completar…).
+      this.wizardPosition = ko.observable(0);
+      this.wizardTotal = ko.observable(0);
+      this.wizardActions = ko.observableArray([]);
     }
 
     getNavData() {
       return this.navDP;
+    }
+    getWizardPct() {
+      const t = this.wizardTotal();
+      return t > 1 ? Math.round((this.wizardPosition() / (t - 1)) * 100) : 0;
+    }
+    getWizardLabel() {
+      return 'Paso ' + (this.wizardPosition() + 1) + ' de ' + this.wizardTotal();
+    }
+    getWizardActions() {
+      return this.wizardActions();
     }
     getFormFields() {
       return this.formFields;
@@ -389,7 +444,7 @@ define([
           })),
         );
         this.formFields([]);
-        return { isFoldout: true, isTable: false, isForm: false, isCrud: false, greeting: '' };
+        return { isWizard: false, isFoldout: true, isTable: false, isForm: false, isCrud: false, greeting: '' };
       }
 
       // A) ¿Listado CRUD? (expone la acción 'search') → columnas GridColumn + search para las filas.
@@ -399,7 +454,7 @@ define([
         this.tableColumns(collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows(await this._search());
         this.formFields([]);
-        return { isFoldout: false, isTable: true, isForm: false, isCrud: true, greeting: '' };
+        return { isWizard: false, isFoldout: false, isTable: true, isForm: false, isCrud: true, greeting: '' };
       }
       // B) ¿Listado simple? (un FormField-grid) → tabla oj-table.
       const gridNode = findGridField(host.tree);
@@ -409,10 +464,31 @@ define([
         this.tableColumns(collectColumns(gridNode).map((c) => ({ headerText: c.label, field: c.id })));
         this.tableRows((state[gmeta.fieldId] || []).slice());
         this.formFields([]);
-        return { isFoldout: false, isTable: true, isForm: false, isCrud: false, greeting: '' };
+        return { isWizard: false, isFoldout: false, isTable: true, isForm: false, isCrud: false, greeting: '' };
       }
       this.isCrud = false;
+      // W) ¿Wizard? (proceso guiado: hay ProgressSteps) → form del paso + progreso + botones del wire.
+      if (findSteps(host.tree)) {
+        this._applyWizard(host);
+        this.crudSaveActionId = null;
+        return { isWizard: true, isFoldout: false, isTable: false, isForm: false, isCrud: false, greeting: '' };
+      }
       // C) ¿Formulario? (FormFields) → inputs oj-c-*.
+      const fields = this._buildFormFields(host, state);
+      this.crudSaveActionId = null; // un form normal (Profile) NO es create/edit de crud
+      return {
+        isWizard: false,
+        isFoldout: false,
+        isTable: false,
+        isForm: fields.length > 0,
+        isCrud: false,
+        greeting: firstText(host.tree) || '(sin contenido)',
+      };
+    }
+
+    // Construye formFields (+ formData) desde el árbol; devuelve la lista de campos.
+    _buildFormFields(host, state) {
+      state = state || host.state || {};
       const fields = collectFields(host.tree);
       const self = this;
       this.formData = {};
@@ -434,13 +510,50 @@ define([
           };
         }),
       );
-      this.crudSaveActionId = null; // un form normal (Profile) NO es create/edit de crud
+      return fields;
+    }
+
+    // Prepara la vista de un paso del wizard: campos + progreso + los botones reales del wire.
+    // Guarda el ESTADO ACUMULADO (el wizard acumula los datos de todos los pasos en initialData);
+    // cada next/back/completar debe reenviar ese estado + las ediciones del paso actual.
+    _applyWizard(host) {
+      this.wizardState = host.state || {};
+      this._buildFormFields(host, this.wizardState);
+      const ps = findSteps(host.tree);
+      const steps = (ps && ps.steps) || [];
+      this.wizardTotal(steps.length);
+      this.wizardPosition(steps.filter((s) => s.status === 'done' || s.done).length);
+      this.wizardActions(collectActions(host.tree));
+    }
+
+    // Fase 8: navega el wizard con el actionId del botón pulsado (back/next/completar…).
+    async wizardNav(event) {
+      const actionId = event && event.currentTarget ? event.currentTarget.getAttribute('data-action-id') : null;
+      if (!actionId) return { isWizard: true };
+      // Estado acumulado (todos los pasos) + ediciones del paso actual leídas del DOM.
+      const state = Object.assign({}, this.wizardState || {});
+      const els = document.querySelectorAll('[data-field]');
+      for (let i = 0; i < els.length; i++) state[els[i].getAttribute('data-field')] = els[i].value;
+      const inc = await callMateu(
+        this.current.route,
+        actionId,
+        this.current.serverSideType,
+        this.current.consumedRoute,
+        state,
+      );
+      const host = reduceContexts({ contexts: {}, stack: [], shell: null }, inc).contexts[HOST_ID] || {};
+      // ¿Sigue siendo wizard (hay ProgressSteps)? → paso siguiente/resultado; si no, texto/form.
+      if (findSteps(host.tree)) {
+        this._applyWizard(host);
+        return { isWizard: true, isForm: false, isFoldout: false, isTable: false, greeting: '' };
+      }
+      const nfields = this._buildFormFields(host, host.state || {});
       return {
+        isWizard: false,
+        isForm: nfields.length > 0,
         isFoldout: false,
         isTable: false,
-        isForm: fields.length > 0,
-        isCrud: false,
-        greeting: firstText(host.tree) || '(sin contenido)',
+        greeting: firstText(host.tree) || '',
       };
     }
 
