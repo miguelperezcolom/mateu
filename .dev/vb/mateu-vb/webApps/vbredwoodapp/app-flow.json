@@ -381,6 +381,16 @@
     "mateuWizardPrimary": {
       "type": "any",
       "description": "primaryAction del guided-process en el último paso del tren ({label} de confirm); null en el resto"
+    },
+    "mateuWizardStarted": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "false = mostrando el OVERVIEW del guided-process (currentStep vacío); el primer Continue arranca"
+    },
+    "mateuWizardShownStep": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "current-step efectivo del guided-process ('' = overview)"
     }
   },
   "userConfig": {

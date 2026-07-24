@@ -15,6 +15,8 @@ define([
     async run(context) {
       const { $application } = context;
 
+      // el OVERVIEW y su botón Start los gestiona el PROPIO componente (writeback
+      // interno de currentStep, sin evento) — aquí solo llega el avance de pasos
       const forwardId = $application.variables.mateuWizardForwardId;
       if (!forwardId) {
         return; // pantalla de resultado: no hay avance

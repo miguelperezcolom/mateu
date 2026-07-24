@@ -361,17 +361,20 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   + `pageType process`; el estado cross-step viaja en el state (position + mapas por paso +
   campos aplanados). Proyección `wizardOf(ctx)` (steps con alias `title` — el rail del
   componente lee ese campo — + currentStep). Tests 18/18, fixture `load-wizard.json`.
-- **`oj-sp-guided-process` auténtico**: template completo — banda ilustrada Redwood, rail
-  derecho con contador `N|M` + lista de pasos, footer propio. Integración: el form del paso
-  (widgetFor) va en su slot default; su **Continue** dispara `spBeforeNext` → acción de avance
-  del wire (la proyección separa back [slot] / forward [Continue]); en el ÚLTIMO paso del tren
-  el Continue desaparece y manda el **`primaryAction`** ({label: confirm del wire,
-  `availableFromStep`: último paso}) → `spPrimaryAction`. GOTCHA: el componente lee
-  `primaryAction.label` INCONDICIONALMENTE — nunca pasarle null (usar availableFromStep
-  '__none__' + disabled para ocultarlo). Su Cancel abre su propio diálogo destructivo (nativo,
-  sin cablear). Verificado: 1→2→3→Confirm→"Pedido confirmado para Ada · envío a Calle Mayor 1
-  (Madrid)" (cross-step OK). Gotcha de sondas: el resultado va en un input readonly —
-  `innerText` no ve valores de inputs.
+- **`oj-sp-guided-process` auténtico** (afinado con feedback del usuario: overview + sin Next
+  fantasma + rail marcando el paso): template completo — banda ilustrada, **OVERVIEW inicial**
+  (columnas numeradas 01/02/03 + botón Start) que aparece cuando `current-step` es VACÍO y cuyo
+  Start pasa a paso 1 por WRITEBACK INTERNO (sin evento — no interceptar); rail derecho `N|M`
+  con lista de pasos. Integración: form del paso (widgetFor) en su slot; Continue →
+  `spBeforeNext` → acción forward del wire; último paso → `primaryAction` {label del confirm,
+  disabled} **SIN availableFromStep** (si lo pones, el botón aparece DESHABILITADO en todos los
+  pasos — el "Next fantasma"); nunca null (lee .label incondicionalmente). RAIL: cada step
+  necesita **`display:'on'`** o sale con oj-disabled (apagado, sin marca de selección); el
+  status de Mateu NO se emite (el indicador espera otro enum). current-step efectivo en var
+  aparte (`mateuWizardShownStep`: '' al entrar = overview; el paso real tras cada acción).
+  Verificado: overview→Start→1→2→3→Confirm→"Pedido confirmado…" con el rail marcando cada paso
+  y footer limpio (Back/Cancel/Confirm). Gotcha de sondas: el resultado va en un input readonly
+  — `innerText` no ve valores de inputs.
 - Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
 
 ## Próximo paso al retomar

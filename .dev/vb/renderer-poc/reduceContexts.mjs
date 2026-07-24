@@ -177,8 +177,15 @@ export function wizardOf(ctx) {
   const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
   if (!node) return null
   const md = node.metadata
-  const steps = (md.steps || []).map((s) => ({ id: s.id, label: s.title || s.id, title: s.title || s.id, status: s.status }))
-  const current = steps.find((s) => s.status === 'current')
+  // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on';
+  // el status de Mateu NO se emite (el indicador del rail espera otro enum)
+  const steps = (md.steps || []).map((s) => ({
+    id: s.id,
+    label: s.title || s.id,
+    title: s.title || s.id,
+    display: 'on',
+  }))
+  const current = (md.steps || []).find((s) => s.status === 'current')
   return {
     steps,
     currentStep: current ? current.id : (steps.length ? steps[steps.length - 1].id : null),

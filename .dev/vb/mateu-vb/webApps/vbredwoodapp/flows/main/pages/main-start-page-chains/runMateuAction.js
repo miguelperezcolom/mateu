@@ -95,16 +95,15 @@ define([
         const forward = summary.actions.find((a) => a.actionId !== 'back');
         $application.variables.mateuWizardForwardId = forward ? forward.actionId : '';
         $application.variables.mateuFormActions = summary.actions.filter((a) => a.actionId === 'back');
-        const lastStep = wizardNow.steps.length
-          ? wizardNow.steps[wizardNow.steps.length - 1].id : null;
-        // el guided-process lee primaryAction.label incondicionalmente: NUNCA null;
-        // availableFromStep hace que solo aparezca en el último paso del tren
+        // sin availableFromStep: el primary solo aparece en el ÚLTIMO paso del tren
         $application.variables.mateuWizardPrimary = forward
-          ? { label: forward.label, availableFromStep: lastStep }
-          : { label: 'Done', disabled: true, availableFromStep: '__none__' };
+          ? { label: forward.label, disabled: false }
+          : { label: 'Done', disabled: true };
+        $application.variables.mateuWizardShownStep = wizardNow.currentStep || '';
       } else {
         $application.variables.mateuWizardForwardId = '';
-        $application.variables.mateuWizardPrimary = { label: '', disabled: true, availableFromStep: '__none__' };
+        $application.variables.mateuWizardPrimary = { label: '', disabled: true };
+        $application.variables.mateuWizardShownStep = '';
       }
 
       if (!overlayNow) {
