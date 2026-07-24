@@ -6,7 +6,7 @@
       "targetComponentId": "_guestNote",
       "component": {
         "type": "ServerSide",
-        "id": "ef55fbc9-e370-4bb4-a860-482b9c6e991a",
+        "id": "9634cc16-f1cf-4f77-a68b-ef09f4f146a4",
         "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNote",
         "route": "/guest-note",
         "children": [
@@ -18,7 +18,7 @@
               "favicon": null,
               "pageTitle": "Guest note",
               "icon": null,
-              "title": "GuestNote(paxName=null, note=Alergia al polen)",
+              "title": "GuestNote(paxName=Ada, note=Prefiere habitación tranquila)",
               "level": 0,
               "readOnly": false,
               "subtitle": null,
@@ -225,8 +225,8 @@
           }
         ],
         "initialData": {
-          "paxName": null,
-          "note": "Alergia al polen"
+          "paxName": "Ada",
+          "note": "Prefiere habitación tranquila"
         },
         "style": "",
         "cssClasses": "",
@@ -248,8 +248,8 @@
         "pageType": "form"
       },
       "state": {
-        "paxName": null,
-        "note": "Alergia al polen"
+        "paxName": "Ada",
+        "note": "Prefiere habitación tranquila"
       },
       "data": {},
       "action": "Replace",

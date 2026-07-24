@@ -42,6 +42,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlayOf,
     eventTriggersOf,
     dismissOverlay,
+    shellNavOf,
     callMateu,
     bootstrapShell,
     loadRoute,

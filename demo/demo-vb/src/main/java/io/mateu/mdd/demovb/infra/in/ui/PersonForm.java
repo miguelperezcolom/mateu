@@ -23,8 +23,10 @@ public class PersonForm {
   int age = 36;
 
   @Button
-  public Object save() {
-    return List.of(new Message("Saved " + name), new State(this));
+  public Object save(io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var hotel = httpRequest.appContext("hotel");
+    return List.of(
+        new Message("Saved " + name + (hotel != null ? " @ " + hotel : "")), new State(this));
   }
 
   @Button

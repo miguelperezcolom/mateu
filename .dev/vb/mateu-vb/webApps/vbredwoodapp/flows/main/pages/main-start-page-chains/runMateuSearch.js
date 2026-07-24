@@ -37,7 +37,7 @@ define([
         size: listing.pageSize,
       });
       const route = $application.variables.mateuSelectedRoute;
-      const increment = await bridge.runMateuAction(base, host, route, 'search', componentState);
+      const increment = await bridge.runMateuAction(base, host, route, 'search', componentState, { appState: $application.variables.mateuAppState || {} });
       const reg = bridge.reduceContexts(before, increment);
       $application.variables.mateuRegistry = reg;
 

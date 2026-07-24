@@ -55,6 +55,37 @@
         }
       ]
     },
+    "contextChanged": {
+      "chains": [
+        {
+          "parameters": {
+            "fieldName": "{{ $current.data.fieldName }}",
+            "event": "{{ $event }}"
+          },
+          "chain": "onMateuContextChanged"
+        }
+      ]
+    },
+    "headerActionClicked": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}"
+          },
+          "chain": "runMateuHeaderAction"
+        }
+      ]
+    },
+    "headerMenuAction": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.detail.selectedValue }}"
+          },
+          "chain": "runMateuHeaderAction"
+        }
+      ]
+    },
     "application:spShowToast": {
       "chains": [
         {
@@ -102,6 +133,21 @@
       },
       "oj-sp-in-app-navigation": {
         "path": "oj-sp/in-app-navigation/loader"
+      },
+      "oj-select-one": {
+        "path": "ojs/ojselectcombobox"
+      },
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-menu-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-menu": {
+        "path": "ojs/ojmenu"
+      },
+      "oj-option": {
+        "path": "ojs/ojoption"
       }
     }
     },

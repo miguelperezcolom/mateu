@@ -1,5 +1,5 @@
-/* Fase 2: bootstrap de la shell — el App de Mateu configura el menú (shell slice) y se
- * navega a la primera opción. El registro vive en $application.variables.mateuRegistry. */
+/* Bootstrap de la shell (Fases 2/6): el App de Mateu configura menú (con grupos),
+ * selectores @AppContext y acciones de cabecera; se navega a la primera opción no-grupo. */
 
 define([
   'vb/action/actionChain',
@@ -24,20 +24,24 @@ define([
       );
       $application.variables.mateuRegistry = reg;
 
-      const menu = (reg.shell && reg.shell.menu) || [];
-      $application.variables.mateuNavItems = menu.map((option) => ({
-        id: option.route,
-        label: option.caption || option.label || option.route,
-        icon: option.icon || undefined,
+      const nav = bridge.shellNavOf(reg);
+      const appState = $application.variables.mateuAppState || {};
+      $application.variables.mateuNavItems = nav.items;
+      $application.variables.mateuNavGroups = nav.groups;
+      $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
+        value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
+      $application.variables.mateuHeaderActions = nav.headerActions;
+      $application.variables.mateuShellSST = nav.serverSideType || '';
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
       }
 
-      if (menu.length) {
+      const first = nav.items.find((item) => !nav.groups[item.id]) || nav.items[0];
+      if (first) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
-          params: { event: { detail: { currentId: menu[0].route } } },
+          params: { event: { detail: { currentId: first.id } } },
         });
       }
     }

@@ -62,8 +62,8 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
  * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
  * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
  */
-export async function loadRouteInto(base, reg, route, targetId = '') {
-  let next = reduceContexts(reg, await loadRoute(base, route, targetId))
+export async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
+  let next = reduceContexts(reg, await loadRoute(base, route, targetId, extra))
   const ctxId = targetId === '' ? HOST_ID : targetId
   let outbound = { route, consumedRoute: '', serverSideType: undefined }
   const info = mediatorOf(next.contexts[ctxId])
@@ -76,6 +76,7 @@ export async function loadRouteInto(base, reg, route, targetId = '') {
     next = reduceContexts(
       next,
       await loadRoute(base, route, targetId, {
+        ...extra,
         consumedRoute: outbound.consumedRoute,
         serverSideType: outbound.serverSideType,
       }),

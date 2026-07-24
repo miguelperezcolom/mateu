@@ -1,7 +1,7 @@
-/* Navegación (Fase 2/3): carga una ruta de Mateu en el host (siguiendo el mediador si lo
- * hay) y proyecta el host a las variables de contenido — título, texto, y desde la Fase 3
- * el form (metadata de oj-dyn-form + acciones). Se dispara desde el in-app navigation, el
- * bootstrap, o el evento de aplicación mateuNavigate (efecto NavigateTo del bridge). */
+/* Navegación (Fases 2–6): un GRUPO del menú no toca el server (pinta su landing de submenú
+ * en el contenido); una ruta normal carga en el host (mediador + triggers OnLoad incluidos)
+ * y proyecta título/texto/form/listado. El @AppContext viaja como appState en cada request.
+ * force=true (cambio de contexto) recarga aunque la ruta no cambie. */
 
 define([
   'vb/action/actionChain',
@@ -20,8 +20,9 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {Object} params.event  spSelectionChanged ({currentId}) o mateuNavigate ({route})
+     * @param {boolean} params.force recargar aunque sea la misma ruta (cambio de contexto)
      */
-    async run(context, { event }) {
+    async run(context, { event, force }) {
       const { $application } = context;
 
       const detail = (event && (event.detail || event)) || {};
@@ -31,12 +32,30 @@ define([
         return;
       }
       // el eco del writeback de selection tras cada navegación — no recargar
-      if (route === $application.variables.mateuSelectedRoute) {
+      if (!force && route === $application.variables.mateuSelectedRoute) {
         return;
       }
 
+      // grupo del menú → landing de submenú en el contenido, sin request
+      const groups = $application.variables.mateuNavGroups || {};
+      if (groups[route]) {
+        $application.variables.mateuSelectedRoute = route;
+        $application.variables.mateuSubmenu = groups[route];
+        $application.variables.mateuHostTitle = groups[route].label;
+        $application.variables.mateuHostText = '';
+        $application.variables.mateuFormMetadata = null;
+        $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormActions = [];
+        $application.variables.mateuListing = null;
+        $application.variables.mateuListingRows = [];
+        return;
+      }
+      $application.variables.mateuSubmenu = null;
+
       const base = $application.constants.mateuBaseUrl;
-      let reg = await bridge.loadRouteInto(base, $application.variables.mateuRegistry, route);
+      const appState = $application.variables.mateuAppState || {};
+      let reg = await bridge.loadRouteInto(
+        base, $application.variables.mateuRegistry, route, '', { appState });
 
       // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
       const loaded = reg.contexts[bridge.HOST_ID];
@@ -45,6 +64,7 @@ define([
         const increment = await bridge.runMateuAction(
           base, loaded, route, triggerActionId,
           Object.assign({}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
+          { appState },
         );
         reg = bridge.reduceContexts(reg, increment);
       }

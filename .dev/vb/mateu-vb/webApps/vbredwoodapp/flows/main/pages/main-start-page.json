@@ -69,6 +69,16 @@
         }
       ]
     },
+    "mateuSubmenuSelected": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "mateuSubmenuNavigate"
+        }
+      ]
+    },
     "mateuSearchAction": {
       "chains": [
         {
@@ -111,6 +121,9 @@
       },
       "oj-drawer-popup": {
         "path": "ojs/ojdrawerpopup"
+      },
+      "oj-navigation-list": {
+        "path": "ojs/ojnavigationlist"
       }
     }
   }

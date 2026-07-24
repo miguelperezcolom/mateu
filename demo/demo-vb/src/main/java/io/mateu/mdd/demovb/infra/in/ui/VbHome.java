@@ -1,26 +1,60 @@
 package io.mateu.mdd.demovb.infra.in.ui;
 
+import io.mateu.uidl.annotations.AppContext;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.AppHeaderAction;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.interfaces.AppActionsSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 
 /**
- * Shell de la demo VB (Fase 2 del roadmap): app con 2–3 opciones de menú simples. El bridge VB la
- * mapea a la in-app navigation Redwood; el fragmento App configura la shell, no crea contenido.
- *
- * <p>Nota: la ruta de una opción de menú tipada se deriva del NOMBRE DEL CAMPO, así que la de
- * island-host va como {@link RouteLink} explícito (el campo no puede llamarse island-host).
+ * Shell de la demo VB. Fase 6: menú con un GRUPO (submenú), selector de contexto de aplicación
+ * (@AppContext — viaja en el appState de cada request) y acciones de cabecera
+ * (AppActionsSupplier — botón simple + dropdown con hijos).
  */
 @UI("")
 @Title("VB Demo")
-public class VbHome {
+public class VbHome implements AppActionsSupplier {
+
+  enum Hotel {
+    Playa,
+    Centro
+  }
+
+  @AppContext(label = "Hotel")
+  Hotel hotel;
 
   @Menu HelloPage hello;
 
-  @Menu PersonForm person;
-
   @Menu ProductsCrud products;
 
-  @Menu RouteLink islandHost = new RouteLink("/island-host", "Island host");
+  @Menu GestionMenu gestion;
+
+  @Override
+  public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
+    return List.of(
+        new AppHeaderAction("syncNow", "Sync", "vaadin:refresh"),
+        AppHeaderAction.menu(
+            "Export",
+            "vaadin:download",
+            List.of(
+                new AppHeaderAction("exportPdf", "As PDF"),
+                new AppHeaderAction("exportExcel", "As Excel"))));
+  }
+
+  public Message syncNow(HttpRequest httpRequest) {
+    var hotel = httpRequest.appContext("hotel");
+    return new Message("Synced" + (hotel != null ? " @ " + hotel : ""));
+  }
+
+  public Message exportPdf() {
+    return new Message("Exported as PDF");
+  }
+
+  public Message exportExcel() {
+    return new Message("Exported as Excel");
+  }
 }

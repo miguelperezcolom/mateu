@@ -307,6 +307,35 @@
       "type": "boolean",
       "defaultValue": false
     },
+    "mateuAppState": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "contexto de aplicación (@AppContext) — viaja como appState en CADA request"
+    },
+    "mateuNavGroups": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "grupos del menú (route → {label, children con rutas TERMINALES})"
+    },
+    "mateuSubmenu": {
+      "type": "any",
+      "description": "grupo seleccionado ({label, children}) — el contenido pinta su landing de submenú"
+    },
+    "mateuContextSelectors": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "selectores @AppContext ({fieldName, label, value, options}) para el header"
+    },
+    "mateuHeaderActions": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "acciones de cabecera (AppActionsSupplier): hoja o dropdown con hijos"
+    },
+    "mateuShellSST": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "serverSideType del App — las acciones de cabecera se despachan app-level con él"
+    },
     "mateuDrawer": {
       "type": "any",
       "defaultValue": { "title": "", "fields": [], "actions": [], "state": {} },

@@ -295,6 +295,27 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   pendiente. Evidencia: `shots/fase5-list.png`, `fase5-new.png`, `fase5-created.png`,
   `fase5-edit.png`, `fase5-edited.png`.
 
+## Fase 6 — HECHA (pendiente de verificación visual del usuario)
+
+- **Menú profundo**: un grupo `@Menu` (clase con @Menus anidados) llega en el wire como opción con
+  **`submenus`** (¡no `submenu`!) y rutas COMPUESTAS (`/gestion/person`) que **NO resuelven por
+  sync** — el bridge navega por la ruta TERMINAL (recorta el prefijo del padre; `shellNavOf`).
+  En VB: el grupo NO llama al server — pinta un landing con `oj-navigation-list` (drill hacia el
+  hijo); el clic navega vía el evento de aplicación. Gotcha demo: al agrupar, la variante del App
+  pasó de TABS a MENU_ON_TOP (la heurística AUTO de Mateu) — mismo render en nuestra shell.
+- **@AppContext**: `contextSelectors` del App → `oj-select-one` compacto (clases utilitarias
+  `oj-form-control-max-width-sm` + `oj-sm-flex-wrap-nowrap`) en el slot `end` del global-header;
+  el valor va a `$application.variables.mateuAppState` y viaja como **appState en CADA request**
+  (enhebrado en loadRouteInto/runMateuAction/chains); al cambiar, se recarga la ruta actual
+  (reactividad uniforme). Verificado: "Saved Ada @ Playa" (el server lo lee via
+  `httpRequest.appContext`).
+- **Header actions** (`AppActionsSupplier`): hoja → `oj-button` borderless; con hijos →
+  `oj-menu-button` + `oj-menu`/`oj-option` (actionId en el `value`, `detail.selectedValue` en el
+  listener). Despacho APP-LEVEL confirmado: `sync/_no_route` + serverSideType del App (guardado
+  en el slice shell) + appState — "Synced @ Playa", "Exported as PDF" por el toast de la shell.
+- Tests 16/16 (`shellNavOf`); fixtures regenerados (menú con grupo + selectores + acciones).
+  Evidencia: `shots/fase6-submenu.png`, `fase6-context.png`, `fase6-header.png`.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

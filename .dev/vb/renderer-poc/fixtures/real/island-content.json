@@ -18,7 +18,7 @@
               "favicon": null,
               "pageTitle": null,
               "icon": null,
-              "title": "GuestNote(paxName=null, note=Alergia al polen)",
+              "title": "GuestNote(paxName=Ada, note=Prefiere habitación tranquila)",
               "level": 1,
               "readOnly": false,
               "subtitle": null,
@@ -244,8 +244,8 @@
           }
         ],
         "initialData": {
-          "paxName": null,
-          "note": "Alergia al polen"
+          "paxName": "Ada",
+          "note": "Prefiere habitación tranquila"
         },
         "style": "width: 100%;",
         "cssClasses": "",
@@ -267,8 +267,8 @@
         "pageType": "form"
       },
       "state": {
-        "paxName": null,
-        "note": "Alergia al polen"
+        "paxName": "Ada",
+        "note": "Prefiere habitación tranquila"
       },
       "data": {},
       "action": "Replace",

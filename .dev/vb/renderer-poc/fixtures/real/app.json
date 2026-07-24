@@ -15,7 +15,7 @@
         "metadata": {
           "type": "App",
           "route": "",
-          "variant": "TABS",
+          "variant": "MENU_ON_TOP",
           "layout": "SINGLE_SLOT",
           "icon": null,
           "logo": null,
@@ -51,31 +51,6 @@
             {
               "type": null,
               "icon": null,
-              "label": "Person",
-              "component": null,
-              "path": "/person",
-              "actionId": null,
-              "submenus": [],
-              "visible": true,
-              "selected": false,
-              "disabled": false,
-              "disabledOnClick": false,
-              "className": null,
-              "itemData": null,
-              "separator": false,
-              "remote": false,
-              "baseUrl": null,
-              "route": "/person",
-              "consumedRoute": "",
-              "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.VbHome",
-              "params": null,
-              "explode": false,
-              "uriPrefix": "",
-              "description": null
-            },
-            {
-              "type": null,
-              "icon": null,
               "label": "Products",
               "component": null,
               "path": "/products",
@@ -101,11 +76,62 @@
             {
               "type": null,
               "icon": null,
-              "label": "Island host",
+              "label": "Gestion",
               "component": null,
-              "path": "/islandHost",
+              "path": "/gestion",
               "actionId": null,
-              "submenus": [],
+              "submenus": [
+                {
+                  "type": null,
+                  "icon": null,
+                  "label": "Person",
+                  "component": null,
+                  "path": "/gestion/person",
+                  "actionId": null,
+                  "submenus": [],
+                  "visible": true,
+                  "selected": false,
+                  "disabled": false,
+                  "disabledOnClick": false,
+                  "className": null,
+                  "itemData": null,
+                  "separator": false,
+                  "remote": false,
+                  "baseUrl": null,
+                  "route": "/gestion/person",
+                  "consumedRoute": "",
+                  "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.VbHome",
+                  "params": null,
+                  "explode": false,
+                  "uriPrefix": "",
+                  "description": null
+                },
+                {
+                  "type": null,
+                  "icon": null,
+                  "label": "Island host",
+                  "component": null,
+                  "path": "/gestion/island-host",
+                  "actionId": null,
+                  "submenus": [],
+                  "visible": true,
+                  "selected": false,
+                  "disabled": false,
+                  "disabledOnClick": false,
+                  "className": null,
+                  "itemData": null,
+                  "separator": false,
+                  "remote": false,
+                  "baseUrl": null,
+                  "route": "/gestion/island-host",
+                  "consumedRoute": "",
+                  "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.VbHome",
+                  "params": null,
+                  "explode": false,
+                  "uriPrefix": "",
+                  "description": null
+                }
+              ],
               "visible": true,
               "selected": false,
               "disabled": false,
@@ -115,7 +141,7 @@
               "separator": false,
               "remote": false,
               "baseUrl": null,
-              "route": "/islandHost",
+              "route": "/gestion",
               "consumedRoute": "",
               "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.VbHome",
               "params": null,
@@ -124,7 +150,7 @@
               "description": null
             }
           ],
-          "totalMenuOptions": 4,
+          "totalMenuOptions": 5,
           "homeRoute": "_no_home_route",
           "homeConsumedRoute": "",
           "homeBaseUrl": "",
@@ -145,14 +171,65 @@
           "uploadUrl": null,
           "fabs": [],
           "themeToggle": false,
-          "contextSelectors": [],
-          "contextActions": [],
+          "contextSelectors": [
+            {
+              "fieldName": "hotel",
+              "label": "Hotel",
+              "options": [
+                {
+                  "value": "Playa",
+                  "label": "Playa",
+                  "description": null,
+                  "image": null,
+                  "imageStyle": null,
+                  "icon": null,
+                  "children": []
+                },
+                {
+                  "value": "Centro",
+                  "label": "Centro",
+                  "description": null,
+                  "image": null,
+                  "imageStyle": null,
+                  "icon": null,
+                  "children": []
+                }
+              ]
+            }
+          ],
+          "contextActions": [
+            {
+              "actionId": "syncNow",
+              "label": "Sync",
+              "icon": "vaadin:refresh",
+              "children": null
+            },
+            {
+              "actionId": null,
+              "label": "Export",
+              "icon": "vaadin:download",
+              "children": [
+                {
+                  "actionId": "exportPdf",
+                  "label": "As PDF",
+                  "icon": null,
+                  "children": null
+                },
+                {
+                  "actionId": "exportExcel",
+                  "label": "As Excel",
+                  "icon": null,
+                  "children": null
+                }
+              ]
+            }
+          ],
           "notificationsEnabled": false,
           "globalSearchEnabled": false,
           "commandCenterEnabled": false,
           "chromeless": false
         },
-        "id": "f6e43f6e-3fd7-4354-8e6f-8fe82ec93fb9",
+        "id": "241904e4-ec2f-458f-b788-4186befa4e74",
         "children": [],
         "style": null,
         "cssClasses": null,

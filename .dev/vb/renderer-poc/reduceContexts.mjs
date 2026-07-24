@@ -137,6 +137,48 @@ export function overlayOf(reg) {
   }
 }
 
+/** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
+ *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
+ *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
+ *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
+export function shellNavOf(reg) {
+  const shell = reg.shell || {}
+  const items = []
+  const groups = {}
+  for (const option of shell.menu || []) {
+    const route = option.route || option.path
+    const label = option.caption || option.label || route
+    const children = option.submenus || option.submenu || []
+    items.push({ id: route, label, icon: option.icon || undefined })
+    if (children.length) {
+      groups[route] = {
+        label,
+        children: children.map((child) => {
+          const childRoute = child.route || child.path || ''
+          const terminal = childRoute.indexOf(route + '/') === 0 ? childRoute.slice(route.length) : childRoute
+          return { id: terminal, label: child.caption || child.label || terminal }
+        }),
+      }
+    }
+  }
+  return {
+    items,
+    groups,
+    selectors: (shell.appContext || []).map((selector) => ({
+      fieldName: selector.fieldName,
+      label: selector.label || selector.fieldName,
+      options: (selector.options || []).map((o) => ({ value: o.value, label: o.label || String(o.value) })),
+    })),
+    headerActions: (shell.headerActions || []).map((a) => ({
+      actionId: a.actionId,
+      label: a.label,
+      hasChildren: !!(a.children && a.children.length),
+      children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
+    })),
+    serverSideType: shell.serverSideType,
+  }
+}
+
 /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
 export function dismissOverlay(reg) {
   if (!reg.stack || !reg.stack.length) return reg
@@ -307,6 +349,7 @@ export function reduceContexts(reg, increment, opts = {}) {
         title: md.title,
         menu: md.menu || [],
         variant: md.variant,
+        serverSideType: md.serverSideType, // para las acciones de cabecera (app-level)
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,

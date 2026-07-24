@@ -4,7 +4,47 @@
 
 <oj-sp-simple-ui-shell id="shell">
 
-  <oj-sp-global-header slot="globalHeader" id="globalHeader"></oj-sp-global-header>
+  <oj-sp-global-header slot="globalHeader" id="globalHeader">
+    <!-- selectores @AppContext + acciones de cabecera del App de Mateu, en el slot end -->
+    <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
+        <template>
+          <oj-select-one class="oj-sm-margin-2x-end oj-form-control-max-width-sm"
+            :title="[[ $current.data.label ]]"
+            placeholder="[[ $current.data.label ]]"
+            value="[[ $current.data.value ]]"
+            on-value-changed="[[ $listeners.contextChanged ]]">
+            <oj-bind-for-each data="[[ $current.data.options ]]">
+              <template>
+                <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+              </template>
+            </oj-bind-for-each>
+          </oj-select-one>
+        </template>
+      </oj-bind-for-each>
+      <oj-bind-for-each data="[[ $application.variables.mateuHeaderActions ]]">
+        <template>
+          <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+            <oj-button class="oj-sm-margin-1x-start" chroming="borderless"
+              :data-action-id="[[ $current.data.actionId ]]"
+              on-oj-action="[[ $listeners.headerActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.hasChildren ]]">
+            <oj-menu-button class="oj-sm-margin-1x-start" chroming="borderless">
+              <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+              <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.headerMenuAction ]]">
+                <oj-bind-for-each data="[[ $current.data.children ]]">
+                  <template>
+                    <oj-option :value="[[ $current.data.actionId ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                  </template>
+                </oj-bind-for-each>
+              </oj-menu>
+            </oj-menu-button>
+          </oj-bind-if>
+        </template>
+      </oj-bind-for-each>
+    </div>
+  </oj-sp-global-header>
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 

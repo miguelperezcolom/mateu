@@ -18,6 +18,24 @@
   </div>
 </oj-bind-if>
 
+<!-- Landing de un GRUPO del menú: sus opciones con el navigation-list Redwood -->
+<oj-bind-if test="[[ !!$application.variables.mateuSubmenu ]]">
+  <div class="oj-flex">
+    <div class="oj-flex-item oj-sm-12 oj-md-4">
+      <oj-navigation-list id="mateuSubmenuList" drill-mode="none"
+        on-selection-changed="[[ $listeners.mateuSubmenuSelected ]]">
+        <ul>
+          <oj-bind-for-each data="[[ $application.variables.mateuSubmenu.children ]]">
+            <template>
+              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+            </template>
+          </oj-bind-for-each>
+        </ul>
+      </oj-navigation-list>
+    </div>
+  </div>
+</oj-bind-if>
+
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
   <div class="oj-flex oj-sm-align-items-center">
     <div class="oj-flex-item oj-sm-12 oj-md-8">

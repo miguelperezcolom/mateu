@@ -6,7 +6,7 @@
       "targetComponentId": "_guestNote",
       "component": {
         "type": "ServerSide",
-        "id": "539d52cd-de60-4983-8066-782211b609ef",
+        "id": "ecfdb61d-0670-4b21-9f2d-06518eefaa3c",
         "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNote",
         "route": "/guest-note",
         "children": [
@@ -18,7 +18,7 @@
               "favicon": null,
               "pageTitle": "Guest note",
               "icon": null,
-              "title": "GuestNote(paxName=null, note=Alergia al polen)",
+              "title": "GuestNote(paxName=Ada, note=Alergia al polen)",
               "level": 0,
               "readOnly": false,
               "subtitle": null,
@@ -225,7 +225,7 @@
           }
         ],
         "initialData": {
-          "paxName": null,
+          "paxName": "Ada",
           "note": "Alergia al polen"
         },
         "style": "",
@@ -248,7 +248,7 @@
         "pageType": "form"
       },
       "state": {
-        "paxName": null,
+        "paxName": "Ada",
         "note": "Alergia al polen"
       },
       "data": {},

@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
-  overlayOf, eventTriggersOf,
+  overlayOf, eventTriggersOf, shellNavOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -26,7 +26,7 @@ test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
   const { contexts, shell } = reduceContexts(empty(), fx('app'))
   assert.equal(Object.keys(contexts).length, 0)
   assert.equal(shell.title, 'VB Demo')
-  assert.deepEqual(shell.menu.map((m) => m.route), ['/hello', '/person', '/products', '/islandHost'])
+  assert.deepEqual(shell.menu.map((m) => m.route), ['/hello', '/products', '/gestion'])
 })
 
 // 2) Carga de un form: target '' → host; el contexto guarda tree + state del fragment.
@@ -232,6 +232,23 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
   assert.equal(overlay.title, 'Edit')
   assert.equal(overlay.state.name, 'Laptop')
   assert.deepEqual(overlay.actions.map((a) => a.actionId).sort(), ['cancel-edit', 'delete', 'save'].filter((x) => overlay.actions.some((a) => a.actionId === x)))
+})
+
+// 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
+//     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('shellNavOf: grupos con rutas terminales + selectores de contexto + header actions', () => {
+  const { shell } = reduceContexts(empty(), fx('app'))
+  const nav = shellNavOf({ shell })
+  assert.deepEqual(nav.items.map((i) => i.id), ['/hello', '/products', '/gestion'])
+  const group = nav.groups['/gestion']
+  assert.equal(group.label, 'Gestion')
+  // la ruta compuesta (/gestion/person) NO resuelve por sync → se navega por la terminal
+  assert.deepEqual(group.children.map((c) => c.id), ['/person', '/island-host'])
+  assert.equal(nav.selectors[0].fieldName, 'hotel')
+  assert.deepEqual(nav.selectors[0].options.map((o) => o.value), ['Playa', 'Centro'])
+  const menu = nav.headerActions.find((a) => a.hasChildren)
+  assert.deepEqual(menu.children.map((c) => c.actionId), ['exportPdf', 'exportExcel'])
+  assert.match(nav.serverSideType, /VbHome$/)
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

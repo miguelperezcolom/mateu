@@ -45,8 +45,9 @@ define([
         ? Object.assign({}, overlayBefore.state, $page.variables.mateuDrawerDraft)
         : Object.assign({}, host && host.state, $page.variables.mateuDraft);
 
+      const appState = $application.variables.mateuAppState || {};
       const increment = await bridge.runMateuAction(
-        base, host, route, id, componentState, { parameters: parameters || {} });
+        base, host, route, id, componentState, { parameters: parameters || {}, appState });
       let reg = bridge.reduceContexts(before, increment);
       const effects = reg.effects;
 
@@ -58,6 +59,7 @@ define([
           const refresh = await bridge.runMateuAction(
             base, hostNow, route, triggerActionId,
             Object.assign({}, hostNow.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
+            { appState },
           );
           reg = bridge.reduceContexts(reg, refresh);
         }
