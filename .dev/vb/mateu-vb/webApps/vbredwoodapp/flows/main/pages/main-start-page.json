@@ -1,11 +1,65 @@
 {
 
   "title": "",
-  "description": "Contenido alimentado por Mateu (host context); la carga la orquesta la shell",
-  "variables": {},
+  "description": "Contenido alimentado por Mateu: título + form (switch widgetFor con widgets JET) + acciones; la carga la orquesta la shell",
+  "variables": {
+    "mateuDraft": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "la edición en curso: value-changed de cada campo la acumula ({fieldId: valor})"
+    },
+    "mateuToastText": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
   "metadata": {},
   "types": {},
   "chains": {},
-  "eventListeners": {},
-  "imports": {}
+  "eventListeners": {
+    "mateuFieldChanged": {
+      "chains": [
+        {
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "event": "{{ $event }}"
+          },
+          "chain": "mateuFieldEdited"
+        }
+      ]
+    },
+    "mateuActionClicked": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "event": "{{ $event }}"
+          },
+          "chain": "runMateuAction"
+        }
+      ]
+    }
+  },
+  "imports": {
+    "components": {
+      "oj-form-layout": {
+        "path": "ojs/ojformlayout"
+      },
+      "oj-input-text": {
+        "path": "ojs/ojinputtext"
+      },
+      "oj-input-number": {
+        "path": "ojs/ojinputnumber"
+      },
+      "oj-switch": {
+        "path": "ojs/ojswitch"
+      },
+      "oj-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-sp-messages-toast": {
+        "path": "oj-sp/messages-toast/loader"
+      }
+    }
+  }
 }

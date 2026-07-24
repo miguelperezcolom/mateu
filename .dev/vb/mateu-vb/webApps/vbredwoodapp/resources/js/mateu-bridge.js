@@ -66,6 +66,81 @@ define([], () => {
     return out
   }
 
+  /** Helper de RENDER: FormField[] del árbol → metadata de oj-dyn-form (mapa campo → meta).
+   *  null si el árbol no tiene campos (página sin formulario). */
+  function dynFormMetadataOf(tree) {
+    const NUMERIC = ['integer', 'int', 'long', 'number', 'double', 'float', 'money']
+    const metadata = {}
+    for (const f of collectFields(tree)) {
+      if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
+      metadata[f.fieldId] = {
+        type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
+          : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
+        displayName: f.label || f.fieldId,
+        required: !!f.required,
+        readonly: !!f.readOnly,
+      }
+    }
+    return Object.keys(metadata).length ? metadata : null
+  }
+
+  /** Helper de RENDER: botones únicos del árbol. chroming viene PRECOMPUTADO (los bindings
+   *  VB deben quedar como paths simples: un ternario en un atributo rompe la evaluación CSP
+   *  de TODAS las propiedades del elemento). */
+  function actionsOf(tree) {
+    const seen = {}
+    const out = []
+    for (const a of collectActions(tree)) {
+      if (seen[a.actionId]) continue
+      seen[a.actionId] = true
+      out.push({
+        actionId: a.actionId,
+        label: a.label,
+        style: a.buttonStyle || 'outlined',
+        chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      })
+    }
+    return out
+  }
+
+  /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
+  function summarizeHost(reg, route) {
+    const host = reg.contexts[HOST_ID] || {}
+    const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
+    const menu = (reg.shell && reg.shell.menu) || []
+    const option = menu.find((m) => m.route === route)
+    // un listado (pageType collection) también lleva FormFields (columnas) — NO es un form
+    const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
+    const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
+    const state = host.state || {}
+    // lista de campos para el switch widgetFor (isNumber/isBoolean/isText PRECOMPUTADOS:
+    // los bindings VB deben ser paths simples, sin ternarios ni comparaciones)
+    const fields = formMetadata
+      ? Object.keys(formMetadata).map((fieldId) => {
+          const f = formMetadata[fieldId]
+          return {
+            fieldId,
+            label: f.displayName,
+            required: f.required,
+            readonly: f.readonly,
+            isNumber: f.type === 'number',
+            isBoolean: f.type === 'boolean',
+            isText: f.type !== 'number' && f.type !== 'boolean',
+            value: state[fieldId] == null ? null : state[fieldId],
+          }
+        })
+      : []
+    return {
+      // la Page de un listado no lleva título (viaja en la metadata del Crudl) → caption del menú
+      title: pageMetadata.title || (option && (option.caption || option.label)) || '',
+      text: formMetadata ? '' : String(state.message == null ? '' : state.message),
+      formMetadata,
+      fields,
+      formValue: formMetadata ? { ...state } : null,
+      actions: host.tree ? actionsOf(host.tree) : [],
+    }
+  }
+
   /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
   function mediatorOf(ctx) {
     const tree = ctx?.tree
@@ -277,6 +352,19 @@ define([], () => {
   const loadRoute = (base, route, initiator = '', extra = {}) =>
     callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
 
+  /** Acción saliente: arma la request desde el CONTEXTO (serverSideType + id del árbol como
+   *  initiator) — "manda el estado que ya tienes". extra = consumedRoute/parameters… */
+  function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    return callMateu(base, {
+      route,
+      actionId,
+      componentState: componentState || (ctx && ctx.state) || {},
+      serverSideType: ctx && ctx.tree && ctx.tree.serverSideType,
+      initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+      ...extra,
+    })
+  }
+
   /**
    * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
    * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
@@ -306,9 +394,13 @@ define([], () => {
     collectIslands,
     mediatorOf,
     buildOverlay,
+    dynFormMetadataOf,
+    actionsOf,
+    summarizeHost,
     callMateu,
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    runMateuAction,
   };
 });

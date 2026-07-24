@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
+  dynFormMetadataOf, actionsOf, summarizeHost,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -151,6 +152,34 @@ test('State-only sobre la isla fusiona estado sin perder el árbol', () => {
   })
   assert.equal(reg.contexts['_guestNote'].tree, treeRef)
   assert.equal(reg.contexts['_guestNote'].state.note, 'cambiada')
+})
+
+// 12) Rama FormLayout (Fase 3): campos → metadata de oj-dyn-form; botones → acciones.
+test('dynFormMetadataOf/actionsOf proyectan el form de /person para oj-dyn-form', () => {
+  const { contexts } = reduceContexts(empty(), fx('load-form'))
+  const tree = contexts[HOST_ID].tree
+  const md = dynFormMetadataOf(tree)
+  assert.deepEqual(md.name, { type: 'string', displayName: 'Name', required: true, readonly: false })
+  assert.equal(md.age.type, 'number')
+  const actions = actionsOf(tree)
+  assert.deepEqual(actions.map((a) => a.actionId).sort(), ['goToProducts', 'save'])
+  assert.equal(actions.find((a) => a.actionId === 'save').style, 'primary')
+})
+
+// 13) summarizeHost: form → título + form spec; listado (sin título de Page) → caption del menú.
+test('summarizeHost proyecta form y cae al caption del menú en un listado', () => {
+  let reg = reduceContexts(empty(), fx('app'))
+  reg = reduceContexts(reg, fx('load-form'))
+  const form = summarizeHost(reg, '/person')
+  assert.equal(form.title, 'Person')
+  assert.equal(form.formValue.name, 'Ada')
+  // el listado aterriza como contexto del initiator (crud1); simulamos su llegada al host
+  const listing = fx('load-listing-content')
+  listing.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, listing)
+  const summary = summarizeHost(reg, '/products')
+  assert.equal(summary.title, 'Products') // Page sin título → caption del menú
+  assert.equal(summary.formMetadata, null) // pageType collection: sus FormFields son columnas
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

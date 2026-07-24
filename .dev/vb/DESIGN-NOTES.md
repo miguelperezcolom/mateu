@@ -214,6 +214,33 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
 - Evidencia: `shots/fase2.png` (shell + menú + primera ruta) y `shots/fase2-person.png` (contenido
   cambiado SIN recargar la shell); `probe-fase2.mjs` automatiza la puerta.
 
+## Fase 3 — HECHA (pendiente de verificación visual del usuario)
+
+- **Form editable end-to-end**: /person pinta con `oj-form-layout` + widgets JET auténticos
+  (`oj-input-text`/`oj-input-number`/`oj-switch`) vía el switch widgetFor — proyección
+  `summarizeHost().fields` del bridge (isText/isNumber/isBoolean PRECOMPUTADOS). Two-way:
+  `value-changed` por campo → chain `mateuFieldEdited` acumula `{fieldId: valor}` en la variable
+  de PÁGINA `mateuDraft` (guarda `updatedFrom === 'internal'` para ignorar el eco del set inicial).
+  Save → `runMateuAction` (bridge) con `{...host.state, ...draft}` → State-only merge + toast
+  (patrón del starter: `oj-sp-messages-toast` local + `callComponentMethod open`) → NavigateTo →
+  evento `application:mateuNavigate` → la shell navega. Evidencia: `shots/fase3.png` y
+  `shots/fase3-saved.png` ("Saved Grace").
+- **Gotchas del runtime VB local (JET 19 app + visualRuntime 2510 construido para JET 18 — el
+  "version mismatch" de consola) que CONDICIONAN el diseño**:
+  1. `oj-dynamic-form` (el tag real — NO `oj-dyn-form`) acepta metadata como objeto plano y
+     REQUIERE `displayProperties`, pero **no absorbe ediciones**: su `transientValue` no se
+     actualiza al teclear (y el writeback `{{ }}` no escribe ni en variables de aplicación ni de
+     página). `ojRawValueUpdated` está deprecado/"not supported" en la variante cca. → switch
+     widgetFor con widgets clásicos; REVISITAR oj-dynamic-form en VB Studio con runtime emparejado.
+  2. Los VComponents `oj-c-*` no evalúan sus property bindings (label undefined) → `oj-button`
+     clásico con `oj-bind-text` slotted (Redwood-themed en JET 19 igualmente).
+  3. El evaluador CSP de VB rompe con ternarios/comparaciones en atributos → TODO precomputado
+     en los datos del bridge (chroming, isText…); bindings solo con paths simples.
+  4. `Actions.fireEvent` necesita el nombre CUALIFICADO (`application:mateuNavigate`); a pelo no
+     llega al listener de la shell.
+  5. Los parámetros de listener en el JSON de página SÍ evalúan `$current` (el patrón
+     `{{ $current.data.actionId }}` es el mecanismo para saber qué botón/campo disparó).
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

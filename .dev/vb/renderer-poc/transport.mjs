@@ -41,6 +41,19 @@ export async function bootstrapShell(base, initiator = 'shell') {
 export const loadRoute = (base, route, initiator = '', extra = {}) =>
   callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
 
+/** Acción saliente: arma la request desde el CONTEXTO (serverSideType + id del árbol como
+ *  initiator) — "manda el estado que ya tienes". extra = consumedRoute/parameters… */
+export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  return callMateu(base, {
+    route,
+    actionId,
+    componentState: componentState || (ctx && ctx.state) || {},
+    serverSideType: ctx && ctx.tree && ctx.tree.serverSideType,
+    initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+    ...extra,
+  })
+}
+
 /**
  * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
  * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).

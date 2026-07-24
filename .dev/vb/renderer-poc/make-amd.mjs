@@ -32,10 +32,14 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     collectIslands,
     mediatorOf,
     buildOverlay,
+    dynFormMetadataOf,
+    actionsOf,
+    summarizeHost,
     callMateu,
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    runMateuAction,
   };
 });
 `

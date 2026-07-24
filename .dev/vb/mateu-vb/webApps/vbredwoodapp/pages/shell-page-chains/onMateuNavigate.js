@@ -1,7 +1,7 @@
-/* Fase 2: navegación — la selección del in-app navigation carga esa ruta de Mateu en el
- * host (siguiendo el mediador si lo hay) y el contenido se re-renderiza SIN recargar la
- * shell. De momento el contenido muestra título + primer texto; el dispatcher recursivo
- * (mateu-node) llega en la Fase 3. */
+/* Navegación (Fase 2/3): carga una ruta de Mateu en el host (siguiendo el mediador si lo
+ * hay) y proyecta el host a las variables de contenido — título, texto, y desde la Fase 3
+ * el form (metadata de oj-dyn-form + acciones). Se dispara desde el in-app navigation, el
+ * bootstrap, o el evento de aplicación mateuNavigate (efecto NavigateTo del bridge). */
 
 define([
   'vb/action/actionChain',
@@ -19,18 +19,18 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  evento spSelectionChanged (detail.value = route)
+     * @param {Object} params.event  spSelectionChanged ({currentId}) o mateuNavigate ({route})
      */
     async run(context, { event }) {
       const { $application } = context;
 
-      // spSelectionChanged: detail = { currentId, previousId }
       const detail = (event && (event.detail || event)) || {};
-      const route = detail.currentId != null ? detail.currentId : detail.value;
+      const route = detail.currentId != null ? detail.currentId
+        : detail.value != null ? detail.value : detail.route;
       if (route == null || route === '') {
         return;
       }
-      // el writeback de selection re-emite spSelectionChanged tras cada navegación — no recargar
+      // el eco del writeback de selection tras cada navegación — no recargar
       if (route === $application.variables.mateuSelectedRoute) {
         return;
       }
@@ -40,15 +40,14 @@ define([
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;
 
-      const host = reg.contexts[bridge.HOST_ID] || {};
-      const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {};
-      // la Page de un listado no lleva título (viaja en la metadata del Crudl) → caption del menú
-      const menu = (reg.shell && reg.shell.menu) || [];
-      const option = menu.find((entry) => entry.route === route);
-      $application.variables.mateuHostTitle =
-        pageMetadata.title || (option && (option.caption || option.label)) || '';
-      const state = host.state || {};
-      $application.variables.mateuHostText = String(state.message == null ? '' : state.message);
+      const summary = bridge.summarizeHost(reg, route);
+      $application.variables.mateuHostTitle = summary.title;
+      $application.variables.mateuHostText = summary.text;
+      $application.variables.mateuFormMetadata = summary.formMetadata;
+      $application.variables.mateuFormFieldsList = summary.fields;
+      $application.variables.mateuFormValue = summary.formValue;
+      $application.variables.mateuFormActions = summary.actions;
+
       if (reg.effects && reg.effects.docTitle) {
         document.title = reg.effects.docTitle;
       }

@@ -277,6 +277,22 @@
     "mateuHostText": {
       "type": "string",
       "defaultValue": ""
+    },
+    "mateuFormMetadata": {
+      "type": "any",
+      "description": "FormFields del host proyectados a metadata de oj-dyn-form (null = página sin form)"
+    },
+    "mateuFormValue": {
+      "type": "any"
+    },
+    "mateuFormFieldsList": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "FormFields del host como lista para el switch widgetFor (isText/isNumber/isBoolean precomputados)"
+    },
+    "mateuFormActions": {
+      "type": "any",
+      "defaultValue": []
     }
   },
   "userConfig": {
@@ -294,6 +310,12 @@
     "stopValidationPreLoading": true
   },
   "events": {
+    "mateuNavigate": {
+      "payloadType": {
+        "route": "string"
+      },
+      "description": "Efecto NavigateTo del bridge: la shell (que posee el menú) carga la ruta"
+    },
     "spShowToast": {
       "payloadType": {
         "message": "string"

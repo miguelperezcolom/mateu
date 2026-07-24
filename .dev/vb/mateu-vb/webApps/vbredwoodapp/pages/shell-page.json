@@ -45,6 +45,16 @@
         }
       ]
     },
+    "application:mateuNavigate": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "onMateuNavigate"
+        }
+      ]
+    },
     "application:spShowToast": {
       "chains": [
         {
