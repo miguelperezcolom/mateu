@@ -33,6 +33,7 @@ import {
   renderRedwoodMeter,
 } from './display/renderRedwoodLeaves'
 import { renderRedwoodTabs } from './tabs/renderRedwoodTabs'
+import { renderRedwoodFormLayout } from './form/renderRedwoodFormLayout'
 
 type WidgetRenderer = (
   container: LitElement,
@@ -80,6 +81,8 @@ const REDWOOD_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = 
   [ComponentMetadataType.Meter]: (_c, comp) => renderRedwoodMeter(comp),
   // Tabs → authentic oj-c-tab-bar (mateu-spectra-tabs).
   [ComponentMetadataType.TabLayout]: (c, comp, b, s, d, as, ad) => renderRedwoodTabs(c, comp, b, s, d, as, ad),
+  // Flat forms → authentic oj-dynamic-form (rich forms fall back to the field-by-field oj-c renderer).
+  [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => renderRedwoodFormLayout(c, comp, b, s, d, as, ad),
 }
 
 /**
