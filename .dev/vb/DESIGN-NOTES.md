@@ -125,6 +125,31 @@ contrato en `apps/redwood-vb/test/contract.test.mjs` (verdes). **Corrección imp
   FilteredAutoCrud, ver memoria `feedback_redwood_oj_harness`) — recapturar cuando el backend lo sirva.
 - Las capturas de 2 pasos (abrir Drawer=`Add`, `State` push, save) faltan: se añaden al llegar a 1.2/Fase 5.
 
+### El renderer se construye DENTRO de frontoffice + SE EJECUTA EN LOCAL (validado 2026-07-24)
+
+Dirección confirmada: **el renderer NO es un kit aparte que se importa — se construye DENTRO de la app VB de
+ejemplo `frontoffice`** (`.dev/vb/frontoffice/frontoffice-1.0`), que ya trae el shell Spectra real. Y — hallazgo
+clave — **esa app VB se puede EJECUTAR EN LOCAL** (sin VB Studio), así que hay bucle de prueba visual local:
+
+```bash
+cd .dev/vb/frontoffice/frontoffice-1.0
+npm install                                                  # toolchain VB desde el CDN de Oracle (~845 pkgs)
+npx grunt vb-build --url:ce=https://static.oracle.com/cdn/spectra-ui   # construye a build/processed/
+#   (falla al final en el paso 'dependencyResolver' 501 —es optimización, NO bloquea: index.html + app-flow
+#    ya se escribieron; el output es servible. 'vb-process-local' con la misma --url:ce completa limpio.)
+cd build/processed && python3 -m http.server 9003 --bind 127.0.0.1
+# → http://127.0.0.1:9003/webApps/vbredwoodapp/index.html  arranca el SPA VB standalone:
+#   require.js + visual-runtime + jet + oj-sp cargan del CDN público; pinta con tema/fuente Redwood reales.
+```
+Validado: el frontoffice pinta su contenido ("Welcome to your First Redwood App!!!") con tipografía Redwood.
+Warnings tolerables: JET version mismatch (runtime vs jet del CDN) y 404 de catálogos de servicio (service
+connections sin configurar — se resuelven al cablear la conexión a Mateu). Los `%{env.vbServer.url}%` del
+index quedan sin sustituir en standalone pero el runtime arranca igual. node_modules/ y build/ van gitignored.
+
+**Plan de integración**: añadir el bridge a `webApps/vbredwoodapp/app-flow.js`, el fragmento `mateu-node`, las
+variables `mateuRegistry`/`mateuAppState`, la chain `applyIncrement`, y que el host page pinte el contexto
+`__root__` desde la API de Mateu (`demo-redwood-vb` en :9001, CORS abierto). Probar con el flujo de arriba.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
