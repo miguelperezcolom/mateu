@@ -2,10 +2,28 @@
 
   "title": "",
   "description": "",
-  "variables": {},
+  "variables": {
+    "mateuRegistry": {
+      "type": "object",
+      "defaultValue": {}
+    },
+    "greeting": {
+      "type": "string",
+      "defaultValue": "Cargando…"
+    }
+  },
   "metadata": {},
   "types": {},
   "chains": {},
-  "eventListeners": {},
+  "eventListeners": {
+    "vbEnter": {
+      "chains": [
+        {
+          "chainId": "loadFromMateu",
+          "parameters": {}
+        }
+      ]
+    }
+  },
   "imports": {}
 }

@@ -1,0 +1,28 @@
+{
+  "description": "Fase 1: callMateu(:9001) → reduceContexts → asigna mateuRegistry + greeting.",
+  "root": "loadRoot",
+  "variables": {},
+  "actions": {
+    "loadRoot": {
+      "module": "vb/action/builtin/callModuleFunctionAction",
+      "parameters": {
+        "module": "[[ $functions ]]",
+        "functionName": "loadRoot"
+      },
+      "outcomes": {
+        "success": "assign"
+      }
+    },
+    "assign": {
+      "module": "vb/action/builtin/assignVariablesAction",
+      "parameters": {
+        "$page.variables.mateuRegistry": {
+          "source": "{{ $chain.results.loadRoot.registry }}"
+        },
+        "$page.variables.greeting": {
+          "source": "{{ $chain.results.loadRoot.greeting }}"
+        }
+      }
+    }
+  }
+}
