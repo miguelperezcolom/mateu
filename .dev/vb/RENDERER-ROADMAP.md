@@ -64,3 +64,35 @@ Los intentos anteriores fallaron porque **aproximaban** el chrome y los componen
 
 **Cada fase = una pantalla que un usuario Redwood no distinguiría de la nativa.** Si la captura no lo logra,
 se arregla el aspecto antes de tocar la fase siguiente.
+
+## Entregable final (NO negociable): un JS portable para VB hosteado en Oracle
+
+El resultado del proyecto **debe funcionar en una aplicación VB real alojada en Oracle** (VB Studio / VB
+hosteado), no en un runtime propio ni en un fork. El entregable es un **kit** que se copia en cualquier app VB
+y, apuntando a una `baseUrl` de Mateu, hace que esa app pinte UIs de Mateu con aspecto Redwood nativo — **sin
+código específico de esa app y sin tocar el backend de Mateu**.
+
+**El kit se compone de:**
+1. **Módulo JS del bridge** — reducer (`reduceContexts`) + `planIncrement` + `callMateu` + helpers del
+   dispatcher, empaquetado como **módulo AMD** (`define([...], () => …)`) cargable por el requirejs de VB, o
+   expuesto como métodos de `app-flow.js` (que ya es un módulo AMD).
+2. **Artefactos VB declarativos** — las action chains (`applyIncrement`, `loadRoute`, `runActionChain`) en
+   JSON, el fragment recursivo `mateu-node`, la host-page, y las entradas de `app-flow.json`
+   (variables/constantes/eventListeners).
+3. **Config** — la `baseUrl` de Mateu (una constante).
+
+**Restricciones que esto impone al diseño (deben respetarse desde la Fase 1):**
+- **Sin paso de build propio que VB no pueda reproducir.** Nada de bundlers ni imports que el runtime de VB
+  no resuelva. El módulo se escribe para el entorno **AMD/requirejs** de VB y usa solo APIs que VB expone +
+  los componentes `oj-*` ya presentes en la app.
+- **El `.mjs` del POC es SOLO para test en Node.** El artefacto que se envía es la versión AMD/cargable-por-VB
+  del **mismo** código (reducer idéntico). Mantener paridad: un solo fuente del core, dos envoltorios
+  (ESM para tests, AMD/UMD para VB) — o generar el AMD desde el core.
+- **Autocontenido y agnóstico de la app.** No depende de Business Objects, Service Connections concretas ni
+  páginas autoradas; se alimenta solo de la API de Mateu.
+- **Portátil.** Copiar el kit + poner la `baseUrl` → pinta. Punto.
+
+**Criterio de "proyecto hecho":** tomar una app VB **vacía alojada en Oracle**, importar el kit, apuntar a un
+Mateu, y ver una pantalla de Mateu renderizada con aspecto Redwood nativo — sin escribir código propio de esa
+app. Cada fase de arriba se valida, además de con su puerta visual, **corriendo dentro de una app VB real**
+(no solo en local/dev), para no descubrir al final una incompatibilidad del runtime hosteado.
