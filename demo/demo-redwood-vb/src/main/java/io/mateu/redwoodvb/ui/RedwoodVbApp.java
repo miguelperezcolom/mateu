@@ -16,6 +16,7 @@ import io.mateu.uidl.fluent.AppVariant;
 @App(value = AppVariant.MENU_ON_TOP, themeToggle = true)
 public class RedwoodVbApp {
   @Menu Home home;
+  @Menu Profile profile;
   @Menu Reports reports;
   @Menu Settings settings;
 }
