@@ -289,6 +289,27 @@ flex → una página edge-to-edge (Foldout) se iba DEBAJO del menú. Ahora, arqu
 - Resultado: navigator a la izquierda (drawer con divisor), contenido a la DERECHA; el Foldout edge-to-edge
   llena el área de contenido. Evidencia: `shots/shell-nav-refactor.png` + `shots/fase7-foldout.png`.
 
+### Fase 8 — Guided process / wizard (2026-07-24)
+
+Un wizard = proceso guiado server-driven: `ProgressSteps` (rail) + form del paso actual + los BOTONES REALES
+del wire por paso. Contrato:
+- **Detección**: `findSteps(tree)` (nodo `ProgressSteps`, con `steps[{status: current/done/upcoming}]`).
+- **Botones por paso**: NO son fijos — paso 1 = `[back, next]`, penúltimo = `[back, <@WizardCompletionAction>]`
+  (p.ej. `completar`), resultado = sin botones. Extraer con `collectActions(tree)` (actionId+label, sin
+  fieldId) y renderizar un botón por acción → dispatch de ese actionId.
+- **Progreso**: `wizardPosition` = nº de steps con status `done`; `wizardTotal` = nº de steps. Label "Paso N/M"
+  + `oj-progress-bar` (position/(total-1)).
+- **Navegación**: `wizardNav(event)` lee `data-action-id`, reenvía el ESTADO ACUMULADO (`wizardState` =
+  `initialData` del último paso) + las ediciones del paso actual (DOM `[data-field]`), y re-renderiza.
+- **LIMITACIÓN CONOCIDA**: la **completación→resultado** falla. El wizard tiene pasos ANIDADOS
+  (`estancia: {noches,…}`) y su `WizardStateSerializer` (flatten/unflatten) espera una forma de componentState
+  que no reproduje — probado plano, anidado y combinado; el objeto del paso actual queda `null` en el server
+  (`"estancia is null"` al `completar`). La NAVEGACIÓN del proceso guiado funciona; falta clavar el contrato de
+  estado del wizard (capturar lo que envía un frontend Mateu real ayudaría). Evidencia:
+  `shots/fase8-guided-process.png`.
+- oj-sp-guided-process (el componente) NO se usó: gestiona su propio flujo, incompatible con el wizard
+  server-driven de Mateu; se compuso con componentes Redwood auténticos (progress-bar + form + botones).
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
