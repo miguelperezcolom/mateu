@@ -193,6 +193,27 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   shell Spectra con el texto de Mateu en su sitio.
 - ⚠ El proceso se PARA al final de cada fase para verificación visual del usuario.
 
+## Fase 2 — HECHA (pendiente de verificación visual del usuario)
+
+- **Menú → in-app navigation Redwood**: `loadMateuShell` (vbEnter de shell-page) hace el bootstrap,
+  guarda el registro en `$application.variables.mateuRegistry`, proyecta `shell.menu` a
+  `mateuNavItems` ({id: route, label: caption}) y navega a la primera opción. `oj-sp-in-app-navigation`
+  (import + markup en shell-page) — OJO: el componente se ancla ABAJO por diseño
+  (`oj-applayout-fixed-bottom` INCONDICIONAL en su template) — es el paradigma de navegación
+  Redwood/FA 26 actual, no un bug. `selection` va con binding ONE-WAY (`[[ ]]`): con writeback
+  el componente escribe la variable ANTES de emitir `spSelectionChanged` y la guarda anti-eco
+  del chain no puede distinguir el eco de un clic real.
+- **Navegación**: `onMateuNavigate` — detail del evento = `{currentId, previousId}` (NO value);
+  guarda anti-eco contra `mateuSelectedRoute`; `bridge.loadRouteInto` (nuevo en transport.mjs,
+  fuente única) sigue el mediador (2ª carga con consumedRoute+serverSideType) — verificado:
+  /products hace exactamente 2 requests y /island-host 1. Título: Page.title, con fallback al
+  caption del menú (la Page de un listado NO lleva título — viaja en la metadata del Crudl).
+- **Gotcha de Mateu descubierto**: la ruta de una opción `@Menu` TIPADA se deriva del NOMBRE DEL
+  CAMPO, no del `@UI` de la clase (campo `islandHost` → ruta `/islandHost` ≠ `/island-host` → "Not
+  found."). Workaround en demo-vb: `RouteLink` explícito. Candidato a fix en el framework.
+- Evidencia: `shots/fase2.png` (shell + menú + primera ruta) y `shots/fase2-person.png` (contenido
+  cambiado SIN recargar la shell); `probe-fase2.mjs` automatiza la puerta.
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3

@@ -7,6 +7,14 @@
   <oj-sp-global-header slot="globalHeader" id="globalHeader"></oj-sp-global-header>
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
+
+    <!-- Menú del App de Mateu (shell.menu) → in-app navigation Redwood; la selección
+         dispara la carga de la ruta sin recargar la shell -->
+    <oj-sp-in-app-navigation id="mateuNav"
+      navigation-items="[[ $application.variables.mateuNavItems ]]"
+      selection="[[ $application.variables.mateuSelectedRoute ]]"
+      on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
+
     <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
 
       <div class="oj-flex">

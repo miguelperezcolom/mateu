@@ -255,7 +255,30 @@
       "description": "baseUrl del backend Mateu que pinta esta app (el kit solo necesita esto)"
     }
   },
-  "variables": {},
+  "variables": {
+    "mateuRegistry": {
+      "type": "any",
+      "defaultValue": { "contexts": {}, "stack": [], "shell": null },
+      "description": "El registro del bridge (contexts/stack/shell) — scope de aplicación para sobrevivir a la navegación"
+    },
+    "mateuNavItems": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "shell.menu proyectado a items de oj-sp-in-app-navigation ({id: route, label, icon})"
+    },
+    "mateuSelectedRoute": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuHostTitle": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuHostText": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
   "userConfig": {
     "type": "vb/DefaultSecurityProvider",
     "configuration": {},

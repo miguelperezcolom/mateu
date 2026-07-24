@@ -28,6 +28,23 @@
       }
     },
     "eventListeners": {
+    "vbEnter": {
+      "chains": [
+        {
+          "chain": "loadMateuShell"
+        }
+      ]
+    },
+    "navSelectionChanged": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "onMateuNavigate"
+        }
+      ]
+    },
     "application:spShowToast": {
       "chains": [
         {
@@ -72,6 +89,9 @@
       },
       "oj-sp-global-header": {
         "path": "oj-sp/global-header/loader"
+      },
+      "oj-sp-in-app-navigation": {
+        "path": "oj-sp/in-app-navigation/loader"
       }
     }
     },

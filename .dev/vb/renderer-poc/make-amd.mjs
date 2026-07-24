@@ -35,6 +35,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     callMateu,
     bootstrapShell,
     loadRoute,
+    loadRouteInto,
   };
 });
 `

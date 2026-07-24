@@ -240,6 +240,7 @@ define([], () => {
   // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
   // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
+
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
   async function callMateu(base, body) {
     const bare = (body.route || '').replace(/^\//, '')
@@ -276,6 +277,27 @@ define([], () => {
   const loadRoute = (base, route, initiator = '', extra = {}) =>
     callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
 
+  /**
+   * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
+   * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
+   * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
+   */
+  async function loadRouteInto(base, reg, route, targetId = '') {
+    let next = reduceContexts(reg, await loadRoute(base, route, targetId))
+    const ctxId = targetId === '' ? HOST_ID : targetId
+    const info = mediatorOf(next.contexts[ctxId])
+    if (info) {
+      next = reduceContexts(
+        next,
+        await loadRoute(base, route, targetId, {
+          consumedRoute: info.rootRoute || route,
+          serverSideType: info.serverSideType,
+        }),
+      )
+    }
+    return next
+  }
+
   return {
     HOST_ID,
     reduceContexts,
@@ -287,5 +309,6 @@ define([], () => {
     callMateu,
     bootstrapShell,
     loadRoute,
+    loadRouteInto,
   };
 });
