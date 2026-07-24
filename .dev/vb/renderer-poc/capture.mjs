@@ -8,34 +8,15 @@
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { callMateu as callMateuBase, bootstrapShell } from './transport.mjs'
 
 const BASE = process.argv[2] || 'http://localhost:9005'
 const here = dirname(fileURLToPath(import.meta.url))
 const outDir = join(here, 'fixtures', 'real')
 mkdirSync(outDir, { recursive: true })
 
-// Mismo contrato que AxiosMateuApiClient.runAction: POST {baseUrl}/mateu/v3/sync/{route|_no_route}
-// con { serverSideType, appState, componentState, parameters, initiatorComponentId, consumedRoute,
-// route, actionId }. El bridge VB postea siempre contra la baseUrl raíz (single shell).
-async function callMateu(body) {
-  const bare = (body.route || '').replace(/^\//, '')
-  const res = await fetch(`${BASE}/mateu/v3/sync/${bare || '_no_route'}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      appState: {},
-      componentState: {},
-      parameters: {},
-      initiatorComponentId: '',
-      consumedRoute: '',
-      serverSideType: undefined,
-      ...body,
-      route: bare ? `/${bare}` : '',
-    }),
-  })
-  if (!res.ok) throw new Error(`${body.route} ${body.actionId} → HTTP ${res.status}: ${await res.text()}`)
-  return res.json()
-}
+// El transporte es la FUENTE ÚNICA compartida con el bridge AMD (transport.mjs).
+const callMateu = (body) => callMateuBase(BASE, body)
 
 const dump = (name, increment) => {
   writeFileSync(join(outDir, `${name}.json`), JSON.stringify(increment, null, 2))
@@ -83,13 +64,7 @@ console.log(`Capturando contra ${BASE}\n`)
 
 // 1) Shell (bootstrap): el App raíz NO se resuelve por sync — llega por el endpoint
 // genérico components/_/action (route '', __load__). Único uso de ese endpoint.
-const bootRes = await fetch(`${BASE}/mateu/v3/components/_/action`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: 'shell' }),
-})
-if (!bootRes.ok) throw new Error(`bootstrap → HTTP ${bootRes.status}`)
-dump('app', await bootRes.json())
+dump('app', await bootstrapShell(BASE, 'shell'))
 
 // 2) Form: carga + save (state echo mutado) + navigate
 const loadForm = await callMateu({ route: '/person', actionId: '', componentState: {} })

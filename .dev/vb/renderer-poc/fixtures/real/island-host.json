@@ -12,7 +12,7 @@
       "targetComponentId": "",
       "component": {
         "type": "ServerSide",
-        "id": "554f77ea-a9fb-44b4-907f-c524aae84573",
+        "id": "7f1761c7-c9c1-4190-a764-051427b19a59",
         "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.IslandHostPage",
         "route": "",
         "children": [
@@ -102,7 +102,7 @@
                               "size": null,
                               "noMargins": false
                             },
-                            "id": "195b3902-5ec5-444a-9f87-ce44a8b9a2a2",
+                            "id": "4d4c08cb-1cc9-4897-bd33-818bdbb54bd6",
                             "children": [],
                             "style": " flex: 1; margin: 0;",
                             "cssClasses": null,

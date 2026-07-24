@@ -1,0 +1,30 @@
+<!-- Shell Redwood AUTÉNTICA: oj-sp-simple-ui-shell + oj-sp-global-header (slots declarados
+     por el componente). El contenido del starter (banner, toast, router) va en el slot
+     stretchingContents. Cero HTML/CSS propio: solo composición de componentes oj-sp. -->
+
+<oj-sp-simple-ui-shell id="shell">
+
+  <oj-sp-global-header slot="globalHeader" id="globalHeader"></oj-sp-global-header>
+
+  <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
+    <div class="oj-web-applayout-content-nopad oj-web-applayout-max-width">
+
+      <div class="oj-flex">
+        <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12"
+          on-sp-close="[[$listeners.messagesBannerSpClose]]"
+          ></oj-sp-messages-banner>
+      </div>
+
+      <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
+
+      <div class="oj-flex">
+        <!-- Renders flow content -->
+        <oj-vb-content id="vbRouterContent" class="oj-flex-item" config="[[vbRouterFlow]]">
+
+        </oj-vb-content>
+
+      </div>
+    </div>
+  </div>
+
+</oj-sp-simple-ui-shell>

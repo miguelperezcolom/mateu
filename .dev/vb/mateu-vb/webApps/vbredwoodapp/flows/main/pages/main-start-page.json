@@ -1,0 +1,28 @@
+{
+
+  "title": "",
+  "description": "Fase 1: hola mundo alimentado por Mateu dentro de la shell Redwood del starter",
+  "variables": {
+    "mateuTitle": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuMessage": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "metadata": {},
+  "types": {},
+  "chains": {},
+  "eventListeners": {
+    "vbEnter": {
+      "chains": [
+        {
+          "chain": "loadMateuHello"
+        }
+      ]
+    }
+  },
+  "imports": {}
+}

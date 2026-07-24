@@ -175,11 +175,25 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   es por eco del initiator + fallback por `tree.id`); `PushStateToHistory` y `DispatchEvent` ya están
   mapeados en el reducer (efectos `urlPush`/`events`).
 
-## Próximo paso al retomar
+## Fase 1 — HECHA (pendiente de verificación visual del usuario)
 
-1. **Fase 1** del roadmap: hola mundo (`/hello` de demo-vb) dentro del `oj-sp-simple-ui-shell` real →
-   puerta visual del chrome. No avanzar sin que la captura sea indistinguible de una app Redwood nativa.
-   ⚠ El proceso se PARA al final de cada fase para verificación visual del usuario.
+- **App VB de trabajo**: `.dev/vb/mateu-vb` (copia del Redwood Starter `frontoffice`). Local:
+  `npm install` una vez; `npx grunt vb-build --no-optimize=true --force` (el --force salta el paso
+  de deploy que pide --url; las dependencias de exchange se vaciaron — los `oj-sp` cargan del CDN por
+  los paths de `app-flow.json`); `npx grunt vb-serve --port=9006` → http://localhost:9006 (con
+  demo-vb corriendo en :9005). En `visual-application.json` se añadió `rootURL`.
+- **Kit**: `resources/js/mateu-bridge.js` es GENERADO por `renderer-poc/make-amd.mjs` desde la fuente
+  única (`reduceContexts.mjs` + `transport.mjs`) — regenerar tras tocar el core. La constante
+  `mateuBaseUrl` vive en `app-flow.json`. Chain `loadMateuHello` (JS ActionChain con el bridge como
+  dependencia AMD) en `vbEnter` de main-start-page → variables → `oj-bind-text` (markup del starter,
+  bindings cambiados; CERO HTML/CSS propio).
+- **Shell auténtica**: `shell-page.html` monta `oj-sp-simple-ui-shell` + `oj-sp-global-header`
+  (slots declarados `globalHeader`/`stretchingContents`; imports añadidos en shell-page.json).
+  La captura `renderer-poc/shots/fase1.png` muestra el global header Oracle + FAB Ask Oracle de la
+  shell Spectra con el texto de Mateu en su sitio.
+- ⚠ El proceso se PARA al final de cada fase para verificación visual del usuario.
+
+## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3
    comandos UI → efectos, 1.4 resolución de ruta (4 campos de ruta salientes + composición), 1.5 sync con la
