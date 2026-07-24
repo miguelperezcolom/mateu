@@ -15,13 +15,19 @@ define([
   'oj-c/input-text',
   'oj-c/input-number',
   'oj-c/button',
+  'oj-c/select-single',
   'ojs/ojarraydataprovider',
+  'ojs/ojarraytreedataprovider',
   'knockout',
-], function (_nav, _table, _it, _in, _btn, ArrayDataProvider, ko) {
+], function (_nav, _table, _it, _in, _btn, _sel, ArrayDataProvider, ArrayTreeDataProvider, ko) {
   'use strict';
 
   const BASE = 'http://localhost:9001';
   const HOST_ID = '__root__';
+  const APP_SST = 'io.mateu.redwoodvb.ui.RedwoodVbApp';
+
+  // @AppContext elegido en la cabecera → viaja en el appState de CADA request (Fase 6).
+  const appContext = {};
 
   const metaOf = (n) => (n && (n.metadata || n)) || {};
 
@@ -152,7 +158,7 @@ define([
       // solo se usa __load__ cuando no se pasa actionId (null/undefined).
       actionId: actionId == null ? '__load__' : actionId,
       componentState: componentState || {},
-      appState: {},
+      appState: Object.assign({}, appContext),
     };
     if (serverSideType) body.serverSideType = serverSideType;
     if (consumedRoute != null) body.consumedRoute = consumedRoute;
@@ -166,9 +172,13 @@ define([
 
   class PageModule {
     constructor() {
-      this.menu = [];
+      // Menú: árbol observable para el navigator (submenús) + lookup plano por ruta (con el
+      // serverSideType/consumedRoute de cada item, incl. anidados) para el contexto de loadRoute.
+      this.menuByRoute = {};
+      this.groupRoutes = {};
+      this.groupChildFirst = {};
       this.navItems = ko.observableArray([]);
-      this.navDP = new ArrayDataProvider(this.navItems, { keyAttributes: 'route' });
+      this.navDP = new ArrayTreeDataProvider(this.navItems, { keyAttributes: 'route' });
       // Estado del formulario actual. formData (plano, por fieldId) es la fuente de verdad para el
       // save: cada input hace value one-way + on-value-changed → escribe aquí (el two-way de
       // oj-bind-for-each a un observable anidado NO escribe de vuelta —clona el item—, por eso el
@@ -189,6 +199,10 @@ define([
       this.crudSaveActionId = null;
       this.crudFormRoute = null;
       this.selectedRowIndex = -1;
+      // Cabecera (Fase 6): selectores de @AppContext + acciones (observables: loadApp es async y
+      // el for-each de la cabecera debe re-renderizar cuando lleguen).
+      this.contextSelectors = ko.observableArray([]);
+      this.contextActions = ko.observableArray([]);
     }
 
     getNavData() {
@@ -205,22 +219,93 @@ define([
       return this.tableColumns();
     }
 
+    // Fase 6: selectores de @AppContext de la cabecera (oj-c-select-single por campo).
+    getContextSelectors() {
+      return this.contextSelectors().map((s) => {
+        const fieldName = s.fieldName;
+        return {
+          fieldName: fieldName,
+          label: s.label,
+          value: appContext[fieldName] != null ? appContext[fieldName] : null,
+          dp: new ArrayDataProvider(
+            (s.options || []).map((o) => ({ value: o.value != null ? o.value : o.label, label: o.label || o.value })),
+            { keyAttributes: 'value' },
+          ),
+          onChange: function (e) {
+            if (e && e.detail) appContext[fieldName] = e.detail.value;
+          },
+        };
+      });
+    }
+
+    // Fase 6: acciones de cabecera aplanadas a hojas clicables (Sync, PDF, Excel).
+    getHeaderActions() {
+      const out = [];
+      this.contextActions().forEach((a) => {
+        const kids = a.children || [];
+        if (kids.length) kids.forEach((c) => out.push({ actionId: c.actionId, label: a.label + ': ' + c.label }));
+        else out.push({ actionId: a.actionId, label: a.label });
+      });
+      return out;
+    }
+
+    // Dispara una acción de cabecera (app-level) y devuelve su mensaje.
+    async headerAction(event) {
+      const actionId = event && event.currentTarget ? event.currentTarget.getAttribute('data-action-id') : null;
+      if (!actionId) return { message: '' };
+      const inc = await callMateu('', actionId, APP_SST);
+      const msg = (inc.messages || [])[0];
+      return { message: msg ? msg.text || msg.title : '' };
+    }
+
     async loadApp() {
       const inc = await callMateu('');
       const appFrag = (inc.fragments || []).find((f) => metaOf(f.component).type === 'App');
       const md = appFrag ? metaOf(appFrag.component) : {};
-      this.menu = (md.menu || []).map((m) => ({
-        route: m.route,
-        label: m.caption || m.label,
-        serverSideType: m.serverSideType,
-        consumedRoute: m.consumedRoute,
-      }));
-      this.navItems(this.menu.map((m) => ({ route: m.route, label: m.label })));
-      return { firstRoute: (this.menu[0] || {}).route || '' };
+      // Árbol para el navigator (grupos = tienen children) + lookup plano por ruta.
+      this.menuByRoute = {};
+      this.groupRoutes = {};
+      const self = this;
+      const mapItem = (m) => {
+        self.menuByRoute[m.route] = {
+          route: m.route,
+          serverSideType: m.serverSideType,
+          consumedRoute: m.consumedRoute,
+        };
+        const kids = (m.submenus || []).map(mapItem);
+        const node = { route: m.route, label: m.caption || m.label, isGroup: kids.length > 0 };
+        if (kids.length) {
+          node.children = kids;
+          self.groupRoutes[m.route] = true; // un grupo expande + navega a su primer hijo
+          self.groupChildFirst[m.route] = kids[0].route;
+        }
+        return node;
+      };
+      const tree = (md.menu || []).map(mapItem);
+      this.navItems(tree);
+      // primera ruta navegable = primera hoja (no grupo)
+      const firstLeaf = (nodes) => {
+        for (let i = 0; i < nodes.length; i++) {
+          if (!nodes[i].isGroup) return nodes[i].route;
+          const r = firstLeaf(nodes[i].children || []);
+          if (r) return r;
+        }
+        return '';
+      };
+      // App metadata para la cabecera (Fase 6): selectores de contexto + acciones.
+      this.contextSelectors(md.contextSelectors || []);
+      this.contextActions(md.contextActions || []);
+      return { firstRoute: firstLeaf(tree) };
     }
 
     async loadRoute(route) {
-      const item = this.menu.filter((m) => m.route === route)[0] || {};
+      // Clic en un GRUPO (submenú): se expande y además navega a su primer hijo (mejor UX que
+      // cargar la ruta del grupo, que no tiene contenido).
+      if (this.groupRoutes[route]) {
+        const first = (this.groupChildFirst || {})[route];
+        if (first) route = first;
+      }
+      const item = this.menuByRoute[route] || {};
       const EMPTY = { contexts: {}, stack: [], shell: null };
       // Carga con actionId="" (unificado: vale para pantallas normales y para el handleRoute del
       // mediador — __load__ va a handleAction y el crud no lo soporta).

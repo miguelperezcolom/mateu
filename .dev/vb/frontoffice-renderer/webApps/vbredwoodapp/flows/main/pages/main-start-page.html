@@ -1,12 +1,45 @@
 <!-- Copyright (c) 2026, Oracle and/or its affiliates -->
 
-<!-- Fases 2–3: navigator Redwood (del menú de Mateu) + área de contenido que muestra
-     un FORMULARIO (campos oj-c-* two-way + Guardar) o un Text, según isForm.
+<!-- Fases 2–6: cabecera (selectores de @AppContext + acciones) + navigator Redwood con
+     submenús + área de contenido (tabla CRUD / formulario / texto).
      Solo markup oj-* de los ejemplos, sin CSS propio. -->
+
+<!-- Cabecera (Fase 6): selectores de contexto + acciones de cabecera, a la derecha -->
+<div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x-horizontal oj-sm-padding-2x-top">
+  <span class="oj-flex-item"></span>
+  <oj-bind-for-each data="[[ $functions.getContextSelectors() ]]">
+    <template data-oj-as="sel">
+      <div class="oj-flex-item-initial oj-sm-margin-2x-start" style="width: 12rem">
+        <oj-c-select-single
+          label-hint="[[ sel.data.label ]]"
+          data="[[ sel.data.dp ]]"
+          item-text="label"
+          value="[[ sel.data.value ]]"
+          on-value-changed="[[ sel.data.onChange ]]"
+        ></oj-c-select-single>
+      </div>
+    </template>
+  </oj-bind-for-each>
+  <oj-bind-for-each data="[[ $functions.getHeaderActions() ]]">
+    <template data-oj-as="act">
+      <oj-c-button
+        class="oj-sm-margin-1x-start"
+        label="[[ act.data.label ]]"
+        :data-action-id="[[ act.data.actionId ]]"
+        on-oj-action="[[ $listeners.headerAction ]]"
+      ></oj-c-button>
+    </template>
+  </oj-bind-for-each>
+</div>
+<div class="oj-flex oj-sm-padding-2x-horizontal oj-text-color-secondary" style="min-height: 1.25rem">
+  <oj-bind-text value="[[ $variables.headerMsg ]]"></oj-bind-text>
+</div>
+
 <div class="oj-web-applayout-content-nopad oj-flex">
   <div class="oj-flex-item" style="min-width: 15rem; max-width: 15rem">
     <oj-navigation-list
       data="[[ $functions.getNavData() ]]"
+      drill-mode="collapsible"
       on-selection-changed="[[ $listeners.navSelect ]]"
       class="oj-navigationlist-nofollow-link"
     >

@@ -21,6 +21,10 @@
     "saveMsg": {
       "type": "string",
       "defaultValue": ""
+    },
+    "headerMsg": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "metadata": {},
@@ -86,6 +90,16 @@
       "chains": [
         {
           "chainId": "crudCancel"
+        }
+      ]
+    },
+    "headerAction": {
+      "chains": [
+        {
+          "chainId": "headerAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
         }
       ]
     }
