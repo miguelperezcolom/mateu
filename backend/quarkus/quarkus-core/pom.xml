@@ -35,14 +35,14 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
-            <version>3.20.5</version>
+            <version>3.37.3</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-            <version>3.15.0</version>
+            <version>3.15.7</version>
             <exclusions>
                 <exclusion>
                     <groupId>io.quarkus</groupId>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-spring-di</artifactId>
-            <version>3.20.5</version>
+            <version>3.37.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>io.smallrye.common</groupId>
@@ -118,7 +118,7 @@
             <plugin>
                 <groupId>io.smallrye</groupId>
                 <artifactId>jandex-maven-plugin</artifactId>
-                <version>3.2.7</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <id>make-index</id>
