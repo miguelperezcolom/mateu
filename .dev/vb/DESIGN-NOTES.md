@@ -233,6 +233,27 @@ El contrato mediador del AutoCrud (el "~3 sequential loads"), reverse-engineered
     `e.detail.value.row` (un KeySet; con `keyAttributes:'@index'` el valor es el índice de fila).
   - Evidencia: `frontoffice-renderer/shots/fase5-crud-full.png` (toolbar Nuevo/Editar/Borrar + tabla).
 
+### Fase 6 — app compleja (2026-07-24): submenús + @AppContext + header actions
+
+- **Submenú**: `@Menu` de un tipo que implementa `Submenu` (con sus propios `@Menu`). En el wire, el item de
+  grupo trae `submenus:[...]` y las rutas van prefijadas (`/catalogo/products`). El item hijo lleva su
+  serverSideType (app)/consumedRoute igual que los top-level, y cargar `/catalogo/products` resuelve por el
+  mismo mediador. Navigator = `oj-navigation-list drill-mode="collapsible"` + **`ArrayTreeDataProvider`**
+  (`ojs/ojarraytreedataprovider`; el menú se mapea a árbol con `children`). Mantener un `menuByRoute` PLANO
+  (incl. anidados) para el contexto de loadRoute. **`item.selectable` rompió el render del árbol** (solo salía
+  el primer item, sin error JS) → en su lugar, clic en grupo = expandir + navegar a su **primer hijo**
+  (`groupChildFirst`).
+- **@AppContext**: `contextSelectors[]` (fieldName/label/options) → `oj-c-select-single` (`oj-c/select-single`)
+  por selector. El valor elegido se guarda en un `appContext` module-level y viaja en el `appState` de CADA
+  `callMateu`. (Refinamiento: recargar la ruta actual al cambiarlo.)
+- **Header actions**: `contextActions[]` (recursivo con `children` → dropdown). Dispatch **app-level**:
+  `callMateu('', actionId, appSst)` (o incluso sin sst) → `Message`. Aplanadas a `oj-c-button` (Sync,
+  Exportar: PDF/Excel); el botón lleva `:data-action-id` y una chain lo lee de `$event.currentTarget`.
+  (Refinamiento: un dropdown `oj-menu-button` real para agrupar los hijos.)
+- **Reactividad**: `contextSelectors`/`contextActions`/`tableColumns` son `ko.observableArray` — los for-each
+  de la cabecera/tabla se bindean a `getX()` que LEE el observable, así re-renderizan cuando loadApp (async)
+  los rellena (si no, salen vacíos porque el bind ocurre antes). Evidencia: `shots/fase6-complex-app.png`.
+
 ### Regla dura de presentación (decisión 2026-07-24)
 
 **NADA de HTML/CSS que no venga de los ejemplos de VB. La capa de presentación es VB puro, sin añadidos.**
