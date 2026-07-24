@@ -34,9 +34,32 @@ npm run capture -- --base http://localhost:8595
 # vuelca fixtures/real/<name>.json para cada superficie del lote
 ```
 
+## Dev harness (probar la UI localmente)
+
+`harness/` renderiza los increments de un backend Mateu vivo con chrome Redwood auténtico (tema Redwood de
+OJET + OracleFont desde el CDN de Oracle, el MISMO origen que carga VB). No necesita build: es HTML + ESM.
+
+```bash
+# 1) Backend SUT en :9001
+cd ../../../.. && (cd demo/demo-redwood-vb && mvn -o spring-boot:run)   # o: java -jar target/*.jar
+
+# 2) Servir el harness (desde la raíz de la app, para que resuelvan /harness y /src)
+cd frontend/web/monorepo/apps/redwood-vb && python3 -m http.server 9002 --bind 127.0.0.1
+
+# 3) Abrir http://127.0.0.1:9002/harness/index.html  — o capturar:
+node tools/shot.mjs --url http://127.0.0.1:9002/harness/index.html --out shots/fase1.png
+```
+
 ## Estado
 
-- **Fase 0 (en curso)**: captura de fixtures reales + fijar el contrato de wire.
+- **Fase 0 (hecha)**: captura de fixtures reales + contrato de wire fijado.
   - Hallazgo clave: el `component` de un fragment es un `ServerSideComponentDto` con campos al **nivel superior**
     (`type`, `serverSideType`, `route`, `children`, `pageType`, `pageWidth`, `initialData`, `actions`, …),
-    **no** bajo `component.metadata`. El árbol de contenido va en `component.children`.
+    **no** bajo `component.metadata`. El árbol de contenido va en `component.children`. Los ClientSide sí llevan
+    el DTO en `.metadata`. 15 tests de contrato verdes.
+- **Fase 1 (en curso)**: hola mundo dentro del shell. `harness/` + `demo-redwood-vb` (:9001) renderizan un
+  nodo `Text` con chrome Redwood (tira RDS + tema/fuente OJET del CDN). Evidencia: `shots/fase1.png`.
+  - **Honestidad sobre la puerta visual**: aprobada como **aproximación fiel local** (tema + OracleFont
+    reales). La validación DEFINITIVA del chrome `oj-sp` (global-header/navigator del pack Spectra) queda
+    para **dentro de una app VB real**, como exige el roadmap — el header del harness es `oj-web-applayout`
+    hecho a mano y se sustituye por `oj-sp-global-header`/`oj-sp-navigator` al portar a VB.

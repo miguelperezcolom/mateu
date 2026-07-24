@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es" class="oj-html" style="height:100%">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mateu on Visual Builder — dev harness</title>
+    <link rel="preconnect" href="https://static.oracle.com" />
+    <!-- Chrome Redwood AUTÉNTICO: el tema Redwood de OJET desde el CDN de Oracle (el mismo origen
+         que carga VB) + tipografía + icon font. Con esto, las clases oj-web-applayout-* y las
+         oj-* CSS custom properties pintan el chrome real sin aproximarlo. -->
+    <link
+      rel="stylesheet"
+      id="redwoodcss"
+      href="https://static.oracle.com/cdn/jet/18.1.0/default/css/redwood/oj-redwood-min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--oj-core-neutral-10-color, #f8f7f5);
+      }
+      .rds-strip {
+        height: 4px;
+        background: var(--oj-core-brand-60-color, #c74634);
+      }
+      .harness-brand {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .harness-content {
+        padding: 24px;
+      }
+      #content .greeting {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body class="oj-body oj-web-applayout-body">
+    <div class="oj-web-applayout-page">
+      <!-- Global header (patrón Redwood web-applayout) -->
+      <header class="oj-web-applayout-header">
+        <div
+          class="oj-web-applayout-max-width oj-flex oj-sm-align-items-center oj-sm-padding-2x-horizontal"
+          style="min-height: 3.25rem"
+        >
+          <span class="harness-brand oj-typography-body-lg oj-flex-item">Oracle</span>
+          <span
+            class="oj-flex-item oj-sm-margin-4x-start oj-typography-body-md oj-text-color-secondary"
+            >Mateu on Visual Builder</span
+          >
+        </div>
+      </header>
+
+      <!-- Área de contenido -->
+      <div class="oj-web-applayout-content oj-web-applayout-max-width">
+        <!-- La tira de color RDS marca el TOP del content card -->
+        <div class="rds-strip"></div>
+        <div class="oj-panel oj-panel-shadow-sm harness-content">
+          <div id="content" class="oj-typography-body-lg">
+            <span class="oj-typography-body-md oj-text-color-secondary">Cargando…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer
+        class="oj-web-applayout-footer oj-web-applayout-max-width oj-sm-padding-4x-horizontal oj-sm-padding-2x-vertical"
+      >
+        <span class="oj-text-sm oj-text-color-secondary"
+          >Copyright © 2026 — Mateu · dev harness (Fase 1)</span
+        >
+      </footer>
+    </div>
+
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>
