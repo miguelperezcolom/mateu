@@ -165,6 +165,14 @@ export class MateuOjApp {
     }
   }
 
+  /** The RDS page-width anatomy (fixed / fullWidth / edgeToEdge) — the wire carries it on the Page
+   *  metadata (and the ServerSide wrapper). Drives the content area's max-width / gutters. */
+  private resolvePageWidth(): string {
+    const comp = this.view.component as Json | null
+    const pw = (comp?.['metadata'] as Json)?.['pageWidth'] ?? comp?.['pageWidth']
+    return typeof pw === 'string' && pw ? pw : 'fixed'
+  }
+
   private routeFromUrl(): string {
     let path = decodeURIComponent(window.location.pathname)
     if (this.pathPrefix && path.startsWith(this.pathPrefix)) path = path.slice(this.pathPrefix.length)
@@ -177,13 +185,20 @@ export class MateuOjApp {
   private renderAll(): void {
     const ctx: RenderContext = { controller: this.content, runtime: this.runtime }
     const content: TemplateResult | typeof nothing = renderView(this.view, ctx)
-    const shell = renderShell(this.app, this.activeRoute, this.navCollapsed, {
+    const pageWidth = this.resolvePageWidth()
+    const shell = renderShell(this.app, this.activeRoute, this.navCollapsed, pageWidth, {
       onNavigate: this.onNavigate,
       onToggleNav: () => {
         this.navCollapsed = !this.navCollapsed
         this.renderAll()
       },
       onHome: () => this.navigateTo(this.app.homeRoute ?? '', this.app.homeConsumedRoute ?? '', this.app.homeServerSideType ?? ''),
+      onContextChange: (fieldName, value) => {
+        // @AppContext: fix a value for every screen — merge into appState, reload the current route.
+        this.session.appState[fieldName] = value
+        void this.content.navigate(this.activeRoute, this.content.currentConsumedRoute, this.app.serverSideType ?? '')
+      },
+      onHeaderAction: (actionId) => void this.content.runAction(actionId),
     }, content)
     render(html`${shell}${this.overlays.map((o) => this.renderOverlay(o))}`, this.root)
   }

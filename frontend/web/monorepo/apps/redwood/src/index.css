@@ -770,3 +770,75 @@ body {
   padding: 1.25rem;
   overflow: auto;
 }
+
+/* ── Phase 5: page-width anatomy + header context selectors/actions ────────────────────── */
+
+.mateu-content-area[data-page-width='fullWidth'] .mateu-page,
+.mateu-content-area[data-page-width='fullWidth'] .mateu-crud {
+  max-width: none;
+}
+.mateu-content-area[data-page-width='edgeToEdge'] {
+  padding: 0;
+}
+.mateu-content-area[data-page-width='edgeToEdge'] .mateu-page,
+.mateu-content-area[data-page-width='edgeToEdge'] .mateu-crud {
+  max-width: none;
+}
+
+.mateu-context-selector select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  border-radius: 0.4rem;
+  background: var(--oj-core-bg-color-content, #fff);
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+  margin-inline-end: 0.5rem;
+}
+.mateu-header-action {
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  background: var(--oj-core-bg-color-content, #fff);
+  border-radius: 1.25rem;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  margin-inline-end: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.mateu-header-action-group {
+  position: relative;
+  display: inline-block;
+}
+.mateu-header-action-group:hover .mateu-header-action-menu {
+  display: block;
+}
+.mateu-header-action-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 12rem;
+  z-index: 50;
+  padding: 0.25rem;
+}
+.mateu-header-action-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 0.35rem;
+}
+.mateu-header-action-menu button:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}

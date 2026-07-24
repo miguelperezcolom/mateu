@@ -13,6 +13,19 @@ export interface MenuItem {
   submenus?: MenuItem[]
 }
 
+export interface ContextSelector {
+  fieldName: string
+  label?: string
+  options?: { value?: unknown; label?: string }[]
+}
+
+export interface HeaderAction {
+  actionId: string
+  label?: string
+  icon?: string
+  children?: HeaderAction[]
+}
+
 export interface AppMeta {
   title?: string
   subtitle?: string
@@ -24,12 +37,16 @@ export interface AppMeta {
   homeServerSideType?: string
   serverSideType?: string
   themeToggle?: boolean
+  contextSelectors?: ContextSelector[]
+  contextActions?: HeaderAction[]
 }
 
 export interface ShellHandlers {
   onNavigate: (item: MenuItem) => void
   onToggleNav: () => void
   onHome: () => void
+  onContextChange?: (fieldName: string, value: unknown) => void
+  onHeaderAction?: (actionId: string) => void
 }
 
 /**
@@ -115,6 +132,33 @@ function normaliseRoute(r: string): string {
   return (r ?? '').replace(/^\/+|\/+$/g, '')
 }
 
+/** @AppContext selector → a compact header dropdown that fixes a value for every screen. */
+function renderContextSelector(s: ContextSelector, handlers: ShellHandlers): TemplateResult {
+  const options = s.options ?? []
+  return html`<label class="mateu-context-selector" title=${s.label ?? s.fieldName}>
+    <select @change=${(e: Event) => handlers.onContextChange?.(s.fieldName, (e.target as HTMLSelectElement).value)}>
+      <option value="">${s.label ?? s.fieldName}</option>
+      ${options.map((o) => html`<option value=${String(o.value ?? '')}>${o.label ?? String(o.value ?? '')}</option>`)}
+    </select>
+  </label>`
+}
+
+/** App header action → a button (or dropdown of children) next to the context selectors. */
+function renderHeaderAction(a: HeaderAction, handlers: ShellHandlers): TemplateResult {
+  const children = a.children ?? []
+  if (children.length) {
+    return html`<div class="mateu-header-action-group">
+      <button class="mateu-header-action">${a.label ?? ''} ▾</button>
+      <div class="mateu-header-action-menu">
+        ${children.map((c) => html`<button @click=${() => handlers.onHeaderAction?.(c.actionId)}>${c.label ?? ''}</button>`)}
+      </div>
+    </div>`
+  }
+  return html`<button class="mateu-header-action" @click=${() => handlers.onHeaderAction?.(a.actionId)}>
+    ${a.icon ? html`<span class="${ojIcon(a.icon)}"></span>` : nothing}${a.label ?? ''}
+  </button>`
+}
+
 /**
  * The authentic Redwood app shell — plain HTML using Oracle's own oj-web-applayout / oj-flex /
  * oj-typography CSS classes (from the CDN oj-redwood-min.css). No OJET component / binding-provider
@@ -125,10 +169,13 @@ export function renderShell(
   app: AppMeta,
   activeRoute: string,
   navCollapsed: boolean,
+  pageWidth: string,
   handlers: ShellHandlers,
   content: TemplateResult | typeof nothing,
 ): TemplateResult {
   const menu = app.menu ?? []
+  const selectors = app.contextSelectors ?? []
+  const actions = app.contextActions ?? []
   return html`
     <div class="oj-web-applayout-page mateu-redwood-shell">
       <header class="oj-web-applayout-header mateu-header" role="banner">
@@ -152,6 +199,8 @@ export function renderShell(
             >
           </div>
           <div class="oj-flex-bar-end oj-sm-align-items-center mateu-header-end">
+            ${selectors.map((s) => renderContextSelector(s, handlers))}
+            ${actions.map((a) => renderHeaderAction(a, handlers))}
             <span class="oj-ux-ico-contact mateu-header-avatar" aria-hidden="true"></span>
           </div>
         </div>
@@ -163,7 +212,9 @@ export function renderShell(
             ${menu.map((item) => renderMenuItem(item, activeRoute, handlers, 0))}
           </ul>
         </nav>
-        <main class="mateu-content-area oj-web-applayout-content" id="mateu-content">${content}</main>
+        <main class="mateu-content-area oj-web-applayout-content" id="mateu-content" data-page-width=${pageWidth}>
+          ${content}
+        </main>
       </div>
     </div>
   `
