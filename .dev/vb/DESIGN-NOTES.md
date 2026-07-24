@@ -283,6 +283,13 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   gotcha: `oj-drawer-popup` con `opened` one-way cierra con Esc SOLO si el foco está dentro
   (comportamiento modal correcto); listener en `ojBeforeClose`. El AbortError "stale fetch"
   de oj-table en consola es una optimización propia del componente, benigno.
+- **Fix post-verificación (el drawer se reabría tras guardar)**: dos causas. (a) usar la
+  SELECCIÓN de fila para abrir el Edit — la tabla re-emite el evento de selección al refrescar
+  tras guardar → `view` otra vez; cambiado a `ojRowAction` (el gesto correcto, sin estado).
+  (b) una CARRERA del runtime VB: re-invoca el listener con el MISMO evento almacenado tras el
+  refresco (~30ms después del save; a nivel DOM solo hubo UN ojRowAction — verificado con
+  listener en captura a nivel documento) → guarda de DEDUPE por `timeStamp` del originalEvent
+  en `mateuRowClicked`. Verificado 5/5 ciclos editar+guardar sin reapertura.
 - Pendiente anotado: el botón Delete del toolbar renderiza pero la selección-para-borrar
   (`crud_selected_items`) no está cableada aún; formateo de columnas (money/boolean) también
   pendiente. Evidencia: `shots/fase5-list.png`, `fase5-new.png`, `fase5-created.png`,

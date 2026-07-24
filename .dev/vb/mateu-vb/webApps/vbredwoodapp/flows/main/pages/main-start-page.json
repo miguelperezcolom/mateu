@@ -52,14 +52,13 @@
         }
       ]
     },
-    "mateuRowSelected": {
+    "mateuRowAction": {
       "chains": [
         {
           "parameters": {
-            "actionId": "view",
-            "parameters": "{{ $event.detail.value.data }}"
+            "event": "{{ $event }}"
           },
-          "chain": "runMateuAction"
+          "chain": "mateuRowClicked"
         }
       ]
     },

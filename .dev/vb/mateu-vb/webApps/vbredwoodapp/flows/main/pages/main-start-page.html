@@ -39,11 +39,12 @@
   </div>
   <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-12">
+      <!-- ojRowAction (clic en fila) en vez de selección: la selección deja estado que la
+           tabla RE-EMITE al refrescar tras guardar, reabriendo el drawer -->
       <oj-table id="mateuTable" class="oj-sm-12"
         data="[[ $variables.listingADP ]]"
         columns="[[ $application.variables.mateuListing.columns ]]"
-        selection-mode='{"row": "single", "column": "none"}'
-        on-first-selected-row-changed="[[ $listeners.mateuRowSelected ]]">
+        on-oj-row-action="[[ $listeners.mateuRowAction ]]">
         <template slot="noData">
           <oj-sp-empty-state
             primary-text="[[ $application.variables.mateuListing.emptyStateMessage ]]"
