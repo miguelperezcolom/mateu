@@ -96,6 +96,35 @@ define([
     return out;
   }
 
+  // ¿Hay un App con variant MEDIATOR en el árbol? (un crud/mediador que pide recarga con su sst).
+  function hasMediator(node) {
+    if (!node || typeof node !== 'object') return false;
+    const m = metaOf(node);
+    if (m.type === 'App' && m.variant === 'MEDIATOR') return true;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) if (hasMediator(v[j])) return true;
+      } else if (v && typeof v === 'object' && hasMediator(v)) return true;
+    }
+    return false;
+  }
+
+  // ¿El árbol/increment expone una acción con este id? (p.ej. 'search' → es un listado CRUD).
+  function hasActionId(node, actionId) {
+    if (!node || typeof node !== 'object') return false;
+    if (node.actionId === actionId) return true;
+    const keys = Object.keys(node);
+    for (let i = 0; i < keys.length; i++) {
+      const v = node[keys[i]];
+      if (Array.isArray(v)) {
+        for (let j = 0; j < v.length; j++) if (hasActionId(v[j], actionId)) return true;
+      } else if (v && typeof v === 'object' && hasActionId(v, actionId)) return true;
+    }
+    return false;
+  }
+
   // Deep-search: los FormField anidan en metadata, no solo en children. Se deduplica por fieldId
   // (el árbol referencia los nodos en children Y en metadata, así que aparecen 2 veces).
   function collectFields(node, out, seen) {
@@ -119,7 +148,9 @@ define([
   async function callMateu(route, actionId, serverSideType, consumedRoute, componentState) {
     const body = {
       route: route || '',
-      actionId: actionId || '__load__',
+      // OJO: actionId="" (vacío) NO es __load__ — el mediador del crud carga con actionId vacío;
+      // solo se usa __load__ cuando no se pasa actionId (null/undefined).
+      actionId: actionId == null ? '__load__' : actionId,
       componentState: componentState || {},
       appState: {},
     };
@@ -180,19 +211,41 @@ define([
 
     async loadRoute(route) {
       const item = this.menu.filter((m) => m.route === route)[0] || {};
-      // La CARGA usa el contexto del item de menú (app) para resolver el mediador…
-      const inc = await callMateu(route, '__load__', item.serverSideType, item.consumedRoute);
-      const reg = reduceContexts({ contexts: {}, stack: [], shell: null }, inc);
-      const host = reg.contexts[HOST_ID] || {};
-      // …pero las ACCIONES (save) van al COMPONENTE de contenido cargado (p.ej. Profile), con su
-      // propio serverSideType/route/consumedRoute — no el del app.
+      const EMPTY = { contexts: {}, stack: [], shell: null };
+      // Carga con actionId="" (unificado: vale para pantallas normales y para el handleRoute del
+      // mediador — __load__ va a handleAction y el crud no lo soporta).
+      let inc = await callMateu(route, '', item.serverSideType, item.consumedRoute);
+      let host = reduceContexts(EMPTY, inc).contexts[HOST_ID] || {};
+      // ¿Mediador (crud)? Un App MEDIATOR pide recargar con el serverSideType del propio mediador.
+      // El consumedRoute del crud = su propia ruta (si no, ListRouteResolver no resuelve la listing).
+      let crudConsumed = null;
+      if (hasMediator(host.tree)) {
+        const medRoute = host.route || route;
+        crudConsumed = medRoute;
+        inc = await callMateu(medRoute, '', host.serverSideType, medRoute);
+        host = reduceContexts(EMPTY, inc).contexts[HOST_ID] || {};
+      }
+      // Contexto para acciones posteriores (search/new/save/delete) = el componente cargado.
       this.current = {
         route: host.route != null ? host.route : route,
         serverSideType: host.serverSideType || item.serverSideType,
-        consumedRoute: host.consumedRoute != null ? host.consumedRoute : item.consumedRoute,
+        consumedRoute:
+          crudConsumed != null
+            ? crudConsumed
+            : host.consumedRoute != null
+              ? host.consumedRoute
+              : item.consumedRoute || '',
       };
       const state = host.state || {};
-      // 1) ¿Listado? (un FormField-grid) → tabla oj-table.
+
+      // A) ¿Listado CRUD? (expone la acción 'search') → columnas GridColumn + search para las filas.
+      if (hasActionId(inc, 'search')) {
+        this.tableColumns = collectColumns(host.tree).map((c) => ({ headerText: c.label, field: c.id }));
+        this.tableRows(await this._search());
+        this.formFields([]);
+        return { isTable: true, isForm: false, greeting: '' };
+      }
+      // B) ¿Listado simple? (un FormField-grid) → tabla oj-table.
       const gridNode = findGridField(host.tree);
       if (gridNode) {
         const gmeta = metaOf(gridNode);
@@ -201,7 +254,7 @@ define([
         this.formFields([]);
         return { isTable: true, isForm: false, greeting: '' };
       }
-      // 2) ¿Formulario? (FormFields) → inputs oj-c-*.
+      // C) ¿Formulario? (FormFields) → inputs oj-c-*.
       const fields = collectFields(host.tree);
       const self = this;
       this.formData = {};
@@ -228,6 +281,20 @@ define([
         isForm: fields.length > 0,
         greeting: firstText(host.tree) || '(sin contenido)',
       };
+    }
+
+    // Fase 5: las filas de un listado CRUD llegan por la acción 'search' (data.crud.page.content).
+    async _search() {
+      const inc = await callMateu(
+        this.current.route,
+        'search',
+        this.current.serverSideType,
+        this.current.consumedRoute,
+        {},
+      );
+      const fr = (inc.fragments || [])[0] || {};
+      const page = ((fr.data || {}).crud || {}).page || {};
+      return (page.content || []).slice();
     }
 
     // Fase 3: reenvía el estado editado con actionId 'save' y devuelve el mensaje.
