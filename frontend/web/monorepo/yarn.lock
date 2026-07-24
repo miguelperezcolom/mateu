@@ -219,10 +219,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.28.1.tgz#10064ee44f4347b90c9a02b446bbf80a91632b12"
   integrity sha512-bm4Mowrv+GXMlpWX++EcXw/iLyd1o3+bJkC2DkWXYVvgZCqD/bSj9ctZeAMC3cIxgjRVR2Dufaiu4YPxr5gW1A==
 
-"@fabricelements/skeleton-carousel@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@fabricelements/skeleton-carousel/-/skeleton-carousel-3.0.0.tgz"
-  integrity sha512-qcDRoyhadeyRfo8xWF2Px/aK3Wk1tp1fto1QfvVFVxE2qu4G5ALBkeiUfp9N4r2a1HZW1kAUWcnBzs+fHNfpFw==
+"@fabricelements/skeleton-carousel@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@fabricelements/skeleton-carousel/-/skeleton-carousel-3.0.2.tgz#644181294ebbb00c19c28b3e38d149a261fe0d2d"
+  integrity sha512-lPdaSnFjyX1eTpJsmrU/kB1NY4Q747mtZ9wDm+oRoCGmMcmPfWoqeW/XDTWPbJXKqfS7m6aB7M9TE8kQBxaftg==
   dependencies:
     "@polymer/gen-typescript-declarations" "^1.2.2"
     "@polymer/iron-a11y-keys-behavior" "^3.0.0-pre.18"
@@ -270,7 +270,7 @@
 
 "@lit/reactive-element@^1.3.0", "@lit/reactive-element@^1.6.0":
   version "1.6.3"
-  resolved "https://registry.npmjs.org/@lit/reactive-element/-/reactive-element-1.6.3.tgz"
+  resolved "https://registry.yarnpkg.com/@lit/reactive-element/-/reactive-element-1.6.3.tgz#25b4eece2592132845d303e091bad9b04cdcfe03"
   integrity sha512-QuTgnG52Poic7uM1AN5yJ09QMe0O28e10XzSvWDz02TJiiKee4stsiownEIadWm8nYzyDAyT+gKzUoZmiWQtsQ==
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.0.0"
@@ -2296,17 +2296,17 @@ balanced-match@^4.0.2:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-4.0.4.tgz"
   integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
 
-bpmn-js@^18.14.0:
-  version "18.21.0"
-  resolved "https://registry.npmjs.org/bpmn-js/-/bpmn-js-18.21.0.tgz"
-  integrity sha512-TVPsgsTnD24jrcZ5bjU3LAfhEp4UtfnRIQ53Spf7Cs2nMofFU27uZ/Z5MTxNzfB5PVczjZbx7UTRmq+RcCZ7HA==
+bpmn-js@^18.22.0:
+  version "18.22.0"
+  resolved "https://registry.yarnpkg.com/bpmn-js/-/bpmn-js-18.22.0.tgz#26d771f0c4960f478aced24434c92261ab570554"
+  integrity sha512-hM5aOiyLVdVGA80nveJLXFVQMpsaST7RilErjeKfXMhpZQJTnzU+yLDaenIJsq2f90+9inyktVPqsS1Ersik2A==
   dependencies:
     bpmn-moddle "^10.0.0"
-    diagram-js "^15.20.0"
-    diagram-js-direct-editing "^3.4.0"
+    diagram-js "^15.23.0"
+    diagram-js-direct-editing "^3.5.1"
     ids "^3.0.2"
     inherits-browser "^0.1.0"
-    min-dash "^5.0.0"
+    min-dash "^5.1.0"
     min-dom "^5.3.0"
     tiny-svg "^4.1.4"
 
@@ -2540,24 +2540,24 @@ delayed-stream@~1.0.0:
   resolved "https://registry.npmjs.org/delayed-stream/-/delayed-stream-1.0.0.tgz"
   integrity sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==
 
-diagram-js-direct-editing@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.npmjs.org/diagram-js-direct-editing/-/diagram-js-direct-editing-3.4.0.tgz"
-  integrity sha512-eXfd+nxJr5xt3YlCrs+E53mPi+gqBWRBkAXkR99ZPL7Pl0B3H5nkv/uiwx4Q4vJU/Sp8Jy3zVdhP/Y2c6loTjw==
+diagram-js-direct-editing@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/diagram-js-direct-editing/-/diagram-js-direct-editing-3.5.1.tgz#535323c3007f933f5a08f59c6821a0d6f00821dc"
+  integrity sha512-fEQCQ/x5oKVV0m7Nmgv7i85Vhw+kJkKNXF8zcV5Vm0KwF8x/8e3Ax0aJgdXt8/fDPymEkY8HmZweXIipCeeh+g==
   dependencies:
     min-dash "^5.0.0"
-    min-dom "^5.2.0"
+    min-dom "^5.3.0"
 
-diagram-js@^15.20.0:
-  version "15.21.0"
-  resolved "https://registry.npmjs.org/diagram-js/-/diagram-js-15.21.0.tgz"
-  integrity sha512-i+rRzHxdvlXOu9klcZyvKIl2cRv9TwdzoDmpQvl01+5LEgsNnbanQQEg6WRpR0aCNxJ3jion/eOJ6L7R9XaqLA==
+diagram-js@^15.23.0:
+  version "15.23.0"
+  resolved "https://registry.yarnpkg.com/diagram-js/-/diagram-js-15.23.0.tgz#5a830db734bf1049890a80ad442d0498ab977734"
+  integrity sha512-cCgL+4Ep0xrLe6TtdvRVgo6bWYjUbrQg+ES/9rpltqmTD2YaPoC+NYcRsKYw/fDO+1RN0q16NzErP1svVZhNQg==
   dependencies:
     "@bpmn-io/diagram-js-ui" "^0.2.4"
     clsx "^2.1.1"
     didi "^11.0.0"
     inherits-browser "^0.1.0"
-    min-dash "^5.0.0"
+    min-dash "^5.1.0"
     min-dom "^5.3.0"
     object-refs "^0.4.0"
     path-intersection "^4.1.0"
@@ -2594,10 +2594,10 @@ domify@^3.0.0:
   resolved "https://registry.npmjs.org/domify/-/domify-3.0.0.tgz"
   integrity sha512-bs2yO68JDFOm6rKv8f0EnrM2cENduhRkpqOtt/s5l5JBA/eqGBZCzLPmdYoHtJ6utgLGgcBajFsEQbl12pT0lQ==
 
-dompurify@^3.2.5, dompurify@^3.4.8:
-  version "3.4.11"
-  resolved "https://registry.npmjs.org/dompurify/-/dompurify-3.4.11.tgz"
-  integrity sha512-zhlUV12GsaRzMsf9q5M254YhA4+VuF0fG+QFqu6aYpoGlKtz+w8//jBcGVYBgQkR5GHjUomejY84AV+/uPbWdw==
+dompurify@^3.4.12, dompurify@^3.4.8:
+  version "3.4.12"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.12.tgz#6fa2265e9bbdce882c4ace4107626051b448ffa8"
+  integrity sha512-zQvGet8Z2sWbQhCmfFz/T5QWH2oBmjnqK3qvOjaqaNLrLEF912WamU+ohnTp0TCep/MFVHpdJuCZEdFOdTnEFg==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -2983,10 +2983,10 @@ jju@~1.4.0:
   resolved "https://registry.npmjs.org/jju/-/jju-1.4.0.tgz"
   integrity sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==
 
-js-base64@^3.7.7:
-  version "3.8.1"
-  resolved "https://registry.npmjs.org/js-base64/-/js-base64-3.8.1.tgz"
-  integrity sha512-5xVjhUZlHHeuO2W7w2rDFj/Kl1xLX+HjZxdOQwCsUOifl6UaoH1o1wsbsTMz+r0aeC7gCijvru02j6TfKZWzKg==
+js-base64@^3.9.1:
+  version "3.9.1"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.1.tgz#02335c16c6a311c9135dfa71b4b3b7f1af33dd48"
+  integrity sha512-U73qptcvf/HIOauFOmqT3a0mDUp0MYlfd15oqoe9kqZt5XhiXVb+HG09sLvI9PQ9tZIBFS4nlErai8zbWazP0g==
 
 js-tokens@^4.0.0:
   version "4.0.0"
@@ -3034,10 +3034,10 @@ jsonschema@^1.1.0:
   resolved "https://registry.npmjs.org/jsonschema/-/jsonschema-1.5.0.tgz"
   integrity sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==
 
-keycloak-js@26.2.0:
-  version "26.2.0"
-  resolved "https://registry.npmjs.org/keycloak-js/-/keycloak-js-26.2.0.tgz"
-  integrity sha512-CrFcXTN+d6J0V/1v3Zpioys6qHNWE6yUzVVIsCUAmFn9H14GZ0vuYod+lt+SSpMgWGPuneDZBSGBAeLBFuqjsw==
+keycloak-js@26.2.4:
+  version "26.2.4"
+  resolved "https://registry.yarnpkg.com/keycloak-js/-/keycloak-js-26.2.4.tgz#b96ff33ed08ff6fd8d1e09d9e5055c7b3f2fa918"
+  integrity sha512-PnXpR3ubETGOt0B/Qt2lxmPbkZr5bc3vlQsOqDoTPPQsZRp7JjhTKxlJ187uWh8qJhvBab6Gsjb06a8ayOPfuw==
 
 kolorist@^1.8.0:
   version "1.8.0"
@@ -3059,7 +3059,7 @@ levn@~0.3.0:
 
 lit-element@^3.3.0:
   version "3.3.3"
-  resolved "https://registry.npmjs.org/lit-element/-/lit-element-3.3.3.tgz"
+  resolved "https://registry.yarnpkg.com/lit-element/-/lit-element-3.3.3.tgz#10bc19702b96ef5416cf7a70177255bfb17b3209"
   integrity sha512-XbeRxmTHubXENkV4h8RIPyr8lXc+Ff28rkcQzw3G6up2xg5E8Zu1IgOWIwBLEQsu3cOVFqdYwiVi0hv0SlpqUA==
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.1.0"
@@ -3098,7 +3098,7 @@ lit-vaadin-helpers@^0.3.1:
 
 lit@^2.0.0:
   version "2.8.0"
-  resolved "https://registry.npmjs.org/lit/-/lit-2.8.0.tgz"
+  resolved "https://registry.yarnpkg.com/lit/-/lit-2.8.0.tgz#4d838ae03059bf9cafa06e5c61d8acc0081e974e"
   integrity sha512-4Sc3OFX9QHOJaHbmTMk28SYgVxLN3ePDjg7hofEft2zWlehFL3LiAuapWc4U/kYwMYJSh2hTCPZ6/LIC7ii0MA==
   dependencies:
     "@lit/reactive-element" "^1.6.0"
@@ -3177,12 +3177,12 @@ mime-types@^2.1.35:
   dependencies:
     mime-db "1.52.0"
 
-min-dash@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.npmjs.org/min-dash/-/min-dash-5.0.0.tgz"
-  integrity sha512-EGuoBnVL7/Fnv2sqakpX5WGmZehZ3YMmLayT7sM8E9DRU74kkeyMg4Rik1lsOkR2GbFNeBca4/L+UfU6gF0Edw==
+min-dash@^5.0.0, min-dash@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/min-dash/-/min-dash-5.1.0.tgz#ab0d892afa7e2b6b257dfe60fa3e805e0ac73799"
+  integrity sha512-HAvN6XzmCQj+js43G9sJRRw8kj/7DvoxN7qhoIN9Xo5ZN1NMljtpyKs/NunXmw0QSWwlgZzNv6tLeEa4xaZ0tg==
 
-min-dom@^5.2.0, min-dom@^5.3.0:
+min-dom@^5.3.0:
   version "5.3.0"
   resolved "https://registry.npmjs.org/min-dom/-/min-dom-5.3.0.tgz"
   integrity sha512-0w5FEBgPAyHhmFojW3zxd7we3D+m5XYS3E/06OyvxmbHJoiQVa4Nagj6RWvoAKYRw5xth6cP5TMePc5cR1M9hA==
