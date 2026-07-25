@@ -391,4 +391,29 @@ test('front-office: isla-App detectada e islandContentOf proyecta el wizard embe
   assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((btn) => btn.actionId === 'next')))
 })
 
+// 26) Front-office: átomos de negocio — ResourceGrid/OfferCard (habitación), AddOnPicker/
+// StatusList (extras/confirmar), Ledger/PaymentPicker (check-out), Meter/Stat (en casa).
+// Contratos de despacho = los del renderer web compartido (_item / _method / _added+_total).
+test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan del wire real', () => {
+  const atomsOf = (name) => islandContentOf(fx(name)).flatMap((b) => b.items)
+  const conf = atomsOf('fo-island-step-last')
+  const statusList = conf.find((a) => a.isStatusList)
+  assert.equal(statusList.items[0].title, 'María Fernández')
+  assert.match(statusList.items[0].statusClass, /success/)
+  const checkout = atomsOf('fo-island-checkout')
+  const ledger = checkout.find((a) => a.isLedger)
+  assert.equal(ledger.totalText, '€ 1.710,50')
+  assert.equal(ledger.lines[1].amountText, 'Incluido')
+  assert.match(ledger.lines.find((l) => l.concept.includes('Descuento')).amountClass, /success/)
+  const payment = checkout.find((a) => a.isPayment)
+  assert.equal(payment.methods.length, 3)
+  assert.equal(payment.methods[0].chroming, 'callToAction') // card = selected
+  assert.deepEqual(payment.confirmParameters, { _method: 'card' })
+  const casa = atomsOf('fo-island-encasa')
+  const meter = casa.find((a) => a.isMeter)
+  assert.equal(meter.max, 1800)
+  assert.match(meter.valueText, /1.710,50/)
+  assert.ok(casa.some((a) => a.isStat))
+})
+
 console.log(`\n${pass} tests OK (contrato de wire real)`)

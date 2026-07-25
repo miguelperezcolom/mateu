@@ -474,6 +474,14 @@ define([], () => {
       chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: m.parameters || {},
     })
+    const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
+      .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const STATUS_TEXT = {
+      success: 'oj-text-color-success',
+      warning: 'oj-text-color-warning',
+      danger: 'oj-text-color-danger',
+      error: 'oj-text-color-danger',
+    }
     const blocks = []
     let plain = null
     const atom = (a, container) => {
@@ -551,6 +559,135 @@ define([], () => {
       }
       if (t === 'Separator') {
         atom({ isSeparator: true }, container)
+        return
+      }
+      if (t === 'Badge') {
+        atom({ isBadge: true, label: interp(m.text), badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle' }, container)
+        return
+      }
+      if (t === 'ResourceGrid') {
+        const columns = m.columns && m.columns > 0 && m.columns <= 12 ? m.columns : 4
+        const colClass = 'oj-flex-item oj-sm-' + Math.max(1, Math.floor(12 / columns))
+        atom({
+          isResourceGrid: true,
+          items: (m.items || []).map((it) => ({
+            id: it.id,
+            title: it.title,
+            subtitle: it.subtitle || '',
+            statusLabel: it.statusLabel || '',
+            statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+            note: it.note || '',
+            recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+            enabled: !it.disabled,
+            disabled: !!it.disabled,
+            actionId: m.actionId,
+            parameters: { _item: it.id },
+            colClass,
+            cardClass: it.selected ? 'oj-bg-neutral-20' : '',
+          })),
+        }, container)
+        return
+      }
+      if (t === 'OfferCard') {
+        atom({
+          isOffer: true,
+          tag: interp(m.tag || ''),
+          title: interp(m.title || ''),
+          subtitle: interp(m.subtitle || ''),
+          features: (m.features || []).map(interp).join(' · '),
+          currentLabel: m.current ? (m.currentLabel || '') : '',
+          addedLabel: m.added ? (m.addedLabel || '') : '',
+          priceLabel: interp(m.priceLabel || ''),
+          actionLabel: m.actionId ? (m.actionLabel || '') : '',
+          actionId: m.actionId || '',
+          parameters: {},
+        }, container)
+        return
+      }
+      if (t === 'AddOnPicker') {
+        atom({
+          isAddOns: true,
+          actionId: m.actionId,
+          currency: m.currency || '€',
+          totalLabel: m.totalLabel || 'Total',
+          items: (m.items || []).map((it) => ({
+            id: it.id,
+            icon: it.icon || '',
+            title: interp(it.title),
+            description: interp(it.description || ''),
+            price: it.price || 0,
+            priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+            includedLabel: it.includedLabel || '',
+            selectable: !it.includedLabel,
+            added: !!it.added,
+          })),
+        }, container)
+        return
+      }
+      if (t === 'StatusList') {
+        atom({
+          isStatusList: true,
+          items: (m.items || []).map((it) => ({
+            avatar: it.avatar || '',
+            icon: it.icon || '',
+            title: interp(it.title),
+            description: interp(it.description || ''),
+            status: interp(it.status || ''),
+            statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
+            actionLabel: it.actionLabel || '',
+            actionId: it.actionId || m.rowActionId || '',
+            parameters: { _item: it.id },
+          })),
+        }, container)
+        return
+      }
+      if (t === 'Ledger') {
+        atom({
+          isLedger: true,
+          lines: (m.lines || []).map((line) => ({
+            concept: interp(line.concept),
+            amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
+            amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+          })),
+          totalLabel: m.totalLabel || 'Total',
+          totalText: money(m.total, m.currency),
+        }, container)
+        return
+      }
+      if (t === 'PaymentPicker') {
+        atom({
+          isPayment: true,
+          contextLabel: m.contextLabel || '',
+          contextValue: interp(m.contextValue || ''),
+          methods: (m.methods || []).map((method) => ({
+            label: method.label,
+            chroming: method.id === m.selected ? 'callToAction' : 'outlined',
+            actionId: m.methodActionId,
+            parameters: { _method: method.id },
+          })),
+          confirmLabel: m.confirmLabel || 'Confirmar',
+          confirmActionId: m.actionId,
+          confirmParameters: { _method: m.selected },
+        }, container)
+        return
+      }
+      if (t === 'Meter') {
+        atom({
+          isMeter: true,
+          label: m.label || '',
+          value: m.value || 0,
+          max: m.max || 100,
+          valueText: (m.unit === '€' ? money(m.value, '€') : String(m.value)) + ' / ' + (m.unit === '€' ? money(m.max, '€') : String(m.max)),
+          caption: interp(m.caption || ''),
+        }, container)
+        return
+      }
+      if (t === 'Stat') {
+        atom({
+          isStat: true,
+          label: m.label || '',
+          value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
+        }, container)
         return
       }
       if (t === 'Button') {

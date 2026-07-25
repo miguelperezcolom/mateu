@@ -1,0 +1,1606 @@
+{
+  "tree": {
+    "type": "ServerSide",
+    "id": "cbc88768-6073-4474-a04b-3bc178d0e9ba",
+    "serverSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.CheckInWizard",
+    "route": "",
+    "children": [
+      {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "VerticalLayout",
+          "spacing": false,
+          "padding": false,
+          "margin": false,
+          "spacingVariant": null,
+          "horizontalAlignment": null,
+          "justification": null,
+          "wrap": false,
+          "flexGrows": null,
+          "fullWidth": false,
+          "style": null
+        },
+        "id": null,
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Text",
+              "container": "h2",
+              "attributes": {},
+              "text": "Check-In",
+              "size": null,
+              "noMargins": false
+            },
+            "id": "39fa6a47-46bd-4fd1-be71-1dacdc0fa631",
+            "children": [],
+            "style": "margin: 0;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "ProgressSteps",
+              "steps": [
+                {
+                  "id": "identidad",
+                  "title": "Identidad",
+                  "description": null,
+                  "status": "done"
+                },
+                {
+                  "id": "habitacion",
+                  "title": "Habitación",
+                  "description": null,
+                  "status": "done"
+                },
+                {
+                  "id": "extras",
+                  "title": "Extras",
+                  "description": null,
+                  "status": "done"
+                },
+                {
+                  "id": "confirmar",
+                  "title": "Confirmar",
+                  "description": null,
+                  "status": "current"
+                }
+              ],
+              "vertical": false
+            },
+            "id": null,
+            "children": [],
+            "style": "width: 100%;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Div",
+              "content": null
+            },
+            "id": "fieldId",
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "VerticalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "horizontalAlignment": null,
+                  "justification": null,
+                  "wrap": false,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 1,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "EntityHeader",
+                                          "title": "María Fernández",
+                                          "badges": [
+                                            {
+                                              "label": "PLATINUM",
+                                              "color": "contrast"
+                                            }
+                                          ],
+                                          "subtitle": "Ocean Suite · 25 jul → 01 ago · 7N · 2pax · All Inclusive",
+                                          "facts": [
+                                            {
+                                              "label": "TOTAL RESERVA",
+                                              "value": "€ 4.890,00"
+                                            },
+                                            {
+                                              "label": "AGENCIA",
+                                              "value": "TUI Group · TUI Magic Life"
+                                            }
+                                          ],
+                                          "metricLabel": "FIDELIDAD",
+                                          "metricValue": "48.500",
+                                          "metricCaption": "23 estancias"
+                                        },
+                                        "id": null,
+                                        "children": [],
+                                        "style": "width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 1
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Card",
+                      "media": null,
+                      "headerPrefix": null,
+                      "header": null,
+                      "title": null,
+                      "subtitle": null,
+                      "headerSuffix": null,
+                      "content": {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "Text",
+                              "container": "h3",
+                              "attributes": {},
+                              "text": "Resumen",
+                              "size": null,
+                              "noMargins": false
+                            },
+                            "id": "0eb027d3-5013-4b05-becf-710cfc2d8b5b",
+                            "children": [],
+                            "style": " flex: 1; margin: 0;",
+                            "cssClasses": null,
+                            "slot": null
+                          },
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "VerticalLayout",
+                                  "spacing": false,
+                                  "padding": false,
+                                  "margin": false,
+                                  "spacingVariant": null,
+                                  "horizontalAlignment": "STRETCH",
+                                  "justification": null,
+                                  "wrap": false,
+                                  "flexGrows": null,
+                                  "fullWidth": false,
+                                  "style": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "huespedPrincipal",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "Huésped principal",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": true,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": true,
+                                      "link": null
+                                    },
+                                    "id": "huespedPrincipal",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  },
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "habitacionAsignada",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "Habitación",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": true,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": true,
+                                      "link": null
+                                    },
+                                    "id": "habitacionAsignada",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  },
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "estancia",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "Estancia",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": true,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": true,
+                                      "link": null
+                                    },
+                                    "id": "estancia",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  },
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "regimen",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "Régimen",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": true,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": true,
+                                      "link": null
+                                    },
+                                    "id": "regimen",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "width: 100%;",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      "footer": null,
+                      "variants": [
+                        "outlined"
+                      ]
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": "flex: 1; min-width: 0; width:100%;",
+                    "cssClasses": "mateu-section",
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "Card",
+                      "media": null,
+                      "headerPrefix": null,
+                      "header": null,
+                      "title": null,
+                      "subtitle": null,
+                      "headerSuffix": null,
+                      "content": {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "Text",
+                              "container": "h3",
+                              "attributes": {},
+                              "text": "Huéspedes en la habitación",
+                              "size": null,
+                              "noMargins": false
+                            },
+                            "id": "a64f1844-9f51-4773-9138-a45132cceff6",
+                            "children": [],
+                            "style": " flex: 1; margin: 0;",
+                            "cssClasses": null,
+                            "slot": null
+                          },
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 1,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "StatusList",
+                                              "items": [
+                                                {
+                                                  "id": "principal",
+                                                  "icon": null,
+                                                  "avatar": "MF",
+                                                  "title": "María Fernández",
+                                                  "description": "Doc 12345678X · Adulto",
+                                                  "status": "✓ Identidad verificada",
+                                                  "statusColor": "success",
+                                                  "actionLabel": null,
+                                                  "actionId": null
+                                                },
+                                                {
+                                                  "id": "juan",
+                                                  "icon": null,
+                                                  "avatar": "JF",
+                                                  "title": "Juan Fernández",
+                                                  "description": "Doc 87654321Y · Adulto",
+                                                  "status": "✓ Identidad verificada",
+                                                  "statusColor": "success",
+                                                  "actionLabel": null,
+                                                  "actionId": null
+                                                }
+                                              ],
+                                              "compact": true,
+                                              "frameless": true,
+                                              "rowActionId": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "width: 100%;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          "colspan": 1
+                                        },
+                                        "id": "fieldId",
+                                        "children": [],
+                                        "style": "width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      "footer": null,
+                      "variants": [
+                        "outlined"
+                      ]
+                    },
+                    "id": "fieldId",
+                    "children": [],
+                    "style": "flex: 1; min-width: 0; width:100%;",
+                    "cssClasses": "mateu-section",
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 1,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "Notice",
+                                          "text": "TOTAL ESTANCIA",
+                                          "theme": "warning",
+                                          "icon": null,
+                                          "noIcon": true,
+                                          "actionLabel": "Solicitar Preautorización",
+                                          "actionId": "requestPreauth",
+                                          "status": null,
+                                          "slim": false,
+                                          "fullWidth": true,
+                                          "inlineContent": false
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "Text",
+                                              "container": "div",
+                                              "attributes": {},
+                                              "text": "€ 4.890,00",
+                                              "size": null,
+                                              "noMargins": true
+                                            },
+                                            "id": "d09a861d-9f27-44ca-a7a6-704d1a3b2fa8",
+                                            "children": [],
+                                            "style": "font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: #925a13;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": null,
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 1
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 1,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "HorizontalLayout",
+                                          "spacing": false,
+                                          "padding": false,
+                                          "margin": false,
+                                          "spacingVariant": null,
+                                          "verticalAlignment": null,
+                                          "justification": null,
+                                          "wrap": false,
+                                          "flexGrows": null,
+                                          "fullWidth": false,
+                                          "style": null
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "StatusList",
+                                              "items": [
+                                                {
+                                                  "id": "llave",
+                                                  "icon": "🔑",
+                                                  "avatar": null,
+                                                  "title": "Grabar llave / pulsera",
+                                                  "description": "Complemento de llave digital",
+                                                  "status": null,
+                                                  "statusColor": null,
+                                                  "actionLabel": "Grabar",
+                                                  "actionId": "encodeKey"
+                                                }
+                                              ],
+                                              "compact": false,
+                                              "frameless": false,
+                                              "rowActionId": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "flex: 1 1 16rem; width: auto;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "StatusList",
+                                              "items": [
+                                                {
+                                                  "id": "email",
+                                                  "icon": "✉",
+                                                  "avatar": null,
+                                                  "title": "Email de bienvenida",
+                                                  "description": "Envío automatizado al confirmar",
+                                                  "status": "ACTIVADO",
+                                                  "statusColor": "success",
+                                                  "actionLabel": null,
+                                                  "actionId": null
+                                                }
+                                              ],
+                                              "compact": false,
+                                              "frameless": false,
+                                              "rowActionId": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "flex: 1 1 16rem; width: auto;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": "width: 100%; gap: 1rem; flex-wrap: wrap;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 1
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "width: 100%; gap: 1rem; flex-wrap: wrap;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "Notice",
+                                          "text": "Parte de viajeros (SES) — se enviará automáticamente al confirmar el check-in",
+                                          "theme": "success",
+                                          "icon": null,
+                                          "noIcon": false,
+                                          "actionLabel": null,
+                                          "actionId": null,
+                                          "status": null,
+                                          "slim": false,
+                                          "fullWidth": true,
+                                          "inlineContent": false
+                                        },
+                                        "id": null,
+                                        "children": [],
+                                        "style": "margin: 0.75rem 0;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 1
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "margin: 0.75rem 0;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "StatusList",
+                                          "items": [
+                                            {
+                                              "id": "firma",
+                                              "icon": "✍",
+                                              "avatar": null,
+                                              "title": "Firma de bienvenida — tablet Civitfun",
+                                              "description": "Envía el documento de registro a la tablet del mostrador para la firma del huésped",
+                                              "status": null,
+                                              "statusColor": null,
+                                              "actionLabel": "Enviar a tablet",
+                                              "actionId": "sendToTablet"
+                                            }
+                                          ],
+                                          "compact": false,
+                                          "frameless": false,
+                                          "rowActionId": null
+                                        },
+                                        "id": null,
+                                        "children": [],
+                                        "style": "width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 1
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "width: 100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": "width: 100%; margin-top: 1rem;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "HorizontalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "verticalAlignment": null,
+              "justification": "END",
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": false,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Button",
+                  "label": "Back",
+                  "iconOnLeft": null,
+                  "iconOnRight": null,
+                  "image": null,
+                  "color": "normal",
+                  "variant": null,
+                  "buttonStyle": null,
+                  "size": null,
+                  "autofocus": false,
+                  "disabled": false,
+                  "actionId": "back",
+                  "parameters": null,
+                  "shortcut": null,
+                  "separatorBefore": false,
+                  "children": null
+                },
+                "id": "back",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Button",
+                  "label": "Confirmar check-in",
+                  "iconOnLeft": null,
+                  "iconOnRight": null,
+                  "image": null,
+                  "color": "normal",
+                  "variant": null,
+                  "buttonStyle": "primary",
+                  "size": null,
+                  "autofocus": false,
+                  "disabled": false,
+                  "actionId": "confirmarCheckin",
+                  "parameters": null,
+                  "shortcut": null,
+                  "separatorBefore": false,
+                  "children": null
+                },
+                "id": "b0918df0-b9aa-4b89-b2c6-09744d3557a5",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "style": "width: 100%",
+        "cssClasses": null,
+        "slot": null
+      }
+    ],
+    "initialData": {
+      "position": 3,
+      "stayId": "st-maria",
+      "populated": true,
+      "selectedPax": 1,
+      "identidad": {
+        "historyInfo": "23 estancias · Cliente desde 2019",
+        "prefHeader": "Preferencias",
+        "selectedPax": 1,
+        "lastStayHeader": "ÚLTIMA ESTANCIA",
+        "stayId": "st-maria",
+        "lastStaySecondaryInfo": "Feb 2026 · 5N",
+        "lastStayMainInfo": "Hab 1408 · Hotel Aruba"
+      },
+      "habitacion": {
+        "stayId": "st-maria",
+        "habitacionSeleccionada": "1204",
+        "upgradeAnadido": false
+      },
+      "extras": {
+        "extrasSeleccionados": "",
+        "stayId": "st-maria",
+        "extrasTotal": 0
+      },
+      "confirmar": {
+        "habitacionAsignada": "1204 — Ocean Suite",
+        "huespedPrincipal": "María Fernández",
+        "firmaEstado": "pendiente",
+        "estancia": "25 jul → 01 ago",
+        "llaveEstado": "pendiente",
+        "stayId": "st-maria",
+        "preauthEstado": "pendiente",
+        "regimen": "All Inclusive",
+        "totalEstancia": 4890
+      },
+      "result": null,
+      "step": {
+        "stayId": "st-maria",
+        "totalEstancia": 4890,
+        "firmaEstado": "pendiente",
+        "preauthEstado": "pendiente",
+        "llaveEstado": "pendiente",
+        "header": {},
+        "huespedPrincipal": "María Fernández",
+        "habitacionAsignada": "1204 — Ocean Suite",
+        "estancia": "25 jul → 01 ago",
+        "regimen": "All Inclusive",
+        "huespedesEnHabitacion": {},
+        "totalBand": {},
+        "llaveYEmail": {},
+        "parteViajeros": {},
+        "firma": {}
+      },
+      "historyInfo": "23 estancias · Cliente desde 2019",
+      "prefHeader": "Preferencias",
+      "lastStayHeader": "ÚLTIMA ESTANCIA",
+      "lastStaySecondaryInfo": "Feb 2026 · 5N",
+      "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+      "habitacionSeleccionada": "1204",
+      "upgradeAnadido": false,
+      "extrasSeleccionados": "",
+      "extrasTotal": 0,
+      "habitacionAsignada": "1204 — Ocean Suite",
+      "huespedPrincipal": "María Fernández",
+      "firmaEstado": "pendiente",
+      "estancia": "25 jul → 01 ago",
+      "llaveEstado": "pendiente",
+      "preauthEstado": "pendiente",
+      "regimen": "All Inclusive",
+      "totalEstancia": 4890
+    },
+    "style": "max-width:900px;margin: auto;display: block;",
+    "cssClasses": null,
+    "actions": [
+      {
+        "id": "next",
+        "validationRequired": true,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "pickRoom",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "upgrade",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "extrasChanged",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "selectPax",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "refrescarIdentidad",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "firmaCapturada",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "preautorizado",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "llaveGrabada",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "sendToTablet",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "requestPreauth",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "encodeKey",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "*",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      }
+    ],
+    "triggers": [
+      {
+        "type": "OnCustomEvent",
+        "actionId": "refrescarIdentidad",
+        "eventName": "documento-escaneado",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "firmaCapturada",
+        "eventName": "firma-capturada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "preautorizado",
+        "eventName": "preautorizacion-completada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "llaveGrabada",
+        "eventName": "llave-grabada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      }
+    ],
+    "rules": [],
+    "validations": [],
+    "slot": null,
+    "containerId": null,
+    "confirmOnNavigationIfDirty": false,
+    "emitsName": null,
+    "pageWidth": null,
+    "pageType": "process"
+  },
+  "state": {
+    "position": 3,
+    "stayId": "st-maria",
+    "populated": true,
+    "selectedPax": 1,
+    "identidad": {
+      "historyInfo": "23 estancias · Cliente desde 2019",
+      "prefHeader": "Preferencias",
+      "selectedPax": 1,
+      "lastStayHeader": "ÚLTIMA ESTANCIA",
+      "stayId": "st-maria",
+      "lastStaySecondaryInfo": "Feb 2026 · 5N",
+      "lastStayMainInfo": "Hab 1408 · Hotel Aruba"
+    },
+    "habitacion": {
+      "stayId": "st-maria",
+      "habitacionSeleccionada": "1204",
+      "upgradeAnadido": false
+    },
+    "extras": {
+      "extrasSeleccionados": "",
+      "stayId": "st-maria",
+      "extrasTotal": 0
+    },
+    "confirmar": {
+      "habitacionAsignada": "1204 — Ocean Suite",
+      "huespedPrincipal": "María Fernández",
+      "firmaEstado": "pendiente",
+      "estancia": "25 jul → 01 ago",
+      "llaveEstado": "pendiente",
+      "stayId": "st-maria",
+      "preauthEstado": "pendiente",
+      "regimen": "All Inclusive",
+      "totalEstancia": 4890
+    },
+    "result": null,
+    "step": {
+      "stayId": "st-maria",
+      "totalEstancia": 4890,
+      "firmaEstado": "pendiente",
+      "preauthEstado": "pendiente",
+      "llaveEstado": "pendiente",
+      "header": {},
+      "huespedPrincipal": "María Fernández",
+      "habitacionAsignada": "1204 — Ocean Suite",
+      "estancia": "25 jul → 01 ago",
+      "regimen": "All Inclusive",
+      "huespedesEnHabitacion": {},
+      "totalBand": {},
+      "llaveYEmail": {},
+      "parteViajeros": {},
+      "firma": {}
+    },
+    "historyInfo": "23 estancias · Cliente desde 2019",
+    "prefHeader": "Preferencias",
+    "lastStayHeader": "ÚLTIMA ESTANCIA",
+    "lastStaySecondaryInfo": "Feb 2026 · 5N",
+    "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+    "habitacionSeleccionada": "1204",
+    "upgradeAnadido": false,
+    "extrasSeleccionados": "",
+    "extrasTotal": 0,
+    "habitacionAsignada": "1204 — Ocean Suite",
+    "huespedPrincipal": "María Fernández",
+    "firmaEstado": "pendiente",
+    "estancia": "25 jul → 01 ago",
+    "llaveEstado": "pendiente",
+    "preauthEstado": "pendiente",
+    "regimen": "All Inclusive",
+    "totalEstancia": 4890
+  }
+}

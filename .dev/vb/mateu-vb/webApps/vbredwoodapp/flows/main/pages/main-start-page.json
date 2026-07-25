@@ -244,6 +244,28 @@
           }
         }
       ]
+    },
+    "addonToggled": {
+      "chains": [
+        {
+          "chain": "addonToggled",
+          "parameters": {
+            "event": "{{ $event }}",
+            "itemId": "{{ $current.data.id }}"
+          }
+        }
+      ]
+    },
+    "paymentConfirm": {
+      "chains": [
+        {
+          "chain": "runMateuIslandAction",
+          "parameters": {
+            "actionId": "{{ $current.data.confirmActionId }}",
+            "parameters": "{{ $current.data.confirmParameters }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -304,6 +326,12 @@
       },
       "oj-train": {
         "path": "ojs/ojtrain"
+      },
+      "oj-avatar": {
+        "path": "ojs/ojavatar"
+      },
+      "oj-progress-bar": {
+        "path": "ojs/ojprogress"
       }
     }
   }

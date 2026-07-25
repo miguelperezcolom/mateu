@@ -630,6 +630,26 @@ ResourceGrid/AddOnPicker/Ledger/PaymentPicker/StatusList/Meter/TaskProgress (pas
 check-out) e islas ANIDADAS (App dentro de la isla, p.ej. el documento — el walker las
 salta). Fixture fo-island-wizard, test 25. Shots fo-checkin-sel/fo-checkin-step2.
 
+## Átomos de negocio del front-office — COMPLETOS (2026-07-25)
+
+`islandContentOf` proyecta ya los 9 tipos display restantes (formas capturadas del wire
+real; contratos de despacho = los del renderer web compartido): **Badge** (chips →
+oj-badge), **ResourceGrid** (grid de habitaciones → tiles oj-action-card en oj-flex,
+columns→oj-sm-N, disabled→oj-panel con oj-text-color-disabled, selected→oj-bg-neutral-20;
+clic → actionId + {_item}), **OfferCard** (oj-panel con tag/título/features·unidas/
+currentLabel/priceLabel + CTA), **AddOnPicker** (filas con oj-switch; el chain
+`addonToggled` calcula el TOTAL cliente tras el toggle y despacha actionId +
+{_item,_added,_total}), **StatusList** (filas con oj-avatar initials + estado coloreado
+oj-text-color-*), **Ledger** (filas concepto/importe, included→includedLabel, negativos→
+verde, total en subheading; moneda formateada de-DE como el renderer web), **PaymentPicker**
+(métodos → botones, seleccionado callToAction, clic → methodActionId + {_method}; Confirmar
+→ actionId + {_method: selected}), **Meter** (oj-progress-bar de JET core ojs/ojprogress +
+label/valores/caption), **Stat** (label + valor en heading). Fixtures fo-island-step-last /
+fo-island-checkout / fo-island-encasa; test 26 (26/26). Verificado e2e: wizard completo
+(habitación con grid+upgrade, extras con switches), folio del check-out con total y métodos
+de pago, balance/estancias de en-casa. Shots fo-checkin-step2/step3, fo-checkout-sel,
+fo-encasa-sel.
+
 ## Backend conmutado a demo-front-office (2026-07-25)
 
 **Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer
