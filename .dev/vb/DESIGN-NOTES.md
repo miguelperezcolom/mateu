@@ -510,7 +510,10 @@ la MISMA receta que pinta FA: inset 270px 0 0 0, ancladas abajo izda/dcha, z-ind
 (3) El icono Home que estampa `oj-sp-global-header` (sin API de posición) pasa a la derecha
 del todo con `order: 99` (comparte contenedor flex con el slot end). Colores medidos de las
 utility classes: oj-bg-neutral-0 #FFF · oj-bg-body/neutral-10 #FBF9F8 · neutral-20 #F5F4F2 ·
-neutral-30 #F1EFED.
+neutral-30 #F1EFED. **Navigator a toda altura**: `oj-drawer-layout` no crece solo
+(flex 0 1 auto → alto del contenido, el menú se cortaba en páginas cortas) — `style="flex: 1
+1 auto"` en el elemento (pageContent/oj-web-applayout-page ya es flex column de 100%), mismo
+mecanismo inline que el `min-width:0` de oj-vb-content.
 
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
