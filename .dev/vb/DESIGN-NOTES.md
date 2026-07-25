@@ -436,6 +436,15 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   demo), edgeToEdge = 0 (Booking mide padding 0). Medición RDS 24C.
 - Tests 21/21. Evidencia: `shots/gates-banner.png` (banner INFO Redwood en Hello).
 
+## Regla de headers Redwood (feedback del usuario, 2026-07-25)
+
+**Una página con header Redwood (wizard/general-overview/welcome) NO lleva h1 propio** — lo que
+hubiera en el header de página se INTEGRA en el header Redwood (p.ej. el título de página va
+como parent-page link del `oj-sp-header-general-overview`, vía `translations.goToParent`), y el
+header va A SANGRE (sin padding arriba ni a los lados): las proyecciones fuerzan
+`mateuPagePadding='0'` cuando hay header Redwood y el contenido inferior recupera los gutters
+con clases utilitarias del sistema (`oj-sm-padding-4x-horizontal`). Cero CSS propio.
+
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
 - Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +

@@ -449,6 +449,13 @@
       "type": "any",
       "defaultValue": [],
       "description": "textos del tab seleccionado del item overview"
+    },
+    "mateuOverviewTranslations": {
+      "type": "any",
+      "defaultValue": {
+        "goToParent": ""
+      },
+      "description": "el título de página se integra como 'parent page' del header Redwood"
     }
   },
   "userConfig": {

@@ -93,6 +93,7 @@ define([
 
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
+      $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;
       $application.variables.mateuFormFieldsList = summary.fields;
@@ -161,6 +162,10 @@ define([
       $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
       $application.variables.mateuPageMargin = pageStyle.margin;
       $application.variables.mateuPagePadding = pageStyle.padding;
+      if ($application.variables.mateuWelcome || $application.variables.mateuOverview
+          || $application.variables.mateuWizard) {
+        $application.variables.mateuPagePadding = '0';
+      }
       // 1.5: la URL refleja la ruta (hash — deep-linkable y con back/forward)
       if (!fromUrl && window.location.hash !== '#' + route) {
         window.history.pushState(null, '', '#' + route);

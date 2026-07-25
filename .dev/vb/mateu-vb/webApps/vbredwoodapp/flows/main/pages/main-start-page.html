@@ -10,7 +10,9 @@
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
 <!-- el h1 de página SOBRA en un wizard: el guided-process ya lleva el título
      (overview + cabecera propia) -->
-<oj-bind-if test="[[ !$application.variables.mateuWizard ]]">
+<!-- regla general: una página CON header Redwood (wizard/overview/welcome) no lleva
+     h1 propio — lo que hubiera en él se integra en el header Redwood -->
+<oj-bind-if test="[[ !$application.variables.mateuWizard && !$application.variables.mateuOverview && !$application.variables.mateuWelcome ]]">
 <div class="oj-flex">
   <h1 class="oj-flex-item oj-sm-12 oj-md-12"><oj-bind-text value="[[ $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
 </div>
@@ -65,7 +67,7 @@
     secondary-action="[[ $application.variables.mateuWelcome.secondaryCta ]]"
     on-sp-primary-action="[[ $listeners.welcomePrimary ]]"
     on-sp-secondary-action="[[ $listeners.welcomeSecondary ]]"></oj-sp-header-welcome-banner>
-  <div class="oj-flex oj-sm-margin-6x-top">
+  <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-4x-horizontal">
     <oj-bind-for-each data="[[ $application.variables.mateuWelcome.tiles ]]">
       <template>
         <div class="oj-flex-item oj-sm-12 oj-md-4">
@@ -91,8 +93,9 @@
     contextual-info="[[ $application.variables.mateuOverview.facts ]]"
     select-object="[[ $variables.overviewSelectConfig ]]"
     select-object-value="[[ $application.variables.mateuOverview.switcherValue ]]"
+    translations="[[ $application.variables.mateuOverviewTranslations ]]"
     on-select-object-value-changed="[[ $listeners.overviewSwitched ]]"></oj-sp-header-general-overview>
-  <div class="oj-flex oj-sm-margin-6x-top">
+  <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-4x-horizontal">
     <oj-bind-for-each data="[[ $application.variables.mateuOverview.cards ]]">
       <template>
         <div class="oj-flex-item oj-sm-12 oj-md-6">
