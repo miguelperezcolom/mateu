@@ -487,7 +487,10 @@ Y TAMBIÉN en `oj-sp-foldout-layout`, que estampa internamente un `oj-sp-header-
 cuya única banda visible era ese link (su API no está en el loader del CDN — se lee en runtime
 via `customElements.get('oj-sp-foldout-layout').metadata.properties`). El foldout NO cuenta
 como "template con header integrado" (su header interno es solo navegación, sin título) →
-mantiene el header genérico encima.
+mantiene el header genérico encima. El cascarón del header interno (16px) NO se puede
+colapsar con ninguna opción (probado goToParent/bidirectionalNavigation/inFlowBack off) —
+pero `display-options.background="transparent"` lo deja del color del lienzo (#FBF9F8) en
+vez de blanco, con lo que la banda deja de percibirse (evidencia: shots/band-zoom.png).
 
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
 `hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.

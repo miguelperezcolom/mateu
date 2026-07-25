@@ -36,8 +36,11 @@
      lógica responsive (plegado + scroll + dots); dentro de un flex-item con min-width:auto
      se desborda y cree que todo cabe -->
 <oj-bind-if test="[[ !!$application.variables.mateuFoldout ]]">
+      <!-- el header interno del foldout no se puede colapsar (16px siempre): con
+           background=transparent deja de ser una banda blanca y queda como respiración -->
       <oj-sp-foldout-layout id="mateuFoldoutEl"
-        display-options.go-to-parent="false">
+        display-options.go-to-parent="false"
+        display-options.background="transparent">
         <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuHostTitle ]]">
           <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.texts ]]">
             <template>
