@@ -172,6 +172,9 @@ define([
       $application.variables.mateuBannerKeys = banners.map((banner) => banner.id);
       // 1.6: anatomía pageWidth del contexto host
       const pageStyle = bridge.pageStyleOf(host);
+      // el shell adapta su chrome (p.ej. el chat FAB) al formato de página
+      const pw = (host && host.pageWidth) || 'fixed';
+      $application.variables.mateuShellPageLayout = pw === 'fixed' ? 'fixedWidth' : pw;
       $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
       $application.variables.mateuPageMargin = pageStyle.margin;
       $application.variables.mateuPagePadding = pageStyle.padding;

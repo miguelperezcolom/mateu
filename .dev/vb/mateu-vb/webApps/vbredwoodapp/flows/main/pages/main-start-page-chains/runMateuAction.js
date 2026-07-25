@@ -138,6 +138,8 @@ define([
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary || $application.variables.mateuFoldout);
       $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
+      const pwAfter = (hostAfter && hostAfter.pageWidth) || 'fixed';
+      $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local

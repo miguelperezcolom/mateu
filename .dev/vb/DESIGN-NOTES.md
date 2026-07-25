@@ -513,7 +513,10 @@ utility classes: oj-bg-neutral-0 #FFF · oj-bg-body/neutral-10 #FBF9F8 · neutra
 neutral-30 #F1EFED. **Navigator a toda altura**: `oj-drawer-layout` no crece solo
 (flex 0 1 auto → alto del contenido, el menú se cortaba en páginas cortas) — `style="flex: 1
 1 auto"` en el elemento (pageContent/oj-web-applayout-page ya es flex column de 100%), mismo
-mecanismo inline que el `min-width:0` de oj-vb-content.
+mecanismo inline que el `min-width:0` de oj-vb-content. **pageLayout del shell**: `oj-sp-simple-ui-shell`
+adapta su chrome (tamaño del chat FAB, etc.) a `page-layout` (fixedWidth/fullWidth/edgeToEdge)
+— se alimenta del `pageWidth` del wire por página (`mateuShellPageLayout`, fixed→fixedWidth)
+en ambos chains; no constriñe el contenido (nuestro container sigue mandando en el ancho).
 
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 

@@ -2,7 +2,7 @@
      por el componente). El contenido del starter (banner, toast, router) va en el slot
      stretchingContents. Cero HTML/CSS propio: solo composición de componentes oj-sp. -->
 
-<oj-sp-simple-ui-shell id="shell">
+<oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader">
     <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->

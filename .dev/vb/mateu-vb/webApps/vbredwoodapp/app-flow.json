@@ -478,6 +478,11 @@
       "type": "any",
       "defaultValue": null,
       "description": "header genérico de página (oj-sp-header-general-overview sin switcher) — null cuando el template ya integra su header"
+    },
+    "mateuShellPageLayout": {
+      "type": "string",
+      "defaultValue": "fixedWidth",
+      "description": "pageLayout de oj-sp-simple-ui-shell derivado del pageWidth del wire (fixed→fixedWidth)"
     }
   },
   "userConfig": {
