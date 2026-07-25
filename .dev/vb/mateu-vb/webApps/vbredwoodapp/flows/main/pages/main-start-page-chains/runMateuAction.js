@@ -125,6 +125,7 @@ define([
           appState,
           consumedRoute: islandAfter.consumedRoute,
           serverSideType: islandAfter.serverSideType,
+          componentState: islandAfter.initialData || {},
         });
         $application.variables.mateuRegistry = reg;
       }
@@ -135,6 +136,37 @@ define([
             actions: bridge.actionsOf(islandCtxAfter.tree),
             content: bridge.islandContentOf(islandCtxAfter) }
         : null;
+      // isla ANIDADA dentro de la isla (App con initialData sembrado, p.ej. el documento):
+      // cargar con el initialData como componentState; RECARGAR si el seed cambió (selectPax)
+      const nestedList = islandCtxAfter ? bridge.collectIslands(islandCtxAfter.tree) : [];
+      const nestedInfo = nestedList.length ? nestedList[0] : null;
+      const nestedSeed = nestedInfo ? JSON.stringify(nestedInfo.initialData || {}) : '';
+      if (nestedInfo && (!reg.contexts[nestedInfo.id]
+          || $application.variables.mateuNestedSeed !== nestedSeed)) {
+        // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
+        // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
+        reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
+          appState,
+          componentState: nestedInfo.initialData || {},
+        });
+        $application.variables.mateuRegistry = reg;
+      }
+      $application.variables.mateuNestedId = nestedInfo ? nestedInfo.id : '';
+      $application.variables.mateuNestedSeed = nestedSeed;
+      const nestedCtx = nestedInfo ? reg.contexts[nestedInfo.id] : null;
+      const nestedBlocks = nestedCtx ? bridge.islandContentOf(nestedCtx) : null;
+      $application.variables.mateuNested = nestedBlocks
+        ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) }
+        : null;
+      // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
+      // $current — leer $application.variables en templates profundos no re-liga)
+      if ($application.variables.mateuIsland && nestedBlocks) {
+        $application.variables.mateuIsland = Object.assign({}, $application.variables.mateuIsland, {
+          content: bridge.mergeNestedContent($application.variables.mateuIsland.content, nestedBlocks),
+        });
+      }
+
+
       // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
       $application.variables.mateuQueue = bridge.taskQueueOf(hostAfter.tree);
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);

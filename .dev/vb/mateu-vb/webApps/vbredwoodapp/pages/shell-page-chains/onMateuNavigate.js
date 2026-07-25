@@ -75,6 +75,7 @@ define([
           appState,
           consumedRoute: firstIsland.consumedRoute,
           serverSideType: firstIsland.serverSideType,
+          componentState: firstIsland.initialData || {},
         });
       }
       $application.variables.mateuIslandId = firstIsland ? firstIsland.id : '';
@@ -95,6 +96,37 @@ define([
             actions: bridge.actionsOf(islandContext.tree),
             content: bridge.islandContentOf(islandContext) }
         : null;
+      // isla ANIDADA dentro de la isla (App con initialData sembrado, p.ej. el documento):
+      // cargar con el initialData como componentState; RECARGAR si el seed cambió (selectPax)
+      const nestedList = islandContext ? bridge.collectIslands(islandContext.tree) : [];
+      const nestedInfo = nestedList.length ? nestedList[0] : null;
+      const nestedSeed = nestedInfo ? JSON.stringify(nestedInfo.initialData || {}) : '';
+      if (nestedInfo && (!reg.contexts[nestedInfo.id]
+          || $application.variables.mateuNestedSeed !== nestedSeed)) {
+        // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
+        // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
+        reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
+          appState,
+          componentState: nestedInfo.initialData || {},
+        });
+        $application.variables.mateuRegistry = reg;
+      }
+      $application.variables.mateuNestedId = nestedInfo ? nestedInfo.id : '';
+      $application.variables.mateuNestedSeed = nestedSeed;
+      const nestedCtx = nestedInfo ? reg.contexts[nestedInfo.id] : null;
+      const nestedBlocks = nestedCtx ? bridge.islandContentOf(nestedCtx) : null;
+      $application.variables.mateuNested = nestedBlocks
+        ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) }
+        : null;
+      // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
+      // $current — leer $application.variables en templates profundos no re-liga)
+      if ($application.variables.mateuIsland && nestedBlocks) {
+        $application.variables.mateuIsland = Object.assign({}, $application.variables.mateuIsland, {
+          content: bridge.mergeNestedContent($application.variables.mateuIsland.content, nestedBlocks),
+        });
+      }
+
+
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       const toolbar = listingSummary ? listingSummary.toolbar : [];

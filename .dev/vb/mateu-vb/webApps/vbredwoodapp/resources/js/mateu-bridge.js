@@ -72,6 +72,9 @@ define([], () => {
           route: node.metadata.homeRoute,
           consumedRoute: node.metadata.homeConsumedRoute || node.metadata.homeRoute,
           serverSideType: node.metadata.homeServerSideType,
+          // el CONTEXTO sembrado por el host (stayId, paxIndex…): debe viajar como
+          // componentState en la carga inicial de la isla (mateu-ux.initialState)
+          initialData: node.initialData || null,
         })
         return
       }
@@ -486,7 +489,7 @@ define([], () => {
     let plain = null
     const atom = (a, container) => {
       if (container) { container.items.push(a); return }
-      if (!plain) { plain = { isCard: false, items: [] }; blocks.push(plain) }
+      if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
       plain.items.push(a)
     }
     // los hijos de un nodo viajan en children Y/O en metadata.content (CustomField, Notice…)
@@ -507,7 +510,20 @@ define([], () => {
       if (!node || typeof node !== 'object') return
       const m = node.metadata
       const t = m && m.type
-      if (t === 'App') return // isla ANIDADA: se salta (documentado)
+      if (t === 'App') {
+        // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
+        // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
+        atom({ isNested: true, islandId: node.id }, container)
+        return
+      }
+      if (t === 'FormField') {
+        if (m.propertyRow) {
+          const fieldId = m.fieldId || m.id
+          const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
+          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
+        }
+        return
+      }
       if (t === 'Card') {
         const card = { isCard: true, items: [] }
         blocks.push(card)
@@ -700,8 +716,35 @@ define([], () => {
       for (const child of kidsOf(node)) visit(child, container)
     }
     visit(ctx.tree, null)
-    const hasDisplay = blocks.some((b) => b.items.some((a) => !a.isButtons))
-    return hasDisplay ? blocks : null
+    // HOISTING de la isla anidada: un bloque cuyo contenido es la isla (card "Documento")
+    // se convierte en bloque isNestedBlock — el markup la pinta a nivel de BLOQUE porque
+    // a más profundidad el evaluador CSP de VB deja de resolver los bindings del template
+    const hoisted = blocks.map((block) => (
+      block.items.some((a) => a.isNested)
+        ? { isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
+        : block
+    ))
+    const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
+    return hasDisplay ? hoisted : null
+  }
+
+  /** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
+   *  el bloque isNestedBlock (la card que solo contenía la isla) pasa a ser una card
+   *  normal cuyos items son los átomos de la anidada, MARCADOS fromNested (también sus
+   *  botones) para que el dispatcher enrute sus acciones al contexto anidado. Motivo:
+   *  leer $application.variables DENTRO de un template anidado no re-liga los contextos
+   *  internos en el evaluador CSP de VB — los datos deben fluir por $current. */
+  function mergeNestedContent(islandBlocks, nestedBlocks) {
+    if (!islandBlocks) return islandBlocks
+    const nestedAtoms = (nestedBlocks || []).reduce((out, block) => out.concat(block.items), [])
+      .map((a) => {
+        const marked = { ...a, fromNested: true }
+        if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
+        return marked
+      })
+    return islandBlocks.map((block) => (
+      block.isNestedBlock ? { isCard: true, items: nestedAtoms } : block
+    ))
   }
 
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
@@ -1052,6 +1095,39 @@ define([], () => {
     })
   }
 
+  /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
+   *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
+   *  MVP: se lee el stream ENTERO y se devuelven los increments en orden (sin diálogo de
+   *  progreso en vivo); el último suele traer los comandos (p.ej. dispatchEvent). */
+  async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
+    const outbound = (ctx && ctx.outbound) || {}
+    const effectiveRoute = outbound.route || route || ''
+    const bare = effectiveRoute.replace(/^\//, '')
+    const res = await fetch(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      body: JSON.stringify({
+        appState: {},
+        componentState: componentState || (ctx && ctx.state) || {},
+        parameters: {},
+        initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+        consumedRoute: outbound.consumedRoute || '',
+        serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+        ...extra,
+        route: bare ? `/${bare}` : '',
+        actionId,
+      }),
+    })
+    if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
+    const text = await res.text()
+    const increments = []
+    for (const chunk of text.split('\n\n')) {
+      const line = chunk.trim()
+      if (line.startsWith('data:')) increments.push(JSON.parse(line.slice(5).trim()))
+    }
+    return increments
+  }
+
   /**
    * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
    * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
@@ -1061,6 +1137,10 @@ define([], () => {
     let next = reduceContexts(reg, await loadRoute(base, route, targetId, extra))
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined }
+    // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
+    // la carga de contenido las pierde, así que se conservan aquí
+    const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
+    const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId])
     if (info) {
       outbound = {
@@ -1078,12 +1158,17 @@ define([], () => {
       )
     }
     // el contexto RECUERDA cómo se cargó: las acciones salientes reconstruyen los campos
-    // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada)
+    // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada).
+    // sseActionIds: acciones anunciadas Action.sse(true) — van por el endpoint /sse
     next = {
       ...next,
       contexts: {
         ...next.contexts,
-        [ctxId]: { ...next.contexts[ctxId], outbound },
+        [ctxId]: {
+          ...next.contexts[ctxId],
+          outbound,
+          sseActionIds: wrapperActions.filter((a) => a && a.sse).map((a) => a.id),
+        },
       },
     }
     return next
@@ -1117,6 +1202,7 @@ define([], () => {
     emptyStateOf,
     interpolate,
     islandContentOf,
+    mergeNestedContent,
     bannersOf,
     pageStyleOf,
     collectTexts,
@@ -1128,5 +1214,6 @@ define([], () => {
     loadRouteInto,
     composeInnerRoute,
     runMateuAction,
+    runMateuActionSse,
   };
 });

@@ -52,6 +52,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     emptyStateOf,
     interpolate,
     islandContentOf,
+    mergeNestedContent,
     bannersOf,
     pageStyleOf,
     collectTexts,
@@ -63,6 +64,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     loadRouteInto,
     composeInnerRoute,
     runMateuAction,
+    runMateuActionSse,
   };
 });
 `

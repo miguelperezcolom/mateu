@@ -67,6 +67,39 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
   })
 }
 
+/** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
+ *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
+ *  MVP: se lee el stream ENTERO y se devuelven los increments en orden (sin diálogo de
+ *  progreso en vivo); el último suele traer los comandos (p.ej. dispatchEvent). */
+export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
+  const outbound = (ctx && ctx.outbound) || {}
+  const effectiveRoute = outbound.route || route || ''
+  const bare = effectiveRoute.replace(/^\//, '')
+  const res = await fetch(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+    body: JSON.stringify({
+      appState: {},
+      componentState: componentState || (ctx && ctx.state) || {},
+      parameters: {},
+      initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+      consumedRoute: outbound.consumedRoute || '',
+      serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
+      ...extra,
+      route: bare ? `/${bare}` : '',
+      actionId,
+    }),
+  })
+  if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
+  const text = await res.text()
+  const increments = []
+  for (const chunk of text.split('\n\n')) {
+    const line = chunk.trim()
+    if (line.startsWith('data:')) increments.push(JSON.parse(line.slice(5).trim()))
+  }
+  return increments
+}
+
 /**
  * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
  * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
@@ -76,6 +109,10 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   let next = reduceContexts(reg, await loadRoute(base, route, targetId, extra))
   const ctxId = targetId === '' ? HOST_ID : targetId
   let outbound = { route, consumedRoute: '', serverSideType: undefined }
+  // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
+  // la carga de contenido las pierde, así que se conservan aquí
+  const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
+  const wrapperActions = (wrapperTree && wrapperTree.actions) || []
   const info = mediatorOf(next.contexts[ctxId])
   if (info) {
     outbound = {
@@ -93,12 +130,17 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
     )
   }
   // el contexto RECUERDA cómo se cargó: las acciones salientes reconstruyen los campos
-  // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada)
+  // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada).
+  // sseActionIds: acciones anunciadas Action.sse(true) — van por el endpoint /sse
   next = {
     ...next,
     contexts: {
       ...next.contexts,
-      [ctxId]: { ...next.contexts[ctxId], outbound },
+      [ctxId]: {
+        ...next.contexts[ctxId],
+        outbound,
+        sseActionIds: wrapperActions.filter((a) => a && a.sse).map((a) => a.id),
+      },
     },
   }
   return next

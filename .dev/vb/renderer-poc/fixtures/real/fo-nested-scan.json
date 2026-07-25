@@ -1,0 +1,43 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "island_checkin_st_maria_documento_view",
+      "component": {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "Button",
+          "label": "Escanear documento",
+          "iconOnLeft": null,
+          "iconOnRight": null,
+          "image": null,
+          "color": "normal",
+          "variant": null,
+          "buttonStyle": null,
+          "size": null,
+          "autofocus": false,
+          "disabled": false,
+          "actionId": "escanear",
+          "parameters": null,
+          "shortcut": null,
+          "separatorBefore": false,
+          "children": null
+        },
+        "id": "escanear",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": null
+      },
+      "state": null,
+      "data": null,
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

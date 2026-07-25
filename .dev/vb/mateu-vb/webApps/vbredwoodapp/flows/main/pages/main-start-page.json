@@ -237,10 +237,11 @@
     "islandBlockAction": {
       "chains": [
         {
-          "chain": "runMateuIslandAction",
+          "chain": "dispatchIslandAction",
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
-            "parameters": "{{ $current.data.parameters }}"
+            "parameters": "{{ $current.data.parameters }}",
+            "fromNested": "{{ $current.data.fromNested }}"
           }
         }
       ]
@@ -263,6 +264,17 @@
           "parameters": {
             "actionId": "{{ $current.data.confirmActionId }}",
             "parameters": "{{ $current.data.confirmParameters }}"
+          }
+        }
+      ]
+    },
+    "nestedBlockAction": {
+      "chains": [
+        {
+          "chain": "runMateuNestedAction",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}"
           }
         }
       ]

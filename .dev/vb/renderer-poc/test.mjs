@@ -13,7 +13,7 @@ import {
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn,
+  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -414,6 +414,27 @@ test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan d
   assert.equal(meter.max, 1800)
   assert.match(meter.valueText, /1.710,50/)
   assert.ok(casa.some((a) => a.isStat))
+})
+
+// 27) Isla ANIDADA (el documento del check-in): collectIslands detecta el nodo App con su
+// initialData (el SEED del host: stayId/paxIndex — debe viajar como componentState en la
+// carga Y en cada acción, el server no lo eca); mergeNestedContent fusiona sus átomos en
+// el bloque de la isla madre MARCADOS fromNested (leer $application.variables en templates
+// profundos no re-liga los contextos en el evaluador CSP de VB).
+test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre', () => {
+  const wizard = fx('fo-island-wizard')
+  const nestedInfo = collectIslandsFn(wizard.tree)[0]
+  assert.equal(nestedInfo.id, 'island_checkin_st_maria_documento')
+  assert.equal(nestedInfo.initialData.stayId, 'st-maria')
+  assert.equal(nestedInfo.initialData.paxIndex, 1)
+  const nestedBlocks = islandContentOf(fx('fo-nested-doc'))
+  const atoms = nestedBlocks.flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isNotice))
+  const merged = mergeNestedContent(islandContentOf(wizard), nestedBlocks)
+  const nestedCard = merged.find((b) => b.isCard && b.items.some((a) => a.fromNested))
+  assert.ok(nestedCard, 'la card del documento lleva los átomos fusionados')
+  const btn = nestedCard.items.find((a) => a.isButtons)
+  assert.equal(btn.buttons[0].fromNested, true) // enruta a runMateuNestedAction
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

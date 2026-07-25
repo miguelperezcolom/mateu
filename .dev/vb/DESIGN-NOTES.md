@@ -650,6 +650,40 @@ fo-island-checkout / fo-island-encasa; test 26 (26/26). Verificado e2e: wizard c
 de pago, balance/estancias de en-casa. Shots fo-checkin-step2/step3, fo-checkout-sel,
 fo-encasa-sel.
 
+## Isla ANIDADA + SSE — el documento del check-in FUNCIONA (2026-07-25)
+
+El App-mediador DENTRO de la isla (DocumentoView, 3 estados) pinta y opera. Piezas y
+gotchas (todas mordidas hoy):
+
+- **Seed**: el nodo App anidado lleva `initialData` ({stayId, paxIndex, _embeddedMediator,
+  _inline…}) — debe viajar como `componentState` en la CARGA y en CADA ACCIÓN (el server
+  NO lo eca en sus respuestas; sin él las acciones responden la vista vacía en bucle).
+  `collectIslands` lo captura; `runMateuNestedAction` lo fusiona (seed + state) siempre.
+- **Flag sse**: las ACTIONS del componente (con `sse:true` — escanear) viajan SOLO en el
+  WRAPPER del mediador (1ª request del baile de 2 pasos); el atajo consumedRoute+
+  serverSideType se las salta → la anidada se carga SIN atajo y `loadRouteInto` estampa
+  `sseActionIds` en el contexto.
+- **Transporte SSE** (`runMateuActionSse`): POST `{base}/mateu/v3/sse/{route}` con Accept
+  text/event-stream, MISMO body; respuesta = stream `data:<UIIncrement>\n\n` (= SSEService
+  del renderer web). MVP: se lee entero y se reducen los increments en orden (sin diálogo
+  de progreso en vivo). El LongTask del escaneo (~2s de Flux) llega así; el último
+  increment trae el `dispatchEvent(documento-escaneado)`.
+- **Eventos**: el chain acumula los events de TODAS las reducciones y dispara los triggers
+  OnCustomEvent suscritos en anidada→isla→host (reloadDocumento responde un route-flip →
+  `maybeFlip` recarga la ruta interna; la banda del wizard pasa a "documentación completa").
+- **GOTCHA CSP definitivo (2 intentos fallidos)**: leer `$application.variables.X` como
+  data de un oj-bind-for-each DENTRO de templates anidados NO re-liga los contextos
+  internos ($current apunta al scope exterior; alias `as=` tampoco) — los datos deben
+  fluir por `$current`: `mergeNestedContent` FUSIONA los átomos de la anidada dentro del
+  bloque isNestedBlock de la isla madre, marcados `fromNested` (botones incluidos), y
+  `dispatchIslandAction` enruta por ese flag a runMateuIslandAction/runMateuNestedAction.
+- Los estados 2/3 del documento son `@Section(propertyList)` → átomo `isPropertyRow`
+  (FormField con propertyRow=true, valor del state interpolado).
+- OJO estado de la DEMO: el documento de María quedó escaneado por las sondas (in-memory);
+  James/Klaus empiezan vírgenes tras reiniciar :8594.
+
+Fixtures fo-nested-doc (sembrada) + test 27 (27/27). Shots fo-nested-doc*.png.
+
 ## Backend conmutado a demo-front-office (2026-07-25)
 
 **Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer

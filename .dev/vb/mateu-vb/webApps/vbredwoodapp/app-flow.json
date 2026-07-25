@@ -493,6 +493,20 @@
       "type": "any",
       "defaultValue": null,
       "description": "EmptyState suelto del host (placeholder del panel de detalle)"
+    },
+    "mateuNested": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "isla ANIDADA (App dentro de la isla, p.ej. el documento del check-in): átomos display aplanados"
+    },
+    "mateuNestedId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuNestedSeed": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "JSON del initialData con el que se cargó la anidada — si cambia (p.ej. selectPax), recarga"
     }
   },
   "userConfig": {

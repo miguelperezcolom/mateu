@@ -67,6 +67,9 @@ export function collectIslands(tree, out = []) {
         route: node.metadata.homeRoute,
         consumedRoute: node.metadata.homeConsumedRoute || node.metadata.homeRoute,
         serverSideType: node.metadata.homeServerSideType,
+        // el CONTEXTO sembrado por el host (stayId, paxIndex…): debe viajar como
+        // componentState en la carga inicial de la isla (mateu-ux.initialState)
+        initialData: node.initialData || null,
       })
       return
     }
@@ -481,7 +484,7 @@ export function islandContentOf(ctx) {
   let plain = null
   const atom = (a, container) => {
     if (container) { container.items.push(a); return }
-    if (!plain) { plain = { isCard: false, items: [] }; blocks.push(plain) }
+    if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
   }
   // los hijos de un nodo viajan en children Y/O en metadata.content (CustomField, Notice…)
@@ -502,7 +505,20 @@ export function islandContentOf(ctx) {
     if (!node || typeof node !== 'object') return
     const m = node.metadata
     const t = m && m.type
-    if (t === 'App') return // isla ANIDADA: se salta (documentado)
+    if (t === 'App') {
+      // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
+      // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
+      atom({ isNested: true, islandId: node.id }, container)
+      return
+    }
+    if (t === 'FormField') {
+      if (m.propertyRow) {
+        const fieldId = m.fieldId || m.id
+        const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
+      }
+      return
+    }
     if (t === 'Card') {
       const card = { isCard: true, items: [] }
       blocks.push(card)
@@ -695,8 +711,35 @@ export function islandContentOf(ctx) {
     for (const child of kidsOf(node)) visit(child, container)
   }
   visit(ctx.tree, null)
-  const hasDisplay = blocks.some((b) => b.items.some((a) => !a.isButtons))
-  return hasDisplay ? blocks : null
+  // HOISTING de la isla anidada: un bloque cuyo contenido es la isla (card "Documento")
+  // se convierte en bloque isNestedBlock — el markup la pinta a nivel de BLOQUE porque
+  // a más profundidad el evaluador CSP de VB deja de resolver los bindings del template
+  const hoisted = blocks.map((block) => (
+    block.items.some((a) => a.isNested)
+      ? { isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
+      : block
+  ))
+  const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
+  return hasDisplay ? hoisted : null
+}
+
+/** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
+ *  el bloque isNestedBlock (la card que solo contenía la isla) pasa a ser una card
+ *  normal cuyos items son los átomos de la anidada, MARCADOS fromNested (también sus
+ *  botones) para que el dispatcher enrute sus acciones al contexto anidado. Motivo:
+ *  leer $application.variables DENTRO de un template anidado no re-liga los contextos
+ *  internos en el evaluador CSP de VB — los datos deben fluir por $current. */
+export function mergeNestedContent(islandBlocks, nestedBlocks) {
+  if (!islandBlocks) return islandBlocks
+  const nestedAtoms = (nestedBlocks || []).reduce((out, block) => out.concat(block.items), [])
+    .map((a) => {
+      const marked = { ...a, fromNested: true }
+      if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
+      return marked
+    })
+  return islandBlocks.map((block) => (
+    block.isNestedBlock ? { isCard: true, items: nestedAtoms } : block
+  ))
 }
 
 /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */

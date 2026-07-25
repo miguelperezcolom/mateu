@@ -613,11 +613,17 @@
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
               </div>
             </oj-bind-if>
-            <oj-bind-if test="[[ !$current.data.isCard ]]">
+            <oj-bind-if test="[[ $current.data.isPlain ]]">
               <div class="oj-sm-margin-2x-bottom">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
@@ -814,6 +820,12 @@
                       <div class="oj-sm-margin-2x-bottom">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                         <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                   </template>
