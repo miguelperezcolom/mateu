@@ -151,7 +151,7 @@ define([
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
-        || overviewProjection || listingSummary);
+        || overviewProjection || listingSummary || $application.variables.mateuFoldout);
       $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)

@@ -485,12 +485,14 @@ el link goToParent ("Parent page"). Hay que apagarlo explícitamente en CADA uno
 `display-options.go-to-parent="false"` en el header genérico (`oj-sp-header-general-overview`)
 Y TAMBIÉN en `oj-sp-foldout-layout`, que estampa internamente un `oj-sp-header-navigation`
 cuya única banda visible era ese link (su API no está en el loader del CDN — se lee en runtime
-via `customElements.get('oj-sp-foldout-layout').metadata.properties`). El foldout NO cuenta
-como "template con header integrado" (su header interno es solo navegación, sin título) →
-mantiene el header genérico encima. El cascarón del header interno (16px) NO se puede
-colapsar con ninguna opción (probado goToParent/bidirectionalNavigation/inFlowBack off) —
-pero `display-options.background="transparent"` lo deja del color del lienzo (#FBF9F8) en
-vez de blanco, con lo que la banda deja de percibirse (evidencia: shots/band-zoom.png).
+via `customElements.get('oj-sp-foldout-layout').metadata.properties`). El foldout SÍ cuenta
+como "template con header integrado" (rectificado 2026-07-25): su `oj-sp-header-navigation`
+interno es un cascarón de 16px que NO se puede colapsar con ninguna opción (probado
+goToParent/bidirectionalNavigation/inFlowBack off), así que apilar el header genérico encima
+dejaba siempre una franja. Resolución RDS-fiel: el foldout va SIN header genérico, edge-to-edge
+bajo el header global, con el título en el panel de overview (como el template Foldout de RDS);
+su header interno lleva `display-options.go-to-parent="false"` +
+`display-options.background="transparent"` (queda como respiración invisible de 16px).
 
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
 `hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.
