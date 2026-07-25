@@ -65,9 +65,36 @@ brand-gradient squircle). The `.dmg` is mounted, the `.app` copied out and modif
 installs it into the custom plugins dir + opens the bundled workspace on first run — because a folder
 dropped into `Contents/plugins` is ignored (only manifest-declared bundled plugins load there; a
 third-party plugin must load from `idea.plugins.path`). Config/system/log/plugins live under
-`~/Library/Application Support|Caches|Logs/Mateu`. The bundle is **re-signed ad-hoc** (modifying it
-invalidates the original signature); unsigned → first launch needs **right-click ▸ Open** (or
-`xattr -dr com.apple.quarantine Mateu.app`).
+`~/Library/Application Support|Caches|Logs/Mateu`. By default the bundle is **re-signed ad-hoc**
+(modifying it invalidates the original signature); unsigned → first launch needs **right-click ▸ Open**
+(or `xattr -dr com.apple.quarantine Mateu.app`).
+
+### Signing & notarization (no right-click on first launch)
+
+Pass a **Developer ID Application** identity to sign with the hardened runtime, and a **notarytool
+keychain profile** to notarize + staple — the result launches with a normal double-click:
+
+```bash
+./gradlew buildInstaller -Pinstaller.platform=macos \
+  -Pmacos.sign.identity="Developer ID Application: Your Name (TEAMID)" \
+  -Pmacos.notarize.profile=mateu-notary
+```
+
+Prerequisites (Apple Developer Program membership required):
+1. Install a **Developer ID Application** certificate in your login keychain (Xcode ▸ Settings ▸
+   Accounts ▸ Manage Certificates, or developer.apple.com). Check with
+   `security find-identity -v -p codesigning`.
+2. Store notarization credentials once as a keychain profile:
+   ```bash
+   xcrun notarytool store-credentials mateu-notary \
+     --apple-id you@example.com --team-id TEAMID --password <app-specific-password>
+   # or --key/--key-id/--issuer for an App Store Connect API key
+   ```
+
+`-Pmacos.sign.identity` alone signs (Developer ID, hardened runtime) but doesn't notarize; both flags
+together sign + notarize the `.dmg` and staple the ticket onto the `.dmg` and the `.app`. Note: the
+launcher is a shell script set as `CFBundleExecutable` — if notarization ever rejects that, the
+fallback is a tiny native launcher stub.
 
 Passing `-Pmateu.registryUrl`/`-Pmateu.appId` bakes the app-registry coordinates into the launcher VM
 options (they override the plugin's bundled `application.properties`). The IDE archive downloads once
