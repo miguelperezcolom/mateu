@@ -48,6 +48,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     welcomeOf,
     generalOverviewOf,
     itemOverviewOf,
+    taskQueueOf,
+    emptyStateOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

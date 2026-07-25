@@ -583,6 +583,29 @@ backend desde este clon (cd backend && mvn clean install -DskipTests).
 - Evidencia: `shots/arch-welcome.png`, `arch-overview.png`, `arch-overview-switched.png`,
   `arch-item.png`.
 
+## TaskQueue — los listados del front-office (2026-07-25)
+
+Los "listados" de check-in/check-out/en-casa SON `TaskQueue`: datos INLINE en la metadata
+(`groups[].label` + `items[]{id,title,caption,badges[{label,color}],selected}`), sin eje data
+ni triggers. Contrato del clic (= mateu-task-queue.ts del renderer web): `metadata.actionId`
+(openGuest) con `parameters._item` = id del item; el server RE-RENDERIZA el host (Replace al
+uuid del ServerSide) con la card `selected` y el placeholder EmptyState sustituido por el
+DETALLE. Proyecciones `taskQueueOf` (badges → clases badge de JET oj-badge-*-subtle, cardClass
+selected → oj-bg-neutral-20, TODO precomputado por el CSP) y `emptyStateOf` (placeholder /
+página de bienvenida). VB: cards `oj-action-card` (JET core, ojs/ojactioncard — dispara
+ojAction al clic) agrupadas bajo `oj-typography-subheading-xs`, panel derecho
+`oj-sp-empty-state`. GOTCHA REINCIDENTE: make-amd.mjs lleva LISTA EXPLÍCITA de exports — toda
+proyección nueva hay que añadirla ahí o el bridge AMD no la expone ("is not a function").
+Fixtures fo-load-checkin + fo-open-guest; test 24. Shots fo-checkin/checkout/encasa(+sel).
+
+**SIGUIENTE (detectado, sin hacer)**: el detalle tras openGuest es una ISLA-MEDIADOR de
+sabor App — un nodo ClientSide `App` variant=MEDIATOR con id estable (`island_checkin_st_maria`)
+y homeRoute (`/checkin/st-maria?_embeddedMediator=1`) + homeConsumedRoute + homeServerSideType
+en su PROPIA metadata (collectIslands NO lo detecta: busca fronteras ServerSide). Su contenido
+es el CheckInWizard embebido (wizardOf ya lo proyecta: Identidad/Habitación/Extras/Confirmar,
+acciones selectPax/back/next) con tipos display aún sin rama: EntityHeader, Notice,
+BulletedList, Card, Separator, ProgressSteps, Div.
+
 ## Backend conmutado a demo-front-office (2026-07-25)
 
 **Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer

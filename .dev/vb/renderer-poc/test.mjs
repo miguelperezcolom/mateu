@@ -12,7 +12,7 @@ import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
-  welcomeOf, generalOverviewOf, itemOverviewOf,
+  welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -352,6 +352,23 @@ test('inline editing: plantillas por editorType y update-row = toast sin fragmen
   assert.equal((inc.fragments || []).length, 0)
   assert.equal(inc.messages.length, 1)
   assert.equal(inc.messages[0].variant, 'success')
+})
+
+// 24) Front-office: los "listados" de check-in/out/en-casa son TaskQueue con los datos
+// INLINE en la metadata (grupos → cards con badges); el EmptyState del panel de detalle
+// se proyecta aparte. Contrato del clic: actionId con parameters._item = id.
+test('front-office: taskQueueOf proyecta grupos/cards/badges y emptyStateOf el placeholder', () => {
+  const reg = reduceContexts(empty(), fx('fo-load-checkin'))
+  const queue = taskQueueOf(reg.contexts[HOST_ID].tree)
+  assert.equal(queue.actionId, 'openGuest')
+  assert.equal(queue.groups.length, 1)
+  assert.match(queue.groups[0].label, /Llegadas hoy/)
+  const first = queue.groups[0].items[0]
+  assert.equal(first.id, 'st-maria')
+  assert.equal(first.title, 'María Fernández')
+  assert.match(first.badges[0].badgeClass, /oj-badge/)
+  const placeholder = emptyStateOf(reg.contexts[HOST_ID].tree)
+  assert.match(placeholder.title, /Selecciona un huésped/)
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

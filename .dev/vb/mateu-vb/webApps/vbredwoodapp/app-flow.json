@@ -483,6 +483,16 @@
       "type": "string",
       "defaultValue": "fixedWidth",
       "description": "pageLayout de oj-sp-simple-ui-shell derivado del pageWidth del wire (fixed→fixedWidth)"
+    },
+    "mateuQueue": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "TaskQueue del host (cola de trabajo front-office) — grupos de cards con badges"
+    },
+    "mateuHostEmpty": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "EmptyState suelto del host (placeholder del panel de detalle)"
     }
   },
   "userConfig": {

@@ -371,6 +371,54 @@ define([], () => {
     }
   }
 
+  /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
+  const BADGE_CLASSES = {
+    error: 'oj-badge oj-badge-danger oj-badge-subtle',
+    danger: 'oj-badge oj-badge-danger oj-badge-subtle',
+    warning: 'oj-badge oj-badge-warning oj-badge-subtle',
+    success: 'oj-badge oj-badge-success oj-badge-subtle',
+    contrast: 'oj-badge oj-badge-neutral oj-badge-subtle',
+  }
+
+  /** Proyección del TaskQueue (cola de trabajo del front-office): grupos de cards con
+   *  badges; el clic despacha metadata.actionId con parameters._item = id del item
+   *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
+   *  INLINE en la metadata — no hay eje data ni triggers. */
+  function taskQueueOf(tree) {
+    const node = findByType(tree, 'TaskQueue')
+    if (!node) return null
+    const md = node.metadata
+    return {
+      actionId: md.actionId,
+      groups: (md.groups || []).map((group) => ({
+        label: group.label,
+        items: (group.items || []).map((item) => ({
+          id: item.id,
+          title: item.title,
+          caption: item.caption || '',
+          selected: !!item.selected,
+          cardClass: item.selected ? 'oj-sm-margin-2x-bottom oj-bg-neutral-20' : 'oj-sm-margin-2x-bottom',
+          badges: (item.badges || []).map((badge) => ({
+            label: badge.label,
+            badgeClass: BADGE_CLASSES[badge.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+          })),
+        })),
+      })),
+    }
+  }
+
+  /** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
+   *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+  function emptyStateOf(tree) {
+    const node = findByType(tree, 'EmptyState')
+    if (!node) return null
+    const md = node.metadata
+    return {
+      title: (md.icon ? md.icon + ' ' : '') + (md.title || ''),
+      description: md.description || '',
+    }
+  }
+
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
@@ -780,6 +828,8 @@ define([], () => {
     welcomeOf,
     generalOverviewOf,
     itemOverviewOf,
+    taskQueueOf,
+    emptyStateOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

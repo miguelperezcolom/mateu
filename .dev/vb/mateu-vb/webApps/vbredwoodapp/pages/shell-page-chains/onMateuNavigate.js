@@ -126,6 +126,9 @@ define([
       }
 
 
+      // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
+      $application.variables.mateuQueue = bridge.taskQueueOf(host.tree);
+      $application.variables.mateuHostEmpty = bridge.emptyStateOf(host.tree);
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(host);
       const overviewProjection = bridge.generalOverviewOf(host);

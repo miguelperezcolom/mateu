@@ -223,6 +223,16 @@
           }
         }
       ]
+    },
+    "queueItemClicked": {
+      "chains": [
+        {
+          "chain": "queueItemClicked",
+          "parameters": {
+            "itemId": "{{ $current.data.id }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -277,6 +287,9 @@
       },
       "oj-sp-smart-filter-search": {
         "path": "oj-sp/smart-filter-search/loader"
+      },
+      "oj-action-card": {
+        "path": "ojs/ojactioncard"
       }
     }
   }

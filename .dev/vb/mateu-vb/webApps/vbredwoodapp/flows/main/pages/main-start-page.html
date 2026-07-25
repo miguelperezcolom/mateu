@@ -372,6 +372,53 @@
   </div>
 </oj-bind-if>
 
+<!-- Cola de trabajo del front-office (TaskQueue): grupos de cards clicables
+     (oj-action-card + clases badge de JET); a su derecha, el placeholder EmptyState
+     hasta que el server lo sustituya por el detalle -->
+<oj-bind-if test="[[ !!$application.variables.mateuQueue ]]">
+  <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+    <div class="oj-flex-item oj-sm-12 oj-md-5 oj-lg-4">
+      <oj-bind-for-each data="[[ $application.variables.mateuQueue.groups ]]">
+        <template>
+          <div class="oj-typography-subheading-xs oj-sm-margin-2x-vertical"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+          <oj-bind-for-each data="[[ $current.data.items ]]">
+            <template>
+              <oj-action-card :class="[[ $current.data.cardClass ]]"
+                :data-item-id="[[ $current.data.id ]]"
+                on-oj-action="[[ $listeners.queueItemClicked ]]">
+                <div class="oj-sm-padding-3x">
+                  <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                  <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                  <oj-bind-for-each data="[[ $current.data.badges ]]">
+                    <template>
+                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </template>
+                  </oj-bind-for-each>
+                </div>
+              </oj-action-card>
+            </template>
+          </oj-bind-for-each>
+        </template>
+      </oj-bind-for-each>
+    </div>
+    <div class="oj-flex-item oj-sm-12 oj-md-7 oj-lg-8">
+      <oj-bind-if test="[[ !!$application.variables.mateuHostEmpty ]]">
+        <oj-sp-empty-state
+          primary-text="[[ $application.variables.mateuHostEmpty.title ]]"
+          secondary-text="[[ $application.variables.mateuHostEmpty.description ]]"></oj-sp-empty-state>
+      </oj-bind-if>
+    </div>
+  </div>
+</oj-bind-if>
+<!-- EmptyState de página completa (sin cola): p.ej. la bienvenida de la suite -->
+<oj-bind-if test="[[ !$application.variables.mateuQueue && !!$application.variables.mateuHostEmpty ]]">
+  <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+    <oj-sp-empty-state
+      primary-text="[[ $application.variables.mateuHostEmpty.title ]]"
+      secondary-text="[[ $application.variables.mateuHostEmpty.description ]]"></oj-sp-empty-state>
+  </div>
+</oj-bind-if>
+
 <!-- Isla embebida (Fase 9): superficie PROPIA alimentada por contexts[islandId] — sus
      acciones (Edit/Save) solo repintan la isla; el host no se toca -->
 <oj-bind-if test="[[ !!$application.variables.mateuIsland ]]">
