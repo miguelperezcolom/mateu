@@ -532,11 +532,12 @@ consume el lateral. Los gutters del contenido los siguen poniendo las ramas (12x
 anclaje del borde derecho a la caja del shell (párrafo anterior) queda para las variantes
 SIN drawer (tabs/topbar).
 
-**Densidad de tabla por columnas (2026-07-25)**: `oj-table` trae los dos formatos Redwood —
-`display="list"` (aireado) y `display="grid"` (compacto, con rejilla). `listingOf` lo
-PRECOMPUTA en función de las columnas del wire (≥6 → grid, si no list; CSP-safe) y la tabla
-lo bindea. Demo: Products ampliado a 8 columnas (sku/category/supplier/stock) → grid (filas
-37px vs 47px). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
+**Densidad de tabla (2026-07-25, regla RECTIFICADA por el usuario)**: `oj-table` trae los
+dos formatos Redwood — `display="list"` (aireado) y `display="grid"` (compacto, con rejilla).
+Primera regla (por nº de columnas, ≥6→grid) DESCARTADA: el grid compacto es para tablas de
+TRABAJO, no de consulta — `listingOf` precomputa `display` = grid solo cuando alguna columna
+del wire es `editable` (@InlineEditing), si no list. Products (8 columnas, no editable) →
+list. Pendiente de ver un crud @InlineEditing real sobre VB cuando se capture ese fixture. OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
 "cannot access io.mateu.uidl..." es que otro clon pisó los jars 0.0.1-MATEU — reinstalar
 backend desde este clon (cd backend && mvn clean install -DskipTests).
 

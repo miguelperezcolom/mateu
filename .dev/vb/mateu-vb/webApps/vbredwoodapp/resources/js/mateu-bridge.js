@@ -443,9 +443,11 @@ define([], () => {
         const c = col.metadata || col
         return { headerText: c.label || c.id, field: c.id }
       }),
-      // densidad Redwood de la tabla en función de las columnas: pocas → 'list' (aireado),
-      // muchas → 'grid' (el formato compacto de oj-table). PRECOMPUTADO (CSP de VB).
-      display: (md.columns || []).length >= 6 ? 'grid' : 'list',
+      // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
+      // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
+      // como editable en el wire); un listado de consulta queda en 'list' (aireado).
+      // PRECOMPUTADO (CSP de VB).
+      display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
       rows: page.content || [],
       total: page.totalElements == null ? null : page.totalElements,
       isEmpty: (page.content || []).length === 0,
