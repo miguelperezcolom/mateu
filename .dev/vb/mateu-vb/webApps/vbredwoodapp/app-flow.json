@@ -251,8 +251,8 @@
   "constants": {
     "mateuBaseUrl": {
       "type": "string",
-      "defaultValue": "http://localhost:9005",
-      "description": "baseUrl del backend Mateu que pinta esta app (el kit solo necesita esto)"
+      "defaultValue": "http://localhost:8594",
+      "description": "Backend Mateu (demo-front-office :8594; demo-vb en :9005 — cambiar aquí, punto único)"
     }
   },
   "variables": {

@@ -583,6 +583,17 @@ backend desde este clon (cd backend && mvn clean install -DskipTests).
 - Evidencia: `shots/arch-welcome.png`, `arch-overview.png`, `arch-overview-switched.png`,
   `arch-item.png`.
 
+## Backend conmutado a demo-front-office (2026-07-25)
+
+`constants.mateuBaseUrl` → `http://localhost:8594` (punto ÚNICO de cambio en app-flow.json;
+demo-vb sigue en :9005 para volver). El :8594 ya sirve CORS abierto — no hubo que tocar esa
+instancia (compartida). Primer contacto: la shell ARRANCA entera (menú MENU_ON_TOP con
+Check-In/Check-Out/En Casa/Automatizaciones, selectores @AppContext Modo+Hotel, header de
+página con franja, campo de búsqueda del check-in). GAP identificado en /checkin (tipos del
+wire): TaskQueue (la cola de llegadas — el componente central del front-office) y EmptyState
+no tienen proyección/rama aún; CustomField envuelve islas. Siguiente trabajo obvio:
+proyección + rama TaskQueue (cards agrupadas con contadores, clic → acción con _item).
+
 ## Próximo paso al retomar
 2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3
