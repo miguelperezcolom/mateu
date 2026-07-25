@@ -585,6 +585,14 @@ backend desde este clon (cd backend && mvn clean install -DskipTests).
 
 ## Backend conmutado a demo-front-office (2026-07-25)
 
+**Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer
+OBEDECE la variante del wire — nada de overrides cliente. Para el patrón in-app navigation
+(la barra de tabs ABAJO, oj-sp-in-app-navigation — omnipresente en apps Oracle) el APP debe
+emitir TABS: en demo-front-office bastó QUITAR el `value = MENU_ON_TOP` explícito de `@App`
+(quedó `@App(themeToggle = true)`) — la heurística AUTO da TABS porque su menú son
+RouteLinks planos (`hasMenuItems` solo cuenta grupos `Menu`). Evidencia: shots/fo-tabs.png.
+
+
 `constants.mateuBaseUrl` → `http://localhost:8594` (punto ÚNICO de cambio en app-flow.json;
 demo-vb sigue en :9005 para volver). El :8594 ya sirve CORS abierto — no hubo que tocar esa
 instancia (compartida). Primer contacto: la shell ARRANCA entera (menú MENU_ON_TOP con

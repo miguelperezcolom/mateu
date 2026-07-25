@@ -9,7 +9,6 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 
 /**
@@ -19,7 +18,7 @@ import io.mateu.uidl.fluent.Component;
  */
 @UI("")
 @Title("Front-Office Suite")
-@App(value = AppVariant.MENU_ON_TOP, themeToggle = true)
+@App(themeToggle = true) // variante AUTO: menú plano de RouteLinks → TABS (in-app navigation)
 public class FrontOfficeSuite {
 
   public enum Modo {
