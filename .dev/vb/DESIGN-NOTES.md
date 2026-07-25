@@ -372,6 +372,9 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   necesita **`display:'on'`** o sale con oj-disabled (apagado, sin marca de selección); el
   status de Mateu NO se emite (el indicador espera otro enum). current-step efectivo en var
   aparte (`mateuWizardShownStep`: '' al entrar = overview; el paso real tras cada acción).
+  El **h1 de página se SUPRIME en modo wizard** (el guided-process ya lleva el título en su
+  overview y su cabecera; feedback del usuario) — cualquier acción extra de toolbar de un
+  wizard iría al slot del paso, no a un header duplicado.
   **Atrás = clic en el RAIL** (feedback: un Back en el contenido contradice al Cancel del
   footer): `spBeforeStepNavigate` (detail {currentStep,nextStep,triggeredFrom:'continue'|'step'})
   con triggeredFrom 'step' ejecuta los 'back' necesarios contra Mateu (fromIdx−toIdx veces);

@@ -8,9 +8,13 @@
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
+<!-- el h1 de página SOBRA en un wizard: el guided-process ya lleva el título
+     (overview + cabecera propia) -->
+<oj-bind-if test="[[ !$application.variables.mateuWizard ]]">
 <div class="oj-flex">
   <h1 class="oj-flex-item oj-sm-12 oj-md-12"><oj-bind-text value="[[ $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
 </div>
+</oj-bind-if>
 
 <oj-bind-if test="[[ !$application.variables.mateuFormMetadata ]]">
   <div class="oj-flex">
