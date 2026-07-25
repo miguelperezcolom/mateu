@@ -36,7 +36,8 @@
      lógica responsive (plegado + scroll + dots); dentro de un flex-item con min-width:auto
      se desborda y cree que todo cabe -->
 <oj-bind-if test="[[ !!$application.variables.mateuFoldout ]]">
-      <oj-sp-foldout-layout id="mateuFoldoutEl">
+      <oj-sp-foldout-layout id="mateuFoldoutEl"
+        display-options.go-to-parent="false">
         <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuHostTitle ]]">
           <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.texts ]]">
             <template>

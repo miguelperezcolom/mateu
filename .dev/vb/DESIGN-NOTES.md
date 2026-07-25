@@ -480,6 +480,15 @@ En `/hello` lo que aparece sobre el header de página NO es un hueco: es el `@Ba
 wire (oj-sp-messages-banner del shell, bajo el header global — su animación de montaje tapa
 el header global unos ms, transitorio).
 
+**GOTCHA "Parent page" (2026-07-25)**: los componentes oj-sp con header estampan por defecto
+el link goToParent ("Parent page"). Hay que apagarlo explícitamente en CADA uno:
+`display-options.go-to-parent="false"` en el header genérico (`oj-sp-header-general-overview`)
+Y TAMBIÉN en `oj-sp-foldout-layout`, que estampa internamente un `oj-sp-header-navigation`
+cuya única banda visible era ese link (su API no está en el loader del CDN — se lee en runtime
+via `customElements.get('oj-sp-foldout-layout').metadata.properties`). El foldout NO cuenta
+como "template con header integrado" (su header interno es solo navegación, sin título) →
+mantiene el header genérico encima.
+
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
 `hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.
 
