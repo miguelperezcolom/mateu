@@ -472,8 +472,16 @@ espaciado JET (escala 1x=4px, hasta 12x) son la vía oficial OJET. Medido empír
 (getComputedStyle sobre probes): el h1 del header queda a 48px del borde del contenedor; con
 12x el form/tabla quedan alineados EXACTAMENTE con el título.
 
+**GOTCHA (2026-07-25)**: la rama de TEXTO del content page estaba condicionada a
+`!mateuFormMetadata` — en toda página sin formulario (welcome, listado, wizard, overview…)
+pintaba un div VACÍO que, con el padding vertical de los gutters, era una banda blanca de 48px
+ENCIMA del header. Condición correcta: `!!mateuHostText` (solo cuando hay texto de verdad).
+En `/hello` lo que aparece sobre el header de página NO es un hueco: es el `@Banner` INFO del
+wire (oj-sp-messages-banner del shell, bajo el header global — su animación de montaje tapa
+el header global unos ms, transitorio).
+
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
-`hdr-booking.png`, `hdr-chair.png`.
+`hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.
 
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
