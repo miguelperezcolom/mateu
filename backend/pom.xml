@@ -76,10 +76,21 @@
         <artifactId>lombok</artifactId>
         <version>1.18.40</version>
       </dependency>
+      <!--
+        Pin hibernate-validator to the Spring Boot 4 line (9.1.2.Final) everywhere. Spring Boot 4.1.0
+        brings jakarta-validation 3.x / hibernate-validator 9.x; core and webflux-core also declare it
+        directly (bumped to 9.1.2 in their poms), and this managed pin converges the modules that
+        pick it up transitively from the Boot BOM, keeping maven-enforcer DependencyConvergence happy.
+      -->
+      <dependency>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>9.1.2.Final</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>4.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -181,7 +192,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <id>add_sources</id>
@@ -236,7 +247,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
+        <version>3.2.8</version>
         <executions>
           <execution>
             <id>sign-artifacts</id>
