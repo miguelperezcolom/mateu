@@ -462,6 +462,16 @@ el h1 se ELIMINÓ del renderer. Reparto por tipo de página:
 - Los botones de formulario/isla se quedan con su contenido (el wire de Mateu no distingue
   toolbar de página vs botones de form en `actionsOf`; los del crud sí viajan aparte).
 
+**Gutters del contenido (2026-07-25)**: el sangrado interno del título de los headers oj-sp es
+`--oj-core-spacing-12x` (3rem = 48px). El contenido bajo un header a sangre se alinea con la
+clase utilitaria JET de la MISMA escala: `oj-sm-padding-12x-horizontal` (48px) +
+`oj-sm-padding-6x-vertical` (24px, el gutter RDS) para la respiración bajo la franja
+decorativa. `oj-sp-public-primary-content-container` NO trae padding propio (computa 0), y no
+existe ninguna clase pública `oj-sp-*` de padding de contenido — las utility classes de
+espaciado JET (escala 1x=4px, hasta 12x) son la vía oficial OJET. Medido empíricamente
+(getComputedStyle sobre probes): el h1 del header queda a 48px del borde del contenedor; con
+12x el form/tabla quedan alineados EXACTAMENTE con el título.
+
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
 `hdr-booking.png`, `hdr-chair.png`.
 
