@@ -17,7 +17,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- aligned with the micronaut platform version used by the demos, so the generated
          bean definitions match the runtime that consumes them -->
-    <micronaut.core.version>4.9.9</micronaut.core.version>
+    <micronaut.core.version>4.10.22</micronaut.core.version>
     <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
   </properties>
 
