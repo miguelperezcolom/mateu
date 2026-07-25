@@ -138,7 +138,8 @@ define([
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary || $application.variables.mateuFoldout);
       $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
-      const pwAfter = (hostAfter && hostAfter.pageWidth) || 'fixed';
+      const pwAfter = $application.variables.mateuMenuDrawerMode
+        ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       $application.variables.mateuDirty = false;
 

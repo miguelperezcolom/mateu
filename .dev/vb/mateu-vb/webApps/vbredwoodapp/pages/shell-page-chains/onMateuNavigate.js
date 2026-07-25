@@ -171,9 +171,15 @@ define([
       }
       $application.variables.mateuBannerKeys = banners.map((banner) => banner.id);
       // 1.6: anatomía pageWidth del contexto host
-      const pageStyle = bridge.pageStyleOf(host);
+      // con navigator persistente a la izquierda, el formato pasa a edge-to-edge
+      // automáticamente: centrar un fixed en el área restante queda raro (el drawer ya
+      // consume el lateral); el gutter del contenido lo ponen las ramas (12x/6x)
+      const drawerNav = $application.variables.mateuMenuDrawerMode;
+      const pageStyle = drawerNav
+        ? bridge.pageStyleOf({ pageWidth: 'edgeToEdge' })
+        : bridge.pageStyleOf(host);
       // el shell adapta su chrome (p.ej. el chat FAB) al formato de página
-      const pw = (host && host.pageWidth) || 'fixed';
+      const pw = drawerNav ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed');
       $application.variables.mateuShellPageLayout = pw === 'fixed' ? 'fixedWidth' : pw;
       $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
       $application.variables.mateuPageMargin = pageStyle.margin;

@@ -524,7 +524,13 @@ fórmula (`margin: 0 max(24px, calc((100vw - 1536px)/2 + 64px)) 0 auto`, tope 14
 nace exactamente donde acaba el contenido, como en FA); (2) fuera la clase
 `oj-web-applayout-max-width` del wrapper del starter — capaba el área a 1440 y rompía
 cualquier fórmula viewport-relativa. Verificado a 1440/1920/2400; en edgeToEdge el FAB queda
-en el borde derecho de la página.
+en el borde derecho de la página. **Regla drawer ⇒ edge-to-edge (2026-07-25)**: con navigator
+persistente a la izquierda (HAMBURGUER_MENU) el formato pasa a edge-to-edge AUTOMÁTICAMENTE
+(ambos chains ignoran el pageWidth del wire y fuerzan edgeToEdge en pageStyle y en el
+page-layout del shell): centrar un fixed en el área restante quedaba raro — el drawer ya
+consume el lateral. Los gutters del contenido los siguen poniendo las ramas (12x/6x). El
+anclaje del borde derecho a la caja del shell (párrafo anterior) queda para las variantes
+SIN drawer (tabs/topbar).
 
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
