@@ -7,12 +7,17 @@ on:
   release:
     types: [published]
 
+# The release event can't be filtered by tag in `on:`, so guard the jobs: only framework releases
+# (tag `vX.Y…`, e.g. v3.0-alpha.N) publish to Maven Central. Other releases — e.g. the desktop
+# installers (`mateu-desktop-*`) — publish nothing.
 jobs:
   e2e:
+    if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/run_tests.yml
 
   all:
     needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
 
     steps:
