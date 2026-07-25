@@ -497,6 +497,21 @@ su header interno lleva `display-options.go-to-parent="false"` +
 Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
 `hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.
 
+**Anatomía de color RDS (2026-07-25)**: header de página BLANCO ≠ contenido, y lienzo con
+texturas alrededor (referencia: el renderer redwood-oj en :8000 y el pantallazo RDS del
+usuario). Cómo: (1) los headers llevan la clase utilitaria JET `oj-bg-neutral-0` (blanco) —
+en el elemento host, que la CONSERVA junto a `oj-complete` (los VComponents no la machacan);
+la zona de resultados del listado recupera su color con `oj-bg-body` en el slot main.
+(2) El lienzo alrededor = `resources/css/app.css` (ÚNICO css de app del proyecto, punto de
+personalización estándar de VB): body a `--oj-core-neutral-30` (#F1EFED) + `body::after`
+fixed con las texturas OFICIALES del gallery del CDN de Oracle
+(`static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start/end.png`,
+la MISMA receta que pinta FA: inset 270px 0 0 0, ancladas abajo izda/dcha, z-index -1).
+(3) El icono Home que estampa `oj-sp-global-header` (sin API de posición) pasa a la derecha
+del todo con `order: 99` (comparte contenedor flex con el slot end). Colores medidos de las
+utility classes: oj-bg-neutral-0 #FFF · oj-bg-body/neutral-10 #FBF9F8 · neutral-20 #F5F4F2 ·
+neutral-30 #F1EFED.
+
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
 - Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +

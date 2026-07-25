@@ -1,0 +1,28 @@
+/* Lienzo RDS alrededor del contenido — MISMA receta que pinta Fusion Applications:
+   canvas neutral-30 (#F1EFED) + las texturas OFICIALES del gallery del CDN de Oracle
+   (background-shell-generic), ancladas abajo izquierda/derecha, detrás del contenido.
+   Este fichero es el punto de personalización estándar de una app VB; no estiliza
+   ningún componente — solo el fondo de página y una regla de orden flex. */
+
+body {
+  background-color: var(--oj-core-neutral-30, #f1efed);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 270px 0 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start.png'),
+    url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-end.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: left bottom, right bottom;
+}
+
+/* El icono Home que estampa oj-sp-global-header no es configurable por API y queda a la
+   izquierda del slot end; comparte contenedor flex con él → a la derecha del todo. */
+oj-sp-global-header a[id$='_HOa1'] {
+  order: 99;
+}

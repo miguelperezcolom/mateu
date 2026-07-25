@@ -13,7 +13,7 @@
      integran: guided process, general overview, welcome banner y el
      smart-filter-search del listado -->
 <oj-bind-if test="[[ !!$application.variables.mateuPageHeader ]]">
-  <oj-sp-header-general-overview id="mateuPageHeaderEl"
+  <oj-sp-header-general-overview id="mateuPageHeaderEl" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     display-options.go-to-parent="false"></oj-sp-header-general-overview>
 </oj-bind-if>
@@ -93,7 +93,7 @@
 
 <!-- Arquetipo GENERAL OVERVIEW: header Redwood con switcher de registro + facts + cards -->
 <oj-bind-if test="[[ !!$application.variables.mateuOverview ]]">
-  <oj-sp-header-general-overview id="mateuOverviewHeader"
+  <oj-sp-header-general-overview id="mateuOverviewHeader" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuOverview.title ]]"
     page-subtitle="[[ $application.variables.mateuOverview.subtitle ]]"
     contextual-info="[[ $application.variables.mateuOverview.facts ]]"
@@ -155,13 +155,13 @@
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
   <!-- header de colección Redwood: título + acciones del crud integradas (New = primary,
        resto = secondary); la tabla va en su slot main -->
-  <oj-sp-smart-filter-search id="mateuListHeader"
+  <oj-sp-smart-filter-search id="mateuListHeader" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuHostTitle ]]"
     primary-action="[[ $application.variables.mateuListPrimary ]]"
     secondary-actions="[[ $application.variables.mateuListSecondary ]]"
     on-sp-primary-action="[[ $listeners.listPrimary ]]"
     on-sp-secondary-action="[[ $listeners.listSecondary ]]">
-  <div slot="main" class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+  <div slot="main" class="oj-bg-body oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
   <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-8">
       <oj-input-search id="mateuSearch" class="oj-sm-margin-4x-bottom"
