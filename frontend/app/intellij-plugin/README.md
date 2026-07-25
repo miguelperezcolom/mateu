@@ -45,19 +45,33 @@ the boot gate in `plugin/MateuProjectService.kt`. Headless verification:
 ## Installer (plugin + IntelliJ in one bundle)
 
 ```bash
-./gradlew buildInstaller                             # linux tar.gz (default)
+./gradlew buildInstaller                              # linux tar.gz (default)
 ./gradlew buildInstaller -Pinstaller.platform=windows
+./gradlew buildInstaller -Pinstaller.platform=macos   # → build/installer/Mateu.app (+ .zip, .dmg)
+./gradlew buildInstaller -Pinstaller.platform=macos -Pinstaller.arch=intel
 ./gradlew buildInstaller -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
 ```
 
-Produces `build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip` (~1.2 GB): **IntelliJ IDEA
-Community with the Mateu plugin preinstalled**, fully **portable** (config/system/log live in `data/`
-inside the bundle — it never touches an existing IDE install), first-boot prompts pre-answered, and a
-`mateu.sh` / `mateu.bat` launcher that opens the bundled workspace directly, so the end user unpacks
-and double-clicks. Passing `-Pmateu.registryUrl`/`-Pmateu.appId` bakes the app-registry coordinates
-into the launcher VM options (they override the plugin's bundled `application.properties`).
-The IDE archive downloads once into `build/installer/downloads/` and is reused. macOS is not
-supported by this task (JetBrains ships it only as `.dmg`) — install the plugin zip there instead.
+**linux / windows** → `build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip` (~1.2 GB):
+**IntelliJ IDEA Community with the Mateu plugin preinstalled**, fully **portable** (config/system/log
+live in `data/` inside the bundle — it never touches an existing IDE install), first-boot prompts
+pre-answered, and a `mateu.sh` / `mateu.bat` launcher that opens the bundled workspace directly.
+
+**macos** → `build/installer/Mateu.app` (+ `mateu-desktop-<version>-macos.zip` and a double-click
+`…-macos.dmg` with a drag-to-`/Applications` shortcut): the Community `.app`
+**rebranded "Mateu"** — app name (`CFBundleName`) + icon (`branding/mateu.icns`, the Mateu star on a
+brand-gradient squircle). The `.dmg` is mounted, the `.app` copied out and modified: the plugin is
+**staged** in `Contents/Resources/mateu-plugin` and a **launcher wrapper** (`Contents/MacOS/idea`)
+installs it into the custom plugins dir + opens the bundled workspace on first run — because a folder
+dropped into `Contents/plugins` is ignored (only manifest-declared bundled plugins load there; a
+third-party plugin must load from `idea.plugins.path`). Config/system/log/plugins live under
+`~/Library/Application Support|Caches|Logs/Mateu`. The bundle is **re-signed ad-hoc** (modifying it
+invalidates the original signature); unsigned → first launch needs **right-click ▸ Open** (or
+`xattr -dr com.apple.quarantine Mateu.app`).
+
+Passing `-Pmateu.registryUrl`/`-Pmateu.appId` bakes the app-registry coordinates into the launcher VM
+options (they override the plugin's bundled `application.properties`). The IDE archive downloads once
+into `build/installer/downloads/` and is reused.
 
 ## Run / debug
 

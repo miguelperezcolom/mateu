@@ -95,9 +95,13 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // window title); the host reads ctx.lastWindowTitle on attach and takes over.
         ctx.titleConsumer = {}
         ctx.onFirstContent = { isCrud ->
-            val focus = if (isCrud && !preferEditor) {
-                // Row detail / New / Edit navigations from this listing open in a central editor tab.
+            // Row detail / New / Edit navigations from a listing open in a central editor tab — wire
+            // this for EVERY crud, so a listing hosted in the editor (e.g. the home screen) drills
+            // down just like one in the bottom tool window.
+            if (isCrud) {
                 ctx.detailOpener = { dLabel, dRoute, dConsumed, dSst -> openDetail(dLabel, dRoute, dConsumed, dSst, null) }
+            }
+            val focus = if (isCrud && !preferEditor) {
                 placeCrudList(ctx, panel, title)
             } else {
                 placeEditor(ctx, panel, title)

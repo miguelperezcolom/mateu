@@ -11,8 +11,12 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.WindowManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import com.fasterxml.jackson.databind.JsonNode
+import io.mateu.ijp.api.bool
+import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
 import java.awt.BorderLayout
@@ -46,6 +50,7 @@ class MateuProjectService(private val project: Project) {
         private set
 
     private var booting = false
+    private var homeOpened = false
 
     /** Boot the session + app shell (idempotent; call on the EDT). */
     fun ensureBooted() {
@@ -91,7 +96,20 @@ class MateuProjectService(private val project: Project) {
         s.openDetailHandler = viewManager::openDetail
         // The toolbar widget and the menu-derived IDE actions find the session via the project.
         project.putUserData(MATEU_SESSION, s)
-        s.onAppMenuChanged = { MateuMenuActions.sync(s) }
+        // Standalone-app window title: app-level SetWindowTitle lands on the real IDE frame, and the
+        // app title feeds the frame-title builder so no "workspace"/IDE tell shows in the title bar.
+        s.frame = WindowManager.getInstance().getFrame(project)
+        MateuFrameTitleBuilder.setFrameTitle(project, loadMateuConfig().productName)
+        s.onAppMenuChanged = {
+            MateuMenuActions.sync(s)
+            s.appTitle?.let { MateuFrameTitleBuilder.setFrameTitle(project, it) }
+            // Standalone landing: open the first menu entry once, so the app lands on content
+            // (listing in the bottom panel / page in an editor tab) instead of an empty editor.
+            if (!homeOpened) {
+                homeOpened = true
+                openHomeView(s)
+            }
+        }
         // Backend messages (toasts on the web) surface as IDE notifications. Undoable toasts
         // (MessageDto.undoActionId) carry an expiring action link dispatching the reverse action.
         s.notifier = { title, text, variant, undo ->
@@ -125,6 +143,35 @@ class MateuProjectService(private val project: Project) {
         // @AppContext selector changed → rebuild the shell against the new context; open views
         // pick the new appState up on their next request (it travels with every call).
         s.onAppContextChanged = { ctx.initialLoad(route) }
+    }
+
+    /** Open the first navigable menu leaf (depth-first) in the CENTRAL editor, so the app lands on a
+     *  real screen filling the main area instead of an empty editor. Uses the detail (editor) opener
+     *  so even a listing home fills the centre; drill-down still works (see MateuViewManager). */
+    private fun openHomeView(s: AppSession) {
+        val menu = s.appMenu ?: return
+        val leaf = firstLeaf(menu) ?: return
+        (s.openDetailHandler ?: s.openViewHandler)?.invoke(
+            leaf.text("label"),
+            leaf.text("route"),
+            leaf.text("consumedRoute"),
+            leaf.text("serverSideType"),
+            leaf.text("actionId"),
+        )
+    }
+
+    private fun firstLeaf(items: JsonNode): JsonNode? {
+        if (!items.isArray) return null
+        for (item in items) {
+            if (item.bool("separator") || item.text("label").isBlank()) continue
+            val submenus = item.path("submenus")
+            if (submenus.isArray && !submenus.isEmpty) {
+                firstLeaf(submenus)?.let { return it }
+            } else {
+                return item
+            }
+        }
+        return null
     }
 
     // ── registry boot screens (shown inside the navigator panel) ────────────────────────────
