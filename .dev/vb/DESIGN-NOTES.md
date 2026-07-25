@@ -532,6 +532,14 @@ consume el lateral. Los gutters del contenido los siguen poniendo las ramas (12x
 anclaje del borde derecho a la caja del shell (párrafo anterior) queda para las variantes
 SIN drawer (tabs/topbar).
 
+**Densidad de tabla por columnas (2026-07-25)**: `oj-table` trae los dos formatos Redwood —
+`display="list"` (aireado) y `display="grid"` (compacto, con rejilla). `listingOf` lo
+PRECOMPUTA en función de las columnas del wire (≥6 → grid, si no list; CSP-safe) y la tabla
+lo bindea. Demo: Products ampliado a 8 columnas (sku/category/supplier/stock) → grid (filas
+37px vs 47px). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
+"cannot access io.mateu.uidl..." es que otro clon pisó los jars 0.0.1-MATEU — reinstalar
+backend desde este clon (cd backend && mvn clean install -DskipTests).
+
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
 - Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +

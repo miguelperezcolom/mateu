@@ -29,9 +29,15 @@ public class ProductsCrud extends AutoCrud<ProductsCrud.Product> {
   public static class Product implements Identifiable {
     String id;
     @NotEmpty String name;
+    String sku;
+    String category;
+    String supplier;
 
     @Min(0)
     double price;
+
+    @Min(0)
+    int stock;
 
     boolean active;
 
@@ -49,9 +55,9 @@ public class ProductsCrud extends AutoCrud<ProductsCrud.Product> {
   private static final List<Product> PRODUCTS =
       new ArrayList<>(
           List.of(
-              new Product("1", "Laptop", 1200, true),
-              new Product("2", "Mouse", 25, true),
-              new Product("3", "Keyboard", 45, false)));
+              new Product("1", "Laptop", "LP-100", "Computers", "Acme Corp", 1200, 14, true),
+              new Product("2", "Mouse", "MS-210", "Peripherals", "Peritech", 25, 230, true),
+              new Product("3", "Keyboard", "KB-305", "Peripherals", "Peritech", 45, 120, false)));
 
   @Override
   public boolean editInDrawer() {
