@@ -91,6 +91,13 @@ define([
             actions: bridge.actionsOf(islandContext.tree) }
         : null;
 
+      // header de colección: toolbar del crud → primaryAction/secondaryActions
+      const toolbar = listingSummary ? listingSummary.toolbar : [];
+      const primaryToolbar = toolbar.length ? toolbar[0] : null;
+      $application.variables.mateuListPrimary = primaryToolbar
+        ? { label: primaryToolbar.label } : { label: '', display: 'off' };
+      $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
@@ -140,6 +147,12 @@ define([
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormActions = [];
       }
+      // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
+      // templates que ya integran el suyo (guided process / general overview / welcome /
+      // smart-filter-search del listado) lo suprimen
+      const integratedHeader = !!($application.variables.mateuWizard || welcome
+        || overviewProjection || listingSummary);
+      $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
       const banners = bridge.bannersOf(host);
@@ -163,7 +176,9 @@ define([
       $application.variables.mateuPageMargin = pageStyle.margin;
       $application.variables.mateuPagePadding = pageStyle.padding;
       if ($application.variables.mateuWelcome || $application.variables.mateuOverview
-          || $application.variables.mateuWizard) {
+          || $application.variables.mateuWizard || listingSummary
+          || $application.variables.mateuPageHeader) {
+        // header Redwood a sangre: el gutter lo recupera cada rama de contenido
         $application.variables.mateuPagePadding = '0';
       }
       // 1.5: la URL refleja la ruta (hash — deep-linkable y con back/forward)

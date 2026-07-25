@@ -190,6 +190,26 @@
           }
         }
       ]
+    },
+    "listPrimary": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuListPrimaryId }}"
+          }
+        }
+      ]
+    },
+    "listSecondary": {
+      "chains": [
+        {
+          "chain": "onListSecondary",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -241,6 +261,9 @@
       },
       "oj-tab-bar": {
         "path": "ojs/ojtabbar"
+      },
+      "oj-sp-smart-filter-search": {
+        "path": "oj-sp/smart-filter-search/loader"
       }
     }
   }

@@ -83,6 +83,13 @@ define([
       $application.variables.mateuFoldout = bridge.foldoutOf(hostAfter);
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
 
+      // header de colección: toolbar del crud → primaryAction/secondaryActions
+      const toolbar = listingSummary ? listingSummary.toolbar : [];
+      const primaryToolbar = toolbar.length ? toolbar[0] : null;
+      $application.variables.mateuListPrimary = primaryToolbar
+        ? { label: primaryToolbar.label } : { label: '', display: 'off' };
+      $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuHostText = summary.text;
@@ -125,6 +132,12 @@ define([
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormActions = [];
       }
+      // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
+      // templates que ya integran el suyo (guided process / general overview / welcome /
+      // smart-filter-search del listado) lo suprimen
+      const integratedHeader = !!($application.variables.mateuWizard || welcome
+        || overviewProjection || listingSummary);
+      $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local

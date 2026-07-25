@@ -8,18 +8,18 @@
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
-<!-- el h1 de página SOBRA en un wizard: el guided-process ya lleva el título
-     (overview + cabecera propia) -->
-<!-- regla general: una página CON header Redwood (wizard/overview/welcome) no lleva
-     h1 propio — lo que hubiera en él se integra en el header Redwood -->
-<oj-bind-if test="[[ !$application.variables.mateuWizard && !$application.variables.mateuOverview && !$application.variables.mateuWelcome ]]">
-<div class="oj-flex">
-  <h1 class="oj-flex-item oj-sm-12 oj-md-12"><oj-bind-text value="[[ $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
-</div>
+<!-- regla general: TODA página pinta su header con el header de vb
+     (oj-sp-header-general-overview sin switcher) salvo los templates que ya lo
+     integran: guided process, general overview, welcome banner y el
+     smart-filter-search del listado -->
+<oj-bind-if test="[[ !!$application.variables.mateuPageHeader ]]">
+  <oj-sp-header-general-overview id="mateuPageHeaderEl"
+    page-title="[[ $application.variables.mateuPageHeader.title ]]"
+    display-options.go-to-parent="false"></oj-sp-header-general-overview>
 </oj-bind-if>
 
 <oj-bind-if test="[[ !$application.variables.mateuFormMetadata ]]">
-  <div class="oj-flex">
+  <div class="oj-flex oj-sm-padding-4x-horizontal">
     <div class="oj-flex-item oj-sm-12 oj-md-12">
       <oj-bind-text
         value="[[ $application.variables.mateuHostText ]]"
@@ -115,7 +115,7 @@
 
 <!-- Arquetipo ITEM OVERVIEW: datos clave a la izquierda + tabs a la derecha -->
 <oj-bind-if test="[[ !!$application.variables.mateuItemOv ]]">
-  <div class="oj-flex">
+  <div class="oj-flex oj-sm-padding-4x-horizontal">
     <div class="oj-flex-item oj-sm-12 oj-md-4">
       <div class="oj-panel oj-sm-margin-2x">
         <oj-bind-for-each data="[[ $application.variables.mateuItemOv.key.texts ]]">
@@ -147,22 +147,20 @@
 </oj-bind-if>
 
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
-  <div class="oj-flex oj-sm-align-items-center">
+  <!-- header de colección Redwood: título + acciones del crud integradas (New = primary,
+       resto = secondary); la tabla va en su slot main -->
+  <oj-sp-smart-filter-search id="mateuListHeader"
+    page-title="[[ $application.variables.mateuHostTitle ]]"
+    primary-action="[[ $application.variables.mateuListPrimary ]]"
+    secondary-actions="[[ $application.variables.mateuListSecondary ]]"
+    on-sp-primary-action="[[ $listeners.listPrimary ]]"
+    on-sp-secondary-action="[[ $listeners.listSecondary ]]">
+  <div slot="main" class="oj-sm-padding-4x-horizontal">
+  <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-8">
       <oj-input-search id="mateuSearch" class="oj-sm-margin-4x-bottom"
         placeholder="Search"
         on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
-    </div>
-    <div class="oj-flex-item oj-sm-12 oj-md-4 oj-sm-align-self-flex-end">
-      <!-- toolbar del crud (p.ej. New) — botones del wire de Mateu -->
-      <oj-bind-for-each data="[[ $application.variables.mateuListing.toolbar ]]">
-        <template>
-          <oj-button class="oj-sm-margin-2x-start"
-            :data-action-id="[[ $current.data.actionId ]]"
-            chroming="callToAction"
-            on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-        </template>
-      </oj-bind-for-each>
     </div>
   </div>
   <div class="oj-flex">
@@ -181,6 +179,8 @@
       </oj-table>
     </div>
   </div>
+  </div>
+  </oj-sp-smart-filter-search>
 </oj-bind-if>
 
 <!-- Drawer del crud (editInDrawer): panel end auténtico de JET; los campos y botones salen
@@ -295,7 +295,7 @@
 </oj-bind-if>
 
 <oj-bind-if test="[[ !!$application.variables.mateuFormMetadata && !$application.variables.mateuWizard ]]">
-  <div class="oj-flex">
+  <div class="oj-flex oj-sm-padding-4x-horizontal">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
       <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>
       <oj-form-layout id="mateuForm">
@@ -347,7 +347,7 @@
 <!-- Isla embebida (Fase 9): superficie PROPIA alimentada por contexts[islandId] — sus
      acciones (Edit/Save) solo repintan la isla; el host no se toca -->
 <oj-bind-if test="[[ !!$application.variables.mateuIsland ]]">
-  <div class="oj-flex">
+  <div class="oj-flex oj-sm-padding-4x-horizontal">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
       <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuIslandToast"></oj-sp-messages-toast>
       <oj-form-layout id="mateuIslandForm">

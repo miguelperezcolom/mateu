@@ -456,6 +456,28 @@
         "goToParent": ""
       },
       "description": "el título de página se integra como 'parent page' del header Redwood"
+    },
+    "mateuListPrimary": {
+      "type": "any",
+      "defaultValue": {
+        "label": "",
+        "display": "off"
+      },
+      "description": "primaryAction del header de colección (New) — nunca null"
+    },
+    "mateuListPrimaryId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuListSecondary": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "secondaryActions del header de colección (Delete…)"
+    },
+    "mateuPageHeader": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "header genérico de página (oj-sp-header-general-overview sin switcher) — null cuando el template ya integra su header"
     }
   },
   "userConfig": {

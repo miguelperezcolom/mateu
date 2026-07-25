@@ -445,6 +445,26 @@ header va A SANGRE (sin padding arriba ni a los lados): las proyecciones fuerzan
 `mateuPagePadding='0'` cuando hay header Redwood y el contenido inferior recupera los gutters
 con clases utilitarias del sistema (`oj-sm-padding-4x-horizontal`). Cero CSS propio.
 
+**Generalización (feedback, 2026-07-25): TODA página pinta su header con un header de vb** —
+el h1 se ELIMINÓ del renderer. Reparto por tipo de página:
+
+- **Listado (crud)** → `oj-sp-smart-filter-search`: pageTitle + `primaryAction` (primer botón
+  de la toolbar del wire, p.ej. New) + `secondaryActions` (resto, p.ej. Delete); la tabla y la
+  búsqueda van en su slot `main` (con `oj-sm-padding-4x-horizontal`). Eventos
+  `spPrimaryAction`/`spSecondaryAction` → runMateuAction (el secondary llega con
+  `detail.secondaryItem` = item/label → se resuelve contra la toolbar). `primaryAction` nunca
+  null: `{label:'', display:'off'}` cuando no hay toolbar.
+- **Página genérica (form / texto / foldout / item overview / isla)** →
+  `oj-sp-header-general-overview` SIN switcher (todas sus props son opcionales): `page-title` +
+  `display-options.go-to-parent="false"` (si no, pinta el link "Parent page" por defecto).
+  Proyección `mateuPageHeader = {title}` en ambos chains; null cuando el template ya integra su
+  header (wizard/overview/welcome/listado) — esos suprimen el genérico.
+- Los botones de formulario/isla se quedan con su contenido (el wire de Mateu no distingue
+  toolbar de página vs botones de form en `actionsOf`; los del crud sí viajan aparte).
+
+Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
+`hdr-booking.png`, `hdr-chair.png`.
+
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 
 - Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +
