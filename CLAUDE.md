@@ -25,7 +25,8 @@ backend/          ← Maven multi-module Java backend
   webflux/        ← Spring WebFlux adapter
   micronaut/      ← Micronaut adapter
   quarkus/        ← Quarkus adapter
-  helidon-mp/     ← Helidon MicroProfile adapter
+  helidon-mp/     ← Helidon MicroProfile adapter (JAX-RS/CDI/Weld; at full parity — see the
+                    Helidon MP adapter note below)
 
 backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper emitting the same
                     /mateu/v3/sync wire model so existing renderers render a C# backend.
@@ -106,6 +107,20 @@ The same `UIIncrementDto` carries `commands` (e.g. `SetWindowTitle`, `navigateTo
 Each renderer in `frontend/web/monorepo/apps/<name>/` is a standalone Vite app. Its `copy` npm script builds and copies artifacts directly into the matching `backend/shared/frontend/<name>-lit/src/main/resources` folder so they are served as static assets.
 
 The shared lib (`libs/mateu`) contains: `MateuApiClient`, SSE support, `mateu-ux` (root web component), `mateu-dialog`, `mateu-grid`, `mateu-choice`, and base infrastructure. Renderers import from `mateu` workspace package and provide renderer-specific web-components for each DTO type.
+
+### Helidon MP adapter (JAX-RS/CDI/Weld) — parity notes (2026-07-25)
+
+Brought to full parity with Micronaut/Quarkus and pinned by the shared e2e suite (`e2e/sut/apps/helidon-app1`, port **8086**, a Playwright project running the same `**/shared/**` specs; 252/252 green). The adapter (`backend/helidon-mp/helidon-mp-core` + `annotation-processor-helidon-mp`) now supplies ALL the CDI wiring, so a consumer app needs only its `@UI` classes + a `META-INF/beans.xml` — NO Mateu glue (exactly like a Quarkus/Micronaut app). Non-obvious gotchas discovered building it (all of them silent failures — the server boots either way):
+
+- **JSON-B drops the wire discriminators.** Helidon MP defaults to JSON-B (Yasson), which ignores Jackson `@JsonTypeInfo` → the `"type"` field is missing and the frontend renders empty components. Fix: `MateuObjectMapperProvider` (a `@Provider ContextResolver<ObjectMapper>`) forces Jackson, AND the app must have `jersey-media-json-jackson` on the runtime classpath (the ContextResolver is inert without Jackson's `MessageBodyWriter`).
+- **`MateuService` isn't a CDI bean by itself.** `DefaultMateuService` (framework-neutral core) carries only `jakarta.inject` metadata, which Weld's `annotated` discovery does NOT treat as a bean → the generated controllers' `@Inject MateuService` would be unsatisfied. `HelidonMateuService` (`@ApplicationScoped @Specializes DefaultMateuService`, in the adapter jar — a bean archive) supplies it. It lives in the ADAPTER, not the app.
+- **Parameterized-bean lookup.** `HelidonMPBeanProvider.getBeans(ComponentAdapter.class)` via `CDI.select(rawClass)` returns nothing for a parameterized bean (`ComponentAdapter<Foo>`) → the ComponentAdapter SPI silently falls back to reflectively rendering the POJO. Fix: resolve via `BeanManager.getBeans(Object.class, @Any)` + filter by raw type + `getReference(bean, Object.class, …)` — the same approach as `QuarkusBeanProvider` (plain CDI SPI, works verbatim on Weld).
+- **Lazy static facade.** CDI beans are lazy; `DefaultInstanceFactory` initializes the static `MateuInstanceFactory` facade in its constructor, but nothing on the request path injects it → the FIRST filtered CRUD search throws "MateuInstanceFactory has not been initialized" (later ones work). `HelidonCDIProducer` observes `@Initialized(ApplicationScoped.class)` and touches the bean at startup (the CDI equivalent of Quarkus' `StartupEvent` init).
+- **Generated controllers need a bean archive.** Without `META-INF/beans.xml` in the app, Jersey does not register the AP-generated `@Path`/`@RequestScoped` controllers → every route 404s (JAX-RS "Endpoint not found"). The generated `RouteResolver` also needs `@ApplicationScoped` (not just `@Named`) or Weld won't discover it → "Not found".
+- **Static assets shadow routes.** The frontend jar bundles assets at `/static/assets/*`; serve them at `/assets` ONLY (`server.static.classpath.context=/assets`, `location=/static/assets`) — a context of `/` makes the terminal static handler shadow every JAX-RS route.
+- **Jar name.** The Helidon parent pom's `finalName` is the artifactId WITHOUT the version → the runnable artifact is `helidon-app1.jar`, not `helidon-app1-1.0.0-SNAPSHOT.jar` (a wrong reference in the CI start step made `java -jar` fail silently and the unbounded readiness loop hung the runner — that wait step is now bounded to 3 min/port + dumps SUT logs on failure).
+
+The AP templates (`controller.ftl` returns `UIIncrementDto` via `.blockFirst()` over JAX-RS `@Context HttpHeaders/UriInfo`; `route.ftl` emits `@ApplicationScoped`) are otherwise close copies of the Quarkus templates. User setup docs: `doc/.../java-create-your-project/helidon.md`.
 
 ## Backend testing (core integration harness)
 
