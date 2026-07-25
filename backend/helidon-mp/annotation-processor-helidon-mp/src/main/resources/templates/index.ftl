@@ -2,14 +2,12 @@ package ${pkgName};
 
 import io.mateu.core.infra.InputStreamReader;
 import io.mateu.core.infra.JsonSerializer;
-import io.vertx.core.http.HttpServerRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.resteasy.reactive.RestResponse;
 
 import java.util.HashMap;
 import java.util.Map;

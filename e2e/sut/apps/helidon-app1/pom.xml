@@ -9,20 +9,17 @@
         <version>4.2.6</version>
         <relativePath/>
     </parent>
-    <artifactId>demo-vaadin-helidon-mp</artifactId>
-
+    <groupId>io.mateu.e2e</groupId>
+    <artifactId>helidon-app1</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>helidon-app1</name>
+    <properties>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>io.helidon.microprofile.bundles</groupId>
             <artifactId>helidon-microprofile-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.microprofile.openapi</groupId>
-            <artifactId>helidon-microprofile-openapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.microprofile.health</groupId>
-            <artifactId>helidon-microprofile-health</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.json.bind</groupId>
@@ -43,49 +40,31 @@
             <artifactId>jandex</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.metrics</groupId>
-            <artifactId>microprofile-metrics-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.microprofile.metrics</groupId>
-            <artifactId>helidon-microprofile-metrics</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.microprofile.testing</groupId>
-            <artifactId>helidon-microprofile-testing-junit5</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-
-
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-helidon-mp</artifactId>
-            <version>0.0.1-MATEU</version>
-        </dependency>
+        <!-- Mateu Helidon MP runtime -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>helidon-mp-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
+        <!-- Frontend web components -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
+        </dependency>
+        <!-- UI definitions (same @UIs the other SUT apps serve) -->
+        <dependency>
+            <groupId>io.mateu.e2e</groupId>
+            <artifactId>sample1</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.40</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -107,14 +86,29 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <!-- javac disables classpath annotation processing by default since JDK 23;
-                         mateu's framework annotation processor (annotation-processor-helidon-mp) is a
-                         plain dependency, so it needs proc:full to run and generate the per-@UI
-                         controllers, route resolvers and config. -->
-                    <proc>full</proc>
+                    <parameters>true</parameters>
+                    <!-- Framework AP + the @UI module on the processor path: the mateu helidon AP
+                         reads sample1's ui-registrations and generates a controller + route resolver
+                         per @UI (same wiring as quarkus-app1). -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.40</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-helidon-mp</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu.e2e</groupId>
+                            <artifactId>sample1</artifactId>
+                            <version>1.0.0-SNAPSHOT</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
         </plugins>

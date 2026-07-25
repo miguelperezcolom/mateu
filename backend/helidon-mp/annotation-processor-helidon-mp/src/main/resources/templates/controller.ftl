@@ -1,18 +1,22 @@
 
 package ${pkgName};
 
-import io.mateu.QuarkusHttpRequest;
+import io.mateu.HelidonMPHttpRequest;
 import io.mateu.core.application.MateuService;
-import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
-import io.vertx.core.http.HttpServerRequest;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
 
 @Path("${path}/mateu")
+@RequestScoped
 @Slf4j
 public class ${simpleClassName}MateuController {
 
@@ -23,21 +27,22 @@ public class ${simpleClassName}MateuController {
         this.service = service;
     }
 
-    private String uiId = "${className}";
+    private final String uiId = "${className}";
 
-    private String baseUrl = "${path}";
+    private final String baseUrl = "${path}";
 
     @Path("v3/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(
-        String ignored,
-        RunActionRqDto rq,
-        HttpServerRequest serverHttpRequest) throws Throwable {
-var httpRequest = new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
-httpRequest.setAttribute("uiId", uiId);
-httpRequest.setAttribute("baseUrl", baseUrl);
-return service.runAction(uiId, rq, baseUrl, httpRequest).block();
+            @PathParam("ignored") String ignored,
+            RunActionRqDto rq,
+            @Context HttpHeaders headers,
+            @Context UriInfo uriInfo)
+            throws Throwable {
+        var httpRequest =
+                new HelidonMPHttpRequest(headers, uriInfo).storeRunActionRqDto(rq);
+        httpRequest.setAttribute("uiId", uiId);
+        httpRequest.setAttribute("baseUrl", baseUrl);
+        return service.runAction(uiId, rq, baseUrl, httpRequest).blockFirst();
     }
-
 }
-
