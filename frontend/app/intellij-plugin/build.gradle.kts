@@ -201,32 +201,61 @@ tasks.register("buildInstaller") {
             )
             wrapper.setExecutable(true)
 
-            // Modifying the bundle invalidates the signature — re-sign ad-hoc so macOS will launch it.
-            logger.lifecycle("Re-signing (ad-hoc)…")
-            run("codesign", "--force", "--deep", "--sign", "-", app.absolutePath, dir = work)
+            // Modifying the bundle invalidates the original signature — re-sign. With a Developer ID
+            // (-Pmacos.sign.identity="Developer ID Application: Name (TEAMID)") sign with the hardened
+            // runtime + a secure timestamp (both required for notarization); otherwise ad-hoc, which
+            // at least launches locally (first launch needs right-click ▸ Open).
+            val signId = findProperty("macos.sign.identity") as String?
+            val notaryProfile = findProperty("macos.notarize.profile") as String?
+            if (signId != null) {
+                logger.lifecycle("Signing with Developer ID (hardened runtime)…")
+                run("codesign", "--force", "--deep", "--options", "runtime", "--timestamp", "--sign", signId, app.absolutePath, dir = work)
+            } else {
+                logger.lifecycle("Re-signing (ad-hoc)…")
+                run("codesign", "--force", "--deep", "--sign", "-", app.absolutePath, dir = work)
+            }
 
-            // Ship the .app, a zip of it, and a double-click .dmg.
-            val out = File(installerDir, "Mateu.app")
-            out.deleteRecursively()
-            run("cp", "-R", app.absolutePath, out.absolutePath, dir = work)
-            val zip = File(installerDir, "mateu-desktop-${project.version}-macos.zip")
-            zip.delete()
-            run("ditto", "-c", "-k", "--keepParent", app.absolutePath, zip.absolutePath, dir = work)
-
-            // Double-click .dmg: Mateu.app beside a drag-to-Applications shortcut. Move (not copy) the
-            // work .app into the staging dir — same filesystem, so it's free (out/zip are already made).
+            // Double-click .dmg: Mateu.app beside a drag-to-/Applications shortcut. Move (not copy) the
+            // work .app into the staging dir — same filesystem, so it's free.
             logger.lifecycle("Creating .dmg…")
             val dmgStage = File(work, "dmg").apply { deleteRecursively(); mkdirs() }
-            run("mv", app.absolutePath, File(dmgStage, "Mateu.app").absolutePath, dir = work)
+            val stagedApp = File(dmgStage, "Mateu.app")
+            run("mv", app.absolutePath, stagedApp.absolutePath, dir = work)
             run("ln", "-s", "/Applications", File(dmgStage, "Applications").absolutePath, dir = work)
             val dmgOut = File(installerDir, "mateu-desktop-${project.version}-macos.dmg")
             dmgOut.delete()
             run("hdiutil", "create", "-volname", "Mateu", "-srcfolder", dmgStage.absolutePath, "-ov", "-format", "UDZO", dmgOut.absolutePath, dir = work)
 
+            // Notarize the .dmg and staple the ticket onto both the .dmg and the .app, so Gatekeeper
+            // passes offline (normal double-click, no right-click). Needs a Developer ID signature and
+            // a notarytool keychain profile (-Pmacos.notarize.profile=<profile>, created once via
+            // `xcrun notarytool store-credentials`).
+            val notarized = signId != null && notaryProfile != null
+            when {
+                notarized -> {
+                    logger.lifecycle("Notarizing (submitting to Apple — can take a few minutes)…")
+                    run("xcrun", "notarytool", "submit", dmgOut.absolutePath, "--keychain-profile", notaryProfile, "--wait", dir = work)
+                    logger.lifecycle("Stapling the notarization ticket…")
+                    run("xcrun", "stapler", "staple", dmgOut.absolutePath, dir = work)
+                    run("xcrun", "stapler", "staple", stagedApp.absolutePath, dir = work)
+                }
+                notaryProfile != null ->
+                    logger.lifecycle("Skipping notarization: -Pmacos.sign.identity is required (an ad-hoc signature can't be notarized).")
+            }
+
+            // Ship the .app and a zip of it — from the staged (possibly stapled) copy.
+            val out = File(installerDir, "Mateu.app")
+            out.deleteRecursively()
+            run("cp", "-R", stagedApp.absolutePath, out.absolutePath, dir = work)
+            val zip = File(installerDir, "mateu-desktop-${project.version}-macos.zip")
+            zip.delete()
+            run("ditto", "-c", "-k", "--keepParent", out.absolutePath, zip.absolutePath, dir = work)
+
             logger.lifecycle("Installer ready: $out")
             logger.lifecycle("  $zip (${zip.length() / (1024 * 1024)} MB)")
             logger.lifecycle("  $dmgOut (${dmgOut.length() / (1024 * 1024)} MB)")
-            logger.lifecycle("First launch: right-click ▸ Open (unsigned), or run: xattr -dr com.apple.quarantine \"/Applications/Mateu.app\"")
+            if (notarized) logger.lifecycle("Signed + notarized — launches with a normal double-click.")
+            else logger.lifecycle("Unsigned/ad-hoc — first launch: right-click ▸ Open (or xattr -dr com.apple.quarantine).")
             return@doLast
         }
 
