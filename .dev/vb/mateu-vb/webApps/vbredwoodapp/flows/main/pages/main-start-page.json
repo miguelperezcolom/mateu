@@ -233,6 +233,17 @@
           }
         }
       ]
+    },
+    "islandBlockAction": {
+      "chains": [
+        {
+          "chain": "runMateuIslandAction",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -290,6 +301,9 @@
       },
       "oj-action-card": {
         "path": "ojs/ojactioncard"
+      },
+      "oj-train": {
+        "path": "ojs/ojtrain"
       }
     }
   }

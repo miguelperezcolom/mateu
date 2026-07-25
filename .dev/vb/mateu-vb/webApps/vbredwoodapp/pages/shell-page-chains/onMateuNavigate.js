@@ -71,7 +71,11 @@ define([
       const islands = hostForIslands ? bridge.collectIslands(hostForIslands.tree) : [];
       const firstIsland = islands.length ? islands[0] : null;
       if (firstIsland) {
-        reg = await bridge.loadRouteInto(base, reg, firstIsland.route, firstIsland.id, { appState });
+        reg = await bridge.loadRouteInto(base, reg, firstIsland.route, firstIsland.id, {
+          appState,
+          consumedRoute: firstIsland.consumedRoute,
+          serverSideType: firstIsland.serverSideType,
+        });
       }
       $application.variables.mateuIslandId = firstIsland ? firstIsland.id : '';
 
@@ -88,7 +92,8 @@ define([
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
         ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state),
-            actions: bridge.actionsOf(islandContext.tree) }
+            actions: bridge.actionsOf(islandContext.tree),
+            content: bridge.islandContentOf(islandContext) }
         : null;
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions

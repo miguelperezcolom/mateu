@@ -47,13 +47,28 @@ export function collectActions(node, out = []) {
   return out
 }
 
-/** Fronteras de isla embebida: nodos ServerSide INTERIORES (id propio, p.ej. '_guestNote'). */
+/** Fronteras de isla embebida — DOS sabores confirmados en wire real:
+ *  (a) nodos ServerSide INTERIORES (id propio, p.ej. '_guestNote');
+ *  (b) nodos ClientSide App variant=MEDIATOR con id estable (p.ej.
+ *      'island_checkin_st_maria') cuya PROPIA metadata trae homeRoute
+ *      (?_embeddedMediator=1) + homeConsumedRoute + homeServerSideType —
+ *      el detalle del TaskQueue del front-office llega así. */
 export function collectIslands(tree, out = []) {
   const walk = (node, isRoot) => {
     if (!node || typeof node !== 'object') return
     if (!isRoot && node.type === 'ServerSide') {
       out.push(node)
       return // sus hijos pertenecen a la isla, no al host
+    }
+    if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
+        && node.metadata.type === 'App' && node.metadata.variant === 'MEDIATOR') {
+      out.push({
+        id: node.id,
+        route: node.metadata.homeRoute,
+        consumedRoute: node.metadata.homeConsumedRoute || node.metadata.homeRoute,
+        serverSideType: node.metadata.homeServerSideType,
+      })
+      return
     }
     for (const v of Object.values(node)) {
       if (Array.isArray(v)) v.forEach((x) => walk(x, false))
@@ -412,6 +427,139 @@ export function emptyStateOf(tree) {
     title: (md.icon ? md.icon + ' ' : '') + (md.title || ''),
     description: md.description || '',
   }
+}
+
+/** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
+export function interpolate(text, state) {
+  return String(text == null ? '' : text).replace(
+    /\$\{state\.([A-Za-z0-9_]+)\}/g,
+    (all, key) => (state && state[key] != null ? String(state[key]) : ''),
+  )
+}
+
+const TEXT_CLASSES = {
+  xl: 'oj-typography-heading-md',
+  l: 'oj-typography-subheading-md',
+  s: 'oj-typography-body-sm',
+  xs: 'oj-typography-body-xs oj-text-color-secondary',
+}
+const NOTICE_CLASSES = {
+  success: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30',
+  warning: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-warning-30',
+  danger: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-danger-30',
+  info: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-info-30',
+}
+
+/** Proyección GENÉRICA del contenido display de una isla (p.ej. el CheckInWizard
+ *  embebido del front-office): BLOQUES (plain | card) de átomos precomputados para el
+ *  CSP de VB (flags is*, clases, textos interpolados contra el state). Las islas
+ *  ANIDADAS (App mediador dentro de la isla, p.ej. el documento) se saltan — fase
+ *  posterior. null si el árbol no aporta nada display (isla de formulario puro). */
+export function islandContentOf(ctx) {
+  if (!ctx || !ctx.tree) return null
+  const state = ctx.state || {}
+  const interp = (t) => interpolate(t, state)
+  const badgeOf = (b) => ({
+    label: b.label,
+    badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+  })
+  const buttonOf = (m) => ({
+    actionId: m.actionId,
+    label: m.label || m.actionId,
+    chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+    parameters: m.parameters || {},
+  })
+  const blocks = []
+  let plain = null
+  const atom = (a, container) => {
+    if (container) { container.items.push(a); return }
+    if (!plain) { plain = { isCard: false, items: [] }; blocks.push(plain) }
+    plain.items.push(a)
+  }
+  // los hijos de un nodo viajan en children Y/O en metadata.content (CustomField, Notice…)
+  const kidsOf = (node) => {
+    const out = [...(node.children || [])]
+    const inner = node.metadata && node.metadata.content
+    if (Array.isArray(inner)) out.push(...inner)
+    else if (inner && typeof inner === 'object') out.push(inner)
+    return out
+  }
+  const collectButtons = (node, out) => {
+    if (!node || typeof node !== 'object') return out
+    if (node.metadata && node.metadata.type === 'Button') { out.push(buttonOf(node.metadata)); return out }
+    for (const child of kidsOf(node)) collectButtons(child, out)
+    return out
+  }
+  const visit = (node, container) => {
+    if (!node || typeof node !== 'object') return
+    const m = node.metadata
+    const t = m && m.type
+    if (t === 'App') return // isla ANIDADA: se salta (documentado)
+    if (t === 'Card') {
+      const card = { isCard: true, items: [] }
+      blocks.push(card)
+      plain = null
+      const title = m.title && (m.title.text || (typeof m.title === 'string' ? m.title : ''))
+      if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+      for (const child of node.children || []) visit(child, card)
+      const cardInner = m.content
+      if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
+      else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+      plain = null
+      return
+    }
+    if (t === 'Text') {
+      const text = interp(m.text)
+      if (text) atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+      return
+    }
+    if (t === 'ProgressSteps') {
+      const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
+      const current = (m.steps || []).find((step) => step.status === 'current')
+      atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+      return
+    }
+    if (t === 'EntityHeader') {
+      atom({
+        isEntityHeader: true,
+        title: interp(m.title),
+        subtitle: interp(m.subtitle || ''),
+        badges: (m.badges || []).map(badgeOf),
+        facts: (m.facts || []).map((f) => ({ label: f.label, value: interp(f.value) })),
+        metricLabel: m.metricLabel || '',
+        metricValue: interp(m.metricValue || ''),
+      }, container)
+      return
+    }
+    if (t === 'Notice') {
+      atom({
+        isNotice: true,
+        text: interp(m.text),
+        noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
+        buttons: collectButtons({ children: kidsOf(node) }, []),
+      }, container)
+      return
+    }
+    if (t === 'BulletedList') {
+      atom({ isBullets: true, items: (m.items || []).map(interp) }, container)
+      return
+    }
+    if (t === 'Separator') {
+      atom({ isSeparator: true }, container)
+      return
+    }
+    if (t === 'Button') {
+      const target = container || plain
+      const last = target && target.items.length ? target.items[target.items.length - 1] : null
+      if (last && last.isButtons) last.buttons.push(buttonOf(m))
+      else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
+      return
+    }
+    for (const child of kidsOf(node)) visit(child, container)
+  }
+  visit(ctx.tree, null)
+  const hasDisplay = blocks.some((b) => b.items.some((a) => !a.isButtons))
+  return hasDisplay ? blocks : null
 }
 
 /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */

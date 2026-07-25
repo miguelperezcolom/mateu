@@ -83,15 +83,6 @@
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 
-    <!-- Menú PLANO (variante TABS): in-app navigation Redwood; la selección dispara la
-         carga de la ruta sin recargar la shell -->
-    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
-      <oj-sp-in-app-navigation id="mateuNav"
-        navigation-items="[[ $application.variables.mateuNavItems ]]"
-        selection="[[ $application.variables.mateuSelectedRoute ]]"
-        on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
-    </oj-bind-if>
-
     <!-- Navigator PERSISTENTE (HAMBURGUER_MENU): oj-drawer-layout (reflow) DEBAJO del
          header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
          y el contenido se desplaza -->
@@ -151,6 +142,16 @@
         </div>
       </div>
     </oj-drawer-layout>
+
+    <!-- Menú PLANO (variante TABS): in-app navigation Redwood (su barra REAL es un overlay
+         fijo abajo que estampa el propio componente; el elemento host va al FINAL del
+         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo) -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
+      <oj-sp-in-app-navigation id="mateuNav"
+        navigation-items="[[ $application.variables.mateuNavItems ]]"
+        selection="[[ $application.variables.mateuSelectedRoute ]]"
+        on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
+    </oj-bind-if>
   </div>
 
 </oj-sp-simple-ui-shell>

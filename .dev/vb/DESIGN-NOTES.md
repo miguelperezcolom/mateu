@@ -606,6 +606,30 @@ es el CheckInWizard embebido (wizardOf ya lo proyecta: Identidad/Habitación/Ext
 acciones selectPax/back/next) con tipos display aún sin rama: EntityHeader, Notice,
 BulletedList, Card, Separator, ProgressSteps, Div.
 
+## Detalle del TaskQueue — la isla-wizard embebida PINTA (2026-07-25)
+
+`collectIslands` detecta ahora TAMBIÉN el sabor App-mediador (nodo ClientSide `App`
+variant=MEDIATOR con id estable; route/consumedRoute/serverSideType salen de su PROPIA
+metadata home*) y ambos chains cargan la isla al aparecer (runMateuAction la carga si su
+contexto no existe aún — antes solo onMateuNavigate cargaba islas). El contenido se proyecta
+con `islandContentOf(ctx)` — proyección display GENÉRICA: BLOQUES (plain|card→oj-panel) de
+átomos precomputados para el CSP (flags is*): Text (tamaños→oj-typography-*, con
+`interpolate()` de ${state.x} contra el state de la isla), ProgressSteps→oj-train (JET core),
+EntityHeader (título+badges+subtitle+facts), Notice (oj-panel + oj-bg-{success|warning|
+danger|info}-30, con sus Buttons anidados p.ej. selectPax con parameters), BulletedList,
+Separator (hueco), Buttons (Back/Next → runMateuIslandAction, que ahora acepta parameters).
+GOTCHA del árbol: los hijos viajan en `children` Y/O en `metadata.content` (CustomField,
+Notice, Card) — el walker desciende ambos. La rama antigua de isla-formulario queda para
+islas SIN contenido display (GuestNote). GOTCHA oj-sp-in-app-navigation: el componente
+estampa su barra REAL como overlay fijo abajo, pero su elemento HOST reserva 64px en flujo
+allí donde esté — debe ir al FINAL del pageContent (si va arriba deja una banda vacía bajo
+el header Y el fondo del contenido queda tapado por la barra sin poder clicarse).
+Verificado e2e contra :8594: clic huésped → detalle (EntityHeader+Notice pax+Preferencias),
+selectPax re-renderiza, Next avanza al paso Habitación. PENDIENTE señalizado: átomos
+ResourceGrid/AddOnPicker/Ledger/PaymentPicker/StatusList/Meter/TaskProgress (pasos 2-4 y
+check-out) e islas ANIDADAS (App dentro de la isla, p.ej. el documento — el walker las
+salta). Fixture fo-island-wizard, test 25. Shots fo-checkin-sel/fo-checkin-step2.
+
 ## Backend conmutado a demo-front-office (2026-07-25)
 
 **Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer

@@ -20,7 +20,7 @@ define([
      * @param {Object} params
      * @param {string} params.actionId
      */
-    async run(context, { actionId }) {
+    async run(context, { actionId, parameters }) {
       const { $application, $page } = context;
 
       const islandId = $application.variables.mateuIslandId;
@@ -39,7 +39,7 @@ define([
       const outbound = islandContext.outbound || {};
       const increment = await bridge.runMateuAction(
         base, islandContext, outbound.route || '',
-        actionId, componentState, { appState });
+        actionId, componentState, { appState, parameters: parameters || {} });
       let reg = bridge.reduceContexts(before, increment);
 
       // ROUTE-FLIP del mediador embebido: una respuesta state-only con _route nuevo
@@ -65,7 +65,8 @@ define([
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuIsland = after
         ? { fields: bridge.fieldListOf(after.tree, after.state),
-            actions: bridge.actionsOf(after.tree) }
+            actions: bridge.actionsOf(after.tree),
+            content: bridge.islandContentOf(after) }
         : null;
       $page.variables.mateuIslandDraft = {};
       $application.variables.mateuDirty = false;

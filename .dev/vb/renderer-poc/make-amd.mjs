@@ -50,6 +50,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     itemOverviewOf,
     taskQueueOf,
     emptyStateOf,
+    interpolate,
+    islandContentOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

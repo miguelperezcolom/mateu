@@ -13,6 +13,7 @@ import {
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
+  islandContentOf, collectIslands as collectIslandsFn,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -369,6 +370,25 @@ test('front-office: taskQueueOf proyecta grupos/cards/badges y emptyStateOf el p
   assert.match(first.badges[0].badgeClass, /oj-badge/)
   const placeholder = emptyStateOf(reg.contexts[HOST_ID].tree)
   assert.match(placeholder.title, /Selecciona un huésped/)
+})
+
+// 25) Front-office: el detalle del TaskQueue es una isla-mediador de sabor App (nodo
+// ClientSide App MEDIATOR con id estable y homeRoute/homeConsumedRoute/homeServerSideType
+// en su metadata) y su contenido (el CheckInWizard embebido) se proyecta como BLOQUES
+// display precomputados (flags is*, textos ${state.x} interpolados).
+test('front-office: isla-App detectada e islandContentOf proyecta el wizard embebido', () => {
+  const island = fx('fo-island-wizard')
+  const blocks = islandContentOf(island)
+  const atoms = blocks.flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isProgress && a.steps.length === 4))
+  const header = atoms.find((a) => a.isEntityHeader)
+  assert.equal(header.title, 'María Fernández')
+  const notice = atoms.find((a) => a.isNotice && a.buttons.length === 2)
+  assert.equal(notice.buttons[0].actionId, 'selectPax')
+  assert.deepEqual(notice.buttons[0].parameters, { paxIndex: 1 })
+  assert.ok(blocks.some((b) => b.isCard))
+  assert.ok(atoms.every((a) => !a.isText || !a.text.includes('${'))) // interpolación hecha
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((btn) => btn.actionId === 'next')))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

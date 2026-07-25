@@ -116,6 +116,25 @@ define([
       if (!overlayNow) {
         $page.variables.mateuDraft = {};
       }
+      // isla aparecida con la acción (p.ej. el detalle del TaskQueue tras openGuest):
+      // se carga su contenido si su contexto aún no existe y se (re)proyecta
+      const islandsAfter = bridge.collectIslands(hostAfter.tree);
+      const islandAfter = islandsAfter.length ? islandsAfter[0] : null;
+      if (islandAfter && !reg.contexts[islandAfter.id]) {
+        reg = await bridge.loadRouteInto(base, reg, islandAfter.route, islandAfter.id, {
+          appState,
+          consumedRoute: islandAfter.consumedRoute,
+          serverSideType: islandAfter.serverSideType,
+        });
+        $application.variables.mateuRegistry = reg;
+      }
+      $application.variables.mateuIslandId = islandAfter ? islandAfter.id : '';
+      const islandCtxAfter = islandAfter ? reg.contexts[islandAfter.id] : null;
+      $application.variables.mateuIsland = islandCtxAfter
+        ? { fields: bridge.fieldListOf(islandCtxAfter.tree, islandCtxAfter.state),
+            actions: bridge.actionsOf(islandCtxAfter.tree),
+            content: bridge.islandContentOf(islandCtxAfter) }
+        : null;
       // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
       $application.variables.mateuQueue = bridge.taskQueueOf(hostAfter.tree);
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
