@@ -516,7 +516,15 @@ neutral-30 #F1EFED. **Navigator a toda altura**: `oj-drawer-layout` no crece sol
 mecanismo inline que el `min-width:0` de oj-vb-content. **pageLayout del shell**: `oj-sp-simple-ui-shell`
 adapta su chrome (tamaño del chat FAB, etc.) a `page-layout` (fixedWidth/fullWidth/edgeToEdge)
 — se alimenta del `pageWidth` del wire por página (`mateuShellPageLayout`, fixed→fixedWidth)
-en ambos chains; no constriñe el contenido (nuestro container sigue mandando en el ancho).
+en ambos chains; no constriñe el contenido (nuestro container sigue mandando en el ancho). **Alineación del chrome flotante (chat FAB)**: el shell posiciona su FAB
+con `right = max(24px, (100vw − 1536px)/2)` sobre el viewport COMPLETO (ignora el navigator
+drawer), así que centrar el contenido fixed en el área restante lo desalineaba en viewports
+anchos. Arreglo doble: (1) `pageStyleOf` ancla el borde DERECHO del contenido fixed a la misma
+fórmula (`margin: 0 max(24px, calc((100vw - 1536px)/2 + 64px)) 0 auto`, tope 1408 — el FAB
+nace exactamente donde acaba el contenido, como en FA); (2) fuera la clase
+`oj-web-applayout-max-width` del wrapper del starter — capaba el área a 1440 y rompía
+cualquier fórmula viewport-relativa. Verificado a 1440/1920/2400; en edgeToEdge el FAB queda
+en el borde derecho de la página.
 
 ## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
 

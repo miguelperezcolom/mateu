@@ -301,13 +301,22 @@ define([], () => {
   }
 
   /** Puerta 1.6: anatomía RDS del ancho de página (medición Toolkit 24C) — el wrapper del
-   *  contenido aplica contexts[host].pageWidth: fixed = tope 1408px centrado con gutters
-   *  24px; fullWidth = fluido con gutters 24px; edgeToEdge = 0 márgenes. */
+   *  contenido aplica contexts[host].pageWidth: fixed = tope 1408px con gutters 24px;
+   *  fullWidth = fluido con gutters 24px; edgeToEdge = 0 márgenes. En FIXED el borde
+   *  DERECHO se ancla a la MISMA fórmula con la que oj-sp-simple-ui-shell coloca su
+   *  chrome flotante (chat FAB: right = (100vw - 1536px)/2, medido) — el shell calcula
+   *  su caja sobre el viewport COMPLETO e ignora el navigator drawer, así que centrar
+   *  el contenido en el área restante lo desalineaba del FAB en viewports anchos;
+   *  izquierda auto (absorbe el drawer), tope 1408. */
   function pageStyleOf(ctx) {
     const width = (ctx && ctx.pageWidth) || 'fixed'
     if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
     if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
-    return { maxWidth: '1408px', margin: '0 auto', padding: '24px' }
+    return {
+      maxWidth: '1408px',
+      margin: '0 max(24px, calc((100vw - 1536px) / 2 + 64px)) 0 auto',
+      padding: '24px',
+    }
   }
 
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
