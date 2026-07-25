@@ -537,7 +537,10 @@ dos formatos Redwood — `display="list"` (aireado) y `display="grid"` (compacto
 Primera regla (por nº de columnas, ≥6→grid) DESCARTADA: el grid compacto es para tablas de
 TRABAJO, no de consulta — `listingOf` precomputa `display` = grid solo cuando alguna columna
 del wire es `editable` (@InlineEditing), si no list. Products (8 columnas, no editable) →
-list. Pendiente de ver un crud @InlineEditing real sobre VB cuando se capture ese fixture. OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
+list. Verificado con `StockCrud` (@InlineEditing, /stock) en demo-vb: sus columnas viajan
+`editable` → grid (37px, rejilla), Products sigue list (shots/stock-grid.png). La EDICIÓN de
+celdas en sí sigue pendiente en este renderer (update-row + widgets de celda — ver "no
+cableado aún"). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
 "cannot access io.mateu.uidl..." es que otro clon pisó los jars 0.0.1-MATEU — reinstalar
 backend desde este clon (cd backend && mvn clean install -DskipTests).
 

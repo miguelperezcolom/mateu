@@ -36,6 +36,8 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu ProductsCrud products;
 
+  @Menu StockCrud stock;
+
   @Menu BookingFoldout booking;
 
   @Menu io.mateu.mdd.demovb.infra.in.ui.checkout.CheckoutWizard checkout;
