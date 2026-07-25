@@ -26,6 +26,10 @@ define([
     async run(context, { event }) {
       const { $application } = context;
 
+      const listing = $application.variables.mateuListing;
+      if (listing && listing.editable) {
+        return; // tabla de TRABAJO: las celdas se editan in situ, el clic de fila no navega
+      }
       const detail = (event && event.detail) || {};
       const stamp = (detail.originalEvent && detail.originalEvent.timeStamp) || event.timeStamp || 0;
       if (stamp === lastHandledStamp) {

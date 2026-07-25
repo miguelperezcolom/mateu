@@ -538,9 +538,24 @@ Primera regla (por nº de columnas, ≥6→grid) DESCARTADA: el grid compacto es
 TRABAJO, no de consulta — `listingOf` precomputa `display` = grid solo cuando alguna columna
 del wire es `editable` (@InlineEditing), si no list. Products (8 columnas, no editable) →
 list. Verificado con `StockCrud` (@InlineEditing, /stock) en demo-vb: sus columnas viajan
-`editable` → grid (37px, rejilla), Products sigue list (shots/stock-grid.png). La EDICIÓN de
-celdas en sí sigue pendiente en este renderer (update-row + widgets de celda — ver "no
-cableado aún"). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
+`editable` → grid (37px, rejilla), Products sigue list (shots/stock-grid.png).
+
+**Edición de celdas CABLEADA (2026-07-25, /stock)**: contrato CAPTURADO (fixtures/real/
+update-row.json + load-stock.json, test 23): las columnas del wire llevan `editable` +
+`editorType` (text/integer/number/boolean; @ReadOnly → editable:false), el commit es la
+acción `update-row` con `parameters._editedRow` = LA FILA ENTERA editada (los extras tipo
+_rowNumber no molestan), y la respuesta es SOLO un toast success — sin fragments (el valor
+ya está en el cliente). Implementación VB: `listingOf` proyecta `template` por columna
+(cellEditText/Number/Boolean — editorType integer y number comparten oj-input-number) +
+`editable` a nivel de listing; oj-table estampa 3 `<template slot>` compartidos con editores
+SIEMPRE visibles (sin edit-mode rowEdit: el commit de Mateu es POR CELDA, no por fila);
+el listener pasa el CONTEXTO del template ($current.row/item/columnIndex — row.data o
+item.data según versión) al chain `mateuCellEdited`, que guarda: updatedFrom !== 'internal'
+(re-stamp) y valor sin cambio (no-op) → runMateuAction('update-row'). El clic de fila NO
+navega en tablas de trabajo (guard en mateuRowClicked por listing.editable). El toast pasó
+a ser ÚNICO a nivel de página (#mateuToast fuera de las ramas — antes vivía en la rama del
+form y las páginas de listado no lo mostraban). Verificado e2e: texto/número/boolean
+persisten tras recarga dura (el switch se acciona en su thumb). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
 "cannot access io.mateu.uidl..." es que otro clon pisó los jars 0.0.1-MATEU — reinstalar
 backend desde este clon (cd backend && mvn clean install -DskipTests).
 

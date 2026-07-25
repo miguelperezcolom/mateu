@@ -1,0 +1,20 @@
+{
+  "commands": [],
+  "messages": [
+    {
+      "variant": "success",
+      "position": null,
+      "title": null,
+      "text": "Saved",
+      "duration": 3000,
+      "undoLabel": null,
+      "undoActionId": null,
+      "undoParameters": null
+    }
+  ],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

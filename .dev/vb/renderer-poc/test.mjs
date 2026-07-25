@@ -333,4 +333,25 @@ test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos',
   assert.match(item.tabs[1].texts[0], /4.6/)
 })
 
+// 23) Edición inline (@InlineEditing): columnas editable → grid + plantillas de editor por
+// tipo; el commit es update-row + parameters._editedRow y responde SOLO un toast success
+// (sin fragments — el valor editado ya está en el cliente).
+test('inline editing: plantillas por editorType y update-row = toast sin fragments', () => {
+  const stock = fx('load-stock') // contenido del mediador; se simula su llegada al host
+  stock.fragments[0].targetComponentId = ''
+  const listing = listingOf(reduceContexts(empty(), stock).contexts[HOST_ID])
+  assert.equal(listing.display, 'grid')
+  assert.equal(listing.editable, true)
+  const byField = Object.fromEntries(listing.columns.map((c) => [c.field, c.template]))
+  assert.equal(byField.id, undefined) // @ReadOnly → sin editor
+  assert.equal(byField.product, 'cellEditText')
+  assert.equal(byField.units, 'cellEditNumber')
+  assert.equal(byField.price, 'cellEditNumber')
+  assert.equal(byField.active, 'cellEditBoolean')
+  const inc = fx('update-row')
+  assert.equal((inc.fragments || []).length, 0)
+  assert.equal(inc.messages.length, 1)
+  assert.equal(inc.messages[0].variant, 'success')
+})
+
 console.log(`\n${pass} tests OK (contrato de wire real)`)

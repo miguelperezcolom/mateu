@@ -73,7 +73,7 @@ define([
       for (const toast of reg.effects.toasts) {
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
-          selector: '#mateuIslandToast',
+          selector: '#mateuToast',
           method: 'open',
         });
       }

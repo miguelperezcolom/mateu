@@ -8,6 +8,10 @@
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
+<!-- toast único a nivel de página (patrón del starter): cualquier chain lo abre por id,
+     esté visible la rama que esté (form, listado, isla…) -->
+<oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>
+
 <!-- regla general: TODA página pinta su header con el header de vb
      (oj-sp-header-general-overview sin switcher) salvo los templates que ya lo
      integran: guided process, general overview, welcome banner y el
@@ -183,6 +187,24 @@
             primary-text="[[ $application.variables.mateuListing.emptyStateMessage ]]"
             secondary-text=""></oj-sp-empty-state>
         </template>
+        <!-- Edición inline (@InlineEditing): celdas con editor SIEMPRE visible; el commit
+             por celda dispara update-row con parameters._editedRow (contrato capturado:
+             responde solo un toast success — el valor editado ya está en el cliente) -->
+        <template slot="cellEditText">
+          <oj-input-text class="oj-form-control-full-width"
+            value="[[ $current.data ]]"
+            on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-input-text>
+        </template>
+        <template slot="cellEditNumber">
+          <oj-input-number class="oj-form-control-full-width"
+            value="[[ $current.data ]]"
+            on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-input-number>
+        </template>
+        <template slot="cellEditBoolean">
+          <oj-switch
+            value="[[ $current.data ]]"
+            on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-switch>
+        </template>
       </oj-table>
     </div>
   </div>
@@ -304,7 +326,6 @@
 <oj-bind-if test="[[ !!$application.variables.mateuFormMetadata && !$application.variables.mateuWizard ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
-      <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>
       <oj-form-layout id="mateuForm">
         <oj-bind-for-each data="[[ $application.variables.mateuFormFieldsList ]]">
           <template>
@@ -356,7 +377,6 @@
 <oj-bind-if test="[[ !!$application.variables.mateuIsland ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
-      <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuIslandToast"></oj-sp-messages-toast>
       <oj-form-layout id="mateuIslandForm">
         <oj-bind-for-each data="[[ $application.variables.mateuIsland.fields ]]">
           <template>

@@ -436,13 +436,23 @@ export function listingOf(ctx) {
     emptyStateMessage: md.emptyStateMessage || 'No data.',
     columns: (md.columns || []).map((col) => {
       const c = col.metadata || col
-      return { headerText: c.label || c.id, field: c.id }
+      const def = { headerText: c.label || c.id, field: c.id }
+      // celda editable → plantilla de editor por tipo (siempre visible, commit por celda:
+      // el contrato es update-row + parameters._editedRow; fixtures/real/update-row.json)
+      if (c.editable && c.editorType) {
+        def.template = c.editorType === 'boolean' ? 'cellEditBoolean'
+          : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
+            : 'cellEditText'
+      }
+      return def
     }),
     // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
     // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
     // como editable en el wire); un listado de consulta queda en 'list' (aireado).
     // PRECOMPUTADO (CSP de VB).
     display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
+    // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
+    editable: (md.columns || []).some((col) => (col.metadata || col).editable),
     rows: page.content || [],
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,
