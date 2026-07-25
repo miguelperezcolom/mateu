@@ -2,15 +2,14 @@ import {fieldButton} from '@vaadin/vaadin-lumo-styles/mixins/field-button.js';
 import {menuOverlay} from '@vaadin/vaadin-lumo-styles/mixins/menu-overlay.js';
 import {overlay} from '@vaadin/vaadin-lumo-styles/mixins/overlay.js';
 import {requiredField} from '@vaadin/vaadin-lumo-styles/mixins/required-field.js';
-import {badge} from '@vaadin/vaadin-lumo-styles/badge.js';
-import {color} from '@vaadin/vaadin-lumo-styles/color.js';
-import '@vaadin/vaadin-lumo-styles/font-icons.js';
-import {sizing} from '@vaadin/vaadin-lumo-styles/sizing.js';
-import {spacing} from '@vaadin/vaadin-lumo-styles/spacing.js';
-import {style} from '@vaadin/vaadin-lumo-styles/style.js';
-import {typography} from '@vaadin/vaadin-lumo-styles/typography.js';
-import {userColors} from '@vaadin/vaadin-lumo-styles/user-colors.js';
-import {utility} from '@vaadin/vaadin-lumo-styles/utility.js';
+// Vaadin 25 removed the Lumo token JS modules (color, typography, sizing, spacing, style, badge,
+// user-colors, utility, font-icons) — Lumo now ships as pre-assembled CSS. We import those
+// stylesheets as inline strings (`?inline`) and inject them at runtime into the global <style>
+// below, exactly like the old per-module `cssText` injection — so the styles apply wherever
+// mateu-vaadin.js is loaded, without depending on an extracted <link>. (The mixins above still
+// ship in v25 — deprecated, to be removed in V26 — and carry component-level styles.)
+import lumoCss from '@vaadin/vaadin-lumo-styles/dist/lumo.css?inline';
+import utilityCss from '@vaadin/vaadin-lumo-styles/dist/utility.css?inline';
 import '@vaadin/icons/vaadin-iconset.js';
 import {css, registerStyles} from '@vaadin/vaadin-themable-mixin/register-styles.js';
 
@@ -38,13 +37,7 @@ ${fieldButton.cssText}
 ${menuOverlay.cssText}
 ${overlay.cssText}
 ${requiredField.cssText}
-${badge.cssText}
-${color.cssText}
-${sizing.cssText}
-${spacing.cssText}
-${style.cssText}
-${typography.cssText}
-${userColors.cssText}
-${utility.cssText}
+${lumoCss}
+${utilityCss}
 `;
 document.body.appendChild(sheet);
