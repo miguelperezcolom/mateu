@@ -677,7 +677,7 @@ define([], () => {
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
         const cellClass = cols
-          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-sm-padding-4x-end oj-sm-margin-3x-bottom'
+          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-sm-padding-10x-end oj-sm-margin-6x-bottom'
           : ''
         atom({
           isStatusList: true,
