@@ -292,7 +292,7 @@ public class CheckInWizard extends Wizard {
 
   @WizardCompletionAction
   @Label("Confirmar check-in")
-  void confirmarCheckin() {
+  Object confirmarCheckin() {
     syncConfirmar();
     var view = FrontOffice.stayView(stayId);
     var stay = view.stay();
@@ -331,5 +331,7 @@ public class CheckInWizard extends Wizard {
             + confirmar.getHuespedPrincipal()
             + " · Habitación "
             + confirmar.getHabitacionAsignada());
+    // de vuelta a la Reserva 360 (que ya mostrará el estado in house)
+    return java.net.URI.create("/reserva/" + stayId);
   }
 }

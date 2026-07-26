@@ -730,9 +730,15 @@ guided process como tarea):
 - hostContentOf filtra ahora el título de Page SIEMPRE (la banda del header ya lo pinta;
   antes solo en modo wizard).
 
-Verificado e2e por estado + shots ro-*.png. PENDIENTE natural: al completar el wizard,
-volver a /reserva/:id (hoy queda el ResultStep); unificar también las rutas viejas
-/encasa /checkout como vistas de la 360 si se quiere.
+Verificado e2e por estado + shots ro-*.png.
+
+**Cerrado (mismo día)**: (1) el wizard VUELVE a la 360 al completar — el dispatcher de
+@WizardCompletionAction devuelve el result del método si no es null, así que
+confirmarCheckin retorna URI /reserva/:id (y la 360 ya muestra in house); (2) FIX DE CORE:
+Wizard.component() avanza position al PRIMER paso aplicable (arrancaba siempre en 0 y
+enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la navegación ya
+saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
+/encasa y /checkout dentro de la 360 si se quiere.
 
 ## Wizard standalone: pie sticky vs barra de tabs + forward real (2026-07-26)
 
