@@ -790,6 +790,7 @@ define([], () => {
     let merged = mergeNestedContent(blocks, islandBlocks || null)
     const title = opts.title || ''
     let titleDropped = false
+    let entityDropped = false
     merged = merged
       .map((block) => ({
         ...block,
@@ -802,6 +803,12 @@ define([], () => {
           // el TOOLBAR de Page tampoco va al contenido: se proyecta a las acciones del
           // header (pageToolbarOf → primary/secondary de la banda)
           if (atom.fromPageToolbar) return false
+          // y el EntityHeader tampoco cuando el header de pantalla lo muestra (título/
+          // subtítulo/facts del huésped en la banda, en vez del título genérico)
+          if (opts.dropEntityHeader && atom.isEntityHeader && !entityDropped) {
+            entityDropped = true
+            return false
+          }
           if (opts.forWizard) {
             if (atom.isProgress) return false
             if (atom.isButtons && atom.buttons.length
@@ -832,6 +839,24 @@ define([], () => {
       }
     }
     return forward
+  }
+
+  /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
+   *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
+   *  contextualInfo del oj-sp-header-general-overview. */
+  function entityHeaderOf(ctx) {
+    const node = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
+    if (!node) return null
+    const m = node.metadata
+    const state = ctx.state || {}
+    const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
+    const facts = (m.facts || []).map((f) => ({ label: f.label, value: interpolate(f.value, state) }))
+    if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+    return {
+      title: interpolate(m.title, state),
+      subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+      facts,
+    }
   }
 
   /** El TOOLBAR de la Page del host (para las acciones del header de banda):
@@ -1310,6 +1335,7 @@ define([], () => {
     bannersOf,
     pageStyleOf,
     pageToolbarOf,
+    entityHeaderOf,
     collectTexts,
     foldoutOf,
     wizardOf,

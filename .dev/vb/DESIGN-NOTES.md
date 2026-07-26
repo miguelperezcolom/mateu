@@ -740,6 +740,16 @@ enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la
 saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
 /encasa y /checkout dentro de la 360 si se quiere.
 
+## El header de pantalla ES el de la reserva (2026-07-26)
+
+En la 360, el header genérico de banda ya no dice "Reserva": `entityHeaderOf(host)`
+proyecta el EntityHeader del contenido al header de pantalla — pageTitle = el huésped,
+pageSubtitle = subtitle + badges concatenados, facts (+métrica) → contextualInfo (con
+`display-options.contextual-info-label=true`, que por defecto oculta las etiquetas) — y
+hostContentOf lo filtra del contenido (dropEntityHeader; el del wizard/islas se conserva).
+El header queda con la gramática completa del object header RDS: huésped + subtítulo +
+BALANCE/PREAUTORIZADO/FIDELIDAD + acciones a la derecha.
+
 ## Acciones del toolbar en el HEADER de banda (2026-07-26)
 
 El toolbar de la Page (ToolbarSupplier/@Toolbar) ya NO se pinta en el contenido: se

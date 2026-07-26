@@ -194,8 +194,11 @@ define([
       const esWizard = !!$application.variables.mateuWizard;
       const sinOtrasRamas = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
+      const hostEntity = (!esWizard && sinOtrasRamas)
+        ? bridge.entityHeaderOf(host) : null;
       const hostBlocks = (!esWizard && sinOtrasRamas)
-        ? bridge.hostContentOf(host, islandRawBlocks, { title: summary.title }) : null;
+        ? bridge.hostContentOf(host, islandRawBlocks,
+            { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
@@ -271,7 +274,10 @@ define([
       const hostToolbar = bridge.pageToolbarOf(host);
       const primaryBtn = hostToolbar.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
-        title: summary.title || '',
+        // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
+        title: hostEntity ? hostEntity.title : (summary.title || ''),
+        subtitle: hostEntity ? hostEntity.subtitle : '',
+        facts: hostEntity ? hostEntity.facts : [],
         showBand: showBand,
         showInline: showHeader && !showBand,
         showListBand: showListBand,

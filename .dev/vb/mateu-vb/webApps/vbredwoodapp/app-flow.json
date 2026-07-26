@@ -478,8 +478,19 @@
       "type": "any",
       "defaultValue": {
         "title": "",
+        "subtitle": "",
+        "facts": [],
         "showBand": false,
-        "showInline": false
+        "showInline": false,
+        "showListBand": false,
+        "showListInline": false,
+        "primary": {
+          "label": "",
+          "display": "off"
+        },
+        "primaryId": "",
+        "secondary": [],
+        "toolbar": []
       },
       "description": "header genérico: SIEMPRE objeto (asignar null revienta los bindings internos .title antes de que el bind-if colapse) — flags showBand/showInline precomputados"
     },

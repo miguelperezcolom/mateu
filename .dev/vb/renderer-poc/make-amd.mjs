@@ -58,6 +58,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     bannersOf,
     pageStyleOf,
     pageToolbarOf,
+    entityHeaderOf,
     collectTexts,
     foldoutOf,
     wizardOf,
