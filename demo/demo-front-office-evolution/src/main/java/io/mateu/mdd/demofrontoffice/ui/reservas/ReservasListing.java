@@ -118,11 +118,8 @@ public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasLi
       if (stay == null) {
         return null;
       }
-      return switch (stay.status()) {
-        case ARRIVING -> URI.create("/checkin/" + id);
-        case IN_HOUSE -> URI.create("/encasa/" + id);
-        case DEPARTED -> URI.create("/checkout/" + id);
-      };
+      // ruta ÚNICA: la Reserva 360 muestra el estado y ofrece las acciones que tocan
+      return URI.create("/reserva/" + id);
     }
     return super.handleAction(actionId, httpRequest);
   }

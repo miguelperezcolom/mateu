@@ -710,6 +710,30 @@ markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
 runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
 chain) + la fórmula RDS es el equivalente práctico.
 
+## Reserva 360 — flujo de usuario replanteado (2026-07-26)
+
+El detalle de una reserva es UNA pantalla (`/reserva/:id`, ReservaOverview) para los tres
+estados, y las tareas se lanzan desde su toolbar (el patrón FA: overview del registro +
+guided process como tarea):
+
+- Contenido común: header del huésped (GuestHeaders por estado), Resumen (property list con
+  el estado "Llega/Sale/Salió…"), huéspedes con su estado documental (StatusList).
+- Por estado: llegada → avisos de qué falta (documentación / habitación) + toolbar
+  "Iniciar check-in"; in house → Meter de balance + incidencias abiertas + toolbar
+  Check-out/cargo/mensaje; salida → Notice "folio cerrado" + Ledger + "Ver folio".
+- ToolbarSupplier (los @Toolbar estáticos no pueden variar por estado) + ActionHandler
+  devolviendo URI (navegaciones) o Message.
+- El listado navega SIEMPRE a /reserva/:id (fuera el enrutado por estado).
+- **Wizard "solo lo que falta"**: CheckInWizard.stepApplies — identidad solo si
+  paxPendientes>0; habitación solo si la asignada no está INSPECTED. María (todo listo) →
+  wizard de 2 pasos (Extras→Confirmar); James (sin doc) → Identidad→Extras→Confirmar.
+- hostContentOf filtra ahora el título de Page SIEMPRE (la banda del header ya lo pinta;
+  antes solo en modo wizard).
+
+Verificado e2e por estado + shots ro-*.png. PENDIENTE natural: al completar el wizard,
+volver a /reserva/:id (hoy queda el ResultStep); unificar también las rutas viejas
+/encasa /checkout como vistas de la 360 si se quiere.
+
 ## Wizard standalone: pie sticky vs barra de tabs + forward real (2026-07-26)
 
 - El pie del guided process (Continue/Back) es `position: sticky; bottom: 0` — con la barra

@@ -769,25 +769,26 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
   const blocks = islandContentOf(ctx)
   if (!blocks) return null
   let merged = mergeNestedContent(blocks, islandBlocks || null)
-  if (opts.forWizard) {
-    const title = opts.title || ''
-    let titleDropped = false
-    merged = merged
-      .map((block) => ({
-        ...block,
-        items: block.items.filter((atom) => {
+  const title = opts.title || ''
+  let titleDropped = false
+  merged = merged
+    .map((block) => ({
+      ...block,
+      items: block.items.filter((atom) => {
+        // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
+        if (!titleDropped && atom.isText && title && atom.text === title) {
+          titleDropped = true
+          return false
+        }
+        if (opts.forWizard) {
           if (atom.isProgress) return false
           if (atom.isButtons && atom.buttons.length
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
-          if (!titleDropped && atom.isText && title && atom.text === title) {
-            titleDropped = true
-            return false
-          }
-          return true
-        }),
-      }))
-      .filter((block) => block.items.length)
-  }
+        }
+        return true
+      }),
+    }))
+    .filter((block) => block.items.length)
   return merged.length ? merged : null
 }
 

@@ -268,6 +268,28 @@ public class CheckInWizard extends Wizard {
 
   // ── Completion ──────────────────────────────────────────────────────────────
 
+  /** Solo lo que FALTA: identidad si hay documentación pendiente; habitación si la
+   *  asignada no está inspeccionada (o no hay). Extras y confirmación, siempre. */
+  @Override
+  protected boolean stepApplies(String stepFieldName) {
+    if (stayId == null || stayId.isBlank()) {
+      return true;
+    }
+    return switch (stepFieldName) {
+      case "identidad" ->
+          io.mateu.mdd.demofrontoffice.ui.reservas.ReservaOverview.paxPendientes(
+                  FrontOffice.stayView(stayId).stay())
+              > 0;
+      case "habitacion" ->
+          FrontOffice.rooms()
+              .findByNumber(FrontOffice.stayView(stayId).stay().roomNumber())
+              .map(room -> room.housekeeping()
+                  != io.mateu.mdd.demofrontoffice.domain.room.HousekeepingStatus.INSPECTED)
+              .orElse(true);
+      default -> true;
+    };
+  }
+
   @WizardCompletionAction
   @Label("Confirmar check-in")
   void confirmarCheckin() {

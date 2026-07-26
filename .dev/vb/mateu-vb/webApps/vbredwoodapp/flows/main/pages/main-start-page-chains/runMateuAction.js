@@ -193,7 +193,7 @@ define([
       const sinOtrasRamas2 = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
-        ? bridge.hostContentOf(hostAfter, islandRawBlocks2) : null;
+        ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { title: summary.title }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
