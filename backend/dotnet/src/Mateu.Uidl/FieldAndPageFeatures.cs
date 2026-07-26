@@ -231,6 +231,23 @@ public sealed class TimestampAttribute(string label = "") : Attribute
     public string Label { get; } = label;
 }
 
+/// <summary>Marks a component-valued property as the contextual ASIDE of the page: it is pulled out
+/// of the form body and placed beside the rest of the form in a ContentLayout — the form becomes the
+/// main region, the [Aside] property the aside region. The minimal way to compose the Redwood
+/// content-page grammar from a plain form. (C# analogue of Java's @Aside.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class AsideAttribute : Attribute
+{
+    /// <summary>Which side the aside sits on: "start" or "end".</summary>
+    public string Position { get; init; } = "end";
+
+    /// <summary>CSS width of the aside column; null/blank = renderer default.</summary>
+    public string? Width { get; init; }
+
+    /// <summary>Whether the aside is pinned while the main region scrolls.</summary>
+    public bool Sticky { get; init; } = true;
+}
+
 /// <summary>The coarse type of a page, in the vocabulary of the Oracle Redwood page templates.
 /// Selected with [PageTemplate]; when absent, Mateu infers it from the ModelView's shape (see
 /// ReflectionMapper.PageTypeOf — archetypes declare theirs, a Listing is a collection page, a

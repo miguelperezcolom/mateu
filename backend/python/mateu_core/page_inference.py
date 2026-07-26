@@ -18,11 +18,10 @@ from .reflection import view_fields
 
 
 def enabled(cls) -> bool:
-    """The ``@auto_page`` decorator decides when present (``@auto_page(False)`` opts out);
-    default off. (Java additionally supports the ``mateu.layout.inference`` system property
-    for a global default — not ported, same convention as ``layout_inference.enabled``.)"""
+    """Page inference is ON by default (the matching template is the default inferred output for a
+    plain view); ``@auto_page(False)`` opts a class out."""
     flag = getattr(cls, "__mateu_auto_page__", None)
-    return bool(flag) if flag is not None else False
+    return bool(flag) if flag is not None else True
 
 
 def composes(cls) -> bool:

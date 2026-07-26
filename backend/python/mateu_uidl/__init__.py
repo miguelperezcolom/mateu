@@ -572,6 +572,21 @@ class Timestamp:
 
 
 @dataclass(frozen=True)
+class Aside:
+    """Marks a component-holder field as the contextual ASIDE of the page: it is pulled out of the
+    form body and placed beside the rest of the form in a ContentLayout — the form becomes the main
+    region, the ``Aside()`` field the aside region. The minimal way to compose the Redwood
+    content-page grammar from a plain form. The Python analogue of Java's ``@Aside``."""
+
+    #: Which side the aside sits on: "start" or "end".
+    position: str = "end"
+    #: CSS width of the aside column; None/blank = renderer default.
+    width: str | None = None
+    #: Whether the aside is pinned while the main region scrolls.
+    sticky: bool = True
+
+
+@dataclass(frozen=True)
 class Step:
     step: int
 

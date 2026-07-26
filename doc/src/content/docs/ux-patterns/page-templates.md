@@ -74,3 +74,9 @@ Three notes on how to read the table:
   grammar: the aside sits beside the main region on wide viewports and stacks under it when narrow.
   It is a wire component like `DashboardLayout`/`FoldoutLayout`, so you can also compose it directly
   in a custom view. Ported to .NET and Python (`ContentLayout`).
+- **`@Aside` — content-page from a plain form.** The minimal way to get the content-page grammar
+  without composing anything: on an ordinary reflected form, mark one component-holder field
+  `@Aside` (`.NET` `[Aside]`, Python `Aside()`). That field is pulled out of the form body and
+  placed in the `aside`; the rest of the form becomes the `main` region of a `ContentLayout`
+  (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual and just
+  point at the one supporting panel that belongs to the side.

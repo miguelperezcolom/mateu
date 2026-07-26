@@ -360,6 +360,19 @@ por dependencia:
    `ContentLayout` main+aside con anchor-nav = `@Toc`), Guided Process Drawer pulido (5.3), catálogo
    doc completo + Figma sincronizado.
 
+### Estado (2026-07-26)
+- **Capa 1 (gramática content-page) — HECHA.** Tipo wire `ContentLayout` (main/aside/footer con
+  slots) en los 3 backends + renderer compartido DS-neutral + case redwood-oj; arquetipos con forma
+  main+aside migrados (`ItemOverview`, `CollectionDetail`), `GeneralOverview` excluido a propósito.
+  Validada en Vaadin. (rama feature/content-layout.)
+- **Capa 2 (inferencia por defecto) — HECHA.** (a) `@Aside` (`[Aside]`/`Aside()`): un campo
+  componente marcado `@Aside` en un formulario plano se saca del cuerpo y compone un `ContentLayout`
+  (form=main, campo=aside) — la vía mínima a la content-page sin componer nada, en los 3 backends.
+  (b) La inferencia de página (`@AutoPage`) pasa a **ON por defecto** (el template es el output por
+  defecto; opt-out con `@AutoPage(false)` o la propiedad/switch global de desactivación) en los 3
+  backends. Suites verdes: core 744, .NET 215, Python 212.
+- **Capas 3–4 — pendientes.** Template-first + scaffold; cierre de catálogo.
+
 ### Línea roja que se mantiene
 El alma de Mateu (*declaras datos → se infiere la UI*) NO se rompe: las plantillas ganan peso siendo
 el **output por defecto de la inferencia** y el vocabulario común de composición, no una jaula

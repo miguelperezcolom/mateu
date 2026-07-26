@@ -525,6 +525,16 @@ public class PlanningPage : IComponentTreeSupplier
     };
 }
 
+[UI("aside-page"), Title("Aside page")]
+public class AsidePage
+{
+    public string Name { get; set; } = "Ada";
+
+    // A supporting panel marked [Aside] is pulled out of the form body into the ContentLayout aside.
+    [Aside(Width = "20rem")]
+    public IComponent Help { get; } = new Anchor("Need help?", "/help");
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 public class ComponentTests
@@ -1123,5 +1133,15 @@ public class ComponentTests
         Assert.Contains("\"slot\":\"main-0\"", json);
         Assert.Contains("\"slot\":\"aside-0\"", json);
         Assert.Contains("\"slot\":\"footer-0\"", json);
+    }
+
+    [Fact]
+    public void Aside_field_wraps_the_form_in_a_content_layout()
+    {
+        var json = RenderView(typeof(AsidePage));
+        Assert.Contains("\"type\":\"ContentLayout\"", json);
+        Assert.Contains("\"asideWidth\":\"20rem\"", json);
+        Assert.Contains("\"slot\":\"main-0\"", json);
+        Assert.Contains("\"slot\":\"aside-0\"", json);
     }
 }

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
 from mateu_uidl import (  # noqa: E402
+    Aside,
     ComponentTreeSupplier,
     Dashboard,
     Foldout,
@@ -950,6 +951,23 @@ class ProductContent(ComponentTreeSupplier):
             main=(MetricCard(title="Sales", value="52"),),
             footer=(MetricCard(title="Note", value="ok"),),
         )
+
+
+@ui("/aside-page")
+@title("Aside page")
+class AsidePageView:
+    name: str = "Ada"
+    help: Annotated[Text, Aside(width="20rem")] = Text(text="Need help?")
+
+
+def test_aside_field_wraps_the_form_in_a_content_layout():
+    doc = render(AsidePageView)
+    (content,) = page_children(doc)
+    assert content["metadata"]["type"] == "ContentLayout"
+    assert content["metadata"]["asideWidth"] == "20rem"
+    slots = [ch.get("slot") for ch in content["children"]]
+    assert any(s and s.startswith("main-") for s in slots)
+    assert any(s and s.startswith("aside-") for s in slots)
 
 
 def test_component_tree_supplier_emits_content_layout():

@@ -98,9 +98,14 @@ To force radio buttons regardless of the enum size — with or without `@AutoLay
 The same idea, one altitude up: `@AutoLayout` infers the presentation of a *form*; `@AutoPage`
 infers the page **archetype** from the declared information.
 
+Page inference is **on by default**: a plain view whose shape spells an archetype composes it
+automatically — you don't need to annotate anything. The template is the *default inferred output*;
+you keep declaring data and override when you want to. `@AutoPage(false)` opts a class out (keeping
+the plain-form rendering), and a global switch disables it everywhere. The explicit `@AutoPage`
+below is therefore optional — it's shown for clarity.
+
 ```java
 @UI("/ops")
-@AutoPage
 public class Ops {
 
   MetricCard revenue   = MetricCard.builder().title("Revenue").value("1.2").unit("M€").build();
@@ -132,11 +137,32 @@ information you didn't declare — like `CollectionDetail`'s id/title functions 
 instead Mateu logs a one-time hint naming the archetype so you can adopt it explicitly.
 
 Explicit always wins: archetype subclasses, listing backends and fluent component trees are never
-rewritten, `@AutoPage(false)` opts a class out under the global `mateu.layout.inference` property,
+rewritten, `@AutoPage(false)` opts a class out (and `-Dmateu.page.inference.disabled=true` — the
+`Mateu.PageInference.Disabled` switch in C#, the same convention in Python — turns it off globally),
 and extending the archetype remains the way to take fine control (e.g. `columns()`).
 
-`@AutoPage` has full backend parity: `[AutoPage]` in C# and `@auto_page` in Python apply the same
-rules and emit the same wire.
+### `@Aside` — a content-page from a plain form
+
+The minimal way to get the Redwood content-page grammar without composing anything: on an ordinary
+form, mark one component-holder field `@Aside`. That field is pulled out of the form body and placed
+in the contextual **aside**; the rest of the form becomes the **main** region of a `ContentLayout`
+(the aside sits beside main on wide viewports and stacks under it when narrow; `position`/`width`/
+`sticky` come from the annotation). You keep declaring data as usual and just point at the one
+supporting panel that belongs to the side.
+
+```java
+@UI("/profile")
+public class Profile {
+  String name;
+  String email;
+
+  @Aside(width = "20rem")
+  Markdown help = new Markdown("Need help? Contact support.");
+}
+```
+
+`@AutoPage` and `@Aside` have full backend parity: `[AutoPage]`/`[Aside]` in C# and
+`@auto_page`/`Aside()` in Python apply the same rules and emit the same wire.
 
 ### Guarding against flips in CI
 
