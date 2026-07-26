@@ -731,24 +731,38 @@ export function islandContentOf(ctx) {
       atom({
         isStatusList: true,
         wrapClass: cols ? 'oj-flex' : '',
-        items: (m.items || []).map((it) => ({
-          rowClass,
-          gridCell: !!cols,
-          cellClass,
-          statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
-          avatar: it.avatar || '',
-          icon: it.icon || '',
-          title: interp(it.title),
-          description: interp(it.description || ''),
-          status: interp(it.status || ''),
-          statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
-          actionLabel: it.actionLabel || '',
-          actionId: it.actionId || m.rowActionId || '',
-          parameters: { _item: it.id },
-          // rowActionId SIN botón propio = la FILA ENTERA es actuable (contrato del
-          // renderer web: clic de fila → rowActionId con {_item})
-          rowClickable: !!(m.rowActionId && !it.actionLabel),
-        })),
+        items: (m.items || []).map((it) => {
+          // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
+          // precomputado; una fila CON acciones se pinta APILADA (título+chip /
+          // descripción / botones) para no descolocarse en carriles estrechos
+          const rowActions = []
+          if (it.actionLabel && it.actionId) {
+            rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id } })
+          }
+          if (it.actionLabel2 && it.actionId2) {
+            rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id } })
+          }
+          return {
+            rowClass,
+            gridCell: !!cols,
+            cellClass,
+            statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+            avatar: it.avatar || '',
+            icon: it.icon || '',
+            title: interp(it.title),
+            description: interp(it.description || ''),
+            status: interp(it.status || ''),
+            statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
+            actions: rowActions,
+            hasActions: rowActions.length > 0,
+            actionLabel: it.actionLabel || '',
+            actionId: it.actionId || m.rowActionId || '',
+            parameters: { _item: it.id },
+            // rowActionId SIN botón propio = la FILA ENTERA es actuable (contrato del
+            // renderer web: clic de fila → rowActionId con {_item})
+            rowClickable: !!(m.rowActionId && !it.actionLabel),
+          }
+        }),
       }, container)
       return
     }

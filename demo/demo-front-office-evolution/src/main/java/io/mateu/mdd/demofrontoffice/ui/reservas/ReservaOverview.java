@@ -78,7 +78,8 @@ public class ReservaOverview
   public List<io.mateu.uidl.fluent.Action> actions(HttpRequest httpRequest) {
     return List.of(
         io.mateu.uidl.fluent.Action.builder().id("*").build(),
-        io.mateu.uidl.fluent.Action.builder().id("opFirma").sse(true).build());
+        io.mateu.uidl.fluent.Action.builder().id("opFirma").sse(true).build(),
+        io.mateu.uidl.fluent.Action.builder().id("escanearPax").sse(true).build());
   }
 
   private static final DateTimeFormatter DAY =
@@ -99,6 +100,13 @@ public class ReservaOverview
   @Hidden boolean modoCobro;
   @Hidden boolean modoExtras;
   @Hidden boolean firmaEnviada;
+
+  // ── modo PAX: registro manual del cardex del huésped seleccionado ────────────
+  @Hidden boolean modoPax;
+  @Hidden String paxDocumento;
+  @Hidden String paxNombre;
+  @Hidden String paxEmail;
+  @Hidden String paxTelefono;
   @Hidden String metodoPago = "card";
   @Hidden String cargoBusqueda;
   @Hidden String ultimaBusqueda;
@@ -137,7 +145,6 @@ public class ReservaOverview
           items.add(paxItem(i, "Acompañante " + i, "Pendiente de registro", false));
         }
         return StatusList.builder().items(items).compact(true).frameless(true)
-            .rowActionId("seleccionarPax")
             .style("width: 100%;").build();
       };
 
@@ -352,12 +359,6 @@ public class ReservaOverview
     return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();
   }
 
-  // ── isla del documento: escaneo SSE o rellenado manual del pax seleccionado ──
-  @Section(value = "\u2007", frameless = true)
-  @io.mateu.uidl.annotations.Inline
-  @Label("")
-  io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView documento;
-
   /** Texto de la operación de extras hecha, con lo contratado. */
   private String extrasHecha(Stay stay) {
     var n = stay.addOns().size();
@@ -421,9 +422,37 @@ public class ReservaOverview
         .build();
   }
 
+  /** Modo pax: el cardex del huésped seleccionado, a mano (documento/nombre/contacto). */
+  private Component panelPax() {
+    var campos = new ArrayList<Component>();
+    campos.add(Text.builder()
+        .text("Registrar huésped " + paxSeleccionado + " — "
+            + io.mateu.mdd.demofrontoffice.ui.common.Paxes.nameOf(stayId, paxSeleccionado))
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    campos.add(campoPax("paxDocumento", "Documento"));
+    campos.add(campoPax("paxNombre", "Nombre"));
+    campos.add(campoPax("paxEmail", "Email"));
+    campos.add(campoPax("paxTelefono", "Teléfono"));
+    campos.add(Button.builder().label("Guardar cardex").actionId("guardarPax")
+        .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
+    return VerticalLayout.builder().content(campos).style("width: 100%; gap: .5rem;").build();
+  }
+
+  private Component campoPax(String id, String label) {
+    return FormField.builder()
+        .id(id)
+        .label(label)
+        .dataType(FieldDataType.string)
+        .style("width: 100%; max-width: 28rem;")
+        .build();
+  }
+
   private Component paraLlegada(Stay stay) {
     if (modoHabitacion) {
       return elegirHabitacion(stay);
+    }
+    if (modoPax) {
+      return panelPax();
     }
     if (modoCobro) {
       return panelCobro(stay);
@@ -544,7 +573,7 @@ public class ReservaOverview
     if (modoCheckout) {
       return List.of(Button.builder().label("Volver a la reserva").actionId("volverReserva").build());
     }
-    if (modoHabitacion || modoCobro || modoExtras) {
+    if (modoHabitacion || modoCobro || modoExtras || modoPax) {
       return List.of(
           Button.builder().label("Volver a la reserva").actionId("volverHabitacion").build());
     }
@@ -564,7 +593,7 @@ public class ReservaOverview
   public boolean supportsAction(String actionId) {
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
             "opWifi", "opLlave", "opHabitacion", "elegirHabitacion", "upgrade360",
-            "volverHabitacion", "seleccionarPax", "refrescarReserva",
+            "volverHabitacion", "escanearPax", "rellenarPax", "guardarPax", "refrescarReserva",
             "opCobro", "metodoCobro", "confirmarCobro",
             "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
@@ -596,13 +625,39 @@ public class ReservaOverview
         yield List.of(this,
             new Message("Llave / pulsera grabada — Hab " + stay().roomNumber()));
       }
-      case "seleccionarPax" -> {
-        var raw = httpRequest.runActionRq().parameters().get("_item");
-        paxSeleccionado = (int) Double.parseDouble(String.valueOf(raw));
-        documento.setPaxIndex(paxSeleccionado);
-        yield List.of(this,
-            UICommand.dispatchEvent(
-                "pax-seleccionado", java.util.Map.of("paxIndex", paxSeleccionado)));
+      case "escanearPax" -> {
+        // SSE: el escáner tarda un par de segundos; al acabar, el evento refresca la 360
+        var pax = paxDe(httpRequest);
+        var nombre = io.mateu.mdd.demofrontoffice.ui.common.Paxes.nameOf(stayId, pax);
+        var idEstancia = stayId;
+        yield reactor.core.publisher.Flux.concat(
+            reactor.core.publisher.Flux.<Object>just(
+                new Message("Escaneando el documento de " + nombre + "…")),
+            reactor.core.publisher.Mono.delay(java.time.Duration.ofSeconds(2))
+                .map(tick -> {
+                  io.mateu.mdd.demofrontoffice.ui.common.Paxes.scan(idEstancia, pax);
+                  return (Object) UICommand.dispatchEvent("documento-escaneado");
+                }));
+      }
+      case "rellenarPax" -> {
+        paxSeleccionado = paxDe(httpRequest);
+        modoPax = true;
+        paxDocumento = null;
+        paxNombre = io.mateu.mdd.demofrontoffice.ui.common.Paxes.nameOf(stayId, paxSeleccionado);
+        paxEmail = null;
+        paxTelefono = null;
+        yield this;
+      }
+      case "guardarPax" -> {
+        io.mateu.mdd.demofrontoffice.ui.common.Paxes.register(
+            stayId, paxSeleccionado, paxDocumento, paxNombre, paxEmail, paxTelefono);
+        var nombre = io.mateu.mdd.demofrontoffice.ui.common.Paxes.nameOf(stayId, paxSeleccionado);
+        modoPax = false;
+        paxDocumento = null;
+        paxNombre = null;
+        paxEmail = null;
+        paxTelefono = null;
+        yield List.of(this, new Message("Cardex registrado — " + nombre));
       }
       case "refrescarReserva" -> this;
       case "opHabitacion" -> {
@@ -613,6 +668,7 @@ public class ReservaOverview
         modoHabitacion = false;
         modoCobro = false;
         modoExtras = false;
+        modoPax = false;
         yield this;
       }
       case "opCobro" -> {
@@ -758,9 +814,6 @@ public class ReservaOverview
       stayId = io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders.idFromRoute(
           httpRequest, "reserva");
     }
-    documento = new io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView();
-    documento.setStayId(stayId);
-    documento.setPaxIndex(Math.max(1, paxSeleccionado));
   }
 
   private Stay stay() {
@@ -771,12 +824,14 @@ public class ReservaOverview
     return StatusItem.builder()
         .id(String.valueOf(pax))
         .avatar(initials(title))
-        .title(pax == paxSeleccionado ? "▸ " + title : title)
+        .title(title)
         .description(description)
         .status(complete ? "✓ Identidad verificada" : "Documentación pendiente")
         .statusColor(complete ? "success" : "warning")
-        .actionLabel(complete ? null : "Registrar")
-        .actionId(complete ? null : "seleccionarPax")
+        .actionLabel(complete ? null : "Escanear")
+        .actionId(complete ? null : "escanearPax")
+        .actionLabel2(complete ? null : "A mano")
+        .actionId2(complete ? null : "rellenarPax")
         .build();
   }
 
@@ -789,6 +844,12 @@ public class ReservaOverview
       }
     }
     return sb.toString();
+  }
+
+  /** El pax de la fila pulsada ({_item} numérico de la lista de huéspedes). */
+  private int paxDe(HttpRequest httpRequest) {
+    var raw = httpRequest.runActionRq().parameters().get("_item");
+    return (int) Double.parseDouble(String.valueOf(raw));
   }
 
   /** The room's type from the inventory, falling back to the reservation's. */

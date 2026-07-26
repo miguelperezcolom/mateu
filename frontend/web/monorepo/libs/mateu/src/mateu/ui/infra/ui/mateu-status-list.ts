@@ -84,10 +84,10 @@ export class MateuStatusList extends LitElement {
         .list.grid .row + .row { border-top: none; }
     `]
 
-    private runAction(item: StatusItem) {
-        if (!item.actionId) return
+    private runAction(item: StatusItem, actionId?: string) {
+        if (!actionId) return
         this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: { actionId: item.actionId, parameters: { _item: item.id } },
+            detail: { actionId, parameters: { _item: item.id } },
             bubbles: true,
             composed: true
         }))
@@ -118,7 +118,10 @@ export class MateuStatusList extends LitElement {
                         </div>
                         ${item.status ? html`<span class="chip ${item.statusColor ?? ''}">${item.status}</span>` : nothing}
                         ${item.actionLabel && item.actionId
-                            ? html`<button class="row-action" @click="${() => this.runAction(item)}">${item.actionLabel}</button>`
+                            ? html`<button class="row-action" @click="${() => this.runAction(item, item.actionId)}">${item.actionLabel}</button>`
+                            : nothing}
+                        ${item.actionLabel2 && item.actionId2
+                            ? html`<button class="row-action" @click="${() => this.runAction(item, item.actionId2)}">${item.actionLabel2}</button>`
                             : nothing}
                     </div>
                 `)}

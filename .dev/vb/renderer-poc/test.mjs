@@ -458,14 +458,15 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   assert.equal(huespedes.wrapClass, '') // sin columns → lista clásica de una columna
   assert.ok(!huespedes.items[0].gridCell)
   const wifi = ops.items.find((i) => i.title === 'Tarjeta wifi')
-  assert.equal(wifi.actionLabel, 'Crear')
-  assert.equal(wifi.actionId, 'opWifi')
-  assert.deepEqual(wifi.parameters, { _item: 'wifi' })
-  const llave = ops.items.find((i) => i.title === 'Llave / pulsera')
-  assert.equal(llave.actionId, 'opLlave')
-  // las operaciones sin acción rápida (se hacen en el wizard) no llevan botón
-  const firma = ops.items.find((i) => i.title === 'Firma del registro')
-  assert.equal(firma.actionLabel, '')
+  assert.equal(wifi.actions.length, 1)
+  assert.equal(wifi.actions[0].label, 'Crear')
+  assert.equal(wifi.actions[0].actionId, 'opWifi')
+  assert.deepEqual(wifi.actions[0].parameters, { _item: 'wifi' })
+  // filas de pax: DOS acciones (escanear / a mano) y proyección APILADA (hasActions)
+  const paxRow = huespedes.items.find((i) => i.title === 'Acompañante 2')
+  assert.equal(paxRow.hasActions, true)
+  assert.deepEqual(paxRow.actions.map((a) => a.actionId), ['escanearPax', 'rellenarPax'])
+  assert.deepEqual(paxRow.actions[0].parameters, { _item: '2' })
 })
 
 // 29) Fila zonada (@Zones 36/64 de la Reserva 360): el HorizontalLayout de columnas

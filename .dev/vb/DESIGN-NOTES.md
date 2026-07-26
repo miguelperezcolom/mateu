@@ -1028,6 +1028,18 @@ pide SOLO las pendientes.
   parameters. GOTCHA cazado: `[] || x` — mateuWizardContent VACÍO es truthy y
   hostAddonToggled buscaba el picker en él (los toggles de la 360 no despachaban); elegir
   por longitud.
+- **Acciones POR PAX en las filas de huéspedes (2026-07-26, feedback del usuario: "son
+  acciones sobre cada pax… salen descolocados")**: `StatusItem` ganó una SEGUNDA acción
+  (actionLabel2/actionId2, uidl+dto+mapper+web con dos botones). Cada pax pendiente lleva
+  "Escanear" (→ `escanearPax`, SSE del host: toast "Escaneando…", 2 s, `Paxes.scan` y
+  evento documento-escaneado → refresco) y "A mano" (→ modo pax en el carril operativo:
+  formulario documento/nombre/email/teléfono ligado al draft del host + "Guardar cardex" →
+  `Paxes.register`). La lógica por-pax vive en `ui/common/Paxes` (compartida conceptual
+  con la isla del wizard, que QUEDA en el wizard — la 360 ya no embebe DocumentoView).
+  **Bridge**: los ítems de StatusList proyectan `actions[]` (+hasActions) y una fila CON
+  acciones se pinta APILADA (título+badge / descripción / botones) — la fila en línea se
+  descolocaba en el carril del 36%; las tarjetas de grid iteran `actions` (permite dos
+  botones por operación). Templates: rama apilada ×6 + for-each de acciones ×6.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

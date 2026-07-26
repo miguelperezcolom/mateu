@@ -1,7 +1,7 @@
 {
   "tree": {
     "type": "ServerSide",
-    "id": "d1f1ac5b-bc98-4fb6-9894-ee6cebef8c5e",
+    "id": "8b96163b-36f6-433b-83d1-772405773355",
     "serverSideType": "io.mateu.mdd.demofrontoffice.ui.reservas.ReservaOverview",
     "route": "",
     "children": [
@@ -268,7 +268,7 @@
                                   "size": null,
                                   "noMargins": false
                                 },
-                                "id": "cff3b747-7a01-40e0-8e71-0e8a549a77f7",
+                                "id": "c0c9e888-0cbe-431f-9f78-264e7d838751",
                                 "children": [],
                                 "style": " flex: 1; margin: 0;",
                                 "cssClasses": null,
@@ -327,48 +327,56 @@
                                                   "type": "StatusList",
                                                   "items": [
                                                     {
-                                                      "id": "principal",
+                                                      "id": "1",
                                                       "icon": null,
                                                       "avatar": "KH",
                                                       "title": "Klaus Hoffmann",
                                                       "description": "Adulto",
                                                       "status": "Documentación pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Escanear",
+                                                      "actionId": "escanearPax",
+                                                      "actionLabel2": "A mano",
+                                                      "actionId2": "rellenarPax"
                                                     },
                                                     {
-                                                      "id": "pax2",
+                                                      "id": "2",
                                                       "icon": null,
                                                       "avatar": "A2",
                                                       "title": "Acompañante 2",
                                                       "description": "Pendiente de registro",
                                                       "status": "Documentación pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Escanear",
+                                                      "actionId": "escanearPax",
+                                                      "actionLabel2": "A mano",
+                                                      "actionId2": "rellenarPax"
                                                     },
                                                     {
-                                                      "id": "pax3",
+                                                      "id": "3",
                                                       "icon": null,
                                                       "avatar": "A3",
                                                       "title": "Acompañante 3",
                                                       "description": "Pendiente de registro",
                                                       "status": "Documentación pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Escanear",
+                                                      "actionId": "escanearPax",
+                                                      "actionLabel2": "A mano",
+                                                      "actionId2": "rellenarPax"
                                                     },
                                                     {
-                                                      "id": "pax4",
+                                                      "id": "4",
                                                       "icon": null,
                                                       "avatar": "A4",
                                                       "title": "Acompañante 4",
                                                       "description": "Pendiente de registro",
                                                       "status": "Documentación pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Escanear",
+                                                      "actionId": "escanearPax",
+                                                      "actionLabel2": "A mano",
+                                                      "actionId2": "rellenarPax"
                                                     }
                                                   ],
                                                   "compact": true,
@@ -550,11 +558,13 @@
                                                       "icon": null,
                                                       "avatar": "🛏️",
                                                       "title": "Habitación",
-                                                      "description": "Hab 612 inspeccionada y lista",
+                                                      "description": "Hab 612 (Family Room) inspeccionada y lista",
                                                       "status": "✓ Hecha",
                                                       "statusColor": "success",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Cambiar",
+                                                      "actionId": "opHabitacion",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     },
                                                     {
                                                       "id": "wifi",
@@ -565,7 +575,9 @@
                                                       "status": "Pendiente",
                                                       "statusColor": "warning",
                                                       "actionLabel": "Crear",
-                                                      "actionId": "opWifi"
+                                                      "actionId": "opWifi",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     },
                                                     {
                                                       "id": "llave",
@@ -576,40 +588,48 @@
                                                       "status": "Pendiente",
                                                       "statusColor": "warning",
                                                       "actionLabel": "Grabar",
-                                                      "actionId": "opLlave"
+                                                      "actionId": "opLlave",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     },
                                                     {
                                                       "id": "firma",
                                                       "icon": null,
                                                       "avatar": "✍️",
                                                       "title": "Firma del registro",
-                                                      "description": "Se enviará a la tablet durante el check-in",
+                                                      "description": "Enviar el registro a la tablet para su firma",
                                                       "status": "Pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Enviar a tablet",
+                                                      "actionId": "opFirma",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     },
                                                     {
                                                       "id": "cobro",
                                                       "icon": null,
                                                       "avatar": "💳",
                                                       "title": "Cobro / preautorización",
-                                                      "description": "Preautorizar € 2.140,00 en el check-in",
+                                                      "description": "Preautorizar € 2.140,00 — tarjeta, efectivo o puntos",
                                                       "status": "Pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Cobrar",
+                                                      "actionId": "opCobro",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     },
                                                     {
                                                       "id": "extras",
                                                       "icon": null,
                                                       "avatar": "🎁",
                                                       "title": "Ancillaries",
-                                                      "description": "Ofrecer los extras opcionales en el check-in",
+                                                      "description": "Ofrecer los extras opcionales de la estancia",
                                                       "status": "Pendiente",
                                                       "statusColor": "warning",
-                                                      "actionLabel": null,
-                                                      "actionId": null
+                                                      "actionLabel": "Elegir",
+                                                      "actionId": "opExtras",
+                                                      "actionLabel2": null,
+                                                      "actionId2": null
                                                     }
                                                   ],
                                                   "compact": true,
@@ -1021,10 +1041,20 @@
       "checkoutCargos": {},
       "checkoutCobro": {},
       "checkoutFolio": {},
+      "firmaEnviada": false,
       "header": {},
       "huespedes": {},
       "metodoPago": "card",
       "modoCheckout": false,
+      "modoCobro": false,
+      "modoExtras": false,
+      "modoHabitacion": false,
+      "modoPax": false,
+      "paxDocumento": null,
+      "paxEmail": null,
+      "paxNombre": null,
+      "paxSeleccionado": 1,
+      "paxTelefono": null,
       "porEstado": {},
       "stayId": "st-klaus",
       "ultimaBusqueda": null
@@ -3292,9 +3322,76 @@
         "fieldsToValidate": null,
         "bubble": false,
         "shortcut": null
+      },
+      {
+        "id": "*",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "opFirma",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "escanearPax",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
       }
     ],
     "triggers": [
+      {
+        "type": "OnCustomEvent",
+        "actionId": "refrescarReserva",
+        "eventName": "documento-escaneado",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "opFirmaDone",
+        "eventName": "firma-capturada-360",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
       {
         "type": "AutoSave",
         "actionId": "buscarCargos",
@@ -3313,6 +3410,16 @@
   "state": {
     "stayId": "st-klaus",
     "modoCheckout": false,
+    "modoHabitacion": false,
+    "paxSeleccionado": 1,
+    "modoCobro": false,
+    "modoExtras": false,
+    "firmaEnviada": false,
+    "modoPax": false,
+    "paxDocumento": null,
+    "paxNombre": null,
+    "paxEmail": null,
+    "paxTelefono": null,
     "metodoPago": "card",
     "cargoBusqueda": null,
     "ultimaBusqueda": null

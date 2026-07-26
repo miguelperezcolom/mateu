@@ -498,16 +498,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -769,16 +794,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1187,16 +1237,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1458,16 +1533,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1756,16 +1856,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -2029,16 +2154,41 @@
                                   </div>
                                   <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
-                                    :data-action-id="[[ $current.data.actionId ]]"
-                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
+                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                      <template>
+                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
                                 </oj-bind-if>
                               </div>
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom">
+                              <div class="oj-flex oj-sm-align-items-center">
+                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
