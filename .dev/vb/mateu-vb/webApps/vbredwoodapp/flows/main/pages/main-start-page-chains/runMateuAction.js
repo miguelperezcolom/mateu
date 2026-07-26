@@ -225,10 +225,13 @@ define([
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
+      const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
       $application.variables.mateuPageHeader = {
         title: summary.title || '',
         showBand: showBandA,
         showInline: showHeaderA && !showBandA,
+        showListBand: showListBandA,
+        showListInline: !!listingSummary && !showListBandA,
       };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       $application.variables.mateuDirty = false;

@@ -740,6 +740,18 @@ enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la
 saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
 /encasa y /checkout dentro de la 360 si se quiere.
 
+## Banda también para el header de colección (smart search, 2026-07-26)
+
+El listado no tenía la banda tras el header (el oj-sp-smart-filter-search ENTERO vivía
+dentro de la caja capada). Misma anatomía que el header genérico: el componente se parte —
+el header (título+búsqueda+acciones+franja) va en la BANDA a sangre capado a la caja
+(flag mateuPageHeader.showListBand, pw != edgeToEdge; inline en edge) y la TABLA vive en la
+tarjeta del contenedor (que solapa -40px). GOTCHA: el componente reserva su región de
+contenido a ALTO DE VIEWPORT aunque el slot main esté vacío (min-height interno en cadena)
+— app.css oculta su `.oj-sp-public-primary-content-container` interno en las copias
+solo-header (#mateuListHeader/#mateuListHeaderInline). Solape 40, franja al ancho de caja,
+9 filas visibles, búsqueda y clic de fila intactos.
+
 ## /encasa y /checkout PLEGADAS en la Reserva 360 (2026-07-26)
 
 Las páginas EnCasaDetail/CheckOutDetail (y las tres queues muertas) se ELIMINAN: la 360 es

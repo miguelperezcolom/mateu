@@ -38,3 +38,11 @@ oj-sp-global-header a[id$='_HOa1'] {
 body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
   bottom: 64px;
 }
+
+/* Header de colección usado SOLO como cabecera (la tabla vive en la tarjeta de abajo,
+   anatomía de banda): el componente reserva su región de contenido a alto de viewport
+   aunque el slot main esté vacío — fuera TODO lo de debajo de la franja. */
+#mateuListHeader .oj-sp-public-primary-content-container,
+#mateuListHeaderInline .oj-sp-public-primary-content-container {
+  display: none;
+}

@@ -7,6 +7,26 @@
 <!-- banda RDS del header (fixed/fullWidth): fondo blanco a sangre; dentro, el header con
      su franja CAPADOS a la caja de contenido; la tarjeta de abajo la solapa (-40px) para
      que la banda asome por detrás de su arranque — todo clases de sistema JET -->
+<!-- banda del header de COLECCIÓN (smart search): mismo patrón que la banda genérica —
+     fondo a sangre, header (título + búsqueda + acciones + franja) capado a la caja -->
+<oj-bind-if test="[[ $application.variables.mateuPageHeader.showListBand ]]">
+  <div class="oj-bg-neutral-30 oj-sm-padding-10x-bottom">
+    <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
+      :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
+      <oj-sp-smart-filter-search id="mateuListHeader"
+    page-title="[[ $application.variables.mateuHostTitle ]]"
+    primary-action="[[ $application.variables.mateuListPrimary ]]"
+    secondary-actions="[[ $application.variables.mateuListSecondary ]]"
+    smart-filters="{{ $page.variables.mateuSmartFilters }}"
+    on-smart-filters-changed="[[ $listeners.smartFiltersChanged ]]"
+    on-sp-primary-action="[[ $listeners.listPrimary ]]"
+    on-sp-secondary-action="[[ $listeners.listSecondary ]]">
+        <oj-input-search id="mateuSearch" slot="search" placeholder="Buscar…"
+          on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
+      </oj-sp-smart-filter-search>
+    </div>
+  </div>
+</oj-bind-if>
 <oj-bind-if test="[[ $application.variables.mateuPageHeader.showBand ]]">
   <!-- la banda toma el MISMO color que el fondo interno del header
        (oj-sp-header-general-overview-bg-light = #F1EFED = oj-bg-neutral-30) -->
@@ -172,9 +192,9 @@
 </oj-bind-if>
 
 <oj-bind-if test="[[ !!$application.variables.mateuListing ]]">
-  <!-- header de colección Redwood: título + acciones del crud integradas (New = primary,
-       resto = secondary); la tabla va en su slot main -->
-  <oj-sp-smart-filter-search id="mateuListHeader" class="oj-bg-neutral-0"
+  <!-- header de colección INLINE (edge-to-edge, sin banda) -->
+  <oj-bind-if test="[[ $application.variables.mateuPageHeader.showListInline ]]">
+    <oj-sp-smart-filter-search id="mateuListHeaderInline"
     page-title="[[ $application.variables.mateuHostTitle ]]"
     primary-action="[[ $application.variables.mateuListPrimary ]]"
     secondary-actions="[[ $application.variables.mateuListSecondary ]]"
@@ -182,9 +202,13 @@
     on-smart-filters-changed="[[ $listeners.smartFiltersChanged ]]"
     on-sp-primary-action="[[ $listeners.listPrimary ]]"
     on-sp-secondary-action="[[ $listeners.listSecondary ]]">
-  <!-- Smart Search de vb: la búsqueda vive EN LA CABECERA (smartFilters del propio
-       oj-sp-smart-filter-search: Enter añade un chip keyword y filtra) -->
-  <div slot="main" class="oj-bg-body oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+      <oj-input-search id="mateuSearchInline" slot="search" placeholder="Buscar…"
+        on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
+    </oj-sp-smart-filter-search>
+  </oj-bind-if>
+  <!-- la TARJETA del listado (la banda con el header capado se pinta arriba, fuera del
+       contenedor — misma anatomía que el header genérico) -->
+  <div class="oj-bg-body oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
   <div class="oj-flex">
     <div class="oj-flex-item oj-sm-12 oj-md-12">
       <!-- ojRowAction (clic en fila) en vez de selección: la selección deja estado que la
@@ -221,7 +245,6 @@
     </div>
   </div>
   </div>
-  </oj-sp-smart-filter-search>
 </oj-bind-if>
 
 <!-- Drawer del crud (editInDrawer): panel end auténtico de JET; los campos y botones salen

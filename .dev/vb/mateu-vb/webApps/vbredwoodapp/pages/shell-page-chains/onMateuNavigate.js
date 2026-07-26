@@ -266,12 +266,15 @@ define([
       // capado a la caja; la tarjeta de contenido SOLAPA la banda (margen -40px) para que
       // la banda asome por detrás de su arranque — como el fondo general del lienzo
       const showBand = showHeader && pw !== 'edgeToEdge';
+      const showListBand = !!listingSummary && pw !== 'edgeToEdge';
       $application.variables.mateuPageHeader = {
         title: summary.title || '',
         showBand: showBand,
         showInline: showHeader && !showBand,
+        showListBand: showListBand,
+        showListInline: !!listingSummary && !showListBand,
       };
-      if (showBand) {
+      if (showBand || showListBand) {
         // la caja de la banda usa la MISMA fórmula horizontal que el contenido…
         $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
         // …y el contenido gana el solape vertical (-40px) sobre la banda
