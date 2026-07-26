@@ -140,7 +140,9 @@ export class MateuDrawer extends ComponentElement {
                 ${this.canMaximize(metadata) ? html`
                     <button class="drawer-icon" aria-label="Maximize" title="Maximize" @click="${() => this.maximizeSteps++}">⤢</button>
                 ` : nothing}
-                <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
+                ${metadata.collapsible ? nothing : html`
+                    <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
+                `}
             </header>
             ${this.collapsed ? nothing : html`
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">
