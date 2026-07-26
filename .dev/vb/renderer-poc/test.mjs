@@ -455,8 +455,10 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   assert.match(ops.items[0].cellClass, /oj-flex-item oj-sm-12 oj-md-6/) // columns(2) en el carril derecho
   const huespedes = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Klaus Hoffmann'))
-  assert.equal(huespedes.wrapClass, '') // sin columns → lista clásica de una columna
-  assert.ok(!huespedes.items[0].gridCell)
+  // filas con acciones → la lista ENTERA como tarjetas de una columna (oj-panel)
+  assert.equal(huespedes.wrapClass, 'oj-flex')
+  assert.ok(huespedes.items[0].gridCell)
+  assert.match(huespedes.items[0].cellClass, /oj-sm-12 oj-flex oj-sm-margin-4x-bottom/)
   const wifi = ops.items.find((i) => i.title === 'Tarjeta wifi')
   assert.equal(wifi.actions.length, 1)
   assert.equal(wifi.actions[0].label, 'Crear')

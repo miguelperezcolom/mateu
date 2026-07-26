@@ -725,12 +725,18 @@ export function islandContentOf(ctx) {
       // Todo precomputado por ítem — el CSP de VB no divide ni compara.
       const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
       const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
+      // una lista donde ALGUNA fila lleva acciones (p.ej. los huéspedes con Escanear /
+      // A mano) se pinta ENTERA como tarjetas de una columna — mismo oj-panel que las
+      // operaciones: borde propio + aire uniforme; en fila suelta quedaba descolocada
+      const anyActions = (m.items || []).some(
+        (it) => (it.actionLabel && it.actionId) || (it.actionLabel2 && it.actionId2))
+      const asCards = cols > 0 || anyActions
       const cellClass = cols
         ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
-        : ''
+        : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
       atom({
         isStatusList: true,
-        wrapClass: cols ? 'oj-flex' : '',
+        wrapClass: asCards ? 'oj-flex' : '',
         items: (m.items || []).map((it) => {
           // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
           // precomputado; una fila CON acciones se pinta APILADA (título+chip /
@@ -744,7 +750,7 @@ export function islandContentOf(ctx) {
           }
           return {
             rowClass,
-            gridCell: !!cols,
+            gridCell: asCards,
             cellClass,
             statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
             avatar: it.avatar || '',
