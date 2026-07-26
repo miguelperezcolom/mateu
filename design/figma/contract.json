@@ -704,6 +704,48 @@
       ]
     },
     {
+      "name": "Mateu/Layout/ContentLayout",
+      "kind": "contentLayout",
+      "variants": {
+        "asidePosition": [
+          "end",
+          "start"
+        ],
+        "asideSticky": [
+          "true",
+          "false"
+        ]
+      },
+      "java": "ContentLayout (fluent) / @Aside on a field",
+      "csharp": "ContentLayout / [Aside]",
+      "python": "ContentLayout / Aside()",
+      "props": {
+        "asideWidth": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 260,
+              "h": 170
+            },
+            {
+              "t": "slot",
+              "w": 150,
+              "h": 170
+            }
+          ]
+        },
+        {
+          "t": "slot",
+          "h": 44
+        }
+      ]
+    },
+    {
       "name": "Mateu/Display/Text",
       "kind": "text",
       "variants": {
