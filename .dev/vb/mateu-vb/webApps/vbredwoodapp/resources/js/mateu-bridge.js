@@ -519,6 +519,33 @@ define([], () => {
       if (!node || typeof node !== 'object') return
       const m = node.metadata
       const t = m && m.type
+      // FILA ZONADA (@Zones): HorizontalLayout cuyos hijos son columnas con
+      // flex: 1 1 calc(NN% …) — cada zona se proyecta como bloque-columna (colClass
+      // oj-md-(NN→doceavos)); si una zona genera varios bloques se FUSIONAN en uno
+      // (un flex no puede apilar dos items en la misma celda de fila)
+      if (t === 'HorizontalLayout' && !container) {
+        const zoneMatches = (node.children || []).map(
+          (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
+        if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
+          node.children.forEach((zoneChild, i) => {
+            const pct = parseFloat(zoneMatches[i][1])
+            const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
+            const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+            const before = blocks.length
+            plain = null
+            visit(zoneChild, null)
+            plain = null
+            const created = blocks.splice(before)
+            if (created.length === 1) {
+              created[0].colClass = colClass
+              blocks.push(created[0])
+            } else if (created.length > 1) {
+              blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
+            }
+          })
+          return
+        }
+      }
       if (t === 'App') {
         // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
         // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
@@ -855,6 +882,9 @@ define([], () => {
         }),
       }))
       .filter((block) => block.items.length)
+      // el loop del host pinta los bloques dentro de un oj-flex: los bloques-columna de una
+      // fila zonada llevan su colClass; el resto ocupa la fila entera (oj-sm-12)
+      .map((block) => ({ ...block, blockClass: block.colClass || 'oj-flex-item oj-sm-12' }))
     return merged.length ? merged : null
   }
 

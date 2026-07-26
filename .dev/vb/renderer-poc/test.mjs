@@ -13,7 +13,7 @@ import {
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent,
+  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -452,7 +452,7 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   // columns=3 → grid responsive: wrapper oj-flex + cada fila oj-flex-item oj-md-4
   assert.equal(ops.wrapClass, 'oj-flex')
   assert.equal(ops.items[0].gridCell, true)
-  assert.match(ops.items[0].cellClass, /oj-flex-item oj-sm-12 oj-md-4/)
+  assert.match(ops.items[0].cellClass, /oj-flex-item oj-sm-12 oj-md-6/) // columns(2) en el carril derecho
   const huespedes = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Klaus Hoffmann'))
   assert.equal(huespedes.wrapClass, '') // sin columns → lista clásica de una columna
@@ -466,6 +466,21 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   // las operaciones sin acción rápida (se hacen en el wizard) no llevan botón
   const firma = ops.items.find((i) => i.title === 'Firma del registro')
   assert.equal(firma.actionLabel, '')
+})
+
+// 29) Fila zonada (@Zones 36/64 de la Reserva 360): el HorizontalLayout de columnas
+// flex-calc se proyecta como bloques-columna (colClass en doceavos: 36→4, 64→8) y
+// hostContentOf estampa blockClass (los no zonados van a oj-sm-12).
+test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () => {
+  const ctx = fx('fo-reserva-arriving')
+  const blocks = hostContentOf(ctx, null, { dropEntityHeader: true })
+  const zoned = blocks.filter((b) => /oj-md-/.test(b.blockClass))
+  assert.equal(zoned.length, 2)
+  assert.match(zoned[0].blockClass, /oj-md-4/) // 36% → 4/12 (huéspedes, card)
+  assert.ok(zoned[0].isCard)
+  assert.match(zoned[1].blockClass, /oj-md-8/) // 64% → 8/12 (operativa)
+  assert.ok(zoned[1].items.some((a) => a.isTaskProgress))
+  assert.ok(blocks.every((b) => b.blockClass))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

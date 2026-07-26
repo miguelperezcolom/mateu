@@ -1570,9 +1570,11 @@
      (hostBlockAction; los átomos fromNested van al contexto de su isla) -->
 <oj-bind-if test="[[ $application.variables.mateuHostContent.length ]]">
   <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+    <div class="oj-flex">
     <oj-bind-for-each data="[[ $application.variables.mateuHostContent ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
+          <div :class="[[ $current.data.blockClass ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
@@ -1838,8 +1840,10 @@
                   </template>
                 </oj-bind-for-each>
           </div>
+          </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
+          <div :class="[[ $current.data.blockClass ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
@@ -2105,9 +2109,11 @@
                   </template>
                 </oj-bind-for-each>
           </div>
+          </div>
         </oj-bind-if>
       </template>
     </oj-bind-for-each>
+    </div>
   </div>
 </oj-bind-if>
 

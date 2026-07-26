@@ -60,6 +60,10 @@ import lombok.Setter;
 @Route(value = "/reserva/:id", parentRoute = "")
 @Title("Reserva")
 @FormLayout(columns = 1)
+@io.mateu.uidl.annotations.Zones({
+  @io.mateu.uidl.annotations.Zone(name = "huespedes", width = "36%"),
+  @io.mateu.uidl.annotations.Zone(name = "operativa", width = "64%")
+})
 @AutoSave(action = "buscarCargos", debounceMillis = 350)
 public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, ActionHandler {
 
@@ -86,7 +90,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
           };
 
   // ── huéspedes y estado documental ────────────────────────────────────────────
-  @Section("Huéspedes en la habitación")
+  @Section(value = "Huéspedes en la habitación", zone = "huespedes")
   @Label("")
   Callable<Component> huespedes =
       () -> {
@@ -106,12 +110,11 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
           items.add(paxItem("pax" + i, "Acompañante " + i, "Pendiente de registro", false));
         }
         return StatusList.builder().items(items).compact(true).frameless(true)
-            .columns(2)
             .style("width: 100%;").build();
       };
 
   // ── lo que aplique según el estado ───────────────────────────────────────────
-  @Section(value = " ", frameless = true)
+  @Section(value = " ", frameless = true, zone = "operativa")
   @Label("")
   Callable<Component> porEstado =
       () -> {
@@ -124,7 +127,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       };
 
   // ── modo check-out: folio + posteo de cargos + cobro (invisibles fuera del modo) ──
-  @Section(value = "  ", frameless = true)
+  @Section(value = "  ", frameless = true, zone = "operativa")
   @Label("")
   Callable<Component> checkoutFolio =
       () -> {
@@ -154,7 +157,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             .build();
       };
 
-  @Section(value = "   ", frameless = true)
+  @Section(value = "   ", frameless = true, zone = "operativa")
   @Label("")
   Callable<Component> checkoutCargos =
       () -> {
@@ -195,7 +198,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         return VerticalLayout.builder().style("width: 100%; gap: .5rem;").content(content).build();
       };
 
-  @Section(value = "    ", frameless = true)
+  @Section(value = "    ", frameless = true, zone = "operativa")
   @Label("")
   Callable<Component> checkoutCobro =
       () -> {
@@ -280,7 +283,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         StatusList.builder()
             .compact(true)
             .frameless(true)
-            .columns(3)
+            .columns(2)
             .style("width: 100%;")
             .items(tarjetas.stream()
                 .map(op -> StatusItem.builder()

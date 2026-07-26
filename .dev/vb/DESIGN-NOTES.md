@@ -961,6 +961,19 @@ pide SOLO las pendientes.
   de build de los shared: instalar via reactor (`mvn -pl shared/dtos,shared/uidl,
   shared/core` desde backend/) — uidl suelto contra un dtos rancio de ~/.m2 rompe
   enforcer/convergence.
+- **Zonas en el contenido del host (2026-07-26, idea del usuario: "huéspedes a la
+  izquierda, tarjetas a la derecha")**: la 360 usa `@Zones` (huespedes 36% / operativa
+  64%; el header sin zona queda como banda superior). Proyección: `islandContentOf`
+  detecta la FILA ZONADA (HorizontalLayout de columnas `flex: 1 1 calc(NN%…)`, solo a
+  nivel raíz) y convierte cada zona en bloque-columna con `colClass` en doceavos
+  (36→oj-md-4, 64→oj-md-8, oj-sm-12 en small); si una zona genera VARIOS bloques se
+  fusionan en uno (un oj-flex no apila dos items en la misma celda — pasa en modo
+  checkout: folio+cargos+cobro, todos frameless). `hostContentOf` estampa `blockClass`
+  en todos (no zonados → oj-sm-12) y el loop de mateuHostContent envuelve los bloques en
+  un `oj-flex` con un div por bloque ligado a blockClass (solo el loop del HOST — wizard
+  e isla sin cambios). La checklist de operaciones pasa a `.columns(2)` (carril del 64%)
+  y los huéspedes vuelven a lista de 1 columna en su card. Resultado: TODO visible sin
+  scroll en llegada, in-house y checkout. Tests 28 (md-6) y 29 (zonas md-4/md-8). 29/29.
 - Pendiente fase 2: cambiar habitación (ResourceGrid) + upgrade (OfferCard) como modos de
   la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el

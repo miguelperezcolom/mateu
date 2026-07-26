@@ -1,7 +1,7 @@
 {
   "tree": {
     "type": "ServerSide",
-    "id": "b2f564fb-fab5-459c-acc4-a9236f5e523b",
+    "id": "d1f1ac5b-bc98-4fb6-9894-ee6cebef8c5e",
     "serverSideType": "io.mateu.mdd.demofrontoffice.ui.reservas.ReservaOverview",
     "route": "",
     "children": [
@@ -200,18 +200,25 @@
               {
                 "type": "ClientSide",
                 "metadata": {
-                  "type": "Card",
-                  "media": null,
-                  "headerPrefix": null,
-                  "header": null,
-                  "title": null,
-                  "subtitle": null,
-                  "headerSuffix": null,
-                  "content": {
+                  "type": "HorizontalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "verticalAlignment": null,
+                  "justification": null,
+                  "wrap": true,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
                     "type": "ClientSide",
                     "metadata": {
                       "type": "VerticalLayout",
-                      "spacing": false,
+                      "spacing": true,
                       "padding": false,
                       "margin": false,
                       "spacingVariant": null,
@@ -227,16 +234,425 @@
                       {
                         "type": "ClientSide",
                         "metadata": {
-                          "type": "Text",
-                          "container": "h3",
-                          "attributes": {},
-                          "text": "Huéspedes en la habitación",
-                          "size": null,
-                          "noMargins": false
+                          "type": "Card",
+                          "media": null,
+                          "headerPrefix": null,
+                          "header": null,
+                          "title": null,
+                          "subtitle": null,
+                          "headerSuffix": null,
+                          "content": {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "Text",
+                                  "container": "h3",
+                                  "attributes": {},
+                                  "text": "Huéspedes en la habitación",
+                                  "size": null,
+                                  "noMargins": false
+                                },
+                                "id": "cff3b747-7a01-40e0-8e71-0e8a549a77f7",
+                                "children": [],
+                                "style": " flex: 1; margin: 0;",
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "VerticalLayout",
+                                  "spacing": false,
+                                  "padding": false,
+                                  "margin": false,
+                                  "spacingVariant": null,
+                                  "horizontalAlignment": null,
+                                  "justification": null,
+                                  "wrap": false,
+                                  "flexGrows": null,
+                                  "fullWidth": false,
+                                  "style": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormLayout",
+                                      "autoResponsive": true,
+                                      "labelsAside": false,
+                                      "maxColumns": 1,
+                                      "columnWidth": null,
+                                      "expandColumns": true,
+                                      "expandFields": false,
+                                      "responsiveSteps": null,
+                                      "itemLabelWidth": null,
+                                      "columnSpacing": null,
+                                      "itemRowSpacing": null,
+                                      "itemLabelSpacing": null
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormRow"
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "CustomField",
+                                              "label": "",
+                                              "content": {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "StatusList",
+                                                  "items": [
+                                                    {
+                                                      "id": "principal",
+                                                      "icon": null,
+                                                      "avatar": "KH",
+                                                      "title": "Klaus Hoffmann",
+                                                      "description": "Adulto",
+                                                      "status": "Documentación pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "pax2",
+                                                      "icon": null,
+                                                      "avatar": "A2",
+                                                      "title": "Acompañante 2",
+                                                      "description": "Pendiente de registro",
+                                                      "status": "Documentación pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "pax3",
+                                                      "icon": null,
+                                                      "avatar": "A3",
+                                                      "title": "Acompañante 3",
+                                                      "description": "Pendiente de registro",
+                                                      "status": "Documentación pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "pax4",
+                                                      "icon": null,
+                                                      "avatar": "A4",
+                                                      "title": "Acompañante 4",
+                                                      "description": "Pendiente de registro",
+                                                      "status": "Documentación pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    }
+                                                  ],
+                                                  "compact": true,
+                                                  "frameless": true,
+                                                  "rowActionId": null,
+                                                  "columns": 0
+                                                },
+                                                "id": null,
+                                                "children": [],
+                                                "style": "width: 100%;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              "colspan": 1
+                                            },
+                                            "id": "fieldId",
+                                            "children": [],
+                                            "style": "width: 100%;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": null,
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "width: 100%;",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          },
+                          "footer": null,
+                          "variants": [
+                            "outlined"
+                          ]
                         },
-                        "id": "989ab059-a38b-4fe1-a5f7-47e8a530ecac",
+                        "id": "fieldId",
                         "children": [],
-                        "style": " flex: 1; margin: 0;",
+                        "style": "flex: 1; min-width: 0; width:100%;",
+                        "cssClasses": "mateu-section",
+                        "slot": null
+                      }
+                    ],
+                    "style": "flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": true,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 1,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "VerticalLayout",
+                                              "spacing": false,
+                                              "padding": false,
+                                              "margin": false,
+                                              "spacingVariant": null,
+                                              "horizontalAlignment": null,
+                                              "justification": null,
+                                              "wrap": false,
+                                              "flexGrows": null,
+                                              "fullWidth": false,
+                                              "style": null
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "TaskProgress",
+                                                  "label": "Operaciones de check-in",
+                                                  "total": 7,
+                                                  "done": 1,
+                                                  "actionLabel": null,
+                                                  "actionId": null
+                                                },
+                                                "id": null,
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "StatusList",
+                                                  "items": [
+                                                    {
+                                                      "id": "habitacion",
+                                                      "icon": null,
+                                                      "avatar": "🛏️",
+                                                      "title": "Habitación",
+                                                      "description": "Hab 612 inspeccionada y lista",
+                                                      "status": "✓ Hecha",
+                                                      "statusColor": "success",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "wifi",
+                                                      "icon": null,
+                                                      "avatar": "📶",
+                                                      "title": "Tarjeta wifi",
+                                                      "description": "Crear las credenciales de acceso del huésped",
+                                                      "status": "Pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": "Crear",
+                                                      "actionId": "opWifi"
+                                                    },
+                                                    {
+                                                      "id": "llave",
+                                                      "icon": null,
+                                                      "avatar": "🔑",
+                                                      "title": "Llave / pulsera",
+                                                      "description": "Grabar la llave o pulsera de la Hab 612",
+                                                      "status": "Pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": "Grabar",
+                                                      "actionId": "opLlave"
+                                                    },
+                                                    {
+                                                      "id": "firma",
+                                                      "icon": null,
+                                                      "avatar": "✍️",
+                                                      "title": "Firma del registro",
+                                                      "description": "Se enviará a la tablet durante el check-in",
+                                                      "status": "Pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "cobro",
+                                                      "icon": null,
+                                                      "avatar": "💳",
+                                                      "title": "Cobro / preautorización",
+                                                      "description": "Preautorizar € 2.140,00 en el check-in",
+                                                      "status": "Pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    },
+                                                    {
+                                                      "id": "extras",
+                                                      "icon": null,
+                                                      "avatar": "🎁",
+                                                      "title": "Ancillaries",
+                                                      "description": "Ofrecer los extras opcionales en el check-in",
+                                                      "status": "Pendiente",
+                                                      "statusColor": "warning",
+                                                      "actionLabel": null,
+                                                      "actionId": null
+                                                    }
+                                                  ],
+                                                  "compact": true,
+                                                  "frameless": true,
+                                                  "rowActionId": null,
+                                                  "columns": 2
+                                                },
+                                                "id": null,
+                                                "children": [],
+                                                "style": "width: 100%;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": "width: 100%; gap: .5rem;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          "colspan": 1
+                                        },
+                                        "id": "fieldId",
+                                        "children": [],
+                                        "style": "width: 100%; gap: .5rem;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
                         "cssClasses": null,
                         "slot": null
                       },
@@ -260,109 +676,317 @@
                           {
                             "type": "ClientSide",
                             "metadata": {
-                              "type": "FormLayout",
-                              "autoResponsive": true,
-                              "labelsAside": false,
-                              "maxColumns": 1,
-                              "columnWidth": null,
-                              "expandColumns": true,
-                              "expandFields": false,
-                              "responsiveSteps": null,
-                              "itemLabelWidth": null,
-                              "columnSpacing": null,
-                              "itemRowSpacing": null,
-                              "itemLabelSpacing": null
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
                             },
                             "id": null,
                             "children": [
                               {
                                 "type": "ClientSide",
                                 "metadata": {
-                                  "type": "FormRow"
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 1,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
                                 },
                                 "id": null,
                                 "children": [
                                   {
                                     "type": "ClientSide",
                                     "metadata": {
-                                      "type": "CustomField",
-                                      "label": "",
-                                      "content": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
                                         "type": "ClientSide",
                                         "metadata": {
-                                          "type": "StatusList",
-                                          "items": [
-                                            {
-                                              "id": "principal",
-                                              "icon": null,
-                                              "avatar": "KH",
-                                              "title": "Klaus Hoffmann",
-                                              "description": "Adulto",
-                                              "status": "Documentación pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "VerticalLayout",
+                                              "spacing": false,
+                                              "padding": false,
+                                              "margin": false,
+                                              "spacingVariant": null,
+                                              "horizontalAlignment": null,
+                                              "justification": null,
+                                              "wrap": false,
+                                              "flexGrows": [],
+                                              "fullWidth": false,
+                                              "style": null
                                             },
-                                            {
-                                              "id": "pax2",
-                                              "icon": null,
-                                              "avatar": "A2",
-                                              "title": "Acompañante 2",
-                                              "description": "Pendiente de registro",
-                                              "status": "Documentación pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            },
-                                            {
-                                              "id": "pax3",
-                                              "icon": null,
-                                              "avatar": "A3",
-                                              "title": "Acompañante 3",
-                                              "description": "Pendiente de registro",
-                                              "status": "Documentación pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            },
-                                            {
-                                              "id": "pax4",
-                                              "icon": null,
-                                              "avatar": "A4",
-                                              "title": "Acompañante 4",
-                                              "description": "Pendiente de registro",
-                                              "status": "Documentación pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            }
-                                          ],
-                                          "compact": true,
-                                          "frameless": true,
-                                          "rowActionId": null,
-                                          "columns": 0
+                                            "id": null,
+                                            "children": [],
+                                            "style": "",
+                                            "cssClasses": "",
+                                            "slot": null
+                                          },
+                                          "colspan": 1
                                         },
-                                        "id": null,
+                                        "id": "fieldId",
                                         "children": [],
-                                        "style": "width: 100%;",
+                                        "style": "",
                                         "cssClasses": null,
                                         "slot": null
-                                      },
-                                      "colspan": 1
-                                    },
-                                    "id": "fieldId",
-                                    "children": [],
-                                    "style": "width: 100%;",
+                                      }
+                                    ],
+                                    "style": null,
                                     "cssClasses": null,
                                     "slot": null
                                   }
                                 ],
-                                "style": null,
+                                "style": "",
                                 "cssClasses": null,
                                 "slot": null
                               }
                             ],
-                            "style": "",
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 1,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "VerticalLayout",
+                                              "spacing": false,
+                                              "padding": false,
+                                              "margin": false,
+                                              "spacingVariant": null,
+                                              "horizontalAlignment": null,
+                                              "justification": null,
+                                              "wrap": false,
+                                              "flexGrows": [],
+                                              "fullWidth": false,
+                                              "style": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "",
+                                            "cssClasses": "",
+                                            "slot": null
+                                          },
+                                          "colspan": 1
+                                        },
+                                        "id": "fieldId",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormLayout",
+                                  "autoResponsive": true,
+                                  "labelsAside": false,
+                                  "maxColumns": 1,
+                                  "columnWidth": null,
+                                  "expandColumns": true,
+                                  "expandFields": false,
+                                  "responsiveSteps": null,
+                                  "itemLabelWidth": null,
+                                  "columnSpacing": null,
+                                  "itemRowSpacing": null,
+                                  "itemLabelSpacing": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormRow"
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "CustomField",
+                                          "label": "",
+                                          "content": {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "VerticalLayout",
+                                              "spacing": false,
+                                              "padding": false,
+                                              "margin": false,
+                                              "spacingVariant": null,
+                                              "horizontalAlignment": null,
+                                              "justification": null,
+                                              "wrap": false,
+                                              "flexGrows": [],
+                                              "fullWidth": false,
+                                              "style": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "",
+                                            "cssClasses": "",
+                                            "slot": null
+                                          },
+                                          "colspan": 1
+                                        },
+                                        "id": "fieldId",
+                                        "children": [],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": null,
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
                             "cssClasses": null,
                             "slot": null
                           }
@@ -372,581 +996,12 @@
                         "slot": null
                       }
                     ],
-                    "style": "",
-                    "cssClasses": null,
-                    "slot": null
-                  },
-                  "footer": null,
-                  "variants": [
-                    "outlined"
-                  ]
-                },
-                "id": "fieldId",
-                "children": [],
-                "style": "flex: 1; min-width: 0; width:100%;",
-                "cssClasses": "mateu-section",
-                "slot": null
-              },
-              {
-                "type": "ClientSide",
-                "metadata": {
-                  "type": "VerticalLayout",
-                  "spacing": false,
-                  "padding": false,
-                  "margin": false,
-                  "spacingVariant": null,
-                  "horizontalAlignment": null,
-                  "justification": null,
-                  "wrap": false,
-                  "flexGrows": null,
-                  "fullWidth": false,
-                  "style": null
-                },
-                "id": null,
-                "children": [
-                  {
-                    "type": "ClientSide",
-                    "metadata": {
-                      "type": "VerticalLayout",
-                      "spacing": false,
-                      "padding": false,
-                      "margin": false,
-                      "spacingVariant": null,
-                      "horizontalAlignment": null,
-                      "justification": null,
-                      "wrap": false,
-                      "flexGrows": null,
-                      "fullWidth": false,
-                      "style": null
-                    },
-                    "id": null,
-                    "children": [
-                      {
-                        "type": "ClientSide",
-                        "metadata": {
-                          "type": "FormLayout",
-                          "autoResponsive": true,
-                          "labelsAside": false,
-                          "maxColumns": 1,
-                          "columnWidth": null,
-                          "expandColumns": true,
-                          "expandFields": false,
-                          "responsiveSteps": null,
-                          "itemLabelWidth": null,
-                          "columnSpacing": null,
-                          "itemRowSpacing": null,
-                          "itemLabelSpacing": null
-                        },
-                        "id": null,
-                        "children": [
-                          {
-                            "type": "ClientSide",
-                            "metadata": {
-                              "type": "FormRow"
-                            },
-                            "id": null,
-                            "children": [
-                              {
-                                "type": "ClientSide",
-                                "metadata": {
-                                  "type": "CustomField",
-                                  "label": "",
-                                  "content": {
-                                    "type": "ClientSide",
-                                    "metadata": {
-                                      "type": "VerticalLayout",
-                                      "spacing": false,
-                                      "padding": false,
-                                      "margin": false,
-                                      "spacingVariant": null,
-                                      "horizontalAlignment": null,
-                                      "justification": null,
-                                      "wrap": false,
-                                      "flexGrows": null,
-                                      "fullWidth": false,
-                                      "style": null
-                                    },
-                                    "id": null,
-                                    "children": [
-                                      {
-                                        "type": "ClientSide",
-                                        "metadata": {
-                                          "type": "TaskProgress",
-                                          "label": "Operaciones de check-in",
-                                          "total": 7,
-                                          "done": 1,
-                                          "actionLabel": null,
-                                          "actionId": null
-                                        },
-                                        "id": null,
-                                        "children": [],
-                                        "style": null,
-                                        "cssClasses": null,
-                                        "slot": null
-                                      },
-                                      {
-                                        "type": "ClientSide",
-                                        "metadata": {
-                                          "type": "StatusList",
-                                          "items": [
-                                            {
-                                              "id": "documentos",
-                                              "icon": null,
-                                              "avatar": "🪪",
-                                              "title": "Datos de huéspedes",
-                                              "description": "Falta la documentación de 4 pax — escaneo de documento en el check-in",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": "Completar",
-                                              "actionId": "iniciarCheckin"
-                                            },
-                                            {
-                                              "id": "habitacion",
-                                              "icon": null,
-                                              "avatar": "🛏️",
-                                              "title": "Habitación",
-                                              "description": "Hab 612 inspeccionada y lista",
-                                              "status": "✓ Hecha",
-                                              "statusColor": "success",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            },
-                                            {
-                                              "id": "wifi",
-                                              "icon": null,
-                                              "avatar": "📶",
-                                              "title": "Tarjeta wifi",
-                                              "description": "Crear las credenciales de acceso del huésped",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": "Crear",
-                                              "actionId": "opWifi"
-                                            },
-                                            {
-                                              "id": "llave",
-                                              "icon": null,
-                                              "avatar": "🔑",
-                                              "title": "Llave / pulsera",
-                                              "description": "Grabar la llave o pulsera de la Hab 612",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": "Grabar",
-                                              "actionId": "opLlave"
-                                            },
-                                            {
-                                              "id": "firma",
-                                              "icon": null,
-                                              "avatar": "✍️",
-                                              "title": "Firma del registro",
-                                              "description": "Se enviará a la tablet durante el check-in",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            },
-                                            {
-                                              "id": "cobro",
-                                              "icon": null,
-                                              "avatar": "💳",
-                                              "title": "Cobro / preautorización",
-                                              "description": "Preautorizar € 2.140,00 en el check-in",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            },
-                                            {
-                                              "id": "extras",
-                                              "icon": null,
-                                              "avatar": "🎁",
-                                              "title": "Ancillaries",
-                                              "description": "Ofrecer los extras opcionales en el check-in",
-                                              "status": "Pendiente",
-                                              "statusColor": "warning",
-                                              "actionLabel": null,
-                                              "actionId": null
-                                            }
-                                          ],
-                                          "compact": true,
-                                          "frameless": true,
-                                          "rowActionId": null,
-                                          "columns": 3
-                                        },
-                                        "id": null,
-                                        "children": [],
-                                        "style": "width: 100%;",
-                                        "cssClasses": null,
-                                        "slot": null
-                                      }
-                                    ],
-                                    "style": "width: 100%; gap: .5rem;",
-                                    "cssClasses": null,
-                                    "slot": null
-                                  },
-                                  "colspan": 1
-                                },
-                                "id": "fieldId",
-                                "children": [],
-                                "style": "width: 100%; gap: .5rem;",
-                                "cssClasses": null,
-                                "slot": null
-                              }
-                            ],
-                            "style": null,
-                            "cssClasses": null,
-                            "slot": null
-                          }
-                        ],
-                        "style": "",
-                        "cssClasses": null,
-                        "slot": null
-                      }
-                    ],
-                    "style": "width: 100%;",
+                    "style": "flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
                     "cssClasses": null,
                     "slot": null
                   }
                 ],
-                "style": "width: 100%;",
-                "cssClasses": null,
-                "slot": null
-              },
-              {
-                "type": "ClientSide",
-                "metadata": {
-                  "type": "VerticalLayout",
-                  "spacing": false,
-                  "padding": false,
-                  "margin": false,
-                  "spacingVariant": null,
-                  "horizontalAlignment": null,
-                  "justification": null,
-                  "wrap": false,
-                  "flexGrows": null,
-                  "fullWidth": false,
-                  "style": null
-                },
-                "id": null,
-                "children": [
-                  {
-                    "type": "ClientSide",
-                    "metadata": {
-                      "type": "VerticalLayout",
-                      "spacing": false,
-                      "padding": false,
-                      "margin": false,
-                      "spacingVariant": null,
-                      "horizontalAlignment": null,
-                      "justification": null,
-                      "wrap": false,
-                      "flexGrows": null,
-                      "fullWidth": false,
-                      "style": null
-                    },
-                    "id": null,
-                    "children": [
-                      {
-                        "type": "ClientSide",
-                        "metadata": {
-                          "type": "FormLayout",
-                          "autoResponsive": true,
-                          "labelsAside": false,
-                          "maxColumns": 1,
-                          "columnWidth": null,
-                          "expandColumns": true,
-                          "expandFields": false,
-                          "responsiveSteps": null,
-                          "itemLabelWidth": null,
-                          "columnSpacing": null,
-                          "itemRowSpacing": null,
-                          "itemLabelSpacing": null
-                        },
-                        "id": null,
-                        "children": [
-                          {
-                            "type": "ClientSide",
-                            "metadata": {
-                              "type": "FormRow"
-                            },
-                            "id": null,
-                            "children": [
-                              {
-                                "type": "ClientSide",
-                                "metadata": {
-                                  "type": "CustomField",
-                                  "label": "",
-                                  "content": {
-                                    "type": "ClientSide",
-                                    "metadata": {
-                                      "type": "VerticalLayout",
-                                      "spacing": false,
-                                      "padding": false,
-                                      "margin": false,
-                                      "spacingVariant": null,
-                                      "horizontalAlignment": null,
-                                      "justification": null,
-                                      "wrap": false,
-                                      "flexGrows": [],
-                                      "fullWidth": false,
-                                      "style": null
-                                    },
-                                    "id": null,
-                                    "children": [],
-                                    "style": "",
-                                    "cssClasses": "",
-                                    "slot": null
-                                  },
-                                  "colspan": 1
-                                },
-                                "id": "fieldId",
-                                "children": [],
-                                "style": "",
-                                "cssClasses": null,
-                                "slot": null
-                              }
-                            ],
-                            "style": null,
-                            "cssClasses": null,
-                            "slot": null
-                          }
-                        ],
-                        "style": "",
-                        "cssClasses": null,
-                        "slot": null
-                      }
-                    ],
-                    "style": "width: 100%;",
-                    "cssClasses": null,
-                    "slot": null
-                  }
-                ],
-                "style": "width: 100%;",
-                "cssClasses": null,
-                "slot": null
-              },
-              {
-                "type": "ClientSide",
-                "metadata": {
-                  "type": "VerticalLayout",
-                  "spacing": false,
-                  "padding": false,
-                  "margin": false,
-                  "spacingVariant": null,
-                  "horizontalAlignment": null,
-                  "justification": null,
-                  "wrap": false,
-                  "flexGrows": null,
-                  "fullWidth": false,
-                  "style": null
-                },
-                "id": null,
-                "children": [
-                  {
-                    "type": "ClientSide",
-                    "metadata": {
-                      "type": "VerticalLayout",
-                      "spacing": false,
-                      "padding": false,
-                      "margin": false,
-                      "spacingVariant": null,
-                      "horizontalAlignment": null,
-                      "justification": null,
-                      "wrap": false,
-                      "flexGrows": null,
-                      "fullWidth": false,
-                      "style": null
-                    },
-                    "id": null,
-                    "children": [
-                      {
-                        "type": "ClientSide",
-                        "metadata": {
-                          "type": "FormLayout",
-                          "autoResponsive": true,
-                          "labelsAside": false,
-                          "maxColumns": 1,
-                          "columnWidth": null,
-                          "expandColumns": true,
-                          "expandFields": false,
-                          "responsiveSteps": null,
-                          "itemLabelWidth": null,
-                          "columnSpacing": null,
-                          "itemRowSpacing": null,
-                          "itemLabelSpacing": null
-                        },
-                        "id": null,
-                        "children": [
-                          {
-                            "type": "ClientSide",
-                            "metadata": {
-                              "type": "FormRow"
-                            },
-                            "id": null,
-                            "children": [
-                              {
-                                "type": "ClientSide",
-                                "metadata": {
-                                  "type": "CustomField",
-                                  "label": "",
-                                  "content": {
-                                    "type": "ClientSide",
-                                    "metadata": {
-                                      "type": "VerticalLayout",
-                                      "spacing": false,
-                                      "padding": false,
-                                      "margin": false,
-                                      "spacingVariant": null,
-                                      "horizontalAlignment": null,
-                                      "justification": null,
-                                      "wrap": false,
-                                      "flexGrows": [],
-                                      "fullWidth": false,
-                                      "style": null
-                                    },
-                                    "id": null,
-                                    "children": [],
-                                    "style": "",
-                                    "cssClasses": "",
-                                    "slot": null
-                                  },
-                                  "colspan": 1
-                                },
-                                "id": "fieldId",
-                                "children": [],
-                                "style": "",
-                                "cssClasses": null,
-                                "slot": null
-                              }
-                            ],
-                            "style": null,
-                            "cssClasses": null,
-                            "slot": null
-                          }
-                        ],
-                        "style": "",
-                        "cssClasses": null,
-                        "slot": null
-                      }
-                    ],
-                    "style": "width: 100%;",
-                    "cssClasses": null,
-                    "slot": null
-                  }
-                ],
-                "style": "width: 100%;",
-                "cssClasses": null,
-                "slot": null
-              },
-              {
-                "type": "ClientSide",
-                "metadata": {
-                  "type": "VerticalLayout",
-                  "spacing": false,
-                  "padding": false,
-                  "margin": false,
-                  "spacingVariant": null,
-                  "horizontalAlignment": null,
-                  "justification": null,
-                  "wrap": false,
-                  "flexGrows": null,
-                  "fullWidth": false,
-                  "style": null
-                },
-                "id": null,
-                "children": [
-                  {
-                    "type": "ClientSide",
-                    "metadata": {
-                      "type": "VerticalLayout",
-                      "spacing": false,
-                      "padding": false,
-                      "margin": false,
-                      "spacingVariant": null,
-                      "horizontalAlignment": null,
-                      "justification": null,
-                      "wrap": false,
-                      "flexGrows": null,
-                      "fullWidth": false,
-                      "style": null
-                    },
-                    "id": null,
-                    "children": [
-                      {
-                        "type": "ClientSide",
-                        "metadata": {
-                          "type": "FormLayout",
-                          "autoResponsive": true,
-                          "labelsAside": false,
-                          "maxColumns": 1,
-                          "columnWidth": null,
-                          "expandColumns": true,
-                          "expandFields": false,
-                          "responsiveSteps": null,
-                          "itemLabelWidth": null,
-                          "columnSpacing": null,
-                          "itemRowSpacing": null,
-                          "itemLabelSpacing": null
-                        },
-                        "id": null,
-                        "children": [
-                          {
-                            "type": "ClientSide",
-                            "metadata": {
-                              "type": "FormRow"
-                            },
-                            "id": null,
-                            "children": [
-                              {
-                                "type": "ClientSide",
-                                "metadata": {
-                                  "type": "CustomField",
-                                  "label": "",
-                                  "content": {
-                                    "type": "ClientSide",
-                                    "metadata": {
-                                      "type": "VerticalLayout",
-                                      "spacing": false,
-                                      "padding": false,
-                                      "margin": false,
-                                      "spacingVariant": null,
-                                      "horizontalAlignment": null,
-                                      "justification": null,
-                                      "wrap": false,
-                                      "flexGrows": [],
-                                      "fullWidth": false,
-                                      "style": null
-                                    },
-                                    "id": null,
-                                    "children": [],
-                                    "style": "",
-                                    "cssClasses": "",
-                                    "slot": null
-                                  },
-                                  "colspan": 1
-                                },
-                                "id": "fieldId",
-                                "children": [],
-                                "style": "",
-                                "cssClasses": null,
-                                "slot": null
-                              }
-                            ],
-                            "style": null,
-                            "cssClasses": null,
-                            "slot": null
-                          }
-                        ],
-                        "style": "",
-                        "cssClasses": null,
-                        "slot": null
-                      }
-                    ],
-                    "style": "width: 100%;",
-                    "cssClasses": null,
-                    "slot": null
-                  }
-                ],
-                "style": "width: 100%;",
+                "style": "width: 100%; align-items: flex-start;",
                 "cssClasses": null,
                 "slot": null
               }
