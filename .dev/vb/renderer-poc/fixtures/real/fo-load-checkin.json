@@ -1,0 +1,893 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "",
+      "type": "SetWindowTitle",
+      "data": "Check-In"
+    }
+  ],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "",
+      "component": {
+        "type": "ServerSide",
+        "id": "14ae9fac-59cc-4e2c-8461-031f80997df6",
+        "serverSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.CheckInQueue",
+        "route": "",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Page",
+              "id": null,
+              "favicon": null,
+              "pageTitle": "Check in queue",
+              "icon": null,
+              "title": "Check-In",
+              "level": 0,
+              "readOnly": false,
+              "subtitle": null,
+              "status": null,
+              "breadcrumbs": null,
+              "badges": [],
+              "kpis": [],
+              "banners": [],
+              "actions": null,
+              "toolbar": [],
+              "buttons": [],
+              "avatar": null,
+              "header": [],
+              "footer": [],
+              "fabs": [],
+              "toc": null,
+              "peerNav": null,
+              "timestamp": null,
+              "pageWidth": null,
+              "pageType": "form"
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "VerticalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "horizontalAlignment": null,
+                  "justification": null,
+                  "wrap": false,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 3,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormField",
+                                      "fieldId": "buscar",
+                                      "dataType": "string",
+                                      "stereotype": "regular",
+                                      "observed": false,
+                                      "autofocus": false,
+                                      "label": "Buscar llegada (huésped, habitación, tipo…)",
+                                      "placeholder": null,
+                                      "cssClasses": null,
+                                      "description": "",
+                                      "badges": [],
+                                      "attributes": [],
+                                      "colspan": 1,
+                                      "rightAligned": false,
+                                      "bold": false,
+                                      "options": [],
+                                      "remoteCoordinates": null,
+                                      "initialValue": null,
+                                      "readOnly": false,
+                                      "required": false,
+                                      "style": "",
+                                      "columns": [],
+                                      "inlineEditing": false,
+                                      "onItemSelectionActionId": null,
+                                      "rowSelectionShortcut": null,
+                                      "formPosition": null,
+                                      "formStyle": null,
+                                      "formTheme": null,
+                                      "formColumns": 0,
+                                      "sliderMin": 0,
+                                      "sliderMax": 100,
+                                      "stepButtonsVisible": false,
+                                      "step": 0,
+                                      "itemIdPath": null,
+                                      "detailPath": null,
+                                      "useButtonForDetail": false,
+                                      "minHeightWhenDetailVisible": null,
+                                      "optionsColumns": 1,
+                                      "mainFilter": false,
+                                      "treeLeavesOnly": false,
+                                      "multiline": false,
+                                      "propertyRow": false,
+                                      "link": null
+                                    },
+                                    "id": "buscar",
+                                    "children": [],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 3,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "HorizontalLayout",
+                                          "spacing": true,
+                                          "padding": false,
+                                          "margin": false,
+                                          "spacingVariant": null,
+                                          "verticalAlignment": null,
+                                          "justification": null,
+                                          "wrap": false,
+                                          "flexGrows": null,
+                                          "fullWidth": true,
+                                          "style": null
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "TaskQueue",
+                                              "actionId": "openGuest",
+                                              "groups": [
+                                                {
+                                                  "label": "Llegadas hoy — 3",
+                                                  "items": [
+                                                    {
+                                                      "id": "st-maria",
+                                                      "title": "María Fernández",
+                                                      "caption": "Hab 1204 · 7N",
+                                                      "badges": [
+                                                        {
+                                                          "label": "PLATINUM",
+                                                          "color": "contrast"
+                                                        }
+                                                      ],
+                                                      "selected": false
+                                                    },
+                                                    {
+                                                      "id": "st-james",
+                                                      "title": "James Whitfield",
+                                                      "caption": "Hab 805 · 3N",
+                                                      "badges": [
+                                                        {
+                                                          "label": "GOLD",
+                                                          "color": "contrast"
+                                                        }
+                                                      ],
+                                                      "selected": false
+                                                    },
+                                                    {
+                                                      "id": "st-klaus",
+                                                      "title": "Klaus Hoffmann",
+                                                      "caption": "Hab 612 · 4N",
+                                                      "badges": [
+                                                        {
+                                                          "label": "SILVER",
+                                                          "color": "contrast"
+                                                        }
+                                                      ],
+                                                      "selected": false
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "flex: 0 0 26%; min-width: 300px;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "EmptyState",
+                                              "icon": "🛎",
+                                              "title": "Selecciona un huésped",
+                                              "description": "Elige una llegada de la lista para iniciar su check-in.",
+                                              "actionId": null,
+                                              "actionLabel": null
+                                            },
+                                            "id": null,
+                                            "children": [],
+                                            "style": "flex: 1; margin-top: 3rem;",
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": "align-items: flex-start; gap: 1.5rem; width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 3
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "align-items: flex-start; gap: 1.5rem; width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "width: 100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {
+          "buscar": null,
+          "contenido": {},
+          "seleccionado": null
+        },
+        "style": "",
+        "cssClasses": "",
+        "actions": [
+          {
+            "id": "nested-form-action-contenido-content_create",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_create-and-stay",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_add",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_select",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_selected",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_prev",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_next",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_save",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_remove",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_move-up",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_move-down",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-content_cancel",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_create",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_create-and-stay",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_add",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_select",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_selected",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_prev",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_next",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_save",
+            "validationRequired": true,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_remove",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_move-up",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_move-down",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "nested-form-action-contenido-flexGrows_cancel",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "*",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": null,
+            "js": null,
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": null,
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "openGuest",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          },
+          {
+            "id": "filtrar",
+            "validationRequired": false,
+            "confirmationRequired": false,
+            "rowsSelectedRequired": false,
+            "confirmationTexts": null,
+            "modalStyle": null,
+            "modalTitle": null,
+            "customEvent": null,
+            "href": "",
+            "js": "",
+            "background": false,
+            "sse": false,
+            "fieldsToValidate": "",
+            "bubble": false,
+            "shortcut": null
+          }
+        ],
+        "triggers": [
+          {
+            "type": "AutoSave",
+            "actionId": "filtrar",
+            "debounceMillis": 400
+          }
+        ],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {
+        "seleccionado": null,
+        "buscar": null
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

@@ -26,6 +26,11 @@ public interface Actionable {
 
   Object itemData();
 
+  /** Optional icon name (e.g. "vaadin:calendar-user"); renderers map it to their icon set. */
+  default String icon() {
+    return null;
+  }
+
   /** Optional description for AI assistants. Implementations may return null. */
   default String description() {
     return null;

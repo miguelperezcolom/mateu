@@ -6,4 +6,6 @@ export default interface QueueItem {
     caption?: string
     badges?: Chip[]
     selected?: boolean
+    actionLabel?: string
+    actionId?: string
 }

@@ -29,6 +29,7 @@ final class AppMenuDtoBuilder {
               var path = getPath(prefix, option);
               return MenuOptionDto.builder()
                   .label(option.label())
+                  .icon(option.icon())
                   .path(path)
                   .selected(isSelected(option, appRoute, route))
                   .visible(true)

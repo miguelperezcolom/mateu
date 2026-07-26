@@ -47,10 +47,9 @@
             <artifactId>mvc-core</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- Redwood renderer (OJET-native island; Oracle JET / Spectra / Dynamic UI from the CDN) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood-lit</artifactId>
+            <artifactId>vaadin-lit</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>

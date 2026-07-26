@@ -1,0 +1,263 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "_guestNote",
+      "component": {
+        "type": "ServerSide",
+        "id": "561907ce-0464-4aa8-872c-3068ccdfddb0",
+        "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.island.GuestNote",
+        "route": "/guest-note",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Page",
+              "id": null,
+              "favicon": null,
+              "pageTitle": "Guest note",
+              "icon": null,
+              "title": "GuestNote(paxName=Ada, note=Prefiere habitación tranquila)",
+              "level": 0,
+              "readOnly": false,
+              "subtitle": null,
+              "status": null,
+              "breadcrumbs": null,
+              "badges": [],
+              "kpis": [],
+              "banners": [],
+              "actions": null,
+              "toolbar": [],
+              "buttons": [],
+              "avatar": null,
+              "header": [],
+              "footer": [],
+              "fabs": [],
+              "toc": null,
+              "peerNav": null,
+              "timestamp": null,
+              "pageWidth": null,
+              "pageType": "form"
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Div",
+                  "content": null
+                },
+                "id": "fieldId",
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "FormLayout",
+                          "autoResponsive": true,
+                          "labelsAside": false,
+                          "maxColumns": 2,
+                          "columnWidth": null,
+                          "expandColumns": true,
+                          "expandFields": false,
+                          "responsiveSteps": null,
+                          "itemLabelWidth": null,
+                          "columnSpacing": null,
+                          "itemRowSpacing": null,
+                          "itemLabelSpacing": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormRow"
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormField",
+                                  "fieldId": "paxName",
+                                  "dataType": "string",
+                                  "stereotype": "regular",
+                                  "observed": false,
+                                  "autofocus": false,
+                                  "label": "Pax name",
+                                  "placeholder": null,
+                                  "cssClasses": null,
+                                  "description": "",
+                                  "badges": [],
+                                  "attributes": [],
+                                  "colspan": 1,
+                                  "rightAligned": false,
+                                  "bold": false,
+                                  "options": [],
+                                  "remoteCoordinates": null,
+                                  "initialValue": null,
+                                  "readOnly": false,
+                                  "required": true,
+                                  "style": "",
+                                  "columns": [],
+                                  "inlineEditing": false,
+                                  "onItemSelectionActionId": null,
+                                  "rowSelectionShortcut": null,
+                                  "formPosition": null,
+                                  "formStyle": null,
+                                  "formTheme": null,
+                                  "formColumns": 0,
+                                  "sliderMin": 0,
+                                  "sliderMax": 100,
+                                  "stepButtonsVisible": false,
+                                  "step": 0,
+                                  "itemIdPath": null,
+                                  "detailPath": null,
+                                  "useButtonForDetail": false,
+                                  "minHeightWhenDetailVisible": null,
+                                  "optionsColumns": 1,
+                                  "mainFilter": false,
+                                  "treeLeavesOnly": false,
+                                  "multiline": false,
+                                  "propertyRow": false,
+                                  "link": null
+                                },
+                                "id": "paxName",
+                                "children": [],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormField",
+                                  "fieldId": "note",
+                                  "dataType": "string",
+                                  "stereotype": "regular",
+                                  "observed": false,
+                                  "autofocus": false,
+                                  "label": "Note",
+                                  "placeholder": null,
+                                  "cssClasses": null,
+                                  "description": "",
+                                  "badges": [],
+                                  "attributes": [],
+                                  "colspan": 1,
+                                  "rightAligned": false,
+                                  "bold": false,
+                                  "options": [],
+                                  "remoteCoordinates": null,
+                                  "initialValue": null,
+                                  "readOnly": false,
+                                  "required": false,
+                                  "style": "",
+                                  "columns": [],
+                                  "inlineEditing": false,
+                                  "onItemSelectionActionId": null,
+                                  "rowSelectionShortcut": null,
+                                  "formPosition": null,
+                                  "formStyle": null,
+                                  "formTheme": null,
+                                  "formColumns": 0,
+                                  "sliderMin": 0,
+                                  "sliderMax": 100,
+                                  "stepButtonsVisible": false,
+                                  "step": 0,
+                                  "itemIdPath": null,
+                                  "detailPath": null,
+                                  "useButtonForDetail": false,
+                                  "minHeightWhenDetailVisible": null,
+                                  "optionsColumns": 1,
+                                  "mainFilter": false,
+                                  "treeLeavesOnly": false,
+                                  "multiline": false,
+                                  "propertyRow": false,
+                                  "link": null
+                                },
+                                "id": "note",
+                                "children": [],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": null,
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "flex: 1; min-width: 0; width:100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "initialData": {
+          "paxName": "Ada",
+          "note": "Prefiere habitación tranquila"
+        },
+        "style": "",
+        "cssClasses": "",
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [
+          {
+            "condition": "state['paxName']",
+            "fieldId": "paxName",
+            "message": "Cannot be empty"
+          }
+        ],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form"
+      },
+      "state": {
+        "paxName": "Ada",
+        "note": "Prefiere habitación tranquila"
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

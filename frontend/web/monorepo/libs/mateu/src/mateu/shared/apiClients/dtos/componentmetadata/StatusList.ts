@@ -8,4 +8,6 @@ export default interface StatusList extends ComponentMetadata {
     frameless?: boolean
     /** makes every row clickable: clicking one dispatches this action with { _item: id } */
     rowActionId?: string
+    /** N-column responsive grid instead of a single stack; 0/absent = classic one-column list */
+    columns?: number
 }

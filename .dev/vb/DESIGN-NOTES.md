@@ -19,10 +19,24 @@ que consume el `UIIncrementDto` estándar y lo pinta con los componentes `oj-sp`
 VB = "un renderer más"; el backend de Mateu **no se toca**. Decisión tomada: la traducción vive en un **bridge JS
 dentro de la app VB** (no server-side, no hosting de Mateu en el runtime de chains de VB).
 
-## Arquitectura (el núcleo, ya validado en el POC)
+## Arquitectura (el núcleo, ya validado en el POC **contra wire real**)
 
-- **Transporte**: `callMateu(baseUrl, route, actionId, state)` → `POST /{base}/mateu/v3/components/_/action` →
-  `UIIncrementDto`. (Service Connection en prod; `fetch` para el bootstrap.)
+- **Transporte (CONFIRMADO 2026-07-24 contra demo/demo-vb :9005)** — DOS endpoints:
+  - **Bootstrap de la shell**: `POST /{base}/mateu/v3/components/_/action` con `{route:'', actionId:'__load__'}`
+    → fragmento App (menú, variant, contextSelectors). Es el ÚNICO uso de ese endpoint; la ruta raíz NO
+    resuelve por sync.
+  - **Todo lo demás**: `POST /{base}/mateu/v3/sync/{route sin barra | _no_route}` con body
+    `{serverSideType, appState, componentState, parameters, initiatorComponentId, consumedRoute, route, actionId}`
+    (= `AxiosMateuApiClient.runAction`). Las CARGAS usan `actionId: ''` (¡`__load__` da
+    "not supported" en orquestadores!).
+- **Eco del initiator (la clave del ruteo)**: `targetComponentId` de cada fragment es el ECO del
+  `initiatorComponentId` de la request (`''` → host), y el server DERIVA los ids internos del initiator
+  (`crud1` → `crud1_app`, `crud1_list`): la unicidad de ids entre superficies es responsabilidad del
+  CLIENTE — el bridge postea SIEMPRE con el contextId de la superficie como initiator.
+- **Mediadores (crud, isla)**: la 1ª carga devuelve un ServerSide cuyo child0 es un App **chromeless**
+  (variant MEDIATOR); el CONTENIDO llega con una 2ª request igual + `consumedRoute` = `rootRoute` del App
+  interior + `serverSideType` = su `homeServerSideType` (sin ellos: el mediador otra vez o "No value
+  present"). `mediatorOf(ctx)` en el reducer extrae esa info.
 - **`reduceContexts(reg, increment)`** — reducer PURO (mismo código que serán métodos de `app-flow.js`):
   - Registro = `contexts` (mapa `targetComponentId → contexto`, host = `__root__`) + `stack` (drawers abiertos)
     + `shell` (cuando llega un `App`).
@@ -92,10 +106,25 @@ Redwood buscaban el `mateu-ux` por id y lo remontaban imperativamente → rompí
 `oj-bind-for-each` sin repintar todo (observabilidad Knockout/JET) — probar DENTRO de una app VB real antes de
 dar por buena la Fase 9 (app anidada).
 
-## Contrato de wire (confirmado en libs/mateu/.../dtos)
+## Contrato de wire (CONFIRMADO con increments reales — fixtures/real/*.json)
 
-- `UIIncrement { messages, commands, fragments, banners, componentState }`
-- `UIFragment { targetComponentId, component, data, state, action: Add|Replace|ReplaceKeepData }`
+- `UIIncrement { messages, commands, fragments, banners, appendBanners, appData, appState }`
+- `UIFragment { targetComponentId, component, data, state, action: Add|Replace|ReplaceKeepData }` —
+  **el estado del componente viaja en `fragment.state`** (p.ej. `{name:'Ada', age:36}` en la carga,
+  y el save responde un fragment State-only con el estado nuevo + el toast en `messages`).
+- **Raíz de fragmento**: `ServerSide { id, serverSideType, route, pageType, pageWidth, initialData,
+  actions, triggers, children:[ClientSide{metadata:{type:Page|App,…}}] }` para contenido enrutado;
+  `ClientSide` con `metadata.type:'App'` solo en el bootstrap (shell) — un App de MEDIADOR llega
+  SIEMPRE envuelto en un ServerSide y es contenido, no shell.
+- **Drawer (Add)**: raíz ClientSide `metadata.type:'Drawer'` con `headerTitle/position/width/size/…`
+  y **`metadata.initialData`** = estado inicial del form del drawer; el contenido va en
+  `metadata.content` (patrón Card), NO en `children`.
+- **CloseModal lleva `data.eventName`** (p.ej. `mateu-crud:saved-in-drawer`): al cerrar hay que
+  EMITIR ese evento por el bus @SubscribeTo — así refresca el listado del crud (los ServerSide
+  llevan `triggers`). El reducer ya lo emite como efecto `events`.
+- **Frontera de isla embebida**: nodo ServerSide INTERIOR del árbol del host, con id = nombre de
+  campo (`_guestNote`), `route` con `?_embeddedMediator=1&_inline=1` y esos marcadores también en
+  `initialData`. `collectIslands(tree)` las localiza para montar el `mateu-node` anidado.
 - `UICommand { type, data, targetComponentId }` — tipos: `SetWindowTitle`, `SetFavicon`, `DispatchEvent`,
   `NavigateTo`, `PushStateToHistory`, `RunAction`, `MarkAsDirty`, `MarkAsClean`, `DownloadFile`, `CloseModal`,
   `AddContentToHead`, `AddContentToBody`.
@@ -131,16 +160,886 @@ de `app-flow.js`; (2) artefactos VB (chains JSON, fragment `mateu-node`, host-pa
 AMD/UMD del MISMO core. Autocontenido, agnóstico de la app, portátil. "Hecho" = app VB vacía en Oracle + importar
 el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código propio. Detalle en el roadmap.
 
-## Próximo paso al retomar
+## Estado del proyecto (2026-07-24, rama `redwood-fable`)
 
-1. `capture.mjs` (15 líneas, en el roadmap) contra un backend Mateu vivo (p.ej. un demo) → volcar increments
-   REALES a `renderer-poc/fixtures/` y correr `test.mjs` para fijar el contrato de wire.
-2. **Fase 1** del roadmap: hola mundo dentro del `oj-sp-simple-ui-shell` real → puerta visual del chrome.
-   No avanzar sin que la captura sea indistinguible de una app Redwood nativa.
-3. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
+- **Hecho — paso previo del roadmap**: backend de soporte `demo/demo-vb` (Spring MVC, **puerto 9005**
+  para no chocar con las otras instancias del proceso en otros clones; CORS abierto) con una pantalla por
+  fase: `/hello` (F1), app raíz con menú (F2), `/person` (F3), `/products` crud editInDrawer (F4–5),
+  `/island-host` + isla `GuestNoteView` (F9). `capture.mjs` captura los 13 flujos reales →
+  `fixtures/real/*.json`, y `test.mjs` (11 tests) valida el reducer **contra ese wire real** (los
+  fixtures sintéticos se borraron). Regenerar: arrancar demo-vb (`mvn spring-boot:run`) + `node capture.mjs`.
+- Los renderers antiguos `apps/redwood` y `apps/redwood-spectra` (+ sus módulos `-lit`) fueron BORRADOS
+  en esta rama; demo-admin-panel y explorer vuelven a vaadin-lit. Regla del proyecto: **cero HTML/CSS
+  propio — siempre componentes VB/Redwood auténticos**.
+- Resueltos del plan original: el "Replace con target desconocido cae en HOST_ID" ya no aplica (el ruteo
+  es por eco del initiator + fallback por `tree.id`); `PushStateToHistory` y `DispatchEvent` ya están
+  mapeados en el reducer (efectos `urlPush`/`events`).
+
+## Fase 1 — HECHA (pendiente de verificación visual del usuario)
+
+- **App VB de trabajo**: `.dev/vb/mateu-vb` (copia del Redwood Starter `frontoffice`). Local:
+  `npm install` una vez; `npx grunt vb-build --no-optimize=true --force` (el --force salta el paso
+  de deploy que pide --url; las dependencias de exchange se vaciaron — los `oj-sp` cargan del CDN por
+  los paths de `app-flow.json`); `npx grunt vb-serve --port=9006` → http://localhost:9006 (con
+  demo-vb corriendo en :9005). En `visual-application.json` se añadió `rootURL`.
+- **Kit**: `resources/js/mateu-bridge.js` es GENERADO por `renderer-poc/make-amd.mjs` desde la fuente
+  única (`reduceContexts.mjs` + `transport.mjs`) — regenerar tras tocar el core. La constante
+  `mateuBaseUrl` vive en `app-flow.json`. Chain `loadMateuHello` (JS ActionChain con el bridge como
+  dependencia AMD) en `vbEnter` de main-start-page → variables → `oj-bind-text` (markup del starter,
+  bindings cambiados; CERO HTML/CSS propio).
+- **Shell auténtica**: `shell-page.html` monta `oj-sp-simple-ui-shell` + `oj-sp-global-header`
+  (slots declarados `globalHeader`/`stretchingContents`; imports añadidos en shell-page.json).
+  La captura `renderer-poc/shots/fase1.png` muestra el global header Oracle + FAB Ask Oracle de la
+  shell Spectra con el texto de Mateu en su sitio.
+- ⚠ El proceso se PARA al final de cada fase para verificación visual del usuario.
+
+## Fase 2 — HECHA (pendiente de verificación visual del usuario)
+
+- **Menú → in-app navigation Redwood**: `loadMateuShell` (vbEnter de shell-page) hace el bootstrap,
+  guarda el registro en `$application.variables.mateuRegistry`, proyecta `shell.menu` a
+  `mateuNavItems` ({id: route, label: caption}) y navega a la primera opción. `oj-sp-in-app-navigation`
+  (import + markup en shell-page) — OJO: el componente se ancla ABAJO por diseño
+  (`oj-applayout-fixed-bottom` INCONDICIONAL en su template) — es el paradigma de navegación
+  Redwood/FA 26 actual, no un bug. `selection` va con binding ONE-WAY (`[[ ]]`): con writeback
+  el componente escribe la variable ANTES de emitir `spSelectionChanged` y la guarda anti-eco
+  del chain no puede distinguir el eco de un clic real.
+- **Navegación**: `onMateuNavigate` — detail del evento = `{currentId, previousId}` (NO value);
+  guarda anti-eco contra `mateuSelectedRoute`; `bridge.loadRouteInto` (nuevo en transport.mjs,
+  fuente única) sigue el mediador (2ª carga con consumedRoute+serverSideType) — verificado:
+  /products hace exactamente 2 requests y /island-host 1. Título: Page.title, con fallback al
+  caption del menú (la Page de un listado NO lleva título — viaja en la metadata del Crudl).
+- **Gotcha de Mateu descubierto**: la ruta de una opción `@Menu` TIPADA se deriva del NOMBRE DEL
+  CAMPO, no del `@UI` de la clase (campo `islandHost` → ruta `/islandHost` ≠ `/island-host` → "Not
+  found."). Workaround en demo-vb: `RouteLink` explícito. Candidato a fix en el framework.
+- Evidencia: `shots/fase2.png` (shell + menú + primera ruta) y `shots/fase2-person.png` (contenido
+  cambiado SIN recargar la shell); `probe-fase2.mjs` automatiza la puerta.
+
+## Fase 3 — HECHA (pendiente de verificación visual del usuario)
+
+- **Form editable end-to-end**: /person pinta con `oj-form-layout` + widgets JET auténticos
+  (`oj-input-text`/`oj-input-number`/`oj-switch`) vía el switch widgetFor — proyección
+  `summarizeHost().fields` del bridge (isText/isNumber/isBoolean PRECOMPUTADOS). Two-way:
+  `value-changed` por campo → chain `mateuFieldEdited` acumula `{fieldId: valor}` en la variable
+  de PÁGINA `mateuDraft` (guarda `updatedFrom === 'internal'` para ignorar el eco del set inicial).
+  Save → `runMateuAction` (bridge) con `{...host.state, ...draft}` → State-only merge + toast
+  (patrón del starter: `oj-sp-messages-toast` local + `callComponentMethod open`) → NavigateTo →
+  evento `application:mateuNavigate` → la shell navega. Evidencia: `shots/fase3.png` y
+  `shots/fase3-saved.png` ("Saved Grace").
+- **Gotchas del runtime VB local (JET 19 app + visualRuntime 2510 construido para JET 18 — el
+  "version mismatch" de consola) que CONDICIONAN el diseño**:
+  1. `oj-dynamic-form` (el tag real — NO `oj-dyn-form`) acepta metadata como objeto plano y
+     REQUIERE `displayProperties`, pero **no absorbe ediciones**: su `transientValue` no se
+     actualiza al teclear (y el writeback `{{ }}` no escribe ni en variables de aplicación ni de
+     página). `ojRawValueUpdated` está deprecado/"not supported" en la variante cca. → switch
+     widgetFor con widgets clásicos; REVISITAR oj-dynamic-form en VB Studio con runtime emparejado.
+  2. Los VComponents `oj-c-*` no evalúan sus property bindings (label undefined) → `oj-button`
+     clásico con `oj-bind-text` slotted (Redwood-themed en JET 19 igualmente).
+  3. El evaluador CSP de VB rompe con ternarios/comparaciones en atributos → TODO precomputado
+     en los datos del bridge (chroming, isText…); bindings solo con paths simples.
+  4. `Actions.fireEvent` necesita el nombre CUALIFICADO (`application:mateuNavigate`); a pelo no
+     llega al listener de la shell.
+  5. Los parámetros de listener en el JSON de página SÍ evalúan `$current` (el patrón
+     `{{ $current.data.actionId }}` es el mecanismo para saber qué botón/campo disparó).
+
+## Fase 4 — HECHA (pendiente de verificación visual del usuario)
+
+- **Listado end-to-end**: /products pinta con `oj-table` clásico (columnas de la metadata del
+  componente **Crud** — GridColumns anidadas en `md.columns`) + `oj-input-search` (Enter →
+  `ojValueAction`) + `oj-sp-empty-state` en el slot noData. Filas envueltas en un
+  `vb/ArrayDataProvider2` de página cuyo `data` se BINDEA a la variable de aplicación
+  `mateuListingRows` (keyAttributes `_rowNumber`, siempre presente). Verificado: 3 filas,
+  búsqueda "lap" → solo Laptop (filtrado server-side), "zzz" → estado vacío.
+- **Contrato del listing (wire real)**: el ServerSide del listing trae triggers
+  `OnLoad → search` (así llegan las filas: el bridge los ejecuta tras cargar la ruta —
+  `onLoadTriggers`) y `OnCustomEvent mateu-crud:saved-in-drawer → search` (el refresco del
+  drawer, Fase 5). El search es actionId `search` con el texto en **componentState.searchText**
+  (+ `page`/`size`/`sort` — así lo lee `SearchActionHandler`; NO va en parameters). La respuesta
+  es un fragmento **DATA-ONLY**: `data.crud.page.{content,totalElements}` (clave literal `crud`).
+- **Reducer: eje `data`)**: los contextos ganan `data` (datos calculados por el server, separados
+  del `state`); un fragmento data-only MERGEA data conservando árbol y estado. `listingOf(ctx)`
+  proyecta título/columnas/filas/toolbar/emptyStateMessage; test 14.
+- **1.4 adelantado**: `loadRouteInto` estampa `ctx.outbound` (route/consumedRoute/serverSideType)
+  y `runMateuAction` reconstruye los campos de ruta desde ahí — las acciones del listing (que es
+  contenido de mediador) salen con el consumedRoute correcto sin que la superficie lo sepa.
+- Gotcha de sondas: los módulos de oj-table/search estampan `oj-dialog`s ocultos con `h1` vacíos —
+  las sondas deben buscar el h1 CON texto, no el primero.
+- Evidencia: `shots/fase4.png`, `fase4-search.png`, `fase4-empty.png`.
+
+## Fase 5 — HECHA (pendiente de verificación visual del usuario)
+
+- **CRUD completo en drawer**: New (toolbar del wire) y clic-en-fila → drawer `oj-drawer-popup`
+  (edge end, modal) con el form widgetFor del contenido del Drawer de Mateu; Save/`create` →
+  `CloseModal(mateu-crud:saved-in-drawer)` → el chain dispara los triggers `OnCustomEvent`
+  suscritos (search) → el listado refresca; toast del starter. Esc/✕ descarta por puro estado
+  (`dismissOverlay`, sin evento — el camino "dismissed without saving"); Cancel va al server
+  (`cancel-new`/`cancel-edit` → CloseModal). Verificado end-to-end: alta Monitor + edición
+  Laptop 1200→999 persistidas y refrescadas.
+- **Contrato fijado**: clic de fila = actionId `view` con la FILA como `parameters` (así lo
+  dispatcha mateu-table-crud) → Add Drawer "Edit" con `initialData` = la fila; el drawer NO
+  lleva ServerSide interior → sus acciones se postean contra el HOST (outbound del listing);
+  drawer New→`cancel-new`/`create`, Edit→`cancel-edit`/`save`. Fixture nuevo
+  `open-edit-drawer.json`; tests 15/15 (overlayOf/eventTriggersOf/dismissOverlay).
+- VB: fila seleccionable (`selection-mode.row single` + `firstSelectedRowChanged` → view);
+  gotcha: `oj-drawer-popup` con `opened` one-way cierra con Esc SOLO si el foco está dentro
+  (comportamiento modal correcto); listener en `ojBeforeClose`. El AbortError "stale fetch"
+  de oj-table en consola es una optimización propia del componente, benigno.
+- **Fix post-verificación (el drawer se reabría tras guardar)**: dos causas. (a) usar la
+  SELECCIÓN de fila para abrir el Edit — la tabla re-emite el evento de selección al refrescar
+  tras guardar → `view` otra vez; cambiado a `ojRowAction` (el gesto correcto, sin estado).
+  (b) una CARRERA del runtime VB: re-invoca el listener con el MISMO evento almacenado tras el
+  refresco (~30ms después del save; a nivel DOM solo hubo UN ojRowAction — verificado con
+  listener en captura a nivel documento) → guarda de DEDUPE por `timeStamp` del originalEvent
+  en `mateuRowClicked`. Verificado 5/5 ciclos editar+guardar sin reapertura.
+- Pendiente anotado: el botón Delete del toolbar renderiza pero la selección-para-borrar
+  (`crud_selected_items`) no está cableada aún; formateo de columnas (money/boolean) también
+  pendiente. Evidencia: `shots/fase5-list.png`, `fase5-new.png`, `fase5-created.png`,
+  `fase5-edit.png`, `fase5-edited.png`.
+
+## Fase 6 — HECHA (pendiente de verificación visual del usuario)
+
+- **Menú profundo**: un grupo `@Menu` (clase con @Menus anidados) llega en el wire como opción con
+  **`submenus`** (¡no `submenu`!) y rutas COMPUESTAS (`/gestion/person`) que **NO resuelven por
+  sync** — el bridge navega por la ruta TERMINAL (recorta el prefijo del padre; `shellNavOf`).
+  **La VARIANTE del wire manda** (afinado con DOS rondas de feedback del usuario) — TRES modos
+  en `shellNavOf().mode`: `TABS` → in-app navigation inferior; **`HAMBURGUER_MENU`/`TILES` →
+  navigator PERSISTENTE**: `oj-drawer-layout` (reflow, NO popup) DEBAJO del header con
+  `oj-navigation-list` jerárquico en el slot start — **abierto de inicio**, **no se oculta al
+  navegar** (marca el item activo vía `selection`); la hamburguesa solo lo pliega/despliega y
+  el contenido se desplaza (3ª ronda de feedback del usuario — la 2ª versión usaba un popup
+  modal que se cerraba al navegar). **¿Navigator empaquetado?** NO hay: `oj-sp-navigator` y
+  `oj-sp-ask-oracle-navigation-list` requieren el entramado de módulos FA (probados en vivo:
+  0×0, `oj-pending-subtree-hidden`; sus datos llevan module/focusViewId/productFamily) — las
+  propias plantillas de VB (app "empty") montan la nav izquierda igual que nosotros:
+  `oj-navigation-list` en un drawer. Ancho del panel: 280px en el contenedor del slot start
+  (patrón cookbook JET/RDS; oj-drawer-layout dimensiona por contenido y no expone variable); **`MENU_ON_TOP` → opciones de PRIMER NIVEL VISIBLES en el header** (sin
+  hamburguesa; hojas = `oj-button` borderless con la ruta en data-route, grupos =
+  `oj-menu-button` + `oj-menu`). Gotcha: `oj-navigation-list` parsea su `<ul>` en el init y los
+  `li` estampados por `oj-bind-for-each` llegan DESPUÉS → hay que llamar a `refresh()` al abrir
+  el drawer o quedan como links crudos. El demo lleva `@App(HAMBURGUER_MENU)` explícito para
+  exhibir el drawer (quitar la anotación → AUTO → MENU_ON_TOP → topbar); ambos modos
+  verificados (`shots/fase6-navdrawer*.png`, `fase6-topbar.png`).
+- **@AppContext**: `contextSelectors` del App → `oj-select-one` compacto (clases utilitarias
+  `oj-form-control-max-width-sm` + `oj-sm-flex-wrap-nowrap`) en el slot `end` del global-header;
+  el valor va a `$application.variables.mateuAppState` y viaja como **appState en CADA request**
+  (enhebrado en loadRouteInto/runMateuAction/chains); al cambiar, se recarga la ruta actual
+  (reactividad uniforme). Verificado: "Saved Ada @ Playa" (el server lo lee via
+  `httpRequest.appContext`).
+- **Header actions** (`AppActionsSupplier`): hoja → `oj-button` borderless; con hijos →
+  `oj-menu-button` + `oj-menu`/`oj-option` (actionId en el `value`, `detail.selectedValue` en el
+  listener). Despacho APP-LEVEL confirmado: `sync/_no_route` + serverSideType del App (guardado
+  en el slice shell) + appState — "Synced @ Playa", "Exported as PDF" por el toast de la shell.
+- Tests 16/16 (`shellNavOf`); fixtures regenerados (menú con grupo + selectores + acciones).
+  Evidencia: `shots/fase6-submenu.png`, `fase6-context.png`, `fase6-header.png`.
+
+## Fase 7 — HECHA (pendiente de verificación visual del usuario)
+
+- **Foldout end-to-end**: demo-vb `/booking` (`BookingFoldout extends Foldout`: overview +
+  3 `@Panel`) → wire `FoldoutLayout` (cabeceras en `metadata.panels` {title,subtitle,icon,open},
+  contenido SLOTTED `overview`/`panel-N`, pageWidth edgeToEdge) → proyección `foldoutOf(ctx)`
+  (+`collectTexts`) → **`oj-sp-foldout-layout` + `oj-sp-foldout-panel` auténticos** (prop
+  `panelTitle`, contenido en el slot default). El chrome es el RDS real: barra de acento dorada
+  bajo cada título, superficies, breadcrumb "Parent page" y page-dots del propio componente.
+- **Interacción**: el clic va en el CONTENEDOR del panel (no en el título) — los paneles se
+  reparten el espacio y al enfocar uno los demás se pliegan; los dots (`a.pagination-dot`)
+  navegan. **Gotcha CRÍTICO de layout (post-verificación: "los dots no hacían nada")**: la
+  lógica responsive del foldout solo se activa si su ancho está ACOTADO — el `oj-vb-content`
+  del starter es un flex-item con `min-width:auto`, así que el contenido ancho DESBORDABA
+  (scrollWidth === clientWidth → el componente creía que todo cabía). Fix estándar:
+  `min-width:0` en el `oj-vb-content` de shell-page (aplica a CUALQUIER contenido ancho:
+  foldouts, tablas, planning…) y sin wrappers flex alrededor del foldout en la página.
+- Limitaciones anotadas: `open=false` (Notes plegado de inicio) NO tiene API en
+  `oj-sp-foldout-panel` (todos arrancan visibles); `subtitle` no existe como prop (se pinta
+  como primera línea del contenido); el contenido de los paneles se proyecta como TEXTOS
+  (`collectTexts`) — el dispatcher recursivo general sigue pendiente (fases posteriores).
+- Tests 17/17 (fixture `load-foldout.json`). Evidencia: `shots/fase7.png`, `fase7-folded.png`.
+
+## Fase 8 — HECHA (pendiente de verificación visual del usuario)
+
+- **Guided process end-to-end**: demo-vb `/checkout` (`CheckoutWizard extends Wizard`, 3 pasos +
+  resultado, `@WizardProgress(STEPS)`) → wire: `ProgressSteps` con `steps [{id,title,status:
+  current|upcoming|done}]` + Card del paso (form normal) + botones back/next (acciones normales)
+  + `pageType process`; el estado cross-step viaja en el state (position + mapas por paso +
+  campos aplanados). Proyección `wizardOf(ctx)` (steps con alias `title` — el rail del
+  componente lee ese campo — + currentStep). Tests 18/18, fixture `load-wizard.json`.
+- **`oj-sp-guided-process` auténtico** (afinado con feedback del usuario: overview + sin Next
+  fantasma + rail marcando el paso): template completo — banda ilustrada, **OVERVIEW inicial**
+  (columnas numeradas 01/02/03 + botón Start) que aparece cuando `current-step` es VACÍO y cuyo
+  Start pasa a paso 1 por WRITEBACK INTERNO (sin evento — no interceptar); rail derecho `N|M`
+  con lista de pasos. Integración: form del paso (widgetFor) en su slot; Continue →
+  `spBeforeNext` → acción forward del wire; último paso → `primaryAction` {label del confirm,
+  disabled} **SIN availableFromStep** (si lo pones, el botón aparece DESHABILITADO en todos los
+  pasos — el "Next fantasma"); nunca null (lee .label incondicionalmente). RAIL: cada step
+  necesita **`display:'on'`** o sale con oj-disabled (apagado, sin marca de selección); el
+  status de Mateu NO se emite (el indicador espera otro enum). current-step efectivo en var
+  aparte (`mateuWizardShownStep`: '' al entrar = overview; el paso real tras cada acción).
+  El **h1 de página se SUPRIME en modo wizard** (el guided-process ya lleva el título en su
+  overview y su cabecera; feedback del usuario) — cualquier acción extra de toolbar de un
+  wizard iría al slot del paso, no a un header duplicado.
+  **Atrás = clic en el RAIL** (feedback: un Back en el contenido contradice al Cancel del
+  footer): `spBeforeStepNavigate` (detail {currentStep,nextStep,triggeredFrom:'continue'|'step'})
+  con triggeredFrom 'step' ejecuta los 'back' necesarios contra Mateu (fromIdx−toIdx veces);
+  hacia DELANTE por el rail no navega (se restaura el paso mostrado imperativamente — el evento
+  es cancelable pero el chain corre async y preventDefault llega tarde). El slot no lleva
+  botones (footer/rail del componente navegan). **Cancel** (`spCancel` — el componente lo
+  despacha a pelo, sin diálogo en este camino): abandonar el proceso → navegar a la home
+  (`mateuHomeRoute`, la primera hoja del menú, guardada en el bootstrap); al reentrar el wizard
+  arranca de cero (instancia fresca por request). Verificado: overview→Start→1→2→3→Confirm→
+  "Pedido confirmado…", rail marcando cada paso, rail-back conservando el estado, Cancel→home
+  y reentrada al overview. Gotcha de sondas: el resultado va en un input readonly
+  — `innerText` no ve valores de inputs.
+- Evidencia: `shots/fase8.png`, `fase8-step3.png` (rail 3|3 + Confirm), `fase8-result.png`.
+
+## Fase 9 — HECHA (pendiente de verificación visual del usuario)
+
+- **Isla embebida end-to-end** (`/island-host`, en Gestion): el host es un form normal y la
+  frontera (`collectIslands`: ServerSide interior, id `_guestNote`) se carga como SUPERFICIE
+  PROPIA — `loadRouteInto(base, reg, frontera.route, frontera.id)` (initiator = id de frontera
+  → mediador + contenido + outbound estampado, TODO genérico ya existente). Sus acciones
+  (Edit/Save/Cancel) se postean contra su contexto y las respuestas vuelven dirigidas a él:
+  **solo la isla se re-proyecta — el host NI SE TOCA** (verificado: una edición local sin
+  guardar en el host, room=999, sobrevive a Edit y a Save de la isla).
+- **Route-flip del mediador (la mecánica documentada, ahora implementada)**: `edit`/`save`
+  responden un fragment STATE-ONLY con `state._route` nuevo (`/edit`→`/view`) = "recarga mi
+  ruta interna": `composeInnerRoute(outbound.route, flip)` = base + flip + marcadores query
+  (`/guest-note/edit?_embeddedMediator=1&_inline=1`) y reload con el outbound del contexto.
+- **Helpers con FRONTERA**: `collectFields`/`collectActions` ya NO cruzan ServerSide interiores
+  (los campos/acciones de la isla se colaban en el form del host — test 19).
+- **GOTCHA VB CRÍTICO**: las variables VB van tras PROXIES — cada lectura puede devolver un
+  wrapper distinto → NUNCA comparar por identidad (`after.tree === before.tree` falla aunque
+  el reducer preserve refs). Detección del flip por criterio SEMÁNTICO (increment state-only).
+  Esto también matiza el "structural sharing" del diseño: vale DENTRO de una pasada del
+  reducer, no entre lecturas de la variable.
+- Tests 20/20. Evidencia: `shots/fase9.png` (host+isla en vista), `fase9-edit.png` (isla en
+  edición con el host intacto), `fase9-saved.png` (guardado, vista con la nota nueva).
+
+## Puertas 1.x — CERRADAS (pendiente de verificación del usuario)
+
+- **1.1 estado / 1.2 increments-al-target / 1.4 rutas**: cayeron de facto con las fases 3–9
+  (registro en $application, repintado quirúrgico probado con la isla, outbound + composeInnerRoute).
+- **1.3 comandos→efectos**: COMPLETADO con los banners — `@Banner` viaja en `Page.metadata.banners`
+  ({theme,title,description}); `bannersOf(ctx)` los mapea al `oj-sp-messages-banner` del starter.
+  GOTCHAs: el ADP se muta con `Actions.fireDataProviderEvent` (add/remove con tracking de keys —
+  asignar `.data` NO refresca) y los `messageType` van con prefijo **`general-*`**
+  (general-info/success/warning/error — el patrón del starter). PENDIENTE honesto: `RunAction` y
+  `DownloadFile` mapeados en el reducer pero SIN ejecutar en VB (no hay fixture real de su data
+  — capturar antes de implementar, regla del proyecto).
+- **1.5 sync con URL**: rutas Mateu como HASH de la shell (#/ruta — deep-linkable sin soporte del
+  server estático): deep-link en el bootstrap (el hash inicial manda sobre la primera hoja);
+  navegación → pushState (sin recarga); back/forward → hashchange → onMateuNavigate(fromUrl) —
+  el listener se registra en loadMateuShell REUTILIZANDO el context del chain (los scopes VB
+  siguen vivos tras vbEnter). **dirtyGuard**: mateuDirty (app var, lo encienden los
+  value-changed, lo apagan navegación/acciones) → confirm al salir; cancelar restaura la URL
+  (replaceState — no dispara hashchange). `PushStateToHistory` del wire → efecto urlPush
+  (mapeado; sin flujo demo que lo emita aún).
+- **1.6 anatomía pageWidth (VISUAL)**: `pageStyleOf(ctx)` → bindings :style del contenedor:
+  fixed = 1408px centrado + 24px (Person mide 1408px), fullWidth = fluido + 24px (sin página
+  demo), edgeToEdge = 0 (Booking mide padding 0). Medición RDS 24C.
+- Tests 21/21. Evidencia: `shots/gates-banner.png` (banner INFO Redwood en Hello).
+
+## Regla de headers Redwood (feedback del usuario, 2026-07-25)
+
+**Una página con header Redwood (wizard/general-overview/welcome) NO lleva h1 propio** — lo que
+hubiera en el header de página se INTEGRA en el header Redwood (p.ej. el título de página va
+como parent-page link del `oj-sp-header-general-overview`, vía `translations.goToParent`), y el
+header va A SANGRE (sin padding arriba ni a los lados): las proyecciones fuerzan
+`mateuPagePadding='0'` cuando hay header Redwood y el contenido inferior recupera los gutters
+con clases utilitarias del sistema (`oj-sm-padding-4x-horizontal`). Cero CSS propio.
+
+**Generalización (feedback, 2026-07-25): TODA página pinta su header con un header de vb** —
+el h1 se ELIMINÓ del renderer. Reparto por tipo de página:
+
+- **Listado (crud)** → `oj-sp-smart-filter-search`: pageTitle + `primaryAction` (primer botón
+  de la toolbar del wire, p.ej. New) + `secondaryActions` (resto, p.ej. Delete); la tabla y la
+  búsqueda van en su slot `main` (con `oj-sm-padding-4x-horizontal`). Eventos
+  `spPrimaryAction`/`spSecondaryAction` → runMateuAction (el secondary llega con
+  `detail.secondaryItem` = item/label → se resuelve contra la toolbar). `primaryAction` nunca
+  null: `{label:'', display:'off'}` cuando no hay toolbar.
+- **Página genérica (form / texto / foldout / item overview / isla)** →
+  `oj-sp-header-general-overview` SIN switcher (todas sus props son opcionales): `page-title` +
+  `display-options.go-to-parent="false"` (si no, pinta el link "Parent page" por defecto).
+  Proyección `mateuPageHeader = {title}` en ambos chains; null cuando el template ya integra su
+  header (wizard/overview/welcome/listado) — esos suprimen el genérico.
+- Los botones de formulario/isla se quedan con su contenido (el wire de Mateu no distingue
+  toolbar de página vs botones de form en `actionsOf`; los del crud sí viajan aparte).
+
+**Gutters del contenido (2026-07-25)**: el sangrado interno del título de los headers oj-sp es
+`--oj-core-spacing-12x` (3rem = 48px). El contenido bajo un header a sangre se alinea con la
+clase utilitaria JET de la MISMA escala: `oj-sm-padding-12x-horizontal` (48px) +
+`oj-sm-padding-6x-vertical` (24px, el gutter RDS) para la respiración bajo la franja
+decorativa. `oj-sp-public-primary-content-container` NO trae padding propio (computa 0), y no
+existe ninguna clase pública `oj-sp-*` de padding de contenido — las utility classes de
+espaciado JET (escala 1x=4px, hasta 12x) son la vía oficial OJET. Medido empíricamente
+(getComputedStyle sobre probes): el h1 del header queda a 48px del borde del contenedor; con
+12x el form/tabla quedan alineados EXACTAMENTE con el título.
+
+**GOTCHA (2026-07-25)**: la rama de TEXTO del content page estaba condicionada a
+`!mateuFormMetadata` — en toda página sin formulario (welcome, listado, wizard, overview…)
+pintaba un div VACÍO que, con el padding vertical de los gutters, era una banda blanca de 48px
+ENCIMA del header. Condición correcta: `!!mateuHostText` (solo cuando hay texto de verdad).
+En `/hello` lo que aparece sobre el header de página NO es un hueco: es el `@Banner` INFO del
+wire (oj-sp-messages-banner del shell, bajo el header global — su animación de montaje tapa
+el header global unos ms, transitorio).
+
+**GOTCHA "Parent page" (2026-07-25)**: los componentes oj-sp con header estampan por defecto
+el link goToParent ("Parent page"). Hay que apagarlo explícitamente en CADA uno:
+`display-options.go-to-parent="false"` en el header genérico (`oj-sp-header-general-overview`)
+Y TAMBIÉN en `oj-sp-foldout-layout`, que estampa internamente un `oj-sp-header-navigation`
+cuya única banda visible era ese link (su API no está en el loader del CDN — se lee en runtime
+via `customElements.get('oj-sp-foldout-layout').metadata.properties`). El foldout SÍ cuenta
+como "template con header integrado" (rectificado 2026-07-25): su `oj-sp-header-navigation`
+interno es un cascarón de 16px que NO se puede colapsar con ninguna opción (probado
+goToParent/bidirectionalNavigation/inFlowBack off), así que apilar el header genérico encima
+dejaba siempre una franja. Resolución RDS-fiel: el foldout va SIN header genérico, edge-to-edge
+bajo el header global, con el título en el panel de overview (como el template Foldout de RDS);
+su header interno lleva `display-options.go-to-parent="false"` +
+`display-options.background="transparent"` (queda como respiración invisible de 16px).
+
+Evidencia: `shots/fase4.png` (products), `hdr-person.png`, `hdr-island.png`, `hdr-hello.png`,
+`hdr-booking.png`, `hdr-chair.png`, `gap-welcome.png`, `gap-hello.png`, `gap-checkout.png`.
+
+**Anatomía de color RDS (2026-07-25)**: header de página BLANCO ≠ contenido, y lienzo con
+texturas alrededor (referencia: el renderer redwood-oj en :8000 y el pantallazo RDS del
+usuario). Cómo: (1) los headers llevan la clase utilitaria JET `oj-bg-neutral-0` (blanco) —
+en el elemento host, que la CONSERVA junto a `oj-complete` (los VComponents no la machacan);
+la zona de resultados del listado recupera su color con `oj-bg-body` en el slot main.
+(2) El lienzo alrededor = `resources/css/app.css` (ÚNICO css de app del proyecto, punto de
+personalización estándar de VB): body a `--oj-core-neutral-30` (#F1EFED) + `body::after`
+fixed con las texturas OFICIALES del gallery del CDN de Oracle
+(`static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start/end.png`,
+la MISMA receta que pinta FA: inset 270px 0 0 0, ancladas abajo izda/dcha, z-index -1).
+(3) El icono Home que estampa `oj-sp-global-header` (sin API de posición) pasa a la derecha
+del todo con `order: 99` (comparte contenedor flex con el slot end). Colores medidos de las
+utility classes: oj-bg-neutral-0 #FFF · oj-bg-body/neutral-10 #FBF9F8 · neutral-20 #F5F4F2 ·
+neutral-30 #F1EFED. **Navigator a toda altura**: `oj-drawer-layout` no crece solo
+(flex 0 1 auto → alto del contenido, el menú se cortaba en páginas cortas) — `style="flex: 1
+1 auto"` en el elemento (pageContent/oj-web-applayout-page ya es flex column de 100%), mismo
+mecanismo inline que el `min-width:0` de oj-vb-content. **pageLayout del shell**: `oj-sp-simple-ui-shell`
+adapta su chrome (tamaño del chat FAB, etc.) a `page-layout` (fixedWidth/fullWidth/edgeToEdge)
+— se alimenta del `pageWidth` del wire por página (`mateuShellPageLayout`, fixed→fixedWidth)
+en ambos chains; no constriñe el contenido (nuestro container sigue mandando en el ancho). **Alineación del chrome flotante (chat FAB)**: el shell posiciona su FAB
+con `right = max(24px, (100vw − 1536px)/2)` sobre el viewport COMPLETO (ignora el navigator
+drawer), así que centrar el contenido fixed en el área restante lo desalineaba en viewports
+anchos. Arreglo doble: (1) `pageStyleOf` ancla el borde DERECHO del contenido fixed a la misma
+fórmula (`margin: 0 max(24px, calc((100vw - 1536px)/2 + 64px)) 0 auto`, tope 1408 — el FAB
+nace exactamente donde acaba el contenido, como en FA); (2) fuera la clase
+`oj-web-applayout-max-width` del wrapper del starter — capaba el área a 1440 y rompía
+cualquier fórmula viewport-relativa. Verificado a 1440/1920/2400; en edgeToEdge el FAB queda
+en el borde derecho de la página. **Regla drawer ⇒ edge-to-edge (2026-07-25)**: con navigator
+persistente a la izquierda (HAMBURGUER_MENU) el formato pasa a edge-to-edge AUTOMÁTICAMENTE
+(ambos chains ignoran el pageWidth del wire y fuerzan edgeToEdge en pageStyle y en el
+page-layout del shell): centrar un fixed en el área restante quedaba raro — el drawer ya
+consume el lateral. Los gutters del contenido los siguen poniendo las ramas (12x/6x). El
+anclaje del borde derecho a la caja del shell (párrafo anterior) queda para las variantes
+SIN drawer (tabs/topbar).
+
+**Densidad de tabla (2026-07-25, regla RECTIFICADA por el usuario)**: `oj-table` trae los
+dos formatos Redwood — `display="list"` (aireado) y `display="grid"` (compacto, con rejilla).
+Primera regla (por nº de columnas, ≥6→grid) DESCARTADA: el grid compacto es para tablas de
+TRABAJO, no de consulta — `listingOf` precomputa `display` = grid solo cuando alguna columna
+del wire es `editable` (@InlineEditing), si no list. Products (8 columnas, no editable) →
+list. Verificado con `StockCrud` (@InlineEditing, /stock) en demo-vb: sus columnas viajan
+`editable` → grid (37px, rejilla), Products sigue list (shots/stock-grid.png).
+
+**Edición de celdas CABLEADA (2026-07-25, /stock)**: contrato CAPTURADO (fixtures/real/
+update-row.json + load-stock.json, test 23): las columnas del wire llevan `editable` +
+`editorType` (text/integer/number/boolean; @ReadOnly → editable:false), el commit es la
+acción `update-row` con `parameters._editedRow` = LA FILA ENTERA editada (los extras tipo
+_rowNumber no molestan), y la respuesta es SOLO un toast success — sin fragments (el valor
+ya está en el cliente). Implementación VB: `listingOf` proyecta `template` por columna
+(cellEditText/Number/Boolean — editorType integer y number comparten oj-input-number) +
+`editable` a nivel de listing; oj-table estampa 3 `<template slot>` compartidos con editores
+SIEMPRE visibles (sin edit-mode rowEdit: el commit de Mateu es POR CELDA, no por fila);
+el listener pasa el CONTEXTO del template ($current.row/item/columnIndex — row.data o
+item.data según versión) al chain `mateuCellEdited`, que guarda: updatedFrom !== 'internal'
+(re-stamp) y valor sin cambio (no-op) → runMateuAction('update-row'). El clic de fila NO
+navega en tablas de trabajo (guard en mateuRowClicked por listing.editable). El toast pasó
+a ser ÚNICO a nivel de página (#mateuToast fuera de las ramas — antes vivía en la rama del
+form y las páginas de listado no lo mostraban). Verificado e2e: texto/número/boolean
+persisten tras recarga dura (el switch se acciona en su thumb). OJO ~/.m2 COMPARTIDO entre clones (opus/k3): si demo-vb deja de compilar con
+"cannot access io.mateu.uidl..." es que otro clon pisó los jars 0.0.1-MATEU — reinstalar
+backend desde este clon (cd backend && mvn clean install -DskipTests).
+
+## Arquetipos Welcome / General Overview / Item Overview — HECHOS (pendiente de verificación)
+
+- Confirmada la tesis del diseño: los tres son COMPOSICIÓN del núcleo — welcome = HeroSection +
+  Buttons + DashboardLayout/DashboardPanel; general overview = FormField switcher (options) +
+  EntityHeader {title,subtitle,badges,facts,metric} + Cards; item overview = Card (key info) +
+  TabLayout/Tab. Proyecciones `welcomeOf`/`generalOverviewOf`/`itemOverviewOf` (+ `cardOf`,
+  `findAllByType`); cuando hay arquetipo, el form genérico se suprime. Tests 22/22; fixtures
+  load-welcome/requisitions/chair.
+- **Welcome** → `oj-sp-header-welcome-banner` (pageTitle/descriptionText + primaryAction/
+  secondaryAction integrados → spPrimary/SecondaryAction → acciones del wire; CTA navega);
+  tiles como `div.oj-panel` (clase de sistema JET) + tipografías.
+- **General Overview** → `oj-sp-header-general-overview`: contextualInfo = facts [{label,value}]
+  (+ métrica como fact); **el switcher de registro ES el TÍTULO** (`oj-sp-data-switcher` con
+  caret — aparece cuando `selectObject.data` es un DataProvider NO vacío; el objeto se compone
+  en una variable con referencia a otra variable — `{"data": "{{ $page.variables.overviewADP }}"}`
+  SÍ resuelve); on-select-object-value-changed → acción `switchRecord` del arquetipo (empírico:
+  también vale recargar con el state). GOTCHA de sondas: los facts van en un conveyor-belt y
+  `innerText` no los reporta (usar textContent).
+- **Item Overview** → panel `oj-panel` con los datos clave + `oj-tab-bar` clásico (ul/li +
+  refresh() tras el stamping, mismo gotcha que navigation-list); selección de tab client-side
+  (los tabs viajan enteros en el árbol).
+- Evidencia: `shots/arch-welcome.png`, `arch-overview.png`, `arch-overview-switched.png`,
+  `arch-item.png`.
+
+## TaskQueue — los listados del front-office (2026-07-25)
+
+Los "listados" de check-in/check-out/en-casa SON `TaskQueue`: datos INLINE en la metadata
+(`groups[].label` + `items[]{id,title,caption,badges[{label,color}],selected}`), sin eje data
+ni triggers. Contrato del clic (= mateu-task-queue.ts del renderer web): `metadata.actionId`
+(openGuest) con `parameters._item` = id del item; el server RE-RENDERIZA el host (Replace al
+uuid del ServerSide) con la card `selected` y el placeholder EmptyState sustituido por el
+DETALLE. Proyecciones `taskQueueOf` (badges → clases badge de JET oj-badge-*-subtle, cardClass
+selected → oj-bg-neutral-20, TODO precomputado por el CSP) y `emptyStateOf` (placeholder /
+página de bienvenida). VB: cards `oj-action-card` (JET core, ojs/ojactioncard — dispara
+ojAction al clic) agrupadas bajo `oj-typography-subheading-xs`, panel derecho
+`oj-sp-empty-state`. GOTCHA REINCIDENTE: make-amd.mjs lleva LISTA EXPLÍCITA de exports — toda
+proyección nueva hay que añadirla ahí o el bridge AMD no la expone ("is not a function").
+Fixtures fo-load-checkin + fo-open-guest; test 24. Shots fo-checkin/checkout/encasa(+sel).
+
+**SIGUIENTE (detectado, sin hacer)**: el detalle tras openGuest es una ISLA-MEDIADOR de
+sabor App — un nodo ClientSide `App` variant=MEDIATOR con id estable (`island_checkin_st_maria`)
+y homeRoute (`/checkin/st-maria?_embeddedMediator=1`) + homeConsumedRoute + homeServerSideType
+en su PROPIA metadata (collectIslands NO lo detecta: busca fronteras ServerSide). Su contenido
+es el CheckInWizard embebido (wizardOf ya lo proyecta: Identidad/Habitación/Extras/Confirmar,
+acciones selectPax/back/next) con tipos display aún sin rama: EntityHeader, Notice,
+BulletedList, Card, Separator, ProgressSteps, Div.
+
+## Detalle del TaskQueue — la isla-wizard embebida PINTA (2026-07-25)
+
+`collectIslands` detecta ahora TAMBIÉN el sabor App-mediador (nodo ClientSide `App`
+variant=MEDIATOR con id estable; route/consumedRoute/serverSideType salen de su PROPIA
+metadata home*) y ambos chains cargan la isla al aparecer (runMateuAction la carga si su
+contexto no existe aún — antes solo onMateuNavigate cargaba islas). El contenido se proyecta
+con `islandContentOf(ctx)` — proyección display GENÉRICA: BLOQUES (plain|card→oj-panel) de
+átomos precomputados para el CSP (flags is*): Text (tamaños→oj-typography-*, con
+`interpolate()` de ${state.x} contra el state de la isla), ProgressSteps→oj-train (JET core),
+EntityHeader (título+badges+subtitle+facts), Notice (oj-panel + oj-bg-{success|warning|
+danger|info}-30, con sus Buttons anidados p.ej. selectPax con parameters), BulletedList,
+Separator (hueco), Buttons (Back/Next → runMateuIslandAction, que ahora acepta parameters).
+GOTCHA del árbol: los hijos viajan en `children` Y/O en `metadata.content` (CustomField,
+Notice, Card) — el walker desciende ambos. La rama antigua de isla-formulario queda para
+islas SIN contenido display (GuestNote). GOTCHA oj-sp-in-app-navigation: el componente
+estampa su barra REAL como overlay fijo abajo, pero su elemento HOST reserva 64px en flujo
+allí donde esté — debe ir al FINAL del pageContent (si va arriba deja una banda vacía bajo
+el header Y el fondo del contenido queda tapado por la barra sin poder clicarse).
+Verificado e2e contra :8594: clic huésped → detalle (EntityHeader+Notice pax+Preferencias),
+selectPax re-renderiza, Next avanza al paso Habitación. PENDIENTE señalizado: átomos
+ResourceGrid/AddOnPicker/Ledger/PaymentPicker/StatusList/Meter/TaskProgress (pasos 2-4 y
+check-out) e islas ANIDADAS (App dentro de la isla, p.ej. el documento — el walker las
+salta). Fixture fo-island-wizard, test 25. Shots fo-checkin-sel/fo-checkin-step2.
+
+## Átomos de negocio del front-office — COMPLETOS (2026-07-25)
+
+`islandContentOf` proyecta ya los 9 tipos display restantes (formas capturadas del wire
+real; contratos de despacho = los del renderer web compartido): **Badge** (chips →
+oj-badge), **ResourceGrid** (grid de habitaciones → tiles oj-action-card en oj-flex,
+columns→oj-sm-N, disabled→oj-panel con oj-text-color-disabled, selected→oj-bg-neutral-20;
+clic → actionId + {_item}), **OfferCard** (oj-panel con tag/título/features·unidas/
+currentLabel/priceLabel + CTA), **AddOnPicker** (filas con oj-switch; el chain
+`addonToggled` calcula el TOTAL cliente tras el toggle y despacha actionId +
+{_item,_added,_total}), **StatusList** (filas con oj-avatar initials + estado coloreado
+oj-text-color-*), **Ledger** (filas concepto/importe, included→includedLabel, negativos→
+verde, total en subheading; moneda formateada de-DE como el renderer web), **PaymentPicker**
+(métodos → botones, seleccionado callToAction, clic → methodActionId + {_method}; Confirmar
+→ actionId + {_method: selected}), **Meter** (oj-progress-bar de JET core ojs/ojprogress +
+label/valores/caption), **Stat** (label + valor en heading). Fixtures fo-island-step-last /
+fo-island-checkout / fo-island-encasa; test 26 (26/26). Verificado e2e: wizard completo
+(habitación con grid+upgrade, extras con switches), folio del check-out con total y métodos
+de pago, balance/estancias de en-casa. Shots fo-checkin-step2/step3, fo-checkout-sel,
+fo-encasa-sel.
+
+## Isla ANIDADA + SSE — el documento del check-in FUNCIONA (2026-07-25)
+
+El App-mediador DENTRO de la isla (DocumentoView, 3 estados) pinta y opera. Piezas y
+gotchas (todas mordidas hoy):
+
+- **Seed**: el nodo App anidado lleva `initialData` ({stayId, paxIndex, _embeddedMediator,
+  _inline…}) — debe viajar como `componentState` en la CARGA y en CADA ACCIÓN (el server
+  NO lo eca en sus respuestas; sin él las acciones responden la vista vacía en bucle).
+  `collectIslands` lo captura; `runMateuNestedAction` lo fusiona (seed + state) siempre.
+- **Flag sse**: las ACTIONS del componente (con `sse:true` — escanear) viajan SOLO en el
+  WRAPPER del mediador (1ª request del baile de 2 pasos); el atajo consumedRoute+
+  serverSideType se las salta → la anidada se carga SIN atajo y `loadRouteInto` estampa
+  `sseActionIds` en el contexto.
+- **Transporte SSE** (`runMateuActionSse`): POST `{base}/mateu/v3/sse/{route}` con Accept
+  text/event-stream, MISMO body; respuesta = stream `data:<UIIncrement>\n\n` (= SSEService
+  del renderer web). MVP: se lee entero y se reducen los increments en orden (sin diálogo
+  de progreso en vivo). El LongTask del escaneo (~2s de Flux) llega así; el último
+  increment trae el `dispatchEvent(documento-escaneado)`.
+- **Eventos**: el chain acumula los events de TODAS las reducciones y dispara los triggers
+  OnCustomEvent suscritos en anidada→isla→host (reloadDocumento responde un route-flip →
+  `maybeFlip` recarga la ruta interna; la banda del wizard pasa a "documentación completa").
+- **GOTCHA CSP definitivo (2 intentos fallidos)**: leer `$application.variables.X` como
+  data de un oj-bind-for-each DENTRO de templates anidados NO re-liga los contextos
+  internos ($current apunta al scope exterior; alias `as=` tampoco) — los datos deben
+  fluir por `$current`: `mergeNestedContent` FUSIONA los átomos de la anidada dentro del
+  bloque isNestedBlock de la isla madre, marcados `fromNested` (botones incluidos), y
+  `dispatchIslandAction` enruta por ese flag a runMateuIslandAction/runMateuNestedAction.
+- Los estados 2/3 del documento son `@Section(propertyList)` → átomo `isPropertyRow`
+  (FormField con propertyRow=true, valor del state interpolado).
+- OJO estado de la DEMO: el documento de María quedó escaneado por las sondas (in-memory);
+  James/Klaus empiezan vírgenes tras reiniciar :8594.
+
+Fixtures fo-nested-doc (sembrada) + test 27 (27/27). Shots fo-nested-doc*.png.
+
+## Banda RDS del header (feedback 2026-07-26)
+
+En fixed/fullWidth, Redwood pinta el header sobre una BANDA a sangre (blanca en claro,
+negra en invertido) que además ASOMA por detrás del arranque del contenido — el header no
+queda "encajonado" como la tarjeta. VB/oj-sp NO lo proporciona bajo este runtime (probado:
+con el contenedor sin tope, el header ocupa todo el ancho pero su título queda a 48px — no
+consume el pageLayout del shell para capar su interior). Composición propia con clases de
+sistema: banda = div `oj-bg-neutral-30` + `oj-sm-padding-10x-bottom` (40px) a sangre — el
+MISMO color que pinta el interior del header (`oj-sp-header-general-overview-bg-light` =
+#F1EFED, rectificado 2026-07-26: con blanco quedaba una caja gris dentro de banda blanca), que
+CONTIENE el header (título + franja) capado a la caja del contenido (mateuBandBoxMargin =
+la fórmula horizontal del pageStyle); la tarjeta solapa la banda con margen top -40px
+(inyectado en mateuPageMargin cuando showBand = pageHeader && pw !== edgeToEdge). La franja
+queda al ancho de la TARJETA (está dentro del header capado) y la banda blanca asoma 40px
+por los lados bajo ella = la anatomía de los pantallazos RDS del usuario. En edge-to-edge
+(drawer nav) no hay banda: el header genérico se pinta inline como antes
+(mateuPageHeaderInline). Shots rv-banda.png.
+
+Sobre "consumir el pageLayout del shell" en vez de la fórmula propia: ya somos la MISMA
+fuente — el shell recibe su page-layout de nuestra variable (mateuShellPageLayout, derivada
+de pw), y banda/caja derivan del mismo pw. El consumo "de verdad" no es posible desde
+markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
+(__oj_provided_contexts), interno a su árbol — y además está comprobado que bajo este
+runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
+chain) + la fórmula RDS es el equivalente práctico.
+
+## Reserva 360 — flujo de usuario replanteado (2026-07-26)
+
+El detalle de una reserva es UNA pantalla (`/reserva/:id`, ReservaOverview) para los tres
+estados, y las tareas se lanzan desde su toolbar (el patrón FA: overview del registro +
+guided process como tarea):
+
+- Contenido común: header del huésped (GuestHeaders por estado), Resumen (property list con
+  el estado "Llega/Sale/Salió…"), huéspedes con su estado documental (StatusList).
+- Por estado: llegada → avisos de qué falta (documentación / habitación) + toolbar
+  "Iniciar check-in"; in house → Meter de balance + incidencias abiertas + toolbar
+  Check-out/cargo/mensaje; salida → Notice "folio cerrado" + Ledger + "Ver folio".
+- ToolbarSupplier (los @Toolbar estáticos no pueden variar por estado) + ActionHandler
+  devolviendo URI (navegaciones) o Message.
+- El listado navega SIEMPRE a /reserva/:id (fuera el enrutado por estado).
+- **Wizard "solo lo que falta"**: CheckInWizard.stepApplies — identidad solo si
+  paxPendientes>0; habitación solo si la asignada no está INSPECTED. María (todo listo) →
+  wizard de 2 pasos (Extras→Confirmar); James (sin doc) → Identidad→Extras→Confirmar.
+- hostContentOf filtra ahora el título de Page SIEMPRE (la banda del header ya lo pinta;
+  antes solo en modo wizard).
+
+Verificado e2e por estado + shots ro-*.png.
+
+**Cerrado (mismo día)**: (1) el wizard VUELVE a la 360 al completar — el dispatcher de
+@WizardCompletionAction devuelve el result del método si no es null, así que
+confirmarCheckin retorna URI /reserva/:id (y la 360 ya muestra in house); (2) FIX DE CORE:
+Wizard.component() avanza position al PRIMER paso aplicable (arrancaba siempre en 0 y
+enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la navegación ya
+saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
+/encasa y /checkout dentro de la 360 si se quiere.
+
+## El header de pantalla ES el de la reserva (2026-07-26)
+
+En la 360, el header genérico de banda ya no dice "Reserva": `entityHeaderOf(host)`
+proyecta el EntityHeader del contenido al header de pantalla — pageTitle = el huésped,
+pageSubtitle = subtitle + badges concatenados, facts (+métrica) → contextualInfo (con
+`display-options.contextual-info-label=true`, que por defecto oculta las etiquetas) — y
+hostContentOf lo filtra del contenido (dropEntityHeader; el del wizard/islas se conserva).
+El header queda con la gramática completa del object header RDS: huésped + subtítulo +
+BALANCE/PREAUTORIZADO/FIDELIDAD + acciones a la derecha.
+
+## Acciones del toolbar en el HEADER de banda (2026-07-26)
+
+El toolbar de la Page (ToolbarSupplier/@Toolbar) ya NO se pinta en el contenido: se
+proyecta a las acciones del header genérico de banda — `pageToolbarOf(ctx)` lee
+Page.metadata.toolbar; el botón buttonStyle=primary va a `primaryAction` y el resto a
+`secondaryActions` del oj-sp-header-general-overview (mismo patrón que el header de
+colección; spSecondaryAction resuelve por label vía headerSecondaryAction). El átomo del
+toolbar en islandContentOf va marcado `fromPageToolbar` y hostContentOf lo filtra (las
+ISLAS lo conservan: no tienen header). La 360 muestra así "Iniciar check-in" /
+"Check-out"+"Mensaje huésped" / "Volver a la reserva" arriba a la derecha, como la
+gramática RDS de los pantallazos.
+
+## Banda también para el header de colección (smart search, 2026-07-26)
+
+El listado no tenía la banda tras el header (el oj-sp-smart-filter-search ENTERO vivía
+dentro de la caja capada). Misma anatomía que el header genérico: el componente se parte —
+el header (título+búsqueda+acciones+franja) va en la BANDA a sangre capado a la caja
+(flag mateuPageHeader.showListBand, pw != edgeToEdge; inline en edge) y la TABLA vive en la
+tarjeta del contenedor (que solapa -40px). GOTCHA: el componente reserva su región de
+contenido a ALTO DE VIEWPORT aunque el slot main esté vacío (min-height interno en cadena)
+— app.css oculta su `.oj-sp-public-primary-content-container` interno en las copias
+solo-header (#mateuListHeader/#mateuListHeaderInline). Solape 40, franja al ancho de caja,
+9 filas visibles, búsqueda y clic de fila intactos.
+
+## /encasa y /checkout PLEGADAS en la Reserva 360 (2026-07-26)
+
+Las páginas EnCasaDetail/CheckOutDetail (y las tres queues muertas) se ELIMINAN: la 360 es
+la única pantalla de reserva. El check-out es un MODO de la 360 (`modoCheckout`, @Hidden):
+el toolbar Check-out lo activa (re-render en el sitio, sin navegación) y aparecen Desglose
+folio (Ledger), Postear cargo (FormField fluido cargoBusqueda + @AutoSave buscarCargos +
+resultados como StatusList con rowActionId seleccionarCargo) y Cobro (PaymentPicker →
+confirmPayment cierra la estancia → DEPARTED + banner). "Volver a la reserva" desactiva el
+modo. Los @Section del modo son frameless con value en blanco DISTINTO ("  ", "   "…) y sus
+Callables devuelven VerticalLayout vacío fuera del modo (una sección titulada pintaría la
+card vacía siempre). Renderer: átomo `isInput` (FormField fluido string/integer editable →
+oj-input-text ligado por fieldId; hostInputChanged → draft + runMateuAction(buscarCargos),
+el value-changed en blur/Enter hace de debounce) y filas de StatusList con `rowClickable`
+(rowActionId sin actionLabel = la fila entera es una oj-action-card que despacha {_item} —
+contrato del renderer web). El markup de StatusList se REGENERÓ por regex en las 6 copias
+(el troceado incremental se volvió frágil — TODO: generar las plantillas de átomos desde
+una fuente única).
+
+## Wizard standalone: pie sticky vs barra de tabs + forward real (2026-07-26)
+
+- El pie del guided process (Continue/Back) es `position: sticky; bottom: 0` — con la barra
+  de tabs inferior (fija, 64px) quedaba TAPADO e inalcanzable. Regla auto-condicionada en
+  app.css: `body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer
+  { bottom: 64px }` — solo actúa cuando la barra existe (los shells con drawer no se ven
+  afectados).
+- La acción FORWARD del wizard se elegía como "primera acción no-back" — en wizards ricos
+  (check-in) la primera es selectPax y el Continue disparaba eso. Nueva proyección
+  `wizardForwardOf(ctx)`: deriva el forward del PIE REAL del árbol (el bloque de botones
+  que acompaña a 'back'), con fallback al criterio antiguo.
+- Los pasos con bloques RICOS suprimen además el form genérico del paso
+  (mateuFormFieldsList = []) — en Confirmar los campos huésped/habitación/estancia/régimen
+  se colaban como inputs tras el botón, duplicando el header y el Resumen (property rows).
+
+## GOTCHA VB: variables de proyección — ni null ni cambio de forma (2026-07-26)
+
+Dos crashes silenciosos con el mismo patrón (rompían onMateuNavigate A MITAD: la URL no se
+actualizaba al navegar por tabs y el clic de fila "no hacía nada" al volver al listado):
+
+1. **"Cannot assign non-array to an array property"** — una variable `any` a la que una vez
+   se asigna un ARRAY queda tipada como array por VB: asignarle null después REVIENTA la
+   asignación (y el chain entero). Toda proyección de lista (mateuHostContent,
+   mateuWizardContent) se declara `any[]` con default `[]` y NUNCA se asigna null (`|| []`);
+   los bind-if condicionan por `.length` (CSP-safe: 0 es falsy).
+2. **"Cannot read properties of null (reading 'title')"** — asignar null a una variable
+   cuyo binding INTERIOR (`mateuPageHeader.title`) se reevalúa ANTES de que el bind-if
+   exterior colapse. Las proyecciones de objeto se asignan SIEMPRE como objeto con flags
+   precomputados (`mateuPageHeader = {title, showBand, showInline}`) y los bind-if leen los
+   flags. (Ojo TDZ: los const de un chain se leen en orden — pwAfter se movió arriba.)
+
+## Reservas v2: listado crud + páginas de detalle standalone (2026-07-26)
+
+Replanteamiento del usuario: /reservas pasa de master-detail a un LISTADO simple (un crud)
+que abre cada reserva como PÁGINA aparte según su estado. Piezas:
+
+- **Backend**: `ReservasListing extends Listing<Filtros,Reserva>` — columnas
+  id/huésped/habitación/noches/estado/tier; `handleAction("view")` (el clic de fila del
+  renderer VB postea view con la fila como parameters) devuelve URI según estado →
+  /checkin/:id | /encasa/:id | /checkout/:id. El Check-out del toolbar del 360 NAVEGA
+  (URI) — fuera el bus. ReservasQueue eliminada.
+- **Smart Search de vb (feedback)**: la búsqueda vive EN LA CABECERA — la propiedad
+  `smartFilters` del oj-sp-smart-filter-search (NO tiene slot search: solo main/dashboard;
+  el slot quedaba en oj-subtree-hidden). Contrato capturado en vivo: config
+  {askHint, value:[]}; Enter añade {filter:'keyword', label, value} a value y dispara
+  smartFiltersChanged (quitar el chip lo elimina) → chain concatena keywords → search.
+- **Páginas de detalle standalone**: proyección `hostContentOf(host, islandRawBlocks,
+  {forWizard})` — los bloques de islandContentOf al nivel de HOST, con la PRIMERA isla del
+  host (documento) fusionada fromNested (despacha a runMateuIslandAction vía
+  dispatchHostBlockAction; el resto contra el host). REGLA: los bloques MANDAN cuando son
+  RICOS (EntityHeader/Meter/Ledger/StatusList/…) — el form genérico y el texto se suprimen
+  (el 360 tiene también FormFields y pintaba campos crudos). En modo wizard los bloques van
+  DENTRO del panel del guided process, filtrando título/ProgressSteps/back-next (los aporta
+  el propio guided process). Listeners de host: hostBlockAction / hostPaymentConfirm /
+  hostAddonToggled.
+- **GOTCHA arquetipo**: `generalOverviewOf` casaba con CUALQUIER página con EntityHeader
+  (el 360 se pintaba como overview con switcher) — ahora REQUIERE el switcher de registro.
+- **SSE en islas**: runMateuIslandAction enruta por sseActionIds (el documento escanea
+  también standalone); las cargas de isla del host van SIN atajo (baile de 2 pasos) para
+  capturar el flag sse del wrapper.
+
+Verificado e2e: listado → clic Carlos → /encasa/st-carlos (toolbar completo, Meter,
+StatusList) → toolbar Check-out → /checkout/st-carlos (folio + métodos); clic María →
+/checkin/st-maria (guided process standalone); búsqueda "sale hoy" → chip + 2 filas.
+Shots rv-*.png.
+
+## Reservas unificadas (evolution, 2026-07-26)
+
+Los menús Check-In/Check-Out/En Casa se UNIFICAN en `/reservas` (ReservasQueue, evolution):
+un buscador + un TaskQueue con TODAS las estancias y el ESTADO por línea — "Llega
+hoy/mañana/<fecha>" (ARRIVING, ámbar si hoy), "Sale hoy/mañana/<fecha>" (IN_HOUSE, ámbar si
+hoy / verde si no), "Salió <fecha>" (DEPARTED, neutro). El clic abre la isla según estado
+(wizard de check-in / 360 de en casa / folio de check-out); `forzarCheckout` (opción de
+línea o evento del toolbar) fuerza el folio para las in house. Piezas nuevas:
+
+- **Framework**: `QueueItem` + `actionLabel`/`actionId` (opción de LÍNEA de la card; botón
+  que despacha su actionId con {_item} — QueueItemDto + TaskQueueMapper + mateu-task-queue.ts
+  con stopPropagation; los ports .NET/Python NO tocados aún). El renderer VB lo proyecta
+  (hasAction/parameters) y pinta oj-button dentro de la oj-action-card — el clic del botón
+  TAMBIÉN dispara el ojAction de la card: guarda temporal window.__mateuQueueRowActionAt
+  (<800ms → eco, queueItemClicked lo ignora).
+- **Toolbar de isla**: islandContentOf proyecta el Page de la isla (título +
+  metadata.toolbar → átomo isButtons); el "Check-out" del 360 emite
+  `UICommand.dispatchEvent("checkout-solicitado", {_item})` y el HOST (ReservasQueue
+  @SubscribeTo) lo recibe: runMateuIslandAction procesa ahora los EVENTOS de bus →
+  triggers del host → re-proyección completa con posible SUSTITUCIÓN de la isla (en casa →
+  folio).
+- Seeder: klaus llega mañana; nuevos noah (llega +3) y oliver (DEPARTED ayer, con folio).
+
+Verificado e2e (5 flujos): llega→wizard, sale→360 (toolbar Check-out visible),
+toolbar→folio, línea→folio, salió→folio. Shots rv-*.png.
+
+## Backend conmutado a demo-front-office (2026-07-25)
+
+**Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer
+OBEDECE la variante del wire — nada de overrides cliente. Para el patrón in-app navigation
+(la barra de tabs ABAJO, oj-sp-in-app-navigation — omnipresente en apps Oracle) el APP debe
+emitir TABS: en demo-front-office bastó QUITAR el `value = MENU_ON_TOP` explícito de `@App`
+(quedó `@App(themeToggle = true)`) — la heurística AUTO da TABS porque su menú son
+RouteLinks planos (`hasMenuItems` solo cuenta grupos `Menu`). Evidencia: shots/fo-tabs.png.
+
+
+`constants.mateuBaseUrl` → `http://localhost:8595` = **demo-front-office-evolution**, la
+COPIA de trabajo creada 2026-07-26 (decisión del usuario: el demo-front-office original
+:8594 queda como instancia compartida intocable; la evolución del front-office se hace en
+demo/demo-front-office-evolution, registrada en el agregador demo/pom.xml). Punto ÚNICO de
+cambio en app-flow.json; demo-vb sigue en :9005 para volver. Primer contacto: la shell ARRANCA entera (menú MENU_ON_TOP con
+Check-In/Check-Out/En Casa/Automatizaciones, selectores @AppContext Modo+Hotel, header de
+página con franja, campo de búsqueda del check-in). GAP identificado en /checkin (tipos del
+wire): TaskQueue (la cola de llegadas — el componente central del front-office) y EmptyState
+no tienen proyección/rama aún; CustomField envuelve islas. Siguiente trabajo obvio:
+proyección + rama TaskQueue (cards agrupadas con contadores, clic → acción con _item).
+
+## Próximo paso al retomar
+2. **Fases 1.x** (puertas de MECANISMO en runtime VB, antes de la Fase 2): 1.1 estado (variables +
    two-way round-trip), 1.2 aplicación de increments al target (re-render quirúrgico por id, islas), 1.3
    comandos UI → efectos, 1.4 resolución de ruta (4 campos de ruta salientes + composición), 1.5 sync con la
    URL (PushStateToHistory + deep-link + back/forward + dirtyGuard), y 1.6 (VISUAL) estilos alrededor del
    contenido = los tres modos de `pageWidth` (fixed/fullWidth/edgeToEdge) fieles a la medición RDS 24C.
-   Verifican en VB real lo que la sección "State & aplicación de increments" diseña y el POC valida solo en Node.
-   OJO: el reducer aún no mapea `PushStateToHistory` (hoy solo `NavigateTo`) — 1.5 lo añade.
+3. Pendiente de capturar cuando toque: foldout/item-overview (F7+, añadir pantallas a demo-vb),
+   un `PushStateToHistory` real (navegación de crud sin drawer) y el spike de SSE/LongTask en VB hosteado.
+
+## Checklist de operaciones de check-in — fase 1 (2026-07-26)
+
+La Reserva 360 en estado por-llegar muestra las OPERACIONES del check-in (documentos,
+habitación, wifi, llave, firma, cobro, ancillaries) como checklist ejecutable, y el wizard
+pide SOLO las pendientes.
+
+- **Dominio (evolution)**: `CheckInOps` (flags wifi/llave/firma/cobro/extras, withers) +
+  `CheckInOpsRepository` in-memory por stayId (accesor `FrontOffice.checkInOps()`).
+  Documentos y habitación se DERIVAN (paxPendientes / housekeeping INSPECTED), no se
+  almacenan. Escriben ambas pantallas: la 360 (acciones rápidas `opWifi`/`opLlave`) y el
+  wizard (llaveGrabada/firmaCapturada/preautorizado persisten su flag; confirmarCheckin
+  cierra `extras`) — así checklist y branching siempre coinciden.
+- **360** (`ReservaOverview.paraLlegada`): banner `TaskProgress` ("Operaciones de check-in
+  · N de 7", sin CTA — el header ya lleva "Confirmar check-in", renombrado desde "Iniciar")
+  + `StatusList` con avatar-emoji por operación, descripción pendiente/hecha, chip
+  Pendiente/✓ Hecha y botón de acción rápida solo en las pendientes que se resuelven in
+  situ (wifi "Crear", llave "Grabar"); "Completar" en documentos abre el wizard. El wizard
+  siembra el paso Confirmar desde las ops (llave→grabada, firma→firmada, cobro→
+  preautorizado) y `stepApplies("extras")` mira `ops.extras()`.
+- **Bridge**: átomo `isTaskProgress` en `islandContentOf` (todo precomputado: valueText
+  "N de M", panelClass neutral→success al completar, botón oculto si completo — contrato
+  del componente TaskProgress); añadido a la regla de bloques RICOS en los DOS chains
+  (shell onMateuNavigate + runMateuAction). Markup: bloque nuevo en las 6 copias de átomos
+  (insertado por script antes de cada `isMeter`, listener resuelto por copia: 4×
+  hostBlockAction, 2× islandBlockAction) — oj-panel + oj-progress-bar, solo utilidades JET.
+  Fixture real `fo-reserva-arriving.json` (capturado con transport.loadRouteInto contra
+  :8595) + test 28. 28/28.
+- **GOTCHA de serving**: `grunt vb-serve` sirve desde `build/optimized` (rutas versionadas
+  `version_<ts>/...`) — los cambios de markup/bridge NO llegan hasta `npx grunt vb-build` +
+  reinicio del serve. El síntoma es sutil: los átomos nuevos no pintan pero el resto
+  funciona (los templates viejos siguen sirviendo). Verificar con
+  `curl :9006/version_*/flows/main/pages/main-start-page.html | grep <átomo nuevo>`.
+- Verificado en vivo (st-klaus, 4 pax): banner 1→2→3 de 7 con las acciones rápidas (toast
+  wifi con credenciales, llave grabada), y "Confirmar check-in" abre el wizard con pasos
+  Identidad/Extras/Confirmar — Habitación OMITIDA (ya inspeccionada). Shots:
+  ops-checklist.png, ops-checklist-llave.png, ops-wizard.png.
+- **Checklist a 3 columnas (2026-07-26, feedback del usuario)**: `StatusList` ganó
+  `columns` (uidl record + StatusListDto + StatusListMapper + web mateu-status-list con
+  grid auto-fit; 0 = lista clásica). En el bridge, `columns>1` proyecta `wrapClass:
+  'oj-flex'` en el átomo y cada ítem como CELDA (`gridCell` + `cellClass: oj-flex-item
+  oj-sm-12 oj-md-(12/N)`) con rama propia en el markup (título+chip / descripción / botón
+  en vertical — una FILA estrechada a un tercio parte su contenido donde pilla y queda
+  desaliñada); las 6 copias llevan la rama celda antes de la rama fila (guard
+  `!gridCell`). La 360 usa `.columns(3)` → las 7 operaciones caben sin scroll. OJO orden
+  de build de los shared: instalar via reactor (`mvn -pl shared/dtos,shared/uidl,
+  shared/core` desde backend/) — uidl suelto contra un dtos rancio de ~/.m2 rompe
+  enforcer/convergence.
+- **Zonas en el contenido del host (2026-07-26, idea del usuario: "huéspedes a la
+  izquierda, tarjetas a la derecha")**: la 360 usa `@Zones` (huespedes 36% / operativa
+  64%; el header sin zona queda como banda superior). Proyección: `islandContentOf`
+  detecta la FILA ZONADA (HorizontalLayout de columnas `flex: 1 1 calc(NN%…)`, solo a
+  nivel raíz) y convierte cada zona en bloque-columna con `colClass` en doceavos
+  (36→oj-md-4, 64→oj-md-8, oj-sm-12 en small); si una zona genera VARIOS bloques se
+  fusionan en uno (un oj-flex no apila dos items en la misma celda — pasa en modo
+  checkout: folio+cargos+cobro, todos frameless). `hostContentOf` estampa `blockClass`
+  en todos (no zonados → oj-sm-12) y el loop de mateuHostContent envuelve los bloques en
+  un `oj-flex` con un div por bloque ligado a blockClass (solo el loop del HOST — wizard
+  e isla sin cambios). La checklist de operaciones pasa a `.columns(2)` (carril del 64%)
+  y los huéspedes vuelven a lista de 1 columna en su card. Resultado: TODO visible sin
+  scroll en llegada, in-house y checkout. Tests 28 (md-6) y 29 (zonas md-4/md-8). 29/29.
+- **Fase 2 — modo habitación (2026-07-26)**: la tarjeta Habitación lleva "Cambiar"
+  SIEMPRE (aun hecha — upgrades) → `modoHabitacion` pinta en el carril operativo el
+  ResourceGrid de la planta 12 (helpers de HabitacionStep hechos public y reutilizados) +
+  las OfferCard actual/upgrade; `elegirHabitacion`/{_item} asigna la habitación REAL
+  (stay.assignRoom + tipo del inventario) y `upgrade360` asigna la suite 1401 (sembrada
+  como habitación asignable); ambas vuelven a la checklist con toast, y el estado de la
+  operación se re-deriva del housekeeping de la nueva habitación (cambiar a una sin
+  inspeccionar la devuelve a Pendiente). Toolbar del modo: "Volver a la reserva". Sin
+  cambios de renderer (ResourceGrid/OfferCard ya proyectaban en host).
+- **Iconos de menú (2026-07-26)**: `Actionable.icon()` (default null) + campo `icon` en
+  `RouteLink` (uidl) → `AppMenuDtoBuilder.icon(option.icon())` → `MenuOptionDto.icon` (ya
+  existía en el wire). Convención: nombres NEUTRALES del set Vaadin ("vaadin:calendar-user");
+  cada renderer traduce al suyo — el bridge con `ojIconOf` (diccionario OJ_ICONS →
+  oj-ux-ico-* del gallery bundle del CDN, ~3.400 clases; pasa tal cual lo que ya venga como
+  oj-ux-*, sin traducción → sin icono). `oj-sp-in-app-navigation` acepta `icon` por item y
+  lo pinta. Demo: Reservas → calendar-contact, Automatizaciones → task.
+- **Registro por pax en la 360 (2026-07-26, petición del usuario)**: cada huésped puede
+  iniciar el ESCANEO del documento o el RELLENADO MANUAL desde la propia 360. La isla
+  `DocumentoView` del wizard se embebe también en la 360 (banda bajo las dos zonas,
+  sección "\u2007" frameless + @Inline; onHydrated la siembra con stayId+paxSeleccionado);
+  las filas de huéspedes llevan ids numéricos de pax, fila clicable + botón "Registrar"
+  (pendientes) → `seleccionarPax` re-siembra la isla, y el host se refresca con el evento
+  `documento-escaneado` (@SubscribeTo → refrescarReserva), que ahora emite TAMBIÉN el save
+  manual (override del case "save" en DocumentoView añadiendo el dispatchEvent al resultado
+  del super). El estado vacío ofrece "Rellenar a mano" (Button → el "edit" estándar del
+  EditableView); el editor pasa a documento/nombre EDITABLES y `save()` registra al pax
+  completo (`Pax.register` + `Companion.rename`) o actualiza contacto si ya estaba.
+  **Fixes de runtime VB que lo hicieron funcionar**: (1) recarga de la isla de nivel 1
+  cuando su SEED cambia (mateuIslandSeed en app-flow + compare en runMateuAction /
+  onMateuNavigate / runMateuIslandAction — el mecanismo que ya tenía la anidada);
+  (2) el seed viaja en CADA acción de la isla y en el reload del route-flip (los null del
+  estado no pisan el seed) — sin esto `edit`/`save` llegaban con stayId null y el save era
+  un no-op silencioso; (3) los inputs fromNested van al draft de la ISLA y no relanzan el
+  auto-save del host (hostInputChanged + listener con fromNested); (4) el toolbar de Page
+  de la isla fusionada (Cancel/Save del editor) NO se filtra como toolbar del host
+  (fromPageToolbar && !fromNested); (5) la re-proyección del host tras acciones de isla
+  pasa las MISMAS opts que runMateuAction (title + dropEntityHeader) — sin ellas el título
+  y el EntityHeader reaparecían duplicados en el contenido; (6) hoisting/merge de bloques
+  preservan las props del bloque (colClass/blockClass sobreviven a la fusión).
+- **Fase 3 — cobro, ancillaries y firma (2026-07-26)**: tres tarjetas más son ejecutables.
+  "Cobrar" → modo cobro (PaymentPicker tarjeta/efectivo/Puntos-del-tier con TOTAL RESERVA;
+  confirmar marca `ops.cobro` con toast por método). "Elegir" (ancillaries) → modo extras
+  (AddOnPicker del catálogo con added desde stay.addOns; cada toggle persiste
+  addAddOn/removeAddOn; "Cerrar selección" marca `ops.extras`). "Enviar a tablet" (firma) →
+  PRIMERA ACCIÓN SSE DEL HOST: `ActionSupplier.actions()` en la 360 declara opFirma
+  sse(true) (manteniendo el comodín "*"), el flux emite "enviado a tablet" y a los 5 s
+  dispatchEvent(firma-capturada-360) → @SubscribeTo → opFirmaDone marca `ops.firma`.
+  **Runtime VB**: `runMateuAction` ahora consulta `host.sseActionIds` (loadRouteInto ya los
+  estampaba también en el host: el árbol raíz lleva las actions con su flag sse) y va por
+  runMateuActionSse aplicando TODOS los increments con eventos/toasts ACUMULADOS (cada
+  reduce reemplaza effects); los triggers de host reciben el detail del evento como
+  parameters. GOTCHA cazado: `[] || x` — mateuWizardContent VACÍO es truthy y
+  hostAddonToggled buscaba el picker en él (los toggles de la 360 no despachaban); elegir
+  por longitud.
+- **Acciones POR PAX en las filas de huéspedes (2026-07-26, feedback del usuario: "son
+  acciones sobre cada pax… salen descolocados")**: `StatusItem` ganó una SEGUNDA acción
+  (actionLabel2/actionId2, uidl+dto+mapper+web con dos botones). Cada pax pendiente lleva
+  "Escanear" (→ `escanearPax`, SSE del host: toast "Escaneando…", 2 s, `Paxes.scan` y
+  evento documento-escaneado → refresco) y "A mano" (→ modo pax en el carril operativo:
+  formulario documento/nombre/email/teléfono ligado al draft del host + "Guardar cardex" →
+  `Paxes.register`). La lógica por-pax vive en `ui/common/Paxes` (compartida conceptual
+  con la isla del wizard, que QUEDA en el wizard — la 360 ya no embebe DocumentoView).
+  **Bridge**: los ítems de StatusList proyectan `actions[]` (+hasActions) y una fila CON
+  acciones se pinta APILADA (título+badge / descripción / botones) — la fila en línea se
+  descolocaba en el carril del 36%; las tarjetas de grid iteran `actions` (permite dos
+  botones por operación). Templates: rama apilada ×6 + for-each de acciones ×6.
+- Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
+  360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
+  wizard).

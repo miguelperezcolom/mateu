@@ -26,12 +26,15 @@ public class StatusListMapper {
                                     .statusColor(item.statusColor())
                                     .actionLabel(item.actionLabel())
                                     .actionId(item.actionId())
+                                    .actionLabel2(item.actionLabel2())
+                                    .actionId2(item.actionId2())
                                     .build())
                         .toList()
                     : List.of())
             .compact(statusList.compact())
             .frameless(statusList.frameless())
             .rowActionId(statusList.rowActionId())
+            .columns(statusList.columns())
             .build(),
         statusList.id(),
         List.of(),

@@ -1,0 +1,1591 @@
+{
+  "tree": {
+    "type": "ServerSide",
+    "id": "d5977e76-4661-403d-8ee3-2f0e20f39f3e",
+    "serverSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.CheckInWizard",
+    "route": "/checkin/st-maria",
+    "children": [
+      {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "VerticalLayout",
+          "spacing": false,
+          "padding": false,
+          "margin": false,
+          "spacingVariant": null,
+          "horizontalAlignment": null,
+          "justification": null,
+          "wrap": false,
+          "flexGrows": null,
+          "fullWidth": false,
+          "style": null
+        },
+        "id": null,
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Text",
+              "container": "h2",
+              "attributes": {},
+              "text": "Check-In",
+              "size": null,
+              "noMargins": false
+            },
+            "id": "6c357cbd-d6a9-420b-b0e2-5817c456af48",
+            "children": [],
+            "style": "margin: 0;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "ProgressSteps",
+              "steps": [
+                {
+                  "id": "identidad",
+                  "title": "Identidad",
+                  "description": null,
+                  "status": "current"
+                },
+                {
+                  "id": "habitacion",
+                  "title": "Habitación",
+                  "description": null,
+                  "status": "upcoming"
+                },
+                {
+                  "id": "extras",
+                  "title": "Extras",
+                  "description": null,
+                  "status": "upcoming"
+                },
+                {
+                  "id": "confirmar",
+                  "title": "Confirmar",
+                  "description": null,
+                  "status": "upcoming"
+                }
+              ],
+              "vertical": false
+            },
+            "id": null,
+            "children": [],
+            "style": "width: 100%;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Div",
+              "content": null
+            },
+            "id": "fieldId",
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "VerticalLayout",
+                  "spacing": true,
+                  "padding": false,
+                  "margin": false,
+                  "spacingVariant": null,
+                  "horizontalAlignment": null,
+                  "justification": null,
+                  "wrap": false,
+                  "flexGrows": null,
+                  "fullWidth": false,
+                  "style": null
+                },
+                "id": null,
+                "children": [
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "VerticalLayout",
+                      "spacing": false,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "horizontalAlignment": null,
+                      "justification": null,
+                      "wrap": false,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": false,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "FormLayout",
+                              "autoResponsive": true,
+                              "labelsAside": false,
+                              "maxColumns": 2,
+                              "columnWidth": null,
+                              "expandColumns": true,
+                              "expandFields": false,
+                              "responsiveSteps": null,
+                              "itemLabelWidth": null,
+                              "columnSpacing": null,
+                              "itemRowSpacing": null,
+                              "itemLabelSpacing": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "FormRow"
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "CustomField",
+                                      "label": "",
+                                      "content": {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "EntityHeader",
+                                          "title": "María Fernández",
+                                          "badges": [
+                                            {
+                                              "label": "PLATINUM",
+                                              "color": "contrast"
+                                            }
+                                          ],
+                                          "subtitle": "Ocean Suite · 25 jul → 01 ago · 7N · 2pax · All Inclusive",
+                                          "facts": [
+                                            {
+                                              "label": "TOTAL RESERVA",
+                                              "value": "€ 4.890,00"
+                                            },
+                                            {
+                                              "label": "AGENCIA",
+                                              "value": "TUI Group · TUI Magic Life"
+                                            }
+                                          ],
+                                          "metricLabel": "FIDELIDAD",
+                                          "metricValue": "48.500",
+                                          "metricCaption": "23 estancias"
+                                        },
+                                        "id": null,
+                                        "children": [],
+                                        "style": "width: 100%;",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      },
+                                      "colspan": 2
+                                    },
+                                    "id": "fieldId",
+                                    "children": [],
+                                    "style": "width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": null,
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "width: 100%;",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%;",
+                    "cssClasses": null,
+                    "slot": null
+                  },
+                  {
+                    "type": "ClientSide",
+                    "metadata": {
+                      "type": "HorizontalLayout",
+                      "spacing": true,
+                      "padding": false,
+                      "margin": false,
+                      "spacingVariant": null,
+                      "verticalAlignment": null,
+                      "justification": null,
+                      "wrap": true,
+                      "flexGrows": null,
+                      "fullWidth": false,
+                      "style": null
+                    },
+                    "id": null,
+                    "children": [
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": true,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "Card",
+                              "media": null,
+                              "headerPrefix": null,
+                              "header": null,
+                              "title": null,
+                              "subtitle": null,
+                              "headerSuffix": null,
+                              "content": {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "VerticalLayout",
+                                  "spacing": false,
+                                  "padding": false,
+                                  "margin": false,
+                                  "spacingVariant": null,
+                                  "horizontalAlignment": null,
+                                  "justification": null,
+                                  "wrap": false,
+                                  "flexGrows": null,
+                                  "fullWidth": false,
+                                  "style": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "VerticalLayout",
+                                      "spacing": false,
+                                      "padding": false,
+                                      "margin": false,
+                                      "spacingVariant": null,
+                                      "horizontalAlignment": null,
+                                      "justification": null,
+                                      "wrap": false,
+                                      "flexGrows": null,
+                                      "fullWidth": false,
+                                      "style": null
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormLayout",
+                                          "autoResponsive": true,
+                                          "labelsAside": false,
+                                          "maxColumns": 2,
+                                          "columnWidth": null,
+                                          "expandColumns": true,
+                                          "expandFields": false,
+                                          "responsiveSteps": null,
+                                          "itemLabelWidth": null,
+                                          "columnSpacing": null,
+                                          "itemRowSpacing": null,
+                                          "itemLabelSpacing": null
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "CustomField",
+                                                  "label": "",
+                                                  "content": {
+                                                    "type": "ServerSide",
+                                                    "id": "island_checkin_st_maria_documento",
+                                                    "serverSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView",
+                                                    "route": "/checkin-documento?_embeddedMediator=1&_inline=1",
+                                                    "children": [
+                                                      {
+                                                        "type": "ClientSide",
+                                                        "metadata": {
+                                                          "type": "App",
+                                                          "route": "/checkin-documento",
+                                                          "variant": "MEDIATOR",
+                                                          "layout": "SINGLE_SLOT",
+                                                          "icon": null,
+                                                          "logo": null,
+                                                          "title": null,
+                                                          "subtitle": null,
+                                                          "favicon": null,
+                                                          "menu": [],
+                                                          "totalMenuOptions": 0,
+                                                          "homeRoute": "/checkin-documento?_embeddedMediator=1&_inline=1?_embeddedMediator=1",
+                                                          "homeConsumedRoute": "/checkin-documento",
+                                                          "homeBaseUrl": "",
+                                                          "homeServerSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView",
+                                                          "homeUriPrefix": null,
+                                                          "serverSideType": "io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView",
+                                                          "loginUrl": null,
+                                                          "welcomeMessage": null,
+                                                          "logoutUrl": null,
+                                                          "apps": [],
+                                                          "drawerClosed": false,
+                                                          "style": "width: 100%;",
+                                                          "cssClasses": null,
+                                                          "home": null,
+                                                          "rootRoute": "/checkin/st-maria",
+                                                          "sseUrl": null,
+                                                          "mcpUrl": null,
+                                                          "uploadUrl": null,
+                                                          "fabs": [],
+                                                          "themeToggle": false,
+                                                          "contextSelectors": [],
+                                                          "contextActions": [],
+                                                          "notificationsEnabled": false,
+                                                          "globalSearchEnabled": false,
+                                                          "commandCenterEnabled": false,
+                                                          "chromeless": false
+                                                        },
+                                                        "id": "island_checkin_st_maria_documento_app",
+                                                        "children": [],
+                                                        "style": "width: 100%;",
+                                                        "cssClasses": null,
+                                                        "slot": null
+                                                      }
+                                                    ],
+                                                    "initialData": {
+                                                      "_embeddedMediator": true,
+                                                      "_inline": true,
+                                                      "stayId": "st-maria",
+                                                      "paxIndex": 1,
+                                                      "vistaAlterna": false
+                                                    },
+                                                    "style": "width: 100%;",
+                                                    "cssClasses": null,
+                                                    "actions": [
+                                                      {
+                                                        "id": "edit",
+                                                        "validationRequired": false,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": false,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      },
+                                                      {
+                                                        "id": "save",
+                                                        "validationRequired": true,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": false,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      },
+                                                      {
+                                                        "id": "cancel-edit",
+                                                        "validationRequired": false,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": false,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      },
+                                                      {
+                                                        "id": "escanear",
+                                                        "validationRequired": false,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": true,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      },
+                                                      {
+                                                        "id": "reloadDocumento",
+                                                        "validationRequired": false,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": false,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      },
+                                                      {
+                                                        "id": "cambiarPax",
+                                                        "validationRequired": false,
+                                                        "confirmationRequired": false,
+                                                        "rowsSelectedRequired": false,
+                                                        "confirmationTexts": null,
+                                                        "modalStyle": null,
+                                                        "modalTitle": null,
+                                                        "customEvent": null,
+                                                        "href": null,
+                                                        "js": null,
+                                                        "background": false,
+                                                        "sse": false,
+                                                        "fieldsToValidate": null,
+                                                        "bubble": false,
+                                                        "shortcut": null
+                                                      }
+                                                    ],
+                                                    "triggers": [],
+                                                    "rules": [],
+                                                    "validations": [],
+                                                    "slot": null,
+                                                    "containerId": null,
+                                                    "confirmOnNavigationIfDirty": false,
+                                                    "emitsName": null,
+                                                    "pageWidth": null,
+                                                    "pageType": null
+                                                  },
+                                                  "colspan": 2
+                                                },
+                                                "id": "fieldId",
+                                                "children": [],
+                                                "style": "width: 100%;",
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": "width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              "footer": null,
+                              "variants": [
+                                "outlined"
+                              ]
+                            },
+                            "id": "fieldId",
+                            "children": [],
+                            "style": "flex: 1; min-width: 0; width:100%;",
+                            "cssClasses": "mateu-section",
+                            "slot": null
+                          },
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "VerticalLayout",
+                              "spacing": false,
+                              "padding": false,
+                              "margin": false,
+                              "spacingVariant": null,
+                              "horizontalAlignment": null,
+                              "justification": null,
+                              "wrap": false,
+                              "flexGrows": null,
+                              "fullWidth": false,
+                              "style": null
+                            },
+                            "id": null,
+                            "children": [
+                              {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "VerticalLayout",
+                                  "spacing": false,
+                                  "padding": false,
+                                  "margin": false,
+                                  "spacingVariant": null,
+                                  "horizontalAlignment": null,
+                                  "justification": null,
+                                  "wrap": false,
+                                  "flexGrows": null,
+                                  "fullWidth": false,
+                                  "style": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "FormLayout",
+                                      "autoResponsive": true,
+                                      "labelsAside": false,
+                                      "maxColumns": 2,
+                                      "columnWidth": null,
+                                      "expandColumns": true,
+                                      "expandFields": false,
+                                      "responsiveSteps": null,
+                                      "itemLabelWidth": null,
+                                      "columnSpacing": null,
+                                      "itemRowSpacing": null,
+                                      "itemLabelSpacing": null
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormRow"
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "CustomField",
+                                              "label": "",
+                                              "content": {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Notice",
+                                                  "text": "Reserva con 2 pax. Documentación completa.",
+                                                  "theme": "success",
+                                                  "icon": "👥",
+                                                  "noIcon": false,
+                                                  "actionLabel": null,
+                                                  "actionId": null,
+                                                  "status": null,
+                                                  "slim": false,
+                                                  "fullWidth": true,
+                                                  "inlineContent": false
+                                                },
+                                                "id": null,
+                                                "children": [
+                                                  {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "HorizontalLayout",
+                                                      "spacing": false,
+                                                      "padding": false,
+                                                      "margin": false,
+                                                      "spacingVariant": null,
+                                                      "verticalAlignment": null,
+                                                      "justification": null,
+                                                      "wrap": false,
+                                                      "flexGrows": null,
+                                                      "fullWidth": false,
+                                                      "style": null
+                                                    },
+                                                    "id": null,
+                                                    "children": [
+                                                      {
+                                                        "type": "ClientSide",
+                                                        "metadata": {
+                                                          "type": "Button",
+                                                          "label": "1/2",
+                                                          "iconOnLeft": null,
+                                                          "iconOnRight": null,
+                                                          "image": null,
+                                                          "color": "success",
+                                                          "variant": null,
+                                                          "buttonStyle": "primary",
+                                                          "size": null,
+                                                          "autofocus": false,
+                                                          "disabled": false,
+                                                          "actionId": "selectPax",
+                                                          "parameters": {
+                                                            "paxIndex": 1
+                                                          },
+                                                          "shortcut": null,
+                                                          "separatorBefore": false,
+                                                          "children": null
+                                                        },
+                                                        "id": "pax-1",
+                                                        "children": [],
+                                                        "style": null,
+                                                        "cssClasses": null,
+                                                        "slot": null
+                                                      },
+                                                      {
+                                                        "type": "ClientSide",
+                                                        "metadata": {
+                                                          "type": "Button",
+                                                          "label": "2/2",
+                                                          "iconOnLeft": null,
+                                                          "iconOnRight": null,
+                                                          "image": null,
+                                                          "color": "success",
+                                                          "variant": null,
+                                                          "buttonStyle": null,
+                                                          "size": null,
+                                                          "autofocus": false,
+                                                          "disabled": false,
+                                                          "actionId": "selectPax",
+                                                          "parameters": {
+                                                            "paxIndex": 2
+                                                          },
+                                                          "shortcut": null,
+                                                          "separatorBefore": false,
+                                                          "children": null
+                                                        },
+                                                        "id": "pax-2",
+                                                        "children": [],
+                                                        "style": null,
+                                                        "cssClasses": null,
+                                                        "slot": null
+                                                      }
+                                                    ],
+                                                    "style": "gap: 0.5rem; flex-wrap: wrap;",
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  }
+                                                ],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              "colspan": 2
+                                            },
+                                            "id": "fieldId",
+                                            "children": [],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": null,
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": "",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "width: 100%;",
+                                "cssClasses": null,
+                                "slot": null
+                              }
+                            ],
+                            "style": "width: 100%;",
+                            "cssClasses": null,
+                            "slot": null
+                          }
+                        ],
+                        "style": "flex: 1 1 calc(62% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
+                        "cssClasses": null,
+                        "slot": null
+                      },
+                      {
+                        "type": "ClientSide",
+                        "metadata": {
+                          "type": "VerticalLayout",
+                          "spacing": true,
+                          "padding": false,
+                          "margin": false,
+                          "spacingVariant": null,
+                          "horizontalAlignment": null,
+                          "justification": null,
+                          "wrap": false,
+                          "flexGrows": null,
+                          "fullWidth": false,
+                          "style": null
+                        },
+                        "id": null,
+                        "children": [
+                          {
+                            "type": "ClientSide",
+                            "metadata": {
+                              "type": "Card",
+                              "media": null,
+                              "headerPrefix": null,
+                              "header": null,
+                              "title": null,
+                              "subtitle": null,
+                              "headerSuffix": null,
+                              "content": {
+                                "type": "ClientSide",
+                                "metadata": {
+                                  "type": "VerticalLayout",
+                                  "spacing": false,
+                                  "padding": false,
+                                  "margin": false,
+                                  "spacingVariant": null,
+                                  "horizontalAlignment": null,
+                                  "justification": null,
+                                  "wrap": false,
+                                  "flexGrows": null,
+                                  "fullWidth": false,
+                                  "style": null
+                                },
+                                "id": null,
+                                "children": [
+                                  {
+                                    "type": "ClientSide",
+                                    "metadata": {
+                                      "type": "VerticalLayout",
+                                      "spacing": false,
+                                      "padding": false,
+                                      "margin": false,
+                                      "spacingVariant": null,
+                                      "horizontalAlignment": null,
+                                      "justification": null,
+                                      "wrap": false,
+                                      "flexGrows": null,
+                                      "fullWidth": false,
+                                      "style": null
+                                    },
+                                    "id": null,
+                                    "children": [
+                                      {
+                                        "type": "ClientSide",
+                                        "metadata": {
+                                          "type": "FormLayout",
+                                          "autoResponsive": true,
+                                          "labelsAside": false,
+                                          "maxColumns": 2,
+                                          "columnWidth": null,
+                                          "expandColumns": true,
+                                          "expandFields": false,
+                                          "responsiveSteps": null,
+                                          "itemLabelWidth": null,
+                                          "columnSpacing": null,
+                                          "itemRowSpacing": null,
+                                          "itemLabelSpacing": null
+                                        },
+                                        "id": null,
+                                        "children": [
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Text",
+                                                  "container": "h4",
+                                                  "attributes": {},
+                                                  "text": "${state.prefHeader}",
+                                                  "size": "m",
+                                                  "noMargins": false
+                                                },
+                                                "id": "prefHeader",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "CustomField",
+                                                  "label": "",
+                                                  "content": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "BulletedList",
+                                                      "items": [
+                                                        "High floor",
+                                                        "Extra pillows",
+                                                        "Late checkout",
+                                                        "Quiet room",
+                                                        "Sea view"
+                                                      ]
+                                                    },
+                                                    "id": null,
+                                                    "children": [],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "colspan": 1
+                                                },
+                                                "id": "fieldId",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Separator",
+                                                  "attributes": {
+                                                    "data-colspan": "2"
+                                                  }
+                                                },
+                                                "id": null,
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Text",
+                                                  "container": "h4",
+                                                  "attributes": {},
+                                                  "text": "${state.lastStayHeader}",
+                                                  "size": "m",
+                                                  "noMargins": false
+                                                },
+                                                "id": "lastStayHeader",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Text",
+                                                  "container": "p",
+                                                  "attributes": {},
+                                                  "text": "${state.lastStayMainInfo}",
+                                                  "size": "m",
+                                                  "noMargins": true
+                                                },
+                                                "id": "lastStayMainInfo",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Text",
+                                                  "container": "p",
+                                                  "attributes": {},
+                                                  "text": "${state.lastStaySecondaryInfo}",
+                                                  "size": "xs",
+                                                  "noMargins": true
+                                                },
+                                                "id": "lastStaySecondaryInfo",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              },
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "CustomField",
+                                                  "label": "",
+                                                  "content": {
+                                                    "type": "ClientSide",
+                                                    "metadata": {
+                                                      "type": "Notice",
+                                                      "text": "2 quejas pendientes",
+                                                      "theme": "danger",
+                                                      "icon": null,
+                                                      "noIcon": false,
+                                                      "actionLabel": null,
+                                                      "actionId": null,
+                                                      "status": null,
+                                                      "slim": true,
+                                                      "fullWidth": true,
+                                                      "inlineContent": false
+                                                    },
+                                                    "id": null,
+                                                    "children": [],
+                                                    "style": null,
+                                                    "cssClasses": null,
+                                                    "slot": null
+                                                  },
+                                                  "colspan": 1
+                                                },
+                                                "id": "fieldId",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          },
+                                          {
+                                            "type": "ClientSide",
+                                            "metadata": {
+                                              "type": "FormRow"
+                                            },
+                                            "id": null,
+                                            "children": [
+                                              {
+                                                "type": "ClientSide",
+                                                "metadata": {
+                                                  "type": "Text",
+                                                  "container": "p",
+                                                  "attributes": {},
+                                                  "text": "${state.historyInfo}",
+                                                  "size": "xs",
+                                                  "noMargins": true
+                                                },
+                                                "id": "historyInfo",
+                                                "children": [],
+                                                "style": null,
+                                                "cssClasses": null,
+                                                "slot": null
+                                              }
+                                            ],
+                                            "style": null,
+                                            "cssClasses": null,
+                                            "slot": null
+                                          }
+                                        ],
+                                        "style": "",
+                                        "cssClasses": null,
+                                        "slot": null
+                                      }
+                                    ],
+                                    "style": "width: 100%;",
+                                    "cssClasses": null,
+                                    "slot": null
+                                  }
+                                ],
+                                "style": "",
+                                "cssClasses": null,
+                                "slot": null
+                              },
+                              "footer": null,
+                              "variants": [
+                                "outlined"
+                              ]
+                            },
+                            "id": "fieldId",
+                            "children": [],
+                            "style": "flex: 1; min-width: 0; width:100%;",
+                            "cssClasses": "mateu-section",
+                            "slot": null
+                          }
+                        ],
+                        "style": "flex: 1 1 calc(38% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
+                        "cssClasses": null,
+                        "slot": null
+                      }
+                    ],
+                    "style": "width: 100%; align-items: flex-start;",
+                    "cssClasses": null,
+                    "slot": null
+                  }
+                ],
+                "style": "width: 100%;",
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": "width: 100%; margin-top: 1rem;",
+            "cssClasses": null,
+            "slot": null
+          },
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "HorizontalLayout",
+              "spacing": true,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "verticalAlignment": null,
+              "justification": "END",
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": false,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Button",
+                  "label": "Back",
+                  "iconOnLeft": null,
+                  "iconOnRight": null,
+                  "image": null,
+                  "color": "normal",
+                  "variant": null,
+                  "buttonStyle": null,
+                  "size": null,
+                  "autofocus": false,
+                  "disabled": true,
+                  "actionId": "back",
+                  "parameters": null,
+                  "shortcut": null,
+                  "separatorBefore": false,
+                  "children": null
+                },
+                "id": "back",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Button",
+                  "label": "Next",
+                  "iconOnLeft": null,
+                  "iconOnRight": null,
+                  "image": null,
+                  "color": "normal",
+                  "variant": null,
+                  "buttonStyle": null,
+                  "size": null,
+                  "autofocus": false,
+                  "disabled": false,
+                  "actionId": "next",
+                  "parameters": null,
+                  "shortcut": null,
+                  "separatorBefore": false,
+                  "children": null
+                },
+                "id": "next",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null
+          }
+        ],
+        "style": "width: 100%",
+        "cssClasses": null,
+        "slot": null
+      }
+    ],
+    "initialData": {
+      "position": 0,
+      "stayId": "st-maria",
+      "populated": true,
+      "selectedPax": 1,
+      "identidad": {
+        "historyInfo": "23 estancias · Cliente desde 2019",
+        "prefHeader": "Preferencias",
+        "selectedPax": 1,
+        "lastStayHeader": "ÚLTIMA ESTANCIA",
+        "stayId": "st-maria",
+        "lastStaySecondaryInfo": "Feb 2026 · 5N",
+        "lastStayMainInfo": "Hab 1408 · Hotel Aruba"
+      },
+      "habitacion": {
+        "stayId": "st-maria",
+        "habitacionSeleccionada": "1204",
+        "upgradeAnadido": false
+      },
+      "extras": {
+        "extrasSeleccionados": "",
+        "stayId": "st-maria",
+        "extrasTotal": 0
+      },
+      "confirmar": {
+        "habitacionAsignada": "1204 — Ocean Suite",
+        "huespedPrincipal": "María Fernández",
+        "firmaEstado": "pendiente",
+        "estancia": "25 jul → 01 ago",
+        "llaveEstado": "pendiente",
+        "stayId": "st-maria",
+        "preauthEstado": "pendiente",
+        "regimen": "All Inclusive",
+        "totalEstancia": 4890
+      },
+      "result": null,
+      "step": {
+        "stayId": "st-maria",
+        "selectedPax": 1,
+        "header": {},
+        "documento": {
+          "_route": "",
+          "_componentRoute": "",
+          "stayId": "st-maria",
+          "paxIndex": 1,
+          "vistaAlterna": false,
+          "componentRoute": ""
+        },
+        "registroPax": {},
+        "prefHeader": "Preferencias",
+        "prefs": {},
+        "lastStayHeader": "ÚLTIMA ESTANCIA",
+        "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+        "lastStaySecondaryInfo": "Feb 2026 · 5N",
+        "quejas": {},
+        "historyInfo": "23 estancias · Cliente desde 2019"
+      },
+      "historyInfo": "23 estancias · Cliente desde 2019",
+      "prefHeader": "Preferencias",
+      "lastStayHeader": "ÚLTIMA ESTANCIA",
+      "lastStaySecondaryInfo": "Feb 2026 · 5N",
+      "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+      "habitacionSeleccionada": "1204",
+      "upgradeAnadido": false,
+      "extrasSeleccionados": "",
+      "extrasTotal": 0,
+      "habitacionAsignada": "1204 — Ocean Suite",
+      "huespedPrincipal": "María Fernández",
+      "firmaEstado": "pendiente",
+      "estancia": "25 jul → 01 ago",
+      "llaveEstado": "pendiente",
+      "preauthEstado": "pendiente",
+      "regimen": "All Inclusive",
+      "totalEstancia": 4890
+    },
+    "style": "max-width:900px;margin: auto;display: block;",
+    "cssClasses": null,
+    "actions": [
+      {
+        "id": "next",
+        "validationRequired": true,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "pickRoom",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "upgrade",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "extrasChanged",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "selectPax",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "refrescarIdentidad",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "firmaCapturada",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "preautorizado",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "llaveGrabada",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "sendToTablet",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "requestPreauth",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "encodeKey",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": true,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      },
+      {
+        "id": "*",
+        "validationRequired": false,
+        "confirmationRequired": false,
+        "rowsSelectedRequired": false,
+        "confirmationTexts": null,
+        "modalStyle": null,
+        "modalTitle": null,
+        "customEvent": null,
+        "href": null,
+        "js": null,
+        "background": false,
+        "sse": false,
+        "fieldsToValidate": null,
+        "bubble": false,
+        "shortcut": null
+      }
+    ],
+    "triggers": [
+      {
+        "type": "OnCustomEvent",
+        "actionId": "refrescarIdentidad",
+        "eventName": "documento-escaneado",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "firmaCapturada",
+        "eventName": "firma-capturada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "preautorizado",
+        "eventName": "preautorizacion-completada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      },
+      {
+        "type": "OnCustomEvent",
+        "actionId": "llaveGrabada",
+        "eventName": "llave-grabada",
+        "condition": "",
+        "source": "DOCUMENT",
+        "from": null
+      }
+    ],
+    "rules": [],
+    "validations": [],
+    "slot": null,
+    "containerId": null,
+    "confirmOnNavigationIfDirty": false,
+    "emitsName": null,
+    "pageWidth": null,
+    "pageType": "process"
+  },
+  "state": {
+    "position": 0,
+    "stayId": "st-maria",
+    "populated": true,
+    "selectedPax": 1,
+    "identidad": {
+      "historyInfo": "23 estancias · Cliente desde 2019",
+      "prefHeader": "Preferencias",
+      "selectedPax": 1,
+      "lastStayHeader": "ÚLTIMA ESTANCIA",
+      "stayId": "st-maria",
+      "lastStaySecondaryInfo": "Feb 2026 · 5N",
+      "lastStayMainInfo": "Hab 1408 · Hotel Aruba"
+    },
+    "habitacion": {
+      "stayId": "st-maria",
+      "habitacionSeleccionada": "1204",
+      "upgradeAnadido": false
+    },
+    "extras": {
+      "extrasSeleccionados": "",
+      "stayId": "st-maria",
+      "extrasTotal": 0
+    },
+    "confirmar": {
+      "habitacionAsignada": "1204 — Ocean Suite",
+      "huespedPrincipal": "María Fernández",
+      "firmaEstado": "pendiente",
+      "estancia": "25 jul → 01 ago",
+      "llaveEstado": "pendiente",
+      "stayId": "st-maria",
+      "preauthEstado": "pendiente",
+      "regimen": "All Inclusive",
+      "totalEstancia": 4890
+    },
+    "result": null,
+    "step": {
+      "stayId": "st-maria",
+      "selectedPax": 1,
+      "header": {},
+      "documento": {
+        "_route": "",
+        "_componentRoute": "",
+        "stayId": "st-maria",
+        "paxIndex": 1,
+        "vistaAlterna": false,
+        "componentRoute": ""
+      },
+      "registroPax": {},
+      "prefHeader": "Preferencias",
+      "prefs": {},
+      "lastStayHeader": "ÚLTIMA ESTANCIA",
+      "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+      "lastStaySecondaryInfo": "Feb 2026 · 5N",
+      "quejas": {},
+      "historyInfo": "23 estancias · Cliente desde 2019"
+    },
+    "historyInfo": "23 estancias · Cliente desde 2019",
+    "prefHeader": "Preferencias",
+    "lastStayHeader": "ÚLTIMA ESTANCIA",
+    "lastStaySecondaryInfo": "Feb 2026 · 5N",
+    "lastStayMainInfo": "Hab 1408 · Hotel Aruba",
+    "habitacionSeleccionada": "1204",
+    "upgradeAnadido": false,
+    "extrasSeleccionados": "",
+    "extrasTotal": 0,
+    "habitacionAsignada": "1204 — Ocean Suite",
+    "huespedPrincipal": "María Fernández",
+    "firmaEstado": "pendiente",
+    "estancia": "25 jul → 01 ago",
+    "llaveEstado": "pendiente",
+    "preauthEstado": "pendiente",
+    "regimen": "All Inclusive",
+    "totalEstancia": 4890
+  }
+}

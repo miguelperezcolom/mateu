@@ -8,4 +8,6 @@ export default interface StatusItem {
     statusColor?: string
     actionLabel?: string
     actionId?: string
+    actionLabel2?: string
+    actionId2?: string
 }

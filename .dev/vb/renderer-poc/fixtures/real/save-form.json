@@ -1,0 +1,32 @@
+{
+  "commands": [],
+  "messages": [
+    {
+      "variant": "success",
+      "position": "middle",
+      "title": "",
+      "text": "Saved Grace",
+      "duration": 5000,
+      "undoLabel": null,
+      "undoActionId": null,
+      "undoParameters": null
+    }
+  ],
+  "fragments": [
+    {
+      "targetComponentId": "e7400b2d-a360-4d55-8e89-208da30f7bb5",
+      "component": null,
+      "state": {
+        "name": "Grace",
+        "age": 41
+      },
+      "data": null,
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

@@ -1,1 +1,0 @@
-{ "fragments": [], "messages": [], "banners": [], "commands": [ { "type": "NavigateTo", "data": "/orders/42", "targetComponentId": "__root__" } ] }

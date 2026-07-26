@@ -70,6 +70,12 @@ public abstract class Wizard
 
   @Override
   public Component component(HttpRequest httpRequest) {
+    // Branching: the wizard may OPEN on a non-applicable leading step (navigation already skips
+    // in both directions, but the initial position was always 0) — fast-forward to the first
+    // applicable step so e.g. a check-in with complete documentation starts at Extras.
+    while (position < numberOfSteps() - 1 && !applies(position)) {
+      position++;
+    }
     var rail = progressStyle() == io.mateu.uidl.annotations.WizardProgressStyle.RAIL;
     var content = new ArrayList<Component>();
     content.add(

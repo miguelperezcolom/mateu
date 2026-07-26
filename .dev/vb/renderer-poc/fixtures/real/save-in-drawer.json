@@ -1,0 +1,34 @@
+{
+  "commands": [
+    {
+      "targetComponentId": null,
+      "type": "MarkAsClean",
+      "data": null
+    },
+    {
+      "targetComponentId": null,
+      "type": "CloseModal",
+      "data": {
+        "eventName": "mateu-crud:saved-in-drawer",
+        "detail": null
+      }
+    }
+  ],
+  "messages": [
+    {
+      "variant": "success",
+      "position": null,
+      "title": null,
+      "text": "Item saved successfully",
+      "duration": 3000,
+      "undoLabel": null,
+      "undoActionId": null,
+      "undoParameters": null
+    }
+  ],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null
+}

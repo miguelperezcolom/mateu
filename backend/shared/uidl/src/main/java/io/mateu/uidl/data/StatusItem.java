@@ -6,8 +6,10 @@ import lombok.Builder;
  * One row of a {@link StatusList}: an {@code icon} (or an {@code avatar} — a short text like a
  * person's initials rendered inside a circular avatar, taking precedence over the icon), a {@code
  * title} plus muted {@code description}, and on the right an optional status chip ({@code status}
- * text with a badge-palette {@code statusColor}) and/or a small action button ({@code actionLabel}
- * + {@code actionId}, dispatched with {@code { "_item": id }}).
+ * text with a badge-palette {@code statusColor}) and/or up to two small action buttons ({@code
+ * actionLabel} + {@code actionId}, and optionally {@code actionLabel2} + {@code actionId2} — e.g.
+ * "scan document" / "fill in manually" on a guest row), each dispatched with {@code { "_item": id
+ * }}.
  */
 @Builder
 public record StatusItem(
@@ -19,4 +21,6 @@ public record StatusItem(
     String status,
     String statusColor,
     String actionLabel,
-    String actionId) {}
+    String actionId,
+    String actionLabel2,
+    String actionId2) {}
