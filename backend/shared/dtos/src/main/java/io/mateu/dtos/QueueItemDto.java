@@ -6,7 +6,13 @@ import lombok.Builder;
 
 @Builder
 public record QueueItemDto(
-    String id, String title, String caption, List<ChipDto> badges, boolean selected) {
+    String id,
+    String title,
+    String caption,
+    List<ChipDto> badges,
+    boolean selected,
+    String actionLabel,
+    String actionId) {
 
   public QueueItemDto {
     badges = Collections.unmodifiableList(badges != null ? badges : Collections.emptyList());

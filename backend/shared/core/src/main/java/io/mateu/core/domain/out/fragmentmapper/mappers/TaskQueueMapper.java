@@ -50,6 +50,8 @@ public class TaskQueueMapper {
                     .toList()
                 : List.of())
         .selected(item.selected())
+        .actionLabel(item.actionLabel())
+        .actionId(item.actionId())
         .build();
   }
 }

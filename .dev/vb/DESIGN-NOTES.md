@@ -684,6 +684,32 @@ gotchas (todas mordidas hoy):
 
 Fixtures fo-nested-doc (sembrada) + test 27 (27/27). Shots fo-nested-doc*.png.
 
+## Reservas unificadas (evolution, 2026-07-26)
+
+Los menús Check-In/Check-Out/En Casa se UNIFICAN en `/reservas` (ReservasQueue, evolution):
+un buscador + un TaskQueue con TODAS las estancias y el ESTADO por línea — "Llega
+hoy/mañana/<fecha>" (ARRIVING, ámbar si hoy), "Sale hoy/mañana/<fecha>" (IN_HOUSE, ámbar si
+hoy / verde si no), "Salió <fecha>" (DEPARTED, neutro). El clic abre la isla según estado
+(wizard de check-in / 360 de en casa / folio de check-out); `forzarCheckout` (opción de
+línea o evento del toolbar) fuerza el folio para las in house. Piezas nuevas:
+
+- **Framework**: `QueueItem` + `actionLabel`/`actionId` (opción de LÍNEA de la card; botón
+  que despacha su actionId con {_item} — QueueItemDto + TaskQueueMapper + mateu-task-queue.ts
+  con stopPropagation; los ports .NET/Python NO tocados aún). El renderer VB lo proyecta
+  (hasAction/parameters) y pinta oj-button dentro de la oj-action-card — el clic del botón
+  TAMBIÉN dispara el ojAction de la card: guarda temporal window.__mateuQueueRowActionAt
+  (<800ms → eco, queueItemClicked lo ignora).
+- **Toolbar de isla**: islandContentOf proyecta el Page de la isla (título +
+  metadata.toolbar → átomo isButtons); el "Check-out" del 360 emite
+  `UICommand.dispatchEvent("checkout-solicitado", {_item})` y el HOST (ReservasQueue
+  @SubscribeTo) lo recibe: runMateuIslandAction procesa ahora los EVENTOS de bus →
+  triggers del host → re-proyección completa con posible SUSTITUCIÓN de la isla (en casa →
+  folio).
+- Seeder: klaus llega mañana; nuevos noah (llega +3) y oliver (DEPARTED ayer, con folio).
+
+Verificado e2e (5 flujos): llega→wizard, sale→360 (toolbar Check-out visible),
+toolbar→folio, línea→folio, salió→folio. Shots rv-*.png.
+
 ## Backend conmutado a demo-front-office (2026-07-25)
 
 **Variante de navegación (regla del proyecto, rectificada por el usuario)**: el renderer

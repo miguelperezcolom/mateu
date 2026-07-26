@@ -44,6 +44,14 @@ export class MateuTaskQueue extends LitElement {
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .meta { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+        .item-action {
+            align-self: flex-end; margin-top: .25rem; cursor: pointer;
+            font-size: var(--lumo-font-size-xs, .75rem); font-weight: 600;
+            color: var(--lumo-primary-text-color, #1a73e8);
+            background: none; border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.15));
+            border-radius: var(--lumo-border-radius-m, 8px); padding: .2rem .6rem;
+        }
+        .item-action:hover { border-color: var(--lumo-primary-color, #1a73e8); }
         .caption {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
             font-size: var(--lumo-font-size-xs, .75rem);
@@ -58,6 +66,16 @@ export class MateuTaskQueue extends LitElement {
                 .flatMap(group => group.items ?? [])
                 .find(item => item.selected)?.id
         }
+    }
+
+    private itemAction(e: Event, actionId: string | undefined, id: string | undefined) {
+        e.stopPropagation()
+        if (!actionId) return
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId, parameters: { _item: id } },
+            bubbles: true,
+            composed: true
+        }))
     }
 
     private select(id: string | undefined) {
@@ -84,6 +102,10 @@ export class MateuTaskQueue extends LitElement {
                                     ${item.caption ? html`<span class="caption">${item.caption}</span>` : nothing}
                                     ${(item.badges ?? []).map(badge => html`<span class="chip ${badge.color ?? ''}">${badge.label}</span>`)}
                                 </div>
+                                ${item.actionLabel && item.actionId ? html`
+                                    <button class="item-action"
+                                            @click="${(e: Event) => this.itemAction(e, item.actionId, item.id)}">${item.actionLabel}</button>
+                                ` : nothing}
                             </div>
                         `)}
                     </div>

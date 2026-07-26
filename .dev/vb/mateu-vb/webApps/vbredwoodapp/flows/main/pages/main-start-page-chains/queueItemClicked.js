@@ -22,6 +22,12 @@ define([
     async run(context, { itemId }) {
       const { $application } = context;
 
+      // el botón de la OPCIÓN DE LÍNEA vive dentro de la card: su clic también dispara el
+      // ojAction de la oj-action-card — si acaba de correr una acción de línea, este clic
+      // de card es su eco y se ignora
+      if (window.__mateuQueueRowActionAt && Date.now() - window.__mateuQueueRowActionAt < 800) {
+        return;
+      }
       const queue = $application.variables.mateuQueue;
       if (!queue || !queue.actionId || itemId == null) {
         return;

@@ -128,6 +128,15 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             preferences("Sea view", "High floor", "Champagne on arrival")));
     guests.save(
         new Guest(
+            "noah", "Noah Berger", null, false, null, null, GuestTier.SILVER, 2100, 1, 3, 1, 0, 0,
+            null, null, preferences("Quiet room")));
+    guests.save(
+        new Guest(
+            "oliver", "Oliver Grant", "GB1122334", true, "o.grant@email.com", null,
+            GuestTier.GOLD, 15400, 9, 41, 3, 0, 4, "Hab 512 · Hotel Bávaro", "Jul 2026 · 5N",
+            preferences("Late checkout")));
+    guests.save(
+        new Guest(
             "emma", "Emma Richardson", "GB4455123", true, "e.richardson@email.com", null,
             GuestTier.SILVER, 7900, 6, 22, 3, 1, 2, "Hab 1015 · Hotel Punta Cana", "Oct 2025 · 4N",
             preferences("Extra pillows")));
@@ -156,9 +165,21 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             List.of(), List.of(), Set.of()));
     stays.save(
         new Stay(
-            "st-klaus", "klaus", "612", "Family Room", "Todo incluido", today, today.plusDays(4),
-            4, "TUI Deutschland", new BigDecimal("2140.00"), StayStatus.ARRIVING, 0, 0, null,
-            List.of(), List.of(), Set.of()));
+            "st-klaus", "klaus", "612", "Family Room", "Todo incluido", today.plusDays(1),
+            today.plusDays(5), 4, "TUI Deutschland", new BigDecimal("2140.00"),
+            StayStatus.ARRIVING, 0, 0, null, List.of(), List.of(), Set.of()));
+
+    // Llegada futura (estado "Llega <fecha>") y salida pasada (estado "Salió <fecha>")
+    stays.save(
+        new Stay(
+            "st-noah", "noah", "308", "Standard", "Solo alojamiento", today.plusDays(3),
+            today.plusDays(6), 2, "Booking.com", new BigDecimal("540.00"), StayStatus.ARRIVING,
+            0, 0, null, List.of(), List.of(), Set.of()));
+    stays.save(
+        new Stay(
+            "st-oliver", "oliver", "512", "Deluxe King", "Media pensión", today.minusDays(6),
+            today.minusDays(1), 1, "Directo · Web", new BigDecimal("980.00"), StayStatus.DEPARTED,
+            0, 0, null, List.of(), List.of(), Set.of()));
 
     // In-house guests (the "en casa" 360 and the check-out queue)
     stays.save(
@@ -237,6 +258,14 @@ public class FrontOfficeSeeder implements ApplicationRunner {
                 FolioLine.includedInPackage("All Inclusive Package", "Incluido"),
                 FolioLine.charge("Spa — Circuito x2", new BigDecimal("90.00")),
                 FolioLine.charge("Room Service", new BigDecimal("50.00")))));
+    folios.save(
+        new Folio(
+            "f-oliver", "st-oliver", new BigDecimal("1000.00"),
+            List.of(
+                FolioLine.charge("Alojamiento x5 noches", new BigDecimal("880.00")),
+                FolioLine.includedInPackage("Media pensión", "Incluido"),
+                FolioLine.charge("Minibar", new BigDecimal("24.00")),
+                FolioLine.charge("City Tax (5 noches)", new BigDecimal("25.00")))));
     folios.save(
         new Folio(
             "f-emma", "st-emma", new BigDecimal("700.00"),

@@ -40,11 +40,7 @@ public class FrontOfficeSuite {
   @AppContext(label = "Hotel")
   Hotel hotel;
 
-  @Menu RouteLink checkin = new RouteLink("/checkin", "Check-In");
-
-  @Menu RouteLink checkout = new RouteLink("/checkout", "Check-Out");
-
-  @Menu RouteLink enCasa = new RouteLink("/encasa", "En Casa");
+  @Menu RouteLink reservas = new RouteLink("/reservas", "Reservas");
 
   @Audience("Staff")
   @Menu
@@ -56,7 +52,7 @@ public class FrontOfficeSuite {
           .icon("🏨")
           .title("Front-Office Suite")
           .description(
-              "Suite & Automation Engine — elige Check-In, Check-Out, En Casa o Automatizaciones"
+              "Suite & Automation Engine — elige Reservas o Automatizaciones"
                   + " en el menú.")
           .build();
 }

@@ -13,6 +13,7 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.Meter;
 import io.mateu.uidl.data.Stat;
 import io.mateu.uidl.data.StatusItem;
@@ -185,6 +186,14 @@ public class EnCasaDetail implements PostHydrationHandler {
   }
 
   // ── Staff quick actions ─────────────────────────────────────────────────────
+
+  @Audience("Staff")
+  @Toolbar
+  @Label("Check-out")
+  Object irACheckout() {
+    // el host (ReservasQueue) está suscrito al evento y fuerza la pantalla de check-out
+    return UICommand.dispatchEvent("checkout-solicitado", java.util.Map.of("_item", stayId));
+  }
 
   @Audience("Staff")
   @Toolbar

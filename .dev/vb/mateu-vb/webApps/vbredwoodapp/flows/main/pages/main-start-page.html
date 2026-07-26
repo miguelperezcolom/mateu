@@ -394,6 +394,13 @@
                       <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </template>
                   </oj-bind-for-each>
+                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                    <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-1x-top">
+                      <oj-button chroming="outlined" display="all"
+                        :data-action-id="[[ $current.data.actionId ]]"
+                        on-oj-action="[[ $listeners.queueRowAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                    </div>
+                  </oj-bind-if>
                 </div>
               </oj-action-card>
             </template>

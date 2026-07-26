@@ -278,6 +278,17 @@
           }
         }
       ]
+    },
+    "queueRowAction": {
+      "chains": [
+        {
+          "chain": "queueRowAction",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}"
+          }
+        }
+      ]
     }
   },
   "imports": {

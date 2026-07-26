@@ -1,6 +1,9 @@
-/* Fase 9: acción de la ISLA (Edit/Save/Cancel del mediador embebido) — se postea contra el
- * contexto de la isla (outbound estampado al cargarla); la respuesta vuelve dirigida a su
- * contextId y SOLO la isla se re-proyecta: el host no se toca (structural sharing). */
+/* Fase 9: acción de la ISLA (Edit/Save/toolbar del mediador embebido) — se postea contra
+ * el contexto de la isla (outbound estampado al cargarla) y en general SOLO la isla se
+ * re-proyecta. Si la respuesta trae EVENTOS de bus (p.ej. el "Check-out" del toolbar del
+ * 360 emite checkout-solicitado), se disparan los triggers OnCustomEvent suscritos en el
+ * HOST y se re-proyecta todo — incluida la posible SUSTITUCIÓN de la isla (el host decide
+ * mostrar otra pantalla de detalle). */
 
 define([
   'vb/action/actionChain',
@@ -19,6 +22,7 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.actionId
+     * @param {Object} params.parameters
      */
     async run(context, { actionId, parameters }) {
       const { $application, $page } = context;
@@ -33,55 +37,89 @@ define([
         return;
       }
       const base = $application.constants.mateuBaseUrl;
+      const appState = $application.variables.mateuAppState || {};
       const componentState = Object.assign(
         {}, islandContext.state, $page.variables.mateuIslandDraft);
-      const appState = $application.variables.mateuAppState || {};
       const outbound = islandContext.outbound || {};
+
+      let reg = before;
+      const allEvents = [];
+      const allToasts = [];
+      const apply = (increment) => {
+        reg = bridge.reduceContexts(reg, increment);
+        allEvents.push.apply(allEvents, reg.effects.events || []);
+        allToasts.push.apply(allToasts, reg.effects.toasts || []);
+      };
+
       const increment = await bridge.runMateuAction(
         base, islandContext, outbound.route || '',
         actionId, componentState, { appState, parameters: parameters || {} });
-      let reg = bridge.reduceContexts(before, increment);
+      apply(increment);
 
       // ROUTE-FLIP del mediador embebido: una respuesta state-only con _route nuevo
-      // significa "recarga mi ruta interna" (p.ej. edit → /edit, save → /view)
+      // significa "recarga mi ruta interna" (p.ej. edit → /edit, save → /view).
+      // OJO: nada de comparar por IDENTIDAD (proxies de VB) — criterio semántico.
       let after = reg.contexts[islandId];
       const flippedRoute = after && after.state ? after.state._route : null;
       const previousRoute = islandContext.state ? islandContext.state._route : null;
-      // OJO: nada de comparar por IDENTIDAD (after.tree === before.tree): las variables
-      // de VB van tras proxies y cada lectura puede devolver un wrapper distinto —
-      // el criterio es semántico: el increment fue STATE-ONLY (ningún fragment con árbol)
       const stateOnly = (increment.fragments || []).length > 0
         && (increment.fragments || []).every((f) => !f.component);
       if (after && stateOnly && flippedRoute != null && flippedRoute !== previousRoute) {
         const innerRoute = bridge.composeInnerRoute(outbound.route || '', flippedRoute);
-        const reload = await bridge.loadRoute(base, innerRoute, islandId, {
+        apply(await bridge.loadRoute(base, innerRoute, islandId, {
           consumedRoute: outbound.consumedRoute || outbound.route || '',
           serverSideType: outbound.serverSideType,
           appState,
-        });
-        reg = bridge.reduceContexts(reg, reload);
-        after = reg.contexts[islandId];
+        }));
       }
-      $application.variables.mateuRegistry = reg;
-      $application.variables.mateuIsland = after
-        ? { fields: bridge.fieldListOf(after.tree, after.state),
-            actions: bridge.actionsOf(after.tree),
-            content: bridge.islandContentOf(after) }
-        : null;
-      // isla ANIDADA dentro de la isla (App con initialData sembrado, p.ej. el documento):
-      // cargar con el initialData como componentState; RECARGAR si el seed cambió (selectPax)
-      const nestedList = after ? bridge.collectIslands(after.tree) : [];
+
+      // eventos de bus → triggers suscritos en el HOST (p.ej. checkout-solicitado →
+      // checkoutGuest en ReservasQueue); el host se re-renderiza
+      let hostChanged = false;
+      for (const busEvent of allEvents.splice(0)) {
+        const hostNow = reg.contexts[bridge.HOST_ID];
+        if (!hostNow) continue;
+        for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
+          apply(await bridge.runMateuAction(
+            base, hostNow, '', triggerActionId,
+            Object.assign({}, hostNow.state, busEvent.detail || {}),
+            { appState, parameters: busEvent.detail || {} }));
+          hostChanged = true;
+        }
+      }
+
+      // qué isla toca proyectar: si el host cambió, puede haber SUSTITUIDO la isla
+      let effectiveIslandId = islandId;
+      if (hostChanged) {
+        const hostAfter = reg.contexts[bridge.HOST_ID];
+        const islandsAfter = bridge.collectIslands(hostAfter.tree);
+        const islandAfter = islandsAfter.length ? islandsAfter[0] : null;
+        if (islandAfter && !reg.contexts[islandAfter.id]) {
+          reg = await bridge.loadRouteInto(base, reg, islandAfter.route, islandAfter.id, {
+            appState,
+            componentState: islandAfter.initialData || {},
+          });
+        }
+        effectiveIslandId = islandAfter ? islandAfter.id : '';
+        $application.variables.mateuIslandId = effectiveIslandId;
+        $application.variables.mateuQueue = bridge.taskQueueOf(hostAfter.tree);
+        $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
+      }
+
+      const islandNow = effectiveIslandId ? reg.contexts[effectiveIslandId] : null;
+
+      // isla ANIDADA dentro de la isla (App con initialData sembrado): cargar con el
+      // seed como componentState; RECARGAR si el seed cambió. SIN atajo consumedRoute/
+      // serverSideType: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
+      const nestedList = islandNow ? bridge.collectIslands(islandNow.tree) : [];
       const nestedInfo = nestedList.length ? nestedList[0] : null;
       const nestedSeed = nestedInfo ? JSON.stringify(nestedInfo.initialData || {}) : '';
       if (nestedInfo && (!reg.contexts[nestedInfo.id]
           || $application.variables.mateuNestedSeed !== nestedSeed)) {
-        // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
-        // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
         reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
           appState,
           componentState: nestedInfo.initialData || {},
         });
-        $application.variables.mateuRegistry = reg;
       }
       $application.variables.mateuNestedId = nestedInfo ? nestedInfo.id : '';
       $application.variables.mateuNestedSeed = nestedSeed;
@@ -90,19 +128,20 @@ define([
       $application.variables.mateuNested = nestedBlocks
         ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) }
         : null;
+
+      $application.variables.mateuRegistry = reg;
       // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
       // $current — leer $application.variables en templates profundos no re-liga)
-      if ($application.variables.mateuIsland && nestedBlocks) {
-        $application.variables.mateuIsland = Object.assign({}, $application.variables.mateuIsland, {
-          content: bridge.mergeNestedContent($application.variables.mateuIsland.content, nestedBlocks),
-        });
-      }
-
+      $application.variables.mateuIsland = islandNow
+        ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state),
+            actions: bridge.actionsOf(islandNow.tree),
+            content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
+        : null;
 
       $page.variables.mateuIslandDraft = {};
       $application.variables.mateuDirty = false;
 
-      for (const toast of reg.effects.toasts) {
+      for (const toast of allToasts) {
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

@@ -420,6 +420,12 @@ define([], () => {
             label: badge.label,
             badgeClass: BADGE_CLASSES[badge.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           })),
+          // opción de LÍNEA (p.ej. "Check-out" solo en reservas in house): botón en la card
+          // que despacha su propio actionId con {_item} — mismo contrato que el renderer web
+          hasAction: !!(item.actionLabel && item.actionId),
+          actionLabel: item.actionLabel || '',
+          actionId: item.actionId || '',
+          parameters: { _item: item.id },
         })),
       })),
     }
@@ -535,6 +541,15 @@ define([], () => {
         if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
         else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
         plain = null
+        return
+      }
+      if (t === 'Page') {
+        // título de la isla + su TOOLBAR (los @Toolbar del server viajan en metadata.toolbar)
+        const pageTitle = interp(m.title || '')
+        if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+        const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
+        if (toolbar.length) atom({ isButtons: true, buttons: toolbar.map(buttonOf) }, container)
+        for (const child of kidsOf(node)) visit(child, container)
         return
       }
       if (t === 'Text') {
