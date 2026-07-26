@@ -791,6 +791,26 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
   return merged.length ? merged : null
 }
 
+/** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
+ *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
+ *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+export function wizardForwardOf(ctx) {
+  const blocks = islandContentOf(ctx)
+  if (!blocks) return null
+  let forward = null
+  for (const block of blocks) {
+    for (const atomItem of block.items) {
+      if (!atomItem.isButtons) continue
+      const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
+      const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+      if (candidate && (hasBack || candidate.actionId === 'next')) {
+        forward = { actionId: candidate.actionId, label: candidate.label }
+      }
+    }
+  }
+  return forward
+}
+
 /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
 export function dismissOverlay(reg) {
   if (!reg.stack || !reg.stack.length) return reg

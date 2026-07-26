@@ -99,7 +99,9 @@ define([
       $application.variables.mateuFormActions = summary.actions;
       const wizardNow = $application.variables.mateuWizard;
       if (wizardNow) {
-        const forward = summary.actions.find((a) => a.actionId !== 'back');
+        const forwardBtn = bridge.wizardForwardOf(hostAfter);
+        const forward = forwardBtn
+          || summary.actions.find((a) => a.actionId !== 'back');
         $application.variables.mateuWizardForwardId = forward ? forward.actionId : '';
         $application.variables.mateuFormActions = []; // atrás = clic en el rail; adelante = Continue
         // sin availableFromStep: el primary solo aparece en el ÚLTIMO paso del tren

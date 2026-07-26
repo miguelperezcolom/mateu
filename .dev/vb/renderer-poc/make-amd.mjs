@@ -54,6 +54,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     islandContentOf,
     mergeNestedContent,
     hostContentOf,
+    wizardForwardOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

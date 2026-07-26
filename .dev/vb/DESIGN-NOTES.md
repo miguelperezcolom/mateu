@@ -710,6 +710,18 @@ markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
 runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
 chain) + la fórmula RDS es el equivalente práctico.
 
+## Wizard standalone: pie sticky vs barra de tabs + forward real (2026-07-26)
+
+- El pie del guided process (Continue/Back) es `position: sticky; bottom: 0` — con la barra
+  de tabs inferior (fija, 64px) quedaba TAPADO e inalcanzable. Regla auto-condicionada en
+  app.css: `body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer
+  { bottom: 64px }` — solo actúa cuando la barra existe (los shells con drawer no se ven
+  afectados).
+- La acción FORWARD del wizard se elegía como "primera acción no-back" — en wizards ricos
+  (check-in) la primera es selectPax y el Continue disparaba eso. Nueva proyección
+  `wizardForwardOf(ctx)`: deriva el forward del PIE REAL del árbol (el bloque de botones
+  que acompaña a 'back'), con fallback al criterio antiguo.
+
 ## GOTCHA VB: variables de proyección — ni null ni cambio de forma (2026-07-26)
 
 Dos crashes silenciosos con el mismo patrón (rompían onMateuNavigate A MITAD: la URL no se

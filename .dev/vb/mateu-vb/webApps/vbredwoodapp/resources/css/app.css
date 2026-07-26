@@ -31,3 +31,10 @@ oj-sp-global-header a[id$='_HOa1'] {
 #mateuTable tbody tr {
   cursor: pointer;
 }
+
+/* El pie sticky del guided process (Continue/Back) se ancla a bottom:0 — con la barra de
+   tabs inferior (oj-applayout-fixed-bottom, 64px) quedaba tapado. Solo aplica cuando la
+   barra existe (:has), así los shells con drawer no se ven afectados. */
+body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
+  bottom: 64px;
+}
