@@ -535,6 +535,22 @@
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
@@ -766,6 +782,22 @@
                       <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -1146,6 +1178,22 @@
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.paymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
@@ -1377,6 +1425,22 @@
                       <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.paymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -1635,6 +1699,22 @@
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
@@ -1866,6 +1946,22 @@
                       <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
                         :data-action-id="[[ $current.data.confirmActionId ]]"
                         on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>

@@ -222,25 +222,78 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             .build();
       };
 
-  private Component paraLlegada(Stay stay) {
+  /** One row of the check-in operations checklist. */
+  private record Op(
+      String id, String icon, String title, String pendiente, String hecha,
+      boolean done, String actionLabel, String actionId) {}
+
+  /** The check-in operations of an arriving stay — completed and pending, with quick actions. */
+  private List<Op> operaciones(Stay stay) {
+    var ops = FrontOffice.checkInOps().of(stay.id());
     var faltan = paxPendientes(stay);
     var habitacionLista = habitacionInspeccionada(stay);
-    var avisos = new ArrayList<Component>();
-    avisos.add(
-        Notice.builder()
-            .theme(faltan == 0 ? "success" : "warning")
-            .text(faltan == 0
-                ? "Documentación completa — todo listo para el check-in"
-                : "Falta la documentación de " + faltan + " pax — el check-in la pedirá")
-            .build());
-    avisos.add(
-        Notice.builder()
-            .theme(habitacionLista ? "success" : "info")
-            .text(habitacionLista
-                ? "Hab " + stay.roomNumber() + " inspeccionada y lista"
-                : "La habitación se elegirá durante el check-in")
-            .build());
-    return VerticalLayout.builder().content(avisos).style("width: 100%; gap: .5rem;").build();
+    return List.of(
+        new Op("documentos", "🪪", "Datos de huéspedes",
+            "Falta la documentación de " + faltan + " pax — escaneo de documento en el check-in",
+            "Documentación de los " + stay.pax() + " pax completa",
+            faltan == 0, "Completar", "iniciarCheckin"),
+        new Op("habitacion", "🛏️", "Habitación",
+            "Hab " + stay.roomNumber() + " pre-asignada · pendiente de inspección",
+            "Hab " + stay.roomNumber() + " inspeccionada y lista",
+            habitacionLista, null, null),
+        new Op("wifi", "📶", "Tarjeta wifi",
+            "Crear las credenciales de acceso del huésped",
+            "Credenciales creadas y entregadas",
+            ops.wifi(), "Crear", "opWifi"),
+        new Op("llave", "🔑", "Llave / pulsera",
+            "Grabar la llave o pulsera de la Hab " + stay.roomNumber(),
+            "Llave / pulsera grabada",
+            ops.llave(), "Grabar", "opLlave"),
+        new Op("firma", "✍️", "Firma del registro",
+            "Se enviará a la tablet durante el check-in",
+            "Firmada por el huésped en la tablet",
+            ops.firma(), null, null),
+        new Op("cobro", "💳", "Cobro / preautorización",
+            "Preautorizar " + GuestHeaders.euros(stay.total()) + " en el check-in",
+            "Preautorización completada",
+            ops.cobro(), null, null),
+        new Op("extras", "🎁", "Ancillaries",
+            "Ofrecer los extras opcionales en el check-in",
+            "Selección de extras cerrada",
+            ops.extras(), null, null));
+  }
+
+  private Component paraLlegada(Stay stay) {
+    var lista = operaciones(stay);
+    var hechas = (int) lista.stream().filter(Op::done).count();
+    var banner =
+        io.mateu.uidl.data.TaskProgress.builder()
+            .label("Operaciones de check-in")
+            .total(lista.size())
+            .done(hechas)
+            .build();
+    var checklist =
+        StatusList.builder()
+            .compact(true)
+            .frameless(true)
+            .style("width: 100%;")
+            .items(lista.stream()
+                .map(op -> StatusItem.builder()
+                    .id(op.id())
+                    .avatar(op.icon())
+                    .title(op.title())
+                    .description(op.done() ? op.hecha() : op.pendiente())
+                    .status(op.done() ? "✓ Hecha" : "Pendiente")
+                    .statusColor(op.done() ? "success" : "warning")
+                    .actionLabel(op.done() ? null : op.actionLabel())
+                    .actionId(op.done() ? null : op.actionId())
+                    .build())
+                .toList())
+            .build();
+    return VerticalLayout.builder()
+        .content(List.of(banner, checklist))
+        .style("width: 100%; gap: .5rem;")
+        .build();
   }
 
   private Component paraInHouse(Stay stay) {
@@ -317,7 +370,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
     }
     return switch (stay().status()) {
       case ARRIVING -> List.of(
-          Button.builder().label("Iniciar check-in").actionId("iniciarCheckin")
+          Button.builder().label("Confirmar check-in").actionId("iniciarCheckin")
               .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
       case IN_HOUSE -> List.of(
           Button.builder().label("Check-out").actionId("irCheckout")
@@ -330,6 +383,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   @Override
   public boolean supportsAction(String actionId) {
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
+            "opWifi", "opLlave",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
   }
@@ -349,6 +403,16 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         yield this;
       }
       case "mensajeHuesped" -> new Message("Aquí se enviaría un mensaje al huésped (demo)");
+      case "opWifi" -> {
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withWifi(true));
+        yield List.of(this,
+            new Message("Tarjeta wifi creada — red HOTEL_GUEST · clave " + claveWifi()));
+      }
+      case "opLlave" -> {
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withLlave(true));
+        yield List.of(this,
+            new Message("Llave / pulsera grabada — Hab " + stay().roomNumber()));
+      }
       case "buscarCargos" -> {
         if (java.util.Objects.equals(cargoBusqueda, ultimaBusqueda)) {
           yield null; // otro campo disparó el auto-save — sin re-render
@@ -441,6 +505,11 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       }
     }
     return sb.toString();
+  }
+
+  /** A memorable per-stay wifi key for the demo toast. */
+  private String claveWifi() {
+    return "HG-" + Math.abs(stayId.hashCode() % 9000 + 1000);
   }
 
   boolean habitacionInspeccionada(Stay stay) {

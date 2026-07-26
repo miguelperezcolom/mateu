@@ -913,3 +913,44 @@ proyección + rama TaskQueue (cards agrupadas con contadores, clic → acción c
    contenido = los tres modos de `pageWidth` (fixed/fullWidth/edgeToEdge) fieles a la medición RDS 24C.
 3. Pendiente de capturar cuando toque: foldout/item-overview (F7+, añadir pantallas a demo-vb),
    un `PushStateToHistory` real (navegación de crud sin drawer) y el spike de SSE/LongTask en VB hosteado.
+
+## Checklist de operaciones de check-in — fase 1 (2026-07-26)
+
+La Reserva 360 en estado por-llegar muestra las OPERACIONES del check-in (documentos,
+habitación, wifi, llave, firma, cobro, ancillaries) como checklist ejecutable, y el wizard
+pide SOLO las pendientes.
+
+- **Dominio (evolution)**: `CheckInOps` (flags wifi/llave/firma/cobro/extras, withers) +
+  `CheckInOpsRepository` in-memory por stayId (accesor `FrontOffice.checkInOps()`).
+  Documentos y habitación se DERIVAN (paxPendientes / housekeeping INSPECTED), no se
+  almacenan. Escriben ambas pantallas: la 360 (acciones rápidas `opWifi`/`opLlave`) y el
+  wizard (llaveGrabada/firmaCapturada/preautorizado persisten su flag; confirmarCheckin
+  cierra `extras`) — así checklist y branching siempre coinciden.
+- **360** (`ReservaOverview.paraLlegada`): banner `TaskProgress` ("Operaciones de check-in
+  · N de 7", sin CTA — el header ya lleva "Confirmar check-in", renombrado desde "Iniciar")
+  + `StatusList` con avatar-emoji por operación, descripción pendiente/hecha, chip
+  Pendiente/✓ Hecha y botón de acción rápida solo en las pendientes que se resuelven in
+  situ (wifi "Crear", llave "Grabar"); "Completar" en documentos abre el wizard. El wizard
+  siembra el paso Confirmar desde las ops (llave→grabada, firma→firmada, cobro→
+  preautorizado) y `stepApplies("extras")` mira `ops.extras()`.
+- **Bridge**: átomo `isTaskProgress` en `islandContentOf` (todo precomputado: valueText
+  "N de M", panelClass neutral→success al completar, botón oculto si completo — contrato
+  del componente TaskProgress); añadido a la regla de bloques RICOS en los DOS chains
+  (shell onMateuNavigate + runMateuAction). Markup: bloque nuevo en las 6 copias de átomos
+  (insertado por script antes de cada `isMeter`, listener resuelto por copia: 4×
+  hostBlockAction, 2× islandBlockAction) — oj-panel + oj-progress-bar, solo utilidades JET.
+  Fixture real `fo-reserva-arriving.json` (capturado con transport.loadRouteInto contra
+  :8595) + test 28. 28/28.
+- **GOTCHA de serving**: `grunt vb-serve` sirve desde `build/optimized` (rutas versionadas
+  `version_<ts>/...`) — los cambios de markup/bridge NO llegan hasta `npx grunt vb-build` +
+  reinicio del serve. El síntoma es sutil: los átomos nuevos no pintan pero el resto
+  funciona (los templates viejos siguen sirviendo). Verificar con
+  `curl :9006/version_*/flows/main/pages/main-start-page.html | grep <átomo nuevo>`.
+- Verificado en vivo (st-klaus, 4 pax): banner 1→2→3 de 7 con las acciones rápidas (toast
+  wifi con credenciales, llave grabada), y "Confirmar check-in" abre el wizard con pasos
+  Identidad/Extras/Confirmar — Habitación OMITIDA (ya inspeccionada). Shots:
+  ops-checklist.png, ops-checklist-llave.png, ops-wizard.png.
+- Pendiente fase 2: cambiar habitación (ResourceGrid) + upgrade (OfferCard) como modos de
+  la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
+  360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
+  wizard).

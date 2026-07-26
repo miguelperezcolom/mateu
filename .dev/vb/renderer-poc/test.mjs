@@ -437,4 +437,27 @@ test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre
   assert.equal(btn.buttons[0].fromNested, true) // enruta a runMateuNestedAction
 })
 
+// 28) Checklist de operaciones de check-in (Reserva 360, estado por-llegar): el banner
+// TaskProgress proyecta N-de-M precomputado (el CSP de VB no compara) y el StatusList
+// lleva las acciones rápidas por operación (Crear wifi / Grabar llave → {_item}).
+test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por operación', () => {
+  const atoms = islandContentOf(fx('fo-reserva-arriving')).flatMap((b) => b.items)
+  const tp = atoms.find((a) => a.isTaskProgress)
+  assert.equal(tp.label, 'Operaciones de check-in')
+  assert.equal(tp.max, 7)
+  assert.equal(tp.valueText, tp.value + ' de 7')
+  assert.match(tp.panelClass, /oj-panel/)
+  const ops = atoms.filter((a) => a.isStatusList)
+      .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
+  const wifi = ops.items.find((i) => i.title === 'Tarjeta wifi')
+  assert.equal(wifi.actionLabel, 'Crear')
+  assert.equal(wifi.actionId, 'opWifi')
+  assert.deepEqual(wifi.parameters, { _item: 'wifi' })
+  const llave = ops.items.find((i) => i.title === 'Llave / pulsera')
+  assert.equal(llave.actionId, 'opLlave')
+  // las operaciones sin acción rápida (se hacen en el wizard) no llevan botón
+  const firma = ops.items.find((i) => i.title === 'Firma del registro')
+  assert.equal(firma.actionLabel, '')
+})
+
 console.log(`\n${pass} tests OK (contrato de wire real)`)

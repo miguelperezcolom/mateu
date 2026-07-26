@@ -98,6 +98,18 @@ public class CheckInWizard extends Wizard {
     extras.setExtrasSeleccionados("");
     extras.setExtrasTotal(0);
     confirmar.setStayId(stayId);
+    // operaciones ya completadas desde la Reserva 360 (o un wizard anterior): el paso
+    // Confirmar las muestra en verde y no las vuelve a pedir
+    var ops = FrontOffice.checkInOps().of(stayId);
+    if (ops.llave()) {
+      confirmar.setLlaveEstado("grabada");
+    }
+    if (ops.firma()) {
+      confirmar.setFirmaEstado("firmada");
+    }
+    if (ops.cobro()) {
+      confirmar.setPreauthEstado("preautorizado");
+    }
   }
 
   /** The Confirmar step shows data derived from the other steps — recompute it on each request. */
@@ -189,6 +201,7 @@ public class CheckInWizard extends Wizard {
       }
       case "llaveGrabada" -> {
         confirmar.setLlaveEstado("grabada");
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withLlave(true));
         return List.of(this, new Message("Llave / pulsera grabada"));
       }
       case "requestPreauth" -> {
@@ -208,6 +221,7 @@ public class CheckInWizard extends Wizard {
       }
       case "preautorizado" -> {
         confirmar.setPreauthEstado("preautorizado");
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withCobro(true));
         return List.of(
             this,
             new Message(
@@ -225,6 +239,7 @@ public class CheckInWizard extends Wizard {
       }
       case "firmaCapturada" -> {
         confirmar.setFirmaEstado("firmada");
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withFirma(true));
         return List.of(this, new Message("Firma capturada"));
       }
       default -> {
@@ -268,8 +283,9 @@ public class CheckInWizard extends Wizard {
 
   // ── Completion ──────────────────────────────────────────────────────────────
 
-  /** Solo lo que FALTA: identidad si hay documentación pendiente; habitación si la
-   *  asignada no está inspeccionada (o no hay). Extras y confirmación, siempre. */
+  /** Solo lo que FALTA — cada paso pregunta por SU operación de check-in: identidad si hay
+   *  documentación pendiente; habitación si la asignada no está inspeccionada (o no hay);
+   *  extras si la selección de ancillaries no se cerró aún. Confirmación, siempre. */
   @Override
   protected boolean stepApplies(String stepFieldName) {
     if (stayId == null || stayId.isBlank()) {
@@ -286,6 +302,7 @@ public class CheckInWizard extends Wizard {
               .map(room -> room.housekeeping()
                   != io.mateu.mdd.demofrontoffice.domain.room.HousekeepingStatus.INSPECTED)
               .orElse(true);
+      case "extras" -> !FrontOffice.checkInOps().of(stayId).extras();
       default -> true;
     };
   }
@@ -323,6 +340,8 @@ public class CheckInWizard extends Wizard {
         FrontOffice.folios().save(folio);
       }
     }
+    // la selección de ancillaries queda cerrada con el check-in (operación "extras")
+    FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withExtras(true));
     result = new ResultStep();
     result.setStayId(stayId);
     result.setHabitacionFinal(confirmar.getHabitacionAsignada());

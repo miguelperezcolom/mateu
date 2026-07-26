@@ -201,7 +201,7 @@ define([
             { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
-      const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
+      const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
       $application.variables.mateuHostContent = (hostBlocksRicos ? hostBlocks : null) || [];
@@ -215,7 +215,7 @@ define([
         ? bridge.hostContentOf(host, islandRawBlocks, { forWizard: true, title: summary.title }) : null) || [];
       // si los bloques del paso son RICOS, el form genérico del paso sobra (duplica lo
       // que ya muestran el header/las property rows) — misma regla que en el host
-      if (($application.variables.mateuWizardContent || []).some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
+      if (($application.variables.mateuWizardContent || []).some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow))) {
         $application.variables.mateuFormFieldsList = [];

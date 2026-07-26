@@ -725,6 +725,27 @@ export function islandContentOf(ctx) {
       }, container)
       return
     }
+    if (t === 'TaskProgress') {
+      // banner de subtareas N-de-M (checklist de operaciones): completo → panel success y
+      // sin botón (contrato del componente); todo precomputado (el CSP de VB no compara)
+      const total = m.total || 0
+      const done = m.done || 0
+      const complete = total > 0 && done >= total
+      atom({
+        isTaskProgress: true,
+        label: interp(m.label || ''),
+        value: done,
+        max: total,
+        valueText: done + ' de ' + total,
+        panelClass: complete
+          ? 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30'
+          : 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-neutral-20',
+        actionLabel: !complete && m.actionId ? (m.actionLabel || '') : '',
+        actionId: m.actionId || '',
+        parameters: {},
+      }, container)
+      return
+    }
     if (t === 'Stat') {
       atom({
         isStat: true,

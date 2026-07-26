@@ -8,6 +8,7 @@ import io.mateu.mdd.demofrontoffice.domain.folio.FolioRepository;
 import io.mateu.mdd.demofrontoffice.domain.guest.Guest;
 import io.mateu.mdd.demofrontoffice.domain.guest.GuestRepository;
 import io.mateu.mdd.demofrontoffice.domain.room.RoomRepository;
+import io.mateu.mdd.demofrontoffice.domain.stay.CheckInOpsRepository;
 import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayRepository;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class FrontOffice {
   private final AutomationRepository automations;
   private final ChargeCatalogRepository chargeCatalog;
   private final AddOnCatalogRepository addOnCatalog;
+  private final CheckInOpsRepository checkInOps = new CheckInOpsRepository();
 
   public FrontOffice(
       GuestRepository guests,
@@ -75,6 +77,10 @@ public class FrontOffice {
 
   public static AddOnCatalogRepository addOnCatalog() {
     return instance.addOnCatalog;
+  }
+
+  public static CheckInOpsRepository checkInOps() {
+    return instance.checkInOps;
   }
 
   /** A stay with its guest and folio — the working unit of every front-office screen. */
