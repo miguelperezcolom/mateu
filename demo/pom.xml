@@ -27,6 +27,7 @@
     <module>demo-vaadin-kotlin-mvc</module>
     <module>demo-admin-panel</module>
     <module>demo-front-office</module>
+    <module>demo-front-office-evolution</module>
     <module>demo-redwood-showcase</module>
     <module>demo-vb</module>
     <module>explorer</module>

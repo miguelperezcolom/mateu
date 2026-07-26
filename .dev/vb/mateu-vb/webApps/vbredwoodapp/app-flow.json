@@ -251,8 +251,8 @@
   "constants": {
     "mateuBaseUrl": {
       "type": "string",
-      "defaultValue": "http://localhost:8594",
-      "description": "Backend Mateu (demo-front-office :8594; demo-vb en :9005 — cambiar aquí, punto único)"
+      "defaultValue": "http://localhost:8595",
+      "description": "Backend Mateu (demo-front-office-evolution :8595; front-office compartido :8594; demo-vb :9005 — punto único de cambio)"
     }
   },
   "variables": {

@@ -694,9 +694,11 @@ emitir TABS: en demo-front-office bastó QUITAR el `value = MENU_ON_TOP` explíc
 RouteLinks planos (`hasMenuItems` solo cuenta grupos `Menu`). Evidencia: shots/fo-tabs.png.
 
 
-`constants.mateuBaseUrl` → `http://localhost:8594` (punto ÚNICO de cambio en app-flow.json;
-demo-vb sigue en :9005 para volver). El :8594 ya sirve CORS abierto — no hubo que tocar esa
-instancia (compartida). Primer contacto: la shell ARRANCA entera (menú MENU_ON_TOP con
+`constants.mateuBaseUrl` → `http://localhost:8595` = **demo-front-office-evolution**, la
+COPIA de trabajo creada 2026-07-26 (decisión del usuario: el demo-front-office original
+:8594 queda como instancia compartida intocable; la evolución del front-office se hace en
+demo/demo-front-office-evolution, registrada en el agregador demo/pom.xml). Punto ÚNICO de
+cambio en app-flow.json; demo-vb sigue en :9005 para volver. Primer contacto: la shell ARRANCA entera (menú MENU_ON_TOP con
 Check-In/Check-Out/En Casa/Automatizaciones, selectores @AppContext Modo+Hotel, header de
 página con franja, campo de búsqueda del check-in). GAP identificado en /checkin (tipos del
 wire): TaskQueue (la cola de llegadas — el componente central del front-office) y EmptyState
