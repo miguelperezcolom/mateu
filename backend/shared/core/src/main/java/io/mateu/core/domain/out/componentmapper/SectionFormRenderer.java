@@ -440,7 +440,10 @@ final class SectionFormRenderer {
             // Responsive: when a column can't keep a usable width (see widthStyle's min-width),
             // it wraps below the previous one and, thanks to flex-grow, fills the full row.
             .wrap(true)
-            .style("width: 100%; align-items: flex-start;")
+            // A touch more room between zone columns than the default "spacing" gap so dense,
+            // many-field zones (e.g. a step's Main/Precondition/Execution/Reliability) don't read
+            // as cramped.
+            .style("width: 100%; align-items: flex-start; column-gap: var(--lumo-space-l, 1.5rem);")
             .content(columns)
             .build());
     pendingZoned.clear();
