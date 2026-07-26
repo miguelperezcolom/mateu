@@ -691,7 +691,9 @@ negra en invertido) que además ASOMA por detrás del arranque del contenido —
 queda "encajonado" como la tarjeta. VB/oj-sp NO lo proporciona bajo este runtime (probado:
 con el contenedor sin tope, el header ocupa todo el ancho pero su título queda a 48px — no
 consume el pageLayout del shell para capar su interior). Composición propia con clases de
-sistema: banda = div `oj-bg-neutral-0` + `oj-sm-padding-10x-bottom` (40px) a sangre, que
+sistema: banda = div `oj-bg-neutral-30` + `oj-sm-padding-10x-bottom` (40px) a sangre — el
+MISMO color que pinta el interior del header (`oj-sp-header-general-overview-bg-light` =
+#F1EFED, rectificado 2026-07-26: con blanco quedaba una caja gris dentro de banda blanca), que
 CONTIENE el header (título + franja) capado a la caja del contenido (mateuBandBoxMargin =
 la fórmula horizontal del pageStyle); la tarjeta solapa la banda con margen top -40px
 (inyectado en mateuPageMargin cuando showBand = pageHeader && pw !== edgeToEdge). La franja
@@ -699,6 +701,14 @@ queda al ancho de la TARJETA (está dentro del header capado) y la banda blanca 
 por los lados bajo ella = la anatomía de los pantallazos RDS del usuario. En edge-to-edge
 (drawer nav) no hay banda: el header genérico se pinta inline como antes
 (mateuPageHeaderInline). Shots rv-banda.png.
+
+Sobre "consumir el pageLayout del shell" en vez de la fórmula propia: ya somos la MISMA
+fuente — el shell recibe su page-layout de nuestra variable (mateuShellPageLayout, derivada
+de pw), y banda/caja derivan del mismo pw. El consumo "de verdad" no es posible desde
+markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
+(__oj_provided_contexts), interno a su árbol — y además está comprobado que bajo este
+runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
+chain) + la fórmula RDS es el equivalente práctico.
 
 ## Reservas unificadas (evolution, 2026-07-26)
 

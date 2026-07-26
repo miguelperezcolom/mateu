@@ -8,10 +8,12 @@
      su franja CAPADOS a la caja de contenido; la tarjeta de abajo la solapa (-40px) para
      que la banda asome por detrás de su arranque — todo clases de sistema JET -->
 <oj-bind-if test="[[ !!$application.variables.mateuBand ]]">
-  <div class="oj-bg-neutral-0 oj-sm-padding-10x-bottom">
+  <!-- la banda toma el MISMO color que el fondo interno del header
+       (oj-sp-header-general-overview-bg-light = #F1EFED = oj-bg-neutral-30) -->
+  <div class="oj-bg-neutral-30 oj-sm-padding-10x-bottom">
     <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
       :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
-      <oj-sp-header-general-overview id="mateuPageHeaderEl" class="oj-bg-neutral-0"
+      <oj-sp-header-general-overview id="mateuPageHeaderEl"
         page-title="[[ $application.variables.mateuPageHeader.title ]]"
         display-options.go-to-parent="false"></oj-sp-header-general-overview>
     </div>
