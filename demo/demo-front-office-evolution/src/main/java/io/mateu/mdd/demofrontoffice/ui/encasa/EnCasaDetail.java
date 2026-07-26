@@ -191,8 +191,7 @@ public class EnCasaDetail implements PostHydrationHandler {
   @Toolbar
   @Label("Check-out")
   Object irACheckout() {
-    // el host (ReservasQueue) está suscrito al evento y fuerza la pantalla de check-out
-    return UICommand.dispatchEvent("checkout-solicitado", java.util.Map.of("_item", stayId));
+    return java.net.URI.create("/checkout/" + stayId);
   }
 
   @Audience("Staff")

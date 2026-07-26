@@ -51,10 +51,20 @@ define([
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
 
-      const increment = await bridge.runMateuAction(
-        base, islandContext, outbound.route || '',
-        actionId, componentState, { appState, parameters: parameters || {} });
-      apply(increment);
+      // acciones anunciadas Action.sse(true) (LongTask, p.ej. escanear) → endpoint /sse
+      const isSse = (islandContext.sseActionIds || []).indexOf(actionId) >= 0;
+      let lastIncrement = null;
+      if (isSse) {
+        const increments = await bridge.runMateuActionSse(
+          base, islandContext, outbound.route || '',
+          actionId, componentState, { appState, parameters: parameters || {} });
+        increments.forEach((inc) => { lastIncrement = inc; apply(inc); });
+      } else {
+        lastIncrement = await bridge.runMateuAction(
+          base, islandContext, outbound.route || '',
+          actionId, componentState, { appState, parameters: parameters || {} });
+        apply(lastIncrement);
+      }
 
       // ROUTE-FLIP del mediador embebido: una respuesta state-only con _route nuevo
       // significa "recarga mi ruta interna" (p.ej. edit → /edit, save → /view).
@@ -62,8 +72,8 @@ define([
       let after = reg.contexts[islandId];
       const flippedRoute = after && after.state ? after.state._route : null;
       const previousRoute = islandContext.state ? islandContext.state._route : null;
-      const stateOnly = (increment.fragments || []).length > 0
-        && (increment.fragments || []).every((f) => !f.component);
+      const stateOnly = lastIncrement && (lastIncrement.fragments || []).length > 0
+        && (lastIncrement.fragments || []).every((f) => !f.component);
       if (after && stateOnly && flippedRoute != null && flippedRoute !== previousRoute) {
         const innerRoute = bridge.composeInnerRoute(outbound.route || '', flippedRoute);
         apply(await bridge.loadRoute(base, innerRoute, islandId, {
@@ -137,6 +147,20 @@ define([
             actions: bridge.actionsOf(islandNow.tree),
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;
+
+      // contenido display del HOST / del wizard standalone: re-fusionar con la isla
+      const hostFinal = reg.contexts[bridge.HOST_ID];
+      const islandRawBlocksNow = islandNow ? bridge.islandContentOf(islandNow) : null;
+      if ($application.variables.mateuWizard) {
+        if (hostChanged) {
+          $application.variables.mateuWizard = bridge.wizardOf(hostFinal);
+        }
+        $application.variables.mateuWizardContent = bridge.hostContentOf(
+          hostFinal, islandRawBlocksNow,
+          { forWizard: true, title: $application.variables.mateuHostTitle });
+      } else if ($application.variables.mateuHostContent) {
+        $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow);
+      }
 
       $page.variables.mateuIslandDraft = {};
       $application.variables.mateuDirty = false;

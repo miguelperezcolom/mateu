@@ -710,6 +710,41 @@ markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
 runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
 chain) + la fórmula RDS es el equivalente práctico.
 
+## Reservas v2: listado crud + páginas de detalle standalone (2026-07-26)
+
+Replanteamiento del usuario: /reservas pasa de master-detail a un LISTADO simple (un crud)
+que abre cada reserva como PÁGINA aparte según su estado. Piezas:
+
+- **Backend**: `ReservasListing extends Listing<Filtros,Reserva>` — columnas
+  id/huésped/habitación/noches/estado/tier; `handleAction("view")` (el clic de fila del
+  renderer VB postea view con la fila como parameters) devuelve URI según estado →
+  /checkin/:id | /encasa/:id | /checkout/:id. El Check-out del toolbar del 360 NAVEGA
+  (URI) — fuera el bus. ReservasQueue eliminada.
+- **Smart Search de vb (feedback)**: la búsqueda vive EN LA CABECERA — la propiedad
+  `smartFilters` del oj-sp-smart-filter-search (NO tiene slot search: solo main/dashboard;
+  el slot quedaba en oj-subtree-hidden). Contrato capturado en vivo: config
+  {askHint, value:[]}; Enter añade {filter:'keyword', label, value} a value y dispara
+  smartFiltersChanged (quitar el chip lo elimina) → chain concatena keywords → search.
+- **Páginas de detalle standalone**: proyección `hostContentOf(host, islandRawBlocks,
+  {forWizard})` — los bloques de islandContentOf al nivel de HOST, con la PRIMERA isla del
+  host (documento) fusionada fromNested (despacha a runMateuIslandAction vía
+  dispatchHostBlockAction; el resto contra el host). REGLA: los bloques MANDAN cuando son
+  RICOS (EntityHeader/Meter/Ledger/StatusList/…) — el form genérico y el texto se suprimen
+  (el 360 tiene también FormFields y pintaba campos crudos). En modo wizard los bloques van
+  DENTRO del panel del guided process, filtrando título/ProgressSteps/back-next (los aporta
+  el propio guided process). Listeners de host: hostBlockAction / hostPaymentConfirm /
+  hostAddonToggled.
+- **GOTCHA arquetipo**: `generalOverviewOf` casaba con CUALQUIER página con EntityHeader
+  (el 360 se pintaba como overview con switcher) — ahora REQUIERE el switcher de registro.
+- **SSE en islas**: runMateuIslandAction enruta por sseActionIds (el documento escanea
+  también standalone); las cargas de isla del host van SIN atajo (baile de 2 pasos) para
+  capturar el flag sse del wrapper.
+
+Verificado e2e: listado → clic Carlos → /encasa/st-carlos (toolbar completo, Meter,
+StatusList) → toolbar Check-out → /checkout/st-carlos (folio + métodos); clic María →
+/checkin/st-maria (guided process standalone); búsqueda "sale hoy" → chip + 2 filas.
+Shots rv-*.png.
+
 ## Reservas unificadas (evolution, 2026-07-26)
 
 Los menús Check-In/Check-Out/En Casa se UNIFICAN en `/reservas` (ReservasQueue, evolution):

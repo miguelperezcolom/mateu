@@ -517,6 +517,16 @@
       "type": "string",
       "defaultValue": "0 auto",
       "description": "margen de la caja interior de la banda (la fórmula horizontal del contenido, sin el solape)"
+    },
+    "mateuHostContent": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "bloques display del HOST (páginas de detalle standalone: encasa/checkout)"
+    },
+    "mateuWizardContent": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "bloques display de los pasos del wizard standalone (sin título/rail/back-next: los pone el guided process)"
     }
   },
   "userConfig": {

@@ -44,6 +44,14 @@
         "labelHint": "Record"
       },
       "description": "selectObject del header-general-overview (el DataProvider va DENTRO del objeto)"
+    },
+    "mateuSmartFilters": {
+      "type": "any",
+      "defaultValue": {
+        "askHint": "Buscar…",
+        "value": []
+      },
+      "description": "config/estado del smart filter del header de colección (chips keyword)"
     }
   },
   "metadata": {},
@@ -286,6 +294,50 @@
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}"
+          }
+        }
+      ]
+    },
+    "hostBlockAction": {
+      "chains": [
+        {
+          "chain": "dispatchHostBlockAction",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}",
+            "fromNested": "{{ $current.data.fromNested }}"
+          }
+        }
+      ]
+    },
+    "hostPaymentConfirm": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $current.data.confirmActionId }}",
+            "parameters": "{{ $current.data.confirmParameters }}"
+          }
+        }
+      ]
+    },
+    "hostAddonToggled": {
+      "chains": [
+        {
+          "chain": "hostAddonToggled",
+          "parameters": {
+            "event": "{{ $event }}",
+            "itemId": "{{ $current.data.id }}"
+          }
+        }
+      ]
+    },
+    "smartFiltersChanged": {
+      "chains": [
+        {
+          "chain": "smartFiltersChanged",
+          "parameters": {
+            "event": "{{ $event }}"
           }
         }
       ]

@@ -268,6 +268,9 @@ define([], () => {
     if (!header) return null
     const md = header.metadata
     const switcher = collectFields(ctx.tree).find((f) => f.options && f.options.length)
+    // el arquetipo REQUIERE el switcher de registro: un EntityHeader suelto (p.ej. el 360
+    // de en casa o el folio de check-out como página) NO es un General Overview
+    if (!switcher) return null
     const state = ctx.state || {}
     const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
     const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
@@ -762,6 +765,37 @@ define([], () => {
     ))
   }
 
+  /** Contenido display del HOST (páginas de detalle standalone: /encasa/:id, /checkout/:id,
+   *  y los pasos del wizard /checkin/:id): los mismos bloques que una isla, con la PRIMERA
+   *  isla del host (p.ej. el documento) fusionada en su hueco (atomos fromNested → despachan
+   *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
+   *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
+  function hostContentOf(ctx, islandBlocks, opts = {}) {
+    const blocks = islandContentOf(ctx)
+    if (!blocks) return null
+    let merged = mergeNestedContent(blocks, islandBlocks || null)
+    if (opts.forWizard) {
+      const title = opts.title || ''
+      let titleDropped = false
+      merged = merged
+        .map((block) => ({
+          ...block,
+          items: block.items.filter((atom) => {
+            if (atom.isProgress) return false
+            if (atom.isButtons && atom.buttons.length
+                && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
+            if (!titleDropped && atom.isText && title && atom.text === title) {
+              titleDropped = true
+              return false
+            }
+            return true
+          }),
+        }))
+        .filter((block) => block.items.length)
+    }
+    return merged.length ? merged : null
+  }
+
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
@@ -1218,6 +1252,7 @@ define([], () => {
     interpolate,
     islandContentOf,
     mergeNestedContent,
+    hostContentOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

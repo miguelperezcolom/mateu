@@ -53,6 +53,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     interpolate,
     islandContentOf,
     mergeNestedContent,
+    hostContentOf,
     bannersOf,
     pageStyleOf,
     collectTexts,

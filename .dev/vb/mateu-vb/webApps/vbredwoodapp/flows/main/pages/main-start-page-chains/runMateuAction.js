@@ -121,10 +121,9 @@ define([
       const islandsAfter = bridge.collectIslands(hostAfter.tree);
       const islandAfter = islandsAfter.length ? islandsAfter[0] : null;
       if (islandAfter && !reg.contexts[islandAfter.id]) {
+        // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
         reg = await bridge.loadRouteInto(base, reg, islandAfter.route, islandAfter.id, {
           appState,
-          consumedRoute: islandAfter.consumedRoute,
-          serverSideType: islandAfter.serverSideType,
           componentState: islandAfter.initialData || {},
         });
         $application.variables.mateuRegistry = reg;
@@ -186,6 +185,28 @@ define([
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormActions = [];
       }
+      // contenido display del HOST / de los pasos del wizard (detalle standalone)
+      const islandRawBlocks2 = islandCtxAfter ? bridge.islandContentOf(islandCtxAfter) : null;
+      const esWizard2 = !!$application.variables.mateuWizard;
+      const sinOtrasRamas2 = !listingSummary && !welcome && !overviewProjection && !itemProjection
+        && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
+      const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
+        ? bridge.hostContentOf(hostAfter, islandRawBlocks2) : null;
+      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
+      // y el texto plano se suprimen — misma regla que los arquetipos
+      const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
+        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
+        || a.isStat || a.isNotice || a.isPropertyRow)));
+      $application.variables.mateuHostContent = hostBlocksRicos2 ? hostBlocks2 : null;
+      if (hostBlocksRicos2) {
+        $application.variables.mateuFormMetadata = null;
+        $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormActions = [];
+        $application.variables.mateuHostText = '';
+      }
+      $application.variables.mateuWizardContent = esWizard2
+        ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { forWizard: true, title: summary.title }) : null;
+
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
