@@ -348,7 +348,8 @@
           "chain": "hostInputChanged",
           "parameters": {
             "event": "{{ $event }}",
-            "fieldId": "{{ $current.data.fieldId }}"
+            "fieldId": "{{ $current.data.fieldId }}",
+            "fromNested": "{{ $current.data.fromNested }}"
           }
         }
       ]

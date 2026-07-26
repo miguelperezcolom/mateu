@@ -122,8 +122,11 @@ define([
       // se carga su contenido si su contexto aún no existe y se (re)proyecta
       const islandsAfter = bridge.collectIslands(hostAfter.tree);
       const islandAfter = islandsAfter.length ? islandsAfter[0] : null;
-      if (islandAfter && !reg.contexts[islandAfter.id]) {
-        // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
+      const islandSeed = islandAfter ? JSON.stringify(islandAfter.initialData || {}) : '';
+      if (islandAfter && (!reg.contexts[islandAfter.id]
+          || $application.variables.mateuIslandSeed !== islandSeed)) {
+        // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse).
+        // RECARGA también si el SEED cambió (p.ej. seleccionarPax re-siembra paxIndex)
         reg = await bridge.loadRouteInto(base, reg, islandAfter.route, islandAfter.id, {
           appState,
           componentState: islandAfter.initialData || {},
@@ -131,6 +134,7 @@ define([
         $application.variables.mateuRegistry = reg;
       }
       $application.variables.mateuIslandId = islandAfter ? islandAfter.id : '';
+      $application.variables.mateuIslandSeed = islandSeed;
       const islandCtxAfter = islandAfter ? reg.contexts[islandAfter.id] : null;
       $application.variables.mateuIsland = islandCtxAfter
         ? { fields: bridge.fieldListOf(islandCtxAfter.tree, islandCtxAfter.state),

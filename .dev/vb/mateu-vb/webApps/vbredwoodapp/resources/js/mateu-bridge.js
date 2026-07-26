@@ -842,7 +842,7 @@ define([], () => {
     // a más profundidad el evaluador CSP de VB deja de resolver los bindings del template
     const hoisted = blocks.map((block) => (
       block.items.some((a) => a.isNested)
-        ? { isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
+        ? { ...block, isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
         : block
     ))
     const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
@@ -864,7 +864,9 @@ define([], () => {
         return marked
       })
     return islandBlocks.map((block) => (
-      block.isNestedBlock ? { isCard: true, items: nestedAtoms } : block
+      block.isNestedBlock
+        ? { ...block, isNestedBlock: false, isCard: true, isPlain: false, items: nestedAtoms }
+        : block
     ))
   }
 
@@ -890,8 +892,10 @@ define([], () => {
             return false
           }
           // el TOOLBAR de Page tampoco va al contenido: se proyecta a las acciones del
-          // header (pageToolbarOf → primary/secondary de la banda)
-          if (atom.fromPageToolbar) return false
+          // header (pageToolbarOf → primary/secondary de la banda) — SALVO el de la ISLA
+          // fusionada (fromNested, p.ej. Cancel/Save del editor del documento): ese
+          // pertenece a la isla y se pinta en su bloque
+          if (atom.fromPageToolbar && !atom.fromNested) return false
           // y el EntityHeader tampoco cuando el header de pantalla lo muestra (título/
           // subtítulo/facts del huésped en la banda, en vez del título genérico)
           if (opts.dropEntityHeader && atom.isEntityHeader && !entityDropped) {

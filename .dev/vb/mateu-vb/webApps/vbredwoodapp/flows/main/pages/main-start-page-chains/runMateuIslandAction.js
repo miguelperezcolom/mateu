@@ -38,8 +38,18 @@ define([
       }
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};
+      // el SEED de la isla (initialData del wrapper: stayId/paxIndex…) debe viajar en CADA
+      // acción — el server no lo eca y el estado del modelo cargado no lo lleva (mismo
+      // gotcha que la isla anidada); un null del estado NO pisa el seed
+      let islandSeed = {};
+      try { islandSeed = JSON.parse($application.variables.mateuIslandSeed || '{}'); } catch (e) { islandSeed = {}; }
       const componentState = Object.assign(
         {}, islandContext.state, $page.variables.mateuIslandDraft);
+      for (const seedKey of Object.keys(islandSeed)) {
+        if (componentState[seedKey] == null) {
+          componentState[seedKey] = islandSeed[seedKey];
+        }
+      }
       const outbound = islandContext.outbound || {};
 
       let reg = before;
@@ -76,10 +86,18 @@ define([
         && (lastIncrement.fragments || []).every((f) => !f.component);
       if (after && stateOnly && flippedRoute != null && flippedRoute !== previousRoute) {
         const innerRoute = bridge.composeInnerRoute(outbound.route || '', flippedRoute);
+        // el reload del flip también lleva el seed (el nuevo estado se hidrata de él)
+        const flipState = Object.assign({}, islandSeed, after.state);
+        for (const seedKey of Object.keys(islandSeed)) {
+          if (flipState[seedKey] == null) {
+            flipState[seedKey] = islandSeed[seedKey];
+          }
+        }
         apply(await bridge.loadRoute(base, innerRoute, islandId, {
           consumedRoute: outbound.consumedRoute || outbound.route || '',
           serverSideType: outbound.serverSideType,
           appState,
+          componentState: flipState,
         }));
       }
 
@@ -112,6 +130,8 @@ define([
         }
         effectiveIslandId = islandAfter ? islandAfter.id : '';
         $application.variables.mateuIslandId = effectiveIslandId;
+        $application.variables.mateuIslandSeed = islandAfter
+          ? JSON.stringify(islandAfter.initialData || {}) : '';
         $application.variables.mateuQueue = bridge.taskQueueOf(hostAfter.tree);
         $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
       }
@@ -159,7 +179,11 @@ define([
           hostFinal, islandRawBlocksNow,
           { forWizard: true, title: $application.variables.mateuHostTitle }) || [];
       } else if (($application.variables.mateuHostContent || []).length) {
-        $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow) || [];
+        // mismas opts que runMateuAction: sin ellas el título de página y el EntityHeader
+        // reaparecían DUPLICADOS en el contenido tras una acción de la isla
+        const hostEntityNow = bridge.entityHeaderOf(hostFinal);
+        $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow,
+          { title: $application.variables.mateuHostTitle, dropEntityHeader: !!hostEntityNow }) || [];
       }
 
       $page.variables.mateuIslandDraft = {};

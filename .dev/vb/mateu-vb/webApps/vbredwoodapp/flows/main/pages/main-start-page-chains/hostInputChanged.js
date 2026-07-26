@@ -20,7 +20,7 @@ define([
      * @param {Object} params.event
      * @param {string} params.fieldId
      */
-    async run(context, { event, fieldId }) {
+    async run(context, { event, fieldId, fromNested }) {
       const { $page } = context;
 
       const detail = (event && event.detail) || {};
@@ -28,6 +28,15 @@ define([
         return;
       }
       if (!fieldId) {
+        return;
+      }
+      // input de la ISLA fusionada (fromNested, p.ej. el editor del documento): su valor
+      // va al draft de la isla (runMateuIslandAction lo fusiona en su componentState) y
+      // NO relanza el auto-save del host
+      if (fromNested) {
+        const islandDraft = Object.assign({}, $page.variables.mateuIslandDraft);
+        islandDraft[fieldId] = detail.value;
+        $page.variables.mateuIslandDraft = islandDraft;
         return;
       }
       const draft = Object.assign({}, $page.variables.mateuDraft);

@@ -78,6 +78,8 @@ define([
         });
       }
       $application.variables.mateuIslandId = firstIsland ? firstIsland.id : '';
+      $application.variables.mateuIslandSeed = firstIsland
+        ? JSON.stringify(firstIsland.initialData || {}) : '';
 
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;

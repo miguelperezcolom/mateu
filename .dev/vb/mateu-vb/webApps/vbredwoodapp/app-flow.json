@@ -542,6 +542,10 @@
       "type": "any[]",
       "defaultValue": [],
       "description": "bloques display de los pasos del wizard standalone (sin título/rail/back-next: los pone el guided process)"
+    },
+    "mateuIslandSeed": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "userConfig": {

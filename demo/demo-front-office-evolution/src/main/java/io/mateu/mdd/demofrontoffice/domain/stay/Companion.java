@@ -42,4 +42,12 @@ public record Companion(
   public Companion updateContact(String email, String phone) {
     return new Companion(companionId, name, document, documentVerified, email, phone, description);
   }
+
+  /** Renames the companion (manual registration at the desk). */
+  public Companion rename(String name) {
+    if (name == null || name.isBlank()) {
+      return this;
+    }
+    return new Companion(companionId, name, document, documentVerified, email, phone, description);
+  }
 }

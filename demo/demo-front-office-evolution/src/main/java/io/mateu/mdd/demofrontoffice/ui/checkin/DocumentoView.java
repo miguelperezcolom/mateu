@@ -71,6 +71,9 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
 
     @Label("")
     Button escanear = new Button("Escanear documento", "escanear");
+
+    @Label("")
+    Button rellenar = new Button("Rellenar a mano", "edit");
   }
 
   /** Hay datos: read-only property list (label left / value right). */
@@ -99,11 +102,9 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
   @Title("Documento")
   @SubscribeTo(event = "pax-seleccionado", action = "cambiarPax")
   public static class DocumentoEditor {
-    @PlainText
     @Label("Documento")
     String documento;
 
-    @PlainText
     @Label("Nombre")
     String nombre;
 
@@ -139,18 +140,30 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
   public DocumentoEditor editor(HttpRequest httpRequest) {
     var pax = pax();
     var editor = new DocumentoEditor();
-    editor.setDocumento("✓ Verificado — " + pax.document());
-    editor.setNombre(pax.name());
-    editor.setEmail(pax.email());
-    editor.setTelefono(pax.phone());
+    if (pax.complete()) {
+      editor.setDocumento(pax.document());
+      editor.setNombre(pax.name());
+      editor.setEmail(pax.email());
+      editor.setTelefono(pax.phone());
+    } else {
+      // rellenado manual: solo el nombre provisional del hueco como punto de partida
+      editor.setNombre(pax.name());
+    }
     return editor;
   }
 
   @Override
   public void save(HttpRequest httpRequest) {
     var edited = httpRequest.getInitiatorState(DocumentoEditor.class);
-    if (edited != null) {
-      pax().updateContact(edited.getEmail(), edited.getTelefono());
+    if (edited == null) {
+      return;
+    }
+    var pax = pax();
+    if (pax.complete()) {
+      pax.updateContact(edited.getEmail(), edited.getTelefono());
+    } else {
+      pax.register(
+          edited.getDocumento(), edited.getNombre(), edited.getEmail(), edited.getTelefono());
     }
   }
 
@@ -191,6 +204,12 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
                                 }
                                 return progress.step(SCAN_STEPS[i - 1], i / 4.0);
                               }));
+      case "save" -> {
+        var result =
+            new ArrayList<Object>((java.util.Collection<?>) super.handleAction(actionId, httpRequest));
+        result.add(UICommand.dispatchEvent("documento-escaneado"));
+        yield result;
+      }
       case "reloadDocumento" -> reload();
       case "cambiarPax" -> {
         var raw = httpRequest.runActionRq().parameters().get("paxIndex");
@@ -242,6 +261,9 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
     void simulateScan();
 
     void updateContact(String email, String phone);
+
+    /** Manual registration at the desk: document + name + contact in one go. */
+    void register(String document, String name, String email, String phone);
   }
 
   private class MainGuestPax implements Pax {
@@ -313,6 +335,16 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
       if (guest != null) {
         FrontOffice.guests().save(guest.updateContact(email, phone));
       }
+    }
+
+    @Override
+    public void register(String document, String name, String email, String phone) {
+      var guest = guest();
+      if (guest == null) {
+        return;
+      }
+      var doc = document == null || document.isBlank() ? "MAN-" + guest.id().toUpperCase() : document;
+      FrontOffice.guests().save(guest.verifyIdentity(doc).updateContact(email, phone));
     }
   }
 
@@ -404,6 +436,26 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
       if (companion != null) {
         FrontOffice.stays().save(stay.registerCompanion(number, companion.updateContact(email, phone)));
       }
+    }
+
+    @Override
+    public void register(String document, String name, String email, String phone) {
+      var stay = stay();
+      if (stay == null) {
+        return;
+      }
+      var companion = stay.companionAt(number);
+      if (companion == null) {
+        companion = Companion.pending(number);
+      }
+      var doc =
+          document == null || document.isBlank()
+              ? "MAN-" + stay.id().toUpperCase() + "-P" + number
+              : document;
+      FrontOffice.stays()
+          .save(
+              stay.registerCompanion(
+                  number, companion.rename(name).verifyIdentity(doc).updateContact(email, phone)));
     }
   }
 }

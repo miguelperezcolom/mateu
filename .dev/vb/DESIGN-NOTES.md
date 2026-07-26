@@ -990,6 +990,29 @@ pide SOLO las pendientes.
   oj-ux-ico-* del gallery bundle del CDN, ~3.400 clases; pasa tal cual lo que ya venga como
   oj-ux-*, sin traducción → sin icono). `oj-sp-in-app-navigation` acepta `icon` por item y
   lo pinta. Demo: Reservas → calendar-contact, Automatizaciones → task.
+- **Registro por pax en la 360 (2026-07-26, petición del usuario)**: cada huésped puede
+  iniciar el ESCANEO del documento o el RELLENADO MANUAL desde la propia 360. La isla
+  `DocumentoView` del wizard se embebe también en la 360 (banda bajo las dos zonas,
+  sección "\u2007" frameless + @Inline; onHydrated la siembra con stayId+paxSeleccionado);
+  las filas de huéspedes llevan ids numéricos de pax, fila clicable + botón "Registrar"
+  (pendientes) → `seleccionarPax` re-siembra la isla, y el host se refresca con el evento
+  `documento-escaneado` (@SubscribeTo → refrescarReserva), que ahora emite TAMBIÉN el save
+  manual (override del case "save" en DocumentoView añadiendo el dispatchEvent al resultado
+  del super). El estado vacío ofrece "Rellenar a mano" (Button → el "edit" estándar del
+  EditableView); el editor pasa a documento/nombre EDITABLES y `save()` registra al pax
+  completo (`Pax.register` + `Companion.rename`) o actualiza contacto si ya estaba.
+  **Fixes de runtime VB que lo hicieron funcionar**: (1) recarga de la isla de nivel 1
+  cuando su SEED cambia (mateuIslandSeed en app-flow + compare en runMateuAction /
+  onMateuNavigate / runMateuIslandAction — el mecanismo que ya tenía la anidada);
+  (2) el seed viaja en CADA acción de la isla y en el reload del route-flip (los null del
+  estado no pisan el seed) — sin esto `edit`/`save` llegaban con stayId null y el save era
+  un no-op silencioso; (3) los inputs fromNested van al draft de la ISLA y no relanzan el
+  auto-save del host (hostInputChanged + listener con fromNested); (4) el toolbar de Page
+  de la isla fusionada (Cancel/Save del editor) NO se filtra como toolbar del host
+  (fromPageToolbar && !fromNested); (5) la re-proyección del host tras acciones de isla
+  pasa las MISMAS opts que runMateuAction (title + dropEntityHeader) — sin ellas el título
+  y el EntityHeader reaparecían duplicados en el contenido; (6) hoisting/merge de bloques
+  preservan las props del bloque (colClass/blockClass sobreviven a la fusión).
 - Pendiente fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE
   desde la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el

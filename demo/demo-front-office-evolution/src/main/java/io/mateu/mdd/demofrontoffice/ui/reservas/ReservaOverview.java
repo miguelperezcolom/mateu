@@ -25,6 +25,7 @@ import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.data.PaymentMethod;
 import io.mateu.uidl.data.PaymentPicker;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.Ledger;
 import io.mateu.uidl.data.LedgerLine;
 import io.mateu.uidl.data.Meter;
@@ -60,6 +61,7 @@ import lombok.Setter;
 @Route(value = "/reserva/:id", parentRoute = "")
 @Title("Reserva")
 @FormLayout(columns = 1)
+@io.mateu.uidl.annotations.SubscribeTo(event = "documento-escaneado", action = "refrescarReserva")
 @io.mateu.uidl.annotations.Zones({
   @io.mateu.uidl.annotations.Zone(name = "huespedes", width = "36%"),
   @io.mateu.uidl.annotations.Zone(name = "operativa", width = "64%")
@@ -77,6 +79,9 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
 
   // ── modo HABITACIÓN (cambiar la pre-asignada / upgrade, desde su tarjeta) ────
   @Hidden boolean modoHabitacion;
+
+  // ── pax al que apunta la isla del documento (1 = huésped principal) ──────────
+  @Hidden int paxSeleccionado = 1;
   @Hidden String metodoPago = "card";
   @Hidden String cargoBusqueda;
   @Hidden String ultimaBusqueda;
@@ -101,18 +106,21 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         var stay = view.stay();
         var guest = view.guest();
         var items = new ArrayList<StatusItem>();
-        items.add(paxItem("principal", guest.name(),
+        items.add(paxItem(1, guest.name(),
             guest.document() != null && !guest.document().isBlank()
                 ? "Doc " + guest.document() + " · Adulto" : "Adulto",
             guest.identityComplete()));
-        for (var companion : stay.companions()) {
-          items.add(paxItem(companion.companionId(), companion.name(), companion.description(),
+        var companions = stay.companions();
+        for (int i = 0; i < companions.size(); i++) {
+          var companion = companions.get(i);
+          items.add(paxItem(i + 2, companion.name(), companion.description(),
               companion.identityComplete()));
         }
-        for (int i = 2 + stay.companions().size(); i <= stay.pax(); i++) {
-          items.add(paxItem("pax" + i, "Acompañante " + i, "Pendiente de registro", false));
+        for (int i = 2 + companions.size(); i <= stay.pax(); i++) {
+          items.add(paxItem(i, "Acompañante " + i, "Pendiente de registro", false));
         }
         return StatusList.builder().items(items).compact(true).frameless(true)
+            .rowActionId("seleccionarPax")
             .style("width: 100%;").build();
       };
 
@@ -325,6 +333,12 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
     return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();
   }
 
+  // ── isla del documento: escaneo SSE o rellenado manual del pax seleccionado ──
+  @Section(value = "\u2007", frameless = true)
+  @io.mateu.uidl.annotations.Inline
+  @Label("")
+  io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView documento;
+
   private Component paraLlegada(Stay stay) {
     if (modoHabitacion) {
       return elegirHabitacion(stay);
@@ -462,7 +476,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   public boolean supportsAction(String actionId) {
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
             "opWifi", "opLlave", "opHabitacion", "elegirHabitacion", "upgrade360",
-            "volverHabitacion",
+            "volverHabitacion", "seleccionarPax", "refrescarReserva",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
   }
@@ -492,6 +506,15 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         yield List.of(this,
             new Message("Llave / pulsera grabada — Hab " + stay().roomNumber()));
       }
+      case "seleccionarPax" -> {
+        var raw = httpRequest.runActionRq().parameters().get("_item");
+        paxSeleccionado = (int) Double.parseDouble(String.valueOf(raw));
+        documento.setPaxIndex(paxSeleccionado);
+        yield List.of(this,
+            UICommand.dispatchEvent(
+                "pax-seleccionado", java.util.Map.of("paxIndex", paxSeleccionado)));
+      }
+      case "refrescarReserva" -> this;
       case "opHabitacion" -> {
         modoHabitacion = true;
         yield this;
@@ -587,20 +610,25 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       stayId = io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders.idFromRoute(
           httpRequest, "reserva");
     }
+    documento = new io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView();
+    documento.setStayId(stayId);
+    documento.setPaxIndex(Math.max(1, paxSeleccionado));
   }
 
   private Stay stay() {
     return FrontOffice.stays().findById(stayId).orElseThrow();
   }
 
-  static StatusItem paxItem(String id, String title, String description, boolean complete) {
+  StatusItem paxItem(int pax, String title, String description, boolean complete) {
     return StatusItem.builder()
-        .id(id)
+        .id(String.valueOf(pax))
         .avatar(initials(title))
-        .title(title)
+        .title(pax == paxSeleccionado ? "▸ " + title : title)
         .description(description)
         .status(complete ? "✓ Identidad verificada" : "Documentación pendiente")
         .statusColor(complete ? "success" : "warning")
+        .actionLabel(complete ? null : "Registrar")
+        .actionId(complete ? null : "seleccionarPax")
         .build();
   }
 
