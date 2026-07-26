@@ -85,23 +85,6 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             case DEPARTED -> GuestHeaders.departureHeader(stayId);
           };
 
-  // ── resumen de la estancia (property list) ───────────────────────────────────
-  @Section(value = "Resumen", propertyList = true)
-  @Label("Huésped principal")
-  String huespedPrincipal;
-
-  @Label("Habitación")
-  String habitacion;
-
-  @Label("Estancia")
-  String estancia;
-
-  @Label("Régimen")
-  String regimen;
-
-  @Label("Estado")
-  String estado;
-
   // ── huéspedes y estado documental ────────────────────────────────────────────
   @Section("Huéspedes en la habitación")
   @Label("")
@@ -432,14 +415,6 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       stayId = io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders.idFromRoute(
           httpRequest, "reserva");
     }
-    var view = FrontOffice.stayView(stayId);
-    var stay = view.stay();
-    huespedPrincipal = view.guest().name();
-    habitacion = stay.roomNumber() + " — " + stay.roomType();
-    estancia = DAY.format(stay.checkIn()) + " → " + DAY.format(stay.checkOut())
-        + " · " + stay.nights() + "N · " + stay.pax() + "pax";
-    regimen = stay.board();
-    estado = ReservasListing.estadoLabel(stay);
   }
 
   private Stay stay() {
