@@ -26,3 +26,8 @@ body::after {
 oj-sp-global-header a[id$='_HOa1'] {
   order: 99;
 }
+
+/* Filas actuables del listado (ojRowAction abre la reserva): afordancia de clic */
+#mateuTable tbody tr {
+  cursor: pointer;
+}
