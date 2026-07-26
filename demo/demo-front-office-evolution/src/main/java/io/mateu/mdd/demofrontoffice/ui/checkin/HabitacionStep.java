@@ -65,7 +65,7 @@ public class HabitacionStep implements WizardStep {
             .build();
       };
 
-  static ResourceItem item(Room room, String reservedRoom, String selectedRoom) {
+  public static ResourceItem item(Room room, String reservedRoom, String selectedRoom) {
     var occupied = !room.assignable();
     return ResourceItem.builder()
         .id(room.number())
@@ -81,7 +81,7 @@ public class HabitacionStep implements WizardStep {
         .build();
   }
 
-  static String housekeepingLabel(HousekeepingStatus status) {
+  public static String housekeepingLabel(HousekeepingStatus status) {
     return switch (status) {
       case DIRTY -> "Sucia";
       case CLEAN -> "Limpia";

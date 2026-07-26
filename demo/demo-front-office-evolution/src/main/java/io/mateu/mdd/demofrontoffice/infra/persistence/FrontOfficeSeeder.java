@@ -300,6 +300,16 @@ public class FrontOfficeSeeder implements ApplicationRunner {
         room("901", 9, "Premium Sea View", RoomOccupancy.OCCUPIED, HousekeepingStatus.CLEAN, null));
     rooms.save(
         room("1015", 10, "Junior Suite", RoomOccupancy.OCCUPIED, HousekeepingStatus.CLEAN, null));
+
+    // The upgrade offer's suite — a real, assignable room
+    rooms.save(
+        room(
+            "1401",
+            14,
+            "Master Oceanfront Suite",
+            RoomOccupancy.FREE,
+            HousekeepingStatus.INSPECTED,
+            null));
   }
 
   private static Room room(

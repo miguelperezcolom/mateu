@@ -974,7 +974,16 @@ pide SOLO las pendientes.
   e isla sin cambios). La checklist de operaciones pasa a `.columns(2)` (carril del 64%)
   y los huéspedes vuelven a lista de 1 columna en su card. Resultado: TODO visible sin
   scroll en llegada, in-house y checkout. Tests 28 (md-6) y 29 (zonas md-4/md-8). 29/29.
-- Pendiente fase 2: cambiar habitación (ResourceGrid) + upgrade (OfferCard) como modos de
-  la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
+- **Fase 2 — modo habitación (2026-07-26)**: la tarjeta Habitación lleva "Cambiar"
+  SIEMPRE (aun hecha — upgrades) → `modoHabitacion` pinta en el carril operativo el
+  ResourceGrid de la planta 12 (helpers de HabitacionStep hechos public y reutilizados) +
+  las OfferCard actual/upgrade; `elegirHabitacion`/{_item} asigna la habitación REAL
+  (stay.assignRoom + tipo del inventario) y `upgrade360` asigna la suite 1401 (sembrada
+  como habitación asignable); ambas vuelven a la checklist con toast, y el estado de la
+  operación se re-deriva del housekeeping de la nueva habitación (cambiar a una sin
+  inspeccionar la devuelve a Pendiente). Toolbar del modo: "Volver a la reserva". Sin
+  cambios de renderer (ResourceGrid/OfferCard ya proyectaban en host).
+- Pendiente fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE
+  desde la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

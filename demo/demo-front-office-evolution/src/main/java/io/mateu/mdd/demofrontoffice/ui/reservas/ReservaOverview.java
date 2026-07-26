@@ -74,6 +74,9 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
 
   // ── modo CHECK-OUT (plegado de la antigua /checkout/:id dentro de la 360) ────
   @Hidden boolean modoCheckout;
+
+  // ── modo HABITACIÓN (cambiar la pre-asignada / upgrade, desde su tarjeta) ────
+  @Hidden boolean modoHabitacion;
   @Hidden String metodoPago = "card";
   @Hidden String cargoBusqueda;
   @Hidden String ultimaBusqueda;
@@ -243,8 +246,8 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             faltan == 0, "Completar", "iniciarCheckin"),
         new Op("habitacion", "🛏️", "Habitación",
             "Hab " + stay.roomNumber() + " pre-asignada · pendiente de inspección",
-            "Hab " + stay.roomNumber() + " inspeccionada y lista",
-            habitacionLista, null, null),
+            "Hab " + stay.roomNumber() + " (" + stay.roomType() + ") inspeccionada y lista",
+            habitacionLista, "Cambiar", "opHabitacion"),
         new Op("wifi", "📶", "Tarjeta wifi",
             "Crear las credenciales de acceso del huésped",
             "Credenciales creadas y entregadas",
@@ -267,7 +270,65 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             ops.extras(), null, null));
   }
 
+  /** Modo habitación: la cuadrícula de disponibles + la oferta de upgrade, en el carril
+   *  operativo — elegir una asigna y vuelve a la checklist. */
+  private Component elegirHabitacion(Stay stay) {
+    var guest = FrontOffice.stayView(stayId).guest();
+    var content = new ArrayList<Component>();
+    content.add(Text.builder().text("Elegir habitación")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    content.add(io.mateu.uidl.data.HorizontalLayout.builder()
+        .spacing(true).wrap(true)
+        .content(guest.preferences().stream()
+            .map(pref -> (Component) io.mateu.uidl.data.Badge.builder()
+                .text(pref.text()).pill(true).build())
+            .toList())
+        .build());
+    content.add(io.mateu.uidl.data.ResourceGrid.builder()
+        .style("width: 100%;")
+        .actionId("elegirHabitacion")
+        .columns(4)
+        .recommendedLabel("RECOMENDADA")
+        .items(FrontOffice.rooms().findByFloor(12).stream()
+            .map(room -> io.mateu.mdd.demofrontoffice.ui.checkin.HabitacionStep.item(
+                room, stay.roomNumber(), stay.roomNumber()))
+            .toList())
+        .build());
+    var upgrade = FrontOffice.rooms().findByNumber("1401").orElse(null);
+    content.add(io.mateu.uidl.data.HorizontalLayout.builder()
+        .spacing(true).wrap(true)
+        .content(List.of(
+            io.mateu.uidl.data.OfferCard.builder()
+                .id("asignada")
+                .style("flex: 1 1 340px; min-width: 320px;")
+                .tag("HABITACIÓN ASIGNADA")
+                .title(stay.roomType())
+                .subtitle("Hab. " + stay.roomNumber())
+                .features(List.of("42 m²", "Vista mar lateral", "Cama King", "Balcón"))
+                .current(true)
+                .currentLabel("✓ Incluida en tu reserva")
+                .build(),
+            io.mateu.uidl.data.OfferCard.builder()
+                .id("upgrade")
+                .style("flex: 1 1 340px; min-width: 320px;")
+                .tag("UPGRADE DISPONIBLE")
+                .title("Master Oceanfront Suite")
+                .subtitle("Hab. 1401 · Planta 14 · Primera línea")
+                .features(List.of("68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge"))
+                .priceLabel("+ € 65 / noche")
+                .actionLabel("Mejorar a esta habitación")
+                .actionId("upgrade360")
+                .added(upgrade != null && !upgrade.assignable())
+                .addedLabel("✓ Upgrade aplicado")
+                .build()))
+        .build());
+    return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();
+  }
+
   private Component paraLlegada(Stay stay) {
+    if (modoHabitacion) {
+      return elegirHabitacion(stay);
+    }
     var lista = operaciones(stay);
     var hechas = (int) lista.stream().filter(Op::done).count();
     var banner =
@@ -286,16 +347,21 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             .columns(2)
             .style("width: 100%;")
             .items(tarjetas.stream()
-                .map(op -> StatusItem.builder()
-                    .id(op.id())
-                    .avatar(op.icon())
-                    .title(op.title())
-                    .description(op.done() ? op.hecha() : op.pendiente())
-                    .status(op.done() ? "✓ Hecha" : "Pendiente")
-                    .statusColor(op.done() ? "success" : "warning")
-                    .actionLabel(op.done() ? null : op.actionLabel())
-                    .actionId(op.done() ? null : op.actionId())
-                    .build())
+                .map(op -> {
+                  // la habitación se puede CAMBIAR aunque esté lista (upgrade, cambio)
+                  var conAccion = op.actionLabel() != null
+                      && (!op.done() || "habitacion".equals(op.id()));
+                  return StatusItem.builder()
+                      .id(op.id())
+                      .avatar(op.icon())
+                      .title(op.title())
+                      .description(op.done() ? op.hecha() : op.pendiente())
+                      .status(op.done() ? "✓ Hecha" : "Pendiente")
+                      .statusColor(op.done() ? "success" : "warning")
+                      .actionLabel(conAccion ? op.actionLabel() : null)
+                      .actionId(conAccion ? op.actionId() : null)
+                      .build();
+                })
                 .toList())
             .build();
     return VerticalLayout.builder()
@@ -376,6 +442,10 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
     if (modoCheckout) {
       return List.of(Button.builder().label("Volver a la reserva").actionId("volverReserva").build());
     }
+    if (modoHabitacion) {
+      return List.of(
+          Button.builder().label("Volver a la reserva").actionId("volverHabitacion").build());
+    }
     return switch (stay().status()) {
       case ARRIVING -> List.of(
           Button.builder().label("Confirmar check-in").actionId("iniciarCheckin")
@@ -391,7 +461,8 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   @Override
   public boolean supportsAction(String actionId) {
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
-            "opWifi", "opLlave",
+            "opWifi", "opLlave", "opHabitacion", "elegirHabitacion", "upgrade360",
+            "volverHabitacion",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
   }
@@ -420,6 +491,35 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withLlave(true));
         yield List.of(this,
             new Message("Llave / pulsera grabada — Hab " + stay().roomNumber()));
+      }
+      case "opHabitacion" -> {
+        modoHabitacion = true;
+        yield this;
+      }
+      case "volverHabitacion" -> {
+        modoHabitacion = false;
+        yield this;
+      }
+      case "elegirHabitacion" -> {
+        var number = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));
+        var room = FrontOffice.rooms().findByNumber(number).orElse(null);
+        if (room == null || !room.assignable()) {
+          yield new Message("La habitación " + number + " no está disponible");
+        }
+        FrontOffice.stays().save(stay().assignRoom(number, tipoDe(room)));
+        modoHabitacion = false;
+        yield List.of(this,
+            new Message("Habitación cambiada — Hab " + number + " (" + tipoDe(room) + ")"));
+      }
+      case "upgrade360" -> {
+        var suite = FrontOffice.rooms().findByNumber("1401").orElse(null);
+        if (suite == null || !suite.assignable()) {
+          yield new Message("La suite del upgrade no está disponible");
+        }
+        FrontOffice.stays().save(stay().assignRoom("1401", tipoDe(suite)));
+        modoHabitacion = false;
+        yield List.of(this,
+            new Message("Upgrade aplicado — Master Oceanfront Suite (Hab 1401, + € 65 / noche)"));
       }
       case "buscarCargos" -> {
         if (java.util.Objects.equals(cargoBusqueda, ultimaBusqueda)) {
@@ -513,6 +613,11 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       }
     }
     return sb.toString();
+  }
+
+  /** The room's type from the inventory, falling back to the reservation's. */
+  private String tipoDe(io.mateu.mdd.demofrontoffice.domain.room.Room room) {
+    return room.type() != null ? room.type() : "Planta " + room.floor();
   }
 
   /** A memorable per-stay wifi key for the demo toast. */
