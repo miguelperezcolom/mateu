@@ -740,6 +740,18 @@ enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la
 saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
 /encasa y /checkout dentro de la 360 si se quiere.
 
+## Acciones del toolbar en el HEADER de banda (2026-07-26)
+
+El toolbar de la Page (ToolbarSupplier/@Toolbar) ya NO se pinta en el contenido: se
+proyecta a las acciones del header genérico de banda — `pageToolbarOf(ctx)` lee
+Page.metadata.toolbar; el botón buttonStyle=primary va a `primaryAction` y el resto a
+`secondaryActions` del oj-sp-header-general-overview (mismo patrón que el header de
+colección; spSecondaryAction resuelve por label vía headerSecondaryAction). El átomo del
+toolbar en islandContentOf va marcado `fromPageToolbar` y hostContentOf lo filtra (las
+ISLAS lo conservan: no tienen header). La 360 muestra así "Iniciar check-in" /
+"Check-out"+"Mensaje huésped" / "Volver a la reserva" arriba a la derecha, como la
+gramática RDS de los pantallazos.
+
 ## Banda también para el header de colección (smart search, 2026-07-26)
 
 El listado no tenía la banda tras el header (el oj-sp-smart-filter-search ENTERO vivía

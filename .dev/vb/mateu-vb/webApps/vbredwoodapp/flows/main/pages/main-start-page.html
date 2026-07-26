@@ -35,6 +35,10 @@
       :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
       <oj-sp-header-general-overview id="mateuPageHeaderEl"
         page-title="[[ $application.variables.mateuPageHeader.title ]]"
+        primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
+        secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
+        on-sp-primary-action="[[ $listeners.headerPrimary ]]"
+        on-sp-secondary-action="[[ $listeners.headerSecondary ]]"
         display-options.go-to-parent="false"></oj-sp-header-general-overview>
     </div>
   </div>
@@ -54,6 +58,10 @@
 <oj-bind-if test="[[ $application.variables.mateuPageHeader.showInline ]]">
   <oj-sp-header-general-overview id="mateuPageHeaderInline" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
+    primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
+    secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
+    on-sp-primary-action="[[ $listeners.headerPrimary ]]"
+    on-sp-secondary-action="[[ $listeners.headerSecondary ]]"
     display-options.go-to-parent="false"></oj-sp-header-general-overview>
 </oj-bind-if>
 

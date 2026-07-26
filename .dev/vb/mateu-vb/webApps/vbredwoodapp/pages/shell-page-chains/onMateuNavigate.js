@@ -267,12 +267,19 @@ define([
       // la banda asome por detrás de su arranque — como el fondo general del lienzo
       const showBand = showHeader && pw !== 'edgeToEdge';
       const showListBand = !!listingSummary && pw !== 'edgeToEdge';
+      // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
+      const hostToolbar = bridge.pageToolbarOf(host);
+      const primaryBtn = hostToolbar.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
         title: summary.title || '',
         showBand: showBand,
         showInline: showHeader && !showBand,
         showListBand: showListBand,
         showListInline: !!listingSummary && !showListBand,
+        primary: primaryBtn ? { label: primaryBtn.label } : { label: '', display: 'off' },
+        primaryId: primaryBtn ? primaryBtn.actionId : '',
+        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ label: b.label })),
+        toolbar: hostToolbar,
       };
       if (showBand || showListBand) {
         // la caja de la banda usa la MISMA fórmula horizontal que el contenido…

@@ -226,12 +226,19 @@ define([
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
       const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
+      // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
+      const hostToolbarA = bridge.pageToolbarOf(hostAfter);
+      const primaryBtnA = hostToolbarA.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
         title: summary.title || '',
         showBand: showBandA,
         showInline: showHeaderA && !showBandA,
         showListBand: showListBandA,
         showListInline: !!listingSummary && !showListBandA,
+        primary: primaryBtnA ? { label: primaryBtnA.label } : { label: '', display: 'off' },
+        primaryId: primaryBtnA ? primaryBtnA.actionId : '',
+        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ label: b.label })),
+        toolbar: hostToolbarA,
       };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       $application.variables.mateuDirty = false;

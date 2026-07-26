@@ -352,6 +352,26 @@
           }
         }
       ]
+    },
+    "headerPrimary": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuPageHeader.primaryId }}"
+          }
+        }
+      ]
+    },
+    "headerSecondary": {
+      "chains": [
+        {
+          "chain": "headerSecondaryAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
     }
   },
   "imports": {

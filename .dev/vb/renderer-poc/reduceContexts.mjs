@@ -557,7 +557,7 @@ export function islandContentOf(ctx) {
       const pageTitle = interp(m.title || '')
       if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
       const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
-      if (toolbar.length) atom({ isButtons: true, buttons: toolbar.map(buttonOf) }, container)
+      if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
       for (const child of kidsOf(node)) visit(child, container)
       return
     }
@@ -794,6 +794,9 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
           titleDropped = true
           return false
         }
+        // el TOOLBAR de Page tampoco va al contenido: se proyecta a las acciones del
+        // header (pageToolbarOf → primary/secondary de la banda)
+        if (atom.fromPageToolbar) return false
         if (opts.forWizard) {
           if (atom.isProgress) return false
           if (atom.isButtons && atom.buttons.length
@@ -824,6 +827,21 @@ export function wizardForwardOf(ctx) {
     }
   }
   return forward
+}
+
+/** El TOOLBAR de la Page del host (para las acciones del header de banda):
+ *  [{actionId, label, chroming}]. El de estilo primary va al primaryAction del header. */
+export function pageToolbarOf(ctx) {
+  if (!ctx || !ctx.tree) return []
+  const page = findByType(ctx.tree, 'Page')
+  if (!page) return []
+  return (page.metadata.toolbar || [])
+    .filter((b) => b && b.actionId)
+    .map((b) => ({
+      actionId: b.actionId,
+      label: b.label || b.actionId,
+      chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+    }))
 }
 
 /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
