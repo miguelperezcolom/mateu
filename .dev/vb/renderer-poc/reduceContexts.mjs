@@ -666,13 +666,15 @@ export function islandContentOf(ctx) {
     }
     if (t === 'StatusList') {
       // columns > 1 → grid responsive de N columnas: el wrapper pasa a oj-flex (wrap) y
-      // cada ítem se pinta como CELDA vertical (título+chip / descripción / botón) en vez
-      // de fila — una fila estrechada parte su contenido donde pilla y queda desaliñada.
+      // cada ítem se pinta como TARJETA (oj-panel: borde propio, badge de estado dentro)
+      // — celdas sin borde dejaban ambiguo a qué tarea pertenece cada chip y el conjunto
+      // no se leía como listado de tareas. La celda exterior es a su vez oj-flex para que
+      // el panel interior estire a la altura de la fila (align-items stretch).
       // Todo precomputado por ítem — el CSP de VB no divide ni compara.
       const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
       const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
       const cellClass = cols
-        ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-sm-padding-10x-end oj-sm-margin-6x-bottom'
+        ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
         : ''
       atom({
         isStatusList: true,
@@ -681,6 +683,7 @@ export function islandContentOf(ctx) {
           rowClass,
           gridCell: !!cols,
           cellClass,
+          statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           avatar: it.avatar || '',
           icon: it.icon || '',
           title: interp(it.title),
