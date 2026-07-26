@@ -123,7 +123,7 @@ public class ReservaOverview
           };
 
   // ── huéspedes y estado documental ────────────────────────────────────────────
-  @Section(value = "Huéspedes en la habitación", zone = "huespedes")
+  @Section(value = "\u2009", frameless = true, zone = "huespedes")
   @Label("")
   Callable<Component> huespedes =
       () -> {
@@ -144,8 +144,14 @@ public class ReservaOverview
         for (int i = 2 + companions.size(); i <= stay.pax(); i++) {
           items.add(paxItem(i, "Acompañante " + i, "Pendiente de registro", false));
         }
-        return StatusList.builder().items(items).compact(true).frameless(true)
-            .style("width: 100%;").build();
+        return VerticalLayout.builder()
+            .style("width: 100%; gap: .5rem;")
+            .content(List.of(
+                Text.builder().text("Huéspedes en la habitación")
+                    .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
+                StatusList.builder().items(items).compact(true).frameless(true)
+                    .style("width: 100%;").build()))
+            .build();
       };
 
   // ── lo que aplique según el estado ───────────────────────────────────────────
