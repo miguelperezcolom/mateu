@@ -7,7 +7,7 @@
 <!-- banda RDS del header (fixed/fullWidth): fondo blanco a sangre; dentro, el header con
      su franja CAPADOS a la caja de contenido; la tarjeta de abajo la solapa (-40px) para
      que la banda asome por detrás de su arranque — todo clases de sistema JET -->
-<oj-bind-if test="[[ !!$application.variables.mateuBand ]]">
+<oj-bind-if test="[[ $application.variables.mateuPageHeader.showBand ]]">
   <!-- la banda toma el MISMO color que el fondo interno del header
        (oj-sp-header-general-overview-bg-light = #F1EFED = oj-bg-neutral-30) -->
   <div class="oj-bg-neutral-30 oj-sm-padding-10x-bottom">
@@ -31,7 +31,7 @@
      (oj-sp-header-general-overview sin switcher) salvo los templates que ya lo
      integran: guided process, general overview, welcome banner y el
      smart-filter-search del listado -->
-<oj-bind-if test="[[ !!$application.variables.mateuPageHeader && !$application.variables.mateuBand ]]">
+<oj-bind-if test="[[ $application.variables.mateuPageHeader.showInline ]]">
   <oj-sp-header-general-overview id="mateuPageHeaderInline" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     display-options.go-to-parent="false"></oj-sp-header-general-overview>
@@ -292,7 +292,7 @@
       <!-- contenido display del paso (wizard standalone): EntityHeader, Notice con
            selector de pax, documento (isla fusionada fromNested), grid de habitaciones,
            extras… — sin título/rail/back-next (los aporta el guided process) -->
-      <oj-bind-if test="[[ !!$application.variables.mateuWizardContent ]]">
+      <oj-bind-if test="[[ $application.variables.mateuWizardContent.length ]]">
         <oj-bind-for-each data="[[ $application.variables.mateuWizardContent ]]">
           <template>
             <oj-bind-if test="[[ $current.data.isCard ]]">
@@ -1299,7 +1299,7 @@
 <!-- Contenido display del HOST: páginas de detalle standalone (/encasa/:id,
      /checkout/:id) — los mismos átomos que una isla, despachando contra el HOST
      (hostBlockAction; los átomos fromNested van al contexto de su isla) -->
-<oj-bind-if test="[[ !!$application.variables.mateuHostContent ]]">
+<oj-bind-if test="[[ $application.variables.mateuHostContent.length ]]">
   <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <oj-bind-for-each data="[[ $application.variables.mateuHostContent ]]">
       <template>

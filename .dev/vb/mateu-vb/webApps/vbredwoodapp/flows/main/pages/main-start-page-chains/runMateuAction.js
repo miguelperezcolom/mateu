@@ -197,24 +197,30 @@ define([
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
-      $application.variables.mateuHostContent = hostBlocksRicos2 ? hostBlocks2 : null;
+      $application.variables.mateuHostContent = (hostBlocksRicos2 ? hostBlocks2 : null) || [];
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
-      $application.variables.mateuWizardContent = esWizard2
-        ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { forWizard: true, title: summary.title }) : null;
+      $application.variables.mateuWizardContent = (esWizard2
+        ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { forWizard: true, title: summary.title }) : null) || [];
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary || $application.variables.mateuFoldout);
-      $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
+      const showHeaderA = !integratedHeader;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
+      const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
+      $application.variables.mateuPageHeader = {
+        title: summary.title || '',
+        showBand: showBandA,
+        showInline: showHeaderA && !showBandA,
+      };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       $application.variables.mateuDirty = false;
 

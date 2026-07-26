@@ -199,22 +199,22 @@ define([
       const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
-      $application.variables.mateuHostContent = hostBlocksRicos ? hostBlocks : null;
+      $application.variables.mateuHostContent = (hostBlocksRicos ? hostBlocks : null) || [];
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
-      $application.variables.mateuWizardContent = esWizard
-        ? bridge.hostContentOf(host, islandRawBlocks, { forWizard: true, title: summary.title }) : null;
+      $application.variables.mateuWizardContent = (esWizard
+        ? bridge.hostContentOf(host, islandRawBlocks, { forWizard: true, title: summary.title }) : null) || [];
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary || $application.variables.mateuFoldout);
-      $application.variables.mateuPageHeader = integratedHeader ? null : { title: summary.title };
+      const showHeader = !integratedHeader;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
       const banners = bridge.bannersOf(host);
@@ -256,8 +256,12 @@ define([
       // sobre una BANDA a sangre (fondo blanco de viewport a viewport) con su contenido
       // capado a la caja; la tarjeta de contenido SOLAPA la banda (margen -40px) para que
       // la banda asome por detrás de su arranque — como el fondo general del lienzo
-      const showBand = !!$application.variables.mateuPageHeader && pw !== 'edgeToEdge';
-      $application.variables.mateuBand = showBand ? {} : null;
+      const showBand = showHeader && pw !== 'edgeToEdge';
+      $application.variables.mateuPageHeader = {
+        title: summary.title || '',
+        showBand: showBand,
+        showInline: showHeader && !showBand,
+      };
       if (showBand) {
         // la caja de la banda usa la MISMA fórmula horizontal que el contenido…
         $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;

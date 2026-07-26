@@ -157,9 +157,9 @@ define([
         }
         $application.variables.mateuWizardContent = bridge.hostContentOf(
           hostFinal, islandRawBlocksNow,
-          { forWizard: true, title: $application.variables.mateuHostTitle });
-      } else if ($application.variables.mateuHostContent) {
-        $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow);
+          { forWizard: true, title: $application.variables.mateuHostTitle }) || [];
+      } else if (($application.variables.mateuHostContent || []).length) {
+        $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow) || [];
       }
 
       $page.variables.mateuIslandDraft = {};

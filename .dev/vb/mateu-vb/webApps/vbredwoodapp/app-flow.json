@@ -476,8 +476,12 @@
     },
     "mateuPageHeader": {
       "type": "any",
-      "defaultValue": null,
-      "description": "header genérico de página (oj-sp-header-general-overview sin switcher) — null cuando el template ya integra su header"
+      "defaultValue": {
+        "title": "",
+        "showBand": false,
+        "showInline": false
+      },
+      "description": "header genérico: SIEMPRE objeto (asignar null revienta los bindings internos .title antes de que el bind-if colapse) — flags showBand/showInline precomputados"
     },
     "mateuShellPageLayout": {
       "type": "string",
@@ -519,13 +523,13 @@
       "description": "margen de la caja interior de la banda (la fórmula horizontal del contenido, sin el solape)"
     },
     "mateuHostContent": {
-      "type": "any",
-      "defaultValue": null,
+      "type": "any[]",
+      "defaultValue": [],
       "description": "bloques display del HOST (páginas de detalle standalone: encasa/checkout)"
     },
     "mateuWizardContent": {
-      "type": "any",
-      "defaultValue": null,
+      "type": "any[]",
+      "defaultValue": [],
       "description": "bloques display de los pasos del wizard standalone (sin título/rail/back-next: los pone el guided process)"
     }
   },

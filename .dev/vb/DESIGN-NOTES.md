@@ -710,6 +710,22 @@ markup plano de VB: los oj-sp lo consumen por el provide/inject de VComponents
 runtime ni siquiera lo usan para capar su interior. Una única fuente de verdad (pw en el
 chain) + la fórmula RDS es el equivalente práctico.
 
+## GOTCHA VB: variables de proyección — ni null ni cambio de forma (2026-07-26)
+
+Dos crashes silenciosos con el mismo patrón (rompían onMateuNavigate A MITAD: la URL no se
+actualizaba al navegar por tabs y el clic de fila "no hacía nada" al volver al listado):
+
+1. **"Cannot assign non-array to an array property"** — una variable `any` a la que una vez
+   se asigna un ARRAY queda tipada como array por VB: asignarle null después REVIENTA la
+   asignación (y el chain entero). Toda proyección de lista (mateuHostContent,
+   mateuWizardContent) se declara `any[]` con default `[]` y NUNCA se asigna null (`|| []`);
+   los bind-if condicionan por `.length` (CSP-safe: 0 es falsy).
+2. **"Cannot read properties of null (reading 'title')"** — asignar null a una variable
+   cuyo binding INTERIOR (`mateuPageHeader.title`) se reevalúa ANTES de que el bind-if
+   exterior colapse. Las proyecciones de objeto se asignan SIEMPRE como objeto con flags
+   precomputados (`mateuPageHeader = {title, showBand, showInline}`) y los bind-if leen los
+   flags. (Ojo TDZ: los const de un chain se leen en orden — pwAfter se movió arriba.)
+
 ## Reservas v2: listado crud + páginas de detalle standalone (2026-07-26)
 
 Replanteamiento del usuario: /reservas pasa de master-detail a un LISTADO simple (un crud)
