@@ -227,15 +227,19 @@ Data Management, que los usan como paneles inferior/lateral).
   STEPS/RAIL dentro); límite explícito de 5 pasos; patrón *batch* (N ítems → un paso por ítem);
   paridad .NET/Python de `EmbeddedView`; validación visual.
 
-### 5.4 Advanced Create & Edit *(Transactional)* — forma canónica
+### 5.4 Advanced Create & Edit *(Transactional)* — **HECHA (composición, Capa 4, 2026-07-26)**
 - **Redwood:** transaccional de página única para objetos complejos. 4 regiones: page header
   (title, cancel, primary, save, timestamp, contextual info 1–4, next objeto), main slot,
   **vertical anchor navigator** (índice lateral ligado a los títulos de sección), **detail slot**
   contextual. Regla clave: anchor navigator y detail slot son **mutuamente excluyentes**.
-- **Mateu:** ya tienes casi todo — `@Toc` es el anchor navigator, `@Zones`/tabs/secciones son el
-  main slot, y el crud da save/cancel/validación/optimistic-lock. Falta: (a) formalizarlo como
-  *variante* del crud (`PageType.FORM` "advanced"), (b) el **detail slot** contextual (panel
-  lateral de datos de apoyo), (c) header transaccional con contextual info + next objeto + timestamp.
+- **HECHO — pura composición, todas las piezas ya existen tras Capas 0–2:** anchor navigator = `@Toc`;
+  main = `@Section`/`@Zones`/tabs; **detail slot = `@Aside`** (→ `ContentLayout` aside, Capa 2); header
+  transaccional = `@Timestamp` (last updated) + `@KPI` (contextual info) + `PeerNavigationSupplier`
+  (next objeto) + cancel/save (el header ya coloca cancel a la izquierda y acciones a la derecha);
+  save/validación/optimistic-lock del crud o anotaciones de bean-validation + `@Version`. La regla
+  "anchor nav XOR detail slot" = elegir `@Toc` **o** `@Aside`. Formalizada en doc
+  `ux-patterns/advanced-create-and-edit.md` (variante A `@Toc`, variante B `@Aside`). No hizo falta
+  un `PageType.FORM "advanced"` nuevo (el `pageType=form` ya lo cubre).
 
 ### 5.5 Data Management *(Transactional)* — **HECHO (Fase 2, 2026-07-20)**
 - **Redwood:** grid de datos denso + Gantt integrados y **conmutables** en la misma página, con
@@ -378,8 +382,14 @@ por dependencia:
   solo". Guía de decisión (`choosing-a-page-template.md`) ampliada con la sección "Often you don't
   pick at all" (default-on + `@Aside`). PENDIENTE menor: sincronizar el `contract.json` de Figma con
   los kinds nuevos (nice-to-have, "cierra el círculo").
-- **Capa 4 — pendiente.** Cierre de catálogo (Advanced Create&Edit canónico, Guided Process Drawer,
-  Figma).
+- **Capa 4 (cierre de catálogo) — HECHA (documental).** **Advanced Create & Edit** formalizada como
+  composición de piezas que ya existen — header canónico (`@Timestamp`/`@KPI`/peer-nav + save/cancel)
+  + main seccionado + `@Toc` (anchor nav) *o* `@Aside` (detail slot), mutuamente excluyentes; doc
+  nueva `ux-patterns/advanced-create-and-edit.md` (2 variantes). Catálogo saneado: la guía de
+  decisión (`choosing-a-page-template.md`) ya no marca "planned" lo que estaba hecho (General/Bottom
+  Drawer, Data Management, Gantt page) y el Roadmap se reescribe como "Status" (catálogo cubierto;
+  queda pulido, no cobertura). PENDIENTE (pulido, no cobertura): variantes profundas (bottom+side
+  drawer simultáneos en Gantt page; batch en Guided Process Drawer) + sync Figma de los kinds nuevos.
 
 ### Línea roja que se mantiene
 El alma de Mateu (*declaras datos → se infiere la UI*) NO se rompe: las plantillas ganan peso siendo
