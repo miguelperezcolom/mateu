@@ -40,11 +40,14 @@ public class FrontOfficeSuite {
   @AppContext(label = "Hotel")
   Hotel hotel;
 
-  @Menu RouteLink reservas = new RouteLink("/reservas", "Reservas");
+  @Menu
+  RouteLink reservas =
+      new RouteLink("/reservas", "Reservas").withIcon("vaadin:calendar-user");
 
   @Audience("Staff")
   @Menu
-  RouteLink automatizaciones = new RouteLink("/automatizaciones", "Automatizaciones");
+  RouteLink automatizaciones =
+      new RouteLink("/automatizaciones", "Automatizaciones").withIcon("vaadin:tasks");
 
   @Label("")
   Component bienvenida =

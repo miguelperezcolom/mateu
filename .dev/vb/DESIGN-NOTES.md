@@ -983,6 +983,13 @@ pide SOLO las pendientes.
   operación se re-deriva del housekeeping de la nueva habitación (cambiar a una sin
   inspeccionar la devuelve a Pendiente). Toolbar del modo: "Volver a la reserva". Sin
   cambios de renderer (ResourceGrid/OfferCard ya proyectaban en host).
+- **Iconos de menú (2026-07-26)**: `Actionable.icon()` (default null) + campo `icon` en
+  `RouteLink` (uidl) → `AppMenuDtoBuilder.icon(option.icon())` → `MenuOptionDto.icon` (ya
+  existía en el wire). Convención: nombres NEUTRALES del set Vaadin ("vaadin:calendar-user");
+  cada renderer traduce al suyo — el bridge con `ojIconOf` (diccionario OJ_ICONS →
+  oj-ux-ico-* del gallery bundle del CDN, ~3.400 clases; pasa tal cual lo que ya venga como
+  oj-ux-*, sin traducción → sin icono). `oj-sp-in-app-navigation` acepta `icon` por item y
+  lo pinta. Demo: Reservas → calendar-contact, Automatizaciones → task.
 - Pendiente fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE
   desde la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el

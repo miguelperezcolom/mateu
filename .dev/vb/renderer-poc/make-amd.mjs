@@ -43,6 +43,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    ojIconOf,
     findAllByType,
     cardOf,
     welcomeOf,

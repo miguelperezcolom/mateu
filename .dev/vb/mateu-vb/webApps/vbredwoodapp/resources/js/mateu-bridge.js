@@ -344,6 +344,31 @@ define([], () => {
    *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
    *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
    *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
+  // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
+  // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
+  // font Redwood (oj-ux-ico-*, clases del gallery bundle). Un valor que ya venga como
+  // clase oj-ux pasa tal cual; sin traducción conocida → sin icono.
+  const OJ_ICONS = {
+    'vaadin:calendar-user': 'oj-ux-ico-calendar-contact',
+    'vaadin:calendar': 'oj-ux-ico-calendar',
+    'vaadin:tasks': 'oj-ux-ico-task',
+    'vaadin:automation': 'oj-ux-ico-robot-action',
+    'vaadin:cog': 'oj-ux-ico-settings',
+    'vaadin:cogs': 'oj-ux-ico-settings',
+    'vaadin:home': 'oj-ux-ico-home',
+    'vaadin:user': 'oj-ux-ico-contact',
+    'vaadin:users': 'oj-ux-ico-contact-group',
+    'vaadin:bed': 'oj-ux-ico-bed',
+    'vaadin:chart': 'oj-ux-ico-bar-chart',
+    'vaadin:table': 'oj-ux-ico-table',
+    'vaadin:money': 'oj-ux-ico-currency-money',
+  }
+  function ojIconOf(icon) {
+    if (!icon) return undefined
+    if (icon.indexOf('oj-ux-') === 0) return icon
+    return OJ_ICONS[icon] || undefined
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
@@ -353,7 +378,7 @@ define([], () => {
       const route = option.route || option.path
       const label = option.caption || option.label || route
       const children = option.submenus || option.submenu || []
-      items.push({ id: route, label, icon: option.icon || undefined })
+      items.push({ id: route, label, icon: ojIconOf(option.icon) })
       if (children.length) hasGroups = true
       menuTree.push({
         id: route,
@@ -1387,6 +1412,7 @@ define([], () => {
     eventTriggersOf,
     dismissOverlay,
     shellNavOf,
+    ojIconOf,
     findAllByType,
     cardOf,
     welcomeOf,

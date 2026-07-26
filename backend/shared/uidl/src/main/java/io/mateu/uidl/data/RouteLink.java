@@ -22,7 +22,8 @@ public record RouteLink(
     Object itemData,
     String serverSideType,
     String consumedRoute,
-    String description)
+    String description,
+    String icon)
     implements Actionable {
 
   public RouteLink(String label) {
@@ -39,15 +40,16 @@ public record RouteLink(
         null,
         null,
         null,
+        null,
         null);
   }
 
   public RouteLink(String path, String label) {
-    this(path, path, label, null, false, null, null, false, false, null, null, null, null);
+    this(path, path, label, null, false, null, null, false, false, null, null, null, null, null);
   }
 
   public RouteLink(String path, String label, boolean selected) {
-    this(path, path, label, null, selected, null, null, false, false, null, null, null, null);
+    this(path, path, label, null, selected, null, null, false, false, null, null, null, null, null);
   }
 
   public RouteLink(String label, boolean selected) {
@@ -61,6 +63,7 @@ public record RouteLink(
         null,
         false,
         false,
+        null,
         null,
         null,
         null,
