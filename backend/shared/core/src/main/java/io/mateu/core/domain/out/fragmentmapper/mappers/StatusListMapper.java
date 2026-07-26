@@ -32,6 +32,7 @@ public class StatusListMapper {
             .compact(statusList.compact())
             .frameless(statusList.frameless())
             .rowActionId(statusList.rowActionId())
+            .columns(statusList.columns())
             .build(),
         statusList.id(),
         List.of(),

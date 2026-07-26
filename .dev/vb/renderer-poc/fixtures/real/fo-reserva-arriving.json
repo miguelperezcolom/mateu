@@ -1,7 +1,7 @@
 {
   "tree": {
     "type": "ServerSide",
-    "id": "4752e657-5bc8-4107-af53-d2b07918fa1b",
+    "id": "b2f564fb-fab5-459c-acc4-a9236f5e523b",
     "serverSideType": "io.mateu.mdd.demofrontoffice.ui.reservas.ReservaOverview",
     "route": "",
     "children": [
@@ -234,7 +234,7 @@
                           "size": null,
                           "noMargins": false
                         },
-                        "id": "202dc8e0-995f-44ee-90bd-11729a7750de",
+                        "id": "989ab059-a38b-4fe1-a5f7-47e8a530ecac",
                         "children": [],
                         "style": " flex: 1; margin: 0;",
                         "cssClasses": null,
@@ -339,7 +339,8 @@
                                           ],
                                           "compact": true,
                                           "frameless": true,
-                                          "rowActionId": null
+                                          "rowActionId": null,
+                                          "columns": 0
                                         },
                                         "id": null,
                                         "children": [],
@@ -568,7 +569,8 @@
                                           ],
                                           "compact": true,
                                           "frameless": true,
-                                          "rowActionId": null
+                                          "rowActionId": null,
+                                          "columns": 3
                                         },
                                         "id": null,
                                         "children": [],

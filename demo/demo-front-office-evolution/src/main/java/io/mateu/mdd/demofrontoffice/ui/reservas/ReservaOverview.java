@@ -276,6 +276,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         StatusList.builder()
             .compact(true)
             .frameless(true)
+            .columns(3)
             .style("width: 100%;")
             .items(lista.stream()
                 .map(op -> StatusItem.builder()

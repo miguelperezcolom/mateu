@@ -11,7 +11,9 @@ import lombok.Builder;
  * }}. {@code compact} tightens the row padding for dense screens; {@code frameless} keeps the
  * divider lines between rows but drops the outer border — for lists already framed by their host
  * (e.g. inside a section card). {@code rowActionId} makes every ROW clickable (search results, pick
- * lists): clicking one dispatches that action with {@code { "_item": id }}. Design-system neutral,
+ * lists): clicking one dispatches that action with {@code { "_item": id }}. {@code columns} lays
+ * the items out on a responsive N-column grid instead of a single stack (checklists that would
+ * otherwise force scrolling); 0/absent keeps the classic one-column list. Design-system neutral,
  * dark-mode aware.
  */
 @Builder
@@ -21,6 +23,7 @@ public record StatusList(
     boolean compact,
     boolean frameless,
     String rowActionId,
+    int columns,
     String style,
     String cssClasses)
     implements Component {}

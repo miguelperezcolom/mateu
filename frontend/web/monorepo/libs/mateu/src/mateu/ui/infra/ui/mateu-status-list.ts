@@ -18,6 +18,8 @@ export class MateuStatusList extends LitElement {
     @property({ type: Boolean }) frameless = false
     /** makes every row clickable: clicking one dispatches this action with { _item: id } */
     @property() rowActionId: string | undefined
+    /** N-column responsive grid instead of a single stack; 0 = classic one-column list */
+    @property({ type: Number }) columns = 0
 
     static styles = [chipStyles, css`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
@@ -72,6 +74,14 @@ export class MateuStatusList extends LitElement {
             cursor: pointer;
         }
         .row-action:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+        /* N-column grid mode (columns > 1): cells instead of stacked rows — no dividers,
+           auto-collapsing to one column on narrow viewports via the min() clamp */
+        .list.grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+            column-gap: 1.5rem;
+        }
+        .list.grid .row + .row { border-top: none; }
     `]
 
     private runAction(item: StatusItem) {
@@ -94,7 +104,8 @@ export class MateuStatusList extends LitElement {
 
     render() {
         return html`
-            <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''}">
+            <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''} ${this.columns > 1 ? 'grid' : ''}"
+                 style="${this.columns > 1 ? `grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));` : ''}">
                 ${this.items.map(item => html`
                     <div class="row ${this.rowActionId ? 'clickable' : ''}"
                          @click="${() => this.rowClicked(item)}">

@@ -670,9 +670,22 @@ define([], () => {
         return
       }
       if (t === 'StatusList') {
+        // columns > 1 → grid responsive de N columnas: el wrapper pasa a oj-flex (wrap) y
+        // cada ítem se pinta como CELDA vertical (título+chip / descripción / botón) en vez
+        // de fila — una fila estrechada parte su contenido donde pilla y queda desaliñada.
+        // Todo precomputado por ítem — el CSP de VB no divide ni compara.
+        const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
+        const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
+        const cellClass = cols
+          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-sm-padding-4x-end oj-sm-margin-3x-bottom'
+          : ''
         atom({
           isStatusList: true,
+          wrapClass: cols ? 'oj-flex' : '',
           items: (m.items || []).map((it) => ({
+            rowClass,
+            gridCell: !!cols,
+            cellClass,
             avatar: it.avatar || '',
             icon: it.icon || '',
             title: interp(it.title),

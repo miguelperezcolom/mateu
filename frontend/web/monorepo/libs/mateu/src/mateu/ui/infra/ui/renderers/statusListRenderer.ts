@@ -11,6 +11,7 @@ export const renderStatusList = (component: ClientSideComponent) => {
                 .items="${metadata.items ?? []}"
                 ?compact="${metadata.compact ?? false}"
                 ?frameless="${metadata.frameless ?? false}"
+                columns="${metadata.columns ?? 0}"
                 rowActionId="${ifDefined(metadata.rowActionId ?? undefined)}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"

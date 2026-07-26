@@ -950,6 +950,17 @@ pide SOLO las pendientes.
   wifi con credenciales, llave grabada), y "Confirmar check-in" abre el wizard con pasos
   Identidad/Extras/Confirmar — Habitación OMITIDA (ya inspeccionada). Shots:
   ops-checklist.png, ops-checklist-llave.png, ops-wizard.png.
+- **Checklist a 3 columnas (2026-07-26, feedback del usuario)**: `StatusList` ganó
+  `columns` (uidl record + StatusListDto + StatusListMapper + web mateu-status-list con
+  grid auto-fit; 0 = lista clásica). En el bridge, `columns>1` proyecta `wrapClass:
+  'oj-flex'` en el átomo y cada ítem como CELDA (`gridCell` + `cellClass: oj-flex-item
+  oj-sm-12 oj-md-(12/N)`) con rama propia en el markup (título+chip / descripción / botón
+  en vertical — una FILA estrechada a un tercio parte su contenido donde pilla y queda
+  desaliñada); las 6 copias llevan la rama celda antes de la rama fila (guard
+  `!gridCell`). La 360 usa `.columns(3)` → las 7 operaciones caben sin scroll. OJO orden
+  de build de los shared: instalar via reactor (`mvn -pl shared/dtos,shared/uidl,
+  shared/core` desde backend/) — uidl suelto contra un dtos rancio de ~/.m2 rompe
+  enforcer/convergence.
 - Pendiente fase 2: cambiar habitación (ResourceGrid) + upgrade (OfferCard) como modos de
   la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
