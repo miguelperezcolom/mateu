@@ -106,6 +106,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
           items.add(paxItem("pax" + i, "Acompañante " + i, "Pendiente de registro", false));
         }
         return StatusList.builder().items(items).compact(true).frameless(true)
+            .columns(2)
             .style("width: 100%;").build();
       };
 
@@ -272,13 +273,16 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             .total(lista.size())
             .done(hechas)
             .build();
+    // la operación "datos de huéspedes" NO lleva tarjeta: la sección de huéspedes de
+    // arriba ya muestra ese estado por pax (sí cuenta en el banner)
+    var tarjetas = lista.stream().filter(op -> !"documentos".equals(op.id())).toList();
     var checklist =
         StatusList.builder()
             .compact(true)
             .frameless(true)
             .columns(3)
             .style("width: 100%;")
-            .items(lista.stream()
+            .items(tarjetas.stream()
                 .map(op -> StatusItem.builder()
                     .id(op.id())
                     .avatar(op.icon())
