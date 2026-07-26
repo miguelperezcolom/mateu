@@ -12,6 +12,10 @@
                     icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
+        <frameTitleBuilder implementation="io.mateu.ijp.plugin.MateuFrameTitleBuilder"/>
+        <applicationService serviceInterface="com.intellij.openapi.fileEditor.impl.EditorEmptyTextPainter"
+                            serviceImplementation="io.mateu.ijp.plugin.MateuEmptyEditorPainter"
+                            overrides="true"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
     </extensions>
 

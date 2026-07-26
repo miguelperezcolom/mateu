@@ -38,7 +38,10 @@ public final class PageInference {
     if (MetaAnnotations.isPresent(type, AutoPage.class)) {
       return MetaAnnotations.find(type, AutoPage.class).value();
     }
-    return Boolean.getBoolean("mateu.layout.inference");
+    // Page inference is ON by default: the matching template is the default inferred output for a
+    // plain view (the developer still just declares data; it is always overridable). Opt out per
+    // class with @AutoPage(false), or globally with -Dmateu.page.inference.disabled=true.
+    return !Boolean.getBoolean("mateu.page.inference.disabled");
   }
 
   /** Whether ANY composition rule applies — used by {@code ArchetypeAdvisor} to stand down. */

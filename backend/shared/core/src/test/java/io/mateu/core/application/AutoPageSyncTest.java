@@ -27,11 +27,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Fase 1 of page-level inference: under {@code @AutoPage}, a plain class declaring MetricCard
- * fields renders as the Dashboard archetype composition (scoreboard band + panel tiles), advertises
- * the model as serverSideType so actions keep routing, and stamps pageType=dashboard — while the
- * same class without the annotation keeps the previous plain-form rendering. See
- * design/page-level-inference-plan.md.
+ * Page-level inference: a plain class declaring MetricCard fields renders as the Dashboard
+ * archetype composition (scoreboard band + panel tiles), advertises the model as serverSideType so
+ * actions keep routing, and stamps pageType=dashboard. Inference is ON by default (the template is
+ * the default inferred output); {@code @AutoPage(false)} opts a class out, keeping the plain-form
+ * rendering. See design/page-level-inference-plan.md.
  */
 class AutoPageSyncTest {
 
@@ -53,12 +53,21 @@ class AutoPageSyncTest {
 
   @SuppressWarnings("unused")
   @UI("/plain-metrics")
-  @Title("Ops, uninferred")
+  @Title("Ops, opted out")
+  @AutoPage(false) // explicit opt-out: keep the plain-form rendering despite the MetricCard field
   public static class PlainOps {
 
     MetricCard revenue = MetricCard.builder().title("Revenue").value("1.2").build();
 
     String note = "still a plain form";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/default-metrics")
+  @Title("Ops, inferred by default")
+  public static class DefaultOps {
+    // No @AutoPage: page inference is ON by default, so a MetricCard field composes a Dashboard.
+    MetricCard revenue = MetricCard.builder().title("Revenue").value("1.2").build();
   }
 
   @SuppressWarnings("unused")
@@ -94,7 +103,11 @@ class AutoPageSyncTest {
   static void boot() {
     mateu =
         TestMateu.withUis(
-            InferredOps.class, PlainOps.class, InferredHome.class, FormWithButton.class);
+            InferredOps.class,
+            PlainOps.class,
+            DefaultOps.class,
+            InferredHome.class,
+            FormWithButton.class);
   }
 
   @AfterAll
@@ -172,11 +185,19 @@ class AutoPageSyncTest {
   }
 
   @Test
-  void withoutAutoPageTheSameShapeKeepsRenderingAsAPlainForm() {
+  void autoPageFalseOptsOutKeepingThePlainForm() {
     var increment = mateu.sync("/plain-metrics");
 
     assertThat(findFirst(increment, DashboardLayoutDto.class)).isNull();
     assertThat(findFirst(increment, ScoreboardDto.class)).isNull();
+  }
+
+  @Test
+  void withoutAnyAnnotationTheShapeComposesByDefault() {
+    var increment = mateu.sync("/default-metrics");
+
+    assertThat(findFirst(increment, DashboardLayoutDto.class)).isNotNull();
+    assertThat(findFirst(increment, ScoreboardDto.class)).isNotNull();
   }
 
   // ---------------------------------------------------------------- helpers

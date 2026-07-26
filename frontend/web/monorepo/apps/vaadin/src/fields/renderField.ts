@@ -3,6 +3,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit"
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField"
 import { renderComponent } from "@infra/ui/renderers/renderComponent"
+import { updateStyle } from "@infra/ui/renderers/renderClientSideComponent"
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 /**
@@ -20,7 +21,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 .data="${data}"
                 .appState="${appState}"
                 .appdata="${appData}"
-                style="${component.style}" class="${component.cssClasses}"
+                style="${updateStyle(component, data)}" class="${component.cssClasses}"
                 slot="${component.slot ?? nothing}"
                 data-colspan="${field.colspan}"
                 colspan="${(field.colspan ?? 1) > 1 ? field.colspan : nothing}"

@@ -1,0 +1,844 @@
+/*
+ * Redwood renderer chrome styles.
+ *
+ * The heavy lifting (design tokens --oj-*, typography, oj-web-applayout-*, oj-flex-*, oj-badge,
+ * oj-ux-ico-* icon font) comes from Oracle's own oj-redwood-min.css (loaded from the CDN in
+ * index.html). Here we only lay out the shell frame (header height, nav rail, content padding) and
+ * the content placeholder, all in terms of Redwood tokens with safe fallbacks — so it always looks
+ * native Redwood, light or dark.
+ */
+
+:root {
+  --mateu-header-h: 3.25rem;
+  --mateu-nav-w: 17rem;
+  --mateu-nav-w-collapsed: 3.5rem;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--oj-core-bg-color-content, #f1efed);
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+  font-family: var(--oj-html-font-family, 'Oracle Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+#app-root {
+  height: 100%;
+}
+
+.mateu-landing-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+
+/* ── shell frame ─────────────────────────────────────────────────────────────────────── */
+
+.mateu-redwood-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+
+.mateu-header {
+  height: var(--mateu-header-h);
+  min-height: var(--mateu-header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--oj-core-spacing-3x, 0.75rem);
+  background: var(--oj-core-bg-color-content, #fff);
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  box-shadow: var(--oj-private-app-layout-web-header-box-shadow, 0 1px 2px rgba(0, 0, 0, 0.06));
+  z-index: 2;
+}
+
+.mateu-header-bar {
+  width: 100%;
+}
+
+.mateu-app-title {
+  margin-inline-start: 0.5rem;
+  text-decoration: none;
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+}
+
+.mateu-icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+.mateu-icon-button:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}
+
+.mateu-header-end {
+  margin-inline-start: auto;
+}
+.mateu-header-avatar {
+  font-size: 1.4rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  margin-inline-end: 0.5rem;
+}
+
+.mateu-shell-body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+/* ── nav rail ────────────────────────────────────────────────────────────────────────── */
+
+.mateu-nav-rail {
+  width: var(--mateu-nav-w);
+  min-width: var(--mateu-nav-w);
+  overflow-y: auto;
+  background: var(--oj-core-bg-color-content, #fff);
+  border-inline-end: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  transition: width 0.15s ease, min-width 0.15s ease;
+  padding: var(--oj-core-spacing-2x, 0.5rem) 0;
+}
+.mateu-nav-rail.collapsed {
+  width: var(--mateu-nav-w-collapsed);
+  min-width: var(--mateu-nav-w-collapsed);
+}
+.mateu-nav-rail.collapsed .mateu-nav-label,
+.mateu-nav-rail.collapsed .mateu-nav-group-label span:last-child {
+  display: none;
+}
+
+.mateu-nav-list,
+.mateu-nav-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mateu-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 1rem;
+  margin: 0.1rem 0.5rem;
+  border-radius: var(--oj-button-border-radius, 0.5rem);
+  color: var(--oj-navigation-list-item-label-color, var(--oj-core-text-color-primary, #1b1b1b));
+  text-decoration: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mateu-nav-item:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}
+.mateu-nav-item.active {
+  background: var(--oj-palette-brand-10, rgba(19, 90, 107, 0.1));
+  color: var(--oj-navigation-list-item-label-color-selected, var(--oj-palette-brand-130, #0a5a6b));
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--oj-palette-brand-100, #135a6b);
+}
+
+.mateu-nav-icon {
+  font-size: 1.1rem;
+  width: 1.25rem;
+  text-align: center;
+  flex: 0 0 auto;
+  color: inherit;
+}
+
+.mateu-nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mateu-nav-separator {
+  height: 1px;
+  background: var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  margin: 0.4rem 0.75rem;
+}
+
+/* ── content area ────────────────────────────────────────────────────────────────────── */
+
+.mateu-content-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--oj-core-spacing-6x, 1.5rem) var(--oj-core-spacing-8x, 2rem);
+}
+
+.mateu-content-loading,
+.mateu-content-error {
+  padding: 2rem;
+}
+.mateu-content-error {
+  color: var(--oj-message-error-icon-color, #c74634);
+}
+
+.mateu-page {
+  max-width: 1408px;
+  margin: 0 auto;
+}
+.mateu-page-title {
+  margin: 0 0 1rem;
+}
+
+.mateu-placeholder-card {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-placeholder-json {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  white-space: pre-wrap;
+}
+
+/* ── content: layouts, cards, forms, fields (Phase 1) ─────────────────────────────────── */
+
+.mateu-vlayout {
+  display: flex;
+  flex-direction: column;
+}
+.mateu-vlayout.full {
+  width: 100%;
+}
+.mateu-hlayout {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mateu-page-subtitle {
+  margin: -0.5rem 0 1.25rem;
+}
+
+.mateu-card {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+.mateu-card-title {
+  margin-bottom: 0.25rem;
+}
+.mateu-card-subtitle {
+  margin-bottom: 0.75rem;
+}
+
+.mateu-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.mateu-form-row {
+  display: grid;
+  grid-template-columns: repeat(var(--mateu-form-cols, 1), minmax(0, 1fr));
+  gap: 0.25rem 1.5rem;
+  align-items: start;
+}
+
+.mateu-field {
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+.mateu-field oj-c-input-text,
+.mateu-field oj-c-input-number,
+.mateu-field oj-c-select-single,
+.mateu-field oj-c-text-area,
+.mateu-field oj-c-checkbox {
+  width: 100%;
+  display: block;
+}
+.mateu-field-error {
+  color: var(--oj-message-error-icon-color, #c74634);
+  margin-top: 0.15rem;
+}
+
+.mateu-field-plain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.08));
+}
+
+/* native fallbacks (only used when the OJET CDN is unreachable) */
+.mateu-native-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+.mateu-native-field input,
+.mateu-native-field select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.25));
+  border-radius: 0.4rem;
+  font: inherit;
+}
+.mateu-native-button {
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 1.1rem;
+  height: 2.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--oj-palette-brand-100, #135a6b);
+  background: #fff;
+  color: var(--oj-palette-brand-130, #0a5a6b);
+}
+.mateu-native-button.callToAction {
+  background: var(--oj-palette-brand-100, #135a6b);
+  color: #fff;
+}
+
+.mateu-text {
+  margin: 0.25rem 0;
+}
+
+/* ── crud / listing (Phase 2) ─────────────────────────────────────────────────────────── */
+
+.mateu-crud {
+  max-width: 1408px;
+  margin: 0 auto;
+}
+.mateu-crud-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.mateu-crud-titles h1 {
+  margin: 0;
+}
+.mateu-crud-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mateu-crud-search {
+  margin-bottom: 0.75rem;
+  max-width: 22rem;
+}
+.mateu-crud-search-native {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.25));
+  border-radius: 1.25rem;
+  font: inherit;
+  width: 22rem;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+}
+.mateu-crud-table {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-empty {
+  padding: 2.5rem;
+  text-align: center;
+}
+.mateu-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+.mateu-page-btn {
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  background: var(--oj-core-bg-color-content, #fff);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.mateu-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mateu-native-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.mateu-native-table th,
+.mateu-native-table td {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.08));
+}
+.mateu-native-table th {
+  font-weight: 600;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.02));
+}
+
+/* ── page header / action buttons (Phase 3) ───────────────────────────────────────────── */
+
+.mateu-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.mateu-page-header-titles h1 {
+  margin: 0;
+}
+.mateu-page-toolbar,
+.mateu-page-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mateu-page-buttons {
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+/* ── Phase 4: tabs, dashboard, display leaves, overlays ───────────────────────────────── */
+
+.mateu-tab-strip {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  margin-bottom: 1rem;
+}
+.mateu-tab {
+  border: none;
+  background: transparent;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.mateu-tab:hover {
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+}
+.mateu-tab.active {
+  color: var(--oj-palette-brand-130, #0a5a6b);
+  border-bottom-color: var(--oj-palette-brand-100, #135a6b);
+  font-weight: 600;
+}
+
+.mateu-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+.mateu-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+}
+.mateu-metric {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-metric.clickable {
+  cursor: pointer;
+}
+.mateu-metric.clickable:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.mateu-metric-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0.35rem 0;
+}
+.mateu-metric-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.mateu-metric-unit {
+  font-size: 1rem;
+  color: var(--oj-core-text-color-secondary, #5b5b5b);
+}
+.mateu-metric-trend {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.mateu-metric-trend.up {
+  color: #2e7d32;
+}
+.mateu-metric-trend.down {
+  color: #c62828;
+}
+.mateu-metric-desc {
+  margin-top: 0.35rem;
+}
+.mateu-panel {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.mateu-panel-title {
+  margin-bottom: 0.15rem;
+}
+.mateu-panel-subtitle {
+  margin-bottom: 0.6rem;
+}
+
+.mateu-hero {
+  padding: 3rem 2rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--oj-palette-brand-20, #e6eff1), var(--oj-palette-neutral-20, #f3f1ef));
+  margin-bottom: 1.5rem;
+}
+.mateu-hero.centered {
+  text-align: center;
+}
+.mateu-hero.has-image {
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+.mateu-hero-title {
+  margin: 0 0 0.5rem;
+}
+.mateu-hero-subtitle {
+  margin: 0 0 1.25rem;
+  opacity: 0.9;
+}
+.mateu-hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mateu-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+.mateu-notice-info {
+  background: #e8f1fb;
+}
+.mateu-notice-success {
+  background: #e6f4ea;
+}
+.mateu-notice-warning {
+  background: #fdf3e3;
+}
+.mateu-notice-danger {
+  background: #fbe9e7;
+}
+.mateu-notice-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex: 0 0 auto;
+}
+.mateu-notice-text {
+  flex: 1;
+}
+.mateu-notice-action {
+  border: none;
+  background: transparent;
+  color: var(--oj-palette-brand-130, #0a5a6b);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mateu-badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.06));
+}
+
+.mateu-progress,
+.mateu-meter-track {
+  height: 0.5rem;
+  border-radius: 1rem;
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+.mateu-progress-fill,
+.mateu-meter-fill {
+  height: 100%;
+  background: var(--oj-palette-brand-100, #135a6b);
+  border-radius: 1rem;
+}
+.mateu-meter {
+  margin: 0.35rem 0;
+}
+.mateu-meter-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.mateu-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mateu-avatar-initials {
+  background: var(--oj-palette-brand-100, #135a6b);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mateu-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+.mateu-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+.mateu-empty-title {
+  margin-bottom: 0.35rem;
+}
+.mateu-empty-desc {
+  margin-bottom: 1rem;
+}
+
+.mateu-separator {
+  border: none;
+  border-top: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  margin: 1rem 0;
+}
+
+.mateu-entity-header {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.mateu-entity-head-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.mateu-entity-badges {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.mateu-entity-facts {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.mateu-fact {
+  display: flex;
+  flex-direction: column;
+}
+
+.mateu-status-list,
+.mateu-bulleted-list {
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.mateu-bulleted-list {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.mateu-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.06));
+}
+
+.mateu-md-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+.mateu-md-table th,
+.mateu-md-table td {
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+}
+.mateu-md-table th {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.03));
+  font-weight: 600;
+}
+
+/* overlays */
+.mateu-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.mateu-overlay {
+  background: var(--oj-core-bg-color-content, #fff);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+}
+.mateu-overlay.dialog {
+  border-radius: 0.75rem;
+  max-width: 90vw;
+  width: 32rem;
+  max-height: 85vh;
+}
+.mateu-overlay.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  border-radius: 0;
+  max-height: none;
+}
+.mateu-overlay.drawer-bottom {
+  top: auto;
+  height: auto;
+  max-height: 85vh;
+}
+.mateu-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.1));
+}
+.mateu-overlay-body {
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+/* ── Phase 5: page-width anatomy + header context selectors/actions ────────────────────── */
+
+.mateu-content-area[data-page-width='fullWidth'] .mateu-page,
+.mateu-content-area[data-page-width='fullWidth'] .mateu-crud {
+  max-width: none;
+}
+.mateu-content-area[data-page-width='edgeToEdge'] {
+  padding: 0;
+}
+.mateu-content-area[data-page-width='edgeToEdge'] .mateu-page,
+.mateu-content-area[data-page-width='edgeToEdge'] .mateu-crud {
+  max-width: none;
+}
+
+.mateu-context-selector select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  border-radius: 0.4rem;
+  background: var(--oj-core-bg-color-content, #fff);
+  color: var(--oj-core-text-color-primary, #1b1b1b);
+  margin-inline-end: 0.5rem;
+}
+.mateu-header-action {
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  background: var(--oj-core-bg-color-content, #fff);
+  border-radius: 1.25rem;
+  padding: 0.3rem 0.9rem;
+  cursor: pointer;
+  margin-inline-end: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.mateu-header-action-group {
+  position: relative;
+  display: inline-block;
+}
+.mateu-header-action-group:hover .mateu-header-action-menu {
+  display: block;
+}
+.mateu-header-action-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 12rem;
+  z-index: 50;
+  padding: 0.25rem;
+}
+.mateu-header-action-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 0.35rem;
+}
+.mateu-header-action-menu button:hover {
+  background: var(--oj-core-bg-color-hover, rgba(0, 0, 0, 0.05));
+}

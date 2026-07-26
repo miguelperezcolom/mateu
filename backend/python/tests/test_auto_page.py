@@ -40,10 +40,18 @@ class InferredOps:
 
 
 @ui("plain-metrics")
-@title("Ops, uninferred")
+@title("Ops, opted out")
+@auto_page(False)  # explicit opt-out: keep the plain form despite the MetricCard field
 class PlainOps:
     revenue: MetricCard = MetricCard(title="Revenue", value="1.2")
     note: str = "still a plain form"
+
+
+@ui("default-metrics")
+@title("Ops, inferred by default")
+class DefaultOps:
+    # No @auto_page: inference is ON by default, so a MetricCard field composes a Dashboard.
+    revenue: MetricCard = MetricCard(title="Revenue", value="1.2")
 
 
 @ui("inferred-welcome")
@@ -128,8 +136,15 @@ def test_a_data_field_keeps_an_auto_page_class_with_buttons_as_a_plain_form():
     assert component["pageType"] == "form"
 
 
-def test_without_auto_page_the_same_shape_keeps_rendering_as_a_plain_form():
+def test_auto_page_false_opts_out_keeping_the_plain_form():
     component = component_tree(PlainOps)
 
     assert not of_type(component, "DashboardLayout")
     assert not of_type(component, "Scoreboard")
+
+
+def test_without_any_decorator_the_shape_composes_by_default():
+    component = component_tree(DefaultOps)
+
+    assert of_type(component, "DashboardLayout")
+    assert of_type(component, "Scoreboard")

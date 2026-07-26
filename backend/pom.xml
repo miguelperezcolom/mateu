@@ -55,6 +55,8 @@
     <module>helidon-mp</module>
       <module>shared/frontend/redhat-lit</module>
     <module>shared/frontend/redwood-oj-lit</module>
+    <module>shared/frontend/redwood-spectra-lit</module>
+    <module>shared/frontend/redwood-lit</module>
     <module>shared/frontend/sapui5-lit</module>
   </modules>
 
@@ -72,12 +74,34 @@
       <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
-        <version>1.18.40</version>
+        <version>1.18.46</version>
+      </dependency>
+      <!--
+        Pin smallrye-common-function ahead of the Quarkus BOM. Quarkus 3.38 pulls it at 2.14.0 via
+        jboss-threads and at 2.19.0 via smallrye-common-io, which the maven-enforcer
+        DependencyConvergence rule rejects. A directly declared managed dependency converges every
+        path on 2.19.0.
+      -->
+      <dependency>
+        <groupId>io.smallrye.common</groupId>
+        <artifactId>smallrye-common-function</artifactId>
+        <version>2.19.0</version>
+      </dependency>
+      <!--
+        Pin hibernate-validator to the Spring Boot 4 line (9.1.2.Final) everywhere. Spring Boot 4.1.0
+        brings jakarta-validation 3.x / hibernate-validator 9.x; core and webflux-core also declare it
+        directly (bumped to 9.1.2 in their poms), and this managed pin converges the modules that
+        pick it up transitively from the Boot BOM, keeping maven-enforcer DependencyConvergence happy.
+      -->
+      <dependency>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>9.1.2.Final</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>4.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -94,7 +118,7 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
-      <version>3.0.0</version>
+      <version>3.0.1</version>
     </dependency>
 
   </dependencies>
@@ -105,14 +129,14 @@
                   <plugin>
                       <groupId>org.apache.maven.plugins</groupId>
                       <artifactId>maven-surefire-plugin</artifactId>
-                      <version>3.5.2</version> </plugin>
+                      <version>3.5.6</version> </plugin>
               </plugins>
           </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.0</version>
+        <version>3.15.0</version>
         <configuration>
           <source>21</source>
           <target>21</target>
@@ -153,7 +177,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.3</version>
         <configuration>
           <rules>
             <bannedDependencies>
@@ -179,7 +203,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.10</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <id>add_sources</id>
@@ -199,7 +223,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -213,7 +237,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.6.3</version>
+        <version>3.12.0</version>
         <configuration>
           <sourcepath>src/main/java</sourcepath>
           <source>21</source>
@@ -234,7 +258,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
+        <version>3.2.8</version>
         <executions>
           <execution>
             <id>sign-artifacts</id>
@@ -255,7 +279,7 @@
       <plugin>
         <groupId>org.sonatype.central</groupId>
         <artifactId>central-publishing-maven-plugin</artifactId>
-        <version>0.8.0</version>
+        <version>0.11.0</version>
         <extensions>true</extensions>
         <configuration>
           <publishingServerId>central</publishingServerId>
@@ -333,7 +357,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.12</version>
+        <version>0.8.15</version>
         <executions>
           <execution>
             <goals>

@@ -12,6 +12,9 @@ data class MateuConfig(
     val route: String,
     val config: Map<String, Any?>,
     val focused: Boolean,
+    /** Product name shown as the window/frame title base and as the opened project's name, so no
+     *  "workspace"/IDE tell leaks through. Overridable via `mateu.productName`. */
+    val productName: String,
     /** App-registry coordinates: when both are set the plugin resolves baseUrl/parameters from the
      *  registry at boot (and enforces the required plugin/IDE versions) instead of using [baseUrl]. */
     val registryUrl: String?,
@@ -28,9 +31,10 @@ fun loadMateuConfig(): MateuConfig {
     val route = prop("mateu.route", "/")!!
     val config = parseConfig(prop("mateu.config", "{}")!!)
     val focused = prop("mateu.focused", "true")!!.toBoolean()
+    val productName = prop("mateu.productName", "Mateu")!!.ifBlank { "Mateu" }
     val registryUrl = prop("mateu.registryUrl")?.ifBlank { null }
     val appId = prop("mateu.appId")?.ifBlank { null }
-    return MateuConfig(baseUrl, route, config, focused, registryUrl, appId)
+    return MateuConfig(baseUrl, route, config, focused, productName, registryUrl, appId)
 }
 
 private fun parseConfig(json: String): Map<String, Any?> = try {

@@ -7,16 +7,21 @@ on:
   release:
     types: [published]
 
+# The release event can't be filtered by tag in `on:`, so guard the jobs: only framework releases
+# (tag `vX.Y…`, e.g. v3.0-alpha.N) publish to Maven Central. Other releases — e.g. the desktop
+# installers (`mateu-desktop-*`) — publish nothing.
 jobs:
   e2e:
+    if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/run_tests.yml
 
   all:
     needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Set env
         run: VERSION=${{ github.event.release.tag_name }}; echo "RELEASE_VERSION=${VERSION:1}" >> $GITHUB_ENV
       - name: Set up JDK 21
@@ -28,12 +33,12 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
       - name: Import GPG Key
-        uses: crazy-max/ghaction-import-gpg@v1
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        uses: crazy-max/ghaction-import-gpg@v7
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 

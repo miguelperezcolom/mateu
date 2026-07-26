@@ -3,8 +3,9 @@ package io.mateu.core.infra.declarative.orchestrators.collectiondetail;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Chip;
+import io.mateu.uidl.data.ContentAsidePosition;
+import io.mateu.uidl.data.ContentLayout;
 import io.mateu.uidl.data.EmptyState;
-import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.QueueGroup;
 import io.mateu.uidl.data.QueueItem;
 import io.mateu.uidl.data.TaskQueue;
@@ -111,16 +112,19 @@ public abstract class CollectionDetail<Row> implements TriggersSupplier {
     var list =
         TaskQueue.builder()
             .actionId("selectCollectionItem")
-            .style("flex: 0 0 " + listWidth() + "; min-width: min(" + listWidth() + ", 100%);")
             .groups(
                 List.of(QueueGroup.builder().label(listLabel(items.size())).items(items).build()))
             .build();
     var detail = selected == null ? emptyDetail() : detail(selected, currentRequest);
-    return HorizontalLayout.builder()
-        .spacing(true)
-        .fullWidth(true)
-        .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
-        .content(List.of(list, detail))
+    // The searchable list is the contextual aside (left, fixed width); the selected item's detail
+    // is the main region. The ContentLayout gives it the uniform responsive grammar (the list
+    // stacks above the detail on narrow viewports).
+    return ContentLayout.builder()
+        .aside(List.of(list))
+        .main(List.of(detail))
+        .asidePosition(ContentAsidePosition.start)
+        .asideWidth(listWidth())
+        .asideSticky(false)
         .build();
   }
 

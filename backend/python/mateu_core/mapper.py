@@ -25,6 +25,7 @@ from mateu_dtos import (
     CardMetadata,
     ClientSideComponent,
     CrudMetadata,
+    ContentLayoutMetadata,
     CustomTrigger,
     DashboardLayoutMetadata,
     DashboardPanelMetadata,
@@ -132,6 +133,7 @@ from mateu_dtos import (
 from mateu_uidl import (
     Aggregate,
     AppActionsSupplier,
+    Aside,
     PeerNavigationSupplier,
     Timestamp,
     Audience,
@@ -317,6 +319,9 @@ class ReflectionMapper:
         # Timestamp() fields render as the header "last updated" text, never as form fields.
         if f.has(Timestamp):
             return False
+        # Aside() fields render in the ContentLayout aside slot, not the form body.
+        if f.has(Aside):
+            return False
         return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
     def T(self, s: str) -> str:
@@ -496,7 +501,7 @@ class ReflectionMapper:
                 Action(id=a) for a in self.collect_action_ids(tree) if a not in known
             ]
         else:
-            children = self.form_cards(cls, instance)
+            children = self.wrap_aside(cls, instance, self.form_cards(cls, instance))
 
         # @welcome_banner: the Redwood "Welcome Banner" element is a plain HeroSection
         # prepended to the page content (mirrors Java's ReflectionPageMapper).
@@ -820,6 +825,24 @@ class ReflectionMapper:
                         else None
                     ),
                     overviewEditActionId=c.overview_edit_action_id,
+                ),
+                c,
+                children,
+            )
+        if isinstance(c, fluent.ContentLayout):
+            children = []
+            for prefix, region in (("main", c.main), ("aside", c.aside), ("footer", c.footer)):
+                for i, comp in enumerate(region):
+                    if comp is None:
+                        continue
+                    child = self.map_component(comp)
+                    child.slot = f"{prefix}-{i}"
+                    children.append(child)
+            return self._fluent_client(
+                ContentLayoutMetadata(
+                    asidePosition=c.aside_position or "end",
+                    asideWidth=c.aside_width,
+                    asideSticky=c.aside_sticky,
                 ),
                 c,
                 children,
@@ -1895,6 +1918,38 @@ class ReflectionMapper:
         return rules
 
     # ── Fields & layout ────────────────────────────────────────────────────────
+    def wrap_aside(self, cls, instance, content: list) -> list:
+        """If the view declares any ``Aside()`` component-holder field, pull those into the aside
+        slot of a ContentLayout wrapping the form (main slot) — the Python analogue of Java's
+        PageContentBuilder.wrap_aside_if_present. Regions travel as slotted children main-N/aside-N;
+        a form with no ``Aside()`` field is returned untouched (the common case, zero overhead)."""
+        aside_fields = [f for f in view_fields(cls) if f.has(Aside)]
+        if not aside_fields:
+            return content
+        aside_children = []
+        for f in aside_fields:
+            value = getattr(instance, f.name, None)
+            if callable(value):
+                value = value()
+            if value is not None:
+                aside_children.append(self.map_component(value))
+        if not aside_children:
+            return content
+        marker = aside_fields[0].marker(Aside)
+        children = []
+        for i, c in enumerate(content):
+            c.slot = f"main-{i}"
+            children.append(c)
+        for i, c in enumerate(aside_children):
+            c.slot = f"aside-{i}"
+            children.append(c)
+        meta = ContentLayoutMetadata(
+            asidePosition=marker.position or "end",
+            asideWidth=marker.width,
+            asideSticky=marker.sticky,
+        )
+        return [self.client(meta, "content", children)]
+
     def form_cards(self, cls, instance, read_only: bool = False) -> list:
         read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
         fields = [f for f in view_fields(cls) if self.visible(f)]

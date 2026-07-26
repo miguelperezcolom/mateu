@@ -10,6 +10,7 @@ import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
+import io.mateu.dtos.ContentLayoutDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
 import io.mateu.dtos.HorizontalLayoutDto;
@@ -21,6 +22,7 @@ import io.mateu.dtos.TextDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.dtos.VerticalLayoutDto;
 import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Aside;
 import io.mateu.uidl.annotations.Banner;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Compact;
@@ -265,6 +267,18 @@ class LayoutSyncTest {
     String name = "n";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/layout/aside")
+  public static class AsidePage {
+    String name = "Ada";
+    String email = "ada@example.com";
+
+    // A supporting panel marked @Aside is pulled out of the form body into the ContentLayout aside.
+    @Aside(width = "20rem")
+    io.mateu.uidl.data.Markdown help =
+        new io.mateu.uidl.data.Markdown("Need help? Contact support.", null, null);
+  }
+
   // ------------------------------------------------------------------ harness
 
   static TestMateu mateu;
@@ -287,7 +301,8 @@ class LayoutSyncTest {
             BannerSupplierPage.class,
             FabPage.class,
             DynamicTitlePage.class,
-            KpiPage.class);
+            KpiPage.class,
+            AsidePage.class);
   }
 
   @AfterAll
@@ -330,6 +345,20 @@ class LayoutSyncTest {
     assertThat(page.children()).isNotEmpty();
     var wrapper = (ClientSideComponentDto) page.children().get(0);
     assertThat(wrapper.metadata()).isInstanceOf(VerticalLayoutDto.class);
+  }
+
+  @Test
+  void asideFieldWrapsTheFormInAContentLayout() {
+    var page = page(mateu.sync("/layout/aside"));
+    var content = (ClientSideComponentDto) page.children().get(0);
+    assertThat(content.metadata()).isInstanceOf(ContentLayoutDto.class);
+    var meta = (ContentLayoutDto) content.metadata();
+    assertThat(meta.asideWidth()).isEqualTo("20rem");
+    assertThat(meta.asideSticky()).isTrue();
+    // the form is in the main slot; the @Aside help panel in the aside slot
+    var slots = content.children().stream().map(c -> ((ClientSideComponentDto) c).slot()).toList();
+    assertThat(slots).anyMatch(s -> s != null && s.startsWith("main-"));
+    assertThat(slots).anyMatch(s -> s != null && s.startsWith("aside-"));
   }
 
   @Test

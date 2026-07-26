@@ -46,6 +46,14 @@ export default defineConfig({
       testMatch: '**/shared/**/*.spec.ts',
     },
     {
+      name: 'helidon-app1',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8086',
+      },
+      testMatch: '**/shared/**/*.spec.ts',
+    },
+    {
       // Federated shell (fed-shell-app :8084) aggregating fed-remote-app :8085 over RemoteMenu.
       // Runs only the federation specs (not the shared ones).
       name: 'fed-shell-app',

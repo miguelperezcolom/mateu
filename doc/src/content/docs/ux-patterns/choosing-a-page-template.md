@@ -56,24 +56,24 @@ wrong for your case.
 | An overview across the top + several categories in lateral panels | **Foldout** | [`Foldout`](./foldout) |
 | The simplest detail page: context strip over property cards, with a record switcher | **General Overview** | [`GeneralOverview<Row>`](./general-overview) |
 | A sticky key-info panel + tabbed detail for one item | **Item Overview** | [`ItemOverview`](./item-overview) |
-| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | `Drawer` (read-only) — *canonical archetype planned* |
-| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | *planned* |
+| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | [`Drawer`](./drawer#general-drawer) (subtitle/size/maximizable/peer-nav) |
+| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | [`Drawer`](./drawer#bottom-drawer) (`DrawerPosition.bottom` + `collapsible`) |
 
 ### Transactional pages (create / edit)
 
 | You need… | Template | Mateu |
 |---|---|---|
 | Create/edit a record — validation, optimistic locking, dirty guard | **Create & Edit (simple)** | [`AutoCrud<T>`](./create-and-edit) |
-| The same for a complex object: sections/tabs + a lateral section index | **Advanced Create & Edit** | `AutoCrud` + [`@Toc`](./sections-index) + `@Zones`/tabs |
+| The same for a complex object: section index + a contextual detail panel | **Advanced Create & Edit** | [`@Toc`](./sections-index) (anchor nav) *or* [`@Aside`](./layout-inference#aside--a-content-page-from-a-plain-form) (detail slot) + `@KPI`/`@Timestamp`/peer-nav — see [Advanced create & edit](./advanced-create-and-edit) |
 | Create/edit in a panel that slides over the listing (which never unmounts) | **Create & Edit Drawer** | [`editInDrawer()`](./drawer#crud-editing-in-a-drawer-editindrawer) |
 | A list with an in-place detail pane and actions on the selected item | **Collection Detail** | [`CollectionDetail<Row>`](./collection-detail) |
 | A multi-step process, 2–25 steps, with a lateral progress rail | **Guided Process** | [`Wizard`](./wizard) + `@WizardProgress(RAIL)` |
-| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | *planned* |
-| A dense datagrid you edit in place, optionally switching to a Gantt | **Data Management** | [`@InlineEditing`](./inline-crud-editing) + `@Compact` (Gantt switch planned) |
-| A scheduling canvas: Gantt + bottom drawer + side detail panel | **Gantt page** | [`Gantt`](./gantt) / [`PlanningBoard`](./planning-board) components (page template planned) |
+| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | [`Drawer`](./drawer) + `EmbeddedView(wizard)` |
+| A dense datagrid you edit in place, optionally switching to a Gantt | **Data Management** | [`DataManagement`](./data-management) (grid ⇄ Gantt switch) |
+| A scheduling canvas: Gantt + docked detail panel | **Gantt page** | [`GanttPage`](./gantt#gantt-page-template-ganttpage-archetype) |
 
-Templates marked *planned* are on the [roadmap](#roadmap); the linked component or pattern is the
-closest thing available today.
+Every template in the tables above is available today — each links to its archetype, annotation or
+composition.
 
 ## Mateu also ships templates Redwood doesn't name
 
@@ -96,9 +96,28 @@ You are never forced onto a template: a plain `@UI` class with declared fields s
 layout ([layout inference](./layout-inference)). The templates are opinionated rails on top, not a
 requirement.
 
-## Roadmap
+## Often you don't pick at all
 
-Six Redwood templates are being brought to full parity — all in the Detail/Transactional
-categories, centered on drawers and dense canvases: **General Drawer**, **Bottom Drawer**, **Guided
-Process Drawer**, **Advanced Create & Edit** (canonical), **Data Management**, and the **Gantt page**
-template. Until then, use the closest available piece noted above.
+Page inference is **on by default**, so for the fully-derivable shapes you just declare the data and
+the right template composes itself:
+
+- Consecutive `MetricCard` fields → a **Dashboard**; only `Button` fields + `@Panel` tiles → a
+  **Welcome** landing. No archetype, no annotation. `@AutoPage(false)` opts a class out.
+- A plain **form with a supporting side panel** → mark that one component-holder field `@Aside` and
+  the form composes a **content-page** (`ContentLayout`): the field becomes the contextual aside,
+  the rest of the form the main region (`position`/`width`/`sticky` on the annotation).
+
+Reach for an explicit archetype when you need its knobs, or when the shape isn't self-evident from
+the fields. Everything above is the same uniform slot grammar the archetypes themselves compose.
+
+## Status
+
+The full Redwood page-template catalog is covered — the Overview, Detail and Transactional
+families, the drawers (General, Bottom, Create&Edit, Guided Process), the dense canvases (Data
+Management, Gantt page) and the composed **Advanced Create & Edit** — plus the extras Redwood
+doesn't name. All of it is the same uniform slot grammar (a canonical page header + `ContentLayout`
+main/aside/footer), so every template renders on every renderer and has .NET/Python parity.
+
+What's left is polish, not coverage: deeper variants (a bottom + side drawer used *simultaneously*
+on the Gantt page, batch flows in the Guided Process Drawer) and closing the Figma design-to-code
+loop for the newest kinds.

@@ -19,7 +19,9 @@ public static class PageInference
     {
         if (type is null) return false;
         if (type.Find<AutoPageAttribute>() is { } auto) return auto.Value;
-        return AppContext.TryGetSwitch("Mateu.LayoutInference", out var on) && on;
+        // Page inference is ON by default (the template is the default inferred output); opt out per
+        // class with [AutoPage(false)], or globally with the "Mateu.PageInference.Disabled" switch.
+        return !(AppContext.TryGetSwitch("Mateu.PageInference.Disabled", out var off) && off);
     }
 
     /// <summary>Whether ANY composition rule applies.</summary>

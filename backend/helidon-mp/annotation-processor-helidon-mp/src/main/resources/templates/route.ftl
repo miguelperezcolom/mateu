@@ -4,11 +4,13 @@ import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
 @Named
+@ApplicationScoped
 public class ${generatedClassName} implements RouteResolver {
 
     private final List<CompiledRouteValue> patterns = List.of(

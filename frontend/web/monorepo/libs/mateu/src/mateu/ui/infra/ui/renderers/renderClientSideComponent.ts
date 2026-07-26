@@ -73,6 +73,7 @@ import {
     renderScoreboard
 } from "@infra/ui/renderers/dashboardRenderer.ts";
 import { renderFoldoutLayout } from "@infra/ui/renderers/foldoutRenderer.ts";
+import { renderContentLayout } from "@infra/ui/renderers/contentLayoutRenderer.ts";
 import { renderHeroSection } from "@infra/ui/renderers/heroRenderer.ts";
 import { renderEmptyState, renderSkeleton } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { renderGantt } from "@infra/ui/renderers/ganttRenderer.ts";
@@ -271,6 +272,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.DashboardPanel]: full(renderDashboardPanel),
     [ComponentMetadataType.DashboardLayout]: full(renderDashboardLayout),
     [ComponentMetadataType.FoldoutLayout]: full(renderFoldoutLayout),
+    [ComponentMetadataType.ContentLayout]: full(renderContentLayout),
     [ComponentMetadataType.HeroSection]: full(renderHeroSection),
     [ComponentMetadataType.EmptyState]: ({ component }) => renderEmptyState(component),
     [ComponentMetadataType.Skeleton]: ({ component }) => renderSkeleton(component),

@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-binding</artifactId>
+            <artifactId>jersey-media-json-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -105,6 +105,17 @@
                         <id>make-index</id>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- javac disables classpath annotation processing by default since JDK 23;
+                         mateu's framework annotation processor (annotation-processor-helidon-mp) is a
+                         plain dependency, so it needs proc:full to run and generate the per-@UI
+                         controllers, route resolvers and config. -->
+                    <proc>full</proc>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -93,6 +93,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/smart-search' },
 						{ slug: 'ux-patterns/to-do-list' },
 						{ slug: 'ux-patterns/create-and-edit' },
+						{ slug: 'ux-patterns/advanced-create-and-edit', label: 'Advanced Create & Edit' },
 						{ slug: 'ux-patterns/waterfall-detail' },
 						{ slug: 'ux-patterns/item-overview' },
 						{ slug: 'ux-patterns/collection-detail' },
