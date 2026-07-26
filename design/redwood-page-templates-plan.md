@@ -317,3 +317,55 @@ Cada fase = uno o varios releases `v3.0-alpha.N`, con demo + SyncTest + doc + pa
 - **Nomenclatura**: ¿mantenemos los nombres Redwood (Advanced Create & Edit, General Drawer) o los
   traducimos al vocabulario Mateu? Recomendación: nombre Redwood en la doc/guía (reconocible),
   nombre Mateu-idiomático en la API.
+
+---
+
+## 9. Elevar el peso de las plantillas — dirección estratégica (decisión 2026-07-26)
+
+**Contexto.** El dueño del producto está cada vez más convencido de que la definición de UI a
+**alto nivel vía page templates** debe tener MÁS peso, copiando el approach de Redwood
+(referencia: `redwood.oracle.com` GUIDEG10 *content page* — *Shell → Content Page = Page Header +
+Content Sections*). Endosó las **cuatro** palancas a la vez (son capas, no exclusivas). Se secuencian
+por dependencia:
+
+### Orden de trabajo (cada fase = release + demo + SyncTest + doc + paridad .NET/Python)
+
+1. **Gramática content-page (slots)** — *la base estructural.* Hoy `PageDto` ya tiene una cabecera
+   canónica (Fase 0), pero el CONTENIDO es "una lista de componentes" que cada arquetipo compone a
+   mano. Falta el concepto formal de **slot** (§3). Redwood define el content-page como *header +
+   content sections con rol*. Entregable: un vocabulario CERRADO de slots — `MAIN`, `ASIDE`
+   (detail/overview contextual), `PANELS` (foldout/tabs), `FOOTER` (header y toolbar ya existen) —
+   y un componente ligero **`ContentLayout(main, aside, footer, panels)`** (uidl.data, hermano de
+   `DashboardLayout`/`FoldoutLayout`) que los renderers pintan con UNA gramática responsive
+   uniforme (main+aside 64/36, aside sticky, footer full-width). Cada arquetipo pasa a **rellenar
+   slots** en vez de componer layouts bespoke.
+   - *Nota sobre el principio #3 (nada de wire nuevo salvo inevitable):* aquí UN tipo wire nuevo
+     SUSTITUYE N composiciones ad-hoc → reduce superficie, no la aumenta. Alternativa cero-wire
+     considerada (convención `@Slot(name)` sobre `@Zones`): más pobre para arquetipos
+     programáticos. **Recomendación: `ContentLayout`.** (queda como decisión abierta a confirmar).
+   - *Roll-out sin big-bang:* pilotar en UN arquetipo con forma main+aside clara (General/Item
+     Overview) antes de migrar los ~15. Los arquetipos no migrados siguen funcionando (aditivo).
+
+2. **Inferencia por defecto** — *el "más peso" que respeta el alma de Mateu.* Extender `@AutoPage`
+   para que MÁS formas se auto-compongan en la plantilla + content-page correcta POR DEFECTO (hoy
+   sólo Dashboard/Welcome, y opt-in). El dev sigue declarando datos; la plantilla es el output por
+   defecto y overridable. Reconciliación de la tensión con el principio #2: la plantilla no se
+   impone declarándola a mano, se **infiere**. Depende de (1) para tener a dónde componer.
+
+3. **Template-first + scaffold** — *la capa de DX.* Asistente `/mateu-scaffold` (categoría +
+   densidad → esqueleto del arquetipo correcto rellenando slots) + docs que empujan "elige plantilla
+   → rellena slots". Cierra el círculo con el `contract.json` de Figma (`Mateu/Page Templates/*`).
+
+4. **Cerrar catálogo (Fase 3/4)** — Advanced Create&Edit canónico (5.4, ahora encaja natural como
+   `ContentLayout` main+aside con anchor-nav = `@Toc`), Guided Process Drawer pulido (5.3), catálogo
+   doc completo + Figma sincronizado.
+
+### Línea roja que se mantiene
+El alma de Mateu (*declaras datos → se infiere la UI*) NO se rompe: las plantillas ganan peso siendo
+el **output por defecto de la inferencia** y el vocabulario común de composición, no una jaula
+declarativa obligatoria. Todo arquetipo sigue siendo composición de piezas wire → renderiza en todos
+los renderers. Paridad .NET/Python en cada fase.
+
+### Decisión abierta crítica (bloquea la Fase 1 de esta sección)
+`ContentLayout` como tipo wire nuevo **vs.** convención `@Slot` sobre `@Zones`. Recomendación:
+`ContentLayout`. Pendiente de confirmar antes de tocar código (blast radius = ~15 arquetipos).

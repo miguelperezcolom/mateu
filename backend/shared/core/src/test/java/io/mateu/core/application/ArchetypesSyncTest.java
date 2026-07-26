@@ -26,6 +26,7 @@ import io.mateu.dtos.ComparisonCardDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
 import io.mateu.dtos.ContainerDto;
+import io.mateu.dtos.ContentLayoutDto;
 import io.mateu.dtos.DashboardLayoutDto;
 import io.mateu.dtos.DashboardPanelDto;
 import io.mateu.dtos.DetailsDto;
@@ -1177,19 +1178,21 @@ class ArchetypesSyncTest {
   // ---------------------------------------------------------------- item overview
 
   @Test
-  void itemOverviewKeyInfoIsAStickyCardWithConfiguredWidth() {
+  void itemOverviewKeyInfoTravelsInAStickyAsideWithConfiguredWidth() {
     var increment = sync("/chair-overview");
-    // CardMapper does not propagate the fluent id — the key-info card is the sticky one.
-    var card =
-        findAll(increment, CardDto.class).stream()
-            .filter(c -> c.style() != null && c.style().contains("position: sticky"))
-            .findFirst()
-            .orElse(null);
+    // The sticky/width chrome now belongs to the ContentLayout aside slot, not the card.
+    var content = findFirst(increment, ContentLayoutDto.class);
+    assertThat(content).isNotNull();
+    var meta = (ContentLayoutDto) content.metadata();
+    assertThat(meta.asideWidth()).isEqualTo("26rem");
+    assertThat(meta.asideSticky()).isTrue();
+    assertThat(meta.asidePosition()).isEqualTo("start");
+    // the aside hosts the key-info card whose content is the Markdown summary
+    var card = findFirst(content, CardDto.class);
     assertThat(card).isNotNull();
-    assertThat(card.style()).contains("position: sticky").contains("flex: 0 0 26rem");
-    var content = ((CardDto) card.metadata()).content();
-    assertThat(content).isInstanceOf(ClientSideComponentDto.class);
-    assertThat(((ClientSideComponentDto) content).metadata()).isInstanceOf(MarkdownDto.class);
+    var cardContent = ((CardDto) card.metadata()).content();
+    assertThat(cardContent).isInstanceOf(ClientSideComponentDto.class);
+    assertThat(((ClientSideComponentDto) cardContent).metadata()).isInstanceOf(MarkdownDto.class);
   }
 
   @Test
@@ -1205,14 +1208,13 @@ class ArchetypesSyncTest {
   }
 
   @Test
-  void itemOverviewComposesAHorizontalLayoutRoot() {
+  void itemOverviewComposesAContentLayoutRoot() {
     var increment = sync("/chair-overview");
-    var horizontal = findFirst(increment, HorizontalLayoutDto.class);
-    assertThat(horizontal).isNotNull();
-    assertThat(((HorizontalLayoutDto) horizontal.metadata()).fullWidth()).isTrue();
-    // the layout hosts both the sticky card and the tab layout
-    assertThat(findFirst(horizontal, CardDto.class)).isNotNull();
-    assertThat(findFirst(horizontal, TabLayoutDto.class)).isNotNull();
+    var content = findFirst(increment, ContentLayoutDto.class);
+    assertThat(content).isNotNull();
+    // the content layout hosts both the key-info card (aside) and the tab layout (main)
+    assertThat(findFirst(content, CardDto.class)).isNotNull();
+    assertThat(findFirst(content, TabLayoutDto.class)).isNotNull();
   }
 
   // ---------------------------------------------------------------- hero search
