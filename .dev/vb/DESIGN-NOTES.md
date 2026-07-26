@@ -740,6 +740,24 @@ enseñaba el contenido de identidad aunque el rail dijera Extras→Confirmar; la
 saltaba, la posición inicial no) — 32 tests Wizard* del core en verde. PENDIENTE: plegar
 /encasa y /checkout dentro de la 360 si se quiere.
 
+## /encasa y /checkout PLEGADAS en la Reserva 360 (2026-07-26)
+
+Las páginas EnCasaDetail/CheckOutDetail (y las tres queues muertas) se ELIMINAN: la 360 es
+la única pantalla de reserva. El check-out es un MODO de la 360 (`modoCheckout`, @Hidden):
+el toolbar Check-out lo activa (re-render en el sitio, sin navegación) y aparecen Desglose
+folio (Ledger), Postear cargo (FormField fluido cargoBusqueda + @AutoSave buscarCargos +
+resultados como StatusList con rowActionId seleccionarCargo) y Cobro (PaymentPicker →
+confirmPayment cierra la estancia → DEPARTED + banner). "Volver a la reserva" desactiva el
+modo. Los @Section del modo son frameless con value en blanco DISTINTO ("  ", "   "…) y sus
+Callables devuelven VerticalLayout vacío fuera del modo (una sección titulada pintaría la
+card vacía siempre). Renderer: átomo `isInput` (FormField fluido string/integer editable →
+oj-input-text ligado por fieldId; hostInputChanged → draft + runMateuAction(buscarCargos),
+el value-changed en blur/Enter hace de debounce) y filas de StatusList con `rowClickable`
+(rowActionId sin actionLabel = la fila entera es una oj-action-card que despacha {_item} —
+contrato del renderer web). El markup de StatusList se REGENERÓ por regex en las 6 copias
+(el troceado incremental se volvió frágil — TODO: generar las plantillas de átomos desde
+una fuente única).
+
 ## Wizard standalone: pie sticky vs barra de tabs + forward real (2026-07-26)
 
 - El pie del guided process (Continue/Back) es `position: sticky; bottom: 0` — con la barra

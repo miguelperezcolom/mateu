@@ -521,10 +521,21 @@ export function islandContentOf(ctx) {
       return
     }
     if (t === 'FormField') {
+      const fieldId = m.fieldId || m.id
       if (m.propertyRow) {
-        const fieldId = m.fieldId || m.id
         const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
         atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
+        return
+      }
+      // FormField FLUIDO editable (p.ej. el buscador de cargos del modo check-out):
+      // input ligado por fieldId al estado del contexto (draft + auto-save)
+      if (m.dataType === 'string' || m.dataType === 'integer' || m.dataType === 'number') {
+        atom({
+          isInput: true,
+          fieldId,
+          label: m.label || '',
+          value: state[fieldId] == null ? '' : String(state[fieldId]),
+        }, container)
       }
       return
     }
@@ -666,6 +677,9 @@ export function islandContentOf(ctx) {
           actionLabel: it.actionLabel || '',
           actionId: it.actionId || m.rowActionId || '',
           parameters: { _item: it.id },
+          // rowActionId SIN botón propio = la FILA ENTERA es actuable (contrato del
+          // renderer web: clic de fila → rowActionId con {_item})
+          rowClickable: !!(m.rowActionId && !it.actionLabel),
         })),
       }, container)
       return

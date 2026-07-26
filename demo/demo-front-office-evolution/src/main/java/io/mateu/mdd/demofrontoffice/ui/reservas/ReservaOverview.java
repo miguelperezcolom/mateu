@@ -12,7 +12,19 @@ import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.mdd.demofrontoffice.domain.folio.Folio;
+import io.mateu.mdd.demofrontoffice.domain.folio.FolioLine;
+import io.mateu.mdd.demofrontoffice.domain.room.Room;
+import io.mateu.uidl.annotations.AutoSave;
+import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PaymentMethod;
+import io.mateu.uidl.data.PaymentPicker;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.Ledger;
 import io.mateu.uidl.data.LedgerLine;
 import io.mateu.uidl.data.Meter;
@@ -48,12 +60,19 @@ import lombok.Setter;
 @Route(value = "/reserva/:id", parentRoute = "")
 @Title("Reserva")
 @FormLayout(columns = 1)
+@AutoSave(action = "buscarCargos", debounceMillis = 350)
 public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, ActionHandler {
 
   private static final DateTimeFormatter DAY =
       DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"));
 
   @Hidden String stayId;
+
+  // ── modo CHECK-OUT (plegado de la antigua /checkout/:id dentro de la 360) ────
+  @Hidden boolean modoCheckout;
+  @Hidden String metodoPago = "card";
+  @Hidden String cargoBusqueda;
+  @Hidden String ultimaBusqueda;
 
   // ── header del huésped (por estado) ──────────────────────────────────────────
   @Section(value = "", frameless = true)
@@ -120,6 +139,106 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
         };
       };
 
+  // ── modo check-out: folio + posteo de cargos + cobro (invisibles fuera del modo) ──
+  @Section(value = "  ", frameless = true)
+  @Label("")
+  Callable<Component> checkoutFolio =
+      () -> {
+        if (!modoCheckout) {
+          return new VerticalLayout();
+        }
+        var f = FrontOffice.stayView(stayId).folio();
+        return VerticalLayout.builder()
+            .style("width: 100%; gap: .5rem;")
+            .content(List.of(
+                Text.builder().text("Desglose folio").container(
+                    io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
+                io.mateu.uidl.data.Ledger.builder()
+                    .style("width: 100%;")
+                    .currency("€")
+                    .totalLabel("Total")
+                    .lines(f == null ? List.of() : f.lines().stream()
+                        .map(l -> LedgerLine.builder()
+                            .concept(l.concept())
+                            .amount(l.amount() == null ? null : l.amount().doubleValue())
+                            .included(l.included())
+                            .includedLabel(l.includedLabel())
+                            .build())
+                        .toList())
+                    .total(f == null ? 0 : f.balance().doubleValue())
+                    .build()))
+            .build();
+      };
+
+  @Section(value = "   ", frameless = true)
+  @Label("")
+  Callable<Component> checkoutCargos =
+      () -> {
+        if (!modoCheckout) {
+          return new VerticalLayout();
+        }
+        var content = new ArrayList<Component>();
+        content.add(Text.builder().text("Postear cargo").container(
+            io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+        content.add(FormField.builder()
+            .id("cargoBusqueda")
+            .label("Buscar por nombre o código")
+            .dataType(FieldDataType.string)
+            .style("width: 100%; max-width: 32rem;")
+            .build());
+        if (cargoBusqueda != null && !cargoBusqueda.isBlank()) {
+          var busca = cargoBusqueda.trim().toLowerCase();
+          var matches = FrontOffice.chargeCatalog().findAll().stream()
+              .filter(item -> item.name().toLowerCase().contains(busca)
+                  || item.code().toLowerCase().contains(busca))
+              .toList();
+          content.add(matches.isEmpty()
+              ? Notice.builder().theme("warning")
+                  .text("Sin coincidencias para \"" + cargoBusqueda + "\"").slim(true)
+                  .fullWidth(true).build()
+              : StatusList.builder()
+                  .rowActionId("seleccionarCargo")
+                  .compact(true)
+                  .style("width: 100%;")
+                  .items(matches.stream()
+                      .map(item -> StatusItem.builder()
+                          .id(item.code()).title(item.name()).description(item.code())
+                          .status(GuestHeaders.euros(item.price())).statusColor("contrast")
+                          .build())
+                      .toList())
+                  .build());
+        }
+        return VerticalLayout.builder().style("width: 100%; gap: .5rem;").content(content).build();
+      };
+
+  @Section(value = "    ", frameless = true)
+  @Label("")
+  Callable<Component> checkoutCobro =
+      () -> {
+        if (!modoCheckout) {
+          return new VerticalLayout();
+        }
+        var f = FrontOffice.stayView(stayId).folio();
+        return VerticalLayout.builder()
+            .style("width: 100%; gap: .5rem;")
+            .content(List.of(
+                Text.builder().text("Cobro").container(
+                    io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
+                PaymentPicker.builder()
+                    .actionId("confirmPayment")
+                    .methodActionId("cambiarMetodo")
+                    .methods(List.of(
+                        PaymentMethod.builder().id("card").label("Tarjeta").build(),
+                        PaymentMethod.builder().id("cash").label("Efectivo").build(),
+                        PaymentMethod.builder().id("points").label("Puntos").build()))
+                    .selected(metodoPago)
+                    .contextLabel("PREAUTORIZADO")
+                    .contextValue(GuestHeaders.euros(f == null ? null : f.preauthorized()))
+                    .confirmLabel("Confirmar — " + GuestHeaders.euros(GuestHeaders.balance(f)))
+                    .build()))
+            .build();
+      };
+
   private Component paraLlegada(Stay stay) {
     var faltan = paxPendientes(stay);
     var habitacionLista = habitacionInspeccionada(stay);
@@ -142,6 +261,9 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   }
 
   private Component paraInHouse(Stay stay) {
+    if (modoCheckout) {
+      return new VerticalLayout(); // en modo check-out mandan el folio y el cobro
+    }
     var view = FrontOffice.stayView(stayId);
     var folio = view.folio();
     var balance = folio == null ? 0d : folio.balance().doubleValue();
@@ -207,22 +329,25 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   // ── toolbar por estado ───────────────────────────────────────────────────────
   @Override
   public Collection<UserTrigger> toolbar() {
+    if (modoCheckout) {
+      return List.of(Button.builder().label("Volver a la reserva").actionId("volverReserva").build());
+    }
     return switch (stay().status()) {
       case ARRIVING -> List.of(
           Button.builder().label("Iniciar check-in").actionId("iniciarCheckin")
               .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
       case IN_HOUSE -> List.of(
-          Button.builder().label("Check-out").actionId("irCheckout").buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build(),
-          Button.builder().label("Añadir cargo").actionId("anadirCargo").build(),
+          Button.builder().label("Check-out").actionId("irCheckout")
+              .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build(),
           Button.builder().label("Mensaje huésped").actionId("mensajeHuesped").build());
-      case DEPARTED -> List.of(
-          Button.builder().label("Ver folio / cobros").actionId("irCheckout").build());
+      case DEPARTED -> List.of();
     };
   }
 
   @Override
   public boolean supportsAction(String actionId) {
-    return List.of("iniciarCheckin", "irCheckout", "anadirCargo", "mensajeHuesped")
+    return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
+            "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
   }
 
@@ -230,11 +355,72 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     return switch (actionId) {
       case "iniciarCheckin" -> URI.create("/checkin/" + stayId);
-      case "irCheckout" -> URI.create("/checkout/" + stayId);
-      case "anadirCargo" -> new io.mateu.uidl.data.Message(
-          "Aquí se añadiría un cargo al folio (demo)");
-      case "mensajeHuesped" -> new io.mateu.uidl.data.Message(
-          "Aquí se enviaría un mensaje al huésped (demo)");
+      case "irCheckout" -> {
+        modoCheckout = true;
+        yield this;
+      }
+      case "volverReserva" -> {
+        modoCheckout = false;
+        cargoBusqueda = null;
+        ultimaBusqueda = null;
+        yield this;
+      }
+      case "mensajeHuesped" -> new Message("Aquí se enviaría un mensaje al huésped (demo)");
+      case "buscarCargos" -> {
+        if (java.util.Objects.equals(cargoBusqueda, ultimaBusqueda)) {
+          yield null; // otro campo disparó el auto-save — sin re-render
+        }
+        ultimaBusqueda = cargoBusqueda;
+        yield this;
+      }
+      case "seleccionarCargo" -> {
+        var code = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));
+        var item = FrontOffice.chargeCatalog().findByCode(code).orElse(null);
+        if (item == null) {
+          yield new Message("Cargo no encontrado: " + code);
+        }
+        var view = FrontOffice.stayView(stayId);
+        var folio = view.folio() != null
+            ? view.folio()
+            : Folio.openFor("f-" + view.stay().id(), view.stay().id(), null);
+        FrontOffice.folios().save(folio.post(FolioLine.charge(item.name(), item.price())));
+        cargoBusqueda = null;
+        ultimaBusqueda = null;
+        yield List.of(this,
+            new Message("Cargo posteado — " + item.name() + " " + GuestHeaders.euros(item.price())));
+      }
+      case "cambiarMetodo" -> {
+        metodoPago = String.valueOf(httpRequest.runActionRq().parameters().get("_method"));
+        yield this;
+      }
+      case "confirmPayment" -> {
+        var params = httpRequest.runActionRq().parameters();
+        var method = params != null && params.get("_method") != null
+            ? String.valueOf(params.get("_method")) : "card";
+        var methodLabel = switch (method) {
+          case "cash" -> "Efectivo";
+          case "points" -> "Puntos";
+          default -> "Tarjeta";
+        };
+        var view = FrontOffice.stayView(stayId);
+        var total = GuestHeaders.euros(GuestHeaders.balance(view.folio()));
+        if (view.stay().inHouse()) {
+          FrontOffice.stays().save(view.stay().completeCheckOut());
+          FrontOffice.rooms()
+              .findByNumber(view.stay().roomNumber())
+              .map(Room::release)
+              .ifPresent(room -> FrontOffice.rooms().save(room));
+        }
+        modoCheckout = false;
+        yield List.of(
+            this,
+            new Message("Cobro confirmado — " + total + " (" + methodLabel + ")"),
+            new PageBanner(
+                BannerTheme.SUCCESS,
+                "Check-out completado",
+                view.guest().name() + " · Hab " + view.stay().roomNumber() + " · Cobrados "
+                    + total + " con " + methodLabel + "."));
+      }
       default -> null;
     };
   }

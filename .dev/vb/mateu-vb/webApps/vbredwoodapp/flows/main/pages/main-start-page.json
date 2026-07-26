@@ -341,6 +341,17 @@
           }
         }
       ]
+    },
+    "hostInputChanged": {
+      "chains": [
+        {
+          "chain": "hostInputChanged",
+          "parameters": {
+            "event": "{{ $event }}",
+            "fieldId": "{{ $current.data.fieldId }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
