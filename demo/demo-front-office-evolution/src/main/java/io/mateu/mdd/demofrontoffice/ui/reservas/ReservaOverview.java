@@ -61,13 +61,25 @@ import lombok.Setter;
 @Route(value = "/reserva/:id", parentRoute = "")
 @Title("Reserva")
 @FormLayout(columns = 1)
-@io.mateu.uidl.annotations.SubscribeTo(event = "documento-escaneado", action = "refrescarReserva")
+@io.mateu.uidl.annotations.SubscribesTo({
+  @io.mateu.uidl.annotations.SubscribeTo(event = "documento-escaneado", action = "refrescarReserva"),
+  @io.mateu.uidl.annotations.SubscribeTo(event = "firma-capturada-360", action = "opFirmaDone")
+})
 @io.mateu.uidl.annotations.Zones({
   @io.mateu.uidl.annotations.Zone(name = "huespedes", width = "36%"),
   @io.mateu.uidl.annotations.Zone(name = "operativa", width = "64%")
 })
 @AutoSave(action = "buscarCargos", debounceMillis = 350)
-public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, ActionHandler {
+public class ReservaOverview
+    implements PostHydrationHandler, ToolbarSupplier, ActionHandler,
+        io.mateu.uidl.fluent.ActionSupplier {
+
+  @Override
+  public List<io.mateu.uidl.fluent.Action> actions(HttpRequest httpRequest) {
+    return List.of(
+        io.mateu.uidl.fluent.Action.builder().id("*").build(),
+        io.mateu.uidl.fluent.Action.builder().id("opFirma").sse(true).build());
+  }
 
   private static final DateTimeFormatter DAY =
       DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"));
@@ -82,6 +94,11 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
 
   // ── pax al que apunta la isla del documento (1 = huésped principal) ──────────
   @Hidden int paxSeleccionado = 1;
+
+  // ── modos COBRO y EXTRAS + firma en curso (tablet) ───────────────────────────
+  @Hidden boolean modoCobro;
+  @Hidden boolean modoExtras;
+  @Hidden boolean firmaEnviada;
   @Hidden String metodoPago = "card";
   @Hidden String cargoBusqueda;
   @Hidden String ultimaBusqueda;
@@ -265,17 +282,19 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
             "Llave / pulsera grabada",
             ops.llave(), "Grabar", "opLlave"),
         new Op("firma", "✍️", "Firma del registro",
-            "Se enviará a la tablet durante el check-in",
+            firmaEnviada
+                ? "Enviada a la tablet · esperando la firma del huésped…"
+                : "Enviar el registro a la tablet para su firma",
             "Firmada por el huésped en la tablet",
-            ops.firma(), null, null),
+            ops.firma(), firmaEnviada ? null : "Enviar a tablet", "opFirma"),
         new Op("cobro", "💳", "Cobro / preautorización",
-            "Preautorizar " + GuestHeaders.euros(stay.total()) + " en el check-in",
+            "Preautorizar " + GuestHeaders.euros(stay.total()) + " — tarjeta, efectivo o puntos",
             "Preautorización completada",
-            ops.cobro(), null, null),
+            ops.cobro(), "Cobrar", "opCobro"),
         new Op("extras", "🎁", "Ancillaries",
-            "Ofrecer los extras opcionales en el check-in",
-            "Selección de extras cerrada",
-            ops.extras(), null, null));
+            "Ofrecer los extras opcionales de la estancia",
+            extrasHecha(stay),
+            ops.extras(), "Elegir", "opExtras"));
   }
 
   /** Modo habitación: la cuadrícula de disponibles + la oferta de upgrade, en el carril
@@ -339,9 +358,78 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
   @Label("")
   io.mateu.mdd.demofrontoffice.ui.checkin.DocumentoView documento;
 
+  /** Texto de la operación de extras hecha, con lo contratado. */
+  private String extrasHecha(Stay stay) {
+    var n = stay.addOns().size();
+    return n == 0 ? "Selección cerrada — sin extras" : "Selección cerrada — " + n + " extras";
+  }
+
+  /** Modo cobro: preautorización con tarjeta / efectivo / puntos de fidelidad. */
+  private Component panelCobro(Stay stay) {
+    var guest = FrontOffice.stayView(stayId).guest();
+    return VerticalLayout.builder()
+        .style("width: 100%; gap: .5rem;")
+        .content(List.of(
+            Text.builder().text("Cobro / preautorización").container(
+                io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
+            PaymentPicker.builder()
+                .actionId("confirmarCobro")
+                .methodActionId("metodoCobro")
+                .methods(List.of(
+                    PaymentMethod.builder().id("card").label("Tarjeta").build(),
+                    PaymentMethod.builder().id("cash").label("Efectivo").build(),
+                    PaymentMethod.builder().id("points")
+                        .label("Puntos (" + String.format("%,d", guest.loyaltyPoints())
+                            .replace(',', '.') + ")").build()))
+                .selected(metodoPago)
+                .contextLabel("TOTAL RESERVA")
+                .contextValue(GuestHeaders.euros(stay.total()))
+                .confirmLabel("Preautorizar — " + GuestHeaders.euros(stay.total()))
+                .build()))
+        .build();
+  }
+
+  /** Modo extras: el catálogo de ancillaries con total en vivo + cierre de la selección. */
+  private Component panelExtras(Stay stay) {
+    var seleccionados = stay.addOns().stream()
+        .map(io.mateu.mdd.demofrontoffice.domain.stay.SelectedAddOn::addOnId)
+        .collect(java.util.stream.Collectors.toSet());
+    return VerticalLayout.builder()
+        .style("width: 100%; gap: .75rem;")
+        .content(List.of(
+            Text.builder().text("Ancillaries").container(
+                io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
+            io.mateu.uidl.data.AddOnPicker.builder()
+                .actionId("extras360")
+                .currency("€")
+                .totalLabel("Total extras")
+                .items(FrontOffice.addOnCatalog().findAll().stream()
+                    .map(item -> io.mateu.uidl.data.AddOn.builder()
+                        .id(item.id())
+                        .icon(item.icon())
+                        .title(item.title())
+                        .description(item.description())
+                        .price(item.price() == null ? null : item.price().doubleValue())
+                        .unit(item.unit())
+                        .includedLabel(item.includedLabel())
+                        .added(seleccionados.contains(item.id()))
+                        .build())
+                    .toList())
+                .build(),
+            Button.builder().label("Cerrar selección").actionId("cerrarExtras")
+                .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build()))
+        .build();
+  }
+
   private Component paraLlegada(Stay stay) {
     if (modoHabitacion) {
       return elegirHabitacion(stay);
+    }
+    if (modoCobro) {
+      return panelCobro(stay);
+    }
+    if (modoExtras) {
+      return panelExtras(stay);
     }
     var lista = operaciones(stay);
     var hechas = (int) lista.stream().filter(Op::done).count();
@@ -456,7 +544,7 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
     if (modoCheckout) {
       return List.of(Button.builder().label("Volver a la reserva").actionId("volverReserva").build());
     }
-    if (modoHabitacion) {
+    if (modoHabitacion || modoCobro || modoExtras) {
       return List.of(
           Button.builder().label("Volver a la reserva").actionId("volverHabitacion").build());
     }
@@ -477,6 +565,8 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
             "opWifi", "opLlave", "opHabitacion", "elegirHabitacion", "upgrade360",
             "volverHabitacion", "seleccionarPax", "refrescarReserva",
+            "opCobro", "metodoCobro", "confirmarCobro",
+            "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
   }
@@ -521,7 +611,65 @@ public class ReservaOverview implements PostHydrationHandler, ToolbarSupplier, A
       }
       case "volverHabitacion" -> {
         modoHabitacion = false;
+        modoCobro = false;
+        modoExtras = false;
         yield this;
+      }
+      case "opCobro" -> {
+        modoCobro = true;
+        yield this;
+      }
+      case "metodoCobro" -> {
+        metodoPago = String.valueOf(httpRequest.runActionRq().parameters().get("_method"));
+        yield this;
+      }
+      case "confirmarCobro" -> {
+        var params = httpRequest.runActionRq().parameters();
+        var method = params != null && params.get("_method") != null
+            ? String.valueOf(params.get("_method")) : metodoPago;
+        var guest = FrontOffice.stayView(stayId).guest();
+        var texto = switch (method) {
+          case "points" -> "Cobro con puntos — " + String.format("%,d", guest.loyaltyPoints())
+              .replace(',', '.') + " pts aplicados a " + GuestHeaders.euros(stay().total());
+          case "cash" -> "Preautorización registrada — " + GuestHeaders.euros(stay().total())
+              + " en efectivo a la llegada";
+          default -> "Preautorización completada — " + GuestHeaders.euros(stay().total())
+              + " en la tarjeta del huésped";
+        };
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withCobro(true));
+        modoCobro = false;
+        yield List.of(this, new Message(texto));
+      }
+      case "opExtras" -> {
+        modoExtras = true;
+        yield this;
+      }
+      case "extras360" -> {
+        var params = httpRequest.runActionRq().parameters();
+        var item = String.valueOf(params.get("_item"));
+        var added = Boolean.parseBoolean(String.valueOf(params.get("_added")));
+        FrontOffice.stays().save(added ? stay().addAddOn(item) : stay().removeAddOn(item));
+        yield this;
+      }
+      case "cerrarExtras" -> {
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withExtras(true));
+        modoExtras = false;
+        yield List.of(this, new Message(extrasHecha(stay())));
+      }
+      case "opFirma" -> {
+        // SSE: primer increment = "enviada a la tablet"; 5 s después (el huésped firma)
+        // el evento dispara opFirmaDone vía la suscripción de la clase
+        firmaEnviada = true;
+        yield reactor.core.publisher.Flux.concat(
+            reactor.core.publisher.Flux.<Object>just(
+                List.of(this, new Message("Documento de registro enviado a la tablet"))),
+            reactor.core.publisher.Mono.delay(java.time.Duration.ofSeconds(5))
+                .map(tick -> (Object) UICommand.dispatchEvent("firma-capturada-360")));
+      }
+      case "opFirmaDone" -> {
+        firmaEnviada = false;
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withFirma(true));
+        yield List.of(this, new Message("Firma capturada — registro firmado por el huésped"));
       }
       case "elegirHabitacion" -> {
         var number = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));

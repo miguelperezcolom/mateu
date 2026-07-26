@@ -1013,7 +1013,21 @@ pide SOLO las pendientes.
   pasa las MISMAS opts que runMateuAction (title + dropEntityHeader) — sin ellas el título
   y el EntityHeader reaparecían duplicados en el contenido; (6) hoisting/merge de bloques
   preservan las props del bloque (colClass/blockClass sobreviven a la fusión).
-- Pendiente fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE
-  desde la 360. Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
+- **Fase 3 — cobro, ancillaries y firma (2026-07-26)**: tres tarjetas más son ejecutables.
+  "Cobrar" → modo cobro (PaymentPicker tarjeta/efectivo/Puntos-del-tier con TOTAL RESERVA;
+  confirmar marca `ops.cobro` con toast por método). "Elegir" (ancillaries) → modo extras
+  (AddOnPicker del catálogo con added desde stay.addOns; cada toggle persiste
+  addAddOn/removeAddOn; "Cerrar selección" marca `ops.extras`). "Enviar a tablet" (firma) →
+  PRIMERA ACCIÓN SSE DEL HOST: `ActionSupplier.actions()` en la 360 declara opFirma
+  sse(true) (manteniendo el comodín "*"), el flux emite "enviado a tablet" y a los 5 s
+  dispatchEvent(firma-capturada-360) → @SubscribeTo → opFirmaDone marca `ops.firma`.
+  **Runtime VB**: `runMateuAction` ahora consulta `host.sseActionIds` (loadRouteInto ya los
+  estampaba también en el host: el árbol raíz lleva las actions con su flag sse) y va por
+  runMateuActionSse aplicando TODOS los increments con eventos/toasts ACUMULADOS (cada
+  reduce reemplaza effects); los triggers de host reciben el detail del evento como
+  parameters. GOTCHA cazado: `[] || x` — mateuWizardContent VACÍO es truthy y
+  hostAddonToggled buscaba el picker en él (los toggles de la 360 no despachaban); elegir
+  por longitud.
+- Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

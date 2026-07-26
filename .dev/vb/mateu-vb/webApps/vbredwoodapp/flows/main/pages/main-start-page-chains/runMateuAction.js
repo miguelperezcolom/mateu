@@ -46,22 +46,41 @@ define([
         : Object.assign({}, host && host.state, $page.variables.mateuDraft);
 
       const appState = $application.variables.mateuAppState || {};
-      const increment = await bridge.runMateuAction(
-        base, host, route, id, componentState, { parameters: parameters || {}, appState });
-      let reg = bridge.reduceContexts(before, increment);
+      // acciones anunciadas Action.sse(true) del HOST (p.ej. opFirma → tablet) van por el
+      // endpoint /sse: se aplican TODOS los increments del stream y se ACUMULAN los
+      // eventos/toasts de cada uno (cada reduce reemplaza effects)
+      const isSse = ((host && host.sseActionIds) || []).indexOf(id) >= 0;
+      let reg = before;
+      const allEvents = [];
+      const allToasts = [];
+      const applyInc = (inc) => {
+        reg = bridge.reduceContexts(reg, inc);
+        allEvents.push.apply(allEvents, reg.effects.events || []);
+        allToasts.push.apply(allToasts, reg.effects.toasts || []);
+      };
+      if (isSse) {
+        const increments = await bridge.runMateuActionSse(
+          base, host, route, id, componentState, { parameters: parameters || {}, appState });
+        increments.forEach(applyInc);
+      } else {
+        applyInc(await bridge.runMateuAction(
+          base, host, route, id, componentState, { parameters: parameters || {}, appState }));
+      }
       const effects = reg.effects;
 
       // eventos del bus (CloseModal/DispatchEvent) → triggers OnCustomEvent suscritos
-      for (const busEvent of effects.events) {
+      for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
         for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
           const listing = bridge.listingOf(hostNow);
           const refresh = await bridge.runMateuAction(
             base, hostNow, route, triggerActionId,
-            Object.assign({}, hostNow.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
-            { appState },
+            Object.assign({}, hostNow.state, busEvent.detail || {},
+              { page: 0, size: (listing && listing.pageSize) || 20 }),
+            { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);
+          allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
       }
 
@@ -254,7 +273,7 @@ define([
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
-      for (const toast of effects.toasts) {
+      for (const toast of allToasts) {
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

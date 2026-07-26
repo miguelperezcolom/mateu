@@ -26,8 +26,11 @@ define([
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
         return;
       }
-      const blocks = ($application.variables.mateuWizardContent
-        || $application.variables.mateuHostContent) || [];
+      // OJO: [] es truthy — elegir por LONGITUD (en la 360 el wizardContent está vacío)
+      const wizardBlocks = $application.variables.mateuWizardContent || [];
+      const blocks = wizardBlocks.length
+        ? wizardBlocks
+        : ($application.variables.mateuHostContent || []);
       let picker = null;
       for (const block of blocks) {
         picker = (block.items || []).find((a) => a.isAddOns) || picker;
