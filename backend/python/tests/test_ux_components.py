@@ -57,6 +57,7 @@ from mateu_uidl.components import (  # noqa: E402
     ComparisonCard,
     EmptyState,
     Feature,
+    ContentLayout,
     FeatureGrid,
     Faq,
     FaqItem,
@@ -934,6 +935,34 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+@ui("product-content")
+@title("Product")
+class ProductContent(ComponentTreeSupplier):
+    def component(self):
+        return ContentLayout(
+            id="content",
+            aside_position="start",
+            aside_width="24rem",
+            aside_sticky=True,
+            aside=(MetricCard(title="SKU", value="EC-200"),),
+            main=(MetricCard(title="Sales", value="52"),),
+            footer=(MetricCard(title="Note", value="ok"),),
+        )
+
+
+def test_component_tree_supplier_emits_content_layout():
+    doc = render(ProductContent)
+    (content,) = page_children(doc)
+    assert content["metadata"]["type"] == "ContentLayout"
+    assert content["metadata"]["asidePosition"] == "start"
+    assert content["metadata"]["asideWidth"] == "24rem"
+    assert content["metadata"]["asideSticky"] is True
+    slots = [ch.get("slot") for ch in content["children"]]
+    assert "main-0" in slots
+    assert "aside-0" in slots
+    assert "footer-0" in slots
 
 
 def test_component_tree_supplier_emits_checklist():

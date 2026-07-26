@@ -1100,4 +1100,28 @@ public class ComponentTests
         Assert.Contains("\"url\":\"https://mateu.io/docs\"", json);
         Assert.Contains("\"target\":\"_blank\"", json);
     }
+
+    [Fact]
+    public void ContentLayout_regions_travel_as_slotted_children()
+    {
+        var dto = ComponentMapper.Map(new ContentLayout
+        {
+            Id = "content",
+            AsidePosition = "start",
+            AsideWidth = "24rem",
+            AsideSticky = true,
+            Main = [new Anchor("main", "/m")],
+            Aside = [new Anchor("aside", "/a")],
+            Footer = [new Anchor("footer", "/f")],
+        });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+
+        Assert.Contains("\"type\":\"ContentLayout\"", json);
+        Assert.Contains("\"asidePosition\":\"start\"", json);
+        Assert.Contains("\"asideWidth\":\"24rem\"", json);
+        Assert.Contains("\"asideSticky\":true", json);
+        Assert.Contains("\"slot\":\"main-0\"", json);
+        Assert.Contains("\"slot\":\"aside-0\"", json);
+        Assert.Contains("\"slot\":\"footer-0\"", json);
+    }
 }

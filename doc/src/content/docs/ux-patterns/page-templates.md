@@ -66,3 +66,11 @@ Three notes on how to read the table:
 - **Composition beats templates.** When no template fits, the same pieces compose freely:
   `HeroSection`, `EntityHeader`, `TaskQueue`, `Card`, property-list sections, zones and the
   fluent `FormField` are the vocabulary the archetypes themselves are written in.
+- **Uniform content-page slot grammar.** The templates with a *main + contextual aside* shape
+  (`ItemOverview` — key-info panel + tabs; `CollectionDetail` — searchable list + detail pane)
+  compose a single `ContentLayout` with named regions — `main`, `aside` (which side via
+  `asidePosition`, width via `asideWidth`, optionally `asideSticky`) and a full-width `footer` —
+  instead of each reinventing a bespoke layout. Every renderer paints it with one responsive
+  grammar: the aside sits beside the main region on wide viewports and stacks under it when narrow.
+  It is a wire component like `DashboardLayout`/`FoldoutLayout`, so you can also compose it directly
+  in a custom view. Ported to .NET and Python (`ContentLayout`).

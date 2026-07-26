@@ -107,6 +107,36 @@ export function renderComponent(node: unknown, ctx: RenderCtx): TemplateResult |
       // Overview + panels arrive as slotted children; render stacked (fold interaction TBD).
       return html`<div class="mateu-foldout">${renderChildren(node, ctx)}</div>`
 
+    case 'ContentLayout': {
+      // Uniform content-page slot grammar: main / aside / footer arrive as slotted children
+      // (main-N / aside-N / footer-N). main + aside are a wrapping flex row (aside fixed-basis,
+      // optionally sticky, side by asidePosition; they stack when narrow), footer spans full width.
+      const kids = childrenOf(node)
+      const inSlot = (p: string) => kids.filter((c) => String(c['slot'] ?? '').startsWith(p))
+      const main = inSlot('main-')
+      const aside = inSlot('aside-')
+      const footer = inSlot('footer-')
+      const width = m['asideWidth'] && String(m['asideWidth']).trim() ? m['asideWidth'] : '32%'
+      const asideStart = m['asidePosition'] === 'start'
+      const asideSticky = m['asideSticky'] !== false
+      const mainCol = html`<div class="mateu-content-main" style="flex: 1 1 0; min-width: min(20rem, 100%);">
+        ${main.map((c) => renderComponent(c, ctx))}
+      </div>`
+      const asideCol = aside.length
+        ? html`<div class="mateu-content-aside" style="flex: 0 1 calc(${width} - 1rem); min-width: min(18rem, 100%); ${asideSticky ? 'position: sticky; top: 1rem; align-self: flex-start;' : ''}">
+            ${aside.map((c) => renderComponent(c, ctx))}
+          </div>`
+        : nothing
+      return html`<div class="mateu-content-layout">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
+          ${asideStart ? [asideCol, mainCol] : [mainCol, asideCol]}
+        </div>
+        ${footer.length
+          ? html`<div class="mateu-content-footer" style="flex-basis: 100%; margin-top: 1rem;">${footer.map((c) => renderComponent(c, ctx))}</div>`
+          : nothing}
+      </div>`
+    }
+
     // ── leaves ──────────────────────────────────────────────────────────────────────
     case 'FormField':
       return renderField(node, m, ctx)

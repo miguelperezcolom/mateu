@@ -102,6 +102,8 @@ import io.mateu.uidl.data.Comment;
 import io.mateu.uidl.data.CommentThread;
 import io.mateu.uidl.data.ComparisonCard;
 import io.mateu.uidl.data.Container;
+import io.mateu.uidl.data.ContentAsidePosition;
+import io.mateu.uidl.data.ContentLayout;
 import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.Details;
@@ -306,6 +308,22 @@ class ArchetypesSyncTest {
     @Override
     protected String panelWidth() {
       return "26rem";
+    }
+  }
+
+  @UI("/content-page")
+  public static class ContentPageFixture implements ComponentTreeSupplier {
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return ContentLayout.builder()
+          .id("content")
+          .main(List.of(new Markdown("main body", null, null)))
+          .aside(List.of(new Markdown("aside info", null, null)))
+          .footer(List.of(new Markdown("footer note", null, null)))
+          .asidePosition(ContentAsidePosition.end)
+          .asideWidth("30%")
+          .asideSticky(true)
+          .build();
     }
   }
 
@@ -1020,6 +1038,7 @@ class ArchetypesSyncTest {
             BookingFoldoutPage.class,
             FrontDeskWelcome.class,
             ChairOverview.class,
+            ContentPageFixture.class,
             RoomSearch.class,
             Showcase.class);
   }
@@ -1215,6 +1234,19 @@ class ArchetypesSyncTest {
     // the content layout hosts both the key-info card (aside) and the tab layout (main)
     assertThat(findFirst(content, CardDto.class)).isNotNull();
     assertThat(findFirst(content, TabLayoutDto.class)).isNotNull();
+  }
+
+  @Test
+  void contentLayoutCarriesMainAsideFooterSlotsAndAsideConfig() {
+    var increment = sync("/content-page");
+    var content = findFirst(increment, ContentLayoutDto.class);
+    assertThat(content).isNotNull();
+    var meta = (ContentLayoutDto) content.metadata();
+    assertThat(meta.asidePosition()).isEqualTo("end");
+    assertThat(meta.asideWidth()).isEqualTo("30%");
+    assertThat(meta.asideSticky()).isTrue();
+    var slots = content.children().stream().map(c -> ((ClientSideComponentDto) c).slot()).toList();
+    assertThat(slots).contains("main-0", "aside-0", "footer-0");
   }
 
   // ---------------------------------------------------------------- hero search

@@ -25,6 +25,7 @@ from mateu_dtos import (
     CardMetadata,
     ClientSideComponent,
     CrudMetadata,
+    ContentLayoutMetadata,
     CustomTrigger,
     DashboardLayoutMetadata,
     DashboardPanelMetadata,
@@ -820,6 +821,24 @@ class ReflectionMapper:
                         else None
                     ),
                     overviewEditActionId=c.overview_edit_action_id,
+                ),
+                c,
+                children,
+            )
+        if isinstance(c, fluent.ContentLayout):
+            children = []
+            for prefix, region in (("main", c.main), ("aside", c.aside), ("footer", c.footer)):
+                for i, comp in enumerate(region):
+                    if comp is None:
+                        continue
+                    child = self.map_component(comp)
+                    child.slot = f"{prefix}-{i}"
+                    children.append(child)
+            return self._fluent_client(
+                ContentLayoutMetadata(
+                    asidePosition=c.aside_position or "end",
+                    asideWidth=c.aside_width,
+                    asideSticky=c.aside_sticky,
                 ),
                 c,
                 children,

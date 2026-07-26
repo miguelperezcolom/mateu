@@ -314,20 +314,24 @@ public abstract class CollectionDetail<TRow> : IComponentTreeSupplier, IRefreshO
         var list = new TaskQueue
         {
             ActionId = "selectCollectionItem",
-            Style = $"flex: 0 0 {ListWidth}; min-width: min({ListWidth}, 100%);",
             Groups = [new QueueGroup { Label = ListLabel(items.Count), Items = items }],
         };
         var detail = found ? Detail(selected!) : EmptyDetail();
+        // The searchable list is the contextual aside (left, fixed width); the selected item's
+        // detail is the main region — the uniform ContentLayout slot grammar (stacks when narrow).
         return new VerticalLayout
         {
             Id = Archetypes.IdOf(this), Spacing = true,
             Content =
             [
                 new FormField { FieldId = "search", Label = "Search" },
-                new HorizontalLayout
+                new ContentLayout
                 {
-                    Style = "align-items: flex-start; gap: 1.5rem; width: 100%;",
-                    Content = [list, detail],
+                    AsidePosition = "start",
+                    AsideWidth = ListWidth,
+                    AsideSticky = false,
+                    Aside = [list],
+                    Main = [detail],
                 },
             ],
         };
