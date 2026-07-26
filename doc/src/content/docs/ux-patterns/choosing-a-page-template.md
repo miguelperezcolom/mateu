@@ -96,6 +96,20 @@ You are never forced onto a template: a plain `@UI` class with declared fields s
 layout ([layout inference](./layout-inference)). The templates are opinionated rails on top, not a
 requirement.
 
+## Often you don't pick at all
+
+Page inference is **on by default**, so for the fully-derivable shapes you just declare the data and
+the right template composes itself:
+
+- Consecutive `MetricCard` fields → a **Dashboard**; only `Button` fields + `@Panel` tiles → a
+  **Welcome** landing. No archetype, no annotation. `@AutoPage(false)` opts a class out.
+- A plain **form with a supporting side panel** → mark that one component-holder field `@Aside` and
+  the form composes a **content-page** (`ContentLayout`): the field becomes the contextual aside,
+  the rest of the form the main region (`position`/`width`/`sticky` on the annotation).
+
+Reach for an explicit archetype when you need its knobs, or when the shape isn't self-evident from
+the fields. Everything above is the same uniform slot grammar the archetypes themselves compose.
+
 ## Roadmap
 
 Six Redwood templates are being brought to full parity — all in the Detail/Transactional

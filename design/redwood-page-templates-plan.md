@@ -371,7 +371,15 @@ por dependencia:
   (b) La inferencia de página (`@AutoPage`) pasa a **ON por defecto** (el template es el output por
   defecto; opt-out con `@AutoPage(false)` o la propiedad/switch global de desactivación) en los 3
   backends. Suites verdes: core 744, .NET 215, Python 212.
-- **Capas 3–4 — pendientes.** Template-first + scaffold; cierre de catálogo.
+- **Capa 3 (template-first + scaffold) — HECHA.** El scaffold conversacional ya existía
+  (`.claude/skills/mateu-screen`: 3 preguntas de negocio → familia → arquetipo → genera la clase);
+  actualizado con lo de capas 1–2 — `@Aside` (form con panel lateral → content-page) como refinement
+  + seed, y la nota "inferencia por defecto: a veces no eliges arquetipo, declaras datos y compone
+  solo". Guía de decisión (`choosing-a-page-template.md`) ampliada con la sección "Often you don't
+  pick at all" (default-on + `@Aside`). PENDIENTE menor: sincronizar el `contract.json` de Figma con
+  los kinds nuevos (nice-to-have, "cierra el círculo").
+- **Capa 4 — pendiente.** Cierre de catálogo (Advanced Create&Edit canónico, Guided Process Drawer,
+  Figma).
 
 ### Línea roja que se mantiene
 El alma de Mateu (*declaras datos → se infiere la UI*) NO se rompe: las plantillas ganan peso siendo
