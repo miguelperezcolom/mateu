@@ -684,6 +684,22 @@ gotchas (todas mordidas hoy):
 
 Fixtures fo-nested-doc (sembrada) + test 27 (27/27). Shots fo-nested-doc*.png.
 
+## Banda RDS del header (feedback 2026-07-26)
+
+En fixed/fullWidth, Redwood pinta el header sobre una BANDA a sangre (blanca en claro,
+negra en invertido) que además ASOMA por detrás del arranque del contenido — el header no
+queda "encajonado" como la tarjeta. VB/oj-sp NO lo proporciona bajo este runtime (probado:
+con el contenedor sin tope, el header ocupa todo el ancho pero su título queda a 48px — no
+consume el pageLayout del shell para capar su interior). Composición propia con clases de
+sistema: banda = div `oj-bg-neutral-0` + `oj-sm-padding-10x-bottom` (40px) a sangre, que
+CONTIENE el header (título + franja) capado a la caja del contenido (mateuBandBoxMargin =
+la fórmula horizontal del pageStyle); la tarjeta solapa la banda con margen top -40px
+(inyectado en mateuPageMargin cuando showBand = pageHeader && pw !== edgeToEdge). La franja
+queda al ancho de la TARJETA (está dentro del header capado) y la banda blanca asoma 40px
+por los lados bajo ella = la anatomía de los pantallazos RDS del usuario. En edge-to-edge
+(drawer nav) no hay banda: el header genérico se pinta inline como antes
+(mateuPageHeaderInline). Shots rv-banda.png.
+
 ## Reservas unificadas (evolution, 2026-07-26)
 
 Los menús Check-In/Check-Out/En Casa se UNIFICAN en `/reservas` (ReservasQueue, evolution):

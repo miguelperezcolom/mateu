@@ -507,6 +507,16 @@
       "type": "string",
       "defaultValue": "",
       "description": "JSON del initialData con el que se cargó la anidada — si cambia (p.ej. selectPax), recarga"
+    },
+    "mateuBand": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "banda RDS del header (fixed/fullWidth): fondo a sangre detrás del header que asoma tras el arranque del contenido"
+    },
+    "mateuBandBoxMargin": {
+      "type": "string",
+      "defaultValue": "0 auto",
+      "description": "margen de la caja interior de la banda (la fórmula horizontal del contenido, sin el solape)"
     }
   },
   "userConfig": {

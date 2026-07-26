@@ -230,6 +230,23 @@ define([
         // header Redwood a sangre: el gutter lo recupera cada rama de contenido
         $application.variables.mateuPagePadding = '0';
       }
+      // anatomía RDS del header (feedback 2026-07-26): en fixed/fullWidth el header va
+      // sobre una BANDA a sangre (fondo blanco de viewport a viewport) con su contenido
+      // capado a la caja; la tarjeta de contenido SOLAPA la banda (margen -40px) para que
+      // la banda asome por detrás de su arranque — como el fondo general del lienzo
+      const showBand = !!$application.variables.mateuPageHeader && pw !== 'edgeToEdge';
+      $application.variables.mateuBand = showBand ? {} : null;
+      if (showBand) {
+        // la caja de la banda usa la MISMA fórmula horizontal que el contenido…
+        $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
+        // …y el contenido gana el solape vertical (-40px) sobre la banda
+        const marginParts = ($application.variables.mateuPageMargin || '0').split(' ');
+        marginParts[0] = '-40px';
+        if (marginParts.length === 1) marginParts.push('auto');
+        $application.variables.mateuPageMargin = marginParts.join(' ');
+      } else {
+        $application.variables.mateuBandBoxMargin = '0 auto';
+      }
       // 1.5: la URL refleja la ruta (hash — deep-linkable y con back/forward)
       if (!fromUrl && window.location.hash !== '#' + route) {
         window.history.pushState(null, '', '#' + route);

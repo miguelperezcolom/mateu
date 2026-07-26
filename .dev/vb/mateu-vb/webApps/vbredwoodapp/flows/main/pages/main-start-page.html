@@ -4,6 +4,19 @@
      un binding por propiedad (sin expresiones complejas: evaluador CSP de VB). -->
 
 <!-- 1.6: anatomía pageWidth (RDS 24C) — fixed 1408px centrado / fullWidth fluido / edgeToEdge 0 -->
+<!-- banda RDS del header (fixed/fullWidth): fondo blanco a sangre; dentro, el header con
+     su franja CAPADOS a la caja de contenido; la tarjeta de abajo la solapa (-40px) para
+     que la banda asome por detrás de su arranque — todo clases de sistema JET -->
+<oj-bind-if test="[[ !!$application.variables.mateuBand ]]">
+  <div class="oj-bg-neutral-0 oj-sm-padding-10x-bottom">
+    <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
+      :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
+      <oj-sp-header-general-overview id="mateuPageHeaderEl" class="oj-bg-neutral-0"
+        page-title="[[ $application.variables.mateuPageHeader.title ]]"
+        display-options.go-to-parent="false"></oj-sp-header-general-overview>
+    </div>
+  </div>
+</oj-bind-if>
 <div class="oj-sp-public-primary-content-container"
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
@@ -16,8 +29,8 @@
      (oj-sp-header-general-overview sin switcher) salvo los templates que ya lo
      integran: guided process, general overview, welcome banner y el
      smart-filter-search del listado -->
-<oj-bind-if test="[[ !!$application.variables.mateuPageHeader ]]">
-  <oj-sp-header-general-overview id="mateuPageHeaderEl" class="oj-bg-neutral-0"
+<oj-bind-if test="[[ !!$application.variables.mateuPageHeader && !$application.variables.mateuBand ]]">
+  <oj-sp-header-general-overview id="mateuPageHeaderInline" class="oj-bg-neutral-0"
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     display-options.go-to-parent="false"></oj-sp-header-general-overview>
 </oj-bind-if>
