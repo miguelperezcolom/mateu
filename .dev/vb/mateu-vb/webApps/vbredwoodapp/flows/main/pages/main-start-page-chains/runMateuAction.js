@@ -208,6 +208,13 @@ define([
       }
       $application.variables.mateuWizardContent = (esWizard2
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { forWizard: true, title: summary.title }) : null) || [];
+      // si los bloques del paso son RICOS, el form genérico del paso sobra (duplica lo
+      // que ya muestran el header/las property rows) — misma regla que en el host
+      if (($application.variables.mateuWizardContent || []).some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isMeter
+        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
+        || a.isStat || a.isNotice || a.isPropertyRow))) {
+        $application.variables.mateuFormFieldsList = [];
+      }
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /

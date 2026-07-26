@@ -721,6 +721,9 @@ chain) + la fórmula RDS es el equivalente práctico.
   (check-in) la primera es selectPax y el Continue disparaba eso. Nueva proyección
   `wizardForwardOf(ctx)`: deriva el forward del PIE REAL del árbol (el bloque de botones
   que acompaña a 'back'), con fallback al criterio antiguo.
+- Los pasos con bloques RICOS suprimen además el form genérico del paso
+  (mateuFormFieldsList = []) — en Confirmar los campos huésped/habitación/estancia/régimen
+  se colaban como inputs tras el botón, duplicando el header y el Resumen (property rows).
 
 ## GOTCHA VB: variables de proyección — ni null ni cambio de forma (2026-07-26)
 
