@@ -35,6 +35,14 @@ Useful follow-ups (one each, only when the family needs it):
 | Dashboard | `Dashboard` | `GanttPage` (time-phased work) |
 | Landing | `Welcome` | `HeroSearch` (search-first landing) |
 
+**Inference is on by default — sometimes there's no archetype to pick.** A plain `@UI` class whose
+*shape* already spells a template composes it automatically: consecutive `MetricCard` fields → a
+Dashboard; only `Button` fields + `@Panel` tiles → a Welcome landing. So for those two, you can just
+declare the fields and skip the archetype entirely (the class stays overridable; `@AutoPage(false)`
+opts out). Prefer this "declare data, let it infer" path when it fits; reach for the explicit
+archetype when you need its knobs (`columns()`, custom composition) or when the shape isn't
+self-evident.
+
 ## Step 3 — Where the class goes
 
 - Find the module that already holds `@UI` classes (`grep -rl "@UI(" --include=*.java`,
@@ -83,11 +91,26 @@ For `AutoCrud`, implement `CrudStore<T>` (in-memory inline for a first version, 
 `@Service` over the real repository) and return it from `store()` when the entity is not
 self-stored.
 
+A **form with a supporting side panel** (help text, a summary card, related links) needs no
+archetype — mark that one component-holder field `@Aside` and the form composes a content-page
+(the field goes to the side, the form is the main region):
+
+```java
+@UI("/profile")
+public class Profile {
+  @NotEmpty String name;
+  String email;
+
+  @Aside(width = "20rem")               // side panel; the rest of the form is the main region
+  Markdown help = new Markdown("Need help? Contact support.");
+}
+```
+
 ## Step 5 — Refine (rung 2, only where the user disagrees)
 
-Offer, don't pile on: `@Section`/`@Zones` (grouping/columns), `@Toc` (long pages),
-`@Compact` (dense ops screens), `@PageWidth`, validation annotations, `@Lookup` for foreign
-keys. Explicit always wins over inference.
+Offer, don't pile on: `@Aside` (a supporting side panel → content-page layout), `@Section`/`@Zones`
+(grouping/columns), `@Toc` (long pages), `@Compact` (dense ops screens), `@PageWidth`, validation
+annotations, `@Lookup` for foreign keys. Explicit always wins over inference.
 
 ## Step 6 — Verify
 

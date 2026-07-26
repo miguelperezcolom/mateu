@@ -54,6 +54,10 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
       return false;
     }
+    // @Aside fields render in the ContentLayout aside slot, not the form body
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aside.class)) {
+      return false;
+    }
     if (MetaAnnotations.isPresent(field, Menu.class)) {
       return false;
     }

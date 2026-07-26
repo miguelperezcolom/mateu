@@ -161,6 +161,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(DashboardPanelMetadataDto), "DashboardPanel")]
 [JsonDerivedType(typeof(DashboardLayoutMetadataDto), "DashboardLayout")]
 [JsonDerivedType(typeof(FoldoutLayoutMetadataDto), "FoldoutLayout")]
+[JsonDerivedType(typeof(ContentLayoutMetadataDto), "ContentLayout")]
 [JsonDerivedType(typeof(HeroSectionMetadataDto), "HeroSection")]
 [JsonDerivedType(typeof(EmptyStateMetadataDto), "EmptyState")]
 [JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
@@ -245,6 +246,19 @@ public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels
 
     /// <summary>ActionId dispatched by the overview's Edit affordance; null = no Edit button.</summary>
     public string? OverviewEditActionId { get; init; }
+}
+
+/// <summary>Redwood-style content page layout. The regions travel as slotted children: the primary
+/// region as "main-N", the contextual secondary region as "aside-N", and the full-width footer as
+/// "footer-N" (each matching the source list order).</summary>
+public record ContentLayoutMetadataDto : ComponentMetadataDto
+{
+    /// <summary>Which side the aside sits on: "start" or "end".</summary>
+    public string AsidePosition { get; init; } = "end";
+
+    public string? AsideWidth { get; init; }
+
+    public bool AsideSticky { get; init; }
 }
 
 /// <summary>Navigation Header of a foldout: prev/next between objects of the same type +

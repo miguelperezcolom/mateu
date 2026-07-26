@@ -173,6 +173,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.DashboardPanel,
     ComponentMetadataType.DashboardLayout,
     ComponentMetadataType.FoldoutLayout,
+    ComponentMetadataType.ContentLayout,
     ComponentMetadataType.HeroSection,
     ComponentMetadataType.EmptyState,
     ComponentMetadataType.Skeleton,

@@ -5,7 +5,8 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.Card;
-import io.mateu.uidl.data.HorizontalLayout;
+import io.mateu.uidl.data.ContentAsidePosition;
+import io.mateu.uidl.data.ContentLayout;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.fluent.Component;
@@ -66,25 +67,18 @@ public abstract class ItemOverview implements ComponentTreeSupplier {
       }
       tabs.add(new Tab(!panel.title().isEmpty() ? panel.title() : getLabel(field), component));
     }
-    List<Component> content = new ArrayList<>();
+    List<Component> aside = new ArrayList<>();
     if (keyInfo != null) {
-      content.add(
-          Card.builder()
-              .id("key-info")
-              .content(keyInfo)
-              .style(
-                  "flex: 0 0 "
-                      + panelWidth()
-                      + "; align-self: flex-start; position: sticky; top: 1rem;")
-              .build());
+      // The sticky/width chrome now belongs to the ContentLayout aside slot, so the Card is bare.
+      aside.add(Card.builder().id("key-info").content(keyInfo).build());
     }
-    content.add(
-        TabLayout.builder().id("item-tabs").tabs(tabs).style("flex: 1; min-width: 0;").build());
-    return HorizontalLayout.builder()
+    return ContentLayout.builder()
         .id(id())
-        .content(content)
-        .spacing(true)
-        .fullWidth(true)
+        .aside(aside)
+        .main(List.of(TabLayout.builder().id("item-tabs").tabs(tabs).build()))
+        .asidePosition(ContentAsidePosition.start)
+        .asideWidth(panelWidth())
+        .asideSticky(true)
         .build();
   }
 }

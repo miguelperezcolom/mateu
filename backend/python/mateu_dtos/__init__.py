@@ -403,6 +403,18 @@ class FoldoutLayoutMetadata(Wire):
     overviewEditActionId: str | None = None
 
 
+class ContentLayoutMetadata(Wire):
+    """Redwood-style content page layout. The regions travel as slotted children: the primary region
+    as ``main-N``, the contextual secondary region as ``aside-N``, and the full-width footer as
+    ``footer-N`` (each matching the source list order)."""
+
+    type: Literal["ContentLayout"] = "ContentLayout"
+    #: Which side the aside sits on: "start" or "end".
+    asidePosition: str = "end"
+    asideWidth: str | None = None
+    asideSticky: bool = False
+
+
 class HeroSectionMetadata(Wire):
     """Page hero header; slotted content travels as component children."""
 
@@ -1109,6 +1121,7 @@ ComponentMetadata = Annotated[
         DashboardPanelMetadata,
         DashboardLayoutMetadata,
         FoldoutLayoutMetadata,
+        ContentLayoutMetadata,
         HeroSectionMetadata,
         EmptyStateMetadata,
         SkeletonMetadata,

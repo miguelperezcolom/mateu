@@ -17,11 +17,19 @@ public class InferredOps
     public Text Sales { get; } = new("sales chart placeholder");
 }
 
-[UI("plain-metrics"), Title("Ops, uninferred")]
+// Explicit opt-out: keeps the plain-form rendering despite the MetricCard property.
+[UI("plain-metrics"), Title("Ops, opted out"), AutoPage(false)]
 public class PlainOps
 {
     public MetricCard Revenue { get; } = new() { Title = "Revenue", Value = "1.2" };
     public string? Note { get; set; } = "still a plain form";
+}
+
+// No [AutoPage]: page inference is ON by default, so a MetricCard property composes a Dashboard.
+[UI("default-metrics"), Title("Ops, inferred by default")]
+public class DefaultOps
+{
+    public MetricCard Revenue { get; } = new() { Title = "Revenue", Value = "1.2" };
 }
 
 [UI("inferred-welcome"), Title("Front desk"), AutoPage]
@@ -125,9 +133,16 @@ public class AutoPageTests
     }
 
     [Fact]
-    public void Without_auto_page_the_same_shape_keeps_rendering_as_a_plain_form()
+    public void AutoPage_false_opts_out_keeping_the_plain_form()
     {
         Assert.Empty(OfType<DashboardLayoutMetadataDto>("plain-metrics"));
         Assert.Empty(OfType<ScoreboardMetadataDto>("plain-metrics"));
+    }
+
+    [Fact]
+    public void Without_any_annotation_the_shape_composes_by_default()
+    {
+        Assert.NotEmpty(OfType<DashboardLayoutMetadataDto>("default-metrics"));
+        Assert.NotEmpty(OfType<ScoreboardMetadataDto>("default-metrics"));
     }
 }

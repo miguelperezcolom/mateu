@@ -18,7 +18,8 @@ and where to see it running. To pick the right one from a user goal, start with
 | **Smart Filter and Search** | Every CRUD/`Listing` — the smart search bar with typed filters, chips and saved views is the default listing UX | `/products` | [Filters & listing](./filters-and-listing) |
 | **Smart Search page** | `SmartSearchPage<Filters, Row>` archetype — a standalone, search-first page: intro line + smart search bar with typed facets + results; starts empty | `/smart-search-demo` | [Smart search](./smart-search) |
 | **To-do list** | `TodoList<Row>` archetype — pending work as counted buckets of actionable cards; clicking a task acts on it | `/todo-list-demo` | [To-do list](./to-do-list) |
-| **Create and Edit — Simple / Advanced** | `AutoCrud<T>` — routed `/new` and `/{id}/edit` forms with validation, optimistic locking and dirty guard; Advanced composes `@Section`/`@Zones`/tabs on the same crud | `/products` | [Create and edit](./create-and-edit) |
+| **Create and Edit — Simple** | `AutoCrud<T>` — routed `/new` and `/{id}/edit` forms with validation, optimistic locking and dirty guard | `/products` | [Create and edit](./create-and-edit) |
+| **Create and Edit — Advanced** | a sectioned transactional form with a canonical header (save/cancel, `@Timestamp`, `@KPI` facts, peer-nav) and either `@Toc` (section index) or `@Aside` (detail slot) | — | [Advanced create & edit](./advanced-create-and-edit) |
 | **Create and Edit — Drawer** | `editInDrawer()` on the crud — the form slides over the listing, which never unmounts | `/drawer-crud-demo` | [Drawer](./drawer#crud-editing-in-a-drawer-editindrawer) |
 | **Waterfall detail** | Composition — a `VerticalLayout` of `EntityHeader` + full-width `Card`/property-list panels telling the record top-to-bottom | — | [Waterfall detail](./waterfall-detail) |
 | **Step-by-step** | `Wizard` + `@WizardProgress(STEPS)` — the classic numbered-step stepper with done/current/upcoming states | `/branching-wizard` | [Wizard](./wizard) |
@@ -66,3 +67,17 @@ Three notes on how to read the table:
 - **Composition beats templates.** When no template fits, the same pieces compose freely:
   `HeroSection`, `EntityHeader`, `TaskQueue`, `Card`, property-list sections, zones and the
   fluent `FormField` are the vocabulary the archetypes themselves are written in.
+- **Uniform content-page slot grammar.** The templates with a *main + contextual aside* shape
+  (`ItemOverview` — key-info panel + tabs; `CollectionDetail` — searchable list + detail pane)
+  compose a single `ContentLayout` with named regions — `main`, `aside` (which side via
+  `asidePosition`, width via `asideWidth`, optionally `asideSticky`) and a full-width `footer` —
+  instead of each reinventing a bespoke layout. Every renderer paints it with one responsive
+  grammar: the aside sits beside the main region on wide viewports and stacks under it when narrow.
+  It is a wire component like `DashboardLayout`/`FoldoutLayout`, so you can also compose it directly
+  in a custom view. Ported to .NET and Python (`ContentLayout`).
+- **`@Aside` — content-page from a plain form.** The minimal way to get the content-page grammar
+  without composing anything: on an ordinary reflected form, mark one component-holder field
+  `@Aside` (`.NET` `[Aside]`, Python `Aside()`). That field is pulled out of the form body and
+  placed in the `aside`; the rest of the form becomes the `main` region of a `ContentLayout`
+  (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual and just
+  point at the one supporting panel that belongs to the side.

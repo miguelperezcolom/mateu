@@ -70,6 +70,7 @@ export enum ComponentMetadataType {
     DashboardPanel = "DashboardPanel",
     DashboardLayout = "DashboardLayout",
     FoldoutLayout = "FoldoutLayout",
+    ContentLayout = "ContentLayout",
     HeroSection = "HeroSection",
     EmptyState = "EmptyState",
     Skeleton = "Skeleton",

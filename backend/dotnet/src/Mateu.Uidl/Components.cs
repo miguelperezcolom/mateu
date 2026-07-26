@@ -120,6 +120,24 @@ public sealed record FoldoutLayout : ComponentBase
     public string? OverviewEditActionId { get; init; }
 }
 
+// ── Content page ─────────────────────────────────────────────────────────────
+
+/// <summary>Redwood-style content page layout: the uniform slot grammar (main / aside / footer)
+/// shared by the page archetypes. Region contents travel as slotted children (main-N / aside-N /
+/// footer-N); the aside sits beside main (side by <see cref="AsidePosition"/>, width by
+/// <see cref="AsideWidth"/>, optionally <see cref="AsideSticky"/>) and stacks under it when narrow;
+/// the footer spans full width below.</summary>
+public sealed record ContentLayout : ComponentBase
+{
+    public IReadOnlyList<IComponent> Main { get; init; } = [];
+    public IReadOnlyList<IComponent> Aside { get; init; } = [];
+    public IReadOnlyList<IComponent> Footer { get; init; } = [];
+    /// <summary>Which side the aside sits on: "start" or "end".</summary>
+    public string AsidePosition { get; init; } = "end";
+    public string? AsideWidth { get; init; }
+    public bool AsideSticky { get; init; }
+}
+
 /// <summary>Navigation Header of a <see cref="FoldoutLayout"/>: controls to move to the
 /// previous/next object of the same type or go to the parent. Each *ActionId names a method on the
 /// Foldout subclass; a null/blank id hides that control.</summary>

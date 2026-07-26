@@ -48,7 +48,36 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private bool Visible(MemberInfo member) =>
         Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
         // [Timestamp] properties render as the header "last updated" text, never as form fields.
-        && member.Find<Mateu.Uidl.TimestampAttribute>() == null;
+        && member.Find<Mateu.Uidl.TimestampAttribute>() == null
+        // [Aside] properties render in the ContentLayout aside slot, not the form body.
+        && member.Find<Mateu.Uidl.AsideAttribute>() == null;
+
+    /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
+    /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
+    /// PageContentBuilder.wrapAsideIfPresent. Regions travel as slotted children main-N/aside-N.</summary>
+    private List<ComponentDto> WrapAside(Type type, object instance, List<ComponentDto> mainContent)
+    {
+        var asideProps = type
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.Find<Mateu.Uidl.AsideAttribute>() != null).ToList();
+        if (asideProps.Count == 0) return mainContent;
+        var asideComponents = new List<ClientSideComponentDto>();
+        foreach (var p in asideProps)
+            if (p.GetValue(instance) is IComponent c) asideComponents.Add(ComponentMapper.Map(c));
+        if (asideComponents.Count == 0) return mainContent;
+        var first = asideProps[0].Find<Mateu.Uidl.AsideAttribute>()!;
+        var children = new List<ComponentDto>();
+        for (var i = 0; i < mainContent.Count; i++)
+            children.Add(mainContent[i] is ClientSideComponentDto cs ? cs with { Slot = $"main-{i}" } : mainContent[i]);
+        for (var i = 0; i < asideComponents.Count; i++) children.Add(asideComponents[i] with { Slot = $"aside-{i}" });
+        var meta = new ContentLayoutMetadataDto
+        {
+            AsidePosition = string.IsNullOrEmpty(first.Position) ? "end" : first.Position,
+            AsideWidth = first.Width,
+            AsideSticky = first.Sticky,
+        };
+        return [new ClientSideComponentDto(meta, "content", children, null, null, null)];
+    }
 
     /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
     private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
@@ -245,6 +274,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             // A [ReadOnly] class renders as a display view (fields read-only, tabs inference may apply).
             content = FormCards(type, instance, type.Find<ReadOnlyAttribute>() != null);
+            content = WrapAside(type, instance, content);
         }
 
         // A [WelcomeBanner] prepends a centered HeroSection (id "welcome-banner") to the page

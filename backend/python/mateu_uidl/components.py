@@ -197,6 +197,30 @@ class FoldoutLayout(Component):
 
 
 @dataclass(frozen=True)
+class ContentLayout(Component):
+    """Redwood-style content page layout: the uniform slot grammar (main / aside / footer) shared by
+    the page archetypes. Region contents travel as slotted children (main-N / aside-N / footer-N);
+    the aside sits beside main (side by ``aside_position``, width by ``aside_width``, optionally
+    ``aside_sticky``) and stacks under it when narrow; the footer spans full width below."""
+
+    main: tuple[Component, ...] = ()
+    aside: tuple[Component, ...] = ()
+    footer: tuple[Component, ...] = ()
+    #: Which side the aside sits on: "start" or "end".
+    aside_position: str = "end"
+    aside_width: str | None = None
+    aside_sticky: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "main", tuple(self.main))
+        object.__setattr__(self, "aside", tuple(self.aside))
+        object.__setattr__(self, "footer", tuple(self.footer))
+
+
+@dataclass(frozen=True)
 class HeroSection(Component):
     """A prominent page hero: big title/subtitle, optional background image, slotted content."""
 
@@ -1257,6 +1281,7 @@ __all__ = [
     "FoldoutPanel",
     "FoldoutLayout",
     "FoldoutNavigation",
+    "ContentLayout",
     "HeroSection",
     "EmptyState",
     "Skeleton",

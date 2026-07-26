@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.BoardLayoutMapper.
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BoardLayoutRowMapper.mapBoardLayoutRowToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CarouselLayoutMapper.mapCarouselLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ContainerMapper.mapContainerToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ContentLayoutMapper.mapContentLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardLayoutMapper.mapDashboardLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardPanelMapper.mapDashboardPanelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DivMapper.mapDivToDto;
@@ -110,6 +111,10 @@ final class LayoutComponentDispatcher {
     if (component instanceof FoldoutLayout foldoutLayout) {
       return mapFoldoutLayoutToDto(
           foldoutLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof ContentLayout contentLayout) {
+      return mapContentLayoutToDto(
+          contentLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof HeroSection heroSection) {
       return mapHeroSectionToDto(

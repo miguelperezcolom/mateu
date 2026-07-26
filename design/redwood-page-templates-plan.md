@@ -227,15 +227,19 @@ Data Management, que los usan como paneles inferior/lateral).
   STEPS/RAIL dentro); límite explícito de 5 pasos; patrón *batch* (N ítems → un paso por ítem);
   paridad .NET/Python de `EmbeddedView`; validación visual.
 
-### 5.4 Advanced Create & Edit *(Transactional)* — forma canónica
+### 5.4 Advanced Create & Edit *(Transactional)* — **HECHA (composición, Capa 4, 2026-07-26)**
 - **Redwood:** transaccional de página única para objetos complejos. 4 regiones: page header
   (title, cancel, primary, save, timestamp, contextual info 1–4, next objeto), main slot,
   **vertical anchor navigator** (índice lateral ligado a los títulos de sección), **detail slot**
   contextual. Regla clave: anchor navigator y detail slot son **mutuamente excluyentes**.
-- **Mateu:** ya tienes casi todo — `@Toc` es el anchor navigator, `@Zones`/tabs/secciones son el
-  main slot, y el crud da save/cancel/validación/optimistic-lock. Falta: (a) formalizarlo como
-  *variante* del crud (`PageType.FORM` "advanced"), (b) el **detail slot** contextual (panel
-  lateral de datos de apoyo), (c) header transaccional con contextual info + next objeto + timestamp.
+- **HECHO — pura composición, todas las piezas ya existen tras Capas 0–2:** anchor navigator = `@Toc`;
+  main = `@Section`/`@Zones`/tabs; **detail slot = `@Aside`** (→ `ContentLayout` aside, Capa 2); header
+  transaccional = `@Timestamp` (last updated) + `@KPI` (contextual info) + `PeerNavigationSupplier`
+  (next objeto) + cancel/save (el header ya coloca cancel a la izquierda y acciones a la derecha);
+  save/validación/optimistic-lock del crud o anotaciones de bean-validation + `@Version`. La regla
+  "anchor nav XOR detail slot" = elegir `@Toc` **o** `@Aside`. Formalizada en doc
+  `ux-patterns/advanced-create-and-edit.md` (variante A `@Toc`, variante B `@Aside`). No hizo falta
+  un `PageType.FORM "advanced"` nuevo (el `pageType=form` ya lo cubre).
 
 ### 5.5 Data Management *(Transactional)* — **HECHO (Fase 2, 2026-07-20)**
 - **Redwood:** grid de datos denso + Gantt integrados y **conmutables** en la misma página, con
@@ -317,3 +321,82 @@ Cada fase = uno o varios releases `v3.0-alpha.N`, con demo + SyncTest + doc + pa
 - **Nomenclatura**: ¿mantenemos los nombres Redwood (Advanced Create & Edit, General Drawer) o los
   traducimos al vocabulario Mateu? Recomendación: nombre Redwood en la doc/guía (reconocible),
   nombre Mateu-idiomático en la API.
+
+---
+
+## 9. Elevar el peso de las plantillas — dirección estratégica (decisión 2026-07-26)
+
+**Contexto.** El dueño del producto está cada vez más convencido de que la definición de UI a
+**alto nivel vía page templates** debe tener MÁS peso, copiando el approach de Redwood
+(referencia: `redwood.oracle.com` GUIDEG10 *content page* — *Shell → Content Page = Page Header +
+Content Sections*). Endosó las **cuatro** palancas a la vez (son capas, no exclusivas). Se secuencian
+por dependencia:
+
+### Orden de trabajo (cada fase = release + demo + SyncTest + doc + paridad .NET/Python)
+
+1. **Gramática content-page (slots)** — *la base estructural.* Hoy `PageDto` ya tiene una cabecera
+   canónica (Fase 0), pero el CONTENIDO es "una lista de componentes" que cada arquetipo compone a
+   mano. Falta el concepto formal de **slot** (§3). Redwood define el content-page como *header +
+   content sections con rol*. Entregable: un vocabulario CERRADO de slots — `MAIN`, `ASIDE`
+   (detail/overview contextual), `PANELS` (foldout/tabs), `FOOTER` (header y toolbar ya existen) —
+   y un componente ligero **`ContentLayout(main, aside, footer, panels)`** (uidl.data, hermano de
+   `DashboardLayout`/`FoldoutLayout`) que los renderers pintan con UNA gramática responsive
+   uniforme (main+aside 64/36, aside sticky, footer full-width). Cada arquetipo pasa a **rellenar
+   slots** en vez de componer layouts bespoke.
+   - *Nota sobre el principio #3 (nada de wire nuevo salvo inevitable):* aquí UN tipo wire nuevo
+     SUSTITUYE N composiciones ad-hoc → reduce superficie, no la aumenta. Alternativa cero-wire
+     considerada (convención `@Slot(name)` sobre `@Zones`): más pobre para arquetipos
+     programáticos. **Recomendación: `ContentLayout`.** (queda como decisión abierta a confirmar).
+   - *Roll-out sin big-bang:* pilotar en UN arquetipo con forma main+aside clara (General/Item
+     Overview) antes de migrar los ~15. Los arquetipos no migrados siguen funcionando (aditivo).
+
+2. **Inferencia por defecto** — *el "más peso" que respeta el alma de Mateu.* Extender `@AutoPage`
+   para que MÁS formas se auto-compongan en la plantilla + content-page correcta POR DEFECTO (hoy
+   sólo Dashboard/Welcome, y opt-in). El dev sigue declarando datos; la plantilla es el output por
+   defecto y overridable. Reconciliación de la tensión con el principio #2: la plantilla no se
+   impone declarándola a mano, se **infiere**. Depende de (1) para tener a dónde componer.
+
+3. **Template-first + scaffold** — *la capa de DX.* Asistente `/mateu-scaffold` (categoría +
+   densidad → esqueleto del arquetipo correcto rellenando slots) + docs que empujan "elige plantilla
+   → rellena slots". Cierra el círculo con el `contract.json` de Figma (`Mateu/Page Templates/*`).
+
+4. **Cerrar catálogo (Fase 3/4)** — Advanced Create&Edit canónico (5.4, ahora encaja natural como
+   `ContentLayout` main+aside con anchor-nav = `@Toc`), Guided Process Drawer pulido (5.3), catálogo
+   doc completo + Figma sincronizado.
+
+### Estado (2026-07-26)
+- **Capa 1 (gramática content-page) — HECHA.** Tipo wire `ContentLayout` (main/aside/footer con
+  slots) en los 3 backends + renderer compartido DS-neutral + case redwood-oj; arquetipos con forma
+  main+aside migrados (`ItemOverview`, `CollectionDetail`), `GeneralOverview` excluido a propósito.
+  Validada en Vaadin. (rama feature/content-layout.)
+- **Capa 2 (inferencia por defecto) — HECHA.** (a) `@Aside` (`[Aside]`/`Aside()`): un campo
+  componente marcado `@Aside` en un formulario plano se saca del cuerpo y compone un `ContentLayout`
+  (form=main, campo=aside) — la vía mínima a la content-page sin componer nada, en los 3 backends.
+  (b) La inferencia de página (`@AutoPage`) pasa a **ON por defecto** (el template es el output por
+  defecto; opt-out con `@AutoPage(false)` o la propiedad/switch global de desactivación) en los 3
+  backends. Suites verdes: core 744, .NET 215, Python 212.
+- **Capa 3 (template-first + scaffold) — HECHA.** El scaffold conversacional ya existía
+  (`.claude/skills/mateu-screen`: 3 preguntas de negocio → familia → arquetipo → genera la clase);
+  actualizado con lo de capas 1–2 — `@Aside` (form con panel lateral → content-page) como refinement
+  + seed, y la nota "inferencia por defecto: a veces no eliges arquetipo, declaras datos y compone
+  solo". Guía de decisión (`choosing-a-page-template.md`) ampliada con la sección "Often you don't
+  pick at all" (default-on + `@Aside`). PENDIENTE menor: sincronizar el `contract.json` de Figma con
+  los kinds nuevos (nice-to-have, "cierra el círculo").
+- **Capa 4 (cierre de catálogo) — HECHA (documental).** **Advanced Create & Edit** formalizada como
+  composición de piezas que ya existen — header canónico (`@Timestamp`/`@KPI`/peer-nav + save/cancel)
+  + main seccionado + `@Toc` (anchor nav) *o* `@Aside` (detail slot), mutuamente excluyentes; doc
+  nueva `ux-patterns/advanced-create-and-edit.md` (2 variantes). Catálogo saneado: la guía de
+  decisión (`choosing-a-page-template.md`) ya no marca "planned" lo que estaba hecho (General/Bottom
+  Drawer, Data Management, Gantt page) y el Roadmap se reescribe como "Status" (catálogo cubierto;
+  queda pulido, no cobertura). PENDIENTE (pulido, no cobertura): variantes profundas (bottom+side
+  drawer simultáneos en Gantt page; batch en Guided Process Drawer) + sync Figma de los kinds nuevos.
+
+### Línea roja que se mantiene
+El alma de Mateu (*declaras datos → se infiere la UI*) NO se rompe: las plantillas ganan peso siendo
+el **output por defecto de la inferencia** y el vocabulario común de composición, no una jaula
+declarativa obligatoria. Todo arquetipo sigue siendo composición de piezas wire → renderiza en todos
+los renderers. Paridad .NET/Python en cada fase.
+
+### Decisión abierta crítica (bloquea la Fase 1 de esta sección)
+`ContentLayout` como tipo wire nuevo **vs.** convención `@Slot` sobre `@Zones`. Recomendación:
+`ContentLayout`. Pendiente de confirmar antes de tocar código (blast radius = ~15 arquetipos).

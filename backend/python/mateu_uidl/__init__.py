@@ -572,6 +572,21 @@ class Timestamp:
 
 
 @dataclass(frozen=True)
+class Aside:
+    """Marks a component-holder field as the contextual ASIDE of the page: it is pulled out of the
+    form body and placed beside the rest of the form in a ContentLayout — the form becomes the main
+    region, the ``Aside()`` field the aside region. The minimal way to compose the Redwood
+    content-page grammar from a plain form. The Python analogue of Java's ``@Aside``."""
+
+    #: Which side the aside sits on: "start" or "end".
+    position: str = "end"
+    #: CSS width of the aside column; None/blank = renderer default.
+    width: str | None = None
+    #: Whether the aside is pinned while the main region scrolls.
+    sticky: bool = True
+
+
+@dataclass(frozen=True)
 class Step:
     step: int
 
@@ -1405,16 +1420,20 @@ class CollectionDetail(ComponentTreeSupplier):
         queue = fluent.TaskQueue(
             action_id="selectCollectionItem",
             groups=(fluent.QueueGroup(label=self.list_label(len(items)), items=tuple(items)),),
-            style=f"flex: 0 0 {width}; min-width: min({width}, 100%);",
         )
         detail = self.detail(selected) if selected is not None else self.empty_detail()
+        # The searchable list is the contextual aside (left, fixed width); the selected item's detail
+        # is the main region — the uniform ContentLayout slot grammar (stacks when narrow).
         return fluent.VerticalLayout(
             spacing=True,
             content=(
                 fluent.FormField(field_id="search", label="Search"),
-                fluent.HorizontalLayout(
-                    content=(queue, detail),
-                    style="align-items: flex-start; gap: 1.5rem; width: 100%;",
+                fluent.ContentLayout(
+                    aside=(queue,),
+                    main=(detail,),
+                    aside_position="start",
+                    aside_width=width,
+                    aside_sticky=False,
                 ),
             ),
         )
