@@ -490,16 +490,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
@@ -757,16 +761,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
@@ -1171,16 +1179,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
@@ -1438,16 +1450,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
@@ -1732,16 +1748,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
@@ -2001,16 +2021,20 @@
                             <div :class="[[ $current.data.cellClass ]]">
                             <div class="oj-panel oj-sm-padding-4x oj-flex-item">
                               <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                <div class="oj-flex-item">
+                                  <div class="oj-flex oj-sm-align-items-center">
+                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                  </div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                  <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start" chroming="outlined"
+                                    :data-action-id="[[ $current.data.actionId ]]"
+                                    on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                                </oj-bind-if>
                               </div>
-                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
-                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-sm-margin-2x-top" chroming="outlined"
-                                  :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
-                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
