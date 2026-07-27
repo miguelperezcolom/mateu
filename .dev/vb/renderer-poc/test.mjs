@@ -450,9 +450,10 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   const ops = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
   // columns=3 → grid responsive: wrapper oj-flex + cada fila oj-flex-item oj-md-4
-  assert.equal(ops.wrapClass, 'oj-flex')
+  assert.match(ops.wrapClass, /oj-flex/)
   assert.equal(ops.items[0].gridCell, true)
-  assert.match(ops.items[0].cellClass, /oj-flex-item oj-sm-12 oj-md-6/) // columns(2) en el carril derecho
+  assert.match(ops.items[0].cellClass, /mateu-grid-cell/) // rejilla fija del cockpit (22rem)
+  assert.match(ops.wrapClass, /mateu-grid/)
   const huespedes = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Klaus Hoffmann'))
   // lista de UNA columna con acciones → rama APILADA (h3 sin avatar), no tarjetas

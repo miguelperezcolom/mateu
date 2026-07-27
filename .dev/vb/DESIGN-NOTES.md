@@ -1076,6 +1076,14 @@ pide SOLO las pendientes.
   h2 de la sección del foldout), sin avatar, ritmo .mateu-list-item. Ahora SOLO columns>1
   fuerza tarjetas; una lista de una columna con acciones va por la rama apilada.
   `.mateu-list-item` sube de 28 a 40px de separación entre pasajeros.
+- **Operaciones como fichas h3 + contador en el título del panel (2026-07-27)**: las
+  celdas del cockpit pierden el tile-avatar y el título pasa a h3 (misma ficha que los
+  huéspedes); el "N de 7" deja el cuerpo y se COMPONE en el título del panel
+  (`headerLabel` en foldoutOf = título · subtítulo, ligado en panel-title al CONTENIDO
+  vivo indexado — refresca sin re-stampar; el bloque del subtítulo del cuerpo se elimina).
+  GOTCHA de merge nº4: las clases de la rejilla fija (.mateu-grid/.mateu-grid-cell, celdas
+  22rem con gap propio) tampoco las estampaba ya el bridge — restauradas en
+  wrapClass/cellClass para columns>1.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

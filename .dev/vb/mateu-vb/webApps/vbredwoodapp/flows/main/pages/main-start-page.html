@@ -274,8 +274,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -597,8 +596,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -767,18 +765,12 @@
             <!-- width EXPLÍCITO del wire (FoldoutPanel.width): fija el panel a esa medida
                  (flex + min/max) — crecer aquí confunde el motor responsive del foldout
                  (pagina); el sobrante de la fila lo reparte el space-between del CSS -->
-            <oj-sp-foldout-panel panel-title="[[ $current.data.title ]]"
+            <oj-sp-foldout-panel panel-title="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).headerLabel || $current.data.title ]]"
               :class="[[ {'mateu-fixed-panel': !!$current.data.width} ]]"
               :style.flex="[[ $current.data.width ? '0 0 ' + $current.data.width : null ]]"
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
-              <!-- el subtítulo solo existe si viene: el div incondicional dejaba 20px muertos.
-                   Se lee del CONTENIDO vivo (mateuFoldoutContent) para que el contador
-                   N de M refresque sin re-stampar el panel -->
-              <oj-bind-if test="[[ !!$current.data.subtitle ]]">
-                <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).subtitle ]]"></oj-bind-text></div>
-              </oj-bind-if>
               <!-- bloques RICOS del panel: mismo template de átomos que el host. Ligados al
                    CONTENIDO vivo (mateuFoldoutContent) indexado por posición: el panel se
                    estampa UNA vez y su interior re-evalúa en cada repaint del host -->
@@ -947,8 +939,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -1270,8 +1261,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -1760,8 +1750,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -2148,8 +2137,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -2469,8 +2457,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -2937,8 +2924,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3236,8 +3222,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3562,8 +3547,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3885,8 +3869,7 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>

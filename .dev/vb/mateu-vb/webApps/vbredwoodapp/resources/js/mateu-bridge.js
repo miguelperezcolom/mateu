@@ -263,6 +263,9 @@ define([], () => {
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
         subtitle: panel.subtitle || '',
+        // título compuesto del panel: "Operaciones · 1 de 7" — el contador vive en la
+        // CABECERA (leído del contenido vivo por índice, refresca sin re-stampar)
+        headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
         // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
         // medida — sin él, el motor responsive del foldout reparte a su aire y las
@@ -816,12 +819,14 @@ define([], () => {
         // huéspedes) se pinta con la rama APILADA del markup — nombre como h3 (nivel
         // siguiente al h2 de la sección), sin avatar, ritmo .mateu-list-item
         const asCards = cols > 0
+        // la rejilla del cockpit: celdas de MEDIDA FIJA (.mateu-grid-cell, 22rem) con el
+        // aire entre tarjetas como gap de la rejilla (.mateu-grid) — ver app.css
         const cellClass = cols
-          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
+          ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
         atom({
           isStatusList: true,
-          wrapClass: asCards ? 'oj-flex' : '',
+          wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
           items: (m.items || []).map((it) => {
             // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
             // precomputado; una fila CON acciones se pinta APILADA (título+chip /
