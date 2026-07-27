@@ -86,17 +86,30 @@ export class MateuVaadinFoldout extends LitElement {
         return sections.length > 1 ? sections[1].offsetLeft : (this._rail?.clientWidth ?? 0)
     }
 
+    // Snap targets are the actual section offsets (sections may declare their own widths, so the
+    // carousel steps are NOT uniform), clamped to the max scroll.
+    private _boundaries(): number[] {
+        const rail = this._rail
+        if (!rail) {
+            return []
+        }
+        const max = rail.scrollWidth - rail.clientWidth
+        const offsets = [...this.renderRoot.querySelectorAll<HTMLElement>('.section')]
+            .map(section => Math.max(0, Math.min(section.offsetLeft, max)))
+        return [...new Set(offsets)]
+    }
+
     private _snapToNearest() {
         const rail = this._rail
         if (!rail) {
             return
         }
-        const stride = this._stride()
-        if (stride <= 0) {
+        const boundaries = this._boundaries()
+        if (!boundaries.length) {
             return
         }
-        const max = rail.scrollWidth - rail.clientWidth
-        const target = Math.max(0, Math.min(Math.round(rail.scrollLeft / stride) * stride, max))
+        const target = boundaries.reduce((best, b) =>
+            Math.abs(b - rail.scrollLeft) < Math.abs(best - rail.scrollLeft) ? b : best)
         if (Math.abs(target - rail.scrollLeft) < 1) {
             return
         }
@@ -160,13 +173,13 @@ export class MateuVaadinFoldout extends LitElement {
         if (!rail) {
             return
         }
-        const stride = this._stride()
-        if (stride <= 0) {
+        const boundaries = this._boundaries()
+        if (!boundaries.length) {
             return
         }
-        const index = Math.round(rail.scrollLeft / stride)
-        const max = rail.scrollWidth - rail.clientWidth
-        const target = Math.max(0, Math.min((index + dir) * stride, max))
+        const index = boundaries.reduce((best, b, i) =>
+            Math.abs(b - rail.scrollLeft) < Math.abs(boundaries[best] - rail.scrollLeft) ? i : best, 0)
+        const target = boundaries[Math.max(0, Math.min(index + dir, boundaries.length - 1))]
         this._snapping = true
         rail.scrollTo({ left: target, behavior: 'smooth' })
         window.setTimeout(() => { this._snapping = false }, 400)
@@ -442,7 +455,8 @@ export class MateuVaadinFoldout extends LitElement {
                     </div>
                 </section>
                 ${this.panels.map((panel, index) => html`
-                    <section class="section" part="section panel">
+                    <section class="section" part="section panel"
+                             style="${panel.width ? `flex-basis: ${panel.width};` : nothing}">
                         ${panel.title || panel.subtitle ? html`
                             <div class="panel-header">
                                 ${panel.title ? html`<h3>${panel.title}</h3>` : nothing}

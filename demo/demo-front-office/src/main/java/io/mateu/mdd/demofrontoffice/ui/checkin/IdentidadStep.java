@@ -5,6 +5,7 @@ import io.mateu.mdd.demofrontoffice.domain.guest.Preference;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Text;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.BulletedList;
@@ -28,7 +29,10 @@ import lombok.Setter;
 /** Step 1 — Identidad: document verification, contact data, preferences and pax registration. */
 @Getter
 @Setter
-@Zones({@Zone(name = "main", width = "62%"), @Zone(name = "side", width = "38%")})
+// Single-column form default so the sábana sections stack header-over-content; the arrival
+// header band keeps its own explicit @Section(columns = 2).
+@FormLayout(columns = 1)
+@Zones({@Zone(name = "prefs", width = "50%"), @Zone(name = "stay", width = "50%")})
 public class IdentidadStep implements WizardStep {
 
   @Hidden String stayId;
@@ -40,9 +44,10 @@ public class IdentidadStep implements WizardStep {
   @Label("")
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
-  // Left column: the Documento block is an ORCHESTRATED island (DocumentoView) whose state the
-  // backend decides — sin datos (aviso + escanear), hay datos (property list + Edit) or editor.
-  @Section(value = "Documento", zone = "main")
+  // Full-width working area: the Documento block is an ORCHESTRATED island (DocumentoView) whose
+  // state the backend decides — sin datos (aviso + escanear), hay datos (property list + Edit) or
+  // editor.
+  @Section(value = "Documento")
   @Inline
   @Label("")
   DocumentoView documento;
@@ -52,7 +57,7 @@ public class IdentidadStep implements WizardStep {
   // documents are in, filled when it is the pax the Documento island is showing. Clicking a button
   // dispatches selectPax on the wizard, which re-points the island via the pax-seleccionado event.
   @Colspan(2)
-  @Section(value = "", zone = "main", frameless = true)
+  @Section(value = "", frameless = true)
   @Label("")
   Callable<Component> registroPax =
       () -> {
@@ -101,8 +106,10 @@ public class IdentidadStep implements WizardStep {
             .build();
       };
 
-  @Section(value = "", zone = "side")
-          @Text(container = TextContainer.h4)
+  // Final full-width band ("sábana"): the guest-context info moves below the working area as the
+  // trailing zoned row — preferences on the left, last stay on the right.
+  @Section(value = "", zone = "prefs")
+  @Text(container = TextContainer.h4)
   String prefHeader = "Preferencias";
 
     @Label("")
@@ -115,7 +122,7 @@ public class IdentidadStep implements WizardStep {
                 .build();
     };
 
-  @SeparatorBefore
+  @Section(value = "", zone = "stay")
   @Text(container = TextContainer.h4)
   String lastStayHeader = "ÚLTIMA ESTANCIA";
 

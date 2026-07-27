@@ -10,4 +10,6 @@ export default interface StatusItem {
     actionId?: string
     actionLabel2?: string
     actionId2?: string
+    actionLabel3?: string
+    actionId3?: string
 }

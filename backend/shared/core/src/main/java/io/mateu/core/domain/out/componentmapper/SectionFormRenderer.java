@@ -301,11 +301,12 @@ final class SectionFormRenderer {
   }
 
   /**
-   * {@code @Section(columns=N)} drives the column count when set above the default (1); otherwise
-   * fall back to the form-level column count so forms that don't set it keep their behaviour.
+   * {@code @Section(columns=N)} drives the column count when set (any explicit N ≥ 1, so {@code
+   * columns=1} forces single-column stacking); the default 0 means unset and falls back to the
+   * form-level column count so sections that don't set it keep their behaviour.
    */
   private static int sectionColumns(Section section, Ctx ctx) {
-    return section.columns() > 1
+    return section.columns() >= 1
         ? section.columns()
         : PageFormBuilder.getFormColumns(ctx.instanceClass());
   }

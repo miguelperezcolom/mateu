@@ -18,7 +18,7 @@ Groups the annotated field and all subsequent fields under a named section headi
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Section {
     String value();             // section title (required)
-    int columns() default 1;
+    int columns() default 0;    // 0 = inherit the form's column count
     String style() default "";
     String zone() default "";
 }
@@ -29,7 +29,7 @@ public @interface Section {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `value` | `String` | — | Section heading label, displayed as a visible separator (required) |
-| `columns` | `int` | `1` | Number of form columns inside this section |
+| `columns` | `int` | `0` | Number of form columns inside this section. `0` (unset) inherits the form-level count (`@FormLayout(columns = …)` on the class, else 2). Any explicit value ≥ 1 wins — including `1` to force single-column stacking on a form whose other sections stay multi-column |
 | `style` | `String` | `""` | Inline CSS applied to the section container |
 | `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only meaningful when the enclosing class is annotated with [`@Zones`](/java-ui-definition/annotations/layout/#zones--zone); sections sharing a zone name are stacked inside that zone's column |
 
@@ -42,14 +42,14 @@ public class CustomerForm {
     String lastName;
     LocalDate birthDate;
 
-    @Section(value = "Contact", columns = 2)
+    @Section(value = "Contact", columns = 1)
     String email;
     String phone;
     String address;
 }
 ```
 
-The `Personal data` section uses the default single-column layout. The `Contact` section switches to two columns. Fields belong to whichever section was declared most recently above them.
+The `Personal data` section inherits the form's column count (two by default). The `Contact` section forces single-column stacking with an explicit `columns = 1`. Fields belong to whichever section was declared most recently above them.
 
 ![Sections rendered as named cards](/images/docs/components/sections.png)
 

@@ -172,7 +172,10 @@ export function collectTexts(node, out = []) {
 }
 
 /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
- *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout. */
+ *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
+ *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
+ *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
+ *  como forma legada para tests/fixtures. */
 export function foldoutOf(ctx) {
   const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
   if (!node) return null
@@ -180,13 +183,28 @@ export function foldoutOf(ctx) {
   const children = node.children || []
   const bySlot = {}
   for (const child of children) bySlot[child.slot || ''] = child
+  const blocksOf = (slotNode) => {
+    const blocks = slotNode
+      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {} })
+      : null
+    // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
+    // el resto a fila completa
+    return (blocks || []).map((block) => ({
+      ...block,
+      blockClass: block.colClass || 'oj-flex-item oj-sm-12',
+    }))
+  }
   return {
-    overview: { texts: collectTexts(bySlot['overview']) },
+    overview: {
+      texts: collectTexts(bySlot['overview']),
+      blocks: blocksOf(bySlot['overview']),
+    },
     panels: (md.panels || []).map((panel, i) => ({
       title: panel.title || '',
       subtitle: panel.subtitle || '',
       open: panel.open !== false,
       texts: collectTexts(bySlot['panel-' + i]),
+      blocks: blocksOf(bySlot['panel-' + i]),
     })),
   }
 }

@@ -12,10 +12,10 @@
   },
   "resolutions": {
     "esbuild": "^0.28.1",
-    "@vaadin/*": "~24.10.4"
+    "@vaadin/*": "~25.2.6"
   },
   "overrides": {
     "esbuild": "^0.28.1",
-    "@vaadin/*": "~24.10.4"
+    "@vaadin/*": "~25.2.6"
   }
 }

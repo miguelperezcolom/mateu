@@ -53,11 +53,13 @@ public Component component(HttpRequest request) {
     return FoldoutLayout.builder()
             .overview(overviewCard())
             .panels(List.of(
-                    FoldoutPanel.builder().title("Payments").content(paymentsGrid()).build(),
+                    FoldoutPanel.builder().title("Payments").width("40rem").content(paymentsGrid()).build(),
                     FoldoutPanel.builder().title("Notes").open(false).content(notes()).build()))
             .build();
 }
 ```
+
+`FoldoutPanel.width` is an optional CSS length for the **expanded** panel — unset panels keep the renderer's default section width (`--mateu-foldout-panel-flex` / `--mateu-foldout-section-width`, 22rem). Use it to size panels to their content: a wide checklist or grid next to a narrow property list.
 
 ## When to use it
 
