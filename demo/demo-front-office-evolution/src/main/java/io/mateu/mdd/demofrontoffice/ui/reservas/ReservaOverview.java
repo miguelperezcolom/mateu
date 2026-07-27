@@ -63,7 +63,6 @@ import lombok.Setter;
 @Route(value = "/reserva/:id", parentRoute = "")
 @Title("Reserva")
 // anatomía RDS del foldout: página a sangre (sin gutters ni tope de ancho)
-@io.mateu.uidl.annotations.PageWidth(io.mateu.uidl.annotations.PageWidthStyle.EDGE_TO_EDGE)
 @FormLayout(columns = 1)
 @io.mateu.uidl.annotations.SubscribesTo({
   @io.mateu.uidl.annotations.SubscribeTo(event = "documento-escaneado", action = "refrescarReserva"),
@@ -74,7 +73,18 @@ import lombok.Setter;
 @AutoSave(action = "buscarCargos", debounceMillis = 350)
 public class ReservaOverview
     implements PostHydrationHandler, ToolbarSupplier, ActionHandler,
-        io.mateu.uidl.fluent.ActionSupplier {
+        io.mateu.uidl.fluent.ActionSupplier, io.mateu.uidl.interfaces.PageWidthSupplier {
+
+  /** El ancho de página según el estado: el foldout de llegada va a sangre; el general
+   *  overview de la estancia (y la salida / modo check-out) van en FIXED. */
+  @Override
+  public io.mateu.uidl.annotations.PageWidthStyle pageWidth() {
+    var stay = FrontOffice.stays().findById(stayId == null ? "" : stayId).orElse(null);
+    if (stay != null && stay.status() == StayStatus.ARRIVING) {
+      return io.mateu.uidl.annotations.PageWidthStyle.EDGE_TO_EDGE;
+    }
+    return io.mateu.uidl.annotations.PageWidthStyle.FIXED;
+  }
 
   @Override
   public List<io.mateu.uidl.fluent.Action> actions(HttpRequest httpRequest) {

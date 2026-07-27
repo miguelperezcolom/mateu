@@ -1201,6 +1201,11 @@ pide SOLO las pendientes.
   (.oj-sp-foldout-panel-title-underline, 36×4 con --oj-sp-theme-accent) está SCOPED a
   oj-sp-foldout-panel — `.mateu-fold-title-underline` en app.css replica el trazo con el
   MISMO token del tema.
+- **Ancho por estado en la 360 (2026-07-27)**: fuera el @PageWidth(EDGE_TO_EDGE) estático
+  — `PageWidthSupplier.pageWidth()` decide por estado: la LLEGADA (foldout) sigue a
+  sangre y la estancia/salida van en FIXED (caja de 1408px con la fórmula RDS y el lienzo
+  alrededor). El wrapper de contenido del shell ya aplicaba maxWidth/margin/padding del
+  pageStyleOf, así que bastó el supplier del backend.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
