@@ -21,7 +21,6 @@
     "@react-navigation/native": "^7.3.8",
     "@react-navigation/stack": "^7.10.11",
     "babel-preset-expo": "~54.0.10",
-    "brace-expansion": "^2.1.2",
     "expo": "^54.0.0",
     "expo-asset": "~12.0.13",
     "expo-build-properties": "~1.0.10",
@@ -53,6 +52,8 @@
     "typescript": "^5.3.3"
   },
   "overrides": {
+    "brace-expansion@1": "^1.1.16",
+    "brace-expansion@2": "^2.1.2",
     "tar": "^7.5.16",
     "undici": "^6.27.0",
     "postcss": "^8.5.10",
