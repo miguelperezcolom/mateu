@@ -331,6 +331,11 @@
       "defaultValue": "",
       "description": "serverSideType del App — las acciones de cabecera se despachan app-level con él"
     },
+    "mateuFoldoutContent": {
+      "type": "any",
+      "defaultValue": { "overview": { "blocks": [] }, "panels": [] },
+      "description": "CONTENIDO vivo del foldout (bloques por panel + subtítulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez — el motor del foldout come los anclajes del for-each de paneles al re-stampar"
+    },
     "mateuDrawer": {
       "type": "any",
       "defaultValue": {

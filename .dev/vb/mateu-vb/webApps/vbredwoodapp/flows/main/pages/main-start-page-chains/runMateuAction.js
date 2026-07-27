@@ -113,16 +113,29 @@ define([
       // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
       // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
       if (hostRepainted) {
-        // remontaje null→tick (el evaluador CSP no re-liga los bindings internos del
-        // foldout con una reasignación) — pero SOLO cuando el host repintó de verdad:
-        // abrir un drawer (Add) ya no lo toca, y el foldout lleva animate=off para que
-        // el remontaje sea un repintado instantáneo sin replay del despliegue
         const foldoutProjection = bridge.foldoutOf(hostAfter);
-        if ($application.variables.mateuFoldout && foldoutProjection) {
-          $application.variables.mateuFoldout = null;
-          await new Promise((resolve) => setTimeout(resolve, 0));
+        const foldoutBefore = $application.variables.mateuFoldout;
+        const contentOf = (proj) => proj
+          ? { overview: proj.overview, panels: proj.panels }
+          : { overview: { blocks: [] }, panels: [] };
+        const mismaEstructura = foldoutBefore && foldoutProjection
+          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length;
+        if (mismaEstructura) {
+          // actualización IN SITU: los paneles están estampados UNA vez (su for-each
+          // pierde los anclajes si se re-stampa — cirugía DOM del foldout); el contenido
+          // vive en mateuFoldoutContent, cuyos bindings SÍ re-evalúan dentro del panel
+          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+        } else {
+          // estructura distinta (nº de paneles) o entra/sale del modo foldout:
+          // remontaje completo null→tick
+          if (foldoutBefore && foldoutProjection) {
+            $application.variables.mateuFoldout = null;
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          // contenido ANTES que estructura (los paneles lo leen al estamparse)
+          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldout = foldoutProjection;
         }
-        $application.variables.mateuFoldout = foldoutProjection;
       }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
 

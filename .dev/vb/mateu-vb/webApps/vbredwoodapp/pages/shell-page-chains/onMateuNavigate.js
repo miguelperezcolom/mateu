@@ -96,6 +96,11 @@ define([
         $application.variables.mateuFoldout = null;
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
+      // el CONTENIDO se siembra ANTES de estampar la estructura: los paneles leen
+      // mateuFoldoutContent.panels[i] al montarse
+      $application.variables.mateuFoldoutContent = foldoutProjection
+        ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
+        : { overview: { blocks: [] }, panels: [] };
       $application.variables.mateuFoldout = foldoutProjection;
       $application.variables.mateuWizard = bridge.wizardOf(host);
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;

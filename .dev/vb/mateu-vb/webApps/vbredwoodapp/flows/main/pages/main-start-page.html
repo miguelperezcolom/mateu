@@ -98,7 +98,7 @@
           class="mateu-fixed-panel" style="flex: 0 0 23rem; width: 23rem; min-width: 23rem; max-width: 23rem;">
           <!-- bloques RICOS del overview: mismo template de átomos que el host -->
           <div class="oj-flex">
-          <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.blocks ]]">
+          <oj-bind-for-each data="[[ $application.variables.mateuFoldoutContent.overview.blocks ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
           <div :class="[[ $current.data.blockClass ]]">
@@ -717,13 +717,17 @@
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
-              <!-- el subtítulo solo existe si viene: el div incondicional dejaba 20px muertos -->
+              <!-- el subtítulo solo existe si viene: el div incondicional dejaba 20px muertos.
+                   Se lee del CONTENIDO vivo (mateuFoldoutContent) para que el contador
+                   N de M refresque sin re-stampar el panel -->
               <oj-bind-if test="[[ !!$current.data.subtitle ]]">
-                <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).subtitle ]]"></oj-bind-text></div>
               </oj-bind-if>
-              <!-- bloques RICOS del panel: mismo template de átomos que el host -->
+              <!-- bloques RICOS del panel: mismo template de átomos que el host. Ligados al
+                   CONTENIDO vivo (mateuFoldoutContent) indexado por posición: el panel se
+                   estampa UNA vez y su interior re-evalúa en cada repaint del host -->
               <div class="oj-flex">
-              <oj-bind-for-each data="[[ $current.data.blocks ]]">
+              <oj-bind-for-each data="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).blocks ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
           <div :class="[[ $current.data.blockClass ]]">
