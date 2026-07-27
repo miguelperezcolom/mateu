@@ -563,8 +563,14 @@
       "type": "any",
       "defaultValue": {
         "on": false,
-        "main": [],
-        "info": []
+        "main": {
+          "title": "",
+          "blocks": []
+        },
+        "info": {
+          "title": "",
+          "blocks": []
+        }
       },
       "description": "general overview nativo: on + bloques de los slots main/info"
     }

@@ -142,7 +142,11 @@ public class ReservaOverview
               .content(List.of(
                   VerticalLayout.builder()
                       .style("flex: 1 1 calc(62% - 1.5rem); min-width: min(20rem, 100%); gap: 1rem;")
-                      .content(List.of(paraInHouse(stay)))
+                      .content(List.of(
+                          Text.builder().text("Estancia · " + balanceResumen())
+                              .container(io.mateu.uidl.data.TextContainer.h2)
+                              .style("margin: 0;").build(),
+                          paraInHouse(stay)))
                       .build(),
                   VerticalLayout.builder()
                       .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;")
@@ -829,6 +833,8 @@ public class ReservaOverview
   private List<Component> infoSecundaria(Stay stay) {
     var view = FrontOffice.stayView(stayId);
     var contenido = new ArrayList<Component>();
+    contenido.add(Text.builder().text("Información")
+        .container(io.mateu.uidl.data.TextContainer.h2).style("margin: 0;").build());
     contenido.add(Text.builder().text("Huéspedes")
         .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
     contenido.add(Text.builder().text(view.guest().name()).noMargins(true).build());

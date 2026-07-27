@@ -224,11 +224,20 @@ define([
       // template oj-sp-general-overview-page (slots main/info, header integrado)
       const zonedGop = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
       const gopOn = !!(hostEntity && (hostBlocks || []).length === 2 && zonedGop.length === 2);
+      const gopFold = (block) => {
+        const items = (block.items || []);
+        const conTitulo = items.length && items[0].isHeading && items[0].isH2;
+        return {
+          title: conTitulo ? items[0].text : '',
+          blocks: [Object.assign({}, block, {
+            blockClass: 'oj-flex-item oj-sm-12',
+            items: conTitulo ? items.slice(1) : items,
+          })],
+        };
+      };
       $application.variables.mateuGop = gopOn
-        ? { on: true,
-            main: [Object.assign({}, zonedGop[0], { blockClass: 'oj-flex-item oj-sm-12' })],
-            info: [Object.assign({}, zonedGop[1], { blockClass: 'oj-flex-item oj-sm-12' })] }
-        : { on: false, main: [], info: [] };
+        ? { on: true, main: gopFold(zonedGop[0]), info: gopFold(zonedGop[1]) }
+        : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
       $application.variables.mateuHostContent = (!gopOn && hostBlocksRicos ? hostBlocks : null) || [];
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;

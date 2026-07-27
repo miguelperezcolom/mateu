@@ -308,11 +308,20 @@ define([
       // template oj-sp-general-overview-page (slots main/info, header integrado)
       const zonedGop2 = (hostBlocks2 || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
       const gopOn2 = !!(hostEntity2 && (hostBlocks2 || []).length === 2 && zonedGop2.length === 2);
+      const gopFold2 = (block) => {
+        const items = (block.items || []);
+        const conTitulo = items.length && items[0].isHeading && items[0].isH2;
+        return {
+          title: conTitulo ? items[0].text : '',
+          blocks: [Object.assign({}, block, {
+            blockClass: 'oj-flex-item oj-sm-12',
+            items: conTitulo ? items.slice(1) : items,
+          })],
+        };
+      };
       $application.variables.mateuGop = gopOn2
-        ? { on: true,
-            main: [Object.assign({}, zonedGop2[0], { blockClass: 'oj-flex-item oj-sm-12' })],
-            info: [Object.assign({}, zonedGop2[1], { blockClass: 'oj-flex-item oj-sm-12' })] }
-        : { on: false, main: [], info: [] };
+        ? { on: true, main: gopFold2(zonedGop2[0]), info: gopFold2(zonedGop2[1]) }
+        : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
       $application.variables.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;

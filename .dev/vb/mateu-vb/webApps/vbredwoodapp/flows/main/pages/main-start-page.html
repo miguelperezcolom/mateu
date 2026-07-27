@@ -3617,8 +3617,14 @@
     on-sp-primary-action="[[ $listeners.headerPrimary ]]"
     on-sp-secondary-action="[[ $listeners.headerSecondary ]]">
     <div slot="main">
+      <oj-bind-if test="[[ !!$application.variables.mateuGop.main.title ]]">
+        <div class="oj-sm-margin-6x-bottom">
+          <h2 class="oj-typography-heading-sm" style="margin: 0;"><oj-bind-text value="[[ $application.variables.mateuGop.main.title ]]"></oj-bind-text></h2>
+          <div class="mateu-fold-title-underline oj-sm-margin-2x-top"></div>
+        </div>
+      </oj-bind-if>
       <div class="oj-flex">
-        <oj-bind-for-each data="[[ $application.variables.mateuGop.main ]]">
+        <oj-bind-for-each data="[[ $application.variables.mateuGop.main.blocks ]]">
           <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
           <div :class="[[ $current.data.blockClass ]]">
@@ -4313,8 +4319,14 @@
       </div>
     </div>
     <div slot="info">
+      <oj-bind-if test="[[ !!$application.variables.mateuGop.info.title ]]">
+        <div class="oj-sm-margin-6x-bottom">
+          <h2 class="oj-typography-heading-sm" style="margin: 0;"><oj-bind-text value="[[ $application.variables.mateuGop.info.title ]]"></oj-bind-text></h2>
+          <div class="mateu-fold-title-underline oj-sm-margin-2x-top"></div>
+        </div>
+      </oj-bind-if>
       <div class="oj-flex">
-        <oj-bind-for-each data="[[ $application.variables.mateuGop.info ]]">
+        <oj-bind-for-each data="[[ $application.variables.mateuGop.info.blocks ]]">
           <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
           <div :class="[[ $current.data.blockClass ]]">

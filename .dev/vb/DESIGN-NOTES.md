@@ -1193,6 +1193,14 @@ pide SOLO las pendientes.
   dentro de su slot (el ancho del info lo pone el template). El backend in-house volvió a
   dos zonas con el MAIN primero (KPI + incidencias) e info después (huéspedes + salida) —
   el orden de folds que corregía el usuario.
+- **Títulos de fold en el general overview (2026-07-27)**: cada slot del
+  oj-sp-general-overview-page titula con el estilo del foldout — el backend abre cada
+  zona con un Text container=h2 ("Estancia · balance" / "Información"), el bridge lo
+  marca `isH2` y el gop lo ASCIENDE a título de slot (gopFold: title + items sin el
+  heading), pintado como h2 heading-sm + subrayado. El subrayado original
+  (.oj-sp-foldout-panel-title-underline, 36×4 con --oj-sp-theme-accent) está SCOPED a
+  oj-sp-foldout-panel — `.mateu-fold-title-underline` en app.css replica el trazo con el
+  MISMO token del tema.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

@@ -732,6 +732,9 @@ export function islandContentOf(ctx) {
           atom({
             isText: true,
             isHeading: true,
+            // un h2 al frente de una zona es el TITULO del fold (el gop lo asciende a
+            // cabecera de slot con el subrayado del foldout)
+            isH2: m.container === 'h2',
             text,
             cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
           }, container)

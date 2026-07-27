@@ -206,3 +206,12 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   padding-inline-end: 0;
   margin-top: 0;
 }
+
+/* Subrayado de título de fold/sección FUERA del foldout (el original está scoped a
+   oj-sp-foldout-panel): mismo trazo y mismo token de acento del tema Spectra. */
+.mateu-fold-title-underline {
+  width: 2.25rem;
+  min-height: 0.25rem;
+  max-height: 0.25rem;
+  background-color: var(--oj-sp-theme-accent, #f0cc71);
+}
