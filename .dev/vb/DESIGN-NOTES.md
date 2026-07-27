@@ -1211,6 +1211,11 @@ pide SOLO las pendientes.
   closeModal. La gramática de campos del drawer aprendió `textarea`:
   dynFormMetadataOf/fieldListOf llevan el stereotype y el panel pinta `oj-text-area`
   (rows 4) para FormFields con FieldStereotype.textarea.
+- **Dedup de botones en drawers (2026-07-27)**: los Buttons del CONTENIDO de un drawer
+  salían dos veces — como átomo isButtons en su sitio (con sus parameters) Y en la fila de
+  acciones del pie (actionsOf recoge todos los Buttons del árbol). `overlayOf` filtra del
+  pie los actionIds que ya se pintan en los bloques del contenido (mismo patrón que el
+  filtro de isInput duplicados).
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

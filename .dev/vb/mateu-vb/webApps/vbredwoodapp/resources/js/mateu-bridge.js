@@ -165,6 +165,14 @@ define([], () => {
     const content = (islandContentOf(ctx) || [])
       .map((block) => ({ ...block, items: block.items.filter((a) => !a.isInput) }))
       .filter((block) => block.items.length)
+    // los BOTONES que ya se pintan dentro del contenido (átomos isButtons, con sus
+    // parameters) no se repiten en la fila de acciones del pie — el "Enviar" duplicado
+    const contentActionIds = new Set()
+    for (const block of content) {
+      for (const a of block.items) {
+        if (a.isButtons) for (const btn of a.buttons || []) contentActionIds.add(btn.actionId)
+      }
+    }
     return {
       id,
       title: ctx.title || '',
@@ -172,7 +180,7 @@ define([], () => {
       width: ctx.width,
       state: ctx.state || {},
       fields: fieldListOf(ctx.tree, ctx.state),
-      actions: actionsOf(ctx.tree),
+      actions: actionsOf(ctx.tree).filter((a) => !contentActionIds.has(a.actionId)),
       content: content,
       hasContent: !!content.length,
       // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
