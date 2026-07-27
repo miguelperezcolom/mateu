@@ -2059,6 +2059,16 @@
               :data-field-id="[[ $current.data.fieldId ]]"
               on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
           </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isTextArea ]]">
+            <oj-text-area
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              rows="4"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+          </oj-bind-if>
           <oj-bind-if test="[[ $current.data.isNumber ]]">
             <oj-input-number
               label-hint="[[ $current.data.label ]]"

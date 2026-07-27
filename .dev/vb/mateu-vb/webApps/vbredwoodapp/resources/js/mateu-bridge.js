@@ -100,6 +100,7 @@ define([], () => {
         displayName: f.label || f.fieldId,
         required: !!f.required,
         readonly: !!f.readOnly,
+        stereotype: f.stereotype || '',
       }
     }
     return Object.keys(metadata).length ? metadata : null
@@ -133,6 +134,7 @@ define([], () => {
     const s = state || {}
     return Object.keys(metadata).map((fieldId) => {
       const f = metadata[fieldId]
+      const isTextArea = f.stereotype === 'textarea'
       return {
         fieldId,
         label: f.displayName,
@@ -140,7 +142,8 @@ define([], () => {
         readonly: f.readonly,
         isNumber: f.type === 'number',
         isBoolean: f.type === 'boolean',
-        isText: f.type !== 'number' && f.type !== 'boolean',
+        isTextArea,
+        isText: f.type !== 'number' && f.type !== 'boolean' && !isTextArea,
         value: s[fieldId] == null ? null : s[fieldId],
       }
     })

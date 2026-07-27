@@ -938,7 +938,7 @@ public class ReservaOverview
             "opCobro", "metodoCobro", "confirmarCobro",
             "opCargos", "postearCargo", "resolverIncidencia", "lateCheckout",
             "gestionFolio", "opPeticion", "registrarPeticion",
-            "opIncidencia", "crearIncidencia",
+            "opIncidencia", "crearIncidencia", "enviarMensaje",
             "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
@@ -985,7 +985,19 @@ public class ReservaOverview
         ultimaBusqueda = null;
         yield this;
       }
-      case "mensajeHuesped" -> new Message("Aquí se enviaría un mensaje al huésped (demo)");
+      case "mensajeHuesped" -> drawerMensaje();
+      case "enviarMensaje" -> {
+        var estadoDrawer = httpRequest.runActionRq().componentState();
+        var texto = estadoDrawer != null && estadoDrawer.get("mensajeTexto") != null
+            ? String.valueOf(estadoDrawer.get("mensajeTexto")).trim() : "";
+        if (texto.isBlank()) {
+          yield new Message("Escribe el mensaje antes de enviar");
+        }
+        var guest = FrontOffice.stayView(stayId).guest();
+        yield List.of(
+            new Message("Mensaje enviado a " + guest.name() + " — «" + texto + "»"),
+            UICommand.closeModal());
+      }
       case "noShowPax" -> {
         var pax = paxDe(httpRequest);
         var ops = FrontOffice.checkInOps().of(stayId).toggleNoShow(pax);
@@ -1428,6 +1440,30 @@ public class ReservaOverview
                     .build())
                 .toList())
             .total(folio == null ? 0 : folio.balance().doubleValue())
+            .build())
+        .initialData(java.util.Map.of("stayId", stayId))
+        .build();
+  }
+
+  /** Drawer de mensaje al huésped: texto libre + Enviar. */
+  private io.mateu.uidl.data.Drawer drawerMensaje() {
+    var guest = FrontOffice.stayView(stayId).guest();
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-mensaje")
+        .headerTitle("Mensaje a " + guest.name())
+        .width("26rem")
+        .content(VerticalLayout.builder()
+            .style("gap: .5rem;")
+            .content(List.of(
+                FormField.builder()
+                    .id("mensajeTexto")
+                    .label("Mensaje")
+                    .dataType(FieldDataType.string)
+                    .stereotype(io.mateu.uidl.data.FieldStereotype.textarea)
+                    .style("width: 100%;")
+                    .build(),
+                Button.builder().label("Enviar").actionId("enviarMensaje")
+                    .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build()))
             .build())
         .initialData(java.util.Map.of("stayId", stayId))
         .build();

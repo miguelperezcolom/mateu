@@ -163,7 +163,7 @@ test('dynFormMetadataOf/actionsOf proyectan el form de /person para oj-dyn-form'
   const { contexts } = reduceContexts(empty(), fx('load-form'))
   const tree = contexts[HOST_ID].tree
   const md = dynFormMetadataOf(tree)
-  assert.deepEqual(md.name, { type: 'string', displayName: 'Name', required: true, readonly: false })
+  assert.deepEqual(md.name, { type: 'string', displayName: 'Name', required: true, readonly: false, stereotype: 'regular' })
   assert.equal(md.age.type, 'number')
   const actions = actionsOf(tree)
   assert.deepEqual(actions.map((a) => a.actionId).sort(), ['goToProducts', 'save'])

@@ -1206,6 +1206,11 @@ pide SOLO las pendientes.
   sangre y la estancia/salida van en FIXED (caja de 1408px con la fórmula RDS y el lienzo
   alrededor). El wrapper de contenido del shell ya aplicaba maxWidth/margin/padding del
   pageStyleOf, así que bastó el supplier del backend.
+- **Mensaje al huésped en drawer + textarea (2026-07-27)**: "Mensaje huésped" abre un
+  drawer ("Mensaje a <nombre>") con TEXTO LIBRE y Enviar → toast con el mensaje +
+  closeModal. La gramática de campos del drawer aprendió `textarea`:
+  dynFormMetadataOf/fieldListOf llevan el stereotype y el panel pinta `oj-text-area`
+  (rows 4) para FormFields con FieldStereotype.textarea.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
