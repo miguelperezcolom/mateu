@@ -44,6 +44,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    longTaskWatcher,
     findAllByType,
     cardOf,
     welcomeOf,

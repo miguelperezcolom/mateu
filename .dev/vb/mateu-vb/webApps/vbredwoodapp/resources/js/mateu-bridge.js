@@ -109,18 +109,14 @@ define([], () => {
    *  VB deben quedar como paths simples: un ternario en un atributo rompe la evaluación CSP
    *  de TODAS las propiedades del elemento). */
   function actionsOf(tree) {
-    // clave compuesta: varios botones pueden compartir actionId con parámetros
-    // distintos (p.ej. los métodos de cobro del drawer)
     const seen = {}
     const out = []
     for (const a of collectActions(tree)) {
-      const key = a.actionId + '|' + (a.label || '') + '|' + JSON.stringify(a.parameters || {})
-      if (seen[key]) continue
-      seen[key] = true
+      if (seen[a.actionId]) continue
+      seen[a.actionId] = true
       out.push({
         actionId: a.actionId,
         label: a.label,
-        parameters: a.parameters || {},
         style: a.buttonStyle || 'outlined',
         chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       })
@@ -142,8 +138,8 @@ define([], () => {
         required: f.required,
         readonly: f.readonly,
         isNumber: f.type === 'number',
-        isBoolean: f.type === 'boolean' || f.type === 'bool',
-        isText: f.type !== 'number' && f.type !== 'boolean' && f.type !== 'bool',
+        isBoolean: f.type === 'boolean',
+        isText: f.type !== 'number' && f.type !== 'boolean',
         value: s[fieldId] == null ? null : s[fieldId],
       }
     })
@@ -156,14 +152,10 @@ define([], () => {
     const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
     if (!id || !reg.contexts[id]) return null
     const ctx = reg.contexts[id]
-    const rawBlocks = islandContentOf({ tree: ctx.tree, state: ctx.state || {} }) || []
-    const blocks = rawBlocks
-      .map((block) => ({
-        ...block,
-        items: (block.items || []).filter((a) => !a.isInput && !a.isButtons),
-        blockClass: block.colClass || 'oj-flex-item oj-sm-12',
-      }))
-      .filter((block) => (block.items || []).length)
+    // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
+    // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
+    // es solo campos y botones (p.ej. el picker de habitaciones)
+    const content = islandContentOf(ctx)
     return {
       id,
       title: ctx.title || '',
@@ -172,10 +164,58 @@ define([], () => {
       state: ctx.state || {},
       fields: fieldListOf(ctx.tree, ctx.state),
       actions: actionsOf(ctx.tree),
-      // bloques display (PaymentPicker, AddOnPicker, ResourceGrid, StatusList, textos…)
-      // — el drawer pinta formularios Y contenido rico; inputs/botones van aparte
-      blocks,
+      content: content || [],
+      hasContent: !!(content && content.length),
     }
+  }
+
+  /** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del
+   *  Dialog-con-ProgressBar y los state-only dirigidos a su id; devuelve eventos
+   *  {kind: open|progress, title?, text?, value?, rest} para que el chain pinte el
+   *  oj-dialog — `rest` lleva los commands/messages del increment (el último los trae:
+   *  dispatchEvent del refresco) SIN el fragment del diálogo, listos para reducir. */
+  function longTaskWatcher() {
+    const hasProgressBar = (node) => {
+      if (!node || typeof node !== 'object') return false
+      if (node.metadata && node.metadata.type === 'ProgressBar') return true
+      for (const v of Object.values(node)) {
+        if (Array.isArray(v)) { if (v.some(hasProgressBar)) return true }
+        else if (v && typeof v === 'object' && hasProgressBar(v)) return true
+      }
+      return false
+    }
+    const w = { dialogId: null, closeAfter: null }
+    w.consume = (inc) => {
+      for (const fragment of inc.fragments || []) {
+        const md = fragment.component && fragment.component.metadata
+        if (fragment.action === 'Add' && md && md.type === 'Dialog' && hasProgressBar(fragment.component)) {
+          w.dialogId = md.id
+          const seed = md.initialData || {}
+          return {
+            kind: 'open',
+            title: seed.title,
+            text: seed.progressText,
+            value: seed.progressValue || 0,
+            rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+          }
+        }
+      }
+      if (!w.dialogId) return null
+      const frs = inc.fragments || []
+      if (frs.length && frs.every((f) => !f.component && f.targetComponentId === w.dialogId)) {
+        const st = frs[0].state || {}
+        if (st._closeAfterMillis != null) w.closeAfter = st._closeAfterMillis
+        return {
+          kind: 'progress',
+          title: st.title,
+          text: st.progressText,
+          value: st.progressValue,
+          rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+        }
+      }
+      return null
+    }
+    return w
   }
 
   /** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
@@ -215,8 +255,6 @@ define([], () => {
       }))
     }
     return {
-      // título propio del overview (FoldoutLayout.headerTitle); '' → el shell cae al
-      // título de página (mateuHostTitle)
       headerTitle: md.headerTitle || '',
       overview: {
         texts: collectTexts(bySlot['overview']),
@@ -226,8 +264,9 @@ define([], () => {
         title: panel.title || '',
         subtitle: panel.subtitle || '',
         open: panel.open !== false,
-        // ancho explícito del panel (CSS length del wire, FoldoutPanelInfoDto.width);
-        // '' = que decida el layout (min-width nativo 21.875rem)
+        // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
+        // medida — sin él, el motor responsive del foldout reparte a su aire y las
+        // tarjetas del cockpit se solapan
         width: panel.width || '',
         texts: collectTexts(bySlot['panel-' + i]),
         blocks: blocksOf(bySlot['panel-' + i]),
@@ -524,16 +563,6 @@ define([], () => {
     s: 'oj-typography-body-sm',
     xs: 'oj-typography-body-xs oj-text-color-secondary',
   }
-  // Text con container h1..h6 (p.ej. los títulos "Preferencias" / "Última estancia" del
-  // perfil): tipografía de HEADING Redwood, no body — el container manda sobre size
-  const HEADING_CLASSES = {
-    h1: 'oj-typography-heading-lg',
-    h2: 'oj-typography-heading-md',
-    h3: 'oj-typography-heading-sm',
-    h4: 'oj-typography-subheading-sm',
-    h5: 'oj-typography-subheading-xs',
-    h6: 'oj-typography-subheading-2xs',
-  }
   const NOTICE_CLASSES = {
     success: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30',
     warning: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-warning-30',
@@ -669,9 +698,7 @@ define([], () => {
       }
       if (t === 'Text') {
         const text = interp(m.text)
-        const cls = HEADING_CLASSES[m.container]
-          || TEXT_CLASSES[m.size] || 'oj-typography-body-md'
-        if (text) atom({ isText: true, text, cls }, container)
+        if (text) atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
         return
       }
       if (t === 'ProgressSteps') {
@@ -781,20 +808,18 @@ define([], () => {
         // Todo precomputado por ítem — el CSP de VB no divide ni compara.
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-        // SOLO el grid multi-columna explícito (columns > 1) se pinta como tarjetas
-        // oj-panel; una lista con acciones y sin columnas (p.ej. los huéspedes con
-        // Reescanear / Editar) usa la fila APILADA sin marco (título+chip / desc /
-        // botones) — el card por fila enmarcaba de más el rail
-        const asCards = cols > 0
-        // celdas de MEDIDA FIJA (20rem, ver .mateu-grid-cell): las columnas porcentuales
-        // movían botones y anchos con cada cambio de panel; con celdas fijas la rejilla
-        // envuelve sola y los ítems son idénticos
+        // una lista donde ALGUNA fila lleva acciones (p.ej. los huéspedes con Escanear /
+        // A mano) se pinta ENTERA como tarjetas de una columna — mismo oj-panel que las
+        // operaciones: borde propio + aire uniforme; en fila suelta quedaba descolocada
+        const anyActions = (m.items || []).some(
+          (it) => (it.actionLabel && it.actionId) || (it.actionLabel2 && it.actionId2))
+        const asCards = cols > 0 || anyActions
         const cellClass = cols
-          ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
+          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
         atom({
           isStatusList: true,
-          wrapClass: asCards ? 'oj-flex mateu-grid' : '',
+          wrapClass: asCards ? 'oj-flex' : '',
           items: (m.items || []).map((it) => {
             // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
             // precomputado; una fila CON acciones se pinta APILADA (título+chip /
@@ -805,9 +830,6 @@ define([], () => {
             }
             if (it.actionLabel2 && it.actionId2) {
               rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id } })
-            }
-            if (it.actionLabel3 && it.actionId3) {
-              rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id } })
             }
             return {
               rowClass,
@@ -1175,9 +1197,6 @@ define([], () => {
     const id = 'overlay-' + ++overlaySeq
     return {
       id,
-      // id LÓGICO del Drawer (md.id del wire): un Add con el MISMO id que el overlay
-      // abierto lo REFRESCA en sitio en vez de apilar otro (contenido server-driven)
-      mdId: (md && md.id) || null,
       kind: 'drawer',
       tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
       state: md.initialData || fr.state || {},
@@ -1243,15 +1262,6 @@ define([], () => {
       }
 
       if (fr.action === 'Add') {
-        const mdAdd = metaOf(fr)
-        const topId = stack.length ? stack[stack.length - 1] : null
-        if (topId && contexts[topId] && mdAdd && mdAdd.id
-            && contexts[topId].mdId === mdAdd.id) {
-          // REFRESCO del overlay abierto (mismo Drawer.id): conserva el id de contexto,
-          // así el borrador del formulario (mateuDrawerDraft) sobrevive
-          contexts[topId] = { ...buildOverlay(fr), id: topId }
-          continue
-        }
         const ctx = buildOverlay(fr)
         contexts[ctx.id] = ctx
         stack.push(ctx.id)
@@ -1408,9 +1418,12 @@ define([], () => {
 
   /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
    *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
-   *  MVP: se lee el stream ENTERO y se devuelven los increments en orden (sin diálogo de
-   *  progreso en vivo); el último suele traer los comandos (p.ej. dispatchEvent). */
+   *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
+   *  progreso del LongTask se pinta mientras el stream avanza); si el callback devuelve
+   *  true, el increment se considera CONSUMIDO y se excluye de la lista devuelta. Sin
+   *  callback, comportamiento clásico: lista completa al acabar. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
+    const { onIncrement, ...bodyExtra } = extra || {}
     const outbound = (ctx && ctx.outbound) || {}
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
@@ -1424,17 +1437,37 @@ define([], () => {
         initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
         consumedRoute: outbound.consumedRoute || '',
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
-        ...extra,
+        ...bodyExtra,
         route: bare ? `/${bare}` : '',
         actionId,
       }),
     })
     if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
-    const text = await res.text()
     const increments = []
-    for (const chunk of text.split('\n\n')) {
-      const line = chunk.trim()
-      if (line.startsWith('data:')) increments.push(JSON.parse(line.slice(5).trim()))
+    const handle = async (raw) => {
+      const line = raw.trim()
+      if (!line.startsWith('data:')) return
+      const inc = JSON.parse(line.slice(5).trim())
+      const consumed = onIncrement ? await onIncrement(inc) : false
+      if (!consumed) increments.push(inc)
+    }
+    if (res.body && res.body.getReader) {
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        let cut
+        while ((cut = buffer.indexOf('\n\n')) >= 0) {
+          await handle(buffer.slice(0, cut))
+          buffer = buffer.slice(cut + 2)
+        }
+      }
+      if (buffer.trim()) await handle(buffer)
+    } else {
+      for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
     }
     return increments
   }
@@ -1505,6 +1538,7 @@ define([], () => {
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    longTaskWatcher,
     findAllByType,
     cardOf,
     welcomeOf,

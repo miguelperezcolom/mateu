@@ -147,6 +147,10 @@ export function overlayOf(reg) {
   const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
   if (!id || !reg.contexts[id]) return null
   const ctx = reg.contexts[id]
+  // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
+  // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
+  // es solo campos y botones (p.ej. el picker de habitaciones)
+  const content = islandContentOf(ctx)
   return {
     id,
     title: ctx.title || '',
@@ -155,7 +159,58 @@ export function overlayOf(reg) {
     state: ctx.state || {},
     fields: fieldListOf(ctx.tree, ctx.state),
     actions: actionsOf(ctx.tree),
+    content: content || [],
+    hasContent: !!(content && content.length),
   }
+}
+
+/** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del
+ *  Dialog-con-ProgressBar y los state-only dirigidos a su id; devuelve eventos
+ *  {kind: open|progress, title?, text?, value?, rest} para que el chain pinte el
+ *  oj-dialog — `rest` lleva los commands/messages del increment (el último los trae:
+ *  dispatchEvent del refresco) SIN el fragment del diálogo, listos para reducir. */
+export function longTaskWatcher() {
+  const hasProgressBar = (node) => {
+    if (!node || typeof node !== 'object') return false
+    if (node.metadata && node.metadata.type === 'ProgressBar') return true
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v)) { if (v.some(hasProgressBar)) return true }
+      else if (v && typeof v === 'object' && hasProgressBar(v)) return true
+    }
+    return false
+  }
+  const w = { dialogId: null, closeAfter: null }
+  w.consume = (inc) => {
+    for (const fragment of inc.fragments || []) {
+      const md = fragment.component && fragment.component.metadata
+      if (fragment.action === 'Add' && md && md.type === 'Dialog' && hasProgressBar(fragment.component)) {
+        w.dialogId = md.id
+        const seed = md.initialData || {}
+        return {
+          kind: 'open',
+          title: seed.title,
+          text: seed.progressText,
+          value: seed.progressValue || 0,
+          rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+        }
+      }
+    }
+    if (!w.dialogId) return null
+    const frs = inc.fragments || []
+    if (frs.length && frs.every((f) => !f.component && f.targetComponentId === w.dialogId)) {
+      const st = frs[0].state || {}
+      if (st._closeAfterMillis != null) w.closeAfter = st._closeAfterMillis
+      return {
+        kind: 'progress',
+        title: st.title,
+        text: st.progressText,
+        value: st.progressValue,
+        rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+      }
+    }
+    return null
+  }
+  return w
 }
 
 /** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
@@ -195,6 +250,7 @@ export function foldoutOf(ctx) {
     }))
   }
   return {
+    headerTitle: md.headerTitle || '',
     overview: {
       texts: collectTexts(bySlot['overview']),
       blocks: blocksOf(bySlot['overview']),
@@ -203,6 +259,10 @@ export function foldoutOf(ctx) {
       title: panel.title || '',
       subtitle: panel.subtitle || '',
       open: panel.open !== false,
+      // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
+      // medida — sin él, el motor responsive del foldout reparte a su aire y las
+      // tarjetas del cockpit se solapan
+      width: panel.width || '',
       texts: collectTexts(bySlot['panel-' + i]),
       blocks: blocksOf(bySlot['panel-' + i]),
     })),

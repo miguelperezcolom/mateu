@@ -66,9 +66,41 @@ define([
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
       if (isSse) {
+        // LongTask: el diálogo de progreso se pinta EN VIVO según llega el stream; sus
+        // increments (Add del Dialog + state-only del progreso) se CONSUMEN aquí y no se
+        // reducen — los commands/messages del último (p.ej. el dispatchEvent del
+        // refresco) sí, vía rest
+        const progressWatcher = bridge.longTaskWatcher();
+        let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
-          base, host, route, id, componentState, { parameters: parameters || {}, appState });
+          base, host, route, id, componentState, {
+            parameters: parameters || {}, appState,
+            onIncrement: async (inc) => {
+              const ev = progressWatcher.consume(inc);
+              if (!ev) return false;
+              if (ev.title != null) $page.variables.mateuProgressTitle = ev.title;
+              if (ev.text != null) $page.variables.mateuProgressText = ev.text;
+              if (ev.value != null) $page.variables.mateuProgressValue = Math.round(ev.value * 100);
+              if (ev.kind === 'open' && !progressOpen) {
+                progressOpen = true;
+                await Actions.callComponentMethod(context, {
+                  selector: '#mateuProgressDialog', method: 'open',
+                });
+              }
+              if (ev.rest.commands.length || ev.rest.messages.length) {
+                applyInc(ev.rest);
+              }
+              return true;
+            },
+          });
         increments.forEach(applyInc);
+        if (progressOpen) {
+          await new Promise((resolve) => setTimeout(
+            resolve, progressWatcher.closeAfter != null ? progressWatcher.closeAfter : 600));
+          await Actions.callComponentMethod(context, {
+            selector: '#mateuProgressDialog', method: 'close',
+          });
+        }
       } else {
         applyInc(await bridge.runMateuAction(
           base, host, route, id, componentState, { parameters: parameters || {}, appState }));

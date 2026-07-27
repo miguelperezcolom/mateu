@@ -1,0 +1,244 @@
+[
+  {
+    "commands": [],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "4d2c28fb-3393-44a2-a591-49469b67ee04",
+        "component": {
+          "type": "ClientSide",
+          "metadata": {
+            "type": "Dialog",
+            "id": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+            "headerTitle": "${state.title}",
+            "header": null,
+            "content": {
+              "type": "ClientSide",
+              "metadata": {
+                "type": "VerticalLayout",
+                "spacing": false,
+                "padding": false,
+                "margin": false,
+                "spacingVariant": null,
+                "horizontalAlignment": null,
+                "justification": null,
+                "wrap": false,
+                "flexGrows": null,
+                "fullWidth": false,
+                "style": null
+              },
+              "id": null,
+              "children": [
+                {
+                  "type": "ClientSide",
+                  "metadata": {
+                    "type": "Text",
+                    "container": "div",
+                    "attributes": {},
+                    "text": "${state.progressText}",
+                    "size": null,
+                    "noMargins": false
+                  },
+                  "id": "0502ec36-373d-4c80-81d1-56f8a3f06c09",
+                  "children": [],
+                  "style": "",
+                  "cssClasses": "",
+                  "slot": null
+                },
+                {
+                  "type": "ClientSide",
+                  "metadata": {
+                    "type": "ProgressBar",
+                    "indeterminate": false,
+                    "min": 0,
+                    "max": 0,
+                    "value": 0,
+                    "valueKey": "progressValue",
+                    "text": null,
+                    "theme": null
+                  },
+                  "id": "fieldId",
+                  "children": [],
+                  "style": "width: 100%;",
+                  "cssClasses": null,
+                  "slot": null
+                }
+              ],
+              "style": "width: 100%;",
+              "cssClasses": null,
+              "slot": null
+            },
+            "footer": null,
+            "noPadding": false,
+            "modeless": false,
+            "top": null,
+            "left": null,
+            "draggable": false,
+            "width": null,
+            "height": null,
+            "resizable": false,
+            "closeButtonOnHeader": true,
+            "initialData": {
+              "title": "Escaneando el documento de Huésped 2…",
+              "progressValue": 0,
+              "progressText": "Iniciando..."
+            }
+          },
+          "id": "fieldId",
+          "children": [],
+          "style": null,
+          "cssClasses": null,
+          "slot": null
+        },
+        "state": null,
+        "data": null,
+        "action": "Add",
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  },
+  {
+    "commands": [
+      {
+        "targetComponentId": "4d2c28fb-3393-44a2-a591-49469b67ee04",
+        "type": "SetWindowTitle",
+        "data": "UIFragmentDto[targetComponentId=38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa, component=null, state={progressValue=0.25, progressText=Encendiendo el escáner…}, data=null, action=null, containerId=null]"
+      }
+    ],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "component": null,
+        "state": {
+          "progressValue": 0.25,
+          "progressText": "Encendiendo el escáner…"
+        },
+        "data": null,
+        "action": null,
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  },
+  {
+    "commands": [
+      {
+        "targetComponentId": "4d2c28fb-3393-44a2-a591-49469b67ee04",
+        "type": "SetWindowTitle",
+        "data": "UIFragmentDto[targetComponentId=38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa, component=null, state={progressValue=0.5, progressText=Leyendo el documento…}, data=null, action=null, containerId=null]"
+      }
+    ],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "component": null,
+        "state": {
+          "progressValue": 0.5,
+          "progressText": "Leyendo el documento…"
+        },
+        "data": null,
+        "action": null,
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  },
+  {
+    "commands": [
+      {
+        "targetComponentId": "4d2c28fb-3393-44a2-a591-49469b67ee04",
+        "type": "SetWindowTitle",
+        "data": "UIFragmentDto[targetComponentId=38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa, component=null, state={progressValue=0.75, progressText=Extrayendo los datos…}, data=null, action=null, containerId=null]"
+      }
+    ],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "component": null,
+        "state": {
+          "progressValue": 0.75,
+          "progressText": "Extrayendo los datos…"
+        },
+        "data": null,
+        "action": null,
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  },
+  {
+    "commands": [
+      {
+        "targetComponentId": "4d2c28fb-3393-44a2-a591-49469b67ee04",
+        "type": "SetWindowTitle",
+        "data": "UIFragmentDto[targetComponentId=38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa, component=null, state={progressValue=1.0, progressText=Verificando la identidad…}, data=null, action=null, containerId=null]"
+      }
+    ],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "component": null,
+        "state": {
+          "progressValue": 1,
+          "progressText": "Verificando la identidad…"
+        },
+        "data": null,
+        "action": null,
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  },
+  {
+    "commands": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "type": "DispatchEvent",
+        "data": {
+          "eventName": "documento-escaneado",
+          "detail": null
+        }
+      }
+    ],
+    "messages": [],
+    "fragments": [
+      {
+        "targetComponentId": "38e08b6f-ebd7-4aa6-a1d3-3fc030e9c3aa",
+        "component": null,
+        "state": {
+          "_closeAfterMillis": 1000,
+          "title": "Documento verificado",
+          "progressValue": 1,
+          "progressText": "Identidad leída del documento"
+        },
+        "data": null,
+        "action": null,
+        "containerId": null
+      }
+    ],
+    "banners": [],
+    "appendBanners": false,
+    "appData": null,
+    "appState": null
+  }
+]

@@ -360,28 +360,13 @@ public class ReservaOverview
   // en su panel: FormFields → formulario, Buttons → fila de acciones). El id lógico
   // estable permite REFRESCAR el drawer abierto devolviendo otro con el mismo id.
   private io.mateu.uidl.data.Drawer drawerHabitacion(Stay stay) {
-    var botones = new ArrayList<Component>();
-    for (var room : FrontOffice.rooms().findByFloor(12)) {
-      var actual = room.number().equals(stay.roomNumber());
-      if (!actual && !room.assignable()) {
-        continue;
-      }
-      botones.add(Button.builder()
-          .label("Hab " + room.number() + " · " + tipoDe(room) + (actual ? " — actual" : ""))
-          .actionId("elegirHabitacion")
-          .parameters(java.util.Map.of("_item", room.number()))
-          .buttonStyle(actual ? io.mateu.uidl.data.ButtonStyle.primary : null)
-          .build());
-    }
-    botones.add(Button.builder()
-        .label("Upgrade — Master Oceanfront Suite (+ € 65/noche)")
-        .actionId("upgrade360")
-        .build());
+    // el picker COMPLETO (grid de habitaciones con housekeeping + oferta de upgrade) —
+    // el drawer VB pinta bloques display, no solo campos y botones
     return io.mateu.uidl.data.Drawer.builder()
         .id("drawer-habitacion")
         .headerTitle("Elegir habitación")
-        .width("30rem")
-        .content(VerticalLayout.builder().content(botones).build())
+        .width("52rem")
+        .content(elegirHabitacion(stay, false))
         .initialData(java.util.Map.of("stayId", stayId))
         .build();
   }
@@ -856,18 +841,25 @@ public class ReservaOverview
             new Message("Llave / pulsera grabada — Hab " + stay().roomNumber()));
       }
       case "escanearPax" -> {
-        // SSE: el escáner tarda un par de segundos; al acabar, el evento refresca la 360
+        // SSE: diálogo de progreso (LongTask) mientras el escáner trabaja; al cerrar,
+        // el comando dispara el evento que refresca la 360
         var pax = paxDe(httpRequest);
         var nombre = io.mateu.mdd.demofrontoffice.ui.common.Paxes.nameOf(stayId, pax);
         var idEstancia = stayId;
-        yield reactor.core.publisher.Flux.concat(
-            reactor.core.publisher.Flux.<Object>just(
-                new Message("Escaneando el documento de " + nombre + "…")),
-            reactor.core.publisher.Mono.delay(java.time.Duration.ofSeconds(2))
-                .map(tick -> {
-                  io.mateu.mdd.demofrontoffice.ui.common.Paxes.scan(idEstancia, pax);
-                  return (Object) UICommand.dispatchEvent("documento-escaneado");
-                }));
+        yield io.mateu.uidl.data.LongTask.create("Escaneando el documento de " + nombre + "…")
+            .withProgressBar()
+            .done("Documento verificado", "Identidad leída del documento")
+            .closeAfter(1)
+            .withCommand(UICommand.dispatchEvent("documento-escaneado"))
+            .run(progress ->
+                reactor.core.publisher.Flux.range(1, 4)
+                    .delayElements(java.time.Duration.ofMillis(450))
+                    .map(i -> {
+                      if (i == 4) {
+                        io.mateu.mdd.demofrontoffice.ui.common.Paxes.scan(idEstancia, pax);
+                      }
+                      return progress.step(PASOS_ESCANEO[i - 1], i / 4.0);
+                    }));
       }
       case "rellenarPax" -> {
         paxSeleccionado = paxDe(httpRequest);
@@ -1000,14 +992,17 @@ public class ReservaOverview
         yield List.of(this, new Message(extrasHecha(stay())));
       }
       case "opFirma" -> {
-        // SSE: primer increment = "enviada a la tablet"; 5 s después (el huésped firma)
-        // el evento dispara opFirmaDone vía la suscripción de la clase
-        firmaEnviada = true;
-        yield reactor.core.publisher.Flux.concat(
-            reactor.core.publisher.Flux.<Object>just(
-                List.of(this, new Message("Documento de registro enviado a la tablet"))),
-            reactor.core.publisher.Mono.delay(java.time.Duration.ofSeconds(5))
-                .map(tick -> (Object) UICommand.dispatchEvent("firma-capturada-360")));
+        // SSE: diálogo de progreso mientras la tablet trabaja; al cerrar, el evento
+        // dispara opFirmaDone vía la suscripción de la clase
+        yield io.mateu.uidl.data.LongTask.create("Firma en tablet")
+            .withProgressBar()
+            .done("Firma capturada", "Registro firmado por el huésped")
+            .closeAfter(1)
+            .withCommand(UICommand.dispatchEvent("firma-capturada-360"))
+            .run(progress ->
+                reactor.core.publisher.Flux.range(1, 3)
+                    .delayElements(java.time.Duration.ofMillis(1200))
+                    .map(i -> progress.step(PASOS_FIRMA[i - 1], i / 3.0)));
       }
       case "opFirmaDone" -> {
         firmaEnviada = false;
@@ -1147,6 +1142,16 @@ public class ReservaOverview
     }
     return sb.toString();
   }
+
+  private static final String[] PASOS_ESCANEO = {
+    "Encendiendo el escáner…", "Leyendo el documento…", "Extrayendo los datos…",
+    "Verificando la identidad…"
+  };
+
+  private static final String[] PASOS_FIRMA = {
+    "Enviando el registro a la tablet…", "Esperando la firma del huésped…",
+    "Recibiendo la firma…"
+  };
 
   /** El pax de la fila pulsada ({_item} numérico de la lista de huéspedes). */
   private int paxDe(HttpRequest httpRequest) {

@@ -52,6 +52,18 @@
         "value": []
       },
       "description": "config/estado del smart filter del header de colección (chips keyword)"
+    },
+    "mateuProgressTitle": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuProgressText": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuProgressValue": {
+      "type": "number",
+      "defaultValue": 0
     }
   },
   "metadata": {},

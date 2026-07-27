@@ -69,9 +69,12 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
 
 /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
  *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
- *  MVP: se lee el stream ENTERO y se devuelven los increments en orden (sin diálogo de
- *  progreso en vivo); el último suele traer los comandos (p.ej. dispatchEvent). */
+ *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
+ *  progreso del LongTask se pinta mientras el stream avanza); si el callback devuelve
+ *  true, el increment se considera CONSUMIDO y se excluye de la lista devuelta. Sin
+ *  callback, comportamiento clásico: lista completa al acabar. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
+  const { onIncrement, ...bodyExtra } = extra || {}
   const outbound = (ctx && ctx.outbound) || {}
   const effectiveRoute = outbound.route || route || ''
   const bare = effectiveRoute.replace(/^\//, '')
@@ -85,17 +88,37 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
       consumedRoute: outbound.consumedRoute || '',
       serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
-      ...extra,
+      ...bodyExtra,
       route: bare ? `/${bare}` : '',
       actionId,
     }),
   })
   if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
-  const text = await res.text()
   const increments = []
-  for (const chunk of text.split('\n\n')) {
-    const line = chunk.trim()
-    if (line.startsWith('data:')) increments.push(JSON.parse(line.slice(5).trim()))
+  const handle = async (raw) => {
+    const line = raw.trim()
+    if (!line.startsWith('data:')) return
+    const inc = JSON.parse(line.slice(5).trim())
+    const consumed = onIncrement ? await onIncrement(inc) : false
+    if (!consumed) increments.push(inc)
+  }
+  if (res.body && res.body.getReader) {
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      let cut
+      while ((cut = buffer.indexOf('\n\n')) >= 0) {
+        await handle(buffer.slice(0, cut))
+        buffer = buffer.slice(cut + 2)
+      }
+    }
+    if (buffer.trim()) await handle(buffer)
+  } else {
+    for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
   }
   return increments
 }

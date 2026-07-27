@@ -1040,6 +1040,26 @@ pide SOLO las pendientes.
   acciones se pinta APILADA (título+badge / descripción / botones) — la fila en línea se
   descolocaba en el carril del 36%; las tarjetas de grid iteran `actions` (permite dos
   botones por operación). Templates: rama apilada ×6 + for-each de acciones ×6.
+- **Diálogo de progreso de LongTask + drawer con bloques display (2026-07-27)**: (1) el
+  drawer de habitación recupera las CARDS (ResourceGrid + OfferCards): `overlayOf` proyecta
+  `content` (islandContentOf sobre el árbol del Drawer) y el panel del drawer pinta los
+  bloques con una copia del template de átomos (listener hostBlockAction — las acciones del
+  drawer postean contra el host con el estado del overlay). (2) `escanearPax` y `opFirma`
+  vuelven a `LongTask` (barra de progreso real) y el renderer VB al fin pinta el DIÁLOGO:
+  `runMateuActionSse` STREAMEA (reader incremental + `extra.onIncrement` async; true =
+  increment consumido, excluido del retorno), `longTaskWatcher()` (bridge) consume el Add
+  del Dialog-con-ProgressBar y los state-only a su id devolviendo {open|progress, title,
+  text, value, rest} — `rest` lleva los commands/messages del último increment (el
+  dispatchEvent del refresco) SIN el fragment del diálogo; ambos chains SSE
+  (runMateuAction + runMateuIslandAction) abren/actualizan/cierran `#mateuProgressDialog`
+  (oj-dialog + oj-c-progress-bar) y reducen solo los rest → al cerrar, el evento refresca
+  el foldout en sitio. Fixture `fo-sse-scan-stream.json` + test 30. 30/30.
+- **GOTCHA JET**: `oj-progress-bar` (legado, import ojs/ojprogress del page json) NO se
+  registra en runtime (mismatch de versión JET del CDN) — las barras de los Meter llevaban
+  siempre invisibles; TODAS las barras migradas a `oj-c-progress-bar` (core pack, ya
+  cargado). (2º gotcha del merge: `foldoutOf` perdió la proyección de `panel.width` al
+  fusionar — los paneles del foldout se repartían a su aire y las tarjetas del cockpit se
+  solapaban; restaurado width + headerTitle en la proyección.)
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
