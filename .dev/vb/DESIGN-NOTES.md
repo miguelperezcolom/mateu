@@ -1216,6 +1216,13 @@ pide SOLO las pendientes.
   acciones del pie (actionsOf recoge todos los Buttons del árbol). `overlayOf` filtra del
   pie los actionIds que ya se pintan en los bloques del contenido (mismo patrón que el
   filtro de isInput duplicados).
+- **Barra de acciones del drawer anclada abajo (2026-07-27)**: pauta Redwood — las
+  acciones del drawer van en una barra al PIE con divisor. Un Button del contenido SIN
+  parameters se mueve al pie (Enviar); los que llevan parameters (listas de opciones) se
+  quedan en su sitio y no se duplican. El wrapper del drawer pasa a flex column
+  min-height:100vh y la barra usa margin-top:auto + oj-divider-top — OJO: las utilidades
+  de espaciado JET llevan !important (oj-sm-margin-6x-top pisaba el margin-top:auto;
+  padding-top inline en su lugar). La barra solo se pinta si hay acciones (bind-if).
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

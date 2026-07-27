@@ -1697,7 +1697,7 @@
 <oj-drawer-popup id="mateuDrawerPanel" edge="end" modality="modal"
   opened="[[ $application.variables.mateuDrawerOpen ]]"
   on-oj-before-close="[[ $listeners.mateuDrawerClosed ]]">
-  <div class="oj-sm-padding-6x">
+  <div class="oj-sm-padding-6x oj-flex oj-sm-flex-direction-column" style="min-height: 100vh; box-sizing: border-box;">
     <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></h2>
     <oj-bind-if test="[[ $application.variables.mateuDrawer.hasContent ]]">
       <div class="oj-sm-margin-4x-top">
@@ -2089,16 +2089,19 @@
         </template>
       </oj-bind-for-each>
     </oj-form-layout>
-    <div class="oj-flex oj-sm-margin-6x-top">
-      <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
-        <template>
-          <oj-button class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
-            :data-action-id="[[ $current.data.actionId ]]"
-            chroming="[[ $current.data.chroming ]]"
-            on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-        </template>
-      </oj-bind-for-each>
-    </div>
+    <!-- barra de acciones del drawer: ANCLADA abajo (pauta Redwood), con divisor -->
+    <oj-bind-if test="[[ $application.variables.mateuDrawer.actions.length > 0 ]]">
+      <div class="oj-flex oj-divider-top oj-sm-padding-4x-top" style="margin-top: auto; padding-top: 16px;">
+        <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
+          <template>
+            <oj-button class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+              :data-action-id="[[ $current.data.actionId ]]"
+              chroming="[[ $current.data.chroming ]]"
+              on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </oj-bind-if>
   </div>
 </oj-drawer-popup>
 

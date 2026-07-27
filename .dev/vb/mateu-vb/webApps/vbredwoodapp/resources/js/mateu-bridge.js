@@ -162,11 +162,20 @@ define([], () => {
     // los FormFields del drawer ya los pinta su gramática de CAMPOS (oj-form-layout):
     // fuera los átomos isInput de los bloques o saldrían DUPLICADOS (y el usuario
     // escribiría en el par equivocado)
+    // pauta del drawer Redwood: las ACCIONES van en la barra del pie. Un Button del
+    // contenido SIN parámetros se mueve al pie (p.ej. Enviar); los que llevan parameters
+    // (listas de opciones: métodos de cobro, habitaciones…) se quedan en su sitio y NO se
+    // repiten en el pie
+    const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
     const content = (islandContentOf(ctx) || [])
-      .map((block) => ({ ...block, items: block.items.filter((a) => !a.isInput) }))
+      .map((block) => ({
+        ...block,
+        items: block.items
+          .filter((a) => !a.isInput)
+          .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(conParams) } : a))
+          .filter((a) => !a.isButtons || a.buttons.length),
+      }))
       .filter((block) => block.items.length)
-    // los BOTONES que ya se pintan dentro del contenido (átomos isButtons, con sus
-    // parameters) no se repiten en la fila de acciones del pie — el "Enviar" duplicado
     const contentActionIds = new Set()
     for (const block of content) {
       for (const a of block.items) {
