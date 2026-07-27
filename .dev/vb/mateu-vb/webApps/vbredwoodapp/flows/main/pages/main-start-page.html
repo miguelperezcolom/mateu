@@ -333,7 +333,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -343,6 +343,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -365,7 +374,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -658,7 +667,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -668,6 +677,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -690,7 +708,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1004,7 +1022,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -1014,6 +1032,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -1036,7 +1063,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1329,7 +1356,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -1339,6 +1366,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -1361,7 +1397,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -1821,7 +1857,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -1831,6 +1867,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -1853,7 +1898,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -2211,7 +2256,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -2221,6 +2266,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -2243,7 +2297,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -2534,7 +2588,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -2544,6 +2598,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -2566,7 +2629,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -2993,7 +3056,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -3003,6 +3066,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -3014,7 +3086,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -3294,7 +3366,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -3304,6 +3376,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -3315,7 +3396,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -3633,7 +3714,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -3643,6 +3724,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -3665,7 +3755,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">
@@ -3958,7 +4048,7 @@
                             </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
@@ -3968,6 +4058,15 @@
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasLines ]]">
+                                <div class="oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.lines ]]">
+                                    <template>
+                                      <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
@@ -3990,7 +4089,7 @@
                               </div>
                             </div>
                           </oj-bind-if>
-                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions && !$current.data.hasLines ]]">
                             <div :class="[[ $current.data.rowClass ]]">
                               <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
                               <div class="oj-flex-item">

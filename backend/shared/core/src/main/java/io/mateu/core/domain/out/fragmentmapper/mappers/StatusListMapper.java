@@ -33,6 +33,7 @@ public class StatusListMapper {
                                     .actionIcon(item.actionIcon())
                                     .actionIcon2(item.actionIcon2())
                                     .actionIcon3(item.actionIcon3())
+                                    .lines(item.lines())
                                     .build())
                         .toList()
                     : List.of())

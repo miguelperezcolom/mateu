@@ -760,49 +760,69 @@ public class ReservaOverview
             .warnAt(preauth * 0.8)
             .dangerAt(preauth * 0.95)
             .build());
-    // incidencias como CARDS a todo el ancho: el heading trae el aire de grupo (40px);
-    // abiertas primero (con Resolver), y las RESUELTAS al final como avisos verdes finos
+    // incidencias: TODAS con la misma ficha (titulo + badge de estado a la derecha) y su
+    // CRONOLOGIA debajo (fecha/hora - comentario, abriendo con la descripcion); las
+    // resueltas al final del listado
     content.add(Text.builder().text("Incidencias")
         .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
-    var abiertas = stay.incidents().stream()
-        .filter(i -> i.status() != IncidentStatus.RESOLVED).toList();
-    var resueltas = stay.incidents().stream()
-        .filter(i -> i.status() == IncidentStatus.RESOLVED).toList();
-    if (stay.incidents().isEmpty()) {
+    var incidencias = new ArrayList<>(stay.incidents().stream()
+        .filter(i -> i.status() != IncidentStatus.RESOLVED).toList());
+    incidencias.addAll(stay.incidents().stream()
+        .filter(i -> i.status() == IncidentStatus.RESOLVED).toList());
+    if (incidencias.isEmpty()) {
       content.add(Notice.builder()
           .theme("success")
           .text("Sin incidencias en la habitación")
           .fullWidth(true)
           .build());
-    } else if (abiertas.isEmpty()) {
-      content.add(Notice.builder()
-          .theme("success")
-          .text("Sin incidencias abiertas — " + resueltas.size() + " resueltas")
-          .slim(true)
-          .fullWidth(true)
-          .build());
-    }
-    for (var i : abiertas) {
-      content.add(Notice.builder()
-          .theme(i.status() == IncidentStatus.IN_PROGRESS ? "warning" : "danger")
-          .text(i.title() + " — " + i.description())
-          .fullWidth(true)
-          .content(List.of(Button.builder()
-              .label("Resolver")
-              .actionId("resolverIncidencia")
-              .parameters(java.util.Map.of("_item", i.code()))
-              .build()))
-          .build());
-    }
-    for (var i : resueltas) {
-      content.add(Notice.builder()
-          .theme("success")
-          .text("✓ Resuelta · " + i.title())
-          .slim(true)
-          .fullWidth(true)
+    } else {
+      content.add(StatusList.builder()
+          .compact(true).frameless(true)
+          .style("width: 100%;")
+          .items(incidencias.stream()
+              .map(i -> StatusItem.builder()
+                  .id("inc-" + i.code())
+                  .title(i.title())
+                  .status(switch (i.status()) {
+                    case RESOLVED -> "✓ Resuelta";
+                    case IN_PROGRESS -> "En curso";
+                    default -> "Abierta";
+                  })
+                  .statusColor(switch (i.status()) {
+                    case RESOLVED -> "success";
+                    case IN_PROGRESS -> "warning";
+                    default -> "error";
+                  })
+                  .lines(cronologia(i))
+                  .actionLabel(i.status() == IncidentStatus.RESOLVED ? null : "Resolver")
+                  .actionId(i.status() == IncidentStatus.RESOLVED ? null : "resolverIncidencia")
+                  .actionIcon(i.status() == IncidentStatus.RESOLVED ? null : "vaadin:check")
+                  .build())
+              .toList())
           .build());
     }
     return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();
+  }
+
+  private static final DateTimeFormatter FECHA_HORA =
+      DateTimeFormatter.ofPattern("d MMM · HH:mm", Locale.forLanguageTag("es"));
+
+  /** La cronologia de una incidencia: apertura (descripcion), curso y resolucion. */
+  private List<String> cronologia(io.mateu.mdd.demofrontoffice.domain.stay.Incident i) {
+    var lineas = new ArrayList<String>();
+    if (i.openedAt() != null) {
+      lineas.add(FECHA_HORA.format(i.openedAt()) + " — " + i.description());
+    } else {
+      lineas.add(i.description());
+    }
+    if (i.status() == IncidentStatus.IN_PROGRESS && i.openedAt() != null) {
+      lineas.add(FECHA_HORA.format(i.openedAt().plusMinutes(35))
+          + " — Mantenimiento avisado · en curso");
+    }
+    if (i.status() == IncidentStatus.RESOLVED && i.resolvedAt() != null) {
+      lineas.add(FECHA_HORA.format(i.resolvedAt()) + " — Resuelta por recepción");
+    }
+    return lineas;
   }
 
   /** Info secundaria del general overview en casa: los huéspedes (solo datos) y la salida. */

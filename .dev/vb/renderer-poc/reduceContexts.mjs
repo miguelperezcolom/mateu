@@ -887,6 +887,9 @@ export function islandContentOf(ctx) {
             statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
             actions: rowActions,
             hasActions: rowActions.length > 0,
+            // cronologia bajo el titulo (p.ej. las entradas de una incidencia)
+            lines: (it.lines || []).map(interp),
+            hasLines: !!(it.lines && it.lines.length),
             actionLabel: it.actionLabel || '',
             actionId: it.actionId || m.rowActionId || '',
             parameters: { _item: it.id },

@@ -16,4 +16,6 @@ export default interface StatusItem {
     actionIcon?: string
     actionIcon2?: string
     actionIcon3?: string
+    /** timeline-style lines under the description ("27 jul 09:15 - comentario") */
+    lines?: string[]
 }

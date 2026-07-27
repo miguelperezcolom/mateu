@@ -193,7 +193,10 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             List.of(
                 new Incident(
                     "tv", "📺", "TV sin señal en canales internacionales",
-                    "Habitación 1108 · Reportado hace 1 día", IncidentStatus.OPEN, false)),
+                    "El huésped reporta que los canales internacionales no sintonizan",
+                    IncidentStatus.OPEN, false,
+                    java.time.LocalDateTime.now().minusDays(1).withHour(18).withMinute(40),
+                    null)),
             Set.of()));
     stays.save(
         new Stay(
@@ -212,11 +215,14 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             List.of(
                 new Incident(
                     "ac", "🌡", "Aire acondicionado con ruido",
-                    "Habitación 901 · Mantenimiento avisado", IncidentStatus.IN_PROGRESS, false),
+                    "Ruido intermitente del split por la noche — no deja dormir",
+                    IncidentStatus.IN_PROGRESS, false,
+                    java.time.LocalDateTime.now().minusHours(14), null),
                 new Incident(
                     "rs", "🍽", "Retraso en room service",
-                    "Cena de anoche · Compensada con detalle de bienvenida", IncidentStatus.OPEN,
-                    false)),
+                    "La cena llegó 40 minutos tarde — compensada con detalle de bienvenida",
+                    IncidentStatus.OPEN, false,
+                    java.time.LocalDateTime.now().minusHours(11), null)),
             Set.of()));
     stays.save(
         new Stay(
@@ -226,7 +232,10 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             List.of(
                 new Incident(
                     "queja", "⚠", "Queja activa — ruido en pasillo",
-                    "Reportada hace 2 días · Pendiente de respuesta", IncidentStatus.OPEN, true)),
+                    "Ruido de carros de limpieza a primera hora — pendiente de respuesta",
+                    IncidentStatus.OPEN, true,
+                    java.time.LocalDateTime.now().minusDays(2).withHour(8).withMinute(15),
+                    null)),
             Set.of()));
   }
 

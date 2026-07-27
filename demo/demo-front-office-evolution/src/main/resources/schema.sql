@@ -67,6 +67,8 @@ create table stay_incident (
     description varchar(400),
     status      varchar(20)  not null,
     complaint   boolean      not null,
+    opened_at   timestamp,
+    resolved_at timestamp,
     primary key (stay_id, idx)
 );
 

@@ -1156,6 +1156,15 @@ pide SOLO las pendientes.
   La info secundaria va sobre BANDA NEUTRA (VerticalLayout de zona con
   cssClasses("oj-panel oj-bg-neutral-20") + align-self flex-start): la proyección de zonas
   del bridge arrastra las cssClasses del wire de la columna al bloque.
+- **Incidencias con cronología (2026-07-27, diseño del usuario)**: TODAS con la misma
+  ficha (título + badge Abierta/En curso/✓ Resuelta a la derecha; resueltas al FINAL) y
+  debajo su cronología "d MMM · HH:mm — comentario" abriendo con la descripción de
+  apertura. Dominio: `Incident` gana `openedAt/resolvedAt` (schema stay_incident +
+  seeder con fechas; `resolve()` estampa la resolución); la línea "en curso" se deriva.
+  Framework: `StatusItem.lines` (uidl+dto+mapper+TS) — la rama APILADA del renderer
+  acepta también filas SIN acciones cuando llevan lines (guards hasActions||hasLines) y
+  pinta la cronología entre descripción y botones. Resolver como icono ✓ solo en
+  abiertas.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
