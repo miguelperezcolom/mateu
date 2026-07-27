@@ -46,3 +46,126 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
 #mateuListHeaderInline .oj-sp-public-primary-content-container {
   display: none;
 }
+
+/* Foldout de la Reserva 360: el motor de columnas del oj-sp-foldout-panel mide el
+   contenido AL MONTAR (con los bindings de VB aún vacíos) y deja el contenedor a 1
+   columna (394px) — el cockpit de operaciones (grid de tarjetas a lo ancho) no encaja
+   en el flujo multi-columna. El ÚLTIMO panel (el de contenido, no el overview estático)
+   pasa a ancho fluido; el overview conserva su rail nativo. Los paneles con ancho
+   EXPLÍCITO del wire (.mateu-fixed-panel) quedan fuera de este hack — su medida manda. */
+.oj-sp-foldout-layout-last-panel:not(.mateu-fixed-panel) {
+  width: calc(100% - 394px) !important;
+  flex: 0 0 calc(100% - 394px) !important;
+  min-width: 0 !important;
+  overflow-x: hidden;
+}
+.oj-sp-foldout-layout-last-panel:not(.mateu-fixed-panel) .oj-sp-foldout-panel-container,
+.oj-sp-foldout-layout-last-panel:not(.mateu-fixed-panel) .oj-sp-foldout-panel-container > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  column-count: unset !important;
+  column-width: auto !important;
+}
+.oj-sp-foldout-layout-last-panel:not(.mateu-fixed-panel) .oj-sp-foldout-panel-root {
+  width: 100%;
+}
+
+/* Panel con ancho explícito (FoldoutPanel.width en el wire, proyectado por el bridge):
+   el flex/min/max van inline desde el markup; aquí, como en el hack de arriba, se
+   desactiva el motor de columnas interno (midió al montar con los bindings vacíos)
+   para que el contenido fluya vertical a lo ancho del panel y no se corte. */
+oj-sp-foldout-panel.mateu-fixed-panel {
+  overflow-x: hidden;
+}
+oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container,
+oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-container > div,
+oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-content,
+oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-slot-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  column-count: unset !important;
+  column-width: auto !important;
+}
+oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-root {
+  width: 100%;
+}
+
+/* La fila de paneles reparte el sobrante EN LOS HUECOS (space-between): el primero pegado
+   al borde izquierdo, el último al derecho — sin franja muerta al final de la fila. */
+.oj-sp-foldout-layout-children-container {
+  justify-content: space-between;
+}
+
+/* Gutters internos de los paneles del foldout: 24px constantes — el padding responsive
+   nativo mete 48px por lado en viewports lg y los huecos entre secciones se doblaban
+   a ~96px, descompensados con el gutter exterior. */
+oj-sp-foldout-panel .oj-sp-foldout-panel-header,
+oj-sp-foldout-panel .oj-sp-foldout-panel-container {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+/* …y la SEGUNDA capa de padding responsive (el .oj-flex-item interior del container,
+   48px/lado en lg) a cero — el gutter ya lo pone el container; con las dos capas el
+   contenido perdía 96px y el grid de 2×20rem no cabía. */
+oj-sp-foldout-panel .oj-sp-foldout-panel-container > .oj-flex-item {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* El subrayado del título vive en un wrapper con padding responsive propio DENTRO del
+   container (que ya pone el gutter de 24px) — a cero, o el subrayado queda a 24+24. */
+oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Rejilla de ítems del cockpit: celdas de MEDIDA FIJA (20rem) que envuelven solas.
+   El aire va ENTRE tarjetas (gap de la rejilla, ambos ejes), no como padding general:
+   el margin-bottom propio de cada celda se anula dentro de la rejilla. */
+.mateu-grid {
+  /* 2×20rem + 40px = 680 sobre 688 de contenido (panel a 46rem): 8px de holgura */
+  column-gap: 40px;
+  row-gap: 28px;
+}
+
+/* Filas de la lista de pasajeros: mismo ritmo vertical que la rejilla del cockpit. */
+.mateu-list-item {
+  margin-bottom: 28px !important;
+}
+.mateu-grid-cell {
+  flex: 0 0 min(20rem, 100%);
+  max-width: 20rem;
+}
+.mateu-grid > .mateu-grid-cell {
+  margin-bottom: 0 !important;
+}
+
+/* Cabecera de los ítems de lista/cockpit (huéspedes, operaciones): mínimo 20rem de
+   ancho, en UNA línea (el título elipsa antes que partir la fila) y el badge de estado
+   pegado al borde derecho del ítem. */
+.mateu-item-head {
+  flex-wrap: nowrap;
+  min-width: min(20rem, 100%);
+  width: 100%;
+}
+.mateu-item-head .oj-flex-item:not(.oj-sm-flex-initial) {
+  min-width: 0;
+}
+.mateu-item-head h3,
+.mateu-item-head .oj-typography-body-md {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Densidad del cockpit dentro de paneles de ancho fijo: tarjetas y celdas con menos
+   aire para que el grid de operaciones quepa en el alto del panel sin scroll interno. */
+oj-sp-foldout-panel.mateu-fixed-panel .oj-panel.oj-sm-padding-4x {
+  padding: 0.625rem 0.875rem !important;
+}
+oj-sp-foldout-panel.mateu-fixed-panel .oj-panel.oj-sm-padding-3x {
+  padding: 0.5rem 0.75rem !important;
+}
+oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
+  margin-bottom: 0.5rem !important;
+}

@@ -53,8 +53,15 @@ define([
       let reg = before;
       const allEvents = [];
       const allToasts = [];
+      // ¿algún incremento REPINTÓ el host? (cualquier fragmento no-Add: Replace/State/data;
+      // los Add son overlays — abrir un drawer no toca el host). Señal para el remontaje
+      // del foldout: comparar referencias/uuids no vale (proxies de VB, uuids estables).
+      let hostRepainted = false;
+      const touchesHost = (inc) =>
+        ((inc && inc.fragments) || []).some((f) => f.action !== 'Add');
       const applyInc = (inc) => {
         reg = bridge.reduceContexts(reg, inc);
+        if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
@@ -80,6 +87,7 @@ define([
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);
+          if (touchesHost(refresh)) hostRepainted = true;
           allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
       }
@@ -99,7 +107,19 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
-      $application.variables.mateuFoldout = bridge.foldoutOf(hostAfter);
+      // REMONTAJE del foldout: los bindings dentro de oj-sp-foldout-panel no re-ligan
+      // las application variables (gotcha del evaluador CSP) — null → tick → proyección
+      // nueva hace que el oj-bind-if recree el subárbol con los bloques frescos.
+      // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
+      // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
+      if (hostRepainted) {
+        const foldoutProjection = bridge.foldoutOf(hostAfter);
+        if ($application.variables.mateuFoldout && foldoutProjection) {
+          $application.variables.mateuFoldout = null;
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        $application.variables.mateuFoldout = foldoutProjection;
+      }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
@@ -215,7 +235,8 @@ define([
       const esWizard2 = !!$application.variables.mateuWizard;
       const sinOtrasRamas2 = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
-      const hostEntity2 = (!esWizard2 && sinOtrasRamas2)
+      // foldout con EntityHeader (la 360): el header de pantalla se conserva
+      const hostEntity2 = (!esWizard2 && (sinOtrasRamas2 || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(hostAfter) : null;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
@@ -246,7 +267,8 @@ define([
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
-        || overviewProjection || listingSummary || $application.variables.mateuFoldout);
+        || overviewProjection || listingSummary
+        || ($application.variables.mateuFoldout && !hostEntity2));
       const showHeaderA = !integratedHeader;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');

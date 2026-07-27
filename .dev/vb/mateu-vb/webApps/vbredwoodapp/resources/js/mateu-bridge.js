@@ -177,7 +177,10 @@ define([], () => {
   }
 
   /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
-   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout. */
+   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
+   *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
+   *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
+   *  como forma legada para tests/fixtures. */
   function foldoutOf(ctx) {
     const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
     if (!node) return null
@@ -185,13 +188,34 @@ define([], () => {
     const children = node.children || []
     const bySlot = {}
     for (const child of children) bySlot[child.slot || ''] = child
+    const blocksOf = (slotNode) => {
+      const blocks = slotNode
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {} })
+        : null
+      // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
+      // el resto a fila completa
+      return (blocks || []).map((block) => ({
+        ...block,
+        blockClass: block.colClass || 'oj-flex-item oj-sm-12',
+      }))
+    }
     return {
-      overview: { texts: collectTexts(bySlot['overview']) },
+      // título propio del overview (FoldoutLayout.headerTitle); '' → el shell cae al
+      // título de página (mateuHostTitle)
+      headerTitle: md.headerTitle || '',
+      overview: {
+        texts: collectTexts(bySlot['overview']),
+        blocks: blocksOf(bySlot['overview']),
+      },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
         subtitle: panel.subtitle || '',
         open: panel.open !== false,
+        // ancho explícito del panel (CSS length del wire, FoldoutPanelInfoDto.width);
+        // '' = que decida el layout (min-width nativo 21.875rem)
+        width: panel.width || '',
         texts: collectTexts(bySlot['panel-' + i]),
+        blocks: blocksOf(bySlot['panel-' + i]),
       })),
     }
   }
@@ -485,6 +509,16 @@ define([], () => {
     s: 'oj-typography-body-sm',
     xs: 'oj-typography-body-xs oj-text-color-secondary',
   }
+  // Text con container h1..h6 (p.ej. los títulos "Preferencias" / "Última estancia" del
+  // perfil): tipografía de HEADING Redwood, no body — el container manda sobre size
+  const HEADING_CLASSES = {
+    h1: 'oj-typography-heading-lg',
+    h2: 'oj-typography-heading-md',
+    h3: 'oj-typography-heading-sm',
+    h4: 'oj-typography-subheading-sm',
+    h5: 'oj-typography-subheading-xs',
+    h6: 'oj-typography-subheading-2xs',
+  }
   const NOTICE_CLASSES = {
     success: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30',
     warning: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-warning-30',
@@ -620,7 +654,9 @@ define([], () => {
       }
       if (t === 'Text') {
         const text = interp(m.text)
-        if (text) atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+        const cls = HEADING_CLASSES[m.container]
+          || TEXT_CLASSES[m.size] || 'oj-typography-body-md'
+        if (text) atom({ isText: true, text, cls }, container)
         return
       }
       if (t === 'ProgressSteps') {
@@ -730,18 +766,20 @@ define([], () => {
         // Todo precomputado por ítem — el CSP de VB no divide ni compara.
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-        // una lista donde ALGUNA fila lleva acciones (p.ej. los huéspedes con Escanear /
-        // A mano) se pinta ENTERA como tarjetas de una columna — mismo oj-panel que las
-        // operaciones: borde propio + aire uniforme; en fila suelta quedaba descolocada
-        const anyActions = (m.items || []).some(
-          (it) => (it.actionLabel && it.actionId) || (it.actionLabel2 && it.actionId2))
-        const asCards = cols > 0 || anyActions
+        // SOLO el grid multi-columna explícito (columns > 1) se pinta como tarjetas
+        // oj-panel; una lista con acciones y sin columnas (p.ej. los huéspedes con
+        // Reescanear / Editar) usa la fila APILADA sin marco (título+chip / desc /
+        // botones) — el card por fila enmarcaba de más el rail
+        const asCards = cols > 0
+        // celdas de MEDIDA FIJA (20rem, ver .mateu-grid-cell): las columnas porcentuales
+        // movían botones y anchos con cada cambio de panel; con celdas fijas la rejilla
+        // envuelve sola y los ítems son idénticos
         const cellClass = cols
-          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
+          ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
         atom({
           isStatusList: true,
-          wrapClass: asCards ? 'oj-flex' : '',
+          wrapClass: asCards ? 'oj-flex mateu-grid' : '',
           items: (m.items || []).map((it) => {
             // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
             // precomputado; una fila CON acciones se pinta APILADA (título+chip /
@@ -752,6 +790,9 @@ define([], () => {
             }
             if (it.actionLabel2 && it.actionId2) {
               rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id } })
+            }
+            if (it.actionLabel3 && it.actionId3) {
+              rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id } })
             }
             return {
               rowClass,

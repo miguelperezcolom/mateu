@@ -89,7 +89,14 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
-      $application.variables.mateuFoldout = bridge.foldoutOf(host);
+      // mismo remontaje que en runMateuAction: si venimos de OTRO foldout, recrear el
+      // subárbol para que los bindings internos no se queden con los bloques viejos
+      const foldoutProjection = bridge.foldoutOf(host);
+      if ($application.variables.mateuFoldout && foldoutProjection) {
+        $application.variables.mateuFoldout = null;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      $application.variables.mateuFoldout = foldoutProjection;
       $application.variables.mateuWizard = bridge.wizardOf(host);
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
@@ -196,7 +203,9 @@ define([
       const esWizard = !!$application.variables.mateuWizard;
       const sinOtrasRamas = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
-      const hostEntity = (!esWizard && sinOtrasRamas)
+      // un foldout con EntityHeader (p.ej. la Reserva 360) CONSERVA el header de pantalla:
+      // el huésped + el CTA van en la banda, el foldout es solo el cuerpo
+      const hostEntity = (!esWizard && (sinOtrasRamas || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(host) : null;
       const hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
@@ -227,7 +236,8 @@ define([
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
-        || overviewProjection || listingSummary || $application.variables.mateuFoldout);
+        || overviewProjection || listingSummary
+        || ($application.variables.mateuFoldout && !hostEntity));
       const showHeader = !integratedHeader;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)

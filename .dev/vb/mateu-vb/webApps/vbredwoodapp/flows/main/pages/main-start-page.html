@@ -94,22 +94,1242 @@
       <oj-sp-foldout-layout id="mateuFoldoutEl"
         display-options.go-to-parent="false"
         display-options.background="transparent">
-        <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuHostTitle ]]">
-          <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.texts ]]">
-            <template>
-              <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
-            </template>
-          </oj-bind-for-each>
+        <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuFoldout.headerTitle || $application.variables.mateuHostTitle ]]"
+          class="mateu-fixed-panel" style="flex: 0 0 23rem; width: 23rem; min-width: 23rem; max-width: 23rem;">
+          <!-- bloques RICOS del overview: mismo template de átomos que el host -->
+          <div class="oj-flex">
+          <oj-bind-for-each data="[[ $application.variables.mateuFoldout.overview.blocks ]]">
+      <template>
+        <oj-bind-if test="[[ $current.data.isCard ]]">
+          <div :class="[[ $current.data.blockClass ]]">
+          <div class="oj-panel oj-sm-margin-3x-bottom">
+            <oj-bind-for-each data="[[ $current.data.items ]]">
+                  <template>
+                    <oj-bind-if test="[[ $current.data.isText ]]">
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isProgress ]]">
+                      <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
+                      <div class="oj-sm-margin-3x-bottom">
+                        <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.badges ]]">
+                          <template>
+                            <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-bind-for-each>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-flex oj-sm-margin-1x-top">
+                          <oj-bind-for-each data="[[ $current.data.facts ]]">
+                            <template>
+                              <div class="oj-flex-item oj-sm-margin-4x-end">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isNotice ]]">
+                      <div :class="[[ $current.data.noticeClass ]]">
+                        <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBullets ]]">
+                      <ul class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <li class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></li>
+                          </template>
+                        </oj-bind-for-each>
+                      </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                      <div class="oj-sm-margin-3x-vertical"></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isButtons ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBadge ]]">
+                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
+                      <div class="oj-flex">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <div :class="[[ $current.data.colClass ]]">
+                              <oj-bind-if test="[[ $current.data.enabled ]]">
+                                <oj-action-card class="oj-sm-margin-1x" :class="[[ $current.data.cardClass ]]"
+                                  :data-item-id="[[ $current.data.id ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                  <div class="oj-sm-padding-2x">
+                                    <span class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                    <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs"><oj-bind-text value="[[ $current.data.recommendedLabel ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.note ]]"></oj-bind-text></div>
+                                  </div>
+                                </oj-action-card>
+                              </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.disabled ]]">
+                                <div class="oj-panel oj-sm-margin-1x">
+                                  <span class="oj-typography-body-md oj-text-color-disabled oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                  <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                  <div class="oj-typography-body-xs oj-text-color-disabled"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isOffer ]]">
+                      <div class="oj-panel oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.tag ]]"></oj-bind-text></div>
+                        <div class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.features ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-success oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.currentLabel ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.priceLabel ]]"></oj-bind-text></div>
+                        <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="callToAction"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAddOns ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                            <div class="oj-flex-item">
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            </div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
+                            <oj-bind-if test="[[ $current.data.selectable ]]">
+                              <oj-switch class="oj-flex-item oj-sm-flex-initial"
+                                value="[[ $current.data.added ]]"
+                                :data-item-id="[[ $current.data.id ]]"
+                                on-value-changed="[[ $listeners.hostAddonToggled ]]"></oj-switch>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.selectable ]]">
+                              <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStatusList ]]">
+                      <div :class="[[ $current.data.wrapClass ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <oj-bind-if test="[[ $current.data.rowClickable ]]">
+                            <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
+                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]">
+                              <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
+                                <div class="oj-flex-item">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-action-card>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.gridCell ]]">
+                            <div :class="[[ $current.data.cellClass ]]">
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                </div>
+                              </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                            <div :class="[[ $current.data.rowClass ]]">
+                              <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              <div class="oj-flex-item">
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
+                        </template>
+                      </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isLedger ]]">
+                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-margin-1x-bottom">
+                            <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.concept ]]"></oj-bind-text></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md" :class="[[ $current.data.amountClass ]]"><oj-bind-text value="[[ $current.data.amountText ]]"></oj-bind-text></div>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                      <div class="oj-flex oj-sm-margin-2x-top">
+                        <div class="oj-flex-item oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalText ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPayment ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.contextLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.contextValue ]]"></oj-bind-text></div>
+                      </div>
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.methods ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                      <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
+                        :data-action-id="[[ $current.data.confirmActionId ]]"
+                        on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMeter ]]">
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                      <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStat ]]">
+                      <div class="oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isInput ]]">
+                      <oj-input-text class="oj-form-control-max-width-md"
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                    </oj-bind-if>
+                  </template>
+                </oj-bind-for-each>
+          </div>
+          </div>
+        </oj-bind-if>
+        <oj-bind-if test="[[ $current.data.isPlain ]]">
+          <div :class="[[ $current.data.blockClass ]]">
+          <div class="oj-sm-margin-2x-bottom">
+            <oj-bind-for-each data="[[ $current.data.items ]]">
+                  <template>
+                    <oj-bind-if test="[[ $current.data.isText ]]">
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isProgress ]]">
+                      <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
+                      <div class="oj-sm-margin-3x-bottom">
+                        <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.badges ]]">
+                          <template>
+                            <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-bind-for-each>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-flex oj-sm-margin-1x-top">
+                          <oj-bind-for-each data="[[ $current.data.facts ]]">
+                            <template>
+                              <div class="oj-flex-item oj-sm-margin-4x-end">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isNotice ]]">
+                      <div :class="[[ $current.data.noticeClass ]]">
+                        <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBullets ]]">
+                      <ul class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <li class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></li>
+                          </template>
+                        </oj-bind-for-each>
+                      </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                      <div class="oj-sm-margin-3x-vertical"></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isButtons ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBadge ]]">
+                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
+                      <div class="oj-flex">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <div :class="[[ $current.data.colClass ]]">
+                              <oj-bind-if test="[[ $current.data.enabled ]]">
+                                <oj-action-card class="oj-sm-margin-1x" :class="[[ $current.data.cardClass ]]"
+                                  :data-item-id="[[ $current.data.id ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                  <div class="oj-sm-padding-2x">
+                                    <span class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                    <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs"><oj-bind-text value="[[ $current.data.recommendedLabel ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.note ]]"></oj-bind-text></div>
+                                  </div>
+                                </oj-action-card>
+                              </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.disabled ]]">
+                                <div class="oj-panel oj-sm-margin-1x">
+                                  <span class="oj-typography-body-md oj-text-color-disabled oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                  <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                  <div class="oj-typography-body-xs oj-text-color-disabled"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isOffer ]]">
+                      <div class="oj-panel oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.tag ]]"></oj-bind-text></div>
+                        <div class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.features ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-success oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.currentLabel ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.priceLabel ]]"></oj-bind-text></div>
+                        <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="callToAction"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAddOns ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                            <div class="oj-flex-item">
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            </div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
+                            <oj-bind-if test="[[ $current.data.selectable ]]">
+                              <oj-switch class="oj-flex-item oj-sm-flex-initial"
+                                value="[[ $current.data.added ]]"
+                                :data-item-id="[[ $current.data.id ]]"
+                                on-value-changed="[[ $listeners.hostAddonToggled ]]"></oj-switch>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.selectable ]]">
+                              <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStatusList ]]">
+                      <div :class="[[ $current.data.wrapClass ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <oj-bind-if test="[[ $current.data.rowClickable ]]">
+                            <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
+                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]">
+                              <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
+                                <div class="oj-flex-item">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-action-card>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.gridCell ]]">
+                            <div :class="[[ $current.data.cellClass ]]">
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                </div>
+                              </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                            <div :class="[[ $current.data.rowClass ]]">
+                              <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              <div class="oj-flex-item">
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
+                        </template>
+                      </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isLedger ]]">
+                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-margin-1x-bottom">
+                            <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.concept ]]"></oj-bind-text></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md" :class="[[ $current.data.amountClass ]]"><oj-bind-text value="[[ $current.data.amountText ]]"></oj-bind-text></div>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                      <div class="oj-flex oj-sm-margin-2x-top">
+                        <div class="oj-flex-item oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalText ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPayment ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.contextLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.contextValue ]]"></oj-bind-text></div>
+                      </div>
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.methods ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                      <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
+                        :data-action-id="[[ $current.data.confirmActionId ]]"
+                        on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMeter ]]">
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                      <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStat ]]">
+                      <div class="oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isInput ]]">
+                      <oj-input-text class="oj-form-control-max-width-md"
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                    </oj-bind-if>
+                  </template>
+                </oj-bind-for-each>
+          </div>
+          </div>
+        </oj-bind-if>
+      </template>
+    </oj-bind-for-each>
+          </div>
         </oj-sp-foldout-panel>
         <oj-bind-for-each data="[[ $application.variables.mateuFoldout.panels ]]">
           <template>
-            <oj-sp-foldout-panel panel-title="[[ $current.data.title ]]">
-              <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
-              <oj-bind-for-each data="[[ $current.data.texts ]]">
-                <template>
-                  <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
-                </template>
-              </oj-bind-for-each>
+            <!-- width EXPLÍCITO del wire (FoldoutPanel.width): fija el panel a esa medida
+                 (flex + min/max) — crecer aquí confunde el motor responsive del foldout
+                 (pagina); el sobrante de la fila lo reparte el space-between del CSS -->
+            <oj-sp-foldout-panel panel-title="[[ $current.data.title ]]"
+              :class="[[ {'mateu-fixed-panel': !!$current.data.width} ]]"
+              :style.flex="[[ $current.data.width ? '0 0 ' + $current.data.width : null ]]"
+              :style.width="[[ $current.data.width || null ]]"
+              :style.min-width="[[ $current.data.width || null ]]"
+              :style.max-width="[[ $current.data.width || null ]]">
+              <!-- el subtítulo solo existe si viene: el div incondicional dejaba 20px muertos -->
+              <oj-bind-if test="[[ !!$current.data.subtitle ]]">
+                <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+              </oj-bind-if>
+              <!-- bloques RICOS del panel: mismo template de átomos que el host -->
+              <div class="oj-flex">
+              <oj-bind-for-each data="[[ $current.data.blocks ]]">
+      <template>
+        <oj-bind-if test="[[ $current.data.isCard ]]">
+          <div :class="[[ $current.data.blockClass ]]">
+          <div class="oj-panel oj-sm-margin-3x-bottom">
+            <oj-bind-for-each data="[[ $current.data.items ]]">
+                  <template>
+                    <oj-bind-if test="[[ $current.data.isText ]]">
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isProgress ]]">
+                      <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
+                      <div class="oj-sm-margin-3x-bottom">
+                        <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.badges ]]">
+                          <template>
+                            <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-bind-for-each>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-flex oj-sm-margin-1x-top">
+                          <oj-bind-for-each data="[[ $current.data.facts ]]">
+                            <template>
+                              <div class="oj-flex-item oj-sm-margin-4x-end">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isNotice ]]">
+                      <div :class="[[ $current.data.noticeClass ]]">
+                        <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBullets ]]">
+                      <ul class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <li class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></li>
+                          </template>
+                        </oj-bind-for-each>
+                      </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                      <div class="oj-sm-margin-3x-vertical"></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isButtons ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBadge ]]">
+                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
+                      <div class="oj-flex">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <div :class="[[ $current.data.colClass ]]">
+                              <oj-bind-if test="[[ $current.data.enabled ]]">
+                                <oj-action-card class="oj-sm-margin-1x" :class="[[ $current.data.cardClass ]]"
+                                  :data-item-id="[[ $current.data.id ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                  <div class="oj-sm-padding-2x">
+                                    <span class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                    <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs"><oj-bind-text value="[[ $current.data.recommendedLabel ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.note ]]"></oj-bind-text></div>
+                                  </div>
+                                </oj-action-card>
+                              </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.disabled ]]">
+                                <div class="oj-panel oj-sm-margin-1x">
+                                  <span class="oj-typography-body-md oj-text-color-disabled oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                  <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                  <div class="oj-typography-body-xs oj-text-color-disabled"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isOffer ]]">
+                      <div class="oj-panel oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.tag ]]"></oj-bind-text></div>
+                        <div class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.features ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-success oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.currentLabel ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.priceLabel ]]"></oj-bind-text></div>
+                        <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="callToAction"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAddOns ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                            <div class="oj-flex-item">
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            </div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
+                            <oj-bind-if test="[[ $current.data.selectable ]]">
+                              <oj-switch class="oj-flex-item oj-sm-flex-initial"
+                                value="[[ $current.data.added ]]"
+                                :data-item-id="[[ $current.data.id ]]"
+                                on-value-changed="[[ $listeners.hostAddonToggled ]]"></oj-switch>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.selectable ]]">
+                              <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStatusList ]]">
+                      <div :class="[[ $current.data.wrapClass ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <oj-bind-if test="[[ $current.data.rowClickable ]]">
+                            <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
+                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]">
+                              <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
+                                <div class="oj-flex-item">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-action-card>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.gridCell ]]">
+                            <div :class="[[ $current.data.cellClass ]]">
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                </div>
+                              </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                            <div :class="[[ $current.data.rowClass ]]">
+                              <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              <div class="oj-flex-item">
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
+                        </template>
+                      </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isLedger ]]">
+                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-margin-1x-bottom">
+                            <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.concept ]]"></oj-bind-text></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md" :class="[[ $current.data.amountClass ]]"><oj-bind-text value="[[ $current.data.amountText ]]"></oj-bind-text></div>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                      <div class="oj-flex oj-sm-margin-2x-top">
+                        <div class="oj-flex-item oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalText ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPayment ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.contextLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.contextValue ]]"></oj-bind-text></div>
+                      </div>
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.methods ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                      <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
+                        :data-action-id="[[ $current.data.confirmActionId ]]"
+                        on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMeter ]]">
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                      <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStat ]]">
+                      <div class="oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isInput ]]">
+                      <oj-input-text class="oj-form-control-max-width-md"
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                    </oj-bind-if>
+                  </template>
+                </oj-bind-for-each>
+          </div>
+          </div>
+        </oj-bind-if>
+        <oj-bind-if test="[[ $current.data.isPlain ]]">
+          <div :class="[[ $current.data.blockClass ]]">
+          <div class="oj-sm-margin-2x-bottom">
+            <oj-bind-for-each data="[[ $current.data.items ]]">
+                  <template>
+                    <oj-bind-if test="[[ $current.data.isText ]]">
+                      <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isProgress ]]">
+                      <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isEntityHeader ]]">
+                      <div class="oj-sm-margin-3x-bottom">
+                        <span class="oj-typography-heading-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.badges ]]">
+                          <template>
+                            <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-bind-for-each>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-flex oj-sm-margin-1x-top">
+                          <oj-bind-for-each data="[[ $current.data.facts ]]">
+                            <template>
+                              <div class="oj-flex-item oj-sm-margin-4x-end">
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                              </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isNotice ]]">
+                      <div :class="[[ $current.data.noticeClass ]]">
+                        <span class="oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBullets ]]">
+                      <ul class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <li class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></li>
+                          </template>
+                        </oj-bind-for-each>
+                      </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isSeparator ]]">
+                      <div class="oj-sm-margin-3x-vertical"></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isButtons ]]">
+                      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+                        <oj-bind-for-each data="[[ $current.data.buttons ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isBadge ]]">
+                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isResourceGrid ]]">
+                      <div class="oj-flex">
+                        <oj-bind-for-each data="[[ $current.data.items ]]">
+                          <template>
+                            <div :class="[[ $current.data.colClass ]]">
+                              <oj-bind-if test="[[ $current.data.enabled ]]">
+                                <oj-action-card class="oj-sm-margin-1x" :class="[[ $current.data.cardClass ]]"
+                                  :data-item-id="[[ $current.data.id ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                  <div class="oj-sm-padding-2x">
+                                    <span class="oj-typography-body-md oj-typography-bold oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                    <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs"><oj-bind-text value="[[ $current.data.recommendedLabel ]]"></oj-bind-text></div>
+                                    <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.note ]]"></oj-bind-text></div>
+                                  </div>
+                                </oj-action-card>
+                              </oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.disabled ]]">
+                                <div class="oj-panel oj-sm-margin-1x">
+                                  <span class="oj-typography-body-md oj-text-color-disabled oj-sm-margin-1x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+                                  <span :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.statusLabel ]]"></oj-bind-text></span>
+                                  <div class="oj-typography-body-xs oj-text-color-disabled"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isOffer ]]">
+                      <div class="oj-panel oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.tag ]]"></oj-bind-text></div>
+                        <div class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.features ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-success oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.currentLabel ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.priceLabel ]]"></oj-bind-text></div>
+                        <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="callToAction"
+                            :data-action-id="[[ $current.data.actionId ]]"
+                            on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAddOns ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                            <div class="oj-flex-item">
+                              <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.icon + ' ' + $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            </div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.priceText ]]"></oj-bind-text></div>
+                            <oj-bind-if test="[[ $current.data.selectable ]]">
+                              <oj-switch class="oj-flex-item oj-sm-flex-initial"
+                                value="[[ $current.data.added ]]"
+                                :data-item-id="[[ $current.data.id ]]"
+                                on-value-changed="[[ $listeners.hostAddonToggled ]]"></oj-switch>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ !$current.data.selectable ]]">
+                              <span class="oj-badge oj-badge-success oj-badge-subtle"><oj-bind-text value="[[ $current.data.includedLabel ]]"></oj-bind-text></span>
+                            </oj-bind-if>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStatusList ]]">
+                      <div :class="[[ $current.data.wrapClass ]]">
+                      <oj-bind-for-each data="[[ $current.data.items ]]">
+                        <template>
+                          <oj-bind-if test="[[ $current.data.rowClickable ]]">
+                            <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
+                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]">
+                              <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
+                                <div class="oj-flex-item">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                </div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              </div>
+                            </oj-action-card>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ $current.data.gridCell ]]">
+                            <div :class="[[ $current.data.cellClass ]]">
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                                </div>
+                              </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
+                            </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <div class="oj-sm-margin-2x-top">
+                                <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                  <template>
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </div>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && !$current.data.hasActions ]]">
+                            <div :class="[[ $current.data.rowClass ]]">
+                              <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                              <div class="oj-flex-item">
+                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                              </oj-bind-if>
+                            </div>
+                          </oj-bind-if>
+                        </template>
+                      </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isLedger ]]">
+                      <oj-bind-for-each data="[[ $current.data.lines ]]">
+                        <template>
+                          <div class="oj-flex oj-sm-margin-1x-bottom">
+                            <div class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.concept ]]"></oj-bind-text></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md" :class="[[ $current.data.amountClass ]]"><oj-bind-text value="[[ $current.data.amountText ]]"></oj-bind-text></div>
+                          </div>
+                        </template>
+                      </oj-bind-for-each>
+                      <div class="oj-flex oj-sm-margin-2x-top">
+                        <div class="oj-flex-item oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.totalText ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPayment ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.contextLabel ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.contextValue ]]"></oj-bind-text></div>
+                      </div>
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.methods ]]">
+                          <template>
+                            <oj-button class="oj-sm-margin-1x-end" chroming="[[ $current.data.chroming ]]"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                      <oj-button chroming="callToAction" class="oj-sm-margin-1x-top"
+                        :data-action-id="[[ $current.data.confirmActionId ]]"
+                        on-oj-action="[[ $listeners.hostPaymentConfirm ]]"><oj-bind-text value="[[ $current.data.confirmLabel ]]"></oj-bind-text></oj-button>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isTaskProgress ]]">
+                      <div :class="[[ $current.data.panelClass ]]">
+                        <div class="oj-flex oj-sm-align-items-center">
+                          <div class="oj-flex-item">
+                            <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></span>
+                          </div>
+                          <oj-bind-if test="[[ $current.data.actionLabel ]]">
+                            <oj-button class="oj-flex-item oj-sm-flex-initial" chroming="callToAction"
+                              :data-action-id="[[ $current.data.actionId ]]"
+                              on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
+                          </oj-bind-if>
+                        </div>
+                        <oj-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMeter ]]">
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                      <oj-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-progress-bar>
+                      <div class="oj-typography-body-sm"><oj-bind-text value="[[ $current.data.valueText ]]"></oj-bind-text></div>
+                      <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isStat ]]">
+                      <div class="oj-sm-margin-2x-bottom">
+                        <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-typography-heading-sm"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPropertyRow ]]">
+                      <div class="oj-flex oj-sm-margin-1x-bottom">
+                        <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isInput ]]">
+                      <oj-input-text class="oj-form-control-max-width-md"
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                    </oj-bind-if>
+                  </template>
+                </oj-bind-for-each>
+          </div>
+          </div>
+        </oj-bind-if>
+      </template>
+    </oj-bind-for-each>
+              </div>
             </oj-sp-foldout-panel>
           </template>
         </oj-bind-for-each>
@@ -488,43 +1708,46 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
                                       :data-action-id="[[ $current.data.actionId ]]"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
@@ -541,7 +1764,7 @@
                               </div>
                               <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
                                   :data-action-id="[[ $current.data.actionId ]]"
                                   on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
@@ -784,43 +2007,46 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
                                       :data-action-id="[[ $current.data.actionId ]]"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
@@ -837,7 +2063,7 @@
                               </div>
                               <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
                                   :data-action-id="[[ $current.data.actionId ]]"
                                   on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
@@ -1227,36 +2453,39 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -1523,36 +2752,39 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -1846,43 +3078,46 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
                                       :data-action-id="[[ $current.data.actionId ]]"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
@@ -1899,7 +3134,7 @@
                               </div>
                               <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
                                   :data-action-id="[[ $current.data.actionId ]]"
                                   on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
@@ -2144,43 +3379,46 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <div class="oj-panel oj-sm-padding-4x oj-flex-item">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <div class="oj-flex-item">
-                                  <div class="oj-flex oj-sm-align-items-center">
-                                    <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-                                    <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
-                                  </div>
-                                  <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
+                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
+                              <div class="oj-flex-item oj-sm-flex-initial">
+                                <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
+                                  <div class="oj-flex-item oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
-                                <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                  <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-3x-start">
-                                    <oj-bind-for-each data="[[ $current.data.actions ]]">
-                                      <template>
-                                        <oj-button class="oj-sm-margin-1x-start" chroming="outlined"
-                                          :data-action-id="[[ $current.data.actionId ]]"
-                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
-                                      </template>
-                                    </oj-bind-for-each>
-                                  </div>
-                                </oj-bind-if>
                               </div>
+                              <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ $current.data.hasActions ]]">
+                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-bind-if>
                             </div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && $current.data.hasActions ]]">
-                            <div class="oj-sm-margin-4x-bottom">
-                              <div class="oj-flex oj-sm-align-items-center">
-                                <oj-avatar class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-end" size="xs" initials="[[ $current.data.avatar ]]"></oj-avatar>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                            <div class="oj-sm-margin-4x-bottom mateu-list-item">
+                              <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
+                                     al título de la sección, que pinta como h2); crece y empuja
+                                     el badge al borde derecho del ítem -->
+                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-sm-margin-1x-end" chroming="outlined"
+                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
                                       :data-action-id="[[ $current.data.actionId ]]"
                                       on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
                                   </template>
@@ -2197,7 +3435,7 @@
                               </div>
                               <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm" :class="[[ $current.data.statusClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ $current.data.actionLabel ]]">
-                                <oj-button class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
+                                <oj-button class="oj-button-sm oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-start" chroming="outlined"
                                   :data-action-id="[[ $current.data.actionId ]]"
                                   on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
