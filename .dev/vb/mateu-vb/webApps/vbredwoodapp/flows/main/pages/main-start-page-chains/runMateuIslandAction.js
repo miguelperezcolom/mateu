@@ -65,10 +65,39 @@ define([
       const isSse = (islandContext.sseActionIds || []).indexOf(actionId) >= 0;
       let lastIncrement = null;
       if (isSse) {
+        // LongTask: diálogo de progreso en vivo (mismo tratamiento que runMateuAction)
+        const progressWatcher = bridge.longTaskWatcher();
+        let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
           base, islandContext, outbound.route || '',
-          actionId, componentState, { appState, parameters: parameters || {} });
+          actionId, componentState, {
+            appState, parameters: parameters || {},
+            onIncrement: async (inc) => {
+              const ev = progressWatcher.consume(inc);
+              if (!ev) return false;
+              if (ev.title != null) $page.variables.mateuProgressTitle = ev.title;
+              if (ev.text != null) $page.variables.mateuProgressText = ev.text;
+              if (ev.value != null) $page.variables.mateuProgressValue = Math.round(ev.value * 100);
+              if (ev.kind === 'open' && !progressOpen) {
+                progressOpen = true;
+                await Actions.callComponentMethod(context, {
+                  selector: '#mateuProgressDialog', method: 'open',
+                });
+              }
+              if (ev.rest.commands.length || ev.rest.messages.length) {
+                apply(ev.rest);
+              }
+              return true;
+            },
+          });
         increments.forEach((inc) => { lastIncrement = inc; apply(inc); });
+        if (progressOpen) {
+          await new Promise((resolve) => setTimeout(
+            resolve, progressWatcher.closeAfter != null ? progressWatcher.closeAfter : 600));
+          await Actions.callComponentMethod(context, {
+            selector: '#mateuProgressDialog', method: 'close',
+          });
+        }
       } else {
         lastIncrement = await bridge.runMateuAction(
           base, islandContext, outbound.route || '',

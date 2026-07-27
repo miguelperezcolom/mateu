@@ -82,6 +82,26 @@ class LayoutSyncTest {
   }
 
   @SuppressWarnings("unused")
+  @UI("/layout/section-columns")
+  public static class SectionColumnsPage {
+    // columns unset (default 0) → the section inherits the form default (2)
+    @Section("Ancha")
+    String a = "a";
+
+    String b = "b";
+
+    // explicit columns=1 → single column (it used to be indistinguishable from unset)
+    @Section(value = "Estrecha", columns = 1)
+    String c = "c";
+
+    String d = "d";
+
+    // explicit above the default keeps working
+    @Section(value = "Triple", columns = 3)
+    String e = "e";
+  }
+
+  @SuppressWarnings("unused")
   @UI("/layout/zones")
   @Zones({@Zone(name = "left", width = "60%"), @Zone(name = "right", width = "40%")})
   public static class ZonesPage {
@@ -288,6 +308,7 @@ class LayoutSyncTest {
     mateu =
         TestMateu.withUis(
             SectionsPage.class,
+            SectionColumnsPage.class,
             ZonesPage.class,
             ZonesUntitledPage.class,
             ZonesBandedPage.class,
@@ -539,6 +560,16 @@ class LayoutSyncTest {
   @Test
   void tocFalseSuppressesTheSectionsIndex() {
     assertThat(pageDto(mateu.sync("/layout/toc-off")).toc()).isEqualTo(Boolean.FALSE);
+  }
+
+  // ------------------------------------------------------------------ @Section(columns)
+
+  @Test
+  void sectionColumnsHonorsAnExplicitSingleColumn() {
+    var formLayouts = allMetadata(mateu.sync("/layout/section-columns"), FormLayoutDto.class);
+    assertThat(formLayouts)
+        .extracting(FormLayoutDto::maxColumns)
+        .containsExactly(2, 1, 3); // unset → form default; explicit 1 and 3 win
   }
 
   // ------------------------------------------------------------------ @Compact / @Style

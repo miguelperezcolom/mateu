@@ -62,11 +62,14 @@ create table stay_incident (
     stay_id     varchar(64)  not null references stay (id),
     idx         int          not null,
     code        varchar(64)  not null,
+    type        varchar(20),
     icon        varchar(10),
     title       varchar(200) not null,
     description varchar(400),
     status      varchar(20)  not null,
     complaint   boolean      not null,
+    opened_at   timestamp,
+    resolved_at timestamp,
     primary key (stay_id, idx)
 );
 

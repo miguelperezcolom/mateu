@@ -331,15 +331,27 @@
       "defaultValue": "",
       "description": "serverSideType del App — las acciones de cabecera se despachan app-level con él"
     },
+    "mateuFoldoutContent": {
+      "type": "any",
+      "defaultValue": {
+        "overview": {
+          "blocks": []
+        },
+        "panels": []
+      },
+      "description": "CONTENIDO vivo del foldout (bloques por panel + subtítulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez — el motor del foldout come los anclajes del for-each de paneles al re-stampar"
+    },
     "mateuDrawer": {
       "type": "any",
       "defaultValue": {
         "title": "",
         "fields": [],
         "actions": [],
-        "state": {}
+        "blocks": [],
+        "state": {},
+        "texts": []
       },
-      "description": "proyección del overlay superior (drawer del crud): título + campos + acciones"
+      "description": "proyección del overlay superior (drawer): título + campos + acciones + bloques display (PaymentPicker, AddOnPicker, grids…)"
     },
     "mateuMenuTree": {
       "type": "any",
@@ -546,6 +558,56 @@
     "mateuIslandSeed": {
       "type": "string",
       "defaultValue": ""
+    },
+    "mateuGop": {
+      "type": "any",
+      "defaultValue": {
+        "on": false,
+        "main": {
+          "title": "",
+          "blocks": []
+        },
+        "info": {
+          "title": "",
+          "blocks": []
+        }
+      },
+      "description": "general overview nativo: on + bloques de los slots main/info"
+    },
+    "mateuQuickFilter": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "selector rápido del listado activo: {fieldId, value} ({} = sin filtro)"
+    },
+    "mateuLastSearchText": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "último texto buscado en el smart search (para re-buscar al togglear chips)"
+    },
+    "mateuQuickFilterPending": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "una vista rápida del Ask Oracle dejó el filtro puesto: onMateuNavigate lo aplica en vez de resetearlo"
+    },
+    "mateuWelcomeTheme": {
+      "type": "string",
+      "defaultValue": "auto",
+      "description": "tono del hero de la welcome (rota en cada visita entre la paleta oscura RDS)"
+    },
+    "mateuWelcomeImage": {
+      "type": "string",
+      "defaultValue": "pebbles",
+      "description": "imagen temática del hero de la welcome (rota junto al tono)"
+    },
+    "mateuWelcomeIllu": {
+      "type": "string",
+      "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-fg-01.png",
+      "description": "ilustración del hero de la welcome (la abstract RDS del propio banner)"
+    },
+    "mateuWelcomeIlluBg": {
+      "type": "string",
+      "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png",
+      "description": "capa de fondo de la ilustración del hero (galería oficial fnd)"
     }
   },
   "userConfig": {

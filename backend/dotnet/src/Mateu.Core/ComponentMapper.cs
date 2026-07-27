@@ -216,7 +216,7 @@ public static class ComponentMapper
         for (var i = 0; i < f.Panels.Count; i++)
         {
             var panel = f.Panels[i];
-            infos.Add(new FoldoutPanelInfoDto(panel.Title, panel.Subtitle, panel.Icon, panel.Open));
+            infos.Add(new FoldoutPanelInfoDto(panel.Title, panel.Subtitle, panel.Icon, panel.Open, panel.Width));
             if (panel.Content is not null)
                 children.Add(Map(panel.Content) with { Slot = $"panel-{i}" });
         }

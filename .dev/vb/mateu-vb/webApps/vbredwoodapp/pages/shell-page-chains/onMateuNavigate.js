@@ -26,11 +26,25 @@ define([
       const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
-      const route = detail.currentId != null ? detail.currentId
+      let route = detail.currentId != null ? detail.currentId
         : detail.selectedValue != null ? detail.selectedValue
         : detail.value != null ? detail.value : detail.route;
       if (route == null || route === '') {
         return;
+      }
+      // ?campo=valor en la ruta (p.ej. /reservas?vista=LLEGADAS_HOY, los KPIs de la
+      // home): el filtro rápido viaja en la URL — se consume aquí como filtro
+      // PENDIENTE (misma mecánica que el Ask Oracle) y la ruta queda limpia
+      const queryIdx = route.indexOf('?');
+      if (queryIdx >= 0) {
+        const par = route.slice(queryIdx + 1).split('&')[0].split('=');
+        route = route.slice(0, queryIdx);
+        if (par.length === 2 && par[0] && par[1]) {
+          $application.variables.mateuQuickFilter = {
+            fieldId: par[0], value: decodeURIComponent(par[1]) };
+          $application.variables.mateuQuickFilterPending = true;
+          force = true; // aunque ya estemos en la ruta, hay que re-buscar filtrado
+        }
       }
       // el eco del writeback de selection tras cada navegación — no recargar
       if (!force && route === $application.variables.mateuSelectedRoute) {
@@ -55,13 +69,19 @@ define([
 
       // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
       const loaded = reg.contexts[bridge.HOST_ID];
+      // una vista rápida del Ask Oracle deja el filtro PENDIENTE: la búsqueda OnLoad
+      // aterriza ya filtrada (y el chip aparece aplicado)
+      const quickNav = $application.variables.mateuQuickFilterPending
+        ? ($application.variables.mateuQuickFilter || {}) : {};
       for (const triggerActionId of bridge.onLoadTriggers(loaded)) {
         const listing = bridge.listingOf(loaded);
+        const componentState = Object.assign(
+          {}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 });
+        if (quickNav.fieldId && quickNav.value) {
+          componentState[quickNav.fieldId] = quickNav.value;
+        }
         const increment = await bridge.runMateuAction(
-          base, loaded, route, triggerActionId,
-          Object.assign({}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 }),
-          { appState },
-        );
+          base, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
       }
 
@@ -89,7 +109,19 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
-      $application.variables.mateuFoldout = bridge.foldoutOf(host);
+      // mismo remontaje que en runMateuAction: si venimos de OTRO foldout, recrear el
+      // subárbol para que los bindings internos no se queden con los bloques viejos
+      const foldoutProjection = bridge.foldoutOf(host);
+      if ($application.variables.mateuFoldout && foldoutProjection) {
+        $application.variables.mateuFoldout = null;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      // el CONTENIDO se siembra ANTES de estampar la estructura: los paneles leen
+      // mateuFoldoutContent.panels[i] al montarse
+      $application.variables.mateuFoldoutContent = foldoutProjection
+        ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
+        : { overview: { blocks: [] }, panels: [] };
+      $application.variables.mateuFoldout = foldoutProjection;
       $application.variables.mateuWizard = bridge.wizardOf(host);
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
@@ -135,7 +167,7 @@ define([
       $application.variables.mateuListPrimary = primaryToolbar
         ? { label: primaryToolbar.label } : { label: '', display: 'off' };
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
-      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
@@ -174,6 +206,19 @@ define([
       const overviewProjection = bridge.generalOverviewOf(host);
       const itemProjection = bridge.itemOverviewOf(host);
       $application.variables.mateuWelcome = welcome;
+      if (welcome) {
+// los PARES color+ilustración del hero: las 5 parejas bg+fg de la galería
+        // OFICIAL (fnd/gallery illust-welcome-banner-*-01..05) rotando con su tono
+        const GALERIA = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/';
+        const LOOKS = [
+          ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+          ['dark-sienna', '04'], ['dark-teal', '05'],
+        ];
+        const look = LOOKS[Math.floor(Math.random() * LOOKS.length)];
+        $application.variables.mateuWelcomeTheme = look[0];
+        $application.variables.mateuWelcomeIlluBg = GALERIA + 'illust-welcome-banner-bg-' + look[1] + '.png';
+        $application.variables.mateuWelcomeIllu = GALERIA + 'illust-welcome-banner-fg-' + look[1] + '.png';
+      }
       $application.variables.mateuOverview = overviewProjection;
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
@@ -196,7 +241,9 @@ define([
       const esWizard = !!$application.variables.mateuWizard;
       const sinOtrasRamas = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
-      const hostEntity = (!esWizard && sinOtrasRamas)
+      // un foldout con EntityHeader (p.ej. la Reserva 360) CONSERVA el header de pantalla:
+      // el huésped + el CTA van en la banda, el foldout es solo el cuerpo
+      const hostEntity = (!esWizard && (sinOtrasRamas || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(host) : null;
       const hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
@@ -206,7 +253,39 @@ define([
       const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
-      $application.variables.mateuHostContent = (hostBlocksRicos ? hostBlocks : null) || [];
+      // las acciones del toolbar de la Page (se calculan aquí porque los templates de
+      // página de entidad las recolocan: iop → goToParent/secondaryActions del panel)
+      const hostToolbar = bridge.pageToolbarOf(host);
+      // ITEM OVERVIEW nativo: página de entidad con la zona ESTRECHA primero (panel de
+      // datos clave + main ancho) → oj-sp-item-overview-page + oj-sp-item-overview
+      const iop = bridge.itemOverviewPageOf(hostEntity, hostBlocks, hostToolbar);
+      const iopOn = !!iop;
+      $application.variables.mateuIop = iop || {
+        on: false,
+        overview: { title: '', subtitle: '', badge: null, facts: [], blocks: [] },
+        main: { blocks: [] },
+        back: { show: false, actionId: '' },
+        secondary: [],
+      };
+      // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna (la ancha
+      // primero) → el template oj-sp-general-overview-page (slots main/info, header integrado)
+      const zonedGop = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
+      const gopOn = !iopOn && !!(hostEntity && (hostBlocks || []).length === 2 && zonedGop.length === 2);
+      const gopFold = (block) => {
+        const items = (block.items || []);
+        const conTitulo = items.length && items[0].isHeading && items[0].isH2;
+        return {
+          title: conTitulo ? items[0].text : '',
+          blocks: [Object.assign({}, block, {
+            blockClass: 'oj-flex-item oj-sm-12',
+            items: conTitulo ? items.slice(1) : items,
+          })],
+        };
+      };
+      $application.variables.mateuGop = gopOn
+        ? { on: true, main: gopFold(zonedGop[0]), info: gopFold(zonedGop[1]) }
+        : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
+      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? hostBlocks : null) || [];
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
@@ -227,10 +306,19 @@ define([
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
-        || overviewProjection || listingSummary || $application.variables.mateuFoldout);
+        || overviewProjection || listingSummary
+        || ($application.variables.mateuFoldout && !hostEntity));
       const showHeader = !integratedHeader;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
+      // el selector rápido del listado no sobrevive a la navegación — salvo que el
+      // Ask Oracle lo haya dejado pendiente para ESTA carga
+      if ($application.variables.mateuQuickFilterPending) {
+        $application.variables.mateuQuickFilterPending = false;
+      } else {
+        $application.variables.mateuQuickFilter = {};
+        $application.variables.mateuLastSearchText = '';
+      }
       const banners = bridge.bannersOf(host);
       const staleKeys = $application.variables.mateuBannerKeys || [];
       if (staleKeys.length) {
@@ -251,11 +339,13 @@ define([
       // automáticamente: centrar un fixed en el área restante queda raro (el drawer ya
       // consume el lateral); el gutter del contenido lo ponen las ramas (12x/6x)
       const drawerNav = $application.variables.mateuMenuDrawerMode;
-      const pageStyle = drawerNav
+      // con el template iop activo el FORMATO lo pone el template (ni fixed ni fullWidth:
+      // sus zonas van directamente sobre el fondo de página) → wrapper a sangre
+      const pageStyle = (drawerNav || iopOn)
         ? bridge.pageStyleOf({ pageWidth: 'edgeToEdge' })
         : bridge.pageStyleOf(host);
       // el shell adapta su chrome (p.ej. el chat FAB) al formato de página
-      const pw = drawerNav ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed');
+      const pw = (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed');
       $application.variables.mateuShellPageLayout = pw === 'fixed' ? 'fixedWidth' : pw;
       $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
       $application.variables.mateuPageMargin = pageStyle.margin;
@@ -273,23 +363,24 @@ define([
       const showBand = showHeader && pw !== 'edgeToEdge';
       const showListBand = !!listingSummary && pw !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const hostToolbar = bridge.pageToolbarOf(host);
       const primaryBtn = hostToolbar.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
         subtitle: hostEntity ? hostEntity.subtitle : '',
         facts: hostEntity ? hostEntity.facts : [],
-        showBand: showBand,
-        showInline: showHeader && !showBand,
+        showBand: showBand && !gopOn && !iopOn,
+        showInline: showHeader && !showBand && !gopOn && !iopOn,
         showListBand: showListBand,
         showListInline: !!listingSummary && !showListBand,
-        primary: primaryBtn ? { label: primaryBtn.label } : { label: '', display: 'off' },
+        primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtn ? primaryBtn.actionId : '',
-        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ label: b.label })),
+        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
         toolbar: hostToolbar,
       };
-      if (showBand || showListBand) {
+      // el solape -40px de la banda NO aplica con el template iop (sus sticky internos
+      // calculan contra el flujo y el solape los descuadra)
+      if ((showBand && !iopOn) || showListBand) {
         // la caja de la banda usa la MISMA fórmula horizontal que el contenido…
         $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
         // …y el contenido gana el solape vertical (-40px) sobre la banda

@@ -528,6 +528,7 @@ export class MateuFoldout extends LitElement {
                 <div class="rail" part="rail">
                     ${this.panels.map((panel, index) => this.openPanels.has(index) ? html`
                         <div class="panel" part="panel" data-anchor="${this.panelAnchor(panel, index)}"
+                             style="${panel.width ? `flex-basis: ${panel.width}; min-width: min(${panel.width}, 100%);` : nothing}"
                              @click="${() => this.bookmarkPanel(index)}">
                             <div class="panel-header">
                                 <div>

@@ -3,13 +3,10 @@ package io.mateu.mdd.demofrontoffice.ui;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.AppContext;
 import io.mateu.uidl.annotations.Audience;
-import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.fluent.Component;
 
 /**
  * The Front-Office Suite app shell: top menu with the four operational screens plus the two
@@ -18,6 +15,7 @@ import io.mateu.uidl.fluent.Component;
  */
 @UI("")
 @Title("Front-Office Suite")
+@io.mateu.uidl.annotations.HomeRoute("/bienvenida") // la home es la welcome page (Bienvenida)
 @App(themeToggle = true) // variante AUTO: menú plano de RouteLinks → TABS (in-app navigation)
 public class FrontOfficeSuite {
 
@@ -48,14 +46,4 @@ public class FrontOfficeSuite {
   @Menu
   RouteLink automatizaciones =
       new RouteLink("/automatizaciones", "Automatizaciones").withIcon("vaadin:tasks");
-
-  @Label("")
-  Component bienvenida =
-      EmptyState.builder()
-          .icon("🏨")
-          .title("Front-Office Suite")
-          .description(
-              "Suite & Automation Engine — elige Reservas o Automatizaciones"
-                  + " en el menú.")
-          .build();
 }

@@ -1,9 +1,6 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
-import io.mateu.mdd.demofrontoffice.domain.folio.Folio;
-import io.mateu.mdd.demofrontoffice.domain.folio.FolioLine;
-import io.mateu.mdd.demofrontoffice.domain.stay.StayStatus;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.StyleConstants;
@@ -129,10 +126,7 @@ public class CheckInWizard extends Wizard {
 
   /** The selected room's type from the room inventory, falling back to the reservation's. */
   static String roomTypeOf(String roomNumber, String fallback) {
-    return FrontOffice.rooms()
-        .findByNumber(roomNumber)
-        .map(r -> r.type() != null ? r.type() : "Planta " + r.floor())
-        .orElse(fallback);
+    return io.mateu.mdd.demofrontoffice.ui.common.CheckInFlow.roomTypeOf(roomNumber, fallback);
   }
 
   // ── Actions dispatched by the step components ──────────────────────────────
@@ -284,7 +278,7 @@ public class CheckInWizard extends Wizard {
   // ── Completion ──────────────────────────────────────────────────────────────
 
   /** Solo lo que FALTA — cada paso pregunta por SU operación de check-in: identidad si hay
-   *  documentación pendiente; habitación si la asignada no está inspeccionada (o no hay);
+   *  documentación pendiente; habitación si la estancia no tiene ninguna asignada;
    *  extras si la selección de ancillaries no se cerró aún. Confirmación, siempre. */
   @Override
   protected boolean stepApplies(String stepFieldName) {
@@ -293,15 +287,12 @@ public class CheckInWizard extends Wizard {
     }
     return switch (stepFieldName) {
       case "identidad" ->
-          io.mateu.mdd.demofrontoffice.ui.reservas.ReservaOverview.paxPendientes(
+          io.mateu.mdd.demofrontoffice.ui.common.Paxes.paxPendientes(
                   FrontOffice.stayView(stayId).stay())
               > 0;
       case "habitacion" ->
-          FrontOffice.rooms()
-              .findByNumber(FrontOffice.stayView(stayId).stay().roomNumber())
-              .map(room -> room.housekeeping()
-                  != io.mateu.mdd.demofrontoffice.domain.room.HousekeepingStatus.INSPECTED)
-              .orElse(true);
+          !io.mateu.mdd.demofrontoffice.ui.common.CheckInFlow.habitacionAsignada(
+              FrontOffice.stayView(stayId).stay());
       case "extras" -> !FrontOffice.checkInOps().of(stayId).extras();
       default -> true;
     };
@@ -311,37 +302,8 @@ public class CheckInWizard extends Wizard {
   @Label("Confirmar check-in")
   Object confirmarCheckin() {
     syncConfirmar();
-    var view = FrontOffice.stayView(stayId);
-    var stay = view.stay();
-    if (stay.status() == StayStatus.ARRIVING) {
-      var selected =
-          habitacion.getHabitacionSeleccionada() != null
-              ? habitacion.getHabitacionSeleccionada()
-              : stay.roomNumber();
-      stay = stay.assignRoom(selected, roomTypeOf(selected, stay.roomType()));
-      for (var addOnId : extras.addedIds()) {
-        stay = stay.addAddOn(addOnId);
-      }
-      stay = FrontOffice.stays().save(stay.completeCheckIn());
-      FrontOffice.rooms()
-          .findByNumber(selected)
-          .filter(room -> room.assignable())
-          .ifPresent(room -> FrontOffice.rooms().save(room.occupy()));
-      if (view.folio() == null) {
-        var folio =
-            Folio.openFor("f-" + stay.id(), stay.id(), stay.total())
-                .post(FolioLine.charge("Alojamiento x" + stay.nights() + " noches", stay.total()));
-        for (var addOn : stay.addOns()) {
-          var item = FrontOffice.addOnCatalog().findById(addOn.addOnId()).orElse(null);
-          if (item != null && item.price() != null) {
-            folio = folio.post(FolioLine.charge(item.title(), item.price()));
-          }
-        }
-        FrontOffice.folios().save(folio);
-      }
-    }
-    // la selección de ancillaries queda cerrada con el check-in (operación "extras")
-    FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withExtras(true));
+    io.mateu.mdd.demofrontoffice.ui.common.CheckInFlow.completar(
+        stayId, habitacion.getHabitacionSeleccionada(), extras.addedIds());
     result = new ResultStep();
     result.setStayId(stayId);
     result.setHabitacionFinal(confirmar.getHabitacionAsignada());

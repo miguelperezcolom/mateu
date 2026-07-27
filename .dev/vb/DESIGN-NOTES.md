@@ -1040,6 +1040,324 @@ pide SOLO las pendientes.
   acciones se pinta APILADA (título+badge / descripción / botones) — la fila en línea se
   descolocaba en el carril del 36%; las tarjetas de grid iteran `actions` (permite dos
   botones por operación). Templates: rama apilada ×6 + for-each de acciones ×6.
+- **Diálogo de progreso de LongTask + drawer con bloques display (2026-07-27)**: (1) el
+  drawer de habitación recupera las CARDS (ResourceGrid + OfferCards): `overlayOf` proyecta
+  `content` (islandContentOf sobre el árbol del Drawer) y el panel del drawer pinta los
+  bloques con una copia del template de átomos (listener hostBlockAction — las acciones del
+  drawer postean contra el host con el estado del overlay). (2) `escanearPax` y `opFirma`
+  vuelven a `LongTask` (barra de progreso real) y el renderer VB al fin pinta el DIÁLOGO:
+  `runMateuActionSse` STREAMEA (reader incremental + `extra.onIncrement` async; true =
+  increment consumido, excluido del retorno), `longTaskWatcher()` (bridge) consume el Add
+  del Dialog-con-ProgressBar y los state-only a su id devolviendo {open|progress, title,
+  text, value, rest} — `rest` lleva los commands/messages del último increment (el
+  dispatchEvent del refresco) SIN el fragment del diálogo; ambos chains SSE
+  (runMateuAction + runMateuIslandAction) abren/actualizan/cierran `#mateuProgressDialog`
+  (oj-dialog + oj-c-progress-bar) y reducen solo los rest → al cerrar, el evento refresca
+  el foldout en sitio. Fixture `fo-sse-scan-stream.json` + test 30. 30/30.
+- **GOTCHA JET**: `oj-progress-bar` (legado, import ojs/ojprogress del page json) NO se
+  registra en runtime (mismatch de versión JET del CDN) — las barras de los Meter llevaban
+  siempre invisibles; TODAS las barras migradas a `oj-c-progress-bar` (core pack, ya
+  cargado). (2º gotcha del merge: `foldoutOf` perdió la proyección de `panel.width` al
+  fusionar — los paneles del foldout se repartían a su aire y las tarjetas del cockpit se
+  solapaban; restaurado width + headerTitle en la proyección.)
+- **Acciones de huésped como ICONOS + reparto de anchos (2026-07-27, feedback del
+  usuario)**: `StatusItem` gana `actionIcon/actionIcon2/actionIcon3` (uidl+dto+mapper+TS;
+  nombres NEUTRALES del set Vaadin — la demo usa vaadin:barcode/pencil/ban/rotate-left);
+  el bridge los traduce con `ojIconOf` (OJ_ICONS += scan-barcode/edit/do-not-enter/undo) y
+  las acciones de fila con `iconClass` se pintan como `oj-button display="icons"
+  chroming="borderless"` con el label como tooltip/aria (rama icono + rama texto en los 18
+  sitios de botones de acciones). GOTCHA de merge nº3 cazado: el bridge había PERDIDO la
+  tercera acción de fila (actionLabel3 — el "No show" llevaba desaparecido desde el merge);
+  restaurada con los iconos. Anchos del foldout: Operaciones 46→50rem (celdas del cockpit
+  20→22rem en app.css) y Perfil 17→14rem.
+- **Fichas de huésped: h3 sin avatar + más aire (2026-07-27, feedback del usuario)**: la
+  regla `asCards` del bridge (cualquier lista con acciones → tarjetas) PISABA la rama
+  apilada del markup que ya pintaba el diseño pedido — nombre como h3 (nivel siguiente al
+  h2 de la sección del foldout), sin avatar, ritmo .mateu-list-item. Ahora SOLO columns>1
+  fuerza tarjetas; una lista de una columna con acciones va por la rama apilada.
+  `.mateu-list-item` sube de 28 a 40px de separación entre pasajeros.
+- **Operaciones como fichas h3 + contador en el título del panel (2026-07-27)**: las
+  celdas del cockpit pierden el tile-avatar y el título pasa a h3 (misma ficha que los
+  huéspedes); el "N de 7" deja el cuerpo y se COMPONE en el título del panel
+  (`headerLabel` en foldoutOf = título · subtítulo, ligado en panel-title al CONTENIDO
+  vivo indexado — refresca sin re-stampar; el bloque del subtítulo del cuerpo se elimina).
+  GOTCHA de merge nº4: las clases de la rejilla fija (.mateu-grid/.mateu-grid-cell, celdas
+  22rem con gap propio) tampoco las estampaba ya el bridge — restauradas en
+  wrapClass/cellClass para columns>1.
+- **Iconos en operaciones + headings de contenido (2026-07-27)**: las 6 operaciones llevan
+  icono con tooltip (Op.actionIcon → StatusItem.actionIcon; vaadin:exchange/wifi/key/pen/
+  credit-card/gift → OJ_ICONS exchange-h/connection/key/signature/bank-card/gift). Átomo
+  HEADING nuevo: un Text con container h1..h6 se proyecta isHeading y se pinta como
+  <h3 class="mateu-atom-heading oj-typography-subheading-xs"> (el escalón siguiente al h2
+  de sección; app.css lo deja sin margen propio) con ritmo de grupo `oj-sm-margin-10x-top`
+  cuando NO abre el bloque — Perfil pasa a h3 (Preferencias / Última estancia) con 40px
+  entre grupos, y de regalo los títulos del modo checkout (Desglose folio, Postear cargo,
+  Cobro) se vuelven headings de verdad.
+- **Holgura anti-scrollbar + bullets a una línea (2026-07-27)**: el cockpit tenía 8px de
+  holgura (2×22rem+40 = 744 sobre 752) — la scrollbar clásica de Windows/monitor externo
+  (15px) hacía SALTAR la segunda columna al repintar (el "descoloque" al crear la wifi;
+  invisible en headless/Mac con overlay scrollbars). Panel de operaciones 50→51rem = 24px
+  de holgura. Y el tema Redwood pone `padding-right: 40px` a los `ul` (además del inline-
+  start del navegador) — un cuarto del carril de Perfil; `.mateu-atom-bullets` lo anula y
+  "Connecting rooms" vuelve a una línea (li 118→158px).
+- **Habitación con número + confirmar GATED (2026-07-27)**: la tarjeta de la operación
+  titula "Habitación 612" (el número importa; la descripción pasa a tipo + estado de
+  inspección) y "Confirmar check-in" solo se habilita con TODO hecho (los 7 ops — cardex
+  de todos los pax con no-shows aparte + operaciones): `toolbar()` calcula
+  `operaciones(stay).allMatch(done)` → `Button.disabled` → `pageToolbarOf` lo proyecta y
+  los chains lo traducen a la API del oj-sp-header: el primaryAction se deshabilita con
+  `display: 'disabled'` (NO con un boolean `disabled` — ese se ignora). Verificado en
+  ambos sentidos (foto limpia → disabled; 7 de 7 por wire → enabled).
+- **Modal post-check-in de grupo (2026-07-27)**: al confirmar el check-in de una reserva
+  DE GRUPO (simulación: grupo = primera palabra de la agencia — "TUI Deutschland" y "TUI
+  Group · …" comparten grupo TUI), la acción devuelve un `Dialog` (uidl) proponiendo
+  seguir con la siguiente llegada pendiente del grupo o volver al listado; sin grupo o sin
+  más llegadas → `UICommand.navigateTo("/reservas")` directo (OJO: una `URI` DENTRO de una
+  List NO se mapea — solo a pelo; en colecciones usar el UICommand). **Renderer**: un
+  overlay `Dialog` se pinta como MODAL (`#mateuModal`, oj-dialog estándar: título + líneas
+  de texto + las acciones del Dialog en el footer) y no como drawer — `overlayOf` gana
+  `isDialog` + `texts` (collectTexts) y `actionsOf` propaga `parameters` (el botón
+  "Check-in de X" viaja con `_item`); runMateuAction enruta overlays isDialog al modal
+  (open/close por método, cierre también al navegar) y `mateuModalDismissed` descarta el
+  overlay solo si el TOP sigue siendo Dialog. GOTCHA VB: un `oj-bind-for-each` sobre una
+  propiedad AUSENTE del default ROMPE la página entera ("Unable to process binding") —
+  `texts: []` añadido a TODOS los defaults de mateuDrawer. GOTCHA build: `grunt vb-build`
+  ahora ABORTA al final en una subtarea de red (--url) — el build/optimized queda BIEN
+  generado; no fiarse del exit code, verificar el artefacto.
+- **Pantalla in-house (2026-07-27)**: el foldout se extiende a IN_HOUSE (fuera del modo
+  checkout, que conserva las dos columnas planas): Huéspedes | **Estancia** | Perfil. El
+  panel Estancia titula con el balance VIVO ("Estancia · € 1.710,50 · 95% preaut.",
+  balanceResumen → subtitle → headerLabel) y compone el Meter del balance + el cockpit de
+  fichas: **Folio** (badge OK/Vigilar/Al límite según % de preauth; "Postear cargo" abre
+  el drawer del catálogo — filas clicables → `postearCargo` postea y CIERRA con
+  `UICommand.closeModal()`), **una ficha por incidencia** abierta ("Resolver" →
+  `stay.resolveIncident`; sin abiertas → ficha "✓ OK") y **Salida** ("Late check-out"
+  +€50 al folio — el propio cargo hace de flag; contratado → badge 15:00). Iconos
+  cart/check/clock añadidos a OJ_ICONS. Todo verificado en vivo con Carlos: postear desde
+  el drawer (1.710,50 → 1.735,50), resolver la incidencia de TV, late check-out
+  (→ 1.785,50 · 99% y "Al límite"), con el header del panel y los facts refrescando.
+- **In-house v2: General Overview (2026-07-27, diseño del usuario)**: fuera el foldout en
+  casa — anatomía RDS de overview: contenido principal (KPI del balance tal cual +
+  incidencias como CARDS a todo el ancho: Notice danger/warning con el botón Resolver
+  DENTRO — parameters en los Buttons del content del Notice) e info secundaria al lado
+  (huéspedes SOLO datos, sin badges/acciones, y la salida: fecha · 12:00/15:00 · noches ·
+  régimen). Las CINCO acciones van al toolbar del header (Añadir cargo / Cambiar
+  habitación / Gestionar folio / Mensaje huésped / Registrar petición) + Check-out
+  primary — el Spectra header colapsa las secundarias en el menú "…". Drawers nuevos:
+  Gestionar folio (Ledger) y Registrar petición (peticiones clicables; late-checkout
+  postea +€50 y cierra con closeModal; el resto toast). GOTCHA Spectra: el evento
+  spSecondaryAction identifica el item por su id/value — sin id llegaba
+  secondaryItem="undefined"; las secundarias llevan id=value=actionId y
+  headerSecondaryAction resuelve por actionId O label.
+- **Pulido del overview in-house (2026-07-27)**: heading h3 "Incidencias" (su margen de
+  grupo pone los 40px entre el KPI y la lista); se listan TODAS las incidencias — abiertas
+  primero (cards danger/warning con Resolver), y las RESUELTAS al final como avisos verdes
+  slim "✓ Resuelta · <título>"; sin abiertas → "Sin incidencias abiertas — N resueltas".
+  La info secundaria va sobre BANDA NEUTRA (VerticalLayout de zona con
+  cssClasses("oj-panel oj-bg-neutral-20") + align-self flex-start): la proyección de zonas
+  del bridge arrastra las cssClasses del wire de la columna al bloque.
+- **Incidencias con cronología (2026-07-27, diseño del usuario)**: TODAS con la misma
+  ficha (título + badge Abierta/En curso/✓ Resuelta a la derecha; resueltas al FINAL) y
+  debajo su cronología "d MMM · HH:mm — comentario" abriendo con la descripción de
+  apertura. Dominio: `Incident` gana `openedAt/resolvedAt` (schema stay_incident +
+  seeder con fechas; `resolve()` estampa la resolución); la línea "en curso" se deriva.
+  Framework: `StatusItem.lines` (uidl+dto+mapper+TS) — la rama APILADA del renderer
+  acepta también filas SIN acciones cuando llevan lines (guards hasActions||hasLines) y
+  pinta la cronología entre descripción y botones. Resolver como icono ✓ solo en
+  abiertas.
+- **In-house v3: foldout de 2 folds + tipos de incidencia + alta (2026-07-27, insight del
+  usuario: "el general overview ES un folded layout de solo 2 folds")**: la in-house
+  vuelve al FoldoutLayout — overview "Información" (huéspedes + salida) y panel
+  "Estancia · balance" (KPI + incidencias) — con títulos subrayados y colores del propio
+  foldout, y consistente con la pantalla de llegada. "Incidencias (N)" con contador;
+  títulos de incidencia como h4 (nuevo `StatusList.itemHeadingLevel` uidl→dto→wire; el
+  bridge marca isH4 y el template pinta h3|h4 — cascada h2 panel → h3 grupo → h4 ítem);
+  el TIPO bajo el título (nuevo `IncidentType` TV/Climatización/Servicio/Restaurante/
+  Limpieza/General con icono, columna en schema + seeder). Alta: acción "Nueva
+  incidencia" en el header → drawer con Título/Comentario (campos del drawer) + el tipo
+  como filas clicables → `crearIncidencia` lee el estado del drawer y reportIncident.
+  GOTCHA drawer: los FormFields del contenido salían DUPLICADOS (gramática de campos +
+  átomos isInput de los bloques) y el usuario escribía en el par muerto — overlayOf
+  filtra los isInput de los bloques.
+- **In-house v4: el template NATIVO oj-sp-general-overview-page (2026-07-27, aportado por
+  el usuario desde un scaffold de VB Studio)**: Spectra SÍ trae el template completo —
+  `oj-sp/general-overview-page/loader` (no aparece en los bundles: su component.json y su
+  view van INLINE en el loader; el nombre correcto lleva el sufijo -page). API: props del
+  header (pageTitle/pageSubtitle/contextualInfo/primaryAction/secondaryActions/badge/
+  timestamp/selectContext...), slots `main` + `info` (+search/announcement) — el main con
+  fondo neutral-10 y el info como complementario neutral-20 a toda altura (los "colores
+  como el foldout" que señaló el usuario) — y los MISMOS eventos sp* que el header suelto.
+  **Regla del renderer**: página de entidad (hostEntity) cuyo cuerpo son EXACTAMENTE dos
+  bloques-columna → `mateuGop {on, main, info}` y se monta el template (header integrado;
+  la banda genérica y el loop de host se suprimen); los bloques van a ancho completo
+  dentro de su slot (el ancho del info lo pone el template). El backend in-house volvió a
+  dos zonas con el MAIN primero (KPI + incidencias) e info después (huéspedes + salida) —
+  el orden de folds que corregía el usuario.
+- **Títulos de fold en el general overview (2026-07-27)**: cada slot del
+  oj-sp-general-overview-page titula con el estilo del foldout — el backend abre cada
+  zona con un Text container=h2 ("Estancia · balance" / "Información"), el bridge lo
+  marca `isH2` y el gop lo ASCIENDE a título de slot (gopFold: title + items sin el
+  heading), pintado como h2 heading-sm + subrayado. El subrayado original
+  (.oj-sp-foldout-panel-title-underline, 36×4 con --oj-sp-theme-accent) está SCOPED a
+  oj-sp-foldout-panel — `.mateu-fold-title-underline` en app.css replica el trazo con el
+  MISMO token del tema.
+- **Ancho por estado en la 360 (2026-07-27)**: fuera el @PageWidth(EDGE_TO_EDGE) estático
+  — `PageWidthSupplier.pageWidth()` decide por estado: la LLEGADA (foldout) sigue a
+  sangre y la estancia/salida van en FIXED (caja de 1408px con la fórmula RDS y el lienzo
+  alrededor). El wrapper de contenido del shell ya aplicaba maxWidth/margin/padding del
+  pageStyleOf, así que bastó el supplier del backend.
+- **Mensaje al huésped en drawer + textarea (2026-07-27)**: "Mensaje huésped" abre un
+  drawer ("Mensaje a <nombre>") con TEXTO LIBRE y Enviar → toast con el mensaje +
+  closeModal. La gramática de campos del drawer aprendió `textarea`:
+  dynFormMetadataOf/fieldListOf llevan el stereotype y el panel pinta `oj-text-area`
+  (rows 4) para FormFields con FieldStereotype.textarea.
+- **Dedup de botones en drawers (2026-07-27)**: los Buttons del CONTENIDO de un drawer
+  salían dos veces — como átomo isButtons en su sitio (con sus parameters) Y en la fila de
+  acciones del pie (actionsOf recoge todos los Buttons del árbol). `overlayOf` filtra del
+  pie los actionIds que ya se pintan en los bloques del contenido (mismo patrón que el
+  filtro de isInput duplicados).
+- **Barra de acciones del drawer anclada abajo (2026-07-27)**: pauta Redwood — las
+  acciones del drawer van en una barra al PIE con divisor. Un Button del contenido SIN
+  parameters se mueve al pie (Enviar); los que llevan parameters (listas de opciones) se
+  quedan en su sitio y no se duplican. El wrapper del drawer pasa a flex column
+  min-height:100vh y la barra usa margin-top:auto + oj-divider-top — OJO: las utilidades
+  de espaciado JET llevan !important (oj-sm-margin-6x-top pisaba el margin-top:auto;
+  padding-top inline en su lugar). La barra solo se pinta si hay acciones (bind-if).
+- **Check-out y salida sobre el template General Overview (2026-07-27)**: la rama plana
+  de `cuerpo` en ReservaOverview (modo check-out y DEPARTED) pasa a la MISMA anatomía
+  gop que la estancia en casa — zona ANCHA primero con su Text h2 de fold ("Check-out ·
+  balance" / "Estancia · salió el X") + folio/cargos/cobro, y la info clave ("Información":
+  `claveCheckout` = salida + huéspedes en check-out, huespedesRail en DEPARTED) como zona
+  estrecha complementaria. "Volver a la reserva" viaja como secondary del header gop.
+  **Intento item-overview REVERTIDO el mismo día**: se llegó a montar
+  `oj-sp-item-overview-page` + `oj-sp-item-overview` (detección por anatomía: zona
+  estrecha primero → iop, ancha primero → gop; EntityHeader → panel con badge/facts;
+  "Volver…" → flecha goToParent; formato edge-to-edge porque el template pone sus
+  fondos) — funcionaba a nivel de DOM pero el pintado no convencía (la columna del panel
+  no pinta fondo propio en displayMode 'light': el blanco es solo la tarjeta del
+  componente, y el conjunto quedaba descolgado sobre el lienzo), así que volvimos al gop
+  que ya domina el renderer. QUEDA en el bridge `itemOverviewPageOf` (+ badges/
+  subtitlePlain en entityHeaderOf) con su test de contrato (#31) por si se reintenta;
+  los loaders de item-overview siguen listados en el bundle del app-flow (inertes).
+  Hallazgos para el reintento: component.json del iop-page va inline en su loader; el
+  del oj-sp-item-overview va como `_metadata` del VComponent (props itemTitle/
+  itemSubtitle/badge/secondaryActions, slots body/footer); translations.go-to-parent
+  pone el label de la flecha; getInitialMode → displayMode 'light' con tema Redwood.
+  **Fix que SOBREVIVE al revert**: runMateuAction NO recalculaba mateuPageMargin/
+  Padding/MaxWidth tras una acción — el -40px de solape de banda del estado anterior se
+  arrastraba a la pantalla siguiente (lo delataron los sticky internos del iop); la
+  cadena de acción ahora recalcula márgenes con la misma lógica que onMateuNavigate.
+- **Salida (DEPARTED): info simple + incidencias (2026-07-28)**: en la zona Información
+  del gop, `infoSalida(stay)` sustituye al rail de check-in — lista SIMPLE de huéspedes
+  (nombre + doc, sin acciones ni badges de cardex) y "Incidencias (N)" con StatusList de
+  badges (✓ Resuelta / Sin resolver) o Notice success si no hubo. Seeder: st-oliver lleva
+  una incidencia RESOLVED para la demo.
+- **Buscar-al-teclear (@AutoSave) en el posteo de cargos (2026-07-28)**: el renderer VB
+  honra el trigger AutoSave del host — `autoSaveOf(ctx)` (bridge) + `on-raw-value-changed`
+  en los inputs del host (15 copias) → cadena `hostInputTyped` (borrador + debounce por
+  token a nivel de módulo + `Actions.callChain(runMateuAction)` + FOCO restaurado al
+  input recreado con el cursor al final, tick 250ms). BUG DE FRAMEWORK arreglado en
+  `TriggerMapper.createTriggers`: implementar TriggersSupplier hacía return temprano
+  SUPRIMIENDO los @Trigger/@SubscribeTo/@AutoSave de la clase, y un AutoSaveTrigger del
+  supplier caía al `default` del switch convirtiéndose en un OnLoad vacío — ahora los
+  triggers del supplier se SUMAN a los de las anotaciones y el case AutoSaveTrigger
+  existe. (El @AutoSave de clase ya viajaba bien por el camino de anotaciones.)
+- **Selector rápido del listado por ENUM (2026-07-28)**: un filtro enum en Filters
+  (ReservasListing.Vista: Llegadas hoy / Salidas hoy / In house, labels vía @Label) viaja
+  como FormField select con options en la metadata (a veces del MEDIATOR, no del nodo
+  Crud — quickFiltersOf busca en todo el árbol) → `listingOf.quickFilters` → chips
+  `oj-sp-filter-chip` bajo el smart search (applied/nonApplied como DOS oj-bind-if — sin
+  ternarios CSP); cadena `listingQuickFilter` togglea `mateuQuickFilter` {fieldId,value}
+  y re-busca con `mateuLastSearchText`; `runMateuSearch` mergea el filtro activo en el
+  componentState; reset al navegar. OJO: los params del listener via CONTEXTO de binding
+  (`$current.data.value`) — `$event.target.dataset` apunta al hijo interno del chip.
+- **Seed de reservas demo (2026-07-28)**: framework — PageListingBuilder emite botones de
+  toolbar por los métodos `@ListToolbarButton` de un Listing declarativo (label de
+  @Label); en VB el primero es la primaryAction del smart search. `seedDemo` crea 10
+  reservas (4 llegadas hoy, 1 mañana, 3 en casa, 2 salidas; ids demo-<stamp>-i) y
+  responde Message + dispatchEvent("reservas-seeded") → el listado se refresca por su
+  @Trigger(OnCustomEvent) (bus estándar). La DB es in-memory: un restart re-seedea.
+- **Banda blanca sobre el foldout (2026-07-28, fix del usuario)**: el foldout-layout
+  monta un oj-sp-header-navigation PROPIO vacío (16px, bg-neutral-0) →
+  `.oj-sp-foldout-layout-header-horizontal { display: none }` en app.css.
+- **Welcome page como HOME (2026-07-28)**: `Bienvenida extends Welcome` en /bienvenida +
+  `@HomeRoute("/bienvenida")` en el app → AppDto.homeRoute → `shellNavOf.homeRoute` → el
+  boot de la shell la PREFIERE sobre la primera opción del menú (deep-link sigue mandando).
+  Tiles = 3 `MetricCard` @Panel(title="") con contadores VIVOS (instancia por request) →
+  `welcomeOf` extrae el MetricCard del panel (isKpi/kpiTitle/kpiValue/kpiCaption) y el
+  tile pinta el KPI (valor heading-lg + caption). El menú TABS se OCULTA en la home
+  (bind-if selectedRoute !== homeRoute) y el icono casa del oj-sp-global-header navega a
+  la home (evento ojSpHomeClick → onMateuNavigate).
+- **@AppContext en drawer lateral (2026-07-28)**: los oj-select-one directos no casaban
+  con el header oscuro → un icono (oj-ux-ico-settings, borderless) abre un
+  oj-drawer-popup edge=end ("Contexto de trabajo") con los selectores en estilo estándar
+  (mismo listener contextChanged); toggleMateuContextDrawer flip de página. El botón del
+  icono lleva `oj-color-invert` (utilidad JET) para la iconografía CLARA sobre el header
+  oscuro — mismo blanco que el icono home del propio global-header. El intento
+  CSS previo (variables --oj-text-field-* del tema) queda documentado: funcionaba para
+  bg/placeholder pero el usuario prefirió el drawer.
+- **Modal de decisión: botones con parameters al pie (2026-07-28)**: el modal del
+  check-in de GRUPO solo ofrecía "Volver al listado" — "Check-in de <nombre>" lleva
+  parameters (_item) y la regla del pie de los drawers (los botones con parameters se
+  quedan en el contenido: listas de opciones) lo dejaba en un contenido que el modal no
+  pinta. En `overlayOf`, si el overlay es un DIALOG todos los botones pasan al pie CON
+  sus parameters (el listener mateuActionClicked ya los despacha). Test #32.
+- **Ask Oracle en el FAB del shell (2026-07-28)**: el FAB rojo es el CHAT del propio
+  oj-sp-simple-ui-shell (prop `chat`, evento `ojSpChatAction`) → abre la paleta
+  #mateuAskOracle (oj-dialog: oj-input-search con foco + filas oj-action-card con
+  icono/kind). Destinos: Inicio + navegación del app (mateuNavItems, con sus iconos) +
+  las VISTAS RÁPIDAS del listado (Llegadas hoy / Salidas hoy / In house). El tecleo
+  re-filtra en vivo (askOracleTyped reutiliza buildResults expuesto como estático de
+  askOracleOpen — los chains AMD pueden requerirse entre sí con './'). Una vista rápida
+  deja `mateuQuickFilter` + `mateuQuickFilterPending`: onMateuNavigate lo APLICA en la
+  búsqueda OnLoad (aterriza filtrado y con el chip aplicado) en vez de resetearlo, y
+  consume el flag. Verificado: FAB → paleta → "lleg" → 1 fila → clic → listado solo
+  "Llega hoy".
+- **Chips del selector rápido: actionable + spLabelAction (2026-07-28)**: los chips NO
+  activaban la vista — `oj-sp-filter-chip` no es clicable sin `actionable="true"`, y el
+  clic sobre la ETIQUETA emite `spLabelAction` (no `spAction`) → ambos eventos van al
+  mismo listener. OJO verificación: tras un seed, la página 0 ordenada (ARRIVING primero)
+  puede ser TODO llegadas — un "filtro funciona" con Llegadas hoy era falso positivo;
+  probar con "Salidas hoy" (mezcla estados sí o sí).
+- **Hero de la welcome: pares color+ilustración del spec RDS, rotando (2026-07-28)**:
+  el Figma "Welcome Banner - Illustration" define 8 PARES color↔ilustración (Purple
+  #856B94→Journey FINAL_7, Orange #AA643A→8 y 1, Lilac #6C7495→4, Teal #517F7E→5,
+  Blue #427E96→6, Green #4D835C→2, Pink #A46573→3). En oj-sp-header-welcome-banner:
+  `background-color` (enum dark-*) + `illustration-foreground` (URL) + themed-image
+  "none" — OJO: con themed-image="pebbles" el componente IGNORA backgroundColor (fondo
+  emparejado fijo), y las props solo aplican AL MONTAR (bindings, no post-mount). Las
+  cadenas rotan el par en cada visita a la welcome (Math.random en chain JS, permitido);
+  los KPI de la home navegan con `?vista=` (ver abajo). PENDIENTE DE ASSETS: exportar
+  del Figma los 8 "Journey Headers Abstract FINAL_N" (PNG transparente) a
+  webApps/vbredwoodapp/resources/images/journey-N.png — hasta entonces el hero pinta el
+  color sin ilustración (el 404 del background-image es silencioso). RESUELTO con los
+  assets OFICIALES que aportó el usuario: la galería fnd
+  (https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/) trae 5 parejas
+  illust-welcome-banner-bg/fg-01..05.png (capa fondo + capa figura, transparentes) —
+  las cadenas rotan [tono, pareja]: dark-ocean+01, dark-pine+02, dark-plum+03,
+  dark-sienna+04, dark-teal+05 (illustration-background + illustration-foreground +
+  background-color). Verificado: pine+grúa, sienna+figuras. Los "Journey Headers" del
+  Figma quedan como alternativa si algún día se exportan.
+- **KPIs de la home navegan con la vista aplicada + deep-link filtrado (2026-07-28)**:
+  cada MetricCard lleva actionId (verLlegadasHoy/verEnCasa/verSalidasHoy) y su @Action
+  devuelve URI "/reservas?vista=X" — el tile KPI es un oj-action-card (welcomeKpiClicked
+  → runMateuAction). GENÉRICO en onMateuNavigate: una ruta con `?campo=valor` se
+  consume como filtro rápido PENDIENTE (misma mecánica que el Ask Oracle) y fuerza la
+  recarga aunque la ruta no cambie — cualquier NavigateTo/URI del server puede aterrizar
+  un listado ya filtrado. welcomeOf lleva kpiActionId; chips con aire (margin-6x-bottom
+  hacia la tabla).
+- **Automatizaciones como listado con acciones de FILA (2026-07-28)**: el board no
+  renderizaba en VB → `AutomatizacionesListing` en /automatizaciones (el board queda en
+  /automatizaciones-board): smart search + chips por el enum Estado (el selector rápido
+  YA es genérico) + una fila por proceso; la acción "Solucionar" viaja como campo de
+  fila `ColumnActionGroup` (mecanismo Mateu: columna dataType=actionGroup en el wire,
+  cada fila lleva acciones.actions[{methodNameInCrud,label}]) — solo en filas con
+  warnings/errores. Renderer: listingOf marca la columna actionGroup → template
+  `cellRowActions` del oj-table (data-oj-as="cell" para conservar el contexto de FILA
+  dentro del for-each de acciones); cadena listingRowAction → runMateuAction
+  `action-on-row-<método>` con parameters {id} → Listing.handleActionOnRow invoca el
+  método; el refresco llega por el bus (dispatchEvent "automatizacion-arreglada" +
+  @Trigger OnCustomEvent → search). Verificado: 6 Solucionar → clic → toast + 5.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

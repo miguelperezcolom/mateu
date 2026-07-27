@@ -6,17 +6,15 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Optional;
 
 /**
- * Extracts presentation-level identity claims (e.g. a display username) from a
- * JWT already present on the request.
+ * Extracts presentation-level identity claims (e.g. a display username) from a JWT already present
+ * on the request.
  *
- * <p><b>Trust boundary:</b> this class assumes the token has already been
- * validated upstream — by the resource server (e.g. Spring Security) or an API
- * gateway — including signature, {@code exp}, {@code iss}, and {@code aud}. It
- * performs no verification itself.
+ * <p><b>Trust boundary:</b> this class assumes the token has already been validated upstream — by
+ * the resource server (e.g. Spring Security) or an API gateway — including signature, {@code exp},
+ * {@code iss}, and {@code aud}. It performs no verification itself.
  *
- * <p><b>The values returned here are for display only.</b> Never use them to
- * make an authorization decision; those must be enforced by whatever component
- * secured the endpoint.
+ * <p><b>The values returned here are for display only.</b> Never use them to make an authorization
+ * decision; those must be enforced by whatever component secured the endpoint.
  */
 public class JwtExtractor {
 

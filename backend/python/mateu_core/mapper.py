@@ -800,7 +800,11 @@ class ReflectionMapper:
             for i, panel in enumerate(c.panels):
                 infos.append(
                     FoldoutPanelInfo(
-                        title=panel.title, subtitle=panel.subtitle, icon=panel.icon, open=panel.open
+                        title=panel.title,
+                        subtitle=panel.subtitle,
+                        icon=panel.icon,
+                        open=panel.open,
+                        width=panel.width,
                     )
                 )
                 if panel.content is not None:

@@ -53,15 +53,54 @@ define([
       let reg = before;
       const allEvents = [];
       const allToasts = [];
+      // ¿algún incremento REPINTÓ el host? (cualquier fragmento no-Add: Replace/State/data;
+      // los Add son overlays — abrir un drawer no toca el host). Señal para el remontaje
+      // del foldout: comparar referencias/uuids no vale (proxies de VB, uuids estables).
+      let hostRepainted = false;
+      const touchesHost = (inc) =>
+        ((inc && inc.fragments) || []).some((f) => f.action !== 'Add');
       const applyInc = (inc) => {
         reg = bridge.reduceContexts(reg, inc);
+        if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
       if (isSse) {
+        // LongTask: el diálogo de progreso se pinta EN VIVO según llega el stream; sus
+        // increments (Add del Dialog + state-only del progreso) se CONSUMEN aquí y no se
+        // reducen — los commands/messages del último (p.ej. el dispatchEvent del
+        // refresco) sí, vía rest
+        const progressWatcher = bridge.longTaskWatcher();
+        let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
-          base, host, route, id, componentState, { parameters: parameters || {}, appState });
+          base, host, route, id, componentState, {
+            parameters: parameters || {}, appState,
+            onIncrement: async (inc) => {
+              const ev = progressWatcher.consume(inc);
+              if (!ev) return false;
+              if (ev.title != null) $page.variables.mateuProgressTitle = ev.title;
+              if (ev.text != null) $page.variables.mateuProgressText = ev.text;
+              if (ev.value != null) $page.variables.mateuProgressValue = Math.round(ev.value * 100);
+              if (ev.kind === 'open' && !progressOpen) {
+                progressOpen = true;
+                await Actions.callComponentMethod(context, {
+                  selector: '#mateuProgressDialog', method: 'open',
+                });
+              }
+              if (ev.rest.commands.length || ev.rest.messages.length) {
+                applyInc(ev.rest);
+              }
+              return true;
+            },
+          });
         increments.forEach(applyInc);
+        if (progressOpen) {
+          await new Promise((resolve) => setTimeout(
+            resolve, progressWatcher.closeAfter != null ? progressWatcher.closeAfter : 600));
+          await Actions.callComponentMethod(context, {
+            selector: '#mateuProgressDialog', method: 'close',
+          });
+        }
       } else {
         applyInc(await bridge.runMateuAction(
           base, host, route, id, componentState, { parameters: parameters || {}, appState }));
@@ -80,6 +119,7 @@ define([
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);
+          if (touchesHost(refresh)) hostRepainted = true;
           allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
       }
@@ -88,8 +128,17 @@ define([
 
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], state: {} };
-      $application.variables.mateuDrawerOpen = !!overlayNow;
+      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], blocks: [], texts: [], state: {} };
+      // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer
+      const esModal = !!(overlayNow && overlayNow.isDialog);
+      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal;
+      if (esModal && !$page.variables.mateuModalOpen) {
+        $page.variables.mateuModalOpen = true;
+        await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'open' });
+      } else if (!esModal && $page.variables.mateuModalOpen) {
+        $page.variables.mateuModalOpen = false;
+        await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
+      }
       if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
         $page.variables.mateuDrawerDraft = {};
       }
@@ -99,7 +148,36 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
-      $application.variables.mateuFoldout = bridge.foldoutOf(hostAfter);
+      // REMONTAJE del foldout: los bindings dentro de oj-sp-foldout-panel no re-ligan
+      // las application variables (gotcha del evaluador CSP) — null → tick → proyección
+      // nueva hace que el oj-bind-if recree el subárbol con los bloques frescos.
+      // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
+      // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
+      if (hostRepainted) {
+        const foldoutProjection = bridge.foldoutOf(hostAfter);
+        const foldoutBefore = $application.variables.mateuFoldout;
+        const contentOf = (proj) => proj
+          ? { overview: proj.overview, panels: proj.panels }
+          : { overview: { blocks: [] }, panels: [] };
+        const mismaEstructura = foldoutBefore && foldoutProjection
+          && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length;
+        if (mismaEstructura) {
+          // actualización IN SITU: los paneles están estampados UNA vez (su for-each
+          // pierde los anclajes si se re-stampa — cirugía DOM del foldout); el contenido
+          // vive en mateuFoldoutContent, cuyos bindings SÍ re-evalúan dentro del panel
+          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+        } else {
+          // estructura distinta (nº de paneles) o entra/sale del modo foldout:
+          // remontaje completo null→tick
+          if (foldoutBefore && foldoutProjection) {
+            $application.variables.mateuFoldout = null;
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+          // contenido ANTES que estructura (los paneles lo leen al estamparse)
+          $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
+          $application.variables.mateuFoldout = foldoutProjection;
+        }
+      }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
@@ -108,7 +186,7 @@ define([
       $application.variables.mateuListPrimary = primaryToolbar
         ? { label: primaryToolbar.label } : { label: '', display: 'off' };
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
-      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuHostText = summary.text;
@@ -199,6 +277,19 @@ define([
       const overviewProjection = bridge.generalOverviewOf(hostAfter);
       const itemProjection = bridge.itemOverviewOf(hostAfter);
       $application.variables.mateuWelcome = welcome;
+      if (welcome) {
+// los PARES color+ilustración del hero: las 5 parejas bg+fg de la galería
+        // OFICIAL (fnd/gallery illust-welcome-banner-*-01..05) rotando con su tono
+        const GALERIA = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/';
+        const LOOKS = [
+          ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+          ['dark-sienna', '04'], ['dark-teal', '05'],
+        ];
+        const look = LOOKS[Math.floor(Math.random() * LOOKS.length)];
+        $application.variables.mateuWelcomeTheme = look[0];
+        $application.variables.mateuWelcomeIlluBg = GALERIA + 'illust-welcome-banner-bg-' + look[1] + '.png';
+        $application.variables.mateuWelcomeIllu = GALERIA + 'illust-welcome-banner-fg-' + look[1] + '.png';
+      }
       $application.variables.mateuOverview = overviewProjection;
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
@@ -215,7 +306,8 @@ define([
       const esWizard2 = !!$application.variables.mateuWizard;
       const sinOtrasRamas2 = !listingSummary && !welcome && !overviewProjection && !itemProjection
         && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
-      const hostEntity2 = (!esWizard2 && sinOtrasRamas2)
+      // foldout con EntityHeader (la 360): el header de pantalla se conserva
+      const hostEntity2 = (!esWizard2 && (sinOtrasRamas2 || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(hostAfter) : null;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
@@ -225,7 +317,28 @@ define([
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
-      $application.variables.mateuHostContent = (hostBlocksRicos2 ? hostBlocks2 : null) || [];
+      // las acciones del toolbar de la Page (se calculan antes del header por si algún
+      // template de página de entidad las recoloca)
+      const hostToolbarA = bridge.pageToolbarOf(hostAfter);
+      // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna → el
+      // template oj-sp-general-overview-page (slots main/info, header integrado)
+      const zonedGop2 = (hostBlocks2 || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
+      const gopOn2 = !!(hostEntity2 && (hostBlocks2 || []).length === 2 && zonedGop2.length === 2);
+      const gopFold2 = (block) => {
+        const items = (block.items || []);
+        const conTitulo = items.length && items[0].isHeading && items[0].isH2;
+        return {
+          title: conTitulo ? items[0].text : '',
+          blocks: [Object.assign({}, block, {
+            blockClass: 'oj-flex-item oj-sm-12',
+            items: conTitulo ? items.slice(1) : items,
+          })],
+        };
+      };
+      $application.variables.mateuGop = gopOn2
+        ? { on: true, main: gopFold2(zonedGop2[0]), info: gopFold2(zonedGop2[1]) }
+        : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
+      $application.variables.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
@@ -246,30 +359,54 @@ define([
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
-        || overviewProjection || listingSummary || $application.variables.mateuFoldout);
+        || overviewProjection || listingSummary
+        || ($application.variables.mateuFoldout && !hostEntity2));
       const showHeaderA = !integratedHeader;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
       const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const hostToolbarA = bridge.pageToolbarOf(hostAfter);
       const primaryBtnA = hostToolbarA.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
         subtitle: hostEntity2 ? hostEntity2.subtitle : '',
         facts: hostEntity2 ? hostEntity2.facts : [],
-        showBand: showBandA,
-        showInline: showHeaderA && !showBandA,
+        showBand: showBandA && !gopOn2,
+        showInline: showHeaderA && !showBandA && !gopOn2,
         showListBand: showListBandA,
         showListInline: !!listingSummary && !showListBandA,
-        primary: primaryBtnA ? { label: primaryBtnA.label } : { label: '', display: 'off' },
+        primary: primaryBtnA ? { label: primaryBtnA.label, display: primaryBtnA.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
-        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ label: b.label })),
+        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
         toolbar: hostToolbarA,
       };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
+      // los márgenes del contenido se RECALCULAN también tras una acción (una acción
+      // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
+      // lógica que onMateuNavigate (sin recalcular, el -40px de solape de banda del
+      // estado anterior se arrastraba a la pantalla siguiente)
+      const pageStyleA = $application.variables.mateuMenuDrawerMode
+        ? bridge.pageStyleOf({ pageWidth: 'edgeToEdge' })
+        : bridge.pageStyleOf(hostAfter);
+      $application.variables.mateuPageMaxWidth = pageStyleA.maxWidth;
+      $application.variables.mateuPageMargin = pageStyleA.margin;
+      $application.variables.mateuPagePadding = pageStyleA.padding;
+      if ($application.variables.mateuWelcome || $application.variables.mateuOverview
+          || $application.variables.mateuWizard || listingSummary
+          || $application.variables.mateuPageHeader) {
+        $application.variables.mateuPagePadding = '0';
+      }
+      if (showBandA || showListBandA) {
+        $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
+        const marginPartsA = ($application.variables.mateuPageMargin || '0').split(' ');
+        marginPartsA[0] = '-40px';
+        if (marginPartsA.length === 1) marginPartsA.push('auto');
+        $application.variables.mateuPageMargin = marginPartsA.join(' ');
+      } else {
+        $application.variables.mateuBandBoxMargin = '0 auto';
+      }
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
@@ -284,6 +421,10 @@ define([
         document.title = effects.docTitle;
       }
       if (effects.navigate && effects.navigate.route) {
+        if ($page.variables.mateuModalOpen) {
+          $page.variables.mateuModalOpen = false;
+          await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
+        }
         await Actions.fireEvent(context, {
           name: 'application:mateuNavigate',
           payload: { route: effects.navigate.route },

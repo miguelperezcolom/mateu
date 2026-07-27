@@ -100,6 +100,7 @@ define([], () => {
         displayName: f.label || f.fieldId,
         required: !!f.required,
         readonly: !!f.readOnly,
+        stereotype: f.stereotype || '',
       }
     }
     return Object.keys(metadata).length ? metadata : null
@@ -119,6 +120,7 @@ define([], () => {
         label: a.label,
         style: a.buttonStyle || 'outlined',
         chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        parameters: a.parameters || {},
       })
     }
     return out
@@ -132,6 +134,7 @@ define([], () => {
     const s = state || {}
     return Object.keys(metadata).map((fieldId) => {
       const f = metadata[fieldId]
+      const isTextArea = f.stereotype === 'textarea'
       return {
         fieldId,
         label: f.displayName,
@@ -139,7 +142,8 @@ define([], () => {
         readonly: f.readonly,
         isNumber: f.type === 'number',
         isBoolean: f.type === 'boolean',
-        isText: f.type !== 'number' && f.type !== 'boolean',
+        isTextArea,
+        isText: f.type !== 'number' && f.type !== 'boolean' && !isTextArea,
         value: s[fieldId] == null ? null : s[fieldId],
       }
     })
@@ -152,6 +156,36 @@ define([], () => {
     const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
     if (!id || !reg.contexts[id]) return null
     const ctx = reg.contexts[id]
+    // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
+    // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
+    // es solo campos y botones (p.ej. el picker de habitaciones)
+    // los FormFields del drawer ya los pinta su gramática de CAMPOS (oj-form-layout):
+    // fuera los átomos isInput de los bloques o saldrían DUPLICADOS (y el usuario
+    // escribiría en el par equivocado)
+    // pauta del drawer Redwood: las ACCIONES van en la barra del pie. Un Button del
+    // contenido SIN parámetros se mueve al pie (p.ej. Enviar); los que llevan parameters
+    // (listas de opciones: métodos de cobro, habitaciones…) se quedan en su sitio y NO se
+    // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
+    // acciones del pie — el listener del modal despacha actionId + parameters, así que
+    // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
+    const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+    const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
+    const keepInContent = isDialog ? () => false : conParams
+    const content = (islandContentOf(ctx) || [])
+      .map((block) => ({
+        ...block,
+        items: block.items
+          .filter((a) => !a.isInput)
+          .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(keepInContent) } : a))
+          .filter((a) => !a.isButtons || a.buttons.length),
+      }))
+      .filter((block) => block.items.length)
+    const contentActionIds = new Set()
+    for (const block of content) {
+      for (const a of block.items) {
+        if (a.isButtons) for (const btn of a.buttons || []) contentActionIds.add(btn.actionId)
+      }
+    }
     return {
       id,
       title: ctx.title || '',
@@ -159,8 +193,63 @@ define([], () => {
       width: ctx.width,
       state: ctx.state || {},
       fields: fieldListOf(ctx.tree, ctx.state),
-      actions: actionsOf(ctx.tree),
+      actions: actionsOf(ctx.tree).filter((a) => !contentActionIds.has(a.actionId)),
+      content: content,
+      hasContent: !!content.length,
+      // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
+      // drawer (tarea con formulario); texts = sus líneas de mensaje
+      isDialog,
+      texts: collectTexts(ctx.tree),
     }
+  }
+
+  /** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del
+   *  Dialog-con-ProgressBar y los state-only dirigidos a su id; devuelve eventos
+   *  {kind: open|progress, title?, text?, value?, rest} para que el chain pinte el
+   *  oj-dialog — `rest` lleva los commands/messages del increment (el último los trae:
+   *  dispatchEvent del refresco) SIN el fragment del diálogo, listos para reducir. */
+  function longTaskWatcher() {
+    const hasProgressBar = (node) => {
+      if (!node || typeof node !== 'object') return false
+      if (node.metadata && node.metadata.type === 'ProgressBar') return true
+      for (const v of Object.values(node)) {
+        if (Array.isArray(v)) { if (v.some(hasProgressBar)) return true }
+        else if (v && typeof v === 'object' && hasProgressBar(v)) return true
+      }
+      return false
+    }
+    const w = { dialogId: null, closeAfter: null }
+    w.consume = (inc) => {
+      for (const fragment of inc.fragments || []) {
+        const md = fragment.component && fragment.component.metadata
+        if (fragment.action === 'Add' && md && md.type === 'Dialog' && hasProgressBar(fragment.component)) {
+          w.dialogId = md.id
+          const seed = md.initialData || {}
+          return {
+            kind: 'open',
+            title: seed.title,
+            text: seed.progressText,
+            value: seed.progressValue || 0,
+            rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+          }
+        }
+      }
+      if (!w.dialogId) return null
+      const frs = inc.fragments || []
+      if (frs.length && frs.every((f) => !f.component && f.targetComponentId === w.dialogId)) {
+        const st = frs[0].state || {}
+        if (st._closeAfterMillis != null) w.closeAfter = st._closeAfterMillis
+        return {
+          kind: 'progress',
+          title: st.title,
+          text: st.progressText,
+          value: st.progressValue,
+          rest: { commands: inc.commands || [], messages: inc.messages || [], fragments: [] },
+        }
+      }
+      return null
+    }
+    return w
   }
 
   /** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
@@ -177,7 +266,10 @@ define([], () => {
   }
 
   /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
-   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout. */
+   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
+   *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
+   *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
+   *  como forma legada para tests/fixtures. */
   function foldoutOf(ctx) {
     const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
     if (!node) return null
@@ -185,13 +277,36 @@ define([], () => {
     const children = node.children || []
     const bySlot = {}
     for (const child of children) bySlot[child.slot || ''] = child
+    const blocksOf = (slotNode) => {
+      const blocks = slotNode
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {} })
+        : null
+      // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
+      // el resto a fila completa
+      return (blocks || []).map((block) => ({
+        ...block,
+        blockClass: block.colClass || 'oj-flex-item oj-sm-12',
+      }))
+    }
     return {
-      overview: { texts: collectTexts(bySlot['overview']) },
+      headerTitle: md.headerTitle || '',
+      overview: {
+        texts: collectTexts(bySlot['overview']),
+        blocks: blocksOf(bySlot['overview']),
+      },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
         subtitle: panel.subtitle || '',
+        // título compuesto del panel: "Operaciones · 1 de 7" — el contador vive en la
+        // CABECERA (leído del contenido vivo por índice, refresca sin re-stampar)
+        headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
+        // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
+        // medida — sin él, el motor responsive del foldout reparte a su aire y las
+        // tarjetas del cockpit se solapan
+        width: panel.width || '',
         texts: collectTexts(bySlot['panel-' + i]),
+        blocks: blocksOf(bySlot['panel-' + i]),
       })),
     }
   }
@@ -246,10 +361,20 @@ define([], () => {
     if (!hero) return null
     const md = hero.metadata
     const ctas = actionsOf(hero)
-    const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => ({
-      title: panel.metadata.title || '',
-      texts: collectTexts(panel),
-    }))
+    const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => {
+      // un MetricCard dentro del tile → KPI (valor grande + etiqueta + caption)
+      const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
+      const mm = metric ? metric.metadata : null
+      return {
+        title: panel.metadata.title || '',
+        texts: collectTexts(panel),
+        isKpi: !!mm,
+        kpiTitle: mm ? (mm.title || mm.label || '') : '',
+        kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
+        kpiCaption: mm ? (mm.description || mm.caption || '') : '',
+        kpiActionId: mm ? (mm.actionId || '') : '',
+      }
+    })
     return {
       title: md.title || '',
       subtitle: md.subtitle || '',
@@ -362,6 +487,19 @@ define([], () => {
     'vaadin:chart': 'oj-ux-ico-bar-chart',
     'vaadin:table': 'oj-ux-ico-table',
     'vaadin:money': 'oj-ux-ico-currency-money',
+    'vaadin:barcode': 'oj-ux-ico-scan-barcode',
+    'vaadin:pencil': 'oj-ux-ico-edit',
+    'vaadin:ban': 'oj-ux-ico-do-not-enter',
+    'vaadin:rotate-left': 'oj-ux-ico-undo',
+    'vaadin:exchange': 'oj-ux-ico-exchange-h',
+    'vaadin:wifi': 'oj-ux-ico-connection',
+    'vaadin:key': 'oj-ux-ico-key',
+    'vaadin:pen': 'oj-ux-ico-signature',
+    'vaadin:credit-card': 'oj-ux-ico-bank-card',
+    'vaadin:gift': 'oj-ux-ico-gift',
+    'vaadin:cart': 'oj-ux-ico-cart',
+    'vaadin:check': 'oj-ux-ico-check',
+    'vaadin:clock': 'oj-ux-ico-clock',
   }
   function ojIconOf(icon) {
     if (!icon) return undefined
@@ -414,6 +552,7 @@ define([], () => {
         children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
       })),
       serverSideType: shell.serverSideType,
+      homeRoute: shell.homeRoute || '',
     }
   }
 
@@ -555,7 +694,10 @@ define([], () => {
           node.children.forEach((zoneChild, i) => {
             const pct = parseFloat(zoneMatches[i][1])
             const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
+            // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
+            // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
             const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+              + (zoneChild.cssClasses ? ' ' + zoneChild.cssClasses : '')
             const before = blocks.length
             plain = null
             visit(zoneChild, null)
@@ -620,7 +762,26 @@ define([], () => {
       }
       if (t === 'Text') {
         const text = interp(m.text)
-        if (text) atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+        if (text) {
+          // container h1..h6 → HEADING de contenido: h3 real (el escalón siguiente al h2
+          // de la sección), con ritmo de grupo (margin-top) cuando no abre el bloque
+          const heading = /^h[1-6]$/.test(m.container || '')
+          if (heading) {
+            const target = container || plain
+            const notFirst = !!(target && target.items.length)
+            atom({
+              isText: true,
+              isHeading: true,
+              // un h2 al frente de una zona es el TITULO del fold (el gop lo asciende a
+              // cabecera de slot con el subrayado del foldout)
+              isH2: m.container === 'h2',
+              text,
+              cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
+            }, container)
+          } else {
+            atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+          }
+        }
         return
       }
       if (t === 'ProgressSteps') {
@@ -730,28 +891,36 @@ define([], () => {
         // Todo precomputado por ítem — el CSP de VB no divide ni compara.
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-        // una lista donde ALGUNA fila lleva acciones (p.ej. los huéspedes con Escanear /
-        // A mano) se pinta ENTERA como tarjetas de una columna — mismo oj-panel que las
-        // operaciones: borde propio + aire uniforme; en fila suelta quedaba descolocada
-        const anyActions = (m.items || []).some(
-          (it) => (it.actionLabel && it.actionId) || (it.actionLabel2 && it.actionId2))
-        const asCards = cols > 0 || anyActions
+        // SOLO columns>1 fuerza tarjetas: una lista de una columna con acciones (los
+        // huéspedes) se pinta con la rama APILADA del markup — nombre como h3 (nivel
+        // siguiente al h2 de la sección), sin avatar, ritmo .mateu-list-item
+        const asCards = cols > 0
+        // la rejilla del cockpit: celdas de MEDIDA FIJA (.mateu-grid-cell, 22rem) con el
+        // aire entre tarjetas como gap de la rejilla (.mateu-grid) — ver app.css
         const cellClass = cols
-          ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
+          ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
         atom({
           isStatusList: true,
-          wrapClass: asCards ? 'oj-flex' : '',
+          wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
           items: (m.items || []).map((it) => {
             // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
             // precomputado; una fila CON acciones se pinta APILADA (título+chip /
             // descripción / botones) para no descolocarse en carriles estrechos
+            // hasta TRES acciones por fila; con actionIcon* el botón se pinta SOLO-ICONO
+            // (label como tooltip/aria) — iconClass precomputado vía ojIconOf
             const rowActions = []
             if (it.actionLabel && it.actionId) {
-              rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id } })
+              rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
+                iconClass: ojIconOf(it.actionIcon) || '' })
             }
             if (it.actionLabel2 && it.actionId2) {
-              rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id } })
+              rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id },
+                iconClass: ojIconOf(it.actionIcon2) || '' })
+            }
+            if (it.actionLabel3 && it.actionId3) {
+              rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id },
+                iconClass: ojIconOf(it.actionIcon3) || '' })
             }
             return {
               rowClass,
@@ -766,6 +935,11 @@ define([], () => {
               statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
               actions: rowActions,
               hasActions: rowActions.length > 0,
+              // nivel del heading del titulo apilado: h4 bajo un grupo con h3 propio
+              isH4: m.itemHeadingLevel === 4,
+              // cronologia bajo el titulo (p.ej. las entradas de una incidencia)
+              lines: (it.lines || []).map(interp),
+              hasLines: !!(it.lines && it.lines.length),
               actionLabel: it.actionLabel || '',
               actionId: it.actionId || m.rowActionId || '',
               parameters: { _item: it.id },
@@ -968,10 +1142,47 @@ define([], () => {
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
     const facts = (m.facts || []).map((f) => ({ label: f.label, value: interpolate(f.value, state) }))
     if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+    // los colores de Chip de Mateu → status del badge oj-sp
+    const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
     return {
       title: interpolate(m.title, state),
       subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+      // el subtítulo SIN los badges concatenados (para templates que pintan el badge aparte)
+      subtitlePlain: interpolate(m.subtitle || '', state),
+      badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
       facts,
+    }
+  }
+
+  /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
+   *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
+   *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
+   *  overview (main ancho primero + info estrecha después). El EntityHeader del host se
+   *  convierte en el oj-sp-item-overview del slot overview (itemTitle/subtitle/badge +
+   *  facts como filas clave en el body); un botón "Volver…" del toolbar pasa a la flecha
+   *  goToParent del header de navegación del template y el resto a secondaryActions. */
+  function itemOverviewPageOf(entity, blocks, toolbar) {
+    if (!entity) return null
+    const zoned = (blocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
+    if ((blocks || []).length !== 2 || zoned.length !== 2) return null
+    const col = (b) => parseInt((b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '0', 10)
+    if (col(zoned[0]) >= col(zoned[1])) return null // la ancha primero → general overview
+    const full = (b) => Object.assign({}, b, { blockClass: 'oj-flex-item oj-sm-12' })
+    const back = (toolbar || []).find((b) => /^volver\b/i.test(b.label || ''))
+    const badge = (entity.badges || [])[0] || null
+    return {
+      on: true,
+      overview: {
+        title: entity.title || '',
+        subtitle: entity.subtitlePlain != null ? entity.subtitlePlain : (entity.subtitle || ''),
+        badge: badge ? { text: badge.label, status: badge.status, style: 'subtle', position: 'trailing' } : null,
+        facts: entity.facts || [],
+        blocks: [full(zoned[0])],
+      },
+      main: { blocks: [full(zoned[1])] },
+      back: { show: !!back, actionId: back ? back.actionId : '', label: back ? back.label : '' },
+      secondary: (toolbar || []).filter((b) => b !== back)
+        .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
     }
   }
 
@@ -987,6 +1198,7 @@ define([], () => {
         actionId: b.actionId,
         label: b.label || b.actionId,
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled,
       }))
   }
 
@@ -1005,6 +1217,17 @@ define([], () => {
     return ((ctx && ctx.tree && ctx.tree.triggers) || [])
       .filter((t) => t.type === 'OnCustomEvent' && t.eventName === eventName && t.actionId)
       .map((t) => t.actionId)
+  }
+
+  /** Trigger @AutoSave/AutoSaveTrigger del host (buscar-al-teclear, autoguardado):
+   *  {actionId, debounceMillis} o null. El renderer lo honra re-lanzando la acción
+   *  debounced en cada pulsación (raw-value de los inputs del host). */
+  function autoSaveOf(ctx) {
+    const trigger = ((ctx && ctx.tree && ctx.tree.triggers) || [])
+      .find((t) => t.type === 'AutoSave' && t.actionId)
+    return trigger
+      ? { actionId: trigger.actionId, debounceMillis: trigger.debounceMillis || 400 }
+      : null
   }
 
   /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
@@ -1068,6 +1291,17 @@ define([], () => {
             : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
               : 'cellEditText'
         }
+        // ACCIONES por fila (ColumnActionGroup): botones que despachan
+        // action-on-row-<método> con el id de la fila (Listing.handleActionOnRow)
+        if (c.dataType === 'actionGroup') {
+          def.template = 'cellRowActions'
+          def.headerText = ''
+        }
+        // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
+        // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
+        if (c.dataType === 'status') {
+          def.template = 'cellStatusBadge'
+        }
         return def
       }),
       // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
@@ -1077,7 +1311,7 @@ define([], () => {
       display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
       // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
       editable: (md.columns || []).some((col) => (col.metadata || col).editable),
-      rows: page.content || [],
+      rows: statusBadgeRows(page.content || [], md.columns || []),
       total: page.totalElements == null ? null : page.totalElements,
       isEmpty: (page.content || []).length === 0,
       toolbar: (md.toolbar || []).map((b) => ({
@@ -1085,7 +1319,58 @@ define([], () => {
         label: b.label,
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       })),
+      // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
+      // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
+      // los filtros viajan como FormField select en la metadata (a veces en el mediator,
+      // no en el nodo Crud — se busca en todo el árbol)
+      quickFilters: quickFiltersOf(ctx),
     }
+  }
+
+  // filas con columnas @Status: al valor {type, message} se le estampa la clase badge de
+  // JET (Redwood, sistema) — el template de celda no puede mapear (CSP sin ternarios)
+  const STATUS_BADGE = {
+    SUCCESS: 'oj-badge oj-badge-success oj-badge-subtle',
+    WARNING: 'oj-badge oj-badge-warning oj-badge-subtle',
+    DANGER: 'oj-badge oj-badge-danger oj-badge-subtle',
+    INFO: 'oj-badge oj-badge-info oj-badge-subtle',
+    NONE: 'oj-badge oj-badge-neutral oj-badge-subtle',
+  }
+  function statusBadgeRows(rows, columns) {
+    const statusCols = columns
+      .map((col) => col.metadata || col)
+      .filter((c) => c.dataType === 'status')
+      .map((c) => c.id)
+    if (!statusCols.length) return rows
+    return rows.map((row) => {
+      const out = { ...row }
+      for (const id of statusCols) {
+        const value = out[id]
+        if (value && typeof value === 'object') {
+          out[id] = { ...value, badgeClass: STATUS_BADGE[value.type] || STATUS_BADGE.NONE }
+        }
+      }
+      return out
+    })
+  }
+
+  function quickFiltersOf(ctx) {
+    const found = []
+    const walk = (node) => {
+      if (!node || typeof node !== 'object') return
+      for (const f of ((node.metadata || {}).filters) || []) {
+        if ((f.options || []).length && (f.stereotype === 'select' || f.stereotype === 'multiSelect')) {
+          found.push({
+            fieldId: f.fieldId,
+            label: f.label || f.fieldId,
+            options: f.options.map((o) => ({ value: o.value, label: o.label || o.value })),
+          })
+        }
+      }
+      ;(node.children || []).forEach(walk)
+    }
+    walk(ctx && ctx.tree)
+    return found
   }
 
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
@@ -1179,6 +1464,9 @@ define([], () => {
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           themeToggle: md.themeToggle,
+          // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
+          // primera opción del menú
+          homeRoute: md.homeRoute || '',
         }
         continue
       }
@@ -1340,9 +1628,12 @@ define([], () => {
 
   /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
    *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
-   *  MVP: se lee el stream ENTERO y se devuelven los increments en orden (sin diálogo de
-   *  progreso en vivo); el último suele traer los comandos (p.ej. dispatchEvent). */
+   *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
+   *  progreso del LongTask se pinta mientras el stream avanza); si el callback devuelve
+   *  true, el increment se considera CONSUMIDO y se excluye de la lista devuelta. Sin
+   *  callback, comportamiento clásico: lista completa al acabar. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
+    const { onIncrement, ...bodyExtra } = extra || {}
     const outbound = (ctx && ctx.outbound) || {}
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
@@ -1356,17 +1647,37 @@ define([], () => {
         initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
         consumedRoute: outbound.consumedRoute || '',
         serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
-        ...extra,
+        ...bodyExtra,
         route: bare ? `/${bare}` : '',
         actionId,
       }),
     })
     if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
-    const text = await res.text()
     const increments = []
-    for (const chunk of text.split('\n\n')) {
-      const line = chunk.trim()
-      if (line.startsWith('data:')) increments.push(JSON.parse(line.slice(5).trim()))
+    const handle = async (raw) => {
+      const line = raw.trim()
+      if (!line.startsWith('data:')) return
+      const inc = JSON.parse(line.slice(5).trim())
+      const consumed = onIncrement ? await onIncrement(inc) : false
+      if (!consumed) increments.push(inc)
+    }
+    if (res.body && res.body.getReader) {
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        let cut
+        while ((cut = buffer.indexOf('\n\n')) >= 0) {
+          await handle(buffer.slice(0, cut))
+          buffer = buffer.slice(cut + 2)
+        }
+      }
+      if (buffer.trim()) await handle(buffer)
+    } else {
+      for (const chunk of (await res.text()).split('\n\n')) await handle(chunk)
     }
     return increments
   }
@@ -1437,11 +1748,14 @@ define([], () => {
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    longTaskWatcher,
     findAllByType,
     cardOf,
     welcomeOf,
     generalOverviewOf,
     itemOverviewOf,
+    itemOverviewPageOf,
+    autoSaveOf,
     taskQueueOf,
     emptyStateOf,
     interpolate,

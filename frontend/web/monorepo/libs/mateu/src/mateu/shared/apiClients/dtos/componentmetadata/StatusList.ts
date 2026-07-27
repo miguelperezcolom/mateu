@@ -10,4 +10,6 @@ export default interface StatusList extends ComponentMetadata {
     rowActionId?: string
     /** N-column responsive grid instead of a single stack; 0/absent = classic one-column list */
     columns?: number
+    /** heading level of item titles in stacked mode (default 3 → h3; 4 → h4 under an h3 group) */
+    itemHeadingLevel?: number
 }

@@ -21,6 +21,7 @@ import io.mateu.mdd.demofrontoffice.domain.room.RoomRepository;
 import io.mateu.mdd.demofrontoffice.domain.stay.Companion;
 import io.mateu.mdd.demofrontoffice.domain.stay.Incident;
 import io.mateu.mdd.demofrontoffice.domain.stay.IncidentStatus;
+import io.mateu.mdd.demofrontoffice.domain.stay.IncidentType;
 import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayRepository;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayStatus;
@@ -179,7 +180,15 @@ public class FrontOfficeSeeder implements ApplicationRunner {
         new Stay(
             "st-oliver", "oliver", "512", "Deluxe King", "Media pensión", today.minusDays(6),
             today.minusDays(1), 1, "Directo · Web", new BigDecimal("980.00"), StayStatus.DEPARTED,
-            0, 0, null, List.of(), List.of(), Set.of()));
+            0, 0, null, List.of(),
+            List.of(
+                new Incident(
+                    "ac-512", IncidentType.CLIMA, "🔧", "Goteo del aire acondicionado",
+                    "Goteo sobre el escritorio la segunda noche",
+                    IncidentStatus.RESOLVED, false,
+                    java.time.LocalDateTime.now().minusDays(4).withHour(21).withMinute(15),
+                    java.time.LocalDateTime.now().minusDays(3).withHour(10).withMinute(30))),
+            Set.of()));
 
     // In-house guests (the "en casa" 360 and the check-out queue)
     stays.save(
@@ -192,8 +201,11 @@ public class FrontOfficeSeeder implements ApplicationRunner {
                     "+34 600 333 444", "Doc 55443322M · Adulto · Acompañante")),
             List.of(
                 new Incident(
-                    "tv", "📺", "TV sin señal en canales internacionales",
-                    "Habitación 1108 · Reportado hace 1 día", IncidentStatus.OPEN, false)),
+                    "tv", IncidentType.TV, "📺", "TV sin señal en canales internacionales",
+                    "El huésped reporta que los canales internacionales no sintonizan",
+                    IncidentStatus.OPEN, false,
+                    java.time.LocalDateTime.now().minusDays(1).withHour(18).withMinute(40),
+                    null)),
             Set.of()));
     stays.save(
         new Stay(
@@ -211,12 +223,15 @@ public class FrontOfficeSeeder implements ApplicationRunner {
                     "+33 6 11 22 33 44", "Doc FR-4471882 · Adulto · Titular secundario")),
             List.of(
                 new Incident(
-                    "ac", "🌡", "Aire acondicionado con ruido",
-                    "Habitación 901 · Mantenimiento avisado", IncidentStatus.IN_PROGRESS, false),
+                    "ac", IncidentType.CLIMA, "🌡", "Aire acondicionado con ruido",
+                    "Ruido intermitente del split por la noche — no deja dormir",
+                    IncidentStatus.IN_PROGRESS, false,
+                    java.time.LocalDateTime.now().minusHours(14), null),
                 new Incident(
-                    "rs", "🍽", "Retraso en room service",
-                    "Cena de anoche · Compensada con detalle de bienvenida", IncidentStatus.OPEN,
-                    false)),
+                    "rs", IncidentType.RESTAURANTE, "🍽", "Retraso en room service",
+                    "La cena llegó 40 minutos tarde — compensada con detalle de bienvenida",
+                    IncidentStatus.OPEN, false,
+                    java.time.LocalDateTime.now().minusHours(11), null)),
             Set.of()));
     stays.save(
         new Stay(
@@ -225,8 +240,11 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             null, List.of(),
             List.of(
                 new Incident(
-                    "queja", "⚠", "Queja activa — ruido en pasillo",
-                    "Reportada hace 2 días · Pendiente de respuesta", IncidentStatus.OPEN, true)),
+                    "queja", IncidentType.GENERAL, "⚠", "Queja activa — ruido en pasillo",
+                    "Ruido de carros de limpieza a primera hora — pendiente de respuesta",
+                    IncidentStatus.OPEN, true,
+                    java.time.LocalDateTime.now().minusDays(2).withHour(8).withMinute(15),
+                    null)),
             Set.of()));
   }
 

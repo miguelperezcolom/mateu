@@ -13,7 +13,8 @@ import {
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf,
+  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  entityHeaderOf, itemOverviewPageOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -163,7 +164,7 @@ test('dynFormMetadataOf/actionsOf proyectan el form de /person para oj-dyn-form'
   const { contexts } = reduceContexts(empty(), fx('load-form'))
   const tree = contexts[HOST_ID].tree
   const md = dynFormMetadataOf(tree)
-  assert.deepEqual(md.name, { type: 'string', displayName: 'Name', required: true, readonly: false })
+  assert.deepEqual(md.name, { type: 'string', displayName: 'Name', required: true, readonly: false, stereotype: 'regular' })
   assert.equal(md.age.type, 'number')
   const actions = actionsOf(tree)
   assert.deepEqual(actions.map((a) => a.actionId).sort(), ['goToProducts', 'save'])
@@ -450,15 +451,16 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   const ops = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
   // columns=3 → grid responsive: wrapper oj-flex + cada fila oj-flex-item oj-md-4
-  assert.equal(ops.wrapClass, 'oj-flex')
+  assert.match(ops.wrapClass, /oj-flex/)
   assert.equal(ops.items[0].gridCell, true)
-  assert.match(ops.items[0].cellClass, /oj-flex-item oj-sm-12 oj-md-6/) // columns(2) en el carril derecho
+  assert.match(ops.items[0].cellClass, /mateu-grid-cell/) // rejilla fija del cockpit (22rem)
+  assert.match(ops.wrapClass, /mateu-grid/)
   const huespedes = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Klaus Hoffmann'))
-  // filas con acciones → la lista ENTERA como tarjetas de una columna (oj-panel)
-  assert.equal(huespedes.wrapClass, 'oj-flex')
-  assert.ok(huespedes.items[0].gridCell)
-  assert.match(huespedes.items[0].cellClass, /oj-sm-12 oj-flex oj-sm-margin-4x-bottom/)
+  // lista de UNA columna con acciones → rama APILADA (h3 sin avatar), no tarjetas
+  assert.equal(huespedes.wrapClass, '')
+  assert.ok(!huespedes.items[0].gridCell)
+  assert.equal(huespedes.items[0].hasActions, true)
   const wifi = ops.items.find((i) => i.title === 'Tarjeta wifi')
   assert.equal(wifi.actions.length, 1)
   assert.equal(wifi.actions[0].label, 'Crear')
@@ -484,6 +486,97 @@ test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () =
   assert.match(zoned[1].blockClass, /oj-md-8/) // 64% → 8/12 (operativa)
   assert.ok(zoned[1].items.some((a) => a.isTaskProgress))
   assert.ok(blocks.every((b) => b.blockClass))
+})
+
+// 30) Diálogo de progreso de un LongTask (SSE del host: escanearPax de la 360): el vigía
+// consume el Add del Dialog-con-ProgressBar y los state-only dirigidos a su id; el último
+// increment trae _closeAfterMillis + los commands del refresco en rest.
+test('longTaskWatcher: open → 4 progress → cierre con rest.commands (dispatchEvent)', () => {
+  const stream = fx('fo-sse-scan-stream')
+  const watcher = longTaskWatcher()
+  const events = stream.map((inc) => watcher.consume(inc))
+  assert.ok(events.every(Boolean), 'todos los increments del LongTask se consumen')
+  assert.equal(events[0].kind, 'open')
+  assert.match(events[0].title, /Escaneando el documento/)
+  assert.equal(events[0].value, 0)
+  assert.equal(events.filter((e) => e.kind === 'progress').length, 5)
+  assert.equal(events[1].value, 0.25)
+  assert.match(events[1].text, /Encendiendo el escáner/)
+  const last = events[events.length - 1]
+  assert.equal(last.title, 'Documento verificado')
+  assert.equal(watcher.closeAfter, 1000)
+  assert.equal(last.rest.commands.length, 1)
+  assert.equal(last.rest.fragments.length, 0) // el fragment del diálogo NO se reduce
+})
+
+// 31) ITEM OVERVIEW nativo: página de entidad con la zona ESTRECHA primero (panel de
+// datos clave + main ancho) → oj-sp-item-overview-page; la ancha primero sigue siendo
+// general overview (null aquí). El EntityHeader pasa al oj-sp-item-overview (badge del
+// primer Chip, subtítulo SIN badges) y "Volver…" del toolbar a la flecha goToParent.
+test('item overview: zona estrecha primero → panel clave + main; ancha primero → null', () => {
+  const ctx = fx('fo-reserva-arriving')
+  const entity = entityHeaderOf(ctx)
+  // la página de entidad pura son SOLO las dos zonas (el fixture arriving lleva además
+  // una banda de cabecera oj-sm-12; el detector exige exactamente dos bloques, como el gop)
+  const blocks = hostContentOf(ctx, null, { dropEntityHeader: true })
+    .filter((b) => /oj-md-/.test(b.blockClass))
+  const toolbar = [
+    { actionId: 'volverReserva', label: 'Volver a la reserva', chroming: 'outlined' },
+    { actionId: 'otra', label: 'Otra acción', chroming: 'outlined' },
+  ]
+  const iop = itemOverviewPageOf(entity, blocks, toolbar)
+  assert.ok(iop && iop.on)
+  assert.ok(entity.title.length > 0)
+  assert.equal(iop.overview.title, entity.title)
+  assert.equal(iop.overview.subtitle, entity.subtitlePlain) // sin los badges concatenados
+  assert.ok(iop.overview.badge, 'el primer Chip del EntityHeader es el badge del panel')
+  assert.equal(iop.overview.badge.status, 'neutral') // color contrast → neutral
+  assert.equal(iop.overview.blocks.length, 1)
+  assert.match(iop.overview.blocks[0].blockClass, /oj-sm-12/) // a ancho completo del slot
+  assert.equal(iop.main.blocks.length, 1)
+  assert.ok(iop.main.blocks[0].items.some((a) => a.isTaskProgress)) // la operativa es el main
+  assert.ok(iop.back.show)
+  assert.equal(iop.back.actionId, 'volverReserva')
+  assert.equal(iop.back.label, 'Volver a la reserva') // la etiqueta viaja a translations.goToParent
+  assert.equal(iop.secondary.length, 1)
+  assert.equal(iop.secondary[0].id, 'otra')
+  // la ancha primero (anatomía general overview) NO es item overview
+  assert.equal(itemOverviewPageOf(entity, [blocks[1], blocks[0]].map((b) => b), toolbar), null)
+})
+
+// 32) Modal de decisión (Dialog): TODOS los botones del contenido pasan al pie CON sus
+// parameters — el modal del check-in de grupo ofrece "Check-in de <nombre>" (con _item)
+// además de "Volver al listado" (en un drawer, los botones con parameters se quedan en
+// el contenido: son listas de opciones).
+test('overlay Dialog: los botones con parameters van al pie del modal', () => {
+  const dialogCtx = {
+    id: 'dlg1',
+    title: 'Check-in completado',
+    tree: {
+      type: 'ServerSide',
+      metadata: { type: 'Dialog' },
+      children: [{
+        type: 'VerticalLayout', metadata: {},
+        children: [
+          { type: 'Text', metadata: { text: '¿Seguimos con su check-in?' }, children: [] },
+          { type: 'Button', metadata: { label: 'Check-in de Ana', actionId: 'siguienteReserva', buttonStyle: 'primary', parameters: { _item: 'st-ana' } }, children: [] },
+          { type: 'Button', metadata: { label: 'Volver al listado', actionId: 'volverListado' }, children: [] },
+        ],
+      }],
+    },
+    state: {},
+  }
+  const reg = { contexts: { dlg1: dialogCtx }, stack: ['dlg1'], shell: null }
+  const overlay = overlayOf(reg)
+  assert.ok(overlay.isDialog)
+  const ids = overlay.actions.map((a) => a.actionId)
+  assert.ok(ids.includes('siguienteReserva'), 'el botón con parameters está en el pie')
+  assert.ok(ids.includes('volverListado'))
+  const siguiente = overlay.actions.find((a) => a.actionId === 'siguienteReserva')
+  assert.equal(siguiente.parameters._item, 'st-ana') // el _item viaja con la acción
+  assert.equal(siguiente.chroming, 'callToAction')
+  // y el contenido ya NO lleva botones (irían duplicados)
+  assert.ok(!overlay.content.some((b) => b.items.some((a) => a.isButtons)))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

@@ -52,6 +52,22 @@
         "value": []
       },
       "description": "config/estado del smart filter del header de colección (chips keyword)"
+    },
+    "mateuProgressTitle": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuProgressText": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "mateuProgressValue": {
+      "type": "number",
+      "defaultValue": 0
+    },
+    "mateuModalOpen": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "metadata": {},
@@ -74,6 +90,7 @@
         {
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}",
             "event": "{{ $event }}"
           },
           "chain": "runMateuAction"
@@ -373,6 +390,56 @@
           }
         }
       ]
+    },
+    "mateuModalClosed": {
+      "chains": [
+        {
+          "chain": "mateuModalDismissed"
+        }
+      ]
+    },
+    "hostInputTyped": {
+      "chains": [
+        {
+          "chain": "hostInputTyped",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "quickFilterClicked": {
+      "chains": [
+        {
+          "chain": "listingQuickFilter",
+          "parameters": {
+            "fieldId": "{{ $application.variables.mateuListing.quickFilters[0].fieldId }}",
+            "value": "{{ $current.data.value }}"
+          }
+        }
+      ]
+    },
+    "welcomeKpiClicked": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $current.data.kpiActionId }}"
+          }
+        }
+      ]
+    },
+    "rowActionClicked": {
+      "chains": [
+        {
+          "chain": "listingRowAction",
+          "parameters": {
+            "methodName": "{{ $event.target.dataset.method }}",
+            "rowId": "{{ $event.target.dataset.rowId }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -439,6 +506,12 @@
       },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
+      },
+      "oj-sp-general-overview-page": {
+        "path": "oj-sp/general-overview-page/loader"
+      },
+      "oj-sp-filter-chip": {
+        "path": "oj-sp/filter-chip/loader"
       }
     }
   }

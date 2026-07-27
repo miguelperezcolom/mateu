@@ -123,6 +123,9 @@ export class MateuStatusList extends LitElement {
                         ${item.actionLabel2 && item.actionId2
                             ? html`<button class="row-action" @click="${() => this.runAction(item, item.actionId2)}">${item.actionLabel2}</button>`
                             : nothing}
+                        ${item.actionLabel3 && item.actionId3
+                            ? html`<button class="row-action" @click="${() => this.runAction(item, item.actionId3)}">${item.actionLabel3}</button>`
+                            : nothing}
                     </div>
                 `)}
             </div>

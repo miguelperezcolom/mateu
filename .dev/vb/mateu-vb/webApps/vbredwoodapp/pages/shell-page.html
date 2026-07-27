@@ -2,9 +2,11 @@
      por el componente). El contenido del starter (banner, toast, router) va en el slot
      stretchingContents. Cero HTML/CSS propio: solo composición de componentes oj-sp. -->
 
-<oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]">
+<oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]"
+  on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]">
 
-  <oj-sp-global-header slot="globalHeader" id="globalHeader">
+  <oj-sp-global-header slot="globalHeader" id="globalHeader"
+    on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
     <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->
     <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
       <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode ]]">
@@ -40,23 +42,18 @@
         </oj-bind-for-each>
       </oj-bind-if>
     </div>
-    <!-- selectores @AppContext + acciones de cabecera del App de Mateu, en el slot end -->
+    <!-- @AppContext: un ICONO abre el drawer lateral con los selectores (los dropdowns
+         directos no casaban con el header oscuro) + acciones de cabecera del App -->
     <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
-      <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
-        <template>
-          <oj-select-one class="oj-sm-margin-2x-end oj-form-control-max-width-sm"
-            :title="[[ $current.data.label ]]"
-            placeholder="[[ $current.data.label ]]"
-            value="[[ $current.data.value ]]"
-            on-value-changed="[[ $listeners.contextChanged ]]">
-            <oj-bind-for-each data="[[ $current.data.options ]]">
-              <template>
-                <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
-              </template>
-            </oj-bind-for-each>
-          </oj-select-one>
-        </template>
-      </oj-bind-for-each>
+      <oj-bind-if test="[[ $application.variables.mateuContextSelectors.length > 0 ]]">
+        <!-- oj-color-invert: iconografía clara sobre el header oscuro (utilidad JET),
+             mismo blanco que el icono home del propio global-header -->
+        <oj-button chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-3x-end"
+          on-oj-action="[[ $listeners.contextDrawerToggle ]]">
+          <span slot="startIcon" class="oj-ux-ico-settings"></span>
+          Contexto
+        </oj-button>
+      </oj-bind-if>
       <oj-bind-for-each data="[[ $application.variables.mateuHeaderActions ]]">
         <template>
           <oj-bind-if test="[[ !$current.data.hasChildren ]]">
@@ -82,6 +79,54 @@
   </oj-sp-global-header>
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
+
+    <!-- ASK ORACLE: el FAB de chat del shell abre esta paleta — buscador que filtra la
+         navegación y las vistas rápidas del listado; cada fila navega y cierra -->
+    <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none"
+      dialog-title="Ask Oracle">
+      <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">
+        <oj-input-search id="mateuAskInput" class="oj-form-control-full-width"
+          placeholder="Buscar o ir a…"
+          on-raw-value-changed="[[ $listeners.askOracleTyped ]]"></oj-input-search>
+        <div class="oj-sm-margin-4x-top">
+          <oj-bind-for-each data="[[ $variables.mateuAskResults ]]">
+            <template>
+              <oj-action-card class="oj-sm-margin-1x-bottom" style="width: 100%; display: block;"
+                on-oj-action="[[ $listeners.askOracleGo ]]">
+                <div class="oj-flex oj-sm-align-items-center oj-sm-padding-3x">
+                  <span class="oj-sm-margin-3x-end oj-ux-icon-size-5x" :class="[[ $current.data.icon ]]"></span>
+                  <span class="oj-typography-body-md oj-flex-item"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                  <span class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.kind ]]"></oj-bind-text></span>
+                </div>
+              </oj-action-card>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </div>
+    </oj-dialog>
+
+    <!-- drawer de CONTEXTO (@AppContext): los selectores en un panel lateral estándar -->
+    <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}">
+      <div class="oj-sm-padding-6x" style="width: 320px;">
+        <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom">Contexto de trabajo</h2>
+        <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
+          <template>
+            <div class="oj-sm-margin-4x-bottom">
+              <oj-select-one class="oj-form-control-full-width"
+                label-hint="[[ $current.data.label ]]"
+                value="[[ $current.data.value ]]"
+                on-value-changed="[[ $listeners.contextChanged ]]">
+                <oj-bind-for-each data="[[ $current.data.options ]]">
+                  <template>
+                    <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                  </template>
+                </oj-bind-for-each>
+              </oj-select-one>
+            </div>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </oj-drawer-popup>
 
     <!-- Navigator PERSISTENTE (HAMBURGUER_MENU): oj-drawer-layout (reflow) DEBAJO del
          header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
@@ -146,7 +191,7 @@
     <!-- Menú PLANO (variante TABS): in-app navigation Redwood (su barra REAL es un overlay
          fijo abajo que estampa el propio componente; el elemento host va al FINAL del
          contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo) -->
-    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
+    <oj-bind-if test="[[ $application.variables.mateuMenuTabs && $application.variables.mateuSelectedRoute !== $application.variables.mateuHomeRoute ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
         selection="[[ $application.variables.mateuSelectedRoute ]]"

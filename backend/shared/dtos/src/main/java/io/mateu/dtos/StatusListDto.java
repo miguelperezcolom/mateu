@@ -6,7 +6,12 @@ import lombok.Builder;
 
 @Builder
 public record StatusListDto(
-    List<StatusItemDto> items, boolean compact, boolean frameless, String rowActionId, int columns)
+    List<StatusItemDto> items,
+    boolean compact,
+    boolean frameless,
+    String rowActionId,
+    int columns,
+    int itemHeadingLevel)
     implements ComponentMetadataDto {
 
   public StatusListDto {

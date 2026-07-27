@@ -14,4 +14,10 @@ public record StatusItemDto(
     String actionLabel,
     String actionId,
     String actionLabel2,
-    String actionId2) {}
+    String actionId2,
+    String actionLabel3,
+    String actionId3,
+    String actionIcon,
+    String actionIcon2,
+    String actionIcon3,
+    java.util.List<String> lines) {}

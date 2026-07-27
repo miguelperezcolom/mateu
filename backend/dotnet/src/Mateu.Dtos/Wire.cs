@@ -268,7 +268,7 @@ public record FoldoutNavigationDto(
     string? PreviousActionId, string? NextActionId);
 
 /// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>
-public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open);
+public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open, string? Width = null);
 
 /// <summary>Page hero header. Slotted content travels as component children.</summary>
 public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Image, string? Height, bool Centered) : ComponentMetadataDto;

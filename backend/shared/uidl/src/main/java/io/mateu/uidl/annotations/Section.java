@@ -12,7 +12,13 @@ public @interface Section {
 
   String value();
 
-  int columns() default 1;
+  /**
+   * Column count of this section's form layout. {@code 0} (the default) means unset: the section
+   * inherits the form-level count ({@code @FormLayout(columns=…)} on the class, else 2). Any
+   * explicit value ≥ 1 wins — including {@code 1} to force single-column stacking on a form whose
+   * other sections stay multi-column.
+   */
+  int columns() default 0;
 
   String style() default "";
 

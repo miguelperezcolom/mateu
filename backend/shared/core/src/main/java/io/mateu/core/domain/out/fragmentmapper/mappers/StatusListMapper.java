@@ -28,6 +28,12 @@ public class StatusListMapper {
                                     .actionId(item.actionId())
                                     .actionLabel2(item.actionLabel2())
                                     .actionId2(item.actionId2())
+                                    .actionLabel3(item.actionLabel3())
+                                    .actionId3(item.actionId3())
+                                    .actionIcon(item.actionIcon())
+                                    .actionIcon2(item.actionIcon2())
+                                    .actionIcon3(item.actionIcon3())
+                                    .lines(item.lines())
                                     .build())
                         .toList()
                     : List.of())
@@ -35,6 +41,7 @@ public class StatusListMapper {
             .frameless(statusList.frameless())
             .rowActionId(statusList.rowActionId())
             .columns(statusList.columns())
+            .itemHeadingLevel(statusList.itemHeadingLevel())
             .build(),
         statusList.id(),
         List.of(),

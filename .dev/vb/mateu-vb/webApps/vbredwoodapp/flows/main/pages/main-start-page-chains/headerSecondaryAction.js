@@ -21,10 +21,13 @@ define([
       const { $application } = context;
 
       const detail = (event && event.detail) || {};
-      const label = detail.secondaryItem && detail.secondaryItem.label
-        ? detail.secondaryItem.label : detail.secondaryItem;
+      // el header identifica el item por su id/value (los actionId que estampamos) o,
+      // en variantes viejas, por label — resolver por ambos
+      const key = detail.secondaryItem && detail.secondaryItem.label
+        ? detail.secondaryItem.label
+        : (detail.secondaryItem != null ? String(detail.secondaryItem) : '');
       const toolbar = ($application.variables.mateuPageHeader || {}).toolbar || [];
-      const match = toolbar.find((b) => b.label === label);
+      const match = toolbar.find((b) => b.actionId === key || b.label === key);
       if (!match) {
         return;
       }

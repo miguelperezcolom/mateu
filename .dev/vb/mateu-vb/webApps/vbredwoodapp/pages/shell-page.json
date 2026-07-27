@@ -14,6 +14,16 @@
     },
     "messageId": {
       "type": "string"
+    },
+    "mateuContextDrawerOpen": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "drawer lateral con los selectores @AppContext (se abre desde el icono del header)"
+    },
+    "mateuAskResults": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "destinos de la paleta Ask Oracle (navegación + vistas rápidas), filtrados por el buscador"
     }
   },
   "metadata": {},
@@ -162,6 +172,54 @@
           }
         }
       ]
+    },
+    "contextDrawerToggle": {
+      "chains": [
+        {
+          "chain": "toggleMateuContextDrawer"
+        }
+      ]
+    },
+    "homeClicked": {
+      "chains": [
+        {
+          "chain": "onMateuNavigate",
+          "parameters": {
+            "event": {
+              "detail": {
+                "route": "{{ $application.variables.mateuHomeRoute }}"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "askOracleOpen": {
+      "chains": [
+        {
+          "chain": "askOracleOpen"
+        }
+      ]
+    },
+    "askOracleTyped": {
+      "chains": [
+        {
+          "chain": "askOracleTyped",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "askOracleGo": {
+      "chains": [
+        {
+          "chain": "askOracleGo",
+          "parameters": {
+            "item": "{{ $current.data }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -201,6 +259,18 @@
       },
       "oj-drawer-layout": {
         "path": "ojs/ojdrawerlayout"
+      },
+      "oj-drawer-popup": {
+        "path": "ojs/ojdrawerpopup"
+      },
+      "oj-dialog": {
+        "path": "ojs/ojdialog"
+      },
+      "oj-input-search": {
+        "path": "ojs/ojinputsearch"
+      },
+      "oj-action-card": {
+        "path": "ojs/ojactioncard"
       }
     }
   },

@@ -24,6 +24,7 @@ public record StatusList(
     boolean frameless,
     String rowActionId,
     int columns,
+    int itemHeadingLevel,
     String style,
     String cssClasses)
     implements Component {}
