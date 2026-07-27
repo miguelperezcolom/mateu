@@ -353,6 +353,100 @@ public class ReservaOverview
             .build();
       }
 
+  // ── drawers de operación: las tareas que abren formulario van en un Drawer (el id
+  // lógico estable permite que el server REFRESQUE el drawer abierto devolviendo otro
+  // con el mismo id — p.ej. al cambiar el método de cobro) ──────────────────────────
+  // Los drawers se COMPONEN de campos y botones (la gramática que el renderer VB pinta
+  // en su panel: FormFields → formulario, Buttons → fila de acciones). El id lógico
+  // estable permite REFRESCAR el drawer abierto devolviendo otro con el mismo id.
+  private io.mateu.uidl.data.Drawer drawerHabitacion(Stay stay) {
+    var botones = new ArrayList<Component>();
+    for (var room : FrontOffice.rooms().findByFloor(12)) {
+      var actual = room.number().equals(stay.roomNumber());
+      if (!actual && !room.assignable()) {
+        continue;
+      }
+      botones.add(Button.builder()
+          .label("Hab " + room.number() + " · " + tipoDe(room) + (actual ? " — actual" : ""))
+          .actionId("elegirHabitacion")
+          .parameters(java.util.Map.of("_item", room.number()))
+          .buttonStyle(actual ? io.mateu.uidl.data.ButtonStyle.primary : null)
+          .build());
+    }
+    botones.add(Button.builder()
+        .label("Upgrade — Master Oceanfront Suite (+ € 65/noche)")
+        .actionId("upgrade360")
+        .build());
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-habitacion")
+        .headerTitle("Elegir habitación")
+        .width("30rem")
+        .content(VerticalLayout.builder().content(botones).build())
+        .initialData(java.util.Map.of("stayId", stayId))
+        .build();
+  }
+
+  private io.mateu.uidl.data.Drawer drawerCobro(Stay stay) {
+    var guest = FrontOffice.stayView(stayId).guest();
+    var puntos = String.format("%,d", guest.loyaltyPoints()).replace(',', '.');
+    var botones = new ArrayList<Component>();
+    record Metodo(String id, String label) {}
+    for (var metodo : List.of(new Metodo("card", "Tarjeta"), new Metodo("cash", "Efectivo"),
+        new Metodo("points", "Puntos (" + puntos + ")"))) {
+      var activo = metodo.id().equals(metodoPago);
+      botones.add(Button.builder()
+          .label((activo ? "● " : "") + metodo.label())
+          .actionId("metodoCobro")
+          .parameters(java.util.Map.of("_method", metodo.id()))
+          .build());
+    }
+    botones.add(Button.builder()
+        .label("Preautorizar — " + GuestHeaders.euros(stay.total()))
+        .actionId("confirmarCobro")
+        .parameters(java.util.Map.of("_method", metodoPago))
+        .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+        .build());
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-cobro")
+        .headerTitle("Cobro / preautorización — " + GuestHeaders.euros(stay.total()))
+        .width("28rem")
+        .content(VerticalLayout.builder().content(botones).build())
+        .initialData(java.util.Map.of("stayId", stayId, "metodoPago", metodoPago))
+        .build();
+  }
+
+  private io.mateu.uidl.data.Drawer drawerExtras(Stay stay) {
+    var seleccionados = stay.addOns().stream()
+        .map(io.mateu.mdd.demofrontoffice.domain.stay.SelectedAddOn::addOnId)
+        .collect(java.util.stream.Collectors.toSet());
+    var contenido = new ArrayList<Component>();
+    var initialData = new java.util.HashMap<String, Object>();
+    initialData.put("stayId", stayId);
+    for (var item : FrontOffice.addOnCatalog().findAll()) {
+      var incluido = item.includedLabel() != null && !item.includedLabel().isBlank();
+      if (incluido) {
+        continue; // los incluidos en el régimen no se seleccionan
+      }
+      var campo = "addon_" + item.id();
+      initialData.put(campo, seleccionados.contains(item.id()));
+      contenido.add(FormField.builder()
+          .id(campo)
+          .label(item.icon() + " " + item.title()
+              + (item.price() != null ? " — € " + item.price() : ""))
+          .dataType(FieldDataType.bool)
+          .build());
+    }
+    contenido.add(Button.builder().label("Guardar extras").actionId("guardarExtras")
+        .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-extras")
+        .headerTitle("Ancillaries")
+        .width("30rem")
+        .content(VerticalLayout.builder().content(contenido).build())
+        .initialData(initialData)
+        .build();
+  }
+
   /** "N de M" — operaciones de check-in completadas, para el header del panel. */
   private String opsResumen(Stay stay) {
     var lista = operaciones(stay);
@@ -408,10 +502,16 @@ public class ReservaOverview
   /** Modo habitación: la cuadrícula de disponibles + la oferta de upgrade, en el carril
    *  operativo — elegir una asigna y vuelve a la checklist. */
   private Component elegirHabitacion(Stay stay) {
+    return elegirHabitacion(stay, true);
+  }
+
+  private Component elegirHabitacion(Stay stay, boolean conTitulo) {
     var guest = FrontOffice.stayView(stayId).guest();
     var content = new ArrayList<Component>();
-    content.add(Text.builder().text("Elegir habitación")
-        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    if (conTitulo) {
+      content.add(Text.builder().text("Elegir habitación")
+          .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    }
     content.add(io.mateu.uidl.data.HorizontalLayout.builder()
         .spacing(true).wrap(true)
         .content(guest.preferences().stream()
@@ -468,13 +568,17 @@ public class ReservaOverview
 
   /** Modo cobro: preautorización con tarjeta / efectivo / puntos de fidelidad. */
   private Component panelCobro(Stay stay) {
+    return panelCobro(stay, true);
+  }
+
+  private Component panelCobro(Stay stay, boolean conTitulo) {
     var guest = FrontOffice.stayView(stayId).guest();
-    return VerticalLayout.builder()
-        .style("width: 100%; gap: .5rem;")
-        .content(List.of(
-            Text.builder().text("Cobro / preautorización").container(
-                io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
-            PaymentPicker.builder()
+    var contenido = new ArrayList<Component>();
+    if (conTitulo) {
+      contenido.add(Text.builder().text("Cobro / preautorización").container(
+          io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    }
+    contenido.add(PaymentPicker.builder()
                 .actionId("confirmarCobro")
                 .methodActionId("metodoCobro")
                 .methods(List.of(
@@ -487,21 +591,28 @@ public class ReservaOverview
                 .contextLabel("TOTAL RESERVA")
                 .contextValue(GuestHeaders.euros(stay.total()))
                 .confirmLabel("Preautorizar — " + GuestHeaders.euros(stay.total()))
-                .build()))
+                .build());
+    return VerticalLayout.builder()
+        .style("width: 100%; gap: .5rem;")
+        .content(contenido)
         .build();
   }
 
   /** Modo extras: el catálogo de ancillaries con total en vivo + cierre de la selección. */
   private Component panelExtras(Stay stay) {
+    return panelExtras(stay, true);
+  }
+
+  private Component panelExtras(Stay stay, boolean conTitulo) {
     var seleccionados = stay.addOns().stream()
         .map(io.mateu.mdd.demofrontoffice.domain.stay.SelectedAddOn::addOnId)
         .collect(java.util.stream.Collectors.toSet());
-    return VerticalLayout.builder()
-        .style("width: 100%; gap: .75rem;")
-        .content(List.of(
-            Text.builder().text("Ancillaries").container(
-                io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build(),
-            io.mateu.uidl.data.AddOnPicker.builder()
+    var contenido = new ArrayList<Component>();
+    if (conTitulo) {
+      contenido.add(Text.builder().text("Ancillaries").container(
+          io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    }
+    contenido.add(io.mateu.uidl.data.AddOnPicker.builder()
                 .actionId("extras360")
                 .currency("€")
                 .totalLabel("Total extras")
@@ -517,9 +628,12 @@ public class ReservaOverview
                         .added(seleccionados.contains(item.id()))
                         .build())
                     .toList())
-                .build(),
-            Button.builder().label("Cerrar selección").actionId("cerrarExtras")
-                .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build()))
+                .build());
+    contenido.add(Button.builder().label("Cerrar selección").actionId("cerrarExtras")
+        .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
+    return VerticalLayout.builder()
+        .style("width: 100%; gap: .75rem;")
+        .content(contenido)
         .build();
   }
 
@@ -793,6 +907,9 @@ public class ReservaOverview
       }
       case "refrescarReserva" -> this;
       case "opHabitacion" -> {
+        if (stay().status() == StayStatus.ARRIVING) {
+          yield drawerHabitacion(stay());
+        }
         modoHabitacion = true;
         yield this;
       }
@@ -803,11 +920,19 @@ public class ReservaOverview
         yield this;
       }
       case "opCobro" -> {
+        if (stay().status() == StayStatus.ARRIVING) {
+          yield drawerCobro(stay());
+        }
         modoCobro = true;
         yield this;
       }
       case "metodoCobro" -> {
         metodoPago = String.valueOf(httpRequest.runActionRq().parameters().get("_method"));
+        if (!modoCobro && stay().status() == StayStatus.ARRIVING) {
+          // el picker vive en el drawer: refrescarlo en sitio (mismo Drawer.id), sin
+          // tocar el host — el foldout ni se entera
+          yield drawerCobro(stay());
+        }
         yield this;
       }
       case "confirmarCobro" -> {
@@ -824,10 +949,17 @@ public class ReservaOverview
               + " en la tarjeta del huésped";
         };
         FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withCobro(true));
+        if (!modoCobro && stay().status() == StayStatus.ARRIVING) {
+          // desde el drawer: cerrar + repintar el host (el foldout se actualiza in situ)
+          yield List.of(this, new Message(texto), UICommand.closeModal());
+        }
         modoCobro = false;
         yield List.of(this, new Message(texto));
       }
       case "opExtras" -> {
+        if (stay().status() == StayStatus.ARRIVING) {
+          yield drawerExtras(stay());
+        }
         modoExtras = true;
         yield this;
       }
@@ -838,8 +970,32 @@ public class ReservaOverview
         FrontOffice.stays().save(added ? stay().addAddOn(item) : stay().removeAddOn(item));
         yield this;
       }
+      case "guardarExtras" -> {
+        // los switches del drawer viajan en el componentState (addon_<id> = true/false)
+        var estado = httpRequest.runActionRq().componentState();
+        var stay = stay();
+        for (var item : FrontOffice.addOnCatalog().findAll()) {
+          var campo = "addon_" + item.id();
+          if (estado.containsKey(campo)) {
+            var activo = Boolean.parseBoolean(String.valueOf(estado.get(campo)));
+            var lo_tiene = stay.addOns().stream()
+                .anyMatch(a -> a.addOnId().equals(item.id()));
+            if (activo && !lo_tiene) {
+              stay = stay.addAddOn(item.id());
+            } else if (!activo && lo_tiene) {
+              stay = stay.removeAddOn(item.id());
+            }
+          }
+        }
+        FrontOffice.stays().save(stay);
+        FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withExtras(true));
+        yield List.of(this, new Message(extrasHecha(stay)), UICommand.closeModal());
+      }
       case "cerrarExtras" -> {
         FrontOffice.checkInOps().save(stayId, FrontOffice.checkInOps().of(stayId).withExtras(true));
+        if (!modoExtras && stay().status() == StayStatus.ARRIVING) {
+          yield List.of(this, new Message(extrasHecha(stay())), UICommand.closeModal());
+        }
         modoExtras = false;
         yield List.of(this, new Message(extrasHecha(stay())));
       }
@@ -865,6 +1021,11 @@ public class ReservaOverview
           yield new Message("La habitación " + number + " no está disponible");
         }
         FrontOffice.stays().save(stay().assignRoom(number, tipoDe(room)));
+        if (!modoHabitacion && stay().status() == StayStatus.ARRIVING) {
+          yield List.of(this,
+              new Message("Habitación cambiada — Hab " + number + " (" + tipoDe(room) + ")"),
+              UICommand.closeModal());
+        }
         modoHabitacion = false;
         yield List.of(this,
             new Message("Habitación cambiada — Hab " + number + " (" + tipoDe(room) + ")"));
@@ -875,6 +1036,11 @@ public class ReservaOverview
           yield new Message("La suite del upgrade no está disponible");
         }
         FrontOffice.stays().save(stay().assignRoom("1401", tipoDe(suite)));
+        if (!modoHabitacion && stay().status() == StayStatus.ARRIVING) {
+          yield List.of(this,
+              new Message("Upgrade aplicado — Master Oceanfront Suite (Hab 1401, + € 65 / noche)"),
+              UICommand.closeModal());
+        }
         modoHabitacion = false;
         yield List.of(this,
             new Message("Upgrade aplicado — Master Oceanfront Suite (Hab 1401, + € 65 / noche)"));
