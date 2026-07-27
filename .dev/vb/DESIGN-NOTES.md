@@ -1093,6 +1093,13 @@ pide SOLO las pendientes.
   cuando NO abre el bloque — Perfil pasa a h3 (Preferencias / Última estancia) con 40px
   entre grupos, y de regalo los títulos del modo checkout (Desglose folio, Postear cargo,
   Cobro) se vuelven headings de verdad.
+- **Holgura anti-scrollbar + bullets a una línea (2026-07-27)**: el cockpit tenía 8px de
+  holgura (2×22rem+40 = 744 sobre 752) — la scrollbar clásica de Windows/monitor externo
+  (15px) hacía SALTAR la segunda columna al repintar (el "descoloque" al crear la wifi;
+  invisible en headless/Mac con overlay scrollbars). Panel de operaciones 50→51rem = 24px
+  de holgura. Y el tema Redwood pone `padding-right: 40px` a los `ul` (además del inline-
+  start del navegador) — un cuarto del carril de Perfil; `.mateu-atom-bullets` lo anula y
+  "Connecting rooms" vuelve a una línea (li 118→158px).
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

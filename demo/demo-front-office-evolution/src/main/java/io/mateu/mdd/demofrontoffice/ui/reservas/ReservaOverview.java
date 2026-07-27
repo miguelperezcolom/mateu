@@ -167,8 +167,9 @@ public class ReservaOverview
                     // el contador vive en el header del panel (antes, banner sobre la lista)
                     .subtitle(opsResumen(stay))
                     .open(true)
-                    // 2 celdas fijas de 22rem + gap 40 + gutters 24 (ver .mateu-grid-cell)
-                    .width("50rem")
+                    // 2 celdas fijas de 22rem + gap 40 + gutters 24 + 24px de holgura
+                    // anti-scrollbar (ver .mateu-grid-cell)
+                    .width("51rem")
                     .content(operativaPorEstado(stay))
                     .build(),
                 io.mateu.uidl.data.FoldoutPanel.builder()

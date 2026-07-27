@@ -123,7 +123,8 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
    El aire va ENTRE tarjetas (gap de la rejilla, ambos ejes), no como padding general:
    el margin-bottom propio de cada celda se anula dentro de la rejilla. */
 .mateu-grid {
-  /* 2×22rem + 40px = 744 sobre 752 de contenido (panel a 50rem): 8px de holgura */
+  /* 2×22rem + 40px = 744 sobre 768 de contenido (panel a 51rem): 24px de holgura —
+     una scrollbar clásica (15px) no hace saltar la segunda columna */
   column-gap: 40px;
   row-gap: 28px;
 }
@@ -195,4 +196,13 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
    navegador — el ritmo lo ponen las clases JET del átomo (margin-top de grupo). */
 .mateu-atom-heading {
   margin: 0;
+}
+
+/* Bullets de contenido (átomo BulletedList): sangría CORTA — la de navegador (40px) comía
+   un tercio del carril de Perfil (14rem) y partía "Connecting rooms" en dos líneas. */
+.mateu-atom-bullets {
+  padding-inline-start: 1.1rem;
+  /* el tema Redwood añade 40px también al final — comía un cuarto del carril de Perfil */
+  padding-inline-end: 0;
+  margin-top: 0;
 }
