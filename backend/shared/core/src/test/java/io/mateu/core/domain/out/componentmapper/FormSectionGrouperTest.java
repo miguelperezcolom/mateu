@@ -99,7 +99,9 @@ class FormSectionGrouperTest {
   void sectionColumnsComeFromTheAnnotation() {
     SectionGrouping grouping = FormSectionGrouper.group(fieldsOf(SectionedForm.class, "a", "d"), 1);
 
-    assertThat(grouping.fieldsPerSection().get(grouping.sections().get(0)).columns()).isEqualTo(1);
+    // unset columns carries the 0 sentinel (the renderer falls back to the form default);
+    // an explicit value — including 1 — travels as declared
+    assertThat(grouping.fieldsPerSection().get(grouping.sections().get(0)).columns()).isEqualTo(0);
     assertThat(grouping.fieldsPerSection().get(grouping.sections().get(1)).columns()).isEqualTo(2);
   }
 
