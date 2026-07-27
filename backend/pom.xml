@@ -98,6 +98,30 @@
         <artifactId>hibernate-validator</artifactId>
         <version>9.1.2.Final</version>
       </dependency>
+      <!--
+        Pin Apache Groovy to the line rest-assured expects (4.0.22). rest-assured 5.5.0 (test scope)
+        pulls groovy/groovy-json/groovy-xml at 4.0.22, but the Spring Boot 4.1 BOM manages them up to
+        5.0.6. rest-assured's Groovy-based HTTPBuilder is not compatible with Groovy 5 — plain GET
+        requests blow up with a NullPointerException deep in the Groovy metaclass machinery
+        (io.mateu.integrationtests.GetIndexIT). Groovy is a test-only transitive here (nothing in the
+        backend uses it at runtime), so a directly managed pin back to 4.0.22 fixes the ITs with no
+        runtime impact.
+      -->
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy</artifactId>
+        <version>4.0.22</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-json</artifactId>
+        <version>4.0.22</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-xml</artifactId>
+        <version>4.0.22</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
