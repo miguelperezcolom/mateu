@@ -285,9 +285,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -308,9 +319,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -586,9 +608,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -609,9 +642,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -914,9 +958,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -937,9 +992,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -1215,9 +1281,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -1238,9 +1315,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -1683,9 +1771,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -1706,9 +1805,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -2049,9 +2159,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -2072,9 +2193,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -2348,9 +2480,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -2371,9 +2514,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -3419,9 +3573,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -3442,9 +3607,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>
@@ -3720,9 +3896,20 @@
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
-                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                        :data-action-id="[[ $current.data.actionId ]]"
-                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                          title="[[ $current.data.label ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                          <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                        </oj-button>
+                                      </oj-bind-if>
+                                      <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                        <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </oj-bind-if>
                                     </template>
                                   </oj-bind-for-each>
                                 </div>
@@ -3743,9 +3930,20 @@
                               <div class="oj-sm-margin-2x-top">
                                 <oj-bind-for-each data="[[ $current.data.actions ]]">
                                   <template>
-                                    <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
-                                      :data-action-id="[[ $current.data.actionId ]]"
-                                      on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    <oj-bind-if test="[[ $current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm" display="icons" chroming="borderless"
+                                        title="[[ $current.data.label ]]"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                        <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                        <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                                      </oj-button>
+                                    </oj-bind-if>
+                                    <oj-bind-if test="[[ !$current.data.iconClass ]]">
+                                      <oj-button class="oj-button-sm oj-sm-margin-1x-end" chroming="outlined"
+                                        :data-action-id="[[ $current.data.actionId ]]"
+                                        on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
                                   </template>
                                 </oj-bind-for-each>
                               </div>

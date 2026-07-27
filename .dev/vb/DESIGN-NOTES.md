@@ -1060,6 +1060,16 @@ pide SOLO las pendientes.
   cargado). (2º gotcha del merge: `foldoutOf` perdió la proyección de `panel.width` al
   fusionar — los paneles del foldout se repartían a su aire y las tarjetas del cockpit se
   solapaban; restaurado width + headerTitle en la proyección.)
+- **Acciones de huésped como ICONOS + reparto de anchos (2026-07-27, feedback del
+  usuario)**: `StatusItem` gana `actionIcon/actionIcon2/actionIcon3` (uidl+dto+mapper+TS;
+  nombres NEUTRALES del set Vaadin — la demo usa vaadin:barcode/pencil/ban/rotate-left);
+  el bridge los traduce con `ojIconOf` (OJ_ICONS += scan-barcode/edit/do-not-enter/undo) y
+  las acciones de fila con `iconClass` se pintan como `oj-button display="icons"
+  chroming="borderless"` con el label como tooltip/aria (rama icono + rama texto en los 18
+  sitios de botones de acciones). GOTCHA de merge nº3 cazado: el bridge había PERDIDO la
+  tercera acción de fila (actionLabel3 — el "No show" llevaba desaparecido desde el merge);
+  restaurada con los iconos. Anchos del foldout: Operaciones 46→50rem (celdas del cockpit
+  20→22rem en app.css) y Perfil 17→14rem.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

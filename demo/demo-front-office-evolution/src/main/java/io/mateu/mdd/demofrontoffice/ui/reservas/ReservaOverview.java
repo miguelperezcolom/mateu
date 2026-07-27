@@ -167,8 +167,8 @@ public class ReservaOverview
                     // el contador vive en el header del panel (antes, banner sobre la lista)
                     .subtitle(opsResumen(stay))
                     .open(true)
-                    // 2 celdas fijas de 20rem + gap 40 + gutters 24 (ver .mateu-grid-cell)
-                    .width("46rem")
+                    // 2 celdas fijas de 22rem + gap 40 + gutters 24 (ver .mateu-grid-cell)
+                    .width("50rem")
                     .content(operativaPorEstado(stay))
                     .build(),
                 io.mateu.uidl.data.FoldoutPanel.builder()
@@ -177,7 +177,7 @@ public class ReservaOverview
                     .title("Perfil")
                     .open(false)
                     // info accesoria: estrecha
-                    .width("17rem")
+                    .width("14rem")
                     .content(perfilCliente())
                     .build()))
             .build();
@@ -1125,10 +1125,13 @@ public class ReservaOverview
         .statusColor(noShow ? "error" : complete ? "success" : "warning")
         .actionLabel(noShow ? null : (complete ? "Reescanear" : "Escanear"))
         .actionId(noShow ? null : "escanearPax")
+        .actionIcon(noShow ? null : "vaadin:barcode")
         .actionLabel2(noShow ? null : (complete ? "Editar" : "A mano"))
         .actionId2(noShow ? null : "rellenarPax")
+        .actionIcon2(noShow ? null : "vaadin:pencil")
         .actionLabel3(noShow ? "Revertir" : "No show")
         .actionId3("noShowPax")
+        .actionIcon3(noShow ? "vaadin:rotate-left" : "vaadin:ban")
         .build();
   }
 

@@ -119,11 +119,11 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   padding-right: 0 !important;
 }
 
-/* Rejilla de ítems del cockpit: celdas de MEDIDA FIJA (20rem) que envuelven solas.
+/* Rejilla de ítems del cockpit: celdas de MEDIDA FIJA (22rem) que envuelven solas.
    El aire va ENTRE tarjetas (gap de la rejilla, ambos ejes), no como padding general:
    el margin-bottom propio de cada celda se anula dentro de la rejilla. */
 .mateu-grid {
-  /* 2×20rem + 40px = 680 sobre 688 de contenido (panel a 46rem): 8px de holgura */
+  /* 2×22rem + 40px = 744 sobre 752 de contenido (panel a 50rem): 8px de holgura */
   column-gap: 40px;
   row-gap: 28px;
 }
@@ -133,8 +133,8 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   margin-bottom: 28px !important;
 }
 .mateu-grid-cell {
-  flex: 0 0 min(20rem, 100%);
-  max-width: 20rem;
+  flex: 0 0 min(22rem, 100%);
+  max-width: 22rem;
 }
 .mateu-grid > .mateu-grid-cell {
   margin-bottom: 0 !important;

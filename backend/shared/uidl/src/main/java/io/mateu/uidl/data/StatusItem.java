@@ -25,4 +25,7 @@ public record StatusItem(
     String actionLabel2,
     String actionId2,
     String actionLabel3,
-    String actionId3) {}
+    String actionId3,
+    String actionIcon,
+    String actionIcon2,
+    String actionIcon3) {}

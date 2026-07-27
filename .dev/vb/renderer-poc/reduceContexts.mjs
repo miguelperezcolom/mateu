@@ -435,6 +435,10 @@ const OJ_ICONS = {
   'vaadin:chart': 'oj-ux-ico-bar-chart',
   'vaadin:table': 'oj-ux-ico-table',
   'vaadin:money': 'oj-ux-ico-currency-money',
+  'vaadin:barcode': 'oj-ux-ico-scan-barcode',
+  'vaadin:pencil': 'oj-ux-ico-edit',
+  'vaadin:ban': 'oj-ux-ico-do-not-enter',
+  'vaadin:rotate-left': 'oj-ux-ico-undo',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined
@@ -819,12 +823,20 @@ export function islandContentOf(ctx) {
           // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
           // precomputado; una fila CON acciones se pinta APILADA (título+chip /
           // descripción / botones) para no descolocarse en carriles estrechos
+          // hasta TRES acciones por fila; con actionIcon* el botón se pinta SOLO-ICONO
+          // (label como tooltip/aria) — iconClass precomputado vía ojIconOf
           const rowActions = []
           if (it.actionLabel && it.actionId) {
-            rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id } })
+            rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
+              iconClass: ojIconOf(it.actionIcon) || '' })
           }
           if (it.actionLabel2 && it.actionId2) {
-            rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id } })
+            rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id },
+              iconClass: ojIconOf(it.actionIcon2) || '' })
+          }
+          if (it.actionLabel3 && it.actionId3) {
+            rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id },
+              iconClass: ojIconOf(it.actionIcon3) || '' })
           }
           return {
             rowClass,
