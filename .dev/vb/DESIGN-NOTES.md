@@ -1149,6 +1149,13 @@ pide SOLO las pendientes.
   spSecondaryAction identifica el item por su id/value — sin id llegaba
   secondaryItem="undefined"; las secundarias llevan id=value=actionId y
   headerSecondaryAction resuelve por actionId O label.
+- **Pulido del overview in-house (2026-07-27)**: heading h3 "Incidencias" (su margen de
+  grupo pone los 40px entre el KPI y la lista); se listan TODAS las incidencias — abiertas
+  primero (cards danger/warning con Resolver), y las RESUELTAS al final como avisos verdes
+  slim "✓ Resuelta · <título>"; sin abiertas → "Sin incidencias abiertas — N resueltas".
+  La info secundaria va sobre BANDA NEUTRA (VerticalLayout de zona con
+  cssClasses("oj-panel oj-bg-neutral-20") + align-self flex-start): la proyección de zonas
+  del bridge arrastra las cssClasses del wire de la columna al bloque.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

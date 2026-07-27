@@ -144,7 +144,10 @@ public class ReservaOverview
                       .content(List.of(paraInHouse(stay)))
                       .build(),
                   VerticalLayout.builder()
-                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;")
+                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;"
+                          + " align-self: flex-start;")
+                      // banda neutra: la info secundaria se distingue del contenido
+                      .cssClasses("oj-panel oj-bg-neutral-20")
                       .content(infoSecundaria(stay))
                       .build()))
               .build();
@@ -757,13 +760,25 @@ public class ReservaOverview
             .warnAt(preauth * 0.8)
             .dangerAt(preauth * 0.95)
             .build());
-    // incidencias como CARDS a todo el ancho, con Resolver dentro
+    // incidencias como CARDS a todo el ancho: el heading trae el aire de grupo (40px);
+    // abiertas primero (con Resolver), y las RESUELTAS al final como avisos verdes finos
+    content.add(Text.builder().text("Incidencias")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
     var abiertas = stay.incidents().stream()
         .filter(i -> i.status() != IncidentStatus.RESOLVED).toList();
-    if (abiertas.isEmpty()) {
+    var resueltas = stay.incidents().stream()
+        .filter(i -> i.status() == IncidentStatus.RESOLVED).toList();
+    if (stay.incidents().isEmpty()) {
       content.add(Notice.builder()
           .theme("success")
-          .text("Sin incidencias abiertas en la habitación")
+          .text("Sin incidencias en la habitación")
+          .fullWidth(true)
+          .build());
+    } else if (abiertas.isEmpty()) {
+      content.add(Notice.builder()
+          .theme("success")
+          .text("Sin incidencias abiertas — " + resueltas.size() + " resueltas")
+          .slim(true)
           .fullWidth(true)
           .build());
     }
@@ -777,6 +792,14 @@ public class ReservaOverview
               .actionId("resolverIncidencia")
               .parameters(java.util.Map.of("_item", i.code()))
               .build()))
+          .build());
+    }
+    for (var i : resueltas) {
+      content.add(Notice.builder()
+          .theme("success")
+          .text("✓ Resuelta · " + i.title())
+          .slim(true)
+          .fullWidth(true)
           .build());
     }
     return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();

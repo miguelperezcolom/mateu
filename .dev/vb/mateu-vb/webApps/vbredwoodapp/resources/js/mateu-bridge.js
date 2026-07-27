@@ -654,7 +654,10 @@ define([], () => {
           node.children.forEach((zoneChild, i) => {
             const pct = parseFloat(zoneMatches[i][1])
             const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
+            // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
+            // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
             const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+              + (zoneChild.cssClasses ? ' ' + zoneChild.cssClasses : '')
             const before = blocks.length
             plain = null
             visit(zoneChild, null)
