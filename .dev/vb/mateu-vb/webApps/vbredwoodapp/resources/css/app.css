@@ -128,9 +128,9 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   row-gap: 28px;
 }
 
-/* Filas de la lista de pasajeros: mismo ritmo vertical que la rejilla del cockpit. */
+/* Filas de la lista de pasajeros: más aire que la rejilla del cockpit (respiran solas). */
 .mateu-list-item {
-  margin-bottom: 28px !important;
+  margin-bottom: 40px !important;
 }
 .mateu-grid-cell {
   flex: 0 0 min(22rem, 100%);

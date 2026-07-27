@@ -1070,6 +1070,12 @@ pide SOLO las pendientes.
   tercera acción de fila (actionLabel3 — el "No show" llevaba desaparecido desde el merge);
   restaurada con los iconos. Anchos del foldout: Operaciones 46→50rem (celdas del cockpit
   20→22rem en app.css) y Perfil 17→14rem.
+- **Fichas de huésped: h3 sin avatar + más aire (2026-07-27, feedback del usuario)**: la
+  regla `asCards` del bridge (cualquier lista con acciones → tarjetas) PISABA la rama
+  apilada del markup que ya pintaba el diseño pedido — nombre como h3 (nivel siguiente al
+  h2 de la sección del foldout), sin avatar, ritmo .mateu-list-item. Ahora SOLO columns>1
+  fuerza tarjetas; una lista de una columna con acciones va por la rama apilada.
+  `.mateu-list-item` sube de 28 a 40px de separación entre pasajeros.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

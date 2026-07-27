@@ -812,12 +812,10 @@ define([], () => {
         // Todo precomputado por ítem — el CSP de VB no divide ni compara.
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-        // una lista donde ALGUNA fila lleva acciones (p.ej. los huéspedes con Escanear /
-        // A mano) se pinta ENTERA como tarjetas de una columna — mismo oj-panel que las
-        // operaciones: borde propio + aire uniforme; en fila suelta quedaba descolocada
-        const anyActions = (m.items || []).some(
-          (it) => (it.actionLabel && it.actionId) || (it.actionLabel2 && it.actionId2))
-        const asCards = cols > 0 || anyActions
+        // SOLO columns>1 fuerza tarjetas: una lista de una columna con acciones (los
+        // huéspedes) se pinta con la rama APILADA del markup — nombre como h3 (nivel
+        // siguiente al h2 de la sección), sin avatar, ritmo .mateu-list-item
+        const asCards = cols > 0
         const cellClass = cols
           ? 'oj-flex-item oj-sm-12 oj-md-' + Math.max(1, Math.floor(12 / cols)) + ' oj-flex oj-sm-padding-2x-end oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
