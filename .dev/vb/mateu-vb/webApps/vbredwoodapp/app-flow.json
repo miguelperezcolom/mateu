@@ -558,6 +558,15 @@
     "mateuIslandSeed": {
       "type": "string",
       "defaultValue": ""
+    },
+    "mateuGop": {
+      "type": "any",
+      "defaultValue": {
+        "on": false,
+        "main": [],
+        "info": []
+      },
+      "description": "general overview nativo: on + bloques de los slots main/info"
     }
   },
   "userConfig": {

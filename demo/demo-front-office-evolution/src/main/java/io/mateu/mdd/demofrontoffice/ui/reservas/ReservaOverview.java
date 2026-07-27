@@ -132,24 +132,21 @@ public class ReservaOverview
         var stay = stay();
         var conFoldout = stay.status() == StayStatus.ARRIVING;
         if (stay.status() == StayStatus.IN_HOUSE && !modoCheckout) {
-          // EN CASA: el general overview ES un foldout de DOS folds — el carril de info
-          // (huéspedes + salida) y el panel ancho de la estancia (KPI + incidencias);
-          // los títulos subrayados y los colores salen del propio foldout, y las
-          // acciones viven en el toolbar del header de página
-          return io.mateu.uidl.data.FoldoutLayout.builder()
-              .headerTitle("Información")
-              .overview(VerticalLayout.builder()
-                  .style("width: 100%; gap: .25rem;")
-                  .content(infoSecundaria(stay))
-                  .build())
-              .panels(List.of(
-                  io.mateu.uidl.data.FoldoutPanel.builder()
-                      .id("estancia")
-                      .title("Estancia")
-                      .subtitle(balanceResumen())
-                      .open(true)
-                      .width("51rem")
-                      .content(paraInHouse(stay))
+          // EN CASA: anatomía General Overview — el renderer monta el template nativo
+          // (oj-sp-general-overview-page) con el slot MAIN (KPI + incidencias) primero
+          // y el slot INFO (huéspedes + salida) como complementario; los fondos y el
+          // ancho del info los pone el propio template
+          return io.mateu.uidl.data.HorizontalLayout.builder()
+              .style("width: 100%; gap: 1.5rem;")
+              .wrap(true)
+              .content(List.of(
+                  VerticalLayout.builder()
+                      .style("flex: 1 1 calc(62% - 1.5rem); min-width: min(20rem, 100%); gap: 1rem;")
+                      .content(List.of(paraInHouse(stay)))
+                      .build(),
+                  VerticalLayout.builder()
+                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;")
+                      .content(infoSecundaria(stay))
                       .build()))
               .build();
         }

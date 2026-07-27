@@ -463,6 +463,9 @@
       },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
+      },
+      "oj-sp-general-overview-page": {
+        "path": "oj-sp/general-overview-page/loader"
       }
     }
   }

@@ -220,7 +220,16 @@ define([
       const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
-      $application.variables.mateuHostContent = (hostBlocksRicos ? hostBlocks : null) || [];
+      // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna → el
+      // template oj-sp-general-overview-page (slots main/info, header integrado)
+      const zonedGop = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
+      const gopOn = !!(hostEntity && (hostBlocks || []).length === 2 && zonedGop.length === 2);
+      $application.variables.mateuGop = gopOn
+        ? { on: true,
+            main: [Object.assign({}, zonedGop[0], { blockClass: 'oj-flex-item oj-sm-12' })],
+            info: [Object.assign({}, zonedGop[1], { blockClass: 'oj-flex-item oj-sm-12' })] }
+        : { on: false, main: [], info: [] };
+      $application.variables.mateuHostContent = (!gopOn && hostBlocksRicos ? hostBlocks : null) || [];
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
@@ -295,8 +304,8 @@ define([
         title: hostEntity ? hostEntity.title : (summary.title || ''),
         subtitle: hostEntity ? hostEntity.subtitle : '',
         facts: hostEntity ? hostEntity.facts : [],
-        showBand: showBand,
-        showInline: showHeader && !showBand,
+        showBand: showBand && !gopOn,
+        showInline: showHeader && !showBand && !gopOn,
         showListBand: showListBand,
         showListInline: !!listingSummary && !showListBand,
         primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },

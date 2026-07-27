@@ -1179,6 +1179,20 @@ pide SOLO las pendientes.
   GOTCHA drawer: los FormFields del contenido salían DUPLICADOS (gramática de campos +
   átomos isInput de los bloques) y el usuario escribía en el par muerto — overlayOf
   filtra los isInput de los bloques.
+- **In-house v4: el template NATIVO oj-sp-general-overview-page (2026-07-27, aportado por
+  el usuario desde un scaffold de VB Studio)**: Spectra SÍ trae el template completo —
+  `oj-sp/general-overview-page/loader` (no aparece en los bundles: su component.json y su
+  view van INLINE en el loader; el nombre correcto lleva el sufijo -page). API: props del
+  header (pageTitle/pageSubtitle/contextualInfo/primaryAction/secondaryActions/badge/
+  timestamp/selectContext...), slots `main` + `info` (+search/announcement) — el main con
+  fondo neutral-10 y el info como complementario neutral-20 a toda altura (los "colores
+  como el foldout" que señaló el usuario) — y los MISMOS eventos sp* que el header suelto.
+  **Regla del renderer**: página de entidad (hostEntity) cuyo cuerpo son EXACTAMENTE dos
+  bloques-columna → `mateuGop {on, main, info}` y se monta el template (header integrado;
+  la banda genérica y el loop de host se suprimen); los bloques van a ancho completo
+  dentro de su slot (el ancho del info lo pone el template). El backend in-house volvió a
+  dos zonas con el MAIN primero (KPI + incidencias) e info después (huéspedes + salida) —
+  el orden de folds que corregía el usuario.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
