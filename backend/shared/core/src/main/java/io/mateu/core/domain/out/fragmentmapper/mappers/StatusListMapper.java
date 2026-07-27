@@ -28,6 +28,8 @@ public class StatusListMapper {
                                     .actionId(item.actionId())
                                     .actionLabel2(item.actionLabel2())
                                     .actionId2(item.actionId2())
+                                    .actionLabel3(item.actionLabel3())
+                                    .actionId3(item.actionId3())
                                     .build())
                         .toList()
                     : List.of())

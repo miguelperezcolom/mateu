@@ -14,4 +14,6 @@ public record StatusItemDto(
     String actionLabel,
     String actionId,
     String actionLabel2,
-    String actionId2) {}
+    String actionId2,
+    String actionLabel3,
+    String actionId3) {}
