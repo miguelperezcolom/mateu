@@ -132,23 +132,24 @@ public class ReservaOverview
         var stay = stay();
         var conFoldout = stay.status() == StayStatus.ARRIVING;
         if (stay.status() == StayStatus.IN_HOUSE && !modoCheckout) {
-          // EN CASA: anatomía General Overview — contenido principal (KPI del balance +
-          // incidencias a todo el ancho) e info secundaria (huéspedes + salida); las
+          // EN CASA: el general overview ES un foldout de DOS folds — el carril de info
+          // (huéspedes + salida) y el panel ancho de la estancia (KPI + incidencias);
+          // los títulos subrayados y los colores salen del propio foldout, y las
           // acciones viven en el toolbar del header de página
-          return io.mateu.uidl.data.HorizontalLayout.builder()
-              .style("width: 100%; gap: 1.5rem;")
-              .wrap(true)
-              .content(List.of(
-                  VerticalLayout.builder()
-                      .style("flex: 1 1 calc(62% - 1.5rem); min-width: min(20rem, 100%); gap: 1rem;")
-                      .content(List.of(paraInHouse(stay)))
-                      .build(),
-                  VerticalLayout.builder()
-                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;"
-                          + " align-self: flex-start;")
-                      // banda neutra: la info secundaria se distingue del contenido
-                      .cssClasses("oj-panel oj-bg-neutral-20")
-                      .content(infoSecundaria(stay))
+          return io.mateu.uidl.data.FoldoutLayout.builder()
+              .headerTitle("Información")
+              .overview(VerticalLayout.builder()
+                  .style("width: 100%; gap: .25rem;")
+                  .content(infoSecundaria(stay))
+                  .build())
+              .panels(List.of(
+                  io.mateu.uidl.data.FoldoutPanel.builder()
+                      .id("estancia")
+                      .title("Estancia")
+                      .subtitle(balanceResumen())
+                      .open(true)
+                      .width("51rem")
+                      .content(paraInHouse(stay))
                       .build()))
               .build();
         }
@@ -763,7 +764,7 @@ public class ReservaOverview
     // incidencias: TODAS con la misma ficha (titulo + badge de estado a la derecha) y su
     // CRONOLOGIA debajo (fecha/hora - comentario, abriendo con la descripcion); las
     // resueltas al final del listado
-    content.add(Text.builder().text("Incidencias")
+    content.add(Text.builder().text("Incidencias (" + stay.incidents().size() + ")")
         .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
     var incidencias = new ArrayList<>(stay.incidents().stream()
         .filter(i -> i.status() != IncidentStatus.RESOLVED).toList());
@@ -778,11 +779,13 @@ public class ReservaOverview
     } else {
       content.add(StatusList.builder()
           .compact(true).frameless(true)
+          .itemHeadingLevel(4)
           .style("width: 100%;")
           .items(incidencias.stream()
               .map(i -> StatusItem.builder()
                   .id("inc-" + i.code())
                   .title(i.title())
+                  .description(i.type() != null ? i.type().label() : null)
                   .status(switch (i.status()) {
                     case RESOLVED -> "✓ Resuelta";
                     case IN_PROGRESS -> "En curso";
@@ -907,7 +910,8 @@ public class ReservaOverview
           Button.builder().label("Cambiar habitación").actionId("opHabitacion").build(),
           Button.builder().label("Gestionar folio").actionId("gestionFolio").build(),
           Button.builder().label("Mensaje huésped").actionId("mensajeHuesped").build(),
-          Button.builder().label("Registrar petición").actionId("opPeticion").build());
+          Button.builder().label("Registrar petición").actionId("opPeticion").build(),
+          Button.builder().label("Nueva incidencia").actionId("opIncidencia").build());
       case DEPARTED -> List.of();
     };
   }
@@ -921,6 +925,7 @@ public class ReservaOverview
             "opCobro", "metodoCobro", "confirmarCobro",
             "opCargos", "postearCargo", "resolverIncidencia", "lateCheckout",
             "gestionFolio", "opPeticion", "registrarPeticion",
+            "opIncidencia", "crearIncidencia",
             "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
@@ -1091,6 +1096,27 @@ public class ReservaOverview
       }
       case "opCargos" -> drawerCargos();
       case "gestionFolio" -> drawerFolio();
+      case "opIncidencia" -> drawerNuevaIncidencia();
+      case "crearIncidencia" -> {
+        var tipo = io.mateu.mdd.demofrontoffice.domain.stay.IncidentType.valueOf(
+            String.valueOf(httpRequest.runActionRq().parameters().get("_item")));
+        var estadoDrawer = httpRequest.runActionRq().componentState();
+        var titulo = estadoDrawer != null && estadoDrawer.get("incTitulo") != null
+            && !String.valueOf(estadoDrawer.get("incTitulo")).isBlank()
+            ? String.valueOf(estadoDrawer.get("incTitulo"))
+            : "Incidencia de " + tipo.label().toLowerCase(Locale.forLanguageTag("es"));
+        var comentario = estadoDrawer != null && estadoDrawer.get("incComentario") != null
+            && !String.valueOf(estadoDrawer.get("incComentario")).isBlank()
+            ? String.valueOf(estadoDrawer.get("incComentario"))
+            : "Reportada en recepción";
+        var incidencia = new io.mateu.mdd.demofrontoffice.domain.stay.Incident(
+            "inc-" + System.currentTimeMillis(), tipo, tipo.icon(), titulo, comentario,
+            IncidentStatus.OPEN, false, java.time.LocalDateTime.now(), null);
+        FrontOffice.stays().save(stay().reportIncident(incidencia));
+        yield List.of(this,
+            new Message("Incidencia abierta — " + titulo + " (" + tipo.label() + ")"),
+            UICommand.closeModal());
+      }
       case "opPeticion" -> drawerPeticiones();
       case "registrarPeticion" -> {
         var peticion = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));
@@ -1390,6 +1416,39 @@ public class ReservaOverview
                 .toList())
             .total(folio == null ? 0 : folio.balance().doubleValue())
             .build())
+        .initialData(java.util.Map.of("stayId", stayId))
+        .build();
+  }
+
+  /** Drawer de alta de incidencia: título/comentario + el TIPO como filas clicables. */
+  private io.mateu.uidl.data.Drawer drawerNuevaIncidencia() {
+    var contenido = new ArrayList<Component>();
+    contenido.add(FormField.builder()
+        .id("incTitulo").label("Título").dataType(FieldDataType.string)
+        .style("width: 100%;").build());
+    contenido.add(FormField.builder()
+        .id("incComentario").label("Comentario").dataType(FieldDataType.string)
+        .style("width: 100%;").build());
+    contenido.add(Text.builder().text("Crear como…")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    contenido.add(StatusList.builder()
+        .rowActionId("crearIncidencia")
+        .compact(true)
+        .style("width: 100%;")
+        .items(java.util.Arrays.stream(
+                io.mateu.mdd.demofrontoffice.domain.stay.IncidentType.values())
+            .map(tipo -> StatusItem.builder()
+                .id(tipo.name())
+                .icon(tipo.icon())
+                .title(tipo.label())
+                .build())
+            .toList())
+        .build());
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-nueva-incidencia")
+        .headerTitle("Nueva incidencia")
+        .width("26rem")
+        .content(VerticalLayout.builder().style("gap: .5rem;").content(contenido).build())
         .initialData(java.util.Map.of("stayId", stayId))
         .build();
   }

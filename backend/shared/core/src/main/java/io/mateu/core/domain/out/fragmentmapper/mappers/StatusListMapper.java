@@ -41,6 +41,7 @@ public class StatusListMapper {
             .frameless(statusList.frameless())
             .rowActionId(statusList.rowActionId())
             .columns(statusList.columns())
+            .itemHeadingLevel(statusList.itemHeadingLevel())
             .build(),
         statusList.id(),
         List.of(),

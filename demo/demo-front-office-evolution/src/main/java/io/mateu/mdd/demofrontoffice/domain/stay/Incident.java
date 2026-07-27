@@ -7,11 +7,12 @@ import org.springframework.data.relational.core.mapping.Table;
  * An incident reported during the stay (maintenance issue, service delay, active complaint...).
  * Value object owned by {@link Stay}; {@code complaint} flags formal guest complaints. The
  * {@code description} is the OPENING comment; {@code openedAt}/{@code resolvedAt} anchor the
- * incident's little timeline.
+ * incident's little timeline; {@code type} drives triage and the icon.
  */
 @Table("stay_incident")
 public record Incident(
     String code,
+    IncidentType type,
     String icon,
     String title,
     String description,
@@ -22,7 +23,7 @@ public record Incident(
 
   public Incident resolve() {
     return new Incident(
-        code, icon, title, description, IncidentStatus.RESOLVED, complaint, openedAt,
+        code, type, icon, title, description, IncidentStatus.RESOLVED, complaint, openedAt,
         LocalDateTime.now());
   }
 }

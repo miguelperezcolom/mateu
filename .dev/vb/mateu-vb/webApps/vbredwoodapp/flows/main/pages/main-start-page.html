@@ -302,7 +302,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -339,7 +344,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -636,7 +646,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -673,7 +688,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -991,7 +1011,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -1028,7 +1053,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -1325,7 +1355,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -1362,7 +1397,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -1826,7 +1866,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -1863,7 +1908,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -2225,7 +2275,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -2262,7 +2317,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -2557,7 +2617,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -2594,7 +2659,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -3036,7 +3106,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3062,7 +3137,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -3346,7 +3426,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3372,7 +3457,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -3683,7 +3773,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -3720,7 +3815,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
@@ -4017,7 +4117,12 @@
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
+                                  <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                   <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                                 </div>
                               </div>
@@ -4054,7 +4159,12 @@
                                 <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
                                      al título de la sección, que pinta como h2); crece y empuja
                                      el badge al borde derecho del ítem -->
-                                <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                <oj-bind-if test="[[ !$current.data.isH4 ]]">
+                                  <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                                </oj-bind-if>
+                                <oj-bind-if test="[[ $current.data.isH4 ]]">
+                                  <h4 class="oj-flex-item oj-typography-body-md oj-typography-bold oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h4>
+                                </oj-bind-if>
                                 <span class="oj-flex-item oj-sm-flex-initial" :class="[[ $current.data.statusBadgeClass ]]"><oj-bind-text value="[[ $current.data.status ]]"></oj-bind-text></span>
                               </div>
                               <div class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>

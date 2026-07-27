@@ -21,6 +21,7 @@ import io.mateu.mdd.demofrontoffice.domain.room.RoomRepository;
 import io.mateu.mdd.demofrontoffice.domain.stay.Companion;
 import io.mateu.mdd.demofrontoffice.domain.stay.Incident;
 import io.mateu.mdd.demofrontoffice.domain.stay.IncidentStatus;
+import io.mateu.mdd.demofrontoffice.domain.stay.IncidentType;
 import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayRepository;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayStatus;
@@ -192,7 +193,7 @@ public class FrontOfficeSeeder implements ApplicationRunner {
                     "+34 600 333 444", "Doc 55443322M · Adulto · Acompañante")),
             List.of(
                 new Incident(
-                    "tv", "📺", "TV sin señal en canales internacionales",
+                    "tv", IncidentType.TV, "📺", "TV sin señal en canales internacionales",
                     "El huésped reporta que los canales internacionales no sintonizan",
                     IncidentStatus.OPEN, false,
                     java.time.LocalDateTime.now().minusDays(1).withHour(18).withMinute(40),
@@ -214,12 +215,12 @@ public class FrontOfficeSeeder implements ApplicationRunner {
                     "+33 6 11 22 33 44", "Doc FR-4471882 · Adulto · Titular secundario")),
             List.of(
                 new Incident(
-                    "ac", "🌡", "Aire acondicionado con ruido",
+                    "ac", IncidentType.CLIMA, "🌡", "Aire acondicionado con ruido",
                     "Ruido intermitente del split por la noche — no deja dormir",
                     IncidentStatus.IN_PROGRESS, false,
                     java.time.LocalDateTime.now().minusHours(14), null),
                 new Incident(
-                    "rs", "🍽", "Retraso en room service",
+                    "rs", IncidentType.RESTAURANTE, "🍽", "Retraso en room service",
                     "La cena llegó 40 minutos tarde — compensada con detalle de bienvenida",
                     IncidentStatus.OPEN, false,
                     java.time.LocalDateTime.now().minusHours(11), null)),
@@ -231,7 +232,7 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             null, List.of(),
             List.of(
                 new Incident(
-                    "queja", "⚠", "Queja activa — ruido en pasillo",
+                    "queja", IncidentType.GENERAL, "⚠", "Queja activa — ruido en pasillo",
                     "Ruido de carros de limpieza a primera hora — pendiente de respuesta",
                     IncidentStatus.OPEN, true,
                     java.time.LocalDateTime.now().minusDays(2).withHour(8).withMinute(15),

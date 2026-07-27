@@ -1165,6 +1165,20 @@ pide SOLO las pendientes.
   acepta también filas SIN acciones cuando llevan lines (guards hasActions||hasLines) y
   pinta la cronología entre descripción y botones. Resolver como icono ✓ solo en
   abiertas.
+- **In-house v3: foldout de 2 folds + tipos de incidencia + alta (2026-07-27, insight del
+  usuario: "el general overview ES un folded layout de solo 2 folds")**: la in-house
+  vuelve al FoldoutLayout — overview "Información" (huéspedes + salida) y panel
+  "Estancia · balance" (KPI + incidencias) — con títulos subrayados y colores del propio
+  foldout, y consistente con la pantalla de llegada. "Incidencias (N)" con contador;
+  títulos de incidencia como h4 (nuevo `StatusList.itemHeadingLevel` uidl→dto→wire; el
+  bridge marca isH4 y el template pinta h3|h4 — cascada h2 panel → h3 grupo → h4 ítem);
+  el TIPO bajo el título (nuevo `IncidentType` TV/Climatización/Servicio/Restaurante/
+  Limpieza/General con icono, columna en schema + seeder). Alta: acción "Nueva
+  incidencia" en el header → drawer con Título/Comentario (campos del drawer) + el tipo
+  como filas clicables → `crearIncidencia` lee el estado del drawer y reportIncident.
+  GOTCHA drawer: los FormFields del contenido salían DUPLICADOS (gramática de campos +
+  átomos isInput de los bloques) y el usuario escribía en el par muerto — overlayOf
+  filtra los isInput de los bloques.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

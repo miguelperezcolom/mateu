@@ -151,7 +151,12 @@ export function overlayOf(reg) {
   // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
   // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
   // es solo campos y botones (p.ej. el picker de habitaciones)
-  const content = islandContentOf(ctx)
+  // los FormFields del drawer ya los pinta su gramática de CAMPOS (oj-form-layout):
+  // fuera los átomos isInput de los bloques o saldrían DUPLICADOS (y el usuario
+  // escribiría en el par equivocado)
+  const content = (islandContentOf(ctx) || [])
+    .map((block) => ({ ...block, items: block.items.filter((a) => !a.isInput) }))
+    .filter((block) => block.items.length)
   return {
     id,
     title: ctx.title || '',
@@ -160,8 +165,8 @@ export function overlayOf(reg) {
     state: ctx.state || {},
     fields: fieldListOf(ctx.tree, ctx.state),
     actions: actionsOf(ctx.tree),
-    content: content || [],
-    hasContent: !!(content && content.length),
+    content: content,
+    hasContent: !!content.length,
     // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
     // drawer (tarea con formulario); texts = sus líneas de mensaje
     isDialog: !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog'),
@@ -887,6 +892,8 @@ export function islandContentOf(ctx) {
             statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
             actions: rowActions,
             hasActions: rowActions.length > 0,
+            // nivel del heading del titulo apilado: h4 bajo un grupo con h3 propio
+            isH4: m.itemHeadingLevel === 4,
             // cronologia bajo el titulo (p.ej. las entradas de una incidencia)
             lines: (it.lines || []).map(interp),
             hasLines: !!(it.lines && it.lines.length),
