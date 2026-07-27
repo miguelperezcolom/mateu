@@ -130,8 +130,25 @@ public class ReservaOverview
   Callable<Component> cuerpo =
       () -> {
         var stay = stay();
-        var conFoldout = stay.status() == StayStatus.ARRIVING
-            || (stay.status() == StayStatus.IN_HOUSE && !modoCheckout);
+        var conFoldout = stay.status() == StayStatus.ARRIVING;
+        if (stay.status() == StayStatus.IN_HOUSE && !modoCheckout) {
+          // EN CASA: anatomía General Overview — contenido principal (KPI del balance +
+          // incidencias a todo el ancho) e info secundaria (huéspedes + salida); las
+          // acciones viven en el toolbar del header de página
+          return io.mateu.uidl.data.HorizontalLayout.builder()
+              .style("width: 100%; gap: 1.5rem;")
+              .wrap(true)
+              .content(List.of(
+                  VerticalLayout.builder()
+                      .style("flex: 1 1 calc(62% - 1.5rem); min-width: min(20rem, 100%); gap: 1rem;")
+                      .content(List.of(paraInHouse(stay)))
+                      .build(),
+                  VerticalLayout.builder()
+                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;")
+                      .content(infoSecundaria(stay))
+                      .build()))
+              .build();
+        }
         if (!conFoldout) {
           // salida / modo check-out: dos columnas planas (huéspedes | operativa)
           return io.mateu.uidl.data.HorizontalLayout.builder()
@@ -728,69 +745,69 @@ public class ReservaOverview
         ? Math.max(balance, 1) : folio.preauthorized().doubleValue();
     var pct = (int) Math.round(balance / preauth * 100);
     var content = new ArrayList<Component>();
+    // el KPI del balance, tal cual
     content.add(
         Meter.builder()
             .label("BALANCE ACTUAL")
             .value(balance)
             .max(preauth)
             .unit("€")
-            .caption(pct + "% de la preautorización consumido")
+            .caption(pct + "% de la preautorización consumido · "
+                + (folio == null ? 0 : folio.lines().size()) + " cargos")
             .warnAt(preauth * 0.8)
             .dangerAt(preauth * 0.95)
             .build());
-    // el cockpit de la estancia: folio, incidencias y salida como fichas actuables
-    var items = new ArrayList<StatusItem>();
-    items.add(StatusItem.builder()
-        .id("folio")
-        .title("Folio · " + GuestHeaders.euros(balance))
-        .description(pct + "% de la preautorización (" + GuestHeaders.euros(preauth) + ") · "
-            + (folio == null ? 0 : folio.lines().size()) + " cargos")
-        .status(pct >= 95 ? "Al límite" : pct >= 80 ? "Vigilar" : "OK")
-        .statusColor(pct >= 95 ? "error" : pct >= 80 ? "warning" : "success")
-        .actionLabel("Postear cargo")
-        .actionId("opCargos")
-        .actionIcon("vaadin:cart")
-        .build());
+    // incidencias como CARDS a todo el ancho, con Resolver dentro
     var abiertas = stay.incidents().stream()
         .filter(i -> i.status() != IncidentStatus.RESOLVED).toList();
     if (abiertas.isEmpty()) {
-      items.add(StatusItem.builder()
-          .id("incidencias").title("Incidencias")
-          .description("Sin incidencias abiertas en la habitación")
-          .status("✓ OK").statusColor("success")
+      content.add(Notice.builder()
+          .theme("success")
+          .text("Sin incidencias abiertas en la habitación")
+          .fullWidth(true)
           .build());
     }
     for (var i : abiertas) {
-      items.add(StatusItem.builder()
-          .id("inc-" + i.code())
-          .title(i.title())
-          .description(i.description())
-          .status(i.status() == IncidentStatus.IN_PROGRESS ? "En curso" : "Abierta")
-          .statusColor(i.status() == IncidentStatus.IN_PROGRESS ? "warning" : "error")
-          .actionLabel("Resolver")
-          .actionId("resolverIncidencia")
-          .actionIcon("vaadin:check")
+      content.add(Notice.builder()
+          .theme(i.status() == IncidentStatus.IN_PROGRESS ? "warning" : "danger")
+          .text(i.title() + " — " + i.description())
+          .fullWidth(true)
+          .content(List.of(Button.builder()
+              .label("Resolver")
+              .actionId("resolverIncidencia")
+              .parameters(java.util.Map.of("_item", i.code()))
+              .build()))
           .build());
     }
-    var late = lateCheckoutContratado(folio);
-    items.add(StatusItem.builder()
-        .id("salida")
-        .title("Salida · " + DAY.format(stay.checkOut()))
-        .description(late
-            ? "Late check-out contratado — salida a las 15:00"
-            : stay.nights() + " noches · late check-out disponible (+ € 50)")
-        .status(late ? "15:00" : "12:00")
-        .statusColor(late ? "success" : "contrast")
-        .actionLabel(late ? null : "Late check-out")
-        .actionId(late ? null : "lateCheckout")
-        .actionIcon(late ? null : "vaadin:clock")
-        .build());
-    content.add(StatusList.builder()
-        .compact(true).frameless(true).columns(2)
-        .style("width: 100%;")
-        .items(items)
-        .build());
     return VerticalLayout.builder().content(content).style("width: 100%; gap: 1rem;").build();
+  }
+
+  /** Info secundaria del general overview en casa: los huéspedes (solo datos) y la salida. */
+  private List<Component> infoSecundaria(Stay stay) {
+    var view = FrontOffice.stayView(stayId);
+    var contenido = new ArrayList<Component>();
+    contenido.add(Text.builder().text("Huéspedes")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    contenido.add(Text.builder().text(view.guest().name()).noMargins(true).build());
+    contenido.add(Text.builder()
+        .text("Doc " + view.guest().document() + " · Adulto")
+        .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    for (var companion : stay.companions()) {
+      contenido.add(Text.builder().text(companion.name()).noMargins(true).build());
+      // la descripción del acompañante ya incluye su documento
+      contenido.add(Text.builder().text(companion.description())
+          .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    }
+    var late = lateCheckoutContratado(view.folio());
+    contenido.add(Text.builder().text("Salida")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    contenido.add(Text.builder()
+        .text(DAY.format(stay.checkOut()) + " · " + (late ? "15:00 (late check-out)" : "12:00"))
+        .noMargins(true).build());
+    contenido.add(Text.builder()
+        .text(stay.nights() + " noches · " + stay.board())
+        .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    return contenido;
   }
 
   private Component paraSalida(Stay stay) {
@@ -843,7 +860,11 @@ public class ReservaOverview
       case IN_HOUSE -> List.of(
           Button.builder().label("Check-out").actionId("irCheckout")
               .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build(),
-          Button.builder().label("Mensaje huésped").actionId("mensajeHuesped").build());
+          Button.builder().label("Añadir cargo").actionId("opCargos").build(),
+          Button.builder().label("Cambiar habitación").actionId("opHabitacion").build(),
+          Button.builder().label("Gestionar folio").actionId("gestionFolio").build(),
+          Button.builder().label("Mensaje huésped").actionId("mensajeHuesped").build(),
+          Button.builder().label("Registrar petición").actionId("opPeticion").build());
       case DEPARTED -> List.of();
     };
   }
@@ -856,6 +877,7 @@ public class ReservaOverview
             "siguienteReserva", "volverListado",
             "opCobro", "metodoCobro", "confirmarCobro",
             "opCargos", "postearCargo", "resolverIncidencia", "lateCheckout",
+            "gestionFolio", "opPeticion", "registrarPeticion",
             "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
         .contains(actionId);
@@ -980,13 +1002,7 @@ public class ReservaOverview
             UICommand.closeModal("cardex-guardado"));
       }
       case "refrescarReserva" -> this;
-      case "opHabitacion" -> {
-        if (stay().status() == StayStatus.ARRIVING) {
-          yield drawerHabitacion(stay());
-        }
-        modoHabitacion = true;
-        yield this;
-      }
+      case "opHabitacion" -> drawerHabitacion(stay());
       case "volverHabitacion" -> {
         modoHabitacion = false;
         modoCobro = false;
@@ -1031,6 +1047,25 @@ public class ReservaOverview
         yield List.of(this, new Message(texto));
       }
       case "opCargos" -> drawerCargos();
+      case "gestionFolio" -> drawerFolio();
+      case "opPeticion" -> drawerPeticiones();
+      case "registrarPeticion" -> {
+        var peticion = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));
+        if ("late-checkout".equals(peticion)) {
+          var view = FrontOffice.stayView(stayId);
+          var folio = view.folio() != null
+              ? view.folio()
+              : Folio.openFor("f-" + view.stay().id(), view.stay().id(), null);
+          FrontOffice.folios().save(folio.post(
+              FolioLine.charge("Late check-out (salida 15:00)", new java.math.BigDecimal("50.00"))));
+          yield List.of(this,
+              new Message("Late check-out contratado — salida a las 15:00 (+ € 50,00)"),
+              UICommand.closeModal());
+        }
+        yield List.of(this,
+            new Message("Petición registrada — housekeeping avisado (" + peticion + ")"),
+            UICommand.closeModal());
+      }
       case "postearCargo" -> {
         var code = String.valueOf(httpRequest.runActionRq().parameters().get("_item"));
         var item = FrontOffice.chargeCatalog().findByCode(code).orElse(null);
@@ -1284,6 +1319,57 @@ public class ReservaOverview
                 .map(item -> StatusItem.builder()
                     .id(item.code()).title(item.name()).description(item.code())
                     .status(GuestHeaders.euros(item.price())).statusColor("contrast")
+                    .build())
+                .toList())
+            .build())
+        .initialData(java.util.Map.of("stayId", stayId))
+        .build();
+  }
+
+  /** Drawer con el desglose del folio (Ledger) — gestión de folio. */
+  private io.mateu.uidl.data.Drawer drawerFolio() {
+    var folio = FrontOffice.stayView(stayId).folio();
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-folio")
+        .headerTitle("Folio de la estancia")
+        .width("30rem")
+        .content(Ledger.builder()
+            .style("width: 100%;")
+            .currency("€")
+            .totalLabel("Total")
+            .lines(folio == null ? List.of() : folio.lines().stream()
+                .map(l -> LedgerLine.builder()
+                    .concept(l.concept())
+                    .amount(l.amount() == null ? null : l.amount().doubleValue())
+                    .included(l.included())
+                    .includedLabel(l.includedLabel())
+                    .build())
+                .toList())
+            .total(folio == null ? 0 : folio.balance().doubleValue())
+            .build())
+        .initialData(java.util.Map.of("stayId", stayId))
+        .build();
+  }
+
+  /** Drawer de peticiones del huésped: filas clicables → registrarPeticion. */
+  private io.mateu.uidl.data.Drawer drawerPeticiones() {
+    record Peticion(String id, String titulo, String detalle) {}
+    var peticiones = List.of(
+        new Peticion("late-checkout", "Late check-out", "Salida a las 15:00 · + € 50,00"),
+        new Peticion("cuna", "Cuna para la habitación", "Sin cargo"),
+        new Peticion("toallas", "Toallas extra", "Sin cargo"),
+        new Peticion("limpieza", "Limpieza adicional", "Sin cargo"));
+    return io.mateu.uidl.data.Drawer.builder()
+        .id("drawer-peticiones")
+        .headerTitle("Registrar petición")
+        .width("26rem")
+        .content(StatusList.builder()
+            .rowActionId("registrarPeticion")
+            .compact(true)
+            .style("width: 100%;")
+            .items(peticiones.stream()
+                .map(pet -> StatusItem.builder()
+                    .id(pet.id()).title(pet.titulo()).description(pet.detalle())
                     .build())
                 .toList())
             .build())

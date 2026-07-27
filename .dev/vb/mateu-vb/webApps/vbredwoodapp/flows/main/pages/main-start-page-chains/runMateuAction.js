@@ -186,7 +186,7 @@ define([
       $application.variables.mateuListPrimary = primaryToolbar
         ? { label: primaryToolbar.label } : { label: '', display: 'off' };
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
-      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuHostText = summary.text;
@@ -346,7 +346,7 @@ define([
         showListInline: !!listingSummary && !showListBandA,
         primary: primaryBtnA ? { label: primaryBtnA.label, display: primaryBtnA.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
-        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ label: b.label })),
+        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
         toolbar: hostToolbarA,
       };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;

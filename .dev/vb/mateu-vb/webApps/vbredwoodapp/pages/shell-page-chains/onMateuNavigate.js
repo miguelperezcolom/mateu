@@ -147,7 +147,7 @@ define([
       $application.variables.mateuListPrimary = primaryToolbar
         ? { label: primaryToolbar.label } : { label: '', display: 'off' };
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
-      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ label: b.label }));
+      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
@@ -301,7 +301,7 @@ define([
         showListInline: !!listingSummary && !showListBand,
         primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtn ? primaryBtn.actionId : '',
-        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ label: b.label })),
+        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
         toolbar: hostToolbar,
       };
       if (showBand || showListBand) {

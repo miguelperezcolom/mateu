@@ -1136,6 +1136,19 @@ pide SOLO las pendientes.
   cart/check/clock añadidos a OJ_ICONS. Todo verificado en vivo con Carlos: postear desde
   el drawer (1.710,50 → 1.735,50), resolver la incidencia de TV, late check-out
   (→ 1.785,50 · 99% y "Al límite"), con el header del panel y los facts refrescando.
+- **In-house v2: General Overview (2026-07-27, diseño del usuario)**: fuera el foldout en
+  casa — anatomía RDS de overview: contenido principal (KPI del balance tal cual +
+  incidencias como CARDS a todo el ancho: Notice danger/warning con el botón Resolver
+  DENTRO — parameters en los Buttons del content del Notice) e info secundaria al lado
+  (huéspedes SOLO datos, sin badges/acciones, y la salida: fecha · 12:00/15:00 · noches ·
+  régimen). Las CINCO acciones van al toolbar del header (Añadir cargo / Cambiar
+  habitación / Gestionar folio / Mensaje huésped / Registrar petición) + Check-out
+  primary — el Spectra header colapsa las secundarias en el menú "…". Drawers nuevos:
+  Gestionar folio (Ledger) y Registrar petición (peticiones clicables; late-checkout
+  postea +€50 y cierra con closeModal; el resto toast). GOTCHA Spectra: el evento
+  spSecondaryAction identifica el item por su id/value — sin id llegaba
+  secondaryItem="undefined"; las secundarias llevan id=value=actionId y
+  headerSecondaryAction resuelve por actionId O label.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
