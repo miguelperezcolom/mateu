@@ -51,11 +51,14 @@ define([
       const firstLeaf = nav.menuTree.find((entry) => !entry.hasChildren);
       const firstGroup = nav.menuTree.find((entry) => entry.hasChildren);
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
-      $application.variables.mateuHomeRoute = first ? first.id : '';
+      // la HOME del app (@HomeRoute, p.ej. la welcome page) manda sobre la primera
+      // opción del menú
+      const homeRoute = nav.homeRoute || (first ? first.id : '');
+      $application.variables.mateuHomeRoute = homeRoute;
 
       // 1.5: deep-link — si la URL trae un hash (#/ruta), bootear ESA ruta
       const deepLink = (window.location.hash || '').replace(/^#/, '');
-      const startRoute = deepLink || (first && first.id);
+      const startRoute = deepLink || homeRoute;
       if (startRoute) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',

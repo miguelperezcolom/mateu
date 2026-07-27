@@ -50,6 +50,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     welcomeOf,
     generalOverviewOf,
     itemOverviewOf,
+    itemOverviewPageOf,
+    autoSaveOf,
     taskQueueOf,
     emptyStateOf,
     interpolate,

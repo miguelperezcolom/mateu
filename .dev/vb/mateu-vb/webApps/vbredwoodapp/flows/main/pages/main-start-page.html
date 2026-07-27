@@ -24,6 +24,32 @@
         <oj-input-search id="mateuSearch" slot="search" placeholder="Buscar…"
           on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
       </oj-sp-smart-filter-search>
+      <oj-bind-if test="[[ (($application.variables.mateuListing || {}).quickFilters || []).length > 0 ]]">
+        <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top oj-sm-margin-6x-bottom">
+          <oj-bind-for-each data="[[ $application.variables.mateuListing.quickFilters[0].options ]]">
+            <template>
+              <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value === $current.data.value ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="applied" close-icon="always" actionable="true"
+                  label="[[ $application.variables.mateuListing.quickFilters[0].label ]]"
+                  value="[[ $current.data.label ]]"
+                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
+                  :data-value="[[ $current.data.value ]]"
+                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-close="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              </oj-bind-if>
+              <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value !== $current.data.value ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+                  label="[[ $current.data.label ]]"
+                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
+                  :data-value="[[ $current.data.value ]]"
+                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              </oj-bind-if>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </oj-bind-if>
     </div>
   </div>
 </oj-bind-if>
@@ -474,7 +500,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -818,7 +845,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -1183,7 +1211,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -1527,7 +1556,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -1547,6 +1577,10 @@
 <!-- Arquetipo WELCOME: banner de bienvenida Redwood (CTAs integrados) + tiles -->
 <oj-bind-if test="[[ !!$application.variables.mateuWelcome ]]">
   <oj-sp-header-welcome-banner id="mateuWelcomeBanner"
+    themed-image="none"
+    illustration-background="[[ $application.variables.mateuWelcomeIlluBg ]]"
+    illustration-foreground="[[ $application.variables.mateuWelcomeIllu ]]"
+    background-color="[[ $application.variables.mateuWelcomeTheme ]]"
     page-title="[[ $application.variables.mateuWelcome.title ]]"
     description-text="[[ $application.variables.mateuWelcome.subtitle ]]"
     primary-action="[[ $application.variables.mateuWelcome.primaryCta ]]"
@@ -1558,12 +1592,24 @@
       <template>
         <div class="oj-flex-item oj-sm-12 oj-md-4">
           <div class="oj-panel oj-sm-margin-2x">
-            <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-            <oj-bind-for-each data="[[ $current.data.texts ]]">
-              <template>
-                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
-              </template>
-            </oj-bind-for-each>
+            <oj-bind-if test="[[ $current.data.isKpi ]]">
+              <oj-action-card style="display: block;" on-oj-action="[[ $listeners.welcomeKpiClicked ]]"
+                :data-action-id="[[ $current.data.kpiActionId ]]">
+                <div class="oj-sm-padding-2x">
+                  <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.kpiTitle ]]"></oj-bind-text></div>
+                  <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.kpiValue ]]"></oj-bind-text></div>
+                  <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.kpiCaption ]]"></oj-bind-text></div>
+                </div>
+              </oj-action-card>
+            </oj-bind-if>
+            <oj-bind-if test="[[ !$current.data.isKpi ]]">
+              <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+              <oj-bind-for-each data="[[ $current.data.texts ]]">
+                <template>
+                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
           </div>
         </div>
       </template>
@@ -1646,6 +1692,32 @@
       <oj-input-search id="mateuSearchInline" slot="search" placeholder="Buscar…"
         on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
     </oj-sp-smart-filter-search>
+    <oj-bind-if test="[[ (($application.variables.mateuListing || {}).quickFilters || []).length > 0 ]]">
+        <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top oj-sm-margin-6x-bottom">
+          <oj-bind-for-each data="[[ $application.variables.mateuListing.quickFilters[0].options ]]">
+            <template>
+            <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value === $current.data.value ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="applied" close-icon="always" actionable="true"
+                  label="[[ $application.variables.mateuListing.quickFilters[0].label ]]"
+                  value="[[ $current.data.label ]]"
+                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
+                  :data-value="[[ $current.data.value ]]"
+                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-close="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              </oj-bind-if>
+            <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value !== $current.data.value ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+                  label="[[ $current.data.label ]]"
+                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
+                  :data-value="[[ $current.data.value ]]"
+                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
+                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              </oj-bind-if>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </oj-bind-if>
   </oj-bind-if>
   <!-- la TARJETA del listado (la banda con el header capado se pinta arriba, fuera del
        contenedor — misma anatomía que el header genérico) -->
@@ -1681,6 +1753,22 @@
           <oj-switch
             value="[[ $current.data ]]"
             on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-switch>
+        </template>
+        <!-- ESTADO como badge (@Status): el valor trae message + badgeClass precomputada -->
+        <template slot="cellStatusBadge">
+          <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+        </template>
+        <!-- ACCIONES por fila (ColumnActionGroup): el valor de la celda trae actions[];
+             el alias "cell" conserva el contexto de la fila dentro del for-each -->
+        <template slot="cellRowActions" data-oj-as="cell">
+          <oj-bind-for-each data="[[ (cell.data && cell.data.actions) || [] ]]">
+            <template>
+              <oj-button chroming="outlined" class="oj-button-sm oj-sm-margin-1x-end"
+                :data-method="[[ $current.data.methodNameInCrud ]]"
+                :data-row-id="[[ cell.row.id ]]"
+                on-oj-action="[[ $listeners.rowActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+            </template>
+          </oj-bind-for-each>
         </template>
       </oj-table>
     </div>
@@ -2038,7 +2126,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -2460,7 +2549,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -2802,7 +2892,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -3269,7 +3360,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -3589,7 +3681,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -3976,7 +4069,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -4320,7 +4414,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -4678,7 +4773,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -5022,7 +5118,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -5035,6 +5132,8 @@
     </div>
   </oj-sp-general-overview-page>
 </oj-bind-if>
+
+
 
 <oj-bind-if test="[[ $application.variables.mateuHostContent.length ]]">
   <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
@@ -5378,7 +5477,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -5722,7 +5822,8 @@
                         label-hint="[[ $current.data.label ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
-                        on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                        on-value-changed="[[ $listeners.hostInputChanged ]]"
+                        on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>

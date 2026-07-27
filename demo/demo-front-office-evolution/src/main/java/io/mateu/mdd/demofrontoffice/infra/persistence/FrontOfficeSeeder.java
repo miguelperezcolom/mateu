@@ -180,7 +180,15 @@ public class FrontOfficeSeeder implements ApplicationRunner {
         new Stay(
             "st-oliver", "oliver", "512", "Deluxe King", "Media pensión", today.minusDays(6),
             today.minusDays(1), 1, "Directo · Web", new BigDecimal("980.00"), StayStatus.DEPARTED,
-            0, 0, null, List.of(), List.of(), Set.of()));
+            0, 0, null, List.of(),
+            List.of(
+                new Incident(
+                    "ac-512", IncidentType.CLIMA, "🔧", "Goteo del aire acondicionado",
+                    "Goteo sobre el escritorio la segunda noche",
+                    IncidentStatus.RESOLVED, false,
+                    java.time.LocalDateTime.now().minusDays(4).withHour(21).withMinute(15),
+                    java.time.LocalDateTime.now().minusDays(3).withHour(10).withMinute(30))),
+            Set.of()));
 
     // In-house guests (the "en casa" 360 and the check-out queue)
     stays.save(

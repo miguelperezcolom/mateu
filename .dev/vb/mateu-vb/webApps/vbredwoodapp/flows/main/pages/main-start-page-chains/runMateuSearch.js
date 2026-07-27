@@ -36,6 +36,12 @@ define([
         page: 0,
         size: listing.pageSize,
       });
+      // selector rápido activo (chips junto al smart search) → viaja como filtro
+      const quick = $application.variables.mateuQuickFilter || {};
+      if (quick.fieldId && quick.value) {
+        componentState[quick.fieldId] = quick.value;
+      }
+      $application.variables.mateuLastSearchText = searchText == null ? '' : searchText;
       const route = $application.variables.mateuSelectedRoute;
       const increment = await bridge.runMateuAction(base, host, route, 'search', componentState, { appState: $application.variables.mateuAppState || {} });
       const reg = bridge.reduceContexts(before, increment);

@@ -215,3 +215,10 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   max-height: 0.25rem;
   background-color: var(--oj-sp-theme-accent, #f0cc71);
 }
+
+/* El foldout-layout monta un header de navegación PROPIO (oj-sp-header-navigation vacío,
+   16px con fondo blanco) que dejaba una banda entre el acento del header de página y los
+   folds — no se usa (la 360 lleva su propio header), fuera. */
+.oj-sp-foldout-layout-header-horizontal {
+  display: none;
+}

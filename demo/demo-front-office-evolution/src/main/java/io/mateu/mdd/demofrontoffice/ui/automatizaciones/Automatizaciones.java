@@ -25,7 +25,8 @@ import java.util.concurrent.Callable;
  * from the automation aggregates and the process health board. The fix actions resolve the
  * process' warnings for real ({@code Automation.resolveWarnings()} → repository) and re-render.
  */
-@Route(value = "/automatizaciones", parentRoute = "")
+// el board scoreboard+monitor se conserva en una ruta propia; /automatizaciones es el LISTADO
+@Route(value = "/automatizaciones-board", parentRoute = "")
 @Title("Automatizaciones")
 public class Automatizaciones {
 

@@ -397,6 +397,49 @@
           "chain": "mateuModalDismissed"
         }
       ]
+    },
+    "hostInputTyped": {
+      "chains": [
+        {
+          "chain": "hostInputTyped",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "quickFilterClicked": {
+      "chains": [
+        {
+          "chain": "listingQuickFilter",
+          "parameters": {
+            "fieldId": "{{ $application.variables.mateuListing.quickFilters[0].fieldId }}",
+            "value": "{{ $current.data.value }}"
+          }
+        }
+      ]
+    },
+    "welcomeKpiClicked": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $current.data.kpiActionId }}"
+          }
+        }
+      ]
+    },
+    "rowActionClicked": {
+      "chains": [
+        {
+          "chain": "listingRowAction",
+          "parameters": {
+            "methodName": "{{ $event.target.dataset.method }}",
+            "rowId": "{{ $event.target.dataset.rowId }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -466,6 +509,9 @@
       },
       "oj-sp-general-overview-page": {
         "path": "oj-sp/general-overview-page/loader"
+      },
+      "oj-sp-filter-chip": {
+        "path": "oj-sp/filter-chip/loader"
       }
     }
   }

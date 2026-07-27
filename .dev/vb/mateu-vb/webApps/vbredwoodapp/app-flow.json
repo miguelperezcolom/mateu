@@ -573,6 +573,41 @@
         }
       },
       "description": "general overview nativo: on + bloques de los slots main/info"
+    },
+    "mateuQuickFilter": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "selector rápido del listado activo: {fieldId, value} ({} = sin filtro)"
+    },
+    "mateuLastSearchText": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "último texto buscado en el smart search (para re-buscar al togglear chips)"
+    },
+    "mateuQuickFilterPending": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "una vista rápida del Ask Oracle dejó el filtro puesto: onMateuNavigate lo aplica en vez de resetearlo"
+    },
+    "mateuWelcomeTheme": {
+      "type": "string",
+      "defaultValue": "auto",
+      "description": "tono del hero de la welcome (rota en cada visita entre la paleta oscura RDS)"
+    },
+    "mateuWelcomeImage": {
+      "type": "string",
+      "defaultValue": "pebbles",
+      "description": "imagen temática del hero de la welcome (rota junto al tono)"
+    },
+    "mateuWelcomeIllu": {
+      "type": "string",
+      "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-fg-01.png",
+      "description": "ilustración del hero de la welcome (la abstract RDS del propio banner)"
+    },
+    "mateuWelcomeIlluBg": {
+      "type": "string",
+      "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png",
+      "description": "capa de fondo de la ilustración del hero (galería oficial fnd)"
     }
   },
   "userConfig": {

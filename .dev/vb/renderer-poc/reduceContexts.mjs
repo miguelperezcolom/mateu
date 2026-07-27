@@ -160,14 +160,18 @@ export function overlayOf(reg) {
   // pauta del drawer Redwood: las ACCIONES van en la barra del pie. Un Button del
   // contenido SIN parámetros se mueve al pie (p.ej. Enviar); los que llevan parameters
   // (listas de opciones: métodos de cobro, habitaciones…) se quedan en su sitio y NO se
-  // repiten en el pie
+  // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
+  // acciones del pie — el listener del modal despacha actionId + parameters, así que
+  // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
+  const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
   const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
+  const keepInContent = isDialog ? () => false : conParams
   const content = (islandContentOf(ctx) || [])
     .map((block) => ({
       ...block,
       items: block.items
         .filter((a) => !a.isInput)
-        .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(conParams) } : a))
+        .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(keepInContent) } : a))
         .filter((a) => !a.isButtons || a.buttons.length),
     }))
     .filter((block) => block.items.length)
@@ -189,7 +193,7 @@ export function overlayOf(reg) {
     hasContent: !!content.length,
     // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
     // drawer (tarea con formulario); texts = sus líneas de mensaje
-    isDialog: !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog'),
+    isDialog,
     texts: collectTexts(ctx.tree),
   }
 }
@@ -352,10 +356,20 @@ export function welcomeOf(ctx) {
   if (!hero) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
-  const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => ({
-    title: panel.metadata.title || '',
-    texts: collectTexts(panel),
-  }))
+  const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => {
+    // un MetricCard dentro del tile → KPI (valor grande + etiqueta + caption)
+    const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
+    const mm = metric ? metric.metadata : null
+    return {
+      title: panel.metadata.title || '',
+      texts: collectTexts(panel),
+      isKpi: !!mm,
+      kpiTitle: mm ? (mm.title || mm.label || '') : '',
+      kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
+      kpiCaption: mm ? (mm.description || mm.caption || '') : '',
+      kpiActionId: mm ? (mm.actionId || '') : '',
+    }
+  })
   return {
     title: md.title || '',
     subtitle: md.subtitle || '',
@@ -533,6 +547,7 @@ export function shellNavOf(reg) {
       children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
     })),
     serverSideType: shell.serverSideType,
+    homeRoute: shell.homeRoute || '',
   }
 }
 
@@ -1122,10 +1137,47 @@ export function entityHeaderOf(ctx) {
   const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
   const facts = (m.facts || []).map((f) => ({ label: f.label, value: interpolate(f.value, state) }))
   if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
+  // los colores de Chip de Mateu → status del badge oj-sp
+  const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
   return {
     title: interpolate(m.title, state),
     subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
+    // el subtítulo SIN los badges concatenados (para templates que pintan el badge aparte)
+    subtitlePlain: interpolate(m.subtitle || '', state),
+    badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
     facts,
+  }
+}
+
+/** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
+ *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
+ *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
+ *  overview (main ancho primero + info estrecha después). El EntityHeader del host se
+ *  convierte en el oj-sp-item-overview del slot overview (itemTitle/subtitle/badge +
+ *  facts como filas clave en el body); un botón "Volver…" del toolbar pasa a la flecha
+ *  goToParent del header de navegación del template y el resto a secondaryActions. */
+export function itemOverviewPageOf(entity, blocks, toolbar) {
+  if (!entity) return null
+  const zoned = (blocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
+  if ((blocks || []).length !== 2 || zoned.length !== 2) return null
+  const col = (b) => parseInt((b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '0', 10)
+  if (col(zoned[0]) >= col(zoned[1])) return null // la ancha primero → general overview
+  const full = (b) => Object.assign({}, b, { blockClass: 'oj-flex-item oj-sm-12' })
+  const back = (toolbar || []).find((b) => /^volver\b/i.test(b.label || ''))
+  const badge = (entity.badges || [])[0] || null
+  return {
+    on: true,
+    overview: {
+      title: entity.title || '',
+      subtitle: entity.subtitlePlain != null ? entity.subtitlePlain : (entity.subtitle || ''),
+      badge: badge ? { text: badge.label, status: badge.status, style: 'subtle', position: 'trailing' } : null,
+      facts: entity.facts || [],
+      blocks: [full(zoned[0])],
+    },
+    main: { blocks: [full(zoned[1])] },
+    back: { show: !!back, actionId: back ? back.actionId : '', label: back ? back.label : '' },
+    secondary: (toolbar || []).filter((b) => b !== back)
+      .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
   }
 }
 
@@ -1160,6 +1212,17 @@ export function eventTriggersOf(ctx, eventName) {
   return ((ctx && ctx.tree && ctx.tree.triggers) || [])
     .filter((t) => t.type === 'OnCustomEvent' && t.eventName === eventName && t.actionId)
     .map((t) => t.actionId)
+}
+
+/** Trigger @AutoSave/AutoSaveTrigger del host (buscar-al-teclear, autoguardado):
+ *  {actionId, debounceMillis} o null. El renderer lo honra re-lanzando la acción
+ *  debounced en cada pulsación (raw-value de los inputs del host). */
+export function autoSaveOf(ctx) {
+  const trigger = ((ctx && ctx.tree && ctx.tree.triggers) || [])
+    .find((t) => t.type === 'AutoSave' && t.actionId)
+  return trigger
+    ? { actionId: trigger.actionId, debounceMillis: trigger.debounceMillis || 400 }
+    : null
 }
 
 /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
@@ -1223,6 +1286,17 @@ export function listingOf(ctx) {
           : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
             : 'cellEditText'
       }
+      // ACCIONES por fila (ColumnActionGroup): botones que despachan
+      // action-on-row-<método> con el id de la fila (Listing.handleActionOnRow)
+      if (c.dataType === 'actionGroup') {
+        def.template = 'cellRowActions'
+        def.headerText = ''
+      }
+      // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
+      // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
+      if (c.dataType === 'status') {
+        def.template = 'cellStatusBadge'
+      }
       return def
     }),
     // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
@@ -1232,7 +1306,7 @@ export function listingOf(ctx) {
     display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
     // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
     editable: (md.columns || []).some((col) => (col.metadata || col).editable),
-    rows: page.content || [],
+    rows: statusBadgeRows(page.content || [], md.columns || []),
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,
     toolbar: (md.toolbar || []).map((b) => ({
@@ -1240,7 +1314,58 @@ export function listingOf(ctx) {
       label: b.label,
       chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
     })),
+    // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
+    // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
+    // los filtros viajan como FormField select en la metadata (a veces en el mediator,
+    // no en el nodo Crud — se busca en todo el árbol)
+    quickFilters: quickFiltersOf(ctx),
   }
+}
+
+// filas con columnas @Status: al valor {type, message} se le estampa la clase badge de
+// JET (Redwood, sistema) — el template de celda no puede mapear (CSP sin ternarios)
+const STATUS_BADGE = {
+  SUCCESS: 'oj-badge oj-badge-success oj-badge-subtle',
+  WARNING: 'oj-badge oj-badge-warning oj-badge-subtle',
+  DANGER: 'oj-badge oj-badge-danger oj-badge-subtle',
+  INFO: 'oj-badge oj-badge-info oj-badge-subtle',
+  NONE: 'oj-badge oj-badge-neutral oj-badge-subtle',
+}
+function statusBadgeRows(rows, columns) {
+  const statusCols = columns
+    .map((col) => col.metadata || col)
+    .filter((c) => c.dataType === 'status')
+    .map((c) => c.id)
+  if (!statusCols.length) return rows
+  return rows.map((row) => {
+    const out = { ...row }
+    for (const id of statusCols) {
+      const value = out[id]
+      if (value && typeof value === 'object') {
+        out[id] = { ...value, badgeClass: STATUS_BADGE[value.type] || STATUS_BADGE.NONE }
+      }
+    }
+    return out
+  })
+}
+
+function quickFiltersOf(ctx) {
+  const found = []
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return
+    for (const f of ((node.metadata || {}).filters) || []) {
+      if ((f.options || []).length && (f.stereotype === 'select' || f.stereotype === 'multiSelect')) {
+        found.push({
+          fieldId: f.fieldId,
+          label: f.label || f.fieldId,
+          options: f.options.map((o) => ({ value: o.value, label: o.label || o.value })),
+        })
+      }
+    }
+    ;(node.children || []).forEach(walk)
+  }
+  walk(ctx && ctx.tree)
+  return found
 }
 
 /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
@@ -1334,6 +1459,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
+        // primera opción del menú
+        homeRoute: md.homeRoute || '',
       }
       continue
     }

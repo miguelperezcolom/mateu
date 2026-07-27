@@ -277,6 +277,19 @@ define([
       const overviewProjection = bridge.generalOverviewOf(hostAfter);
       const itemProjection = bridge.itemOverviewOf(hostAfter);
       $application.variables.mateuWelcome = welcome;
+      if (welcome) {
+// los PARES color+ilustración del hero: las 5 parejas bg+fg de la galería
+        // OFICIAL (fnd/gallery illust-welcome-banner-*-01..05) rotando con su tono
+        const GALERIA = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/';
+        const LOOKS = [
+          ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+          ['dark-sienna', '04'], ['dark-teal', '05'],
+        ];
+        const look = LOOKS[Math.floor(Math.random() * LOOKS.length)];
+        $application.variables.mateuWelcomeTheme = look[0];
+        $application.variables.mateuWelcomeIlluBg = GALERIA + 'illust-welcome-banner-bg-' + look[1] + '.png';
+        $application.variables.mateuWelcomeIllu = GALERIA + 'illust-welcome-banner-fg-' + look[1] + '.png';
+      }
       $application.variables.mateuOverview = overviewProjection;
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
@@ -304,6 +317,9 @@ define([
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow)));
+      // las acciones del toolbar de la Page (se calculan antes del header por si algún
+      // template de página de entidad las recoloca)
+      const hostToolbarA = bridge.pageToolbarOf(hostAfter);
       // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna → el
       // template oj-sp-general-overview-page (slots main/info, header integrado)
       const zonedGop2 = (hostBlocks2 || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
@@ -351,7 +367,6 @@ define([
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
       const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const hostToolbarA = bridge.pageToolbarOf(hostAfter);
       const primaryBtnA = hostToolbarA.find((b) => b.chroming === 'callToAction') || null;
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
@@ -368,6 +383,30 @@ define([
         toolbar: hostToolbarA,
       };
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
+      // los márgenes del contenido se RECALCULAN también tras una acción (una acción
+      // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
+      // lógica que onMateuNavigate (sin recalcular, el -40px de solape de banda del
+      // estado anterior se arrastraba a la pantalla siguiente)
+      const pageStyleA = $application.variables.mateuMenuDrawerMode
+        ? bridge.pageStyleOf({ pageWidth: 'edgeToEdge' })
+        : bridge.pageStyleOf(hostAfter);
+      $application.variables.mateuPageMaxWidth = pageStyleA.maxWidth;
+      $application.variables.mateuPageMargin = pageStyleA.margin;
+      $application.variables.mateuPagePadding = pageStyleA.padding;
+      if ($application.variables.mateuWelcome || $application.variables.mateuOverview
+          || $application.variables.mateuWizard || listingSummary
+          || $application.variables.mateuPageHeader) {
+        $application.variables.mateuPagePadding = '0';
+      }
+      if (showBandA || showListBandA) {
+        $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
+        const marginPartsA = ($application.variables.mateuPageMargin || '0').split(' ');
+        marginPartsA[0] = '-40px';
+        if (marginPartsA.length === 1) marginPartsA.push('auto');
+        $application.variables.mateuPageMargin = marginPartsA.join(' ');
+      } else {
+        $application.variables.mateuBandBoxMargin = '0 auto';
+      }
       $application.variables.mateuDirty = false;
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local

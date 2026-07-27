@@ -81,6 +81,16 @@ public class PageListingBuilder {
       }
     }
 
+    // @ListToolbarButton methods on a declarative Listing become toolbar buttons (same
+    // annotation the Crud path honors); label from @Label, actionId = the method name.
+    for (var method : getAllMethods(instance.getClass())) {
+      if (MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.ListToolbarButton.class)) {
+        var label = MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class);
+        builder.toolbarItem(
+            new Button(label != null ? label.value() : method.getName(), method.getName()));
+      }
+    }
+
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
       builder.toolbarItem(new Button("Import", "import"));
     }

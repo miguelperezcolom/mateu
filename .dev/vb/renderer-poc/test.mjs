@@ -14,6 +14,7 @@ import {
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  entityHeaderOf, itemOverviewPageOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -506,6 +507,76 @@ test('longTaskWatcher: open → 4 progress → cierre con rest.commands (dispatc
   assert.equal(watcher.closeAfter, 1000)
   assert.equal(last.rest.commands.length, 1)
   assert.equal(last.rest.fragments.length, 0) // el fragment del diálogo NO se reduce
+})
+
+// 31) ITEM OVERVIEW nativo: página de entidad con la zona ESTRECHA primero (panel de
+// datos clave + main ancho) → oj-sp-item-overview-page; la ancha primero sigue siendo
+// general overview (null aquí). El EntityHeader pasa al oj-sp-item-overview (badge del
+// primer Chip, subtítulo SIN badges) y "Volver…" del toolbar a la flecha goToParent.
+test('item overview: zona estrecha primero → panel clave + main; ancha primero → null', () => {
+  const ctx = fx('fo-reserva-arriving')
+  const entity = entityHeaderOf(ctx)
+  // la página de entidad pura son SOLO las dos zonas (el fixture arriving lleva además
+  // una banda de cabecera oj-sm-12; el detector exige exactamente dos bloques, como el gop)
+  const blocks = hostContentOf(ctx, null, { dropEntityHeader: true })
+    .filter((b) => /oj-md-/.test(b.blockClass))
+  const toolbar = [
+    { actionId: 'volverReserva', label: 'Volver a la reserva', chroming: 'outlined' },
+    { actionId: 'otra', label: 'Otra acción', chroming: 'outlined' },
+  ]
+  const iop = itemOverviewPageOf(entity, blocks, toolbar)
+  assert.ok(iop && iop.on)
+  assert.ok(entity.title.length > 0)
+  assert.equal(iop.overview.title, entity.title)
+  assert.equal(iop.overview.subtitle, entity.subtitlePlain) // sin los badges concatenados
+  assert.ok(iop.overview.badge, 'el primer Chip del EntityHeader es el badge del panel')
+  assert.equal(iop.overview.badge.status, 'neutral') // color contrast → neutral
+  assert.equal(iop.overview.blocks.length, 1)
+  assert.match(iop.overview.blocks[0].blockClass, /oj-sm-12/) // a ancho completo del slot
+  assert.equal(iop.main.blocks.length, 1)
+  assert.ok(iop.main.blocks[0].items.some((a) => a.isTaskProgress)) // la operativa es el main
+  assert.ok(iop.back.show)
+  assert.equal(iop.back.actionId, 'volverReserva')
+  assert.equal(iop.back.label, 'Volver a la reserva') // la etiqueta viaja a translations.goToParent
+  assert.equal(iop.secondary.length, 1)
+  assert.equal(iop.secondary[0].id, 'otra')
+  // la ancha primero (anatomía general overview) NO es item overview
+  assert.equal(itemOverviewPageOf(entity, [blocks[1], blocks[0]].map((b) => b), toolbar), null)
+})
+
+// 32) Modal de decisión (Dialog): TODOS los botones del contenido pasan al pie CON sus
+// parameters — el modal del check-in de grupo ofrece "Check-in de <nombre>" (con _item)
+// además de "Volver al listado" (en un drawer, los botones con parameters se quedan en
+// el contenido: son listas de opciones).
+test('overlay Dialog: los botones con parameters van al pie del modal', () => {
+  const dialogCtx = {
+    id: 'dlg1',
+    title: 'Check-in completado',
+    tree: {
+      type: 'ServerSide',
+      metadata: { type: 'Dialog' },
+      children: [{
+        type: 'VerticalLayout', metadata: {},
+        children: [
+          { type: 'Text', metadata: { text: '¿Seguimos con su check-in?' }, children: [] },
+          { type: 'Button', metadata: { label: 'Check-in de Ana', actionId: 'siguienteReserva', buttonStyle: 'primary', parameters: { _item: 'st-ana' } }, children: [] },
+          { type: 'Button', metadata: { label: 'Volver al listado', actionId: 'volverListado' }, children: [] },
+        ],
+      }],
+    },
+    state: {},
+  }
+  const reg = { contexts: { dlg1: dialogCtx }, stack: ['dlg1'], shell: null }
+  const overlay = overlayOf(reg)
+  assert.ok(overlay.isDialog)
+  const ids = overlay.actions.map((a) => a.actionId)
+  assert.ok(ids.includes('siguienteReserva'), 'el botón con parameters está en el pie')
+  assert.ok(ids.includes('volverListado'))
+  const siguiente = overlay.actions.find((a) => a.actionId === 'siguienteReserva')
+  assert.equal(siguiente.parameters._item, 'st-ana') // el _item viaja con la acción
+  assert.equal(siguiente.chroming, 'callToAction')
+  // y el contenido ya NO lleva botones (irían duplicados)
+  assert.ok(!overlay.content.some((b) => b.items.some((a) => a.isButtons)))
 })
 
 console.log(`\n${pass} tests OK (contrato de wire real)`)

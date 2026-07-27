@@ -165,22 +165,34 @@ public class ReservaOverview
               .build();
         }
         if (!conFoldout) {
-          // salida / modo check-out: dos columnas planas (huéspedes | operativa)
+          // salida / modo check-out: anatomía General Overview (la misma que la estancia
+          // en casa) — zona ANCHA primero con su título de fold (el folio y el cobro) y
+          // la info clave (salida + huéspedes) como zona complementaria estrecha
+          var tituloMain = modoCheckout
+              ? "Check-out · " + balanceResumen()
+              : "Estancia · salió el " + DAY.format(stay.checkOut());
           return io.mateu.uidl.data.HorizontalLayout.builder()
-              .style("width: 100%; gap: 1rem;")
+              .style("width: 100%; gap: 1.5rem;")
               .wrap(true)
               .content(List.of(
                   VerticalLayout.builder()
-                      .style("flex: 1 1 calc(36% - 1rem); min-width: min(20rem, 100%);")
-                      .content(List.of(huespedesRail(stay)))
-                      .build(),
-                  VerticalLayout.builder()
-                      .style("flex: 1 1 calc(64% - 1rem); min-width: min(20rem, 100%); gap: 1rem;")
+                      .style("flex: 1 1 calc(62% - 1.5rem); min-width: min(20rem, 100%); gap: 1rem;")
                       .content(List.of(
+                          Text.builder().text(tituloMain)
+                              .container(io.mateu.uidl.data.TextContainer.h2)
+                              .style("margin: 0;").build(),
                           operativaPorEstado(stay),
                           checkoutFolioPanel(),
                           checkoutCargosPanel(),
                           checkoutCobroPanel()))
+                      .build(),
+                  VerticalLayout.builder()
+                      .style("flex: 1 1 calc(38% - 1.5rem); min-width: min(16rem, 100%); gap: .25rem;")
+                      .content(List.of(
+                          Text.builder().text("Información")
+                              .container(io.mateu.uidl.data.TextContainer.h2)
+                              .style("margin: 0;").build(),
+                          modoCheckout ? claveCheckout(stay) : infoSalida(stay)))
                       .build()))
               .build();
         }
@@ -295,6 +307,71 @@ public class ReservaOverview
       case IN_HOUSE -> paraInHouse(stay);
       case DEPARTED -> paraSalida(stay);
     };
+  }
+
+  /** Huésped que YA salió: lista SIMPLE de huéspedes (nombre + info, sin las acciones ni
+   *  los badges de check-in) y si hubo incidencias durante la estancia. */
+  private Component infoSalida(Stay stay) {
+    var view = FrontOffice.stayView(stayId);
+    var contenido = new ArrayList<Component>();
+    contenido.add(Text.builder().text("Huéspedes")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    contenido.add(Text.builder().text(view.guest().name()).noMargins(true).build());
+    contenido.add(Text.builder()
+        .text("Doc " + view.guest().document() + " · Adulto")
+        .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    for (var companion : stay.companions()) {
+      contenido.add(Text.builder().text(companion.name()).noMargins(true).build());
+      contenido.add(Text.builder().text(companion.description())
+          .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    }
+    contenido.add(Text.builder().text("Incidencias (" + stay.incidents().size() + ")")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 1.5rem 0 0;").build());
+    if (stay.incidents().isEmpty()) {
+      contenido.add(Notice.builder()
+          .theme("success")
+          .text("Sin incidencias durante la estancia")
+          .slim(true).fullWidth(true)
+          .build());
+    } else {
+      contenido.add(StatusList.builder()
+          .compact(true).frameless(true)
+          .itemHeadingLevel(4)
+          .style("width: 100%;")
+          .items(stay.incidents().stream()
+              .map(i -> StatusItem.builder()
+                  .id("inc-" + i.code())
+                  .title(i.title())
+                  .description(i.type() != null ? i.type().label() : null)
+                  .status(i.status() == IncidentStatus.RESOLVED ? "✓ Resuelta" : "Sin resolver")
+                  .statusColor(i.status() == IncidentStatus.RESOLVED ? "success" : "error")
+                  .build())
+              .toList())
+          .build());
+    }
+    return VerticalLayout.builder().style("width: 100%; gap: .25rem;").content(contenido).build();
+  }
+
+  /** Modo check-out: la info clave de la zona complementaria — la salida y los huéspedes
+   *  (el balance y el preautorizado llegan como facts del EntityHeader del huésped). */
+  private Component claveCheckout(Stay stay) {
+    var view = FrontOffice.stayView(stayId);
+    var late = lateCheckoutContratado(view.folio());
+    var contenido = new ArrayList<Component>();
+    contenido.add(Text.builder().text("Salida")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
+    contenido.add(Text.builder()
+        .text(DAY.format(stay.checkOut()) + " · " + (late ? "15:00 (late check-out)" : "12:00"))
+        .noMargins(true).build());
+    contenido.add(Text.builder().text(stay.nights() + " noches · " + stay.board())
+        .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
+    contenido.add(Text.builder().text("Huéspedes")
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 1.5rem 0 0;").build());
+    contenido.add(Text.builder().text(view.guest().name()).noMargins(true).build());
+    for (var companion : stay.companions()) {
+      contenido.add(Text.builder().text(companion.name()).noMargins(true).build());
+    }
+    return VerticalLayout.builder().style("width: 100%; gap: .25rem;").content(contenido).build();
   }
 
   /** Modo check-out: el desglose del folio (vacío fuera del modo). */

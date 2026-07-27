@@ -1223,6 +1223,141 @@ pide SOLO las pendientes.
   min-height:100vh y la barra usa margin-top:auto + oj-divider-top — OJO: las utilidades
   de espaciado JET llevan !important (oj-sm-margin-6x-top pisaba el margin-top:auto;
   padding-top inline en su lugar). La barra solo se pinta si hay acciones (bind-if).
+- **Check-out y salida sobre el template General Overview (2026-07-27)**: la rama plana
+  de `cuerpo` en ReservaOverview (modo check-out y DEPARTED) pasa a la MISMA anatomía
+  gop que la estancia en casa — zona ANCHA primero con su Text h2 de fold ("Check-out ·
+  balance" / "Estancia · salió el X") + folio/cargos/cobro, y la info clave ("Información":
+  `claveCheckout` = salida + huéspedes en check-out, huespedesRail en DEPARTED) como zona
+  estrecha complementaria. "Volver a la reserva" viaja como secondary del header gop.
+  **Intento item-overview REVERTIDO el mismo día**: se llegó a montar
+  `oj-sp-item-overview-page` + `oj-sp-item-overview` (detección por anatomía: zona
+  estrecha primero → iop, ancha primero → gop; EntityHeader → panel con badge/facts;
+  "Volver…" → flecha goToParent; formato edge-to-edge porque el template pone sus
+  fondos) — funcionaba a nivel de DOM pero el pintado no convencía (la columna del panel
+  no pinta fondo propio en displayMode 'light': el blanco es solo la tarjeta del
+  componente, y el conjunto quedaba descolgado sobre el lienzo), así que volvimos al gop
+  que ya domina el renderer. QUEDA en el bridge `itemOverviewPageOf` (+ badges/
+  subtitlePlain en entityHeaderOf) con su test de contrato (#31) por si se reintenta;
+  los loaders de item-overview siguen listados en el bundle del app-flow (inertes).
+  Hallazgos para el reintento: component.json del iop-page va inline en su loader; el
+  del oj-sp-item-overview va como `_metadata` del VComponent (props itemTitle/
+  itemSubtitle/badge/secondaryActions, slots body/footer); translations.go-to-parent
+  pone el label de la flecha; getInitialMode → displayMode 'light' con tema Redwood.
+  **Fix que SOBREVIVE al revert**: runMateuAction NO recalculaba mateuPageMargin/
+  Padding/MaxWidth tras una acción — el -40px de solape de banda del estado anterior se
+  arrastraba a la pantalla siguiente (lo delataron los sticky internos del iop); la
+  cadena de acción ahora recalcula márgenes con la misma lógica que onMateuNavigate.
+- **Salida (DEPARTED): info simple + incidencias (2026-07-28)**: en la zona Información
+  del gop, `infoSalida(stay)` sustituye al rail de check-in — lista SIMPLE de huéspedes
+  (nombre + doc, sin acciones ni badges de cardex) y "Incidencias (N)" con StatusList de
+  badges (✓ Resuelta / Sin resolver) o Notice success si no hubo. Seeder: st-oliver lleva
+  una incidencia RESOLVED para la demo.
+- **Buscar-al-teclear (@AutoSave) en el posteo de cargos (2026-07-28)**: el renderer VB
+  honra el trigger AutoSave del host — `autoSaveOf(ctx)` (bridge) + `on-raw-value-changed`
+  en los inputs del host (15 copias) → cadena `hostInputTyped` (borrador + debounce por
+  token a nivel de módulo + `Actions.callChain(runMateuAction)` + FOCO restaurado al
+  input recreado con el cursor al final, tick 250ms). BUG DE FRAMEWORK arreglado en
+  `TriggerMapper.createTriggers`: implementar TriggersSupplier hacía return temprano
+  SUPRIMIENDO los @Trigger/@SubscribeTo/@AutoSave de la clase, y un AutoSaveTrigger del
+  supplier caía al `default` del switch convirtiéndose en un OnLoad vacío — ahora los
+  triggers del supplier se SUMAN a los de las anotaciones y el case AutoSaveTrigger
+  existe. (El @AutoSave de clase ya viajaba bien por el camino de anotaciones.)
+- **Selector rápido del listado por ENUM (2026-07-28)**: un filtro enum en Filters
+  (ReservasListing.Vista: Llegadas hoy / Salidas hoy / In house, labels vía @Label) viaja
+  como FormField select con options en la metadata (a veces del MEDIATOR, no del nodo
+  Crud — quickFiltersOf busca en todo el árbol) → `listingOf.quickFilters` → chips
+  `oj-sp-filter-chip` bajo el smart search (applied/nonApplied como DOS oj-bind-if — sin
+  ternarios CSP); cadena `listingQuickFilter` togglea `mateuQuickFilter` {fieldId,value}
+  y re-busca con `mateuLastSearchText`; `runMateuSearch` mergea el filtro activo en el
+  componentState; reset al navegar. OJO: los params del listener via CONTEXTO de binding
+  (`$current.data.value`) — `$event.target.dataset` apunta al hijo interno del chip.
+- **Seed de reservas demo (2026-07-28)**: framework — PageListingBuilder emite botones de
+  toolbar por los métodos `@ListToolbarButton` de un Listing declarativo (label de
+  @Label); en VB el primero es la primaryAction del smart search. `seedDemo` crea 10
+  reservas (4 llegadas hoy, 1 mañana, 3 en casa, 2 salidas; ids demo-<stamp>-i) y
+  responde Message + dispatchEvent("reservas-seeded") → el listado se refresca por su
+  @Trigger(OnCustomEvent) (bus estándar). La DB es in-memory: un restart re-seedea.
+- **Banda blanca sobre el foldout (2026-07-28, fix del usuario)**: el foldout-layout
+  monta un oj-sp-header-navigation PROPIO vacío (16px, bg-neutral-0) →
+  `.oj-sp-foldout-layout-header-horizontal { display: none }` en app.css.
+- **Welcome page como HOME (2026-07-28)**: `Bienvenida extends Welcome` en /bienvenida +
+  `@HomeRoute("/bienvenida")` en el app → AppDto.homeRoute → `shellNavOf.homeRoute` → el
+  boot de la shell la PREFIERE sobre la primera opción del menú (deep-link sigue mandando).
+  Tiles = 3 `MetricCard` @Panel(title="") con contadores VIVOS (instancia por request) →
+  `welcomeOf` extrae el MetricCard del panel (isKpi/kpiTitle/kpiValue/kpiCaption) y el
+  tile pinta el KPI (valor heading-lg + caption). El menú TABS se OCULTA en la home
+  (bind-if selectedRoute !== homeRoute) y el icono casa del oj-sp-global-header navega a
+  la home (evento ojSpHomeClick → onMateuNavigate).
+- **@AppContext en drawer lateral (2026-07-28)**: los oj-select-one directos no casaban
+  con el header oscuro → un icono (oj-ux-ico-settings, borderless) abre un
+  oj-drawer-popup edge=end ("Contexto de trabajo") con los selectores en estilo estándar
+  (mismo listener contextChanged); toggleMateuContextDrawer flip de página. El botón del
+  icono lleva `oj-color-invert` (utilidad JET) para la iconografía CLARA sobre el header
+  oscuro — mismo blanco que el icono home del propio global-header. El intento
+  CSS previo (variables --oj-text-field-* del tema) queda documentado: funcionaba para
+  bg/placeholder pero el usuario prefirió el drawer.
+- **Modal de decisión: botones con parameters al pie (2026-07-28)**: el modal del
+  check-in de GRUPO solo ofrecía "Volver al listado" — "Check-in de <nombre>" lleva
+  parameters (_item) y la regla del pie de los drawers (los botones con parameters se
+  quedan en el contenido: listas de opciones) lo dejaba en un contenido que el modal no
+  pinta. En `overlayOf`, si el overlay es un DIALOG todos los botones pasan al pie CON
+  sus parameters (el listener mateuActionClicked ya los despacha). Test #32.
+- **Ask Oracle en el FAB del shell (2026-07-28)**: el FAB rojo es el CHAT del propio
+  oj-sp-simple-ui-shell (prop `chat`, evento `ojSpChatAction`) → abre la paleta
+  #mateuAskOracle (oj-dialog: oj-input-search con foco + filas oj-action-card con
+  icono/kind). Destinos: Inicio + navegación del app (mateuNavItems, con sus iconos) +
+  las VISTAS RÁPIDAS del listado (Llegadas hoy / Salidas hoy / In house). El tecleo
+  re-filtra en vivo (askOracleTyped reutiliza buildResults expuesto como estático de
+  askOracleOpen — los chains AMD pueden requerirse entre sí con './'). Una vista rápida
+  deja `mateuQuickFilter` + `mateuQuickFilterPending`: onMateuNavigate lo APLICA en la
+  búsqueda OnLoad (aterriza filtrado y con el chip aplicado) en vez de resetearlo, y
+  consume el flag. Verificado: FAB → paleta → "lleg" → 1 fila → clic → listado solo
+  "Llega hoy".
+- **Chips del selector rápido: actionable + spLabelAction (2026-07-28)**: los chips NO
+  activaban la vista — `oj-sp-filter-chip` no es clicable sin `actionable="true"`, y el
+  clic sobre la ETIQUETA emite `spLabelAction` (no `spAction`) → ambos eventos van al
+  mismo listener. OJO verificación: tras un seed, la página 0 ordenada (ARRIVING primero)
+  puede ser TODO llegadas — un "filtro funciona" con Llegadas hoy era falso positivo;
+  probar con "Salidas hoy" (mezcla estados sí o sí).
+- **Hero de la welcome: pares color+ilustración del spec RDS, rotando (2026-07-28)**:
+  el Figma "Welcome Banner - Illustration" define 8 PARES color↔ilustración (Purple
+  #856B94→Journey FINAL_7, Orange #AA643A→8 y 1, Lilac #6C7495→4, Teal #517F7E→5,
+  Blue #427E96→6, Green #4D835C→2, Pink #A46573→3). En oj-sp-header-welcome-banner:
+  `background-color` (enum dark-*) + `illustration-foreground` (URL) + themed-image
+  "none" — OJO: con themed-image="pebbles" el componente IGNORA backgroundColor (fondo
+  emparejado fijo), y las props solo aplican AL MONTAR (bindings, no post-mount). Las
+  cadenas rotan el par en cada visita a la welcome (Math.random en chain JS, permitido);
+  los KPI de la home navegan con `?vista=` (ver abajo). PENDIENTE DE ASSETS: exportar
+  del Figma los 8 "Journey Headers Abstract FINAL_N" (PNG transparente) a
+  webApps/vbredwoodapp/resources/images/journey-N.png — hasta entonces el hero pinta el
+  color sin ilustración (el 404 del background-image es silencioso). RESUELTO con los
+  assets OFICIALES que aportó el usuario: la galería fnd
+  (https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/) trae 5 parejas
+  illust-welcome-banner-bg/fg-01..05.png (capa fondo + capa figura, transparentes) —
+  las cadenas rotan [tono, pareja]: dark-ocean+01, dark-pine+02, dark-plum+03,
+  dark-sienna+04, dark-teal+05 (illustration-background + illustration-foreground +
+  background-color). Verificado: pine+grúa, sienna+figuras. Los "Journey Headers" del
+  Figma quedan como alternativa si algún día se exportan.
+- **KPIs de la home navegan con la vista aplicada + deep-link filtrado (2026-07-28)**:
+  cada MetricCard lleva actionId (verLlegadasHoy/verEnCasa/verSalidasHoy) y su @Action
+  devuelve URI "/reservas?vista=X" — el tile KPI es un oj-action-card (welcomeKpiClicked
+  → runMateuAction). GENÉRICO en onMateuNavigate: una ruta con `?campo=valor` se
+  consume como filtro rápido PENDIENTE (misma mecánica que el Ask Oracle) y fuerza la
+  recarga aunque la ruta no cambie — cualquier NavigateTo/URI del server puede aterrizar
+  un listado ya filtrado. welcomeOf lleva kpiActionId; chips con aire (margin-6x-bottom
+  hacia la tabla).
+- **Automatizaciones como listado con acciones de FILA (2026-07-28)**: el board no
+  renderizaba en VB → `AutomatizacionesListing` en /automatizaciones (el board queda en
+  /automatizaciones-board): smart search + chips por el enum Estado (el selector rápido
+  YA es genérico) + una fila por proceso; la acción "Solucionar" viaja como campo de
+  fila `ColumnActionGroup` (mecanismo Mateu: columna dataType=actionGroup en el wire,
+  cada fila lleva acciones.actions[{methodNameInCrud,label}]) — solo en filas con
+  warnings/errores. Renderer: listingOf marca la columna actionGroup → template
+  `cellRowActions` del oj-table (data-oj-as="cell" para conservar el contexto de FILA
+  dentro del for-each de acciones); cadena listingRowAction → runMateuAction
+  `action-on-row-<método>` con parameters {id} → Listing.handleActionOnRow invoca el
+  método; el refresco llega por el bus (dispatchEvent "automatizacion-arreglada" +
+  @Trigger OnCustomEvent → search). Verificado: 6 Solucionar → clic → toast + 5.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
