@@ -152,6 +152,8 @@ class FoldoutPanel(Component):
     subtitle: str | None = None
     icon: str | None = None
     open: bool = True
+    #: Optional CSS length for the expanded panel (e.g. "40rem"); None = renderer default.
+    width: str | None = None
     content: Component | None = None
     id: str | None = None
     style: str | None = None

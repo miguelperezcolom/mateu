@@ -99,6 +99,10 @@ public sealed record FoldoutPanel : ComponentBase
     public string? Subtitle { get; init; }
     public string? Icon { get; init; }
     public bool Open { get; init; } = true;
+
+    /// <summary>Optional CSS length for the expanded panel (e.g. "40rem"); null = renderer default.</summary>
+    public string? Width { get; init; }
+
     public IComponent? Content { get; init; }
 }
 
