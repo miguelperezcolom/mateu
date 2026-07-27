@@ -109,14 +109,18 @@ define([], () => {
    *  VB deben quedar como paths simples: un ternario en un atributo rompe la evaluación CSP
    *  de TODAS las propiedades del elemento). */
   function actionsOf(tree) {
+    // clave compuesta: varios botones pueden compartir actionId con parámetros
+    // distintos (p.ej. los métodos de cobro del drawer)
     const seen = {}
     const out = []
     for (const a of collectActions(tree)) {
-      if (seen[a.actionId]) continue
-      seen[a.actionId] = true
+      const key = a.actionId + '|' + (a.label || '') + '|' + JSON.stringify(a.parameters || {})
+      if (seen[key]) continue
+      seen[key] = true
       out.push({
         actionId: a.actionId,
         label: a.label,
+        parameters: a.parameters || {},
         style: a.buttonStyle || 'outlined',
         chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       })
@@ -138,8 +142,8 @@ define([], () => {
         required: f.required,
         readonly: f.readonly,
         isNumber: f.type === 'number',
-        isBoolean: f.type === 'boolean',
-        isText: f.type !== 'number' && f.type !== 'boolean',
+        isBoolean: f.type === 'boolean' || f.type === 'bool',
+        isText: f.type !== 'number' && f.type !== 'boolean' && f.type !== 'bool',
         value: s[fieldId] == null ? null : s[fieldId],
       }
     })
@@ -152,6 +156,14 @@ define([], () => {
     const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
     if (!id || !reg.contexts[id]) return null
     const ctx = reg.contexts[id]
+    const rawBlocks = islandContentOf({ tree: ctx.tree, state: ctx.state || {} }) || []
+    const blocks = rawBlocks
+      .map((block) => ({
+        ...block,
+        items: (block.items || []).filter((a) => !a.isInput && !a.isButtons),
+        blockClass: block.colClass || 'oj-flex-item oj-sm-12',
+      }))
+      .filter((block) => (block.items || []).length)
     return {
       id,
       title: ctx.title || '',
@@ -160,6 +172,9 @@ define([], () => {
       state: ctx.state || {},
       fields: fieldListOf(ctx.tree, ctx.state),
       actions: actionsOf(ctx.tree),
+      // bloques display (PaymentPicker, AddOnPicker, ResourceGrid, StatusList, textos…)
+      // — el drawer pinta formularios Y contenido rico; inputs/botones van aparte
+      blocks,
     }
   }
 
@@ -1160,6 +1175,9 @@ define([], () => {
     const id = 'overlay-' + ++overlaySeq
     return {
       id,
+      // id LÓGICO del Drawer (md.id del wire): un Add con el MISMO id que el overlay
+      // abierto lo REFRESCA en sitio en vez de apilar otro (contenido server-driven)
+      mdId: (md && md.id) || null,
       kind: 'drawer',
       tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
       state: md.initialData || fr.state || {},
@@ -1225,6 +1243,15 @@ define([], () => {
       }
 
       if (fr.action === 'Add') {
+        const mdAdd = metaOf(fr)
+        const topId = stack.length ? stack[stack.length - 1] : null
+        if (topId && contexts[topId] && mdAdd && mdAdd.id
+            && contexts[topId].mdId === mdAdd.id) {
+          // REFRESCO del overlay abierto (mismo Drawer.id): conserva el id de contexto,
+          // así el borrador del formulario (mateuDrawerDraft) sobrevive
+          contexts[topId] = { ...buildOverlay(fr), id: topId }
+          continue
+        }
         const ctx = buildOverlay(fr)
         contexts[ctx.id] = ctx
         stack.push(ctx.id)

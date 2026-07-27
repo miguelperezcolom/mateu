@@ -1483,6 +1483,10 @@
 
 <!-- Drawer del crud (editInDrawer): panel end auténtico de JET; los campos y botones salen
      del wire (proyección overlayOf); cerrar con ✕/Esc descarta sin guardar -->
+<!-- Drawer del crud y de las operaciones (editInDrawer / drawers de la 360): panel end
+     auténtico de JET; los campos y botones salen del wire (proyección overlayOf) — los
+     drawers ricos se COMPONEN de campos y botones (la gramática probada del popup);
+     cerrar con ✕/Esc descarta sin guardar -->
 <oj-drawer-popup id="mateuDrawerPanel" edge="end" modality="modal"
   opened="[[ $application.variables.mateuDrawerOpen ]]"
   on-oj-before-close="[[ $listeners.mateuDrawerClosed ]]">
@@ -1523,7 +1527,7 @@
     <div class="oj-flex oj-sm-margin-6x-top">
       <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
         <template>
-          <oj-button class="oj-sm-margin-2x-end"
+          <oj-button class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
             :data-action-id="[[ $current.data.actionId ]]"
             chroming="[[ $current.data.chroming ]]"
             on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>

@@ -337,9 +337,10 @@
         "title": "",
         "fields": [],
         "actions": [],
+        "blocks": [],
         "state": {}
       },
-      "description": "proyección del overlay superior (drawer del crud): título + campos + acciones"
+      "description": "proyección del overlay superior (drawer): título + campos + acciones + bloques display (PaymentPicker, AddOnPicker, grids…)"
     },
     "mateuMenuTree": {
       "type": "any",

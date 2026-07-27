@@ -169,3 +169,24 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-panel.oj-sm-padding-3x {
 oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   margin-bottom: 0.5rem !important;
 }
+
+/* Drawer de página (sustituye al oj-drawer-popup): scrim + panel end fijos. */
+.mateu-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(22, 21, 19, 0.4);
+}
+.mateu-drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1051;
+  width: 400px;
+  background: var(--oj-core-bg-color-content, #fff);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}

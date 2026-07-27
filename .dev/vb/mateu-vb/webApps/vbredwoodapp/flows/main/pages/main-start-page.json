@@ -74,6 +74,7 @@
         {
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}",
             "event": "{{ $event }}"
           },
           "chain": "runMateuAction"

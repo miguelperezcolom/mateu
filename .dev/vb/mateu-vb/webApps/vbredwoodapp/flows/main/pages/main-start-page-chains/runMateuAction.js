@@ -96,7 +96,7 @@ define([
 
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], state: {} };
+      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], blocks: [], state: {} };
       $application.variables.mateuDrawerOpen = !!overlayNow;
       if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
         $page.variables.mateuDrawerDraft = {};
@@ -113,6 +113,10 @@ define([
       // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
       // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
       if (hostRepainted) {
+        // remontaje null→tick (el evaluador CSP no re-liga los bindings internos del
+        // foldout con una reasignación) — pero SOLO cuando el host repintó de verdad:
+        // abrir un drawer (Add) ya no lo toca, y el foldout lleva animate=off para que
+        // el remontaje sea un repintado instantáneo sin replay del despliegue
         const foldoutProjection = bridge.foldoutOf(hostAfter);
         if ($application.variables.mateuFoldout && foldoutProjection) {
           $application.variables.mateuFoldout = null;
