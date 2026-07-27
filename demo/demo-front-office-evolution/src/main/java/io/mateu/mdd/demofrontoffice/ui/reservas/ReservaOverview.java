@@ -234,7 +234,7 @@ public class ReservaOverview
         .items(guest.preferences().stream().map(p -> p.text()).toList())
         .build());
     contenido.add(Text.builder().text("Última estancia")
-        .container(io.mateu.uidl.data.TextContainer.h4).style("margin: .5rem 0 0;").build());
+        .container(io.mateu.uidl.data.TextContainer.h4).style("margin: 1.5rem 0 0;").build());
     contenido.add(Text.builder().text(guest.lastStaySummary()).noMargins(true).build());
     contenido.add(Text.builder().text(guest.lastStayComplementaryInfo())
         .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
