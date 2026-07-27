@@ -453,6 +453,9 @@ const OJ_ICONS = {
   'vaadin:pen': 'oj-ux-ico-signature',
   'vaadin:credit-card': 'oj-ux-ico-bank-card',
   'vaadin:gift': 'oj-ux-ico-gift',
+  'vaadin:cart': 'oj-ux-ico-cart',
+  'vaadin:check': 'oj-ux-ico-check',
+  'vaadin:clock': 'oj-ux-ico-clock',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined

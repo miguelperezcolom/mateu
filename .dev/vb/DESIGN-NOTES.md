@@ -1124,6 +1124,18 @@ pide SOLO las pendientes.
   `texts: []` añadido a TODOS los defaults de mateuDrawer. GOTCHA build: `grunt vb-build`
   ahora ABORTA al final en una subtarea de red (--url) — el build/optimized queda BIEN
   generado; no fiarse del exit code, verificar el artefacto.
+- **Pantalla in-house (2026-07-27)**: el foldout se extiende a IN_HOUSE (fuera del modo
+  checkout, que conserva las dos columnas planas): Huéspedes | **Estancia** | Perfil. El
+  panel Estancia titula con el balance VIVO ("Estancia · € 1.710,50 · 95% preaut.",
+  balanceResumen → subtitle → headerLabel) y compone el Meter del balance + el cockpit de
+  fichas: **Folio** (badge OK/Vigilar/Al límite según % de preauth; "Postear cargo" abre
+  el drawer del catálogo — filas clicables → `postearCargo` postea y CIERRA con
+  `UICommand.closeModal()`), **una ficha por incidencia** abierta ("Resolver" →
+  `stay.resolveIncident`; sin abiertas → ficha "✓ OK") y **Salida** ("Late check-out"
+  +€50 al folio — el propio cargo hace de flag; contratado → badge 15:00). Iconos
+  cart/check/clock añadidos a OJ_ICONS. Todo verificado en vivo con Carlos: postear desde
+  el drawer (1.710,50 → 1.735,50), resolver la incidencia de TV, late check-out
+  (→ 1.785,50 · 99% y "Al límite"), con el header del panel y los facts refrescando.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
