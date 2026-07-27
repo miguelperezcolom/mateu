@@ -190,3 +190,9 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   overflow-y: auto;
   box-sizing: border-box;
 }
+
+/* Headings de CONTENIDO (átomos Text con container hN → h3): sin margen propio del
+   navegador — el ritmo lo ponen las clases JET del átomo (margin-top de grupo). */
+.mateu-atom-heading {
+  margin: 0;
+}

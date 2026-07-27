@@ -442,6 +442,12 @@ const OJ_ICONS = {
   'vaadin:pencil': 'oj-ux-ico-edit',
   'vaadin:ban': 'oj-ux-ico-do-not-enter',
   'vaadin:rotate-left': 'oj-ux-ico-undo',
+  'vaadin:exchange': 'oj-ux-ico-exchange-h',
+  'vaadin:wifi': 'oj-ux-ico-connection',
+  'vaadin:key': 'oj-ux-ico-key',
+  'vaadin:pen': 'oj-ux-ico-signature',
+  'vaadin:credit-card': 'oj-ux-ico-bank-card',
+  'vaadin:gift': 'oj-ux-ico-gift',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined
@@ -700,7 +706,23 @@ export function islandContentOf(ctx) {
     }
     if (t === 'Text') {
       const text = interp(m.text)
-      if (text) atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+      if (text) {
+        // container h1..h6 → HEADING de contenido: h3 real (el escalón siguiente al h2
+        // de la sección), con ritmo de grupo (margin-top) cuando no abre el bloque
+        const heading = /^h[1-6]$/.test(m.container || '')
+        if (heading) {
+          const target = container || plain
+          const notFirst = !!(target && target.items.length)
+          atom({
+            isText: true,
+            isHeading: true,
+            text,
+            cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
+          }, container)
+        } else {
+          atom({ isText: true, text, cls: TEXT_CLASSES[m.size] || 'oj-typography-body-md' }, container)
+        }
+      }
       return
     }
     if (t === 'ProgressSteps') {

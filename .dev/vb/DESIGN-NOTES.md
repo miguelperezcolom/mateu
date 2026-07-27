@@ -1084,6 +1084,15 @@ pide SOLO las pendientes.
   GOTCHA de merge nº4: las clases de la rejilla fija (.mateu-grid/.mateu-grid-cell, celdas
   22rem con gap propio) tampoco las estampaba ya el bridge — restauradas en
   wrapClass/cellClass para columns>1.
+- **Iconos en operaciones + headings de contenido (2026-07-27)**: las 6 operaciones llevan
+  icono con tooltip (Op.actionIcon → StatusItem.actionIcon; vaadin:exchange/wifi/key/pen/
+  credit-card/gift → OJ_ICONS exchange-h/connection/key/signature/bank-card/gift). Átomo
+  HEADING nuevo: un Text con container h1..h6 se proyecta isHeading y se pinta como
+  <h3 class="mateu-atom-heading oj-typography-subheading-xs"> (el escalón siguiente al h2
+  de sección; app.css lo deja sin margen propio) con ritmo de grupo `oj-sm-margin-10x-top`
+  cuando NO abre el bloque — Perfil pasa a h3 (Preferencias / Última estancia) con 40px
+  entre grupos, y de regalo los títulos del modo checkout (Desglose folio, Postear cargo,
+  Cobro) se vuelven headings de verdad.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

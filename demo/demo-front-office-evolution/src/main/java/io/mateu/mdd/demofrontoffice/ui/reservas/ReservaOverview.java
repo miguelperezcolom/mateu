@@ -229,12 +229,12 @@ public class ReservaOverview
     var guest = FrontOffice.stayView(stayId).guest();
     var contenido = new ArrayList<Component>();
     contenido.add(Text.builder().text("Preferencias")
-        .container(io.mateu.uidl.data.TextContainer.h4).style("margin: 0;").build());
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 0;").build());
     contenido.add(io.mateu.uidl.data.BulletedList.builder()
         .items(guest.preferences().stream().map(p -> p.text()).toList())
         .build());
     contenido.add(Text.builder().text("Última estancia")
-        .container(io.mateu.uidl.data.TextContainer.h4).style("margin: 1.5rem 0 0;").build());
+        .container(io.mateu.uidl.data.TextContainer.h3).style("margin: 1.5rem 0 0;").build());
     contenido.add(Text.builder().text(guest.lastStaySummary()).noMargins(true).build());
     contenido.add(Text.builder().text(guest.lastStayComplementaryInfo())
         .size(io.mateu.uidl.data.TextSize.xs).noMargins(true).build());
@@ -442,7 +442,7 @@ public class ReservaOverview
   /** One row of the check-in operations checklist. */
   private record Op(
       String id, String icon, String title, String pendiente, String hecha,
-      boolean done, String actionLabel, String actionId) {}
+      boolean done, String actionLabel, String actionId, String actionIcon) {}
 
   /** The check-in operations of an arriving stay — completed and pending, with quick actions. */
   private List<Op> operaciones(Stay stay) {
@@ -454,34 +454,34 @@ public class ReservaOverview
         new Op("documentos", "🪪", "Datos de huéspedes",
             "Falta la documentación de " + faltan + " pax — escaneo de documento en el check-in",
             "Documentación de los " + stay.pax() + " pax completa",
-            faltan == 0, "Completar", "iniciarCheckin"),
+            faltan == 0, "Completar", "iniciarCheckin", null),
         new Op("habitacion", "🛏️", "Habitación",
             "Sin habitación asignada — elegir una para la estancia",
             "Hab " + stay.roomNumber() + " (" + stay.roomType() + ") asignada"
                 + (habitacionInspeccionada(stay) ? " · inspeccionada y lista" : " · pendiente de inspección"),
-            habitacionLista, "Cambiar", "opHabitacion"),
+            habitacionLista, "Cambiar", "opHabitacion", "vaadin:exchange"),
         new Op("wifi", "📶", "Tarjeta wifi",
             "Crear las credenciales de acceso del huésped",
             "Credenciales creadas y entregadas",
-            ops.wifi(), "Crear", "opWifi"),
+            ops.wifi(), "Crear", "opWifi", "vaadin:wifi"),
         new Op("llave", "🔑", "Llave / pulsera",
             "Grabar la llave o pulsera de la Hab " + stay.roomNumber(),
             "Llave / pulsera grabada",
-            ops.llave(), "Grabar", "opLlave"),
+            ops.llave(), "Grabar", "opLlave", "vaadin:key"),
         new Op("firma", "✍️", "Firma del registro",
             firmaEnviada
                 ? "Enviada a la tablet · esperando la firma del huésped…"
                 : "Enviar el registro a la tablet para su firma",
             "Firmada por el huésped en la tablet",
-            ops.firma(), firmaEnviada ? null : "Enviar a tablet", "opFirma"),
+            ops.firma(), firmaEnviada ? null : "Enviar a tablet", "opFirma", "vaadin:pen"),
         new Op("cobro", "💳", "Cobro / preautorización",
             "Preautorizar " + GuestHeaders.euros(stay.total()) + " — tarjeta, efectivo o puntos",
             "Preautorización completada",
-            ops.cobro(), "Cobrar", "opCobro"),
+            ops.cobro(), "Cobrar", "opCobro", "vaadin:credit-card"),
         new Op("extras", "🎁", "Ancillaries",
             "Ofrecer los extras opcionales de la estancia",
             extrasHecha(stay),
-            ops.extras(), "Elegir", "opExtras"));
+            ops.extras(), "Elegir", "opExtras", "vaadin:gift"));
   }
 
   /** Modo habitación: la cuadrícula de disponibles + la oferta de upgrade, en el carril
@@ -682,6 +682,7 @@ public class ReservaOverview
                       .statusColor(op.done() ? "success" : "warning")
                       .actionLabel(conAccion ? op.actionLabel() : null)
                       .actionId(conAccion ? op.actionId() : null)
+                      .actionIcon(conAccion ? op.actionIcon() : null)
                       .build();
                 })
                 .toList())

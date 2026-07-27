@@ -117,8 +117,11 @@
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -439,8 +442,11 @@
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -782,8 +788,11 @@
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -1104,8 +1113,11 @@
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -1593,8 +1605,11 @@
             <div>
               <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -1980,8 +1995,11 @@
               <div class="oj-panel oj-sm-margin-3x-bottom">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -2300,8 +2318,11 @@
               <div class="oj-sm-margin-2x-bottom">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -2767,8 +2788,11 @@
               <div class="oj-panel oj-sm-margin-3x-bottom">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -3065,8 +3089,11 @@
               <div class="oj-sm-margin-2x-bottom">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -3390,8 +3417,11 @@
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
@@ -3712,8 +3742,11 @@
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <template>
-                    <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-bind-if test="[[ $current.data.isText && !$current.data.isHeading ]]">
                       <div class="oj-sm-margin-1x-bottom" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isHeading ]]">
+                      <h3 class="oj-sm-margin-1x-bottom mateu-atom-heading" :class="[[ $current.data.cls ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></h3>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
