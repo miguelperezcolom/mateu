@@ -54,6 +54,31 @@
      esté visible la rama que esté (form, listado, isla…) -->
 <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>
 
+<!-- MODAL de decisión (overlay Dialog del wire, p.ej. "¿seguimos con el check-in del
+     grupo?"): título + líneas de mensaje + las acciones del Dialog en el footer -->
+<oj-dialog id="mateuModal" cancel-behavior="icon" drag-affordance="none"
+  on-oj-before-close="[[ $listeners.mateuModalClosed ]]">
+  <div slot="header">
+    <span class="oj-dialog-title"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></span>
+  </div>
+  <div slot="body" style="max-width: 26rem;">
+    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.texts ]]">
+      <template>
+        <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+      </template>
+    </oj-bind-for-each>
+  </div>
+  <div slot="footer">
+    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
+      <template>
+        <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+          :data-action-id="[[ $current.data.actionId ]]"
+          on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-dialog>
+
 <!-- Diálogo de progreso de los LongTask (SSE): lo abre/actualiza/cierra el vigía de los
      chains (runMateuAction / runMateuIslandAction) según llegan los increments -->
 <oj-dialog id="mateuProgressDialog" cancel-behavior="none" drag-affordance="none">

@@ -19,7 +19,7 @@ define([
 
       $application.variables.mateuRegistry = bridge.dismissOverlay($application.variables.mateuRegistry);
       $application.variables.mateuDrawerOpen = false;
-      $application.variables.mateuDrawer = { title: '', fields: [], actions: [], blocks: [], state: {} };
+      $application.variables.mateuDrawer = { title: '', fields: [], actions: [], blocks: [], texts: [], state: {} };
       $page.variables.mateuDrawerDraft = {};
     }
   }

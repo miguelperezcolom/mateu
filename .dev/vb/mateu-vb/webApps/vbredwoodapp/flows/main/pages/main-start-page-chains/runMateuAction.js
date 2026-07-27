@@ -128,8 +128,17 @@ define([
 
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], blocks: [], state: {} };
-      $application.variables.mateuDrawerOpen = !!overlayNow;
+      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], blocks: [], texts: [], state: {} };
+      // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer
+      const esModal = !!(overlayNow && overlayNow.isDialog);
+      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal;
+      if (esModal && !$page.variables.mateuModalOpen) {
+        $page.variables.mateuModalOpen = true;
+        await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'open' });
+      } else if (!esModal && $page.variables.mateuModalOpen) {
+        $page.variables.mateuModalOpen = false;
+        await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
+      }
       if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
         $page.variables.mateuDrawerDraft = {};
       }
@@ -355,6 +364,10 @@ define([
         document.title = effects.docTitle;
       }
       if (effects.navigate && effects.navigate.route) {
+        if ($page.variables.mateuModalOpen) {
+          $page.variables.mateuModalOpen = false;
+          await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
+        }
         await Actions.fireEvent(context, {
           name: 'application:mateuNavigate',
           payload: { route: effects.navigate.route },

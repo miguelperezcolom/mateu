@@ -114,6 +114,7 @@ export function actionsOf(tree) {
       label: a.label,
       style: a.buttonStyle || 'outlined',
       chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      parameters: a.parameters || {},
     })
   }
   return out
@@ -161,6 +162,10 @@ export function overlayOf(reg) {
     actions: actionsOf(ctx.tree),
     content: content || [],
     hasContent: !!(content && content.length),
+    // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
+    // drawer (tarea con formulario); texts = sus líneas de mensaje
+    isDialog: !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog'),
+    texts: collectTexts(ctx.tree),
   }
 }
 

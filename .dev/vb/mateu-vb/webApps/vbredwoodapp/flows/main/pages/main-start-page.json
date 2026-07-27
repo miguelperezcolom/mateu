@@ -64,6 +64,10 @@
     "mateuProgressValue": {
       "type": "number",
       "defaultValue": 0
+    },
+    "mateuModalOpen": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "metadata": {},
@@ -384,6 +388,13 @@
           "parameters": {
             "event": "{{ $event }}"
           }
+        }
+      ]
+    },
+    "mateuModalClosed": {
+      "chains": [
+        {
+          "chain": "mateuModalDismissed"
         }
       ]
     }

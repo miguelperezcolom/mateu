@@ -1108,6 +1108,22 @@ pide SOLO las pendientes.
   los chains lo traducen a la API del oj-sp-header: el primaryAction se deshabilita con
   `display: 'disabled'` (NO con un boolean `disabled` — ese se ignora). Verificado en
   ambos sentidos (foto limpia → disabled; 7 de 7 por wire → enabled).
+- **Modal post-check-in de grupo (2026-07-27)**: al confirmar el check-in de una reserva
+  DE GRUPO (simulación: grupo = primera palabra de la agencia — "TUI Deutschland" y "TUI
+  Group · …" comparten grupo TUI), la acción devuelve un `Dialog` (uidl) proponiendo
+  seguir con la siguiente llegada pendiente del grupo o volver al listado; sin grupo o sin
+  más llegadas → `UICommand.navigateTo("/reservas")` directo (OJO: una `URI` DENTRO de una
+  List NO se mapea — solo a pelo; en colecciones usar el UICommand). **Renderer**: un
+  overlay `Dialog` se pinta como MODAL (`#mateuModal`, oj-dialog estándar: título + líneas
+  de texto + las acciones del Dialog en el footer) y no como drawer — `overlayOf` gana
+  `isDialog` + `texts` (collectTexts) y `actionsOf` propaga `parameters` (el botón
+  "Check-in de X" viaja con `_item`); runMateuAction enruta overlays isDialog al modal
+  (open/close por método, cierre también al navegar) y `mateuModalDismissed` descarta el
+  overlay solo si el TOP sigue siendo Dialog. GOTCHA VB: un `oj-bind-for-each` sobre una
+  propiedad AUSENTE del default ROMPE la página entera ("Unable to process binding") —
+  `texts: []` añadido a TODOS los defaults de mateuDrawer. GOTCHA build: `grunt vb-build`
+  ahora ABORTA al final en una subtarea de red (--url) — el build/optimized queda BIEN
+  generado; no fiarse del exit code, verificar el artefacto.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

@@ -794,6 +794,7 @@ public class ReservaOverview
     return List.of("iniciarCheckin", "irCheckout", "volverReserva", "mensajeHuesped",
             "opWifi", "opLlave", "opHabitacion", "elegirHabitacion", "upgrade360",
             "volverHabitacion", "escanearPax", "rellenarPax", "guardarPax", "refrescarReserva",
+            "siguienteReserva", "volverListado",
             "opCobro", "metodoCobro", "confirmarCobro",
             "opExtras", "extras360", "cerrarExtras", "opFirma", "opFirmaDone",
             "buscarCargos", "seleccionarCargo", "cambiarMetodo", "confirmPayment")
@@ -809,16 +810,28 @@ public class ReservaOverview
         var stay = stay();
         if (CheckInFlow.listoParaCheckInDirecto(stay)) {
           var checkedIn = CheckInFlow.completar(stayId, null, List.of());
-          yield List.of(
-              this,
-              new Message(
-                  "✅ Check-in completado — "
-                      + FrontOffice.stayView(stayId).guest().name()
-                      + " · Hab "
-                      + checkedIn.roomNumber()));
+          var resultado = new ArrayList<Object>();
+          resultado.add(this);
+          resultado.add(new Message(
+              "✅ Check-in completado — "
+                  + FrontOffice.stayView(stayId).guest().name()
+                  + " · Hab "
+                  + checkedIn.roomNumber()));
+          // solo una reserva DE GRUPO propone seguir con la siguiente llegada del grupo
+          // (simulado: mismo grupo = primera palabra de la agencia); sin grupo o sin más
+          // llegadas pendientes → directamente de vuelta al listado
+          var siguiente = siguienteLlegadaDelGrupo(checkedIn);
+          if (siguiente.isPresent()) {
+            resultado.add(dialogSiguiente(siguiente.get()));
+            yield resultado;
+          }
+          yield List.of(resultado.get(1), UICommand.navigateTo("/reservas"));
         }
         yield URI.create("/checkin/" + stayId);
       }
+      case "siguienteReserva" ->
+          URI.create("/reserva/" + httpRequest.runActionRq().parameters().get("_item"));
+      case "volverListado" -> URI.create("/reservas");
       case "irCheckout" -> {
         modoCheckout = true;
         yield this;
@@ -1164,6 +1177,56 @@ public class ReservaOverview
     "Enviando el registro a la tablet…", "Esperando la firma del huésped…",
     "Recibiendo la firma…"
   };
+
+  /** El "grupo" de una reserva — SIMULACIÓN: la primera palabra de la agencia
+   *  ("TUI Deutschland" y "TUI Group · …" comparten el grupo TUI). */
+  private static String grupoDe(Stay stay) {
+    if (stay.agency() == null || stay.agency().isBlank()) {
+      return null;
+    }
+    return stay.agency().trim().split("\\s+")[0];
+  }
+
+  /** La siguiente llegada PENDIENTE del mismo grupo (vacío si la reserva no es de grupo
+   *  o no queda ninguna otra por llegar). */
+  private java.util.Optional<Stay> siguienteLlegadaDelGrupo(Stay hecha) {
+    var grupo = grupoDe(hecha);
+    if (grupo == null) {
+      return java.util.Optional.empty();
+    }
+    return FrontOffice.stays().findAll().stream()
+        .filter(s -> s.status() == StayStatus.ARRIVING && !s.id().equals(hecha.id()))
+        .filter(s -> grupo.equals(grupoDe(s)))
+        .findFirst();
+  }
+
+  /** El modal de decisión post-check-in: seguir con la siguiente llegada del grupo o
+   *  volver al listado. */
+  private io.mateu.uidl.data.Dialog dialogSiguiente(Stay siguiente) {
+    var guest = FrontOffice.stayView(siguiente.id()).guest();
+    return io.mateu.uidl.data.Dialog.builder()
+        .id("dialog-siguiente-checkin")
+        .headerTitle("Check-in completado")
+        .width("28rem")
+        .content(VerticalLayout.builder()
+            .style("gap: .25rem;")
+            .content(List.of(
+                Text.builder()
+                    .text(guest.name() + " también está por llegar con el grupo "
+                        + grupoDe(siguiente) + " — " + siguiente.pax() + " pax · "
+                        + siguiente.roomType() + " (" + siguiente.agency() + ").")
+                    .build(),
+                Text.builder().text("¿Seguimos con su check-in?").noMargins(true).build(),
+                Button.builder()
+                    .label("Check-in de " + guest.name())
+                    .actionId("siguienteReserva")
+                    .parameters(java.util.Map.of("_item", siguiente.id()))
+                    .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+                    .build(),
+                Button.builder().label("Volver al listado").actionId("volverListado").build()))
+            .build())
+        .build();
+  }
 
   /** El pax de la fila pulsada ({_item} numérico de la lista de huéspedes). */
   private int paxDe(HttpRequest httpRequest) {
