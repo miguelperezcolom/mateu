@@ -299,7 +299,7 @@ define([
         showInline: showHeader && !showBand,
         showListBand: showListBand,
         showListInline: !!listingSummary && !showListBand,
-        primary: primaryBtn ? { label: primaryBtn.label } : { label: '', display: 'off' },
+        primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtn ? primaryBtn.actionId : '',
         secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ label: b.label })),
         toolbar: hostToolbar,

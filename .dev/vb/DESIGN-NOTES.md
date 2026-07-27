@@ -1100,6 +1100,14 @@ pide SOLO las pendientes.
   de holgura. Y el tema Redwood pone `padding-right: 40px` a los `ul` (además del inline-
   start del navegador) — un cuarto del carril de Perfil; `.mateu-atom-bullets` lo anula y
   "Connecting rooms" vuelve a una línea (li 118→158px).
+- **Habitación con número + confirmar GATED (2026-07-27)**: la tarjeta de la operación
+  titula "Habitación 612" (el número importa; la descripción pasa a tipo + estado de
+  inspección) y "Confirmar check-in" solo se habilita con TODO hecho (los 7 ops — cardex
+  de todos los pax con no-shows aparte + operaciones): `toolbar()` calcula
+  `operaciones(stay).allMatch(done)` → `Button.disabled` → `pageToolbarOf` lo proyecta y
+  los chains lo traducen a la API del oj-sp-header: el primaryAction se deshabilita con
+  `display: 'disabled'` (NO con un boolean `disabled` — ese se ignora). Verificado en
+  ambos sentidos (foto limpia → disabled; 7 de 7 por wire → enabled).
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).

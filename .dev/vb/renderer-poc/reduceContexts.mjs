@@ -1097,6 +1097,7 @@ export function pageToolbarOf(ctx) {
       actionId: b.actionId,
       label: b.label || b.actionId,
       chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      disabled: !!b.disabled,
     }))
 }
 

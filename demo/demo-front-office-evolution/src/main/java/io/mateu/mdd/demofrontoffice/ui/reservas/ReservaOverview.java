@@ -456,9 +456,10 @@ public class ReservaOverview
             "Falta la documentación de " + faltan + " pax — escaneo de documento en el check-in",
             "Documentación de los " + stay.pax() + " pax completa",
             faltan == 0, "Completar", "iniciarCheckin", null),
-        new Op("habitacion", "🛏️", "Habitación",
+        new Op("habitacion", "🛏️",
+            habitacionLista ? "Habitación " + stay.roomNumber() : "Habitación",
             "Sin habitación asignada — elegir una para la estancia",
-            "Hab " + stay.roomNumber() + " (" + stay.roomType() + ") asignada"
+            stay.roomType() + " asignada"
                 + (habitacionInspeccionada(stay) ? " · inspeccionada y lista" : " · pendiente de inspección"),
             habitacionLista, "Cambiar", "opHabitacion", "vaadin:exchange"),
         new Op("wifi", "📶", "Tarjeta wifi",
@@ -771,9 +772,15 @@ public class ReservaOverview
           Button.builder().label("Volver a la reserva").actionId("volverHabitacion").build());
     }
     return switch (stay().status()) {
-      case ARRIVING -> List.of(
-          Button.builder().label("Confirmar check-in").actionId("iniciarCheckin")
-              .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build());
+      case ARRIVING -> {
+        // habilitado SOLO con todos los cardex OK (no-shows aparte) y las operaciones hechas
+        var listo = operaciones(stay()).stream().allMatch(Op::done);
+        yield List.of(
+            Button.builder().label("Confirmar check-in").actionId("iniciarCheckin")
+                .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+                .disabled(!listo)
+                .build());
+      }
       case IN_HOUSE -> List.of(
           Button.builder().label("Check-out").actionId("irCheckout")
               .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary).build(),

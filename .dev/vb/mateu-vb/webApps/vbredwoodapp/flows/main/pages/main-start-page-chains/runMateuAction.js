@@ -335,7 +335,7 @@ define([
         showInline: showHeaderA && !showBandA,
         showListBand: showListBandA,
         showListInline: !!listingSummary && !showListBandA,
-        primary: primaryBtnA ? { label: primaryBtnA.label } : { label: '', display: 'off' },
+        primary: primaryBtnA ? { label: primaryBtnA.label, display: primaryBtnA.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
         secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ label: b.label })),
         toolbar: hostToolbarA,
