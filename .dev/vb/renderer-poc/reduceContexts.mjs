@@ -356,7 +356,33 @@ export function welcomeOf(ctx) {
   if (!hero) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
-  const tiles = findAllByType(ctx.tree, 'DashboardPanel').map((panel) => {
+  const panels = findAllByType(ctx.tree, 'DashboardPanel')
+  // un TrendChart en un tile → CHART a todo el ancho bajo los KPIs (oj-chart en VB);
+  // items PRECOMPUTADOS (id/value/group/series) — el CSP de VB no construye arrays
+  const trendPanel = panels.find(
+    (panel) => findByType(panel, 'TrendChart') || findByType(panel, 'Chart'))
+  const chartNode = trendPanel
+    ? findByType(trendPanel, 'TrendChart') || findByType(trendPanel, 'Chart') : null
+  const tm = chartNode ? chartNode.metadata : null
+  // valores/labels de las dos formas del wire: TrendChart (values/labels planos) o
+  // Chart (chartData.labels + datasets[0].data — se toma la primera serie)
+  const dataset = tm && tm.chartData && tm.chartData.datasets && tm.chartData.datasets.length
+    ? tm.chartData.datasets[0] : null
+  const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
+  const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
+  const series = (dataset && dataset.label) || 'Ocupación %'
+  const trend = tm
+    ? {
+        title: trendPanel.metadata.title || tm.title || '',
+        items: (values || []).map((value, i) => ({
+          id: i,
+          value,
+          group: [labels[i] != null ? labels[i] : String(i + 1)],
+          series,
+        })),
+      }
+    : null
+  const tiles = panels.filter((panel) => panel !== trendPanel).map((panel) => {
     // un MetricCard dentro del tile → KPI (valor grande + etiqueta + caption)
     const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
     const mm = metric ? metric.metadata : null
@@ -371,6 +397,7 @@ export function welcomeOf(ctx) {
     }
   })
   return {
+    trend,
     title: md.title || '',
     subtitle: md.subtitle || '',
     ctas,
@@ -1459,6 +1486,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
+        logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
         // primera opción del menú
         homeRoute: md.homeRoute || '',

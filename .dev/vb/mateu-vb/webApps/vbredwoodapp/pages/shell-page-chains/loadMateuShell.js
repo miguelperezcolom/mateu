@@ -37,6 +37,9 @@ define([
       }));
       $application.variables.mateuHeaderActions = nav.headerActions;
       $application.variables.mateuShellSST = nav.serverSideType || '';
+      // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
+      $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
+        ? base + reg.shell.logo : '';
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
       }

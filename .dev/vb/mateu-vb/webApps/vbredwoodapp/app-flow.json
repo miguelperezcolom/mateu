@@ -331,6 +331,16 @@
       "defaultValue": "",
       "description": "serverSideType del App — las acciones de cabecera se despachan app-level con él"
     },
+    "mateuShellLogo": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "URL absoluta del logo del @App (mateuBaseUrl + AppDto.logo) — marca en el header"
+    },
+    "mateuWelcomeTrendItems": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "items precomputados del chart de la welcome (welcome.trend.items) para el ADP del oj-chart"
+    },
     "mateuFoldoutContent": {
       "type": "any",
       "defaultValue": {

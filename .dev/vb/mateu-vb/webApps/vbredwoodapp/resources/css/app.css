@@ -222,3 +222,25 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
 .oj-sp-foldout-layout-header-horizontal {
   display: none;
 }
+
+/* Tarjetas de fila clicable (rowActionId sin botón — p.ej. el catálogo de cargos del
+   drawer "Postear cargo" y del panel de check-out): oj-action-card es inline-block y
+   se encoge a su contenido → a FILA COMPLETA, una tarjeta por línea, con el precio
+   (status) empujado al borde derecho. */
+oj-action-card.mateu-row-card {
+  display: block;
+  width: 100%;
+}
+
+/* Aire entre lo que precede (el input de búsqueda de cargos del check-out) y la primera
+   tarjeta de resultado — sin él la tarjeta nace pegada al borde del campo. */
+oj-action-card.mateu-row-card:first-of-type {
+  margin-top: 0.75rem;
+}
+
+/* Marca del cliente en vez de la de Oracle: el logo Oracle integrado del global header
+   se oculta (la marca la pone el @Logo del App — imagen del slot start) y el home
+   queda en el icono de la derecha del propio header. */
+.oj-sp-logo-global-header-logo-container {
+  display: none !important;
+}

@@ -274,6 +274,8 @@ define([
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(hostAfter);
+      $application.variables.mateuWelcomeTrendItems =
+        welcome && welcome.trend ? welcome.trend.items : [];
       const overviewProjection = bridge.generalOverviewOf(hostAfter);
       const itemProjection = bridge.itemOverviewOf(hostAfter);
       $application.variables.mateuWelcome = welcome;

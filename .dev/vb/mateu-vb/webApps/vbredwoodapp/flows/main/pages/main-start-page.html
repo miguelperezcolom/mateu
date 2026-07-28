@@ -157,8 +157,10 @@
       <oj-sp-foldout-layout id="mateuFoldoutEl"
         display-options.go-to-parent="false"
         display-options.background="transparent">
+        <!-- 25rem = 22rem de contenido útil (el ancho de una tarjeta de operaciones,
+             .mateu-grid-cell) + 3rem de padding horizontal del panel -->
         <oj-sp-foldout-panel panel-title="[[ $application.variables.mateuFoldout.headerTitle || $application.variables.mateuHostTitle ]]"
-          class="mateu-fixed-panel" style="flex: 0 0 23rem; width: 23rem; min-width: 23rem; max-width: 23rem;">
+          class="mateu-fixed-panel" style="flex: 0 0 25rem; width: 25rem; min-width: 25rem; max-width: 25rem;">
           <!-- bloques RICOS del overview: mismo template de átomos que el host -->
           <div class="oj-flex">
           <oj-bind-for-each data="[[ $application.variables.mateuFoldoutContent.overview.blocks ]]">
@@ -309,7 +311,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -654,7 +656,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -1020,7 +1022,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -1365,7 +1367,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -1615,6 +1617,26 @@
       </template>
     </oj-bind-for-each>
   </div>
+  <!-- chart de previsión (un TrendChart en un tile del Welcome): a todo el ancho bajo
+       los KPIs, con el oj-chart auténtico (barras) sobre los items precomputados -->
+  <oj-bind-if test="[[ !!$application.variables.mateuWelcome.trend ]]">
+    <div class="oj-flex oj-sm-padding-12x-horizontal">
+      <div class="oj-flex-item oj-sm-12">
+        <div class="oj-panel oj-sm-margin-2x">
+          <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $application.variables.mateuWelcome.trend.title ]]"></oj-bind-text></div>
+          <oj-chart type="bar" data="[[ $page.variables.welcomeTrendADP ]]"
+            animation-on-display="auto"
+            style="width: 100%; height: 260px;">
+            <template slot="itemTemplate" data-oj-as="item">
+              <oj-chart-item value="[[ item.data.value ]]"
+                group-id="[[ item.data.group ]]"
+                series-id="[[ item.data.series ]]"></oj-chart-item>
+            </template>
+          </oj-chart>
+        </div>
+      </div>
+    </div>
+  </oj-bind-if>
 </oj-bind-if>
 
 <!-- Arquetipo GENERAL OVERVIEW: header Redwood con switcher de registro + facts + cards -->
@@ -1785,7 +1807,11 @@
 <oj-drawer-popup id="mateuDrawerPanel" edge="end" modality="modal"
   opened="[[ $application.variables.mateuDrawerOpen ]]"
   on-oj-before-close="[[ $listeners.mateuDrawerClosed ]]">
-  <div class="oj-sm-padding-6x oj-flex oj-sm-flex-direction-column" style="min-height: 100vh; box-sizing: border-box;">
+  <!-- ancho EXPLÍCITO del wire (Drawer.width): sin él el popup se encoge a su contenido
+       (las tarjetas a fila completa dejaban el drawer en su mínimo) -->
+  <div class="oj-sm-padding-6x oj-flex oj-sm-flex-direction-column"
+    style="min-height: 100vh; box-sizing: border-box; max-width: 90vw;"
+    :style.width="[[ $application.variables.mateuDrawer.width || '26rem' ]]">
     <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></h2>
     <oj-bind-if test="[[ $application.variables.mateuDrawer.hasContent ]]">
       <div class="oj-sm-margin-4x-top">
@@ -1935,7 +1961,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -2358,7 +2384,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -2701,7 +2727,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -3191,7 +3217,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.islandBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -3512,7 +3538,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.islandBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -3878,7 +3904,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -4223,7 +4249,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -4582,7 +4608,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -4927,7 +4953,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -5286,7 +5312,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">
@@ -5631,7 +5657,7 @@
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
                             <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
-                            <oj-action-card class="oj-sm-margin-1x-bottom"
+                            <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]">
                               <div class="oj-flex oj-sm-align-items-center oj-sm-padding-2x">

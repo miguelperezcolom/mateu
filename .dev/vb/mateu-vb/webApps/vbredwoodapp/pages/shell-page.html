@@ -9,6 +9,11 @@
     on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
     <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->
     <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <!-- logo del @App (marca del cliente, p.ej. RIU) delante de la navegación -->
+      <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]">
+        <img :src="[[ $application.variables.mateuShellLogo ]]" alt="logo"
+          class="oj-sm-margin-3x-end" style="height: 22px; display: block;">
+      </oj-bind-if>
       <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           on-oj-action="[[ $listeners.hamburgerClicked ]]">

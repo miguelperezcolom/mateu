@@ -1443,3 +1443,35 @@ pide SOLO las pendientes.
 - **KPIs sin doble marco** (dashboardRenderer: panel con único MetricCard → el metric
   solo) y "N de 7" unido al título de sección (mateu-vaadin-foldout: `· subtitle` en el
   h3).
+
+## Sesión 2026-07-28 (dogfooding front-office-evolution, VB + Vaadin)
+
+- **Drawer VB honra `Drawer.width` del wire**: `oj-drawer-popup` se encogía a contenido; el div
+  interior ahora bindea `:style.width` a `mateuDrawer.width` (overlayOf ya lo traía) con fallback
+  26rem y `max-width: 90vw`. Cargos 26→30rem, folio 30→34rem (backend).
+- **Tarjetas de fila clicable a fila completa**: los `oj-action-card` de `rowActionId` sin botón
+  (catálogo de cargos) eran inline y se encogían — clase `mateu-row-card` en los 15 stamps +
+  `display:block; width:100%` en app.css, y `:first-of-type { margin-top: .75rem }` para el aire
+  tras el input de búsqueda del check-out.
+- **Panel Huéspedes del foldout a 25rem** (contenido útil 22rem = una `.mateu-grid-cell`).
+- **Marca**: `shell.logo` en la proyección del bridge (fuente única + regen), variable
+  `mateuShellLogo` (mateuBaseUrl + AppDto.logo) pintada en el slot start del global header; el
+  logo Oracle integrado se oculta (`.oj-sp-logo-global-header-logo-container { display:none }`).
+  Backend: `@Logo("/images/riu.svg")` en los FrontOfficeSuite de ambos front-office.
+- **Welcome trend chart**: un `TrendChart` o `Chart` (chartData.labels + datasets[0]) en un tile
+  del Welcome se proyecta como `welcome.trend` (items precomputados id/value/group/series), tile
+  excluido de los KPIs; markup con `oj-chart` type=bar (import `ojs/ojchart`) sobre el ADP
+  `welcomeTrendADP` ← `mateuWelcomeTrendItems` (app-flow). La Bienvenida emite ahora `Chart` de
+  BARRAS (maintainAspectRatio=false, 200px) — el renderer web lo pinta con chart.js.
+- **Ruta anidada** `/reservas/:id` (antes `/reserva/:id`) — la pestaña Reservas queda marcada en
+  los shells con menú; `idFromRoute(mount="reservas")`. Al completar check-in → navigateTo
+  `/reservas?vista=LLEGADAS_HOY` (mecanismo quick-filter ya soportado por onMateuNavigate).
+- **Drawer de habitación cierra también in-house** (`elegirHabitacion`/`upgrade360`: closeModal
+  siempre que la selección viene del drawer, sin condicionar a ARRIVING).
+- **Vaadin (shared)**: hoist del EntityHeader inicial al header canónico de mateu-page
+  (pageRenderer marca `__hoistedToPageHeader`, entityHeaderRenderer lo salta; kpisBelow = pares
+  etiqueta+valor bajo el título, badges junto al título) — el VB no se ve afectado (no usa
+  mateu-page). pageWidth edgeToEdge en Vaadin vía el hook no-padding (compact-changed) + gutter
+  propio del header (`:host([data-edge])`); vars `--mateu-shell-gutter(-top)` declaradas por el
+  shell vaadin. Foldout: FABs solo con overflow real (>32px + ResizeObserver) y el último fold
+  nunca más estrecho que el overview. StatusList grid row-gap 2rem (vars overridables).

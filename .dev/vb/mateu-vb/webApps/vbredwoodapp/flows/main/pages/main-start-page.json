@@ -36,6 +36,14 @@
         "keyAttributes": "value"
       }
     },
+    "welcomeTrendADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $application.variables.mateuWelcomeTrendItems }}",
+        "keyAttributes": "id"
+      },
+      "description": "items del chart de previsión de la welcome para el oj-chart"
+    },
     "overviewSelectConfig": {
       "type": "any",
       "defaultValue": {
@@ -512,6 +520,9 @@
       },
       "oj-sp-filter-chip": {
         "path": "oj-sp/filter-chip/loader"
+      },
+      "oj-chart": {
+        "path": "ojs/ojchart"
       }
     }
   }
