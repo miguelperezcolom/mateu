@@ -55,8 +55,11 @@ final class FormTabArranger {
       if (MetaAnnotations.isPresent(field, Tab.class)) {
         String newTabName = MetaAnnotations.find(field, Tab.class).value();
         String currentTabName = currentTab != null ? currentTab.value() : null;
-        // Only start a new tab when the tab name actually changes.
-        if (!newTabName.equals(currentTabName)) {
+        // Consecutive @Tab annotations sharing the same NON-EMPTY name join one tab; a bare
+        // @Tab (empty value) always starts a new tab named after its field, so a run of
+        // unnamed @Tab fields renders as one tab each, not merged into the first one.
+        boolean joinsCurrentTab = !newTabName.isEmpty() && newTabName.equals(currentTabName);
+        if (!joinsCurrentTab) {
           if (currentTab != null) {
             fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
           }
