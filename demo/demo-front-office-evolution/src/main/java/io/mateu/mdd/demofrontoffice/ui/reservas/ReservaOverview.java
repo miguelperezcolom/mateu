@@ -60,7 +60,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Route(value = "/reserva/:id", parentRoute = "")
+@Route(value = "/reservas/:id", parentRoute = "")
 @Title("Reserva")
 // anatomía RDS del foldout: página a sangre (sin gutters ni tope de ancho)
 @FormLayout(columns = 1)
@@ -1045,13 +1045,14 @@ public class ReservaOverview
             resultado.add(dialogSiguiente(siguiente.get()));
             yield resultado;
           }
-          yield List.of(resultado.get(1), UICommand.navigateTo("/reservas"));
+          // de vuelta al listado OPERATIVO: las llegadas de hoy, no todas las reservas
+          yield List.of(resultado.get(1), UICommand.navigateTo("/reservas?vista=LLEGADAS_HOY"));
         }
         yield URI.create("/checkin/" + stayId);
       }
       case "siguienteReserva" ->
-          URI.create("/reserva/" + httpRequest.runActionRq().parameters().get("_item"));
-      case "volverListado" -> URI.create("/reservas");
+          URI.create("/reservas/" + httpRequest.runActionRq().parameters().get("_item"));
+      case "volverListado" -> URI.create("/reservas?vista=LLEGADAS_HOY");
       case "irCheckout" -> {
         modoCheckout = true;
         yield this;
@@ -1336,7 +1337,8 @@ public class ReservaOverview
           yield new Message("La habitación " + number + " no está disponible");
         }
         FrontOffice.stays().save(stay().assignRoom(number, tipoDe(room)));
-        if (!modoHabitacion && stay().status() == StayStatus.ARRIVING) {
+        // sin modoHabitacion la selección vino del DRAWER (llegada o in-house): cerrarlo
+        if (!modoHabitacion) {
           yield List.of(this,
               new Message("Habitación cambiada — Hab " + number + " (" + tipoDe(room) + ")"),
               UICommand.closeModal());
@@ -1351,7 +1353,7 @@ public class ReservaOverview
           yield new Message("La suite del upgrade no está disponible");
         }
         FrontOffice.stays().save(stay().assignRoom("1401", tipoDe(suite)));
-        if (!modoHabitacion && stay().status() == StayStatus.ARRIVING) {
+        if (!modoHabitacion) {
           yield List.of(this,
               new Message("Upgrade aplicado — Master Oceanfront Suite (Hab 1401, + € 65 / noche)"),
               UICommand.closeModal());
@@ -1424,7 +1426,7 @@ public class ReservaOverview
   public void onHydrated(HttpRequest httpRequest) {
     if (stayId == null || stayId.isBlank()) {
       stayId = io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders.idFromRoute(
-          httpRequest, "reserva");
+          httpRequest, "reservas");
     }
   }
 
@@ -1481,7 +1483,7 @@ public class ReservaOverview
     return io.mateu.uidl.data.Drawer.builder()
         .id("drawer-cargos")
         .headerTitle("Postear cargo")
-        .width("26rem")
+        .width("30rem")
         .content(StatusList.builder()
             .rowActionId("postearCargo")
             .compact(true)
@@ -1503,7 +1505,7 @@ public class ReservaOverview
     return io.mateu.uidl.data.Drawer.builder()
         .id("drawer-folio")
         .headerTitle("Folio de la estancia")
-        .width("30rem")
+        .width("34rem")
         .content(Ledger.builder()
             .style("width: 100%;")
             .currency("€")

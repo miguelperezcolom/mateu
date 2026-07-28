@@ -313,6 +313,6 @@ public class CheckInWizard extends Wizard {
             + " · Habitación "
             + confirmar.getHabitacionAsignada());
     // de vuelta a la Reserva 360 (que ya mostrará el estado in house)
-    return java.net.URI.create("/reserva/" + stayId);
+    return java.net.URI.create("/reservas/" + stayId);
   }
 }

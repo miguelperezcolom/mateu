@@ -17,6 +17,8 @@ import io.mateu.uidl.data.RouteLink;
 @Title("Front-Office Suite")
 @io.mateu.uidl.annotations.HomeRoute("/bienvenida") // la home es la welcome page (Bienvenida)
 @App(themeToggle = true) // variante AUTO: menú plano de RouteLinks → TABS (in-app navigation)
+@io.mateu.uidl.annotations.Logo("/images/riu.svg")
+@io.mateu.uidl.annotations.FavIcon("/images/riu.svg")
 public class FrontOfficeSuite {
 
   public enum Modo {

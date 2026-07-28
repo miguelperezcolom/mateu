@@ -219,7 +219,8 @@ public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasLi
         return null;
       }
       // ruta ÚNICA: la Reserva 360 muestra el estado y ofrece las acciones que tocan
-      return URI.create("/reserva/" + id);
+      // (anidada bajo /reservas para que la pestaña Reservas siga marcada)
+      return URI.create("/reservas/" + id);
     }
     return super.handleAction(actionId, httpRequest);
   }

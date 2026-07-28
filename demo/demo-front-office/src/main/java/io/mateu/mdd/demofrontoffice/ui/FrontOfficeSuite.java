@@ -19,6 +19,8 @@ import io.mateu.uidl.fluent.Component;
 @UI("")
 @Title("Front-Office Suite")
 @App(themeToggle = true) // variante AUTO: menú plano de RouteLinks → TABS (in-app navigation)
+@io.mateu.uidl.annotations.Logo("/images/riu.svg")
+@io.mateu.uidl.annotations.FavIcon("/images/riu.svg")
 public class FrontOfficeSuite {
 
   public enum Modo {

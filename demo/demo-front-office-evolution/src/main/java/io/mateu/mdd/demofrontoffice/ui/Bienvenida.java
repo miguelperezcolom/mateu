@@ -60,6 +60,48 @@ public class Bienvenida extends Welcome {
           .description("Check-outs previstos hoy")
           .build();
 
+  // previsión de ocupación de los próximos 7 días, a todo el ancho bajo los KPIs —
+  // un Chart de BARRAS con altura contenida (cabe sin scroll en el renderer web)
+  @Panel(title = "Ocupación próximos 7 días", colSpan = 3)
+  io.mateu.uidl.data.Chart ocupacion = ocupacionProximosDias();
+
+  private static io.mateu.uidl.data.Chart ocupacionProximosDias() {
+    var today = java.time.LocalDate.now();
+    var rooms = Math.max(1,
+        io.mateu.mdd.demofrontoffice.ui.common.FrontOffice.rooms().findAll().size());
+    var dias = java.time.format.DateTimeFormatter.ofPattern(
+        "EEE d", java.util.Locale.forLanguageTag("es"));
+    var labels = new java.util.ArrayList<String>();
+    var values = new java.util.ArrayList<Double>();
+    for (int i = 0; i < 7; i++) {
+      var day = today.plusDays(i);
+      var ocupadas = io.mateu.mdd.demofrontoffice.ui.common.FrontOffice.stays().findAll().stream()
+          .filter(s -> s.status() != io.mateu.mdd.demofrontoffice.domain.stay.StayStatus.DEPARTED)
+          // una estancia ocupa la noche de d si entra ese día o antes y sale después
+          .filter(s -> !s.checkIn().isAfter(day) && s.checkOut().isAfter(day))
+          .count();
+      labels.add(dias.format(day));
+      values.add(Math.min(100d, Math.round(ocupadas * 1000d / rooms) / 10d));
+    }
+    return io.mateu.uidl.data.Chart.builder()
+        .chartType(io.mateu.uidl.data.ChartType.bar)
+        .chartData(
+            io.mateu.uidl.data.ChartData.builder()
+                .labels(labels)
+                .datasets(
+                    java.util.List.of(
+                        io.mateu.uidl.data.ChartDataset.builder()
+                            .label("Ocupación %")
+                            .data(values)
+                            .build()))
+                .build())
+        // sin aspect ratio: la altura la fija el style y el chart cabe sin scroll
+        .chartOptions(
+            io.mateu.uidl.data.ChartOptions.builder().maintainAspectRatio(false).build())
+        .style("width: 100%; height: 200px;")
+        .build();
+  }
+
   private enum Vista { LLEGADAS, SALIDAS, EN_CASA }
 
   private static long contar(Vista vista) {
