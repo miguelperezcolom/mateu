@@ -31,8 +31,10 @@ export function selectColumnLayout(cols: GridColumn[], availableWidthPx: number)
     const units = availableWidthPx / PX_PER_UNIT
     const r = totalWeight / units
 
-    // Fits comfortably → table.
-    if (r <= 1.0) return 'table'
+    // Fits comfortably → table. The estimate is conservative (autoWidth columns take what
+    // their content needs, usually less), so up to ~10% over budget still reads fine as a
+    // table — better a slightly tight table than flipping a scannable listing to cards.
+    if (r <= 1.1) return 'table'
 
     // Overweight, or too many columns to scan as a row → master/detail.
     if (r > 1.6 || cols.length > 10) return 'masterDetail'

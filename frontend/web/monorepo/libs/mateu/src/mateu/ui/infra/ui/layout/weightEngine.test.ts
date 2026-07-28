@@ -61,10 +61,17 @@ describe('selectColumnLayout', () => {
         expect(selectColumnLayout(cols, 12 * PX_PER_UNIT)).toBe('table')
     })
 
-    it('degrades once the table no longer fits (r > 1.0, no compact subset)', () => {
-        // 4 text columns = 12 units; width 10 units → r = 1.2 (> 1.0, ≤ 1.6) → cards
+    it('degrades once the table no longer fits (r > 1.1, no compact subset)', () => {
+        // 4 text columns = 12 units; width 10 units → r = 1.2 (> 1.1, ≤ 1.6) → cards
         const cols = [col(), col(), col(), col()]
         expect(selectColumnLayout(cols, 10 * PX_PER_UNIT)).toBe('cards')
+    })
+
+    it('tolerates a slightly tight table (r ≤ 1.1): autoWidth columns fit their content', () => {
+        // 11 light units in 10 units of width → r = 1.1 → still a table, not cards
+        const cols = Array.from({ length: 5 }, () => col({ dataType: 'number' })).concat(
+            [col({ dataType: 'bool' })]) // 5×2 + 1 = 11 units
+        expect(selectColumnLayout(cols, 10 * PX_PER_UNIT)).toBe('table')
     })
 
     it('returns masterDetail when overweight (ratio > 1.6)', () => {
@@ -75,8 +82,8 @@ describe('selectColumnLayout', () => {
 
     it('returns masterDetail when there are more than 10 columns, however light', () => {
         const cols = Array.from({ length: 11 }, () => col({ dataType: 'bool' })) // 11 units
-        // slightly overweight so it doesn't fit as a table
-        expect(selectColumnLayout(cols, 10 * PX_PER_UNIT)).toBe('masterDetail')
+        // overweight beyond the table tolerance so it doesn't fit as a table
+        expect(selectColumnLayout(cols, 9 * PX_PER_UNIT)).toBe('masterDetail')
     })
 
     it('returns list when a light compact subset exists (identifier/priority ≤ 2)', () => {

@@ -90,6 +90,13 @@ final class ListingColumnBuilder {
       weight = MetaAnnotations.find(field, Weight.class).value();
     } else if (MetaAnnotations.isPresent(field, ColumnWidth.class)) {
       weight = WEIGHT_ESTIMATOR.parsePx(MetaAnnotations.find(field, ColumnWidth.class).value());
+    } else {
+      // sin anotación: estima el peso con el TIPO FINO del campo — el dataType de columna
+      // del wire es grueso (números y fechas colapsan a string) y el heurístico de layout
+      // del renderer sobreestimaría esas columnas (p.ej. un listado de contadores saltaba
+      // a cards cuando cabe de sobra como tabla)
+      weight =
+          WEIGHT_ESTIMATOR.base(FieldTypeMapper.getDataType(field), getStereotypeForColumn(field));
     }
     // Inline row editing: when the listing class is annotated @InlineEditing, every data column
     // (except @ReadOnly ones) is edited in place; commits dispatch the crud's update-row action.
