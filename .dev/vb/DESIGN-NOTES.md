@@ -1,5 +1,7 @@
 # Mateu-sobre-VB — Notas de diseño (handoff para retomar desde otro PC)
 
+> Licencias y límites de redistribución de las piezas de Oracle: ver [NOTICE.md](NOTICE.md).
+
 > Este doc es la **fuente de verdad para continuar** el proyecto. La memoria de sesión de Claude vive fuera
 > del repo (local a un PC), así que todo lo necesario para retomar está aquí, en el repo.
 
