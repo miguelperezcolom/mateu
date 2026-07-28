@@ -311,7 +311,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top')
                                 ?? renderNeutralNav(items, onSelect, 'menu-on-top')
                         })()}
-                        <div class="m-hl" style="flex-shrink: 0; align-items: center;">
+                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
@@ -355,7 +355,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </div>
                         </a>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
-                        <div class="m-hl" style="flex-shrink: 0; align-items: center;">
+                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
@@ -472,7 +472,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
                             </div>
                             </a>
-                            <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0;">
+                            <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${metadata.menu.map((option, i) => html`
                                 <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
@@ -480,7 +480,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             </nav>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
-                                ${renderContextSelectors(metadata, container)}
+                                ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                             </div>
                         </div>
                     </div>

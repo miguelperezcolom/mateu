@@ -591,13 +591,37 @@ export class MateuApp extends ComponentElement {
     }
 
     getSelectedIndex = (menu: MenuOption[] | null) => {
-        if (menu) {
-            const selectedOption = this.getSelectedOption(menu)
-            if (selectedOption) {
-                return menu.indexOf(selectedOption)
+        if (!menu) {
+            return NaN
+        }
+        // The server-provided `option.selected` flag is computed once at app-metadata build
+        // time and never updated after a client-side navigation, so it can't drive the active
+        // tab. Derive it from the live current route instead (updated on every selectRoute),
+        // matching by exact route or route prefix (so deep routes keep their top tab active).
+        const norm = (r: string | undefined) => {
+            let s = (r ?? '').trim()
+            if (s.length > 1 && s.endsWith('/')) s = s.slice(0, -1)
+            return s
+        }
+        const current = norm(this.selectedRoute ?? window.location.pathname)
+        let bestIdx = NaN
+        let bestLen = -1
+        for (let i = 0; i < menu.length; i++) {
+            const optRoute = norm(menu[i].route)
+            if (optRoute === '') {
+                continue // the home tab never wins by prefix (would match everything)
+            }
+            if ((current === optRoute || current.startsWith(optRoute + '/')) && optRoute.length > bestLen) {
+                bestLen = optRoute.length
+                bestIdx = i
             }
         }
-        return NaN
+        if (!Number.isNaN(bestIdx)) {
+            return bestIdx
+        }
+        // fall back to the server flag (initial render / home route with no matching tab)
+        const selectedOption = this.getSelectedOption(menu)
+        return selectedOption ? menu.indexOf(selectedOption) : NaN
     }
 
     renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
