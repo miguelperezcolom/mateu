@@ -912,12 +912,110 @@ fun renderBulletedList(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Maps the wire's neutral (Vaadin-set) action icon names to the IDE's own AllIcons glyphs;
+ *  null → no icon known, the caller falls back to a labelled button. */
+private fun uxActionIcon(name: String): javax.swing.Icon? = when (name) {
+    "vaadin:pencil", "vaadin:pen", "vaadin:edit" -> com.intellij.icons.AllIcons.Actions.Edit
+    "vaadin:ban" -> com.intellij.icons.AllIcons.Actions.Cancel
+    "vaadin:check" -> com.intellij.icons.AllIcons.Actions.Checked
+    "vaadin:barcode", "vaadin:search" -> com.intellij.icons.AllIcons.Actions.Search
+    "vaadin:rotate-left", "vaadin:refresh" -> com.intellij.icons.AllIcons.Actions.Refresh
+    "vaadin:trash" -> com.intellij.icons.AllIcons.Actions.GC
+    "vaadin:plus" -> com.intellij.icons.AllIcons.General.Add
+    "vaadin:exchange" -> com.intellij.icons.AllIcons.Actions.SwapPanels
+    "vaadin:wifi" -> com.intellij.icons.AllIcons.General.Web
+    "vaadin:key" -> com.intellij.icons.AllIcons.CodeWithMe.CwmPermissions
+    "vaadin:credit-card" -> com.intellij.icons.AllIcons.Actions.Commit
+    "vaadin:gift" -> com.intellij.icons.AllIcons.Nodes.Favorite
+    else -> null
+}
+
+/** Up to three per-item actions (actionId/actionLabel/actionIcon, 2, 3) as a row of buttons —
+ *  icon-only (label as tooltip) when the icon maps to an AllIcons glyph, labelled otherwise. */
+private fun uxItemActions(r: ComponentRenderer, item: JsonNode): JComponent? {
+    val id = item.text("id")
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0)).apply { isOpaque = false }
+    for (suffix in listOf("", "2", "3")) {
+        val actionId = item.text("actionId$suffix")
+        val label = item.text("actionLabel$suffix")
+        if (actionId.isBlank() || label.isBlank()) continue
+        val icon = uxActionIcon(item.text("actionIcon$suffix"))
+        val button = if (icon != null) {
+            JButton(icon).apply {
+                toolTipText = label
+                putClientProperty("JButton.buttonType", "toolbar")
+                preferredSize = Dimension(JBUI.scale(28), JBUI.scale(26))
+            }
+        } else {
+            JButton(label)
+        }
+        button.addActionListener { r.ctx.runAction(actionId, mapOf("_item" to id)) }
+        row.add(button)
+    }
+    return if (row.componentCount > 0) row else null
+}
+
+/** One StatusList item as a CARD (the VB check-in anatomy): title + status chip on the first
+ *  line, muted description under it, timeline lines, and the icon-action row at the bottom. */
+private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: String): JComponent {
+    val card = verticalPanel(2)
+    card.border = JBUI.Borders.compound(
+        JBUI.Borders.customLine(JBColor.border(), 1),
+        JBUI.Borders.empty(8, 10),
+    )
+    val head = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false }
+    val avatar = item.text("avatar")
+    if (avatar.isNotBlank()) head.add(JBLabel(avatar).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+    head.add(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.CENTER)
+    val status = item.text("status")
+    if (status.isNotBlank()) head.add(uxChip(status, item.text("statusColor")), BorderLayout.EAST)
+    card.addStacked(head, 2)
+    val desc = item.text("description")
+    if (desc.isNotBlank()) card.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 1)
+    for (line in item.arr("lines")) {
+        card.addStacked(JBLabel(line.asText("")).apply {
+            foreground = uxMuted()
+            font = font.deriveFont(font.size2D - 1f)
+        }, 0)
+    }
+    uxItemActions(r, item)?.let { card.addStacked(it, 2) }
+    if (rowActionId.isNotBlank()) {
+        val itemId = item.text("id")
+        card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+        card.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
+            }
+        })
+    }
+    return card
+}
+
 fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
-    val panel = verticalPanel(0)
-    if (!metadata.bool("frameless")) panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
     val compact = metadata.bool("compact")
     val rowActionId = metadata.text("rowActionId")
-    for (item in metadata.arr("items")) {
+    val columns = metadata.int("columns")
+    val items = metadata.arr("items")
+    val hasActions = items.any { it.text("actionId").isNotBlank() && it.text("actionLabel").isNotBlank() }
+
+    // The VB/Redwood check-in anatomy: items with their own actions (guests, operations) render
+    // as CARDS — columns > 1 lays them out as a grid (the cockpit checklist), one column stacks.
+    if (hasActions || columns > 1) {
+        if (columns > 1) {
+            val grid = JPanel(java.awt.GridLayout(0, columns, JBUI.scale(12), JBUI.scale(12)))
+            grid.isOpaque = false
+            for (item in items) grid.add(uxStatusCard(r, item, rowActionId))
+            return grid
+        }
+        val panel = verticalPanel(8)
+        for (item in items) panel.addStacked(uxStatusCard(r, item, rowActionId), 0)
+        return panel
+    }
+
+    // Plain informational list (no actions): the classic bordered rows.
+    val panel = verticalPanel(0)
+    if (!metadata.bool("frameless")) panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    for (item in items) {
         val row = JPanel(BorderLayout(8, 0))
         row.isOpaque = false
         row.border = if (compact) JBUI.Borders.empty(4, 8) else JBUI.Borders.empty(8, 10)
@@ -943,14 +1041,6 @@ fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val right = JPanel(FlowLayout(FlowLayout.RIGHT, 6, 0)).apply { isOpaque = false }
         val status = item.text("status")
         if (status.isNotBlank()) right.add(uxChip(status, item.text("statusColor")))
-        val actionId = item.text("actionId")
-        val actionLabel = item.text("actionLabel")
-        if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
-            val id = item.text("id")
-            right.add(JButton(actionLabel).apply {
-                addActionListener { r.ctx.runAction(actionId, mapOf("_item" to id)) }
-            })
-        }
         if (right.componentCount > 0) row.add(right, BorderLayout.EAST)
         panel.addStacked(row, 0)
     }
@@ -1369,40 +1459,61 @@ fun renderSkeleton(metadata: JsonNode): JComponent {
 
 /** Foldout: overview stays visible on the left; panels unfold as vertical accordion strips. */
 fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val root = JPanel(BorderLayout(JBUI.scale(10), 0))
-    root.isOpaque = false
+    // The VB/Redwood foldout anatomy: a HORIZONTAL row of always-expanded columns — the
+    // overview first, then one column per panel, each with its own heading ("Operaciones ·
+    // 2 de 7") and widths proportional to the wire's FoldoutPanel.width (rem units; the
+    // overview weighs the renderer default, 22).
     val children = component.path("children").toList()
     val panelsInfo = metadata.arr("panels")
-    // Overview travels as the child slotted "overview"; panels as "panel-N".
-    val overview = children.firstOrNull { it.text("slot") == "overview" } ?: children.firstOrNull()
-    if (overview != null) root.add(r.render(overview, state, data), BorderLayout.WEST)
 
-    val panels = verticalPanel(6)
+    fun column(title: String, subtitle: String, content: JComponent): JComponent {
+        val col = JPanel(BorderLayout(0, JBUI.scale(8)))
+        col.isOpaque = false
+        col.border = JBUI.Borders.empty(0, 0, 0, JBUI.scale(16))
+        if (title.isNotBlank() || subtitle.isNotBlank()) {
+            val heading = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
+            if (title.isNotBlank()) {
+                heading.add(JBLabel(title).apply { font = font.deriveFont(Font.BOLD, font.size2D + 3f) })
+            }
+            if (subtitle.isNotBlank()) {
+                heading.add(JBLabel("· $subtitle").apply { foreground = uxMuted() })
+            }
+            col.add(heading, BorderLayout.NORTH)
+        }
+        // NO inner scroll pane: nested JScrollPanes collapse to 0 in the stacked form (see the
+        // renderProbe gotcha) — the page's own scroller handles overflow.
+        col.add(content, BorderLayout.CENTER)
+        return col
+    }
+
+    fun widthUnits(spec: String): Double =
+        spec.removeSuffix("rem").trim().toDoubleOrNull() ?: 22.0
+
+    val row = JPanel(java.awt.GridBagLayout())
+    row.isOpaque = false
+    val constraints = java.awt.GridBagConstraints()
+    constraints.gridy = 0
+    constraints.anchor = java.awt.GridBagConstraints.NORTHWEST
+    constraints.fill = java.awt.GridBagConstraints.BOTH
+    constraints.weighty = 1.0
+
+    val overview = children.firstOrNull { it.text("slot") == "overview" } ?: children.firstOrNull()
+    var gridx = 0
+    if (overview != null) {
+        constraints.gridx = gridx++
+        constraints.weightx = 22.0
+        row.add(column(metadata.text("headerTitle"), "", r.render(overview, state, data)), constraints)
+    }
     for ((i, info) in panelsInfo.withIndex()) {
         val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: continue
-        val holder = JPanel(BorderLayout())
-        holder.isOpaque = false
-        val toggle = JButton("▸ " + info.text("title", "Panel ${i + 1}"))
-        toggle.horizontalAlignment = SwingConstants.LEFT
-        var body: JComponent? = null
-        toggle.addActionListener {
-            if (body == null) {
-                body = r.render(content, state, data)
-                holder.add(body, BorderLayout.CENTER)
-                toggle.text = "▾ " + info.text("title", "Panel ${i + 1}")
-            } else {
-                holder.remove(body)
-                body = null
-                toggle.text = "▸ " + info.text("title", "Panel ${i + 1}")
-            }
-            holder.revalidate(); holder.repaint()
-        }
-        holder.add(toggle, BorderLayout.NORTH)
-        if (info.path("open").asBoolean(true)) toggle.doClick()
-        panels.addStacked(holder, 4)
+        constraints.gridx = gridx++
+        constraints.weightx = widthUnits(info.text("width", "22rem"))
+        row.add(
+            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data)),
+            constraints,
+        )
     }
-    root.add(panels, BorderLayout.CENTER)
-    return root
+    return row
 }
 
 /** Gantt: labels column + proportional bars over the tasks' date range, with a today marker. */
