@@ -55,7 +55,17 @@ public class ReflectionPageMapper {
         .pageWidth(getPageWidth(instance))
         .pageType(PageTypeResolver.resolve(instance))
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))
-        .toolbar(getToolbar(instance, httpRequest))
+        // un LISTADO enrutado muestra su toolbar en el HEADER de la página (título y
+        // acciones en una línea); el crud del renderer compartido suprime su copia
+        .toolbar(
+            instance instanceof io.mateu.uidl.interfaces.ListingBackend<?, ?>
+                    || instance instanceof io.mateu.uidl.interfaces.ReactiveListingBackend<?, ?>
+                ? java.util.stream.Stream.concat(
+                        getToolbar(instance, httpRequest).stream(),
+                        PageListingBuilder.getToolbarButtons(instance).stream())
+                    .map(trigger -> (io.mateu.uidl.fluent.UserTrigger) trigger)
+                    .toList()
+                : getToolbar(instance, httpRequest))
         .buttons(getButtons(instance, httpRequest))
         .fabs(getFabs(instance, httpRequest))
         .kpis(getKpis(instance))

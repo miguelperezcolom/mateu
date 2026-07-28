@@ -220,7 +220,9 @@ export class MateuApp extends ComponentElement {
         if (options) {
             for (let i = 0; i < options.length; i++) {
                 const option = options[i]
-                if (option.selected) {
+                // tras una navegación en cliente manda la ruta seleccionada; el flag del
+                // wire refleja solo el momento en que se construyó el App
+                if (this.selectedRoute ? this.isActiveOption(option) : option.selected) {
                     return option
                 }
                 const foundInChildren = this.getSelectedOption(option.submenus)
@@ -454,8 +456,15 @@ export class MateuApp extends ComponentElement {
     }
 
     goHome = () => {
-        const metadata = (this.component as ClientSideComponent).metadata as App;
-        this.selectRoute(metadata.route, '_page', '', undefined, undefined, undefined)
+        // la HOME real del app la resuelve el SERVIDOR para la ruta raíz (@HomeRoute) — el
+        // homeRoute del wire es relativo a la petición con que se construyó el App (en
+        // /reservas vale /reservas), así que la vuelta a casa es una navegación de URL a la
+        // raíz, idéntica a cargar '/' (y con el dirty guard del router)
+        if (!dirtyGuard.confirmLeave()) {
+            return
+        }
+        window.history.pushState(null, '', '/')
+        window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
@@ -529,6 +538,16 @@ export class MateuApp extends ComponentElement {
         }
     }
 
+    // el flag selected del wire refleja la ruta en el MOMENTO de construir el App; tras una
+    // navegación en cliente manda la ruta seleccionada actual
+    private isActiveOption = (option: MenuOption): boolean => {
+        if (!this.selectedRoute) {
+            return !!option.selected
+        }
+        return !!option.route
+            && (this.selectedRoute == option.route || this.selectedRoute.startsWith(option.route + '/'))
+    }
+
     mapItems = (options: MenuOption[], filter: string): MenuBarItem[] => {
         return (options.map(option => {
             if (option.submenus && option.submenus.length > 0) {
@@ -545,7 +564,7 @@ export class MateuApp extends ComponentElement {
                         serverSideType: option.serverSideType,
                         uriPrefix: option.uriPrefix,
                         actionId: option.actionId,
-                        selected: filter || option.selected,
+                        selected: filter || this.isActiveOption(option),
                         children
                     }
                 }
@@ -565,7 +584,7 @@ export class MateuApp extends ComponentElement {
                     serverSideType: option.serverSideType,
                     uriPrefix: option.uriPrefix,
                     actionId: option.actionId,
-                    selected: filter || option.selected,
+                    selected: filter || this.isActiveOption(option),
                 }
             } else return undefined
         }) as Array<MenuBarItem | undefined>).filter((option): option is MenuBarItem => option != null)

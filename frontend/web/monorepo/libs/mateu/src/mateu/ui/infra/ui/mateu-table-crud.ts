@@ -406,7 +406,21 @@ export class MateuTableCrud extends LitElement {
         const metadata = component.metadata as Crud
         metadata.serverSideOrdering = true
 
-        const toolbar = metadata?.toolbar ?? []
+        // a ROUTED listing shows its toolbar in the PAGE header (title + actions on one
+        // line) — when a mateu-page ancestor carries a toolbar, the crud's copy stands down;
+        // a standalone crud mediator (AutoCrud, no page wrapper) keeps rendering its own
+        const pageShowsToolbar = (() => {
+            let node: Node | null = this
+            while (node) {
+                const el = node as any
+                if (el.tagName === 'MATEU-PAGE') {
+                    return ((el.component?.metadata?.toolbar?.length ?? 0) > 0)
+                }
+                node = el.parentElement ?? ((el.getRootNode?.() instanceof ShadowRoot) ? (el.getRootNode() as ShadowRoot).host : null)
+            }
+            return false
+        })()
+        const toolbar = pageShowsToolbar ? [] : (metadata?.toolbar ?? [])
         const navButtons = toolbar.filter(b => isNavButton(b.actionId))
         const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
         const hasDivider = navButtons.length > 0 && actionButtons.length > 0

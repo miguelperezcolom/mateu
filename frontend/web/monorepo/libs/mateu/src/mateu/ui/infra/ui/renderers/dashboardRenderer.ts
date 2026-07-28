@@ -83,6 +83,16 @@ export const renderDashboardPanel = (container: LitElement, component: ClientSid
     const metadata = component.metadata as DashboardPanel
     const colSpan = metadata.colSpan && metadata.colSpan > 1 ? `grid-column: span ${metadata.colSpan};` : ''
     const rowSpan = metadata.rowSpan && metadata.rowSpan > 1 ? `grid-row: span ${metadata.rowSpan};` : ''
+    // a panel whose ONLY content is a MetricCard renders the metric ALONE: the metric brings its
+    // own card and title, so the panel chrome would be a double frame with a redundant heading
+    const children = component.children ?? []
+    if (children.length === 1
+        && (children[0] as ClientSideComponent).metadata?.type === 'MetricCard') {
+        return html`
+            <div style="min-width: 0; ${colSpan} ${rowSpan} ${component.style??''}" slot="${component.slot??nothing}">
+                ${renderComponent(container, children[0], baseUrl, state, data, appState, appData)}
+            </div>`
+    }
     return html`
         <div class="mateu-dashboard-panel ${component.cssClasses??''}"
              style="${cardSurface} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${colSpan} ${rowSpan} ${component.style??''}"

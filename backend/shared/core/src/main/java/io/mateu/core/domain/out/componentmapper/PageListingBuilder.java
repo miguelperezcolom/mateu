@@ -83,33 +83,7 @@ public class PageListingBuilder {
       }
     }
 
-    // @ListToolbarButton methods on a declarative Listing become toolbar buttons (same
-    // annotation the Crud path honors); label from @Label, actionId = the method name.
-    for (var method : getAllMethods(instance.getClass())) {
-      if (MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.ListToolbarButton.class)) {
-        var label = MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class);
-        builder.toolbarItem(
-            new Button(label != null ? label.value() : method.getName(), method.getName()));
-      }
-    }
-
-    if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
-      builder.toolbarItem(new Button("Import", "import"));
-    }
-    if (instance instanceof io.mateu.uidl.interfaces.Auditable) {
-      builder.toolbarItem(new Button("History", "history"));
-    }
-    if (instance instanceof io.mateu.core.infra.declarative.Listing<?, ?> listing) {
-      if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
-        builder.toolbarItem(new Button("Export CSV", "export-csv"));
-      }
-      if (listing.excelExportable() && ExporterContext.isExcelAvailable()) {
-        builder.toolbarItem(new Button("Export Excel", "export-excel"));
-      }
-      if (listing.pdfExportable() && ExporterContext.isPdfAvailable()) {
-        builder.toolbarItem(new Button("Export PDF", "export-pdf"));
-      }
-    }
+    getToolbarButtons(instance).forEach(builder::toolbarItem);
 
     return List.of(builder.build());
   }
@@ -133,6 +107,40 @@ public class PageListingBuilder {
     }
     list.set(0, first.toBuilder().actionId("view").build());
     return list;
+  }
+
+  /**
+   * The listing's toolbar buttons: {@code @ListToolbarButton} methods (label from {@code @Label},
+   * actionId = the method name — same annotation the Crud path honors) plus the built-in
+   * import/history/export entries. Shared by the crud metadata AND the routed listing's PAGE
+   * toolbar (the page header shows title + toolbar on one line; the crud suppresses its copy).
+   */
+  public static List<Button> getToolbarButtons(Object instance) {
+    var buttons = new java.util.ArrayList<Button>();
+    for (var method : getAllMethods(instance.getClass())) {
+      if (MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.ListToolbarButton.class)) {
+        var label = MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class);
+        buttons.add(new Button(label != null ? label.value() : method.getName(), method.getName()));
+      }
+    }
+    if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
+      buttons.add(new Button("Import", "import"));
+    }
+    if (instance instanceof io.mateu.uidl.interfaces.Auditable) {
+      buttons.add(new Button("History", "history"));
+    }
+    if (instance instanceof io.mateu.core.infra.declarative.Listing<?, ?> listing) {
+      if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
+        buttons.add(new Button("Export CSV", "export-csv"));
+      }
+      if (listing.excelExportable() && ExporterContext.isExcelAvailable()) {
+        buttons.add(new Button("Export Excel", "export-excel"));
+      }
+      if (listing.pdfExportable() && ExporterContext.isPdfAvailable()) {
+        buttons.add(new Button("Export PDF", "export-pdf"));
+      }
+    }
+    return buttons;
   }
 
   private static GridLayout getGridLayout(Object instance) {

@@ -1402,3 +1402,44 @@ pide SOLO las pendientes.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
+
+## Batch final del renderer Vaadin (2026-07-28)
+
+- **Toolbar de listados al header de PÁGINA**: el usuario pidió título + toolbar en la
+  MISMA línea sin meter el título en el crud (feedback explícito; el intento inverso se
+  revirtió). `PageListingBuilder.getToolbarButtons(instance)` extraído público
+  (@ListToolbarButton + Import/History/Export) y `ReflectionPageMapper` lo concatena al
+  Page toolbar para ListingBackend/ReactiveListingBackend (cast a
+  `io.mateu.uidl.fluent.UserTrigger` — ¡UserTrigger vive en uidl.fluent, no en
+  .interfaces!). El crud SUPRIME su copia cuando un ancestro MATEU-PAGE lleva toolbar
+  (`pageShowsToolbar` en mateu-table-crud cruza shadow roots hacia arriba). VB no se
+  resiente: sigue leyendo listing.toolbar del crud metadata.
+- **Los @ListToolbarButton se ANUNCIAN en `ListingBackend.actions()`** (uidl): el botón
+  del Page header despacha el nombre del método a pelo y mateu-component descarta
+  acciones no anunciadas — el seed "+ 10 reservas demo" no hacía nada en Vaadin (en VB
+  funcionaba porque su renderer no consulta la lista). Ahora actions() recorre
+  getClass().getMethods() y añade cada método anotado (con sus flags confirmation/
+  rowsSelected). Verificado: 19 → 29 items y re-búsqueda vía el trigger
+  "reservas-seeded". OJO: getAnnotation directo — anotaciones compuestas (semantic) no
+  se resuelven aquí (uidl no ve MetaAnnotations de core).
+- **goHome por URL**: el homeRoute del wire es RELATIVO a la petición (iba a /reservas)
+  → `pushState('/') + PopStateEvent` en mateu-app.
+- **Pestañas del menú vivas**: `isActiveOption(option)` con selectedRoute (el flag
+  `selected` del wire es del momento de construcción).
+- **Cards apiladas (mateu-status-list modo stacked)**: título+chip en una línea (chip a
+  la derecha con margin-left:auto), descripción debajo, acciones como icon-buttons
+  (title=label); grid de operaciones con column-gap 2.5rem/row-gap 1rem; huéspedes
+  (stack 1-col) capadas a `max-width: 22rem` = mismo ancho de card que las celdas del
+  grid de operaciones (pedían igualarse). itemHeadingLevel 3/4 (Perfil → h4 en
+  Preferencias/Última estancia).
+- **Foldout Vaadin al 100%** con reparto proporcional: `flex: <peso> 1 <width>` por
+  sección (peso = parseFloat del width declarado); el contenedor necesitaba
+  `expand-fields` en vaadin-form-layout — con `??` no funcionaba porque expandFields
+  llega `false` primitivo → `||`.
+- **Drawers persistentes**: Add con id de overlay existente refresca in situ;
+  Replace in-place por serverSideType preserva overlays (los ids son uuids frescos por
+  render). Ancillaries/cambio de método de pago ya no cierran el drawer.
+- **Alias de iconos Vaadin** (renderIcon): wifi→connect, pen→pencil, automation→cogs.
+- **KPIs sin doble marco** (dashboardRenderer: panel con único MetricCard → el metric
+  solo) y "N de 7" unido al título de sección (mateu-vaadin-foldout: `· subtitle` en el
+  h3).
