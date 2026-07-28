@@ -1,6 +1,6 @@
 # Renderer verification harness
 
-How to render any frontend renderer (`vaadin`, `sapui5`, `slds`, `redwood-oj`, `redhat`)
+How to render any frontend renderer (`vaadin`, `sapui5`, `redwood-oj`)
 against a real Mateu backend and screenshot it — to *visually* confirm a renderer draws
 correctly in its design system, not just that it compiles.
 
@@ -8,10 +8,8 @@ correctly in its design system, not just that it compiles.
 
 ```bash
 # e2e/verify-renderer.sh <app> <route> [output.png] [sutPort]
-e2e/verify-renderer.sh slds /sections
 e2e/verify-renderer.sh sapui5 /field-types /tmp/sapui5-fields.png
 e2e/verify-renderer.sh redwood-oj /tabs
-e2e/verify-renderer.sh redhat /stereotypes
 e2e/verify-renderer.sh vaadin /catalog-read-only
 ```
 
@@ -53,7 +51,7 @@ Pieces:
 
 1. Start the SUT: `java -jar e2e/sut/apps/mvc-app1/target/mvc-app1-1.0.0-SNAPSHOT.jar --server.port=8091`
 2. In the renderer's `vite.config.ts` add a proxy entry routing the API to the SUT:
-   - object-style proxy (`proxy: { ... }` — sapui5/slds/redhat/redwood-oj):
+   - object-style proxy (`proxy: { ... }` — sapui5/redwood-oj):
      `'^/.*/mateu/v3': 'http://localhost:8091',`
    - `Object.fromEntries([...])` style (vaadin): add `'^/.*/mateu/v3'` to the path array and
      point its `target` at `8091`.
@@ -65,18 +63,15 @@ Pieces:
 
 - **vaadin** — proxy is `Object.fromEntries([...paths].map(p => [p, {target, bypass}]))`;
   it is the reference renderer (the shared lib renders Vaadin by default).
-- **slds** — global CSS framework (SLDS 2 Cosmos). Renders in light DOM (`setUseShadowRoot(false)`);
-  the big `slds2.cosmos.css` can take a moment, so use `--settle 6000`+.
 - **sapui5** — SAP UI5 web components (`oj`/`ui5-*`); renders fine; CRUD list verified on
   `/catalog-read-only`.
 - **redwood-oj** — Oracle JET. The OJ cookbook shell bootstraps `oj-c-*` via require.js and
   hides `#page-container` until init. `<mateu-ui>` is mounted inside `#ui-container`
   (committed). `oj-c-*` come from the vendored `public/oj-c/*` AMD modules, not npm — so a
   "bypass" page without the cookbook bootstrap won't define them.
-- **redhat** — PatternFly/RedHat elements (`rh-*`) + RedHat Display typography.
 
 ## CI
 
 The release workflow (`.github/workflows/buid-and-publish.yml`) builds the renderer fronts
-(`npm run copy`) for vaadin/sapui5/slds/redhat and deploys; it does **not** screenshot. This
+(`npm run copy`) for vaadin/sapui5 and deploys; it does **not** screenshot. This
 harness is for local visual verification.

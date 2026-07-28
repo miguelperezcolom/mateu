@@ -72,9 +72,9 @@ persistent menu would only add noise.
 ## Renderers
 
 The command center is a single shared, design-system-neutral web component
-(`mateu-command-center`), so it renders on every shell — Vaadin, Oracle Redwood, SAP UI5,
-PatternFly and SLDS. On the Vaadin shell, `chromeless` also removes the header/menu; on the other
-shells the FAB is added over the shell's own chrome.
+(`mateu-command-center`), so it renders on every shell — Vaadin, Oracle Redwood and SAP UI5.
+On the Vaadin shell, `chromeless` also removes the header/menu; on the other shells the FAB is
+added over the shell's own chrome.
 
 ## Demo
 

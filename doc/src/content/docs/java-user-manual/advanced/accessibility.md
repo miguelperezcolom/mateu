@@ -3,7 +3,7 @@ title: "Accessibility (WCAG)"
 description: "How Mateu achieves WCAG compliance through the design system, and where developer responsibility begins."
 ---
 
-Mateu does not implement accessibility itself. It delegates rendering to a design system — Vaadin, SAP UI5, Oracle Redwood, Salesforce SLDS, or Red Hat PatternFly — and each of those ships components that are designed to meet **WCAG 2.1 AA**. Keyboard navigation, ARIA attributes, focus management, screen-reader announcements, and colour contrast are all handled at the design system layer.
+Mateu does not implement accessibility itself. It delegates rendering to a design system — Vaadin, SAP UI5, or Oracle Redwood — and each of those ships components that are designed to meet **WCAG 2.1 AA**. Keyboard navigation, ARIA attributes, focus management, screen-reader announcements, and colour contrast are all handled at the design system layer.
 
 The practical consequence is: **if you use Mateu's declarative or fluent API to define your UI, your application inherits the accessibility guarantees of the chosen design system without writing any extra code.**
 
@@ -66,7 +66,7 @@ Image.builder().src("/logo.png").alt("Acme Corp logo").build()
 
 | Layer | Who is responsible |
 |---|---|
-| Component rendering (buttons, fields, grids, dialogs, …) | Design system (Vaadin, UI5, SLDS, …) |
+| Component rendering (buttons, fields, grids, dialogs, …) | Design system (Vaadin, UI5, Redwood, …) |
 | Labels, descriptions, validation messages | Mateu (passes them to the design system) |
 | Raw HTML injected via `Hydratable` or `Text` | Developer |
 | Custom web components via `Element.builder()` | Developer |

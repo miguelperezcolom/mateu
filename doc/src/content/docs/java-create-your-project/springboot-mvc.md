@@ -21,7 +21,7 @@ dependency. Use **Java 21** and **Spring Boot 4.x**.
     <artifactId>annotation-processor-mvc</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
-<!-- serves the built-in frontend (web components); choose one: vaadin-lit, redhat-lit, sapui5-lit -->
+<!-- serves the built-in frontend (web components); choose one: vaadin-lit, sapui5-lit, redwood-oj-lit -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>

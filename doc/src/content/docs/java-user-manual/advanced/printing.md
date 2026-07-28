@@ -9,7 +9,7 @@ Mateu does not implement printing. The browser's native print dialog (`Ctrl+P` /
 
 ## How it works
 
-When the user triggers a print, the browser applies any `@media print` rules on top of the existing styles. The design system (Vaadin, UI5, SLDS, …) may already include sensible print defaults — hiding sidebars, removing decorative shadows, linearising layouts.
+When the user triggers a print, the browser applies any `@media print` rules on top of the existing styles. The design system (Vaadin, UI5, Redwood, …) may already include sensible print defaults — hiding sidebars, removing decorative shadows, linearising layouts.
 
 You can supplement or override those defaults with a global print stylesheet in your frontend entry HTML:
 

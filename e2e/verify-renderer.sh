@@ -11,11 +11,10 @@
 #   e2e/verify-renderer.sh <app> <route> [output.png] [sutPort]
 #
 # Examples:
-#   e2e/verify-renderer.sh slds /sections
 #   e2e/verify-renderer.sh sapui5 /field-types /tmp/sapui5-fields.png
 #   e2e/verify-renderer.sh redwood-oj /tabs /tmp/redwood-tabs.png 8091
 #
-# Apps: vaadin | sapui5 | slds | redwood-oj | redhat
+# Apps: vaadin | sapui5 | redwood-oj
 set -euo pipefail
 
 APP="${1:?usage: verify-renderer.sh <app> <route> [output.png] [sutPort]}"

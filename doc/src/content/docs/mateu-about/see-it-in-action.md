@@ -9,8 +9,6 @@ The fastest way to understand Mateu is to try the live demos.
 - https://vaadin.mateu.io
 - https://sapui5.mateu.io (WIP)
 - https://redwood-oj.mateu.io (OJET based. WIP)
-- https://slds2.mateu.io (Next)
-- https://redhat.mateu.io (WIP)
 - https://redwood.mateu.io (Vaadin based. WIP)
 
 ## What to look for

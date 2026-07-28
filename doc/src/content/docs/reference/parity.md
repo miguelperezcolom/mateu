@@ -153,7 +153,7 @@ each pinned by golden-JSON tests mirroring the Java sync suites.
 
 Every renderer speaks the same wire; the depth of widget support varies.
 
-| Feature | Vaadin (web) | Redwood (web) | SAP UI5 / PatternFly (web) | IntelliJ plugin | React Native |
+| Feature | Vaadin (web) | Redwood (web) | SAP UI5 (web) | IntelliJ plugin | React Native |
 |---|---|---|---|---|---|
 | Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
@@ -188,23 +188,17 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
-PatternFly (redhat) & SLDS: both reuse the shared design-system-neutral `<mateu-filter-bar>`
-(full smart-search) and the shared capture/tree field widgets (`mateu-signature-pad`,
-`mateu-camera-capture`, `mateu-tree-select`) + money formatting. As of the 2026-07-11 sweep,
-PatternFly claims the DS-neutral shared types (dashboards, gantt, foldout, hero, empty states,
-skeletons, markdown, charts…) instead of `<mateu-unsupported>`, and SLDS declares no supported
-set at all — it falls through to the full shared switch, so nothing renders as unsupported.
-Since 2026-07-12 (DS-native rule) all four non-Vaadin renderers render crud layouts
+Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
-OWN design-system components, and since 2026-07-16 all four shells render the app header actions
+OWN design-system components, and since 2026-07-16 the shells render the app header actions
 (plain buttons + dropdown groups) with their own widgets too.
 
 MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data model
 (`List<MessageListItem>` / an `actionId` that fires on submit) — they were previously stubs that
 rendered hardcoded demo data.
 
-"Shared" = SAP UI5 and PatternFly reuse the shared web components (Lumo-variable theming), so they
-inherit those features automatically.
+"Shared" = SAP UI5 reuses the shared web components (Lumo-variable theming), so it
+inherits those features automatically.
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

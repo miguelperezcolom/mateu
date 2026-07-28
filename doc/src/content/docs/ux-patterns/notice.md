@@ -57,7 +57,7 @@ Notice.builder()
 
 ## Where it works
 
-Every web renderer (Vaadin, SAP UI5, Redwood, PatternFly), React Native and the IntelliJ plugin. Also available from the C# (`new Notice("…") { Theme = "danger" }`) and Python (`fluent.Notice(text=…, theme=…)`) backends.
+Every web renderer (Vaadin, SAP UI5, Redwood), React Native and the IntelliJ plugin. Also available from the C# (`new Notice("…") { Theme = "danger" }`) and Python (`fluent.Notice(text=…, theme=…)`) backends.
 
 ## Related
 

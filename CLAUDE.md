@@ -19,7 +19,6 @@ backend/          ← Maven multi-module Java backend
     frontend/
       vaadin-lit/ ← Bundled vaadin web-component assets served by the Spring boot app
       sapui5-lit/ ← Same for SAP UI5 renderer
-      redhat-lit/ ← Same for PatternFly/RedHat renderer
       redwood-oj-lit/ ← Same for the Oracle Redwood (OJET) renderer
   mvc/            ← Spring MVC adapter (SpaRedirectFilter, annotation-processor-mvc, …)
   webflux/        ← Spring WebFlux adapter
@@ -67,7 +66,9 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
                             (Template Bottom Texture full-width band); assets from the RDS
                             Toolkit Figma in public/images/ (transparent PNGs; the bottom one
                             is Theme=Light with the baked-in Oracle copyright erased).
-  apps/redhat/            ← PatternFly renderer
+                            (Los renderers redhat/PatternFly y slds fueron RETIRADOS 2026-07-28 —
+                            módulos redhat-lit/slds-lit borrados; los web soportados son vaadin,
+                            sapui5 y redwood-oj, más la línea VB en .dev/vb.)
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API
   react-native/           ← Mobile (Expo/TypeScript) — iOS & Android; boots via the app registry
