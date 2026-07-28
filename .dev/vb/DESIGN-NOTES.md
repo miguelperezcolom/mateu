@@ -1360,6 +1360,22 @@ pide SOLO las pendientes.
   `action-on-row-<método>` con parameters {id} → Listing.handleActionOnRow invoca el
   método; el refresco llega por el bus (dispatchEvent "automatizacion-arreglada" +
   @Trigger OnCustomEvent → search). Verificado: 6 Solucionar → clic → toast + 5.
+- **Renderer VAADIN contra el front-office (2026-07-28)**: tres fixes al probar :5174.
+  (1) `lit-vaadin-helpers@0.3.1` (dependencia MUERTA de libs/mateu, sin un solo import)
+  anclaba lit 2.8 → su `@lit/reactive-element@1.6.3` quedaba IZADO a la raíz del
+  monorepo y el `dedupe` de vite se lo servía a todo el árbol mezclado con lit 3.3.3 —
+  síntomas: recursión infinita `__isItemSelectable` en vaadin-grid (el accessor de Lit
+  guarda en `__<nombre>` y cae al método privado del mixin), "component loaded twice",
+  y el tab del menú sin marcar. Eliminada la dependencia → árbol convergido en lit 3 +
+  RE 2.1.2 y los tres síntomas fuera. (2) FRAMEWORK: un Listing declarativo que
+  soporta la acción "view" es NAVEGABLE — PageListingBuilder marca la primera columna
+  con actionId="view" (la misma señal que ListRouteResolver.withViewOnFirstColumn en el
+  camino AutoCrud; Selectors excluidos) → la celda-id se pinta como enlace en el
+  renderer compartido. (3) FRAMEWORK: ListingBackend.actions() ANUNCIA "view" cuando
+  supportsAction("view") — sin anunciarla, mateu-component descarta el action-requested
+  del clic (regla conocida del renderer compartido) y el enlace no hacía nada.
+  Verificado: /reservas en :5174 pinta filas + chips + seed, el clic en el id navega a
+  /reserva/st-sophie y el 360 completo rinde en Vaadin; el VB no se resiente.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
