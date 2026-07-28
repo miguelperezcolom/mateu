@@ -3,7 +3,7 @@
   "private": false,
   "version": "0.0.15",
   "type": "module",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "files": [
     "dist"
   ],
