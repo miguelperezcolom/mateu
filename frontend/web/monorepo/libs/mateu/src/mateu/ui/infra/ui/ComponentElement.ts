@@ -54,6 +54,47 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         return type == ComponentMetadataType.Drawer || type == ComponentMetadataType.Dialog
     }
 
+    /** Dismisses this overlay THROUGH its owner: splices its component out of the owner's
+     *  declarative children (the Add fragment pushed it there) and asks the owner to re-render,
+     *  so Lit itself unmounts the element. Detaching the node manually would desync Lit's
+     *  ChildPart bookkeeping — the next Add with this overlay's id would "refresh" the DETACHED
+     *  node and the overlay could never reopen. Walks up across shadow boundaries and matches
+     *  by IDENTITY, so nested overlays never splice the wrong sibling.
+     *  @returns true when an owner was found (Lit will unmount); false → the caller must detach. */
+    protected removeSelfFromOwnerChildren(): boolean {
+        const mine = this.component as ClientSideComponent | undefined
+        if (!mine) {
+            return false
+        }
+        // renderClientSideComponent hands each renderer a SHALLOW COPY of the child
+        // ({ ...component, metadata: … }), so identity alone never matches the owner's array —
+        // fall back to the component id (the Add-fragment uuid, the same key the Add dedupe
+        // uses) restricted to overlay children.
+        const matches = (child: unknown): boolean => {
+            if (child === (mine as unknown)) {
+                return true
+            }
+            const c = child as ClientSideComponent | undefined
+            return mine.id != null && c?.id == mine.id && this.isOverlayChild(c)
+        }
+        let node: Node | null = this.parentNode
+        while (node) {
+            const host = node instanceof ShadowRoot ? node.host : node
+            const children = (host as unknown as { component?: { children?: unknown[] } })
+                .component?.children
+            if (Array.isArray(children)) {
+                const i = children.findIndex(matches)
+                if (i >= 0) {
+                    children.splice(i, 1)
+                    ;(host as unknown as { requestUpdate?: () => void }).requestUpdate?.()
+                    return true
+                }
+            }
+            node = node instanceof ShadowRoot ? host : node.parentNode
+        }
+        return false
+    }
+
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
         if (this.id == fragment.targetComponentId) {

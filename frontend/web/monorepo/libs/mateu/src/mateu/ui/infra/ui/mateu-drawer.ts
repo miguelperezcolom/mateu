@@ -52,8 +52,14 @@ export class MateuDrawer extends ComponentElement {
 
     close = () => {
         this.opened = false
-        // let the slide-out transition finish before detaching
-        setTimeout(() => this.parentElement?.removeChild(this), 300)
+        // after the slide-out transition, unmount THROUGH the owner (splice from its children
+        // + owner re-render) so Lit's bookkeeping stays sound and the drawer can reopen; only
+        // detach manually when no declarative owner holds us (defensive fallback)
+        setTimeout(() => {
+            if (!this.removeSelfFromOwnerChildren()) {
+                this.parentElement?.removeChild(this)
+            }
+        }, 300)
     }
 
     applyFragment(fragment: UIFragment) {

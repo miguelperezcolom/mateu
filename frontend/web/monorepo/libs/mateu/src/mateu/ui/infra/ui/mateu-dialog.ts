@@ -21,7 +21,14 @@ export class MateuDialog extends ComponentElement {
 
     close = () => {
         this.opened = false
-        setTimeout(() => this.parentElement?.removeChild(this), 500)
+        // after the fade-out, unmount THROUGH the owner (splice from its children + owner
+        // re-render) so Lit's bookkeeping stays sound and the dialog can reopen; only detach
+        // manually when no declarative owner holds us (defensive fallback)
+        setTimeout(() => {
+            if (!this.removeSelfFromOwnerChildren()) {
+                this.parentElement?.removeChild(this)
+            }
+        }, 500)
     }
 
     private onKeydown = (e: KeyboardEvent) => {
