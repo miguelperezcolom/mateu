@@ -130,8 +130,8 @@ public class AutomatizacionesListing
 
   /** La acción de FILA: resuelve los warnings del proceso (dominio real) y refresca por el bus. */
   public Object solucionar(HttpRequest httpRequest) {
-    var id = String.valueOf(httpRequest.runActionRq().parameters().get("id"));
-    var automation = FrontOffice.automations().findById(id).orElse(null);
+    var id = rowId(httpRequest);
+    var automation = id == null ? null : FrontOffice.automations().findById(id).orElse(null);
     if (automation == null) {
       return new Message("Proceso no encontrado");
     }
@@ -139,5 +139,16 @@ public class AutomatizacionesListing
     return List.of(
         new Message("✅ " + resolved.name() + " — incidencias resueltas"),
         UICommand.dispatchEvent("automatizacion-arreglada"));
+  }
+
+  /** El id de la fila en ambos contratos: {@code _clickedRow} (el canónico del renderer
+   *  compartido — la fila entera) o {@code id} directo (el renderer VB). */
+  private static String rowId(HttpRequest httpRequest) {
+    var parameters = httpRequest.runActionRq().parameters();
+    if (parameters.get("_clickedRow") instanceof java.util.Map<?, ?> row && row.get("id") != null) {
+      return String.valueOf(row.get("id"));
+    }
+    var direct = parameters.get("id");
+    return direct == null ? null : String.valueOf(direct);
   }
 }

@@ -1376,6 +1376,16 @@ pide SOLO las pendientes.
   del clic (regla conocida del renderer compartido) y el enlace no hacía nada.
   Verificado: /reservas en :5174 pinta filas + chips + seed, el clic en el id navega a
   /reserva/st-sophie y el 360 completo rinde en Vaadin; el VB no se resiente.
+- **Automatizaciones en el renderer VAADIN (2026-07-28)**: el listado rinde de serie —
+  badges de @Status y menú "···" por fila (renderMenuCell del actionGroup; las filas sin
+  acciones no lo muestran). DOS matices: (1) el renderer compartido envía la fila como
+  `parameters._clickedRow` (contrato canónico) mientras el VB envía `{id}` — la acción
+  de fila del demo acepta AMBOS (helper rowId); verificado: Solucionar → credit pasa a
+  Ok y el listado refresca por el bus. (2) El "tab desaparecido" de Automatizaciones NO
+  es un bug: la opción lleva @Audience("Staff") — con el contexto Modo=Cliente (que
+  persiste en localStorage `mateu-app-context`) se oculta por diseño; con Modo sin fijar
+  o Staff, aparece. A 1500px el listado cae a modo cards, donde estado y acciones no se
+  proyectan (limitación conocida del modo cards del renderer compartido).
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
