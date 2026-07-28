@@ -71,6 +71,13 @@ tasks.runIde {
         )
     }
     systemProperty("mateu.productName", productName)
+    // Forward the mateu.* connection properties from the gradle invocation to the IDE JVM —
+    // `./gradlew runIde -Dmateu.baseUrl=…` sets them on the GRADLE process, not on the IDE,
+    // so without this hop the plugin silently falls back to the bundled defaults.
+    listOf("mateu.baseUrl", "mateu.route", "mateu.config", "mateu.focused",
+           "mateu.registryUrl", "mateu.appId").forEach { key ->
+        (System.getProperty(key) ?: (findProperty(key) as String?))?.let { systemProperty(key, it) }
+    }
     args(workspace.absolutePath)
 }
 

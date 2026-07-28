@@ -36,16 +36,20 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: {
-      // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
-      '/fluent/mateu': 'http://localhost:8091',
-      '/mateu': 'http://localhost:8091',
-      '/images': 'http://localhost:8091',
-      '/myassets': 'http://localhost:8091',
-      '/sse': 'http://localhost:8091',
-      // exact match: a plain '/upload' string key is a PREFIX match and would swallow
-      // app routes like /uploadable-image (serving the backend HTML instead of the SPA)
-      '^/upload(/|$)': 'http://localhost:8091',
-    },
+    proxy: (() => {
+      // backend configurable: MATEU_BACKEND=http://localhost:8595 yarn dev (default: el SUT e2e)
+      const target = process.env.MATEU_BACKEND ?? 'http://localhost:8091'
+      return {
+        // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
+        '/fluent/mateu': target,
+        '/mateu': target,
+        '/images': target,
+        '/myassets': target,
+        '/sse': target,
+        // exact match: a plain '/upload' string key is a PREFIX match and would swallow
+        // app routes like /uploadable-image (serving the backend HTML instead of the SPA)
+        '^/upload(/|$)': target,
+      }
+    })(),
   },
 })
