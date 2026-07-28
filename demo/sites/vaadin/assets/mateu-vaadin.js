@@ -8564,7 +8564,7 @@ ${i}
                                 data-stereotype="${e.stereotype}"
                                 ${Xs(l)}
                                 ${Zs(c)}
-                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[])}
+                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-sort-column>
                     `:e.filterable?C`
                         <vaadin-grid-filter-column
@@ -8580,7 +8580,7 @@ ${i}
                                 data-stereotype="${e.stereotype}"
                                 ${Xs(l)}
                                 ${Zs(c)}
-                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[])}
+                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-filter-column>
                     `:C`
                         <vaadin-grid-column
@@ -8597,7 +8597,7 @@ ${i}
                                 .xcolumn="${e}"
                                 ${Xs(l)}
                                 ${Zs(c)}
-                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[])}
+                                ${t((t,c,l)=>nc(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-column>
                     `},nc=(e,t,n,r,i,a,o,s,c,l)=>{let u=n.dataset.dataType??``,d=n.dataset.stereotype??``;if(Cs(e)){let t=i?.metadata,n=(t?.columns??[]).flatMap(e=>e?.metadata?.type===A.GridGroupColumn?(e.metadata.columns??[]).map(e=>e?.metadata?.id):[e?.metadata?.id]),a=Os(e,r,Ds(e.__mateuGroupBy,n)),o=e.__mateuGroup.hiddenActions??[],s=r.id===n[n.length-1]?(t?.groupActions??[]).filter(e=>!o.includes(e.actionId??e.id)):[];return s.length?C`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
                 ${a?C`<span style="font-weight: 600;">${a}</span>`:_}

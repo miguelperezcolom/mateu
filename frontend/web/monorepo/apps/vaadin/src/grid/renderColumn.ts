@@ -274,7 +274,10 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 data,
                                         appState,
                                         appData),
-            []
+            // la columna puede REUTILIZARSE al navegar entre listados (Lit reconcilia el
+            // mismo vaadin-grid-column): sin dependencias el renderer de celda conservaba
+            // la clausura del listado anterior (p.ej. el link del actionId=view)
+            [mateuColumn, state, data]
         )}
                         ></vaadin-grid-sort-column>
                     `
@@ -307,7 +310,10 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 data,
                                         appState,
                                         appData),
-            []
+            // la columna puede REUTILIZARSE al navegar entre listados (Lit reconcilia el
+            // mismo vaadin-grid-column): sin dependencias el renderer de celda conservaba
+            // la clausura del listado anterior (p.ej. el link del actionId=view)
+            [mateuColumn, state, data]
         )}
                         ></vaadin-grid-filter-column>
                     `
@@ -341,7 +347,10 @@ export const renderColumn = (mateuColumn: GridColumn,
                                                 data,
                                         appState,
                                         appData),
-            []
+            // la columna puede REUTILIZARSE al navegar entre listados (Lit reconcilia el
+            // mismo vaadin-grid-column): sin dependencias el renderer de celda conservaba
+            // la clausura del listado anterior (p.ej. el link del actionId=view)
+            [mateuColumn, state, data]
         )}
                         ></vaadin-grid-column>
                     `
