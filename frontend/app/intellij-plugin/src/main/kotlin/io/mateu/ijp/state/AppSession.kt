@@ -37,6 +37,12 @@ class AppSession(
     var appMenu: com.fasterxml.jackson.databind.JsonNode? = null
     var appTitle: String? = null
 
+    // The app's @HomeRoute coordinates (from the App metadata): the standalone landing opens
+    // THIS route — like the web shells — instead of guessing the first menu leaf.
+    var homeRoute: String? = null
+    var homeConsumedRoute: String? = null
+    var homeServerSideType: String? = null
+
     /** Fired after [appMenu]/[appTitle] are (re)published, so the host syncs menu-derived actions. */
     var onAppMenuChanged: (() -> Unit)? = null
 

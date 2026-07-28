@@ -27,6 +27,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         // and nudge the action system so they pick it up.
         session.appMenu = metadata.path("menu")
         session.appTitle = metadata.text("title")
+        // @HomeRoute coordinates: the standalone landing opens this route (like the web shells)
+        session.homeRoute = metadata.text("homeRoute").ifBlank { null }
+        session.homeConsumedRoute = metadata.text("homeConsumedRoute")
+        session.homeServerSideType = metadata.text("homeServerSideType")
         session.onAppMenuChanged?.invoke()
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }

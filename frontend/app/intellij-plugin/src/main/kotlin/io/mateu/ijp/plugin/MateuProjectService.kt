@@ -145,13 +145,25 @@ class MateuProjectService(private val project: Project) {
         s.onAppContextChanged = { ctx.initialLoad(route) }
     }
 
-    /** Open the first navigable menu leaf (depth-first) in the CENTRAL editor, so the app lands on a
-     *  real screen filling the main area instead of an empty editor. Uses the detail (editor) opener
-     *  so even a listing home fills the centre; drill-down still works (see MateuViewManager). */
+    /** Standalone landing: open the app's @HomeRoute (like the web shells) — falling back to the
+     *  first navigable menu leaf when the app declares none. Routed through the STANDARD opener,
+     *  so the content decides its own placement exactly like a navigator click: a page/wizard
+     *  fills a central editor tab, a Crud listing lands in the bottom results panel. */
     private fun openHomeView(s: AppSession) {
+        val home = s.homeRoute
+        if (!home.isNullOrBlank()) {
+            s.openViewHandler?.invoke(
+                s.appTitle ?: "Home",
+                home,
+                s.homeConsumedRoute,
+                s.homeServerSideType,
+                null,
+            )
+            return
+        }
         val menu = s.appMenu ?: return
         val leaf = firstLeaf(menu) ?: return
-        (s.openDetailHandler ?: s.openViewHandler)?.invoke(
+        s.openViewHandler?.invoke(
             leaf.text("label"),
             leaf.text("route"),
             leaf.text("consumedRoute"),
