@@ -395,8 +395,11 @@ export class MateuComponent extends ComponentElement {
             e.stopPropagation()
 
             const serverSideComponent = this.component as ServerSideComponent
-            const action = serverSideComponent.actions?.find(action => action.id == detail.actionId
-            || (action.id.endsWith('*') && detail.actionId.startsWith(action.id.replace('*', ''))))
+            // the EXACT action wins over a wildcard: an sse/background/confirmation flag on the
+            // declared action must not be shadowed by a catch-all '*' listed before it
+            const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
+                ?? serverSideComponent.actions?.find(action =>
+                    action.id.endsWith('*') && detail.actionId.startsWith(action.id.replace('*', '')))
 
             if (action) {
 

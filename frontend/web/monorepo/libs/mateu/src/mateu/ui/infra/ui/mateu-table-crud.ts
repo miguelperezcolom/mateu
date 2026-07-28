@@ -524,12 +524,18 @@ export class MateuTableCrud extends LitElement {
         const renderCards = () => {
             const idField = this.identifierFieldName
             const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
-            const visibleCols = allCols.slice(0, 6)
-            const imageCols = visibleCols.filter(c => c.stereotype === 'image')
-            const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]
             const isNavCol = (c: GridColumn) => !!c.actionId
             const isActionButtonCol = (c: GridColumn) =>
                 c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu' || c.stereotype === 'button'
+            // the card shows the first columns as data rows, but STATUS badges and row
+            // ACTIONS always make the cut — they carry the row's state and its operations
+            // (they used to be silently dropped when declared beyond the sixth column)
+            const visibleCols = [
+                ...allCols.slice(0, 6),
+                ...allCols.slice(6).filter(c => isActionButtonCol(c) || c.dataType === 'status'),
+            ]
+            const imageCols = visibleCols.filter(c => c.stereotype === 'image')
+            const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]
             const selectCol = visibleCols.find(c => c.id === 'select' && c.dataType === 'action')
             const isSelector = !!selectCol
             const dataCols = visibleCols.filter(c => c !== titleCol && !imageCols.includes(c) && !isNavCol(c) && !isActionButtonCol(c))
