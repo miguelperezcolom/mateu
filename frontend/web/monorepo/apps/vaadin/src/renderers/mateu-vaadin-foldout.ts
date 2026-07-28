@@ -135,7 +135,9 @@ export class MateuVaadinFoldout extends LitElement {
         first.style.transform = pin ? `translateX(${pin}px)` : ''
         first.classList.toggle('floating', rail.scrollLeft > 0)
         const max = rail.scrollWidth - rail.clientWidth
-        const scrollable = max > 2
+        // only a MEANINGFUL overflow counts: a residual few px (scrollbar width, rounding)
+        // must not summon the carousel FABs when every section is already visible
+        const scrollable = max > 32
         this._less = scrollable && rail.scrollLeft > 2
         this._more = scrollable && rail.scrollLeft < max - 2
     }
@@ -200,8 +202,31 @@ export class MateuVaadinFoldout extends LitElement {
             || (el as HTMLElement).isContentEditable
     }
 
+    // The declared wire width is the flex basis AND the grow weight. The LAST fold never
+    // goes narrower than the overview column: a skinny accessory panel (e.g. a 14rem
+    // "Perfil") widens to read as a balanced right rail, same width as the first fold.
+    private _sectionFlex(panel: { width?: string | null }, index: number): string | typeof nothing {
+        if (!panel.width) {
+            return nothing
+        }
+        const declared = parseFloat(panel.width) || 1
+        if (index === this.panels.length - 1 && declared < 22) {
+            return 'flex: 22 1 var(--mateu-foldout-overview-width, 22rem);'
+        }
+        return `flex: ${declared} 1 ${panel.width};`
+    }
+
+    private _resizeObserver?: ResizeObserver
+
     protected firstUpdated() {
         this._fit()
+        // re-measure when the slotted sections settle (fonts, cards, late data) — without
+        // this the nav affordances are decided on a pre-layout scrollWidth
+        this._resizeObserver = new ResizeObserver(() => this._syncPin())
+        if (this._rail) this._resizeObserver.observe(this._rail)
+        for (const section of this.renderRoot.querySelectorAll('.section')) {
+            this._resizeObserver.observe(section)
+        }
     }
 
     connectedCallback() {
@@ -213,6 +238,8 @@ export class MateuVaadinFoldout extends LitElement {
     disconnectedCallback() {
         document.removeEventListener('keydown', this._onKeydown)
         window.removeEventListener('resize', this._fit)
+        this._resizeObserver?.disconnect()
+        this._resizeObserver = undefined
         if (this._raf) {
             cancelAnimationFrame(this._raf)
             this._raf = 0
@@ -459,7 +486,7 @@ export class MateuVaadinFoldout extends LitElement {
                 </section>
                 ${this.panels.map((panel, index) => html`
                     <section class="section" part="section panel"
-                             style="${panel.width ? `flex: ${parseFloat(panel.width) || 1} 1 ${panel.width};` : nothing}">
+                             style="${this._sectionFlex(panel, index)}">
                         ${panel.title || panel.subtitle ? html`
                             <div class="panel-header">
                                 ${panel.title ? html`<h3>${panel.title}${panel.subtitle ? html` <span class="subtitle" style="font-weight: 400;">· ${panel.subtitle}</span>` : nothing}</h3>` : nothing}

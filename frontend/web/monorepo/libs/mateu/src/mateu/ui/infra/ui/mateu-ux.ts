@@ -348,6 +348,17 @@ export class MateuUx extends ConnectedElement {
             max-width: 1392px;
             margin: 0 auto;
         }
+
+        /* Anatomía de anchos RDS (data-page-width — el valor RESUELTO fixed|full|edge que
+           applyFragment estampa en el host): fixed = columna de contenido con tope RDS
+           (1408px) centrada; full = fluido sin tope (el comportamiento por defecto del
+           host); edge = a sangre — los gutters del shell caen por el hook no-padding
+           (compact-changed) y el header de mateu-page conserva el suyo. Solo aplica al
+           mateu-ux de CONTENIDO: el ux raíz del app shell resuelve 'edge'. */
+        :host([data-page-width='fixed']) {
+            max-width: min(1408px, 100%);
+            margin-inline: auto;
+        }
   `
 }
 

@@ -146,8 +146,13 @@ export class MateuPage extends LitElement {
             const level = (this.component?.metadata as PageComponent)?.level ?? 0
             this.toggleAttribute('data-nested', level > 0)
             this._scheduleStaticBannerTimeouts()
+            // an edgeToEdge page (RDS page-width anatomy) drops the shell gutters exactly
+            // like a compact page does — same no-padding hook in the app shell. The page
+            // header keeps its own gutter (only the CONTENT bleeds) via the data-edge styles.
+            const edgeToEdge = ((this.component?.metadata as any)?.pageWidth) === 'edgeToEdge'
+            this.toggleAttribute('data-edge', edgeToEdge)
             this.dispatchEvent(new CustomEvent('compact-changed', {
-                detail: { compact: !!this.component?.style?.includes('--mateu-compact:1') },
+                detail: { compact: !!this.component?.style?.includes('--mateu-compact:1') || edgeToEdge },
                 bubbles: true,
                 composed: true,
             }))
@@ -468,6 +473,15 @@ export class MateuPage extends LitElement {
            starts at the color strip below. */
         .page-header-wrap {
             background: var(--mateu-page-header-bg, transparent);
+        }
+
+        /* edgeToEdge (RDS): the shell drops its gutters (no-padding hook) so the CONTENT
+           bleeds, but the page header + banners keep their own gutter — like the Redwood
+           anatomy, where only the content band reaches the edges. */
+        :host([data-edge]) .page-header-wrap,
+        :host([data-edge]) .page-banners {
+            padding-left: var(--mateu-shell-gutter, 2rem);
+            padding-right: var(--mateu-shell-gutter, 2rem);
         }
 
         .page-header-band {

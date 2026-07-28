@@ -82,8 +82,10 @@ export class MateuStatusList extends LitElement {
         .list.grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
-            column-gap: 2.5rem;
-            row-gap: 1rem;
+            /* air BETWEEN cards (the operations checklist reads as a grid of fichas, not a
+               dense list) — overridable per surface via the CSS vars */
+            column-gap: var(--mateu-status-grid-column-gap, 2.5rem);
+            row-gap: var(--mateu-status-grid-row-gap, 2rem);
         }
         .list.grid .cell { padding: .6rem 0; }
         .list.grid .row + .row { border-top: none; }

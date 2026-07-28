@@ -69,6 +69,15 @@ export class MateuChart extends LitElement {
     }
 
     static styles = css`
+    /* the host's inline height (Chart.style) must reach the canvas parent — chart.js
+       measures .container to size the canvas when maintainAspectRatio is false */
+    :host {
+        display: block;
+    }
+    .container {
+        height: 100%;
+        position: relative;
+    }
   `
 }
 

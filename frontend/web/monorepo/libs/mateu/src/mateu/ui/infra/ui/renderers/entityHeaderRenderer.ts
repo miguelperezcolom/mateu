@@ -4,6 +4,8 @@ import { html, nothing } from "lit";
 import "@infra/ui/mateu-entity-header.ts";
 
 export const renderEntityHeader = (component: ClientSideComponent) => {
+    // hoisted into the canonical page header by pageRenderer — don't repeat it in the body
+    if ((component as any).__hoistedToPageHeader) return html``
     const metadata = component.metadata as EntityHeader
     return html`
         <mateu-entity-header

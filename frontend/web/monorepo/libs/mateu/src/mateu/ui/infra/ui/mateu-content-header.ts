@@ -1,4 +1,4 @@
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
@@ -57,7 +57,29 @@ export class MateuContentHeader extends LitElement {
     @property()
     appData: ComponentData = {}
 
+    // "…" overflow for secondary actions (the VB/Redwood header grammar): primaries stay
+    // visible; two or more secondaries collapse into this menu.
+    @state()
+    private _overflowOpen = false
+
+    private _onDocClick = (e: Event) => {
+        if (!e.composedPath().includes(this)) {
+            this._overflowOpen = false
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        document.addEventListener('click', this._onDocClick)
+    }
+
+    disconnectedCallback() {
+        document.removeEventListener('click', this._onDocClick)
+        super.disconnectedCallback()
+    }
+
     handleButtonClick = (actionId: string) => {
+        this._overflowOpen = false
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId },
             bubbles: true,
@@ -86,6 +108,34 @@ export class MateuContentHeader extends LitElement {
                 ?disabled="${button.disabled}"
         >${label}</button>
     `
+    }
+
+    // Action cluster with the "…" overflow: primaries always inline; a SINGLE secondary
+    // stays inline too, two or more collapse into the menu (the VB/Redwood header grammar).
+    renderActions = (actionButtons: Button[]) => {
+        const visible = actionButtons.filter(b => !(this.data ?? {})[b.actionId + '.hidden'])
+        const primaries = visible.filter(b => b.buttonStyle === 'primary')
+        const secondaries = visible.filter(b => b.buttonStyle !== 'primary')
+        if (secondaries.length < 2) {
+            return html`${visible.map(this.renderBtn)}`
+        }
+        return html`
+            ${primaries.map(this.renderBtn)}
+            <div class="overflow-wrap">
+                <button class="mtb overflow-btn" title="Más acciones" aria-haspopup="true"
+                        aria-expanded="${this._overflowOpen}"
+                        @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
+                ${this._overflowOpen ? html`
+                    <div class="overflow-menu">
+                        ${secondaries.map(b => html`
+                            <button class="overflow-item" ?disabled="${b.disabled}"
+                                    data-action-id="${b.actionId}"
+                                    @click="${() => this.handleButtonClick(b.actionId)}">${this.evalLabel(b.label)}</button>
+                        `)}
+                    </div>
+                ` : nothing}
+            </div>
+        `
     }
 
     // Previous/next peer-object arrows (the Redwood "next/previous object" header element).
@@ -145,13 +195,19 @@ export class MateuContentHeader extends LitElement {
                     ${peerNav ? this.renderPeerNav(peerNav) : nothing}
                     ${navButtons.map(this.renderBtn)}
                     ${divider}
-                    ${actionButtons.map(this.renderBtn)}
+                    ${this.renderActions(actionButtons)}
                 </div>
             ` : hasMainHeader ? html`
-                <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="form-header">
+                <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center; flex-wrap: wrap;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
-                    <div style="flex: 1; min-width: 0; overflow: hidden;">
-                        ${metadata?.title && level == 0?html`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>`:nothing}
+                    <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
+                        ${metadata?.title && level == 0?html`
+                            <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
+                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>
+                                ${(metadata as any).kpisBelow && metadata.badges?.length
+                                    ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))
+                                    : nothing}
+                            </div>`:nothing}
                         ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
                         ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
                         ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
@@ -161,21 +217,31 @@ export class MateuContentHeader extends LitElement {
                         ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${unsafeHTML(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
-                        ${metadata?.kpis?.map((kpi) => html`
+                        ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`
                             <div style="display: flex; flex-direction: column; align-items: center;">
                                 <div>${this.evalLabel(kpi.title)}</div>
                                 <div>${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</div>
                             </div>
-                        `)}
+                        `) : nothing}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                         ${peerNav ? this.renderPeerNav(peerNav) : nothing}
                         ${navButtons.map(this.renderBtn)}
                         ${divider}
-                        ${actionButtons.map(this.renderBtn)}
+                        ${this.renderActions(actionButtons)}
                     </div>
                 </div>
             ` : nothing}
-            ${metadata.badges && metadata.badges.length > 0 ? html`
+            ${(metadata as any).kpisBelow && metadata?.kpis?.length ? html`
+                <div class="kpi-row">
+                    ${metadata.kpis.map((kpi) => html`
+                        <div class="kpi-pair">
+                            <span class="kpi-label">${this.evalLabel(kpi.title)}</span>
+                            <span class="kpi-value">${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                        </div>
+                    `)}
+                </div>
+            ` : nothing}
+            ${metadata.badges && metadata.badges.length > 0 && !(metadata as any).kpisBelow ? html`
                 <div style="display: flex; gap: var(--lumo-space-s, .5rem); padding-bottom: var(--lumo-space-s, .5rem);">
                     ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))}
                 </div>
@@ -203,6 +269,72 @@ export class MateuContentHeader extends LitElement {
             font: inherit;
             color: var(--lumo-primary-text-color, #1676f3);
             padding: 0;
+        }
+
+        /* Facts row UNDER the title (hoisted EntityHeader anatomy): label+value pairs,
+           label in small caps secondary, value emphasized — mirrors the VB/Redwood header. */
+        .kpi-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--lumo-space-s, .5rem) 2.5rem;
+            align-items: baseline;
+            padding: var(--lumo-space-xs, .25rem) 0 var(--lumo-space-s, .5rem);
+        }
+        .kpi-pair {
+            display: flex;
+            gap: var(--lumo-space-s, .5rem);
+            align-items: baseline;
+        }
+        .kpi-label {
+            font-size: var(--lumo-font-size-xs, .8125rem);
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            color: var(--lumo-secondary-text-color, #6b7280);
+        }
+        .kpi-value {
+            font-weight: 600;
+        }
+
+        /* "…" overflow menu for secondary header actions */
+        .overflow-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .overflow-btn {
+            font-weight: 700;
+            line-height: 1;
+        }
+        .overflow-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + .25rem);
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, .15));
+            border-radius: var(--lumo-border-radius-m, 6px);
+            box-shadow: var(--lumo-box-shadow-m, 0 4px 16px rgba(0, 0, 0, .18));
+            padding: .25rem;
+            min-width: 13rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 30;
+        }
+        .overflow-item {
+            text-align: left;
+            border: none;
+            background: transparent;
+            font: inherit;
+            padding: .5rem .75rem;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            cursor: pointer;
+            white-space: nowrap;
+            color: var(--lumo-body-text-color, #1a1a1a);
+        }
+        .overflow-item:hover:not(:disabled) {
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .04));
+        }
+        .overflow-item:disabled {
+            opacity: .5;
+            cursor: default;
         }
 
         .toolbar-divider {

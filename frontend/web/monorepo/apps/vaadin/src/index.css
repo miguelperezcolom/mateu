@@ -26,3 +26,11 @@ body {
   background-color: var(--lumo-base-color);
   color: var(--lumo-body-text-color);
 }
+
+/* Gutters del área de contenido del shell Vaadin (mateu-app .app-content): los declara
+   aquí el shell para que mateu-ux pueda ANULARLOS en las páginas edgeToEdge (anatomía
+   de anchos RDS — ver las reglas :host([data-page-width]) de mateu-ux). */
+mateu-app {
+  --mateu-shell-gutter: 2rem;
+  --mateu-shell-gutter-top: 1.5rem;
+}
