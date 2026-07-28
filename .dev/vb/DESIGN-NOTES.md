@@ -1386,6 +1386,19 @@ pide SOLO las pendientes.
   persiste en localStorage `mateu-app-context`) se oculta por diseño; con Modo sin fijar
   o Staff, aparece. A 1500px el listado cae a modo cards, donde estado y acciones no se
   proyectan (limitación conocida del modo cards del renderer compartido).
+- **SSE + cards en el renderer compartido (2026-07-28)**: dos fixes en libs/mateu.
+  (1) El escaneo (LongTask SSE) abría el modal pero ni progresaba ni cerraba: en
+  mateu-component el lookup de la acción usaba `find(exacta || comodín)` y el comodín
+  `'*'` (sse:false) va ANTES que `escanearPax(sse:true)` en la lista → la acción salía
+  por el sync normal y solo llegaba el primer increment. El match EXACTO ahora gana al
+  comodín (un flag sse/background/confirmation declarado no puede quedar tapado por un
+  catch-all). Verificado: /sse en red, progreso, cierre y rail refrescado a Cardex OK.
+  (2) El modo CARDS recortaba las columnas a las 6 primeras y estado (@Status, 7ª) y
+  acciones (ColumnActionGroup, 8ª) desaparecían — los badges de estado y las acciones
+  de fila SIEMPRE entran en la card (formatListValue y renderCardActionButtons ya
+  sabían pintarlos). Verificado en /automatizaciones a 1400px: badge + Solucionar
+  operativos desde la card. NOTA: la primera columna de Automatizaciones ya NO sale
+  como link — el gate supportsAction("view") lo dejó correcto tras el último restart.
 - Pendiente: "Total extras" del AddOnPicker no se ve en las copias del host (cosmético). Fase 3: cobro (PaymentPicker), ancillaries (AddOnPicker) y firma vía SSE desde la
   360 (el SSE de host en los chains solo existe para islas — hoy esas ops se hacen en el
   wizard).
