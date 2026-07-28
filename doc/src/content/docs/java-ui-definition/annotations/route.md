@@ -48,6 +48,12 @@ Setting `parentRoute` makes this route a child of another, enabling breadcrumb n
 public class OrderDetail { ... }
 ```
 
+**Tip — nest detail routes under the listing route.** Declaring the detail as `/orders/:id`
+(instead of a sibling like `/order/:id`) keeps the app shell's **navigation tab highlighted**
+while the user drills into a record: the active tab is derived from the current route by longest
+prefix match, so `/orders/42` keeps the *Orders* tab selected. The home route never wins by
+prefix.
+
 ### Repeatable on the same class
 
 ```java

@@ -61,6 +61,16 @@ public Component component(HttpRequest request) {
 
 `FoldoutPanel.width` is an optional CSS length for the **expanded** panel — unset panels keep the renderer's default section width (`--mateu-foldout-panel-flex` / `--mateu-foldout-section-width`, 22rem). Use it to size panels to their content: a wide checklist or grid next to a narrow property list.
 
+Two Vaadin-carousel behaviours worth knowing:
+
+- The **scroll affordances** (the round left/right buttons at the bottom corners) only appear when
+  the sections genuinely overflow the viewport — a few residual pixels (a scrollbar's width,
+  rounding) don't summon them, and the carousel re-measures as slotted content settles or the
+  window resizes.
+- The **last fold never renders narrower than the overview column**: a skinny accessory panel
+  (say a 14rem profile strip) widens to match the first fold, so the page reads as balanced
+  columns instead of trailing off into a sliver.
+
 ## When to use it
 
 Use a foldout for **record workspaces** where the user works one object at a time and hops between its associated categories — reservations, contracts, patient records. Prefer `@Tabs` when categories are mutually exclusive and context loss is acceptable, or `MasterDetailView` when the "categories" are really alternative detail parts of a master form.

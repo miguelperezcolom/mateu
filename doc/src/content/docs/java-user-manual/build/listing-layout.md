@@ -38,12 +38,17 @@ The framework assigns a **weight** to every column (roughly, how many pixels wid
 | `image` | 4.0 |
 | `html`, `richText`, `markdown`, `textarea` | 5.0 |
 
+The weight is estimated **server-side from the row field's real Java type** (a `long` counter
+weighs 1.5, a `LocalDate` 2.0, …) and travels with each column on the wire, so the selection is
+accurate even though the coarse column `dataType` collapses most types to `string` for rendering
+purposes. `@Weight` / `@ColumnWidth` still override it.
+
 ### Decision tree
 
 ```
 density ratio = totalColumnWeight / (containerWidthPx / 76)
 
-ratio ≤ 1.0                          → table
+ratio ≤ 1.1                          → table
 ratio > 1.6  OR  columns > 10        → masterDetail
 otherwise:
   compact columns exist AND their weight ≤ 8  → list
@@ -51,6 +56,10 @@ otherwise:
   no compact columns AND 4–8 columns          → cards
   fallback                                    → masterDetail
 ```
+
+The table branch tolerates up to ~10% of estimated overweight: the estimate is conservative
+(auto-width columns take what their content needs, usually less), so a slightly tight table
+beats flipping a scannable listing into cards.
 
 **Compact columns** are columns marked as the identifier (`@Priority(identifier = true)`) or with a priority value ≤ 2 (`@Priority(1)`, `@Priority(2)`). They are the fields shown in the condensed views (list row title, master-detail panel header).
 

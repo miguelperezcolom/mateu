@@ -38,13 +38,27 @@ and where to see it running. To pick the right one from a user goal, start with
 Three notes on how to read the table:
 
 - **Templates are backend-side.** An archetype composes existing wire components, so it renders on
-  every web renderer (Vaadin, SAP UI5, Redwood, PatternFly, SLDS) and on the native ones (React
+  every web renderer (Vaadin, SAP UI5, Redwood) and on the native ones (React
   Native, IntelliJ) without renderer work. Styling follows each design system's tokens.
 - **Page width is a template parameter.** `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)` (or the
   `PageWidthSupplier` hook — `Foldout` declares edge-to-edge) decides how the content column is
   sized: capped and centered, fluid with side margins, or touching the viewport edges. When
   neither is set, the renderer infers it from the content (full-bleed canvases → edge-to-edge,
-  dense datagrids → full width, anything else → fixed).
+  dense datagrids → full width, anything else → fixed). On the Vaadin shell all three modes
+  render: *fixed* caps the content column at 1408 px centered, *full width* is fluid, and
+  *edge to edge* drops the shell gutters for the content while the page header keeps its own
+  side padding (so the title never touches the viewport edge).
+- **A leading `EntityHeader` becomes the page header.** When a page's content starts with an
+  `EntityHeader` (the guest/record banner), the renderer hoists it into the canonical page
+  header: its title becomes the page title with the badges beside it, its subtitle the page
+  subtitle, and its facts + metric render as a row of label/value pairs under the title — the
+  banner is not repeated in the body. This is the Redwood record-header anatomy without any
+  extra annotation: compose the `EntityHeader` as the first component and the header comes out
+  integrated. Applies to top-level pages only; embedded islands keep their banner inline.
+- **Secondary header actions collapse into a "…" menu.** Toolbar buttons marked primary stay
+  visible in the page header; when a page declares two or more secondary actions they collapse
+  into an overflow menu (the Redwood header grammar), keeping the header to one primary action
+  plus "…". A single secondary action stays inline.
 - **The page type is inferred from the ModelView.** Every page carries a coarse `pageType` on the
   wire — `landing` (Welcome, HeroSearch), `collection` (listings, search pages, CRUDs, to-do
   lists, calendars, collection detail), `detail` (overviews, foldout, master-detail), `form`

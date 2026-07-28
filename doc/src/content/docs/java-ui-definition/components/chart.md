@@ -54,6 +54,11 @@ Chart.builder()
 | `maintainAspectRatio` | boolean | Whether the chart maintains its aspect ratio |
 | `scales` | `ChartScales` | Axis scale configuration |
 
+**Controlling the height.** Set `maintainAspectRatio(false)` and give the component an explicit
+height via `style` (e.g. `style("width: 100%; height: 200px;")`) — the renderer sizes the canvas
+to the host, so the chart takes exactly that height. With the default aspect ratio, a full-width
+chart grows proportionally tall (a 1400 px-wide bar chart would be ~700 px tall).
+
 ## Line chart with axis configuration
 
 ```java
