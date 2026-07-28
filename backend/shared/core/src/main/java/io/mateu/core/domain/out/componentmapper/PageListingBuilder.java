@@ -61,13 +61,15 @@ public class PageListingBuilder {
                     .groupBy())
             .filters(filters)
             .columns(
-                getColumns(
-                    getRowClass(instance),
+                withViewOnFirstColumnIfNavigable(
                     instance,
-                    baseUrl,
-                    route,
-                    initiatorComponentId,
-                    httpRequest))
+                    getColumns(
+                        getRowClass(instance),
+                        instance,
+                        baseUrl,
+                        route,
+                        initiatorComponentId,
+                        httpRequest)))
             .filtersLayout(filtersLayout)
             .gridLayout(getGridLayout(instance))
             .style(getStyle(instance, httpRequest));
@@ -110,6 +112,27 @@ public class PageListingBuilder {
     }
 
     return List.of(builder.build());
+  }
+
+  /**
+   * A declarative listing whose backend answers the {@code view} action is NAVIGABLE: the first
+   * column carries {@code actionId="view"} so every renderer makes the row open the record — the
+   * same signal {@code ListRouteResolver.withViewOnFirstColumn} emits on the AutoCrud path.
+   * Selectors keep their own {@code select} semantics and are excluded.
+   */
+  private static Collection<? extends GridContent> withViewOnFirstColumnIfNavigable(
+      Object instance, Collection<? extends GridContent> rawColumns) {
+    if (!(instance instanceof ListingBackend<?, ?> listingBackend)
+        || instance instanceof Selector<?>
+        || !listingBackend.supportsAction("view")) {
+      return rawColumns;
+    }
+    var list = new java.util.ArrayList<GridContent>(rawColumns);
+    if (list.isEmpty() || !(list.get(0) instanceof io.mateu.uidl.data.GridColumn first)) {
+      return rawColumns;
+    }
+    list.set(0, first.toBuilder().actionId("view").build());
+    return list;
   }
 
   private static GridLayout getGridLayout(Object instance) {
