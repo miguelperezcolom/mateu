@@ -249,7 +249,10 @@ export class MateuVaadinFoldout extends LitElement {
         }
         .section {
             position: relative;
-            flex: 0 0 var(--mateu-foldout-section-width, 22rem);
+            /* the declared width is the BASIS; sections grow to fill the row when there is
+               free space (100%-wide foldout) and behave exactly as before when overflowing
+               (flex-grow only distributes free space, so the carousel/snapping is untouched) */
+            flex: 22 1 var(--mateu-foldout-section-width, 22rem);
             min-width: 0;
             background: var(--mateu-foldout-panel-bg, transparent);
             border: none;
@@ -456,11 +459,11 @@ export class MateuVaadinFoldout extends LitElement {
                 </section>
                 ${this.panels.map((panel, index) => html`
                     <section class="section" part="section panel"
-                             style="${panel.width ? `flex-basis: ${panel.width};` : nothing}">
+                             style="${panel.width ? `flex: ${parseFloat(panel.width) || 1} 1 ${panel.width};` : nothing}">
                         ${panel.title || panel.subtitle ? html`
                             <div class="panel-header">
-                                ${panel.title ? html`<h3>${panel.title}</h3>` : nothing}
-                                ${panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : nothing}
+                                ${panel.title ? html`<h3>${panel.title}${panel.subtitle ? html` <span class="subtitle" style="font-weight: 400;">· ${panel.subtitle}</span>` : nothing}</h3>` : nothing}
+                                ${!panel.title && panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : nothing}
                             </div>
                         ` : nothing}
                         <div class="panel-body">

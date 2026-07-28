@@ -12,6 +12,7 @@ export const renderStatusList = (component: ClientSideComponent) => {
                 ?compact="${metadata.compact ?? false}"
                 ?frameless="${metadata.frameless ?? false}"
                 columns="${metadata.columns ?? 0}"
+                itemHeadingLevel="${metadata.itemHeadingLevel ?? 3}"
                 rowActionId="${ifDefined(metadata.rowActionId ?? undefined)}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"

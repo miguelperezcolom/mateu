@@ -66,7 +66,7 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                        auto-responsive="${metadata.autoResponsive || nothing}"
                        column-width="${metadata.columnWidth || nothing}"
                        expand-columns="${metadata.expandColumns || nothing}"
-                       expand-fields="${(metadata.expandFields ?? !metadata.labelsAside) || nothing}"
+                       expand-fields="${(metadata.expandFields || !metadata.labelsAside) || nothing}"
                        labels-aside="${metadata.labelsAside || nothing}"
                        slot="${component.slot || nothing}"
                >

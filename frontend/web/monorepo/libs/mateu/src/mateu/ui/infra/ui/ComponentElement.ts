@@ -9,6 +9,8 @@ import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/Trigg
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import OnLoadTrigger from "@mateu/shared/apiClients/dtos/componentmetadata/OnLoadTrigger.ts";
 import {nanoid} from "nanoid";
+import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {evaluateExpression, evaluateTemplate, InterpolationContext} from "@infra/ui/interpolation.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
@@ -45,13 +47,32 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     appState: Record<string, any> = {}
 
 
+    /** overlays (Drawer/Dialog) live as children pushed by Add fragments — they only close
+     *  EXPLICITLY (closeModal / ✕ / Esc), never as a side effect of a host re-render */
+    private isOverlayChild(component: unknown): boolean {
+        const type = (component as ClientSideComponent)?.metadata?.type
+        return type == ComponentMetadataType.Drawer || type == ComponentMetadataType.Dialog
+    }
+
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
         if (this.id == fragment.targetComponentId) {
             if (fragment.component) {
                 if (UIFragmentAction.Add == fragment.action) {
                     if (this.component) {
-                        this.component.children?.push(fragment.component)
+                        const children = this.component.children ?? (this.component.children = [])
+                        // an Add with the id of an OPEN overlay refreshes it in place (the
+                        // "same Drawer.id" contract: e.g. the payment picker re-sent with
+                        // another method selected) instead of stacking a duplicate
+                        const idx = fragment.component.id
+                            ? children.findIndex(child => child.id == fragment.component!.id && this.isOverlayChild(child))
+                            : -1
+                        if (idx >= 0) {
+                            children[idx] = fragment.component
+                            this.component = { ...this.component }
+                        } else {
+                            children.push(fragment.component)
+                        }
                     }
                 } else {
                     this.callbackToken = nanoid()
@@ -59,6 +80,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         if (this.component) {
                             const c0 = this.component as ServerSideComponent
                             const c1 = fragment.component as ServerSideComponent
+
+                            // an IN-PLACE re-render (same component, e.g. an action returning
+                            // `this` while a drawer is open) must not kill the open overlays —
+                            // toggling an add-on refreshes the host without closing its drawer.
+                            // NOTE: component ids are fresh uuids on every render, so the stable
+                            // signal is the serverSideType
+                            const inPlace = c0.serverSideType == c1.serverSideType
+                            const openOverlays = inPlace
+                                ? (c0.children ?? []).filter(child => this.isOverlayChild(child))
+                                : []
 
                             c0.actions = c1.actions
                             c0.type = c1.type
@@ -71,7 +102,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             c0.cssClasses = c1.cssClasses
                             c0.slot = c1.slot
                             c0.style = c1.style
-                            c0.children = c1.children
+                            c0.children = openOverlays.length
+                                ? [...(c1.children ?? []), ...openOverlays]
+                                : c1.children
 
                             if (c0.serverSideType != c1.serverSideType
                                 || c0.id != c1.id) {

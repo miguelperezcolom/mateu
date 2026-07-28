@@ -40,12 +40,27 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
   @Override
   default List<Action> actions(HttpRequest httpRequest) {
+    var actions = new java.util.ArrayList<Action>();
+    actions.add(Action.builder().id("search").build());
     // a listing whose backend answers "view" is navigable: the action must be ADVERTISED or
     // the shared renderer drops the row click (unclaimed action-requested events are ignored)
     if (supportsAction("view")) {
-      return List.of(Action.builder().id("search").build(), Action.builder().id("view").build());
+      actions.add(Action.builder().id("view").build());
     }
-    return List.of(Action.builder().id("search").build());
+    // @ListToolbarButton methods dispatch their bare method name from the page/crud toolbar —
+    // advertise them too, or the shared renderer drops the click the same way
+    for (var method : getClass().getMethods()) {
+      var toolbarButton = method.getAnnotation(io.mateu.uidl.annotations.ListToolbarButton.class);
+      if (toolbarButton != null) {
+        actions.add(
+            Action.builder()
+                .id(method.getName())
+                .confirmationRequired(toolbarButton.confirmationRequired())
+                .rowsSelectedRequired(toolbarButton.rowsSelectedRequired())
+                .build());
+      }
+    }
+    return actions;
   }
 
   @Override
