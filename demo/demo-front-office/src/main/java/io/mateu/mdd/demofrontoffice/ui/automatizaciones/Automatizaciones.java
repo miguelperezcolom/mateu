@@ -3,12 +3,7 @@ package io.mateu.mdd.demofrontoffice.ui.automatizaciones;
 import io.mateu.mdd.demofrontoffice.domain.automation.Automation;
 import io.mateu.mdd.demofrontoffice.domain.automation.ConnectedSystem;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
-import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.Audience;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MetricTrend;
@@ -27,6 +22,7 @@ import java.util.concurrent.Callable;
  */
 @Route(value = "/automatizaciones", parentRoute = "")
 @Title("Automatizaciones")
+@FormLayout(columns = 4)
 public class Automatizaciones {
 
   public enum HotelFiltro {
@@ -65,6 +61,7 @@ public class Automatizaciones {
   @Section("Estado general — últimas 24h")
   @Audience("Staff")
   @Label("")
+          @Colspan(4)
   Callable<Component> estadoGeneral =
       () -> {
         var automations = FrontOffice.automations().findAll();
@@ -109,6 +106,7 @@ public class Automatizaciones {
   @Section("Procesos automatizados")
   @Audience("Staff")
   @Label("")
+  @Colspan(4)
   Callable<Component> procesos =
       () ->
           ProcessMonitor.builder()

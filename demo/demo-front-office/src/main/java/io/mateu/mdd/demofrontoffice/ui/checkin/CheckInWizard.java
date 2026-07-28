@@ -228,9 +228,15 @@ public class CheckInWizard extends Wizard {
         return List.of(this, new Message("Firma capturada"));
       }
       default -> {
-        var result = super.handleAction(actionId, httpRequest);
+        // the wizard shows the result step (result != null) only once check-in has completed
+        boolean completedBefore = result != null;
+        var rendered = super.handleAction(actionId, httpRequest);
         syncConfirmar();
-        return result;
+        if (result != null && !completedBefore) {
+          // check-in just completed — tell the host queue to refresh its arrivals list
+          return List.of(rendered, UICommand.dispatchEvent("checkin-confirmado"));
+        }
+        return rendered;
       }
     }
   }

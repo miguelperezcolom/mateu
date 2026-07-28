@@ -11,13 +11,9 @@ import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.SubscribeTo;
 import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.data.Chip;
-import io.mateu.uidl.data.EmptyState;
-import io.mateu.uidl.data.HorizontalLayout;
-import io.mateu.uidl.data.QueueGroup;
-import io.mateu.uidl.data.QueueItem;
-import io.mateu.uidl.data.TaskQueue;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -36,17 +32,18 @@ import lombok.Setter;
 @Title("Check-In")
 @FormLayout(columns = 3)
 @AutoSave(action = "filtrar", debounceMillis = 400)
+// the check-in wizard runs as an island (its own mateu-ux); when it completes it emits this event
+// on the global bus so the queue re-renders and drops the just-checked-in arrival from the list
+@SubscribeTo(event = "checkin-confirmado", action = "recargar")
 public class CheckInQueue {
 
   @Hidden String seleccionado;
 
   // filters band — full width across the top
-  @Section(value = "", frameless = true)
-  @Label("Buscar llegada (huésped, habitación, tipo…)")
-  String buscar;
+  @Hidden String buscar;
 
   // list on the left, the selected stay's wizard island on the right
-  @Colspan(3)
+  @Colspan(2)
   @Section(value = " ", frameless = true)
   @Label("")
   Callable<Component> contenido =
@@ -80,7 +77,15 @@ public class CheckInQueue {
             .spacing(true)
             .fullWidth(true)
             .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
-            .content(List.of(queue, detail))
+            .content(List.of(VerticalLayout.builder()
+                            .content(List.of(FormField.builder()
+                                                    .id("buscar")
+                                                    .dataType(FieldDataType.string)
+                                                    .label("Buscar llegada (huésped, habitación, tipo…)")
+                                            .build(),
+          queue
+  ))
+                    .build(), detail))
             .build();
       };
 
@@ -123,6 +128,12 @@ public class CheckInQueue {
 
   @Action
   Object filtrar() {
+    return this;
+  }
+
+  /** Re-renders the queue after a check-in completes in the island — the arrival is now gone. */
+  @Action
+  Object recargar() {
     return this;
   }
 }
