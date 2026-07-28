@@ -15,7 +15,7 @@
     "@ui5/webcomponents-fiori": "^2.24.2",
     "lit": "^3.3.1",
     "mateu": "*",
-    "minimatch": "^10.2.3"
+    "minimatch": "^10.2.6"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
