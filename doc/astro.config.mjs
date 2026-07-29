@@ -248,6 +248,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/entity-interfaces' },
 								{ slug: 'java-user-manual/build/foreign-keys-and-options' },
 								{ slug: 'java-user-manual/build/crud-navigation-flow' },
+								{ slug: 'java-user-manual/build/capability-listings' },
 								{ slug: 'java-user-manual/build/auto-orchestrators' },
 								{ slug: 'java-user-manual/build/auto-adapters' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },

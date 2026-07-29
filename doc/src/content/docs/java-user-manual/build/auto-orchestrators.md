@@ -3,7 +3,7 @@ title: "AutoCrud<T>"
 description: "The simplest way to get a working CRUD or read-only listing on screen, with a single entity type."
 ---
 
-`AutoCrud<T>` uses a single type parameter `T` for filters, rows, view, and edit forms. It is the fastest way to get a working CRUD on screen. Capability annotations let you strip write operations one by one — turning the same class into a listing, a read-only catalogue, or any combination in between.
+`AutoCrud<T>` uses a single type parameter `T` for filters, rows, view, and edit forms. It is the fastest way to get a working CRUD on screen: it derives every [capability](/java-user-manual/build/capability-listings/) — search, filters, navigation, editing, creation, deletion — from the entity and its `CrudStore`. Capability annotations let you strip them one by one — turning the same class into a listing, a read-only catalogue, or any combination in between.
 
 ---
 
@@ -115,7 +115,7 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 
 | Operation | Behaviour |
 |---|---|
-| `search` | Delegates to `store().find(searchText, filters, pageable)` → `Page<T>` (default: filters by `Searchable.searchableText()`/`toString()`, sorts by `pageable.sort()`, paginates in memory) |
+| `search` | Delegates to `store().find(searchText, filters, pageable)` → `Page<T>` (default: filters by `SearchableText.searchableText()`/`toString()`, sorts by `pageable.sort()`, paginates in memory) |
 | `getView` | Loads the entity by id |
 | `getEditor` | Same as view — entity fields become editable inputs |
 | `getCreationForm` | Instantiates a new T |
@@ -137,6 +137,7 @@ When this is too restrictive, move to:
 
 - [`FilteredAutoCrud<Filters, T>`](/java-user-manual/build/filtered-orchestrators/) — separate filter type, same entity for everything else.
 - [`Crud<View,Editor,CreationForm,Filters,Row,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) — full control over every screen.
+- [`Listing<Row>` + capability interfaces](/java-user-manual/build/capability-listings/) — build up from rows instead of stripping down from a CRUD.
 
 ---
 

@@ -184,7 +184,7 @@ public interface UploadEnabled {
 }
 ```
 
-Return a `Message` for a synchronous summary, or use `@Action(background = true)` for large file processing. See [ListingBackend — Bulk import](/java-ui-definition/interfaces/listing-backend/#bulk-import----uploadenabled) for full examples.
+Return a `Message` for a synchronous summary, or use `@Action(background = true)` for large file processing. See [Listing — Bulk import](/java-ui-definition/interfaces/listing/#bulk-import----uploadenabled) for full examples.
 
 ---
 

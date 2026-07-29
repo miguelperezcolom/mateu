@@ -20,7 +20,7 @@ public interface Auditable {
 }
 ```
 
-The signature mirrors `ListingBackend.search()`: the framework calls `history()` when the user searches or pages through the modal listing, passing the current search text, filters, and pagination state.
+The framework calls `history()` when the user searches or pages through the modal listing, passing the current search text, filters, and pagination state.
 
 ---
 
@@ -127,4 +127,3 @@ There is no enforced vocabulary — use what makes sense for each entity.
 ## Related
 
 - [Key interfaces](/reference/key-interfaces/) — full interface reference
-- [ListingBackend](/java-ui-definition/interfaces/listing-backend/) — the `search()` signature that `history()` mirrors

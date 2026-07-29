@@ -1,5 +1,5 @@
 ---
-title: "Identifiable, Named, and Searchable"
+title: "Identifiable, Named, and SearchableText"
 description: "The marker interfaces that entities and row DTOs must implement to work with the CRUD machinery."
 ---
 
@@ -92,18 +92,18 @@ The CRUD detail pages use `named.name()` as the page title when the entity imple
 
 ---
 
-## Searchable
+## SearchableText
 
-`Searchable` lets an entity control how it matches a free-text search in the auto adapters.
+`SearchableText` lets an entity control how it matches a free-text search in the auto adapters. (Not to be confused with the `Searchable` capability interface, which shows the search box on a [listing](/java-user-manual/build/capability-listings/).)
 
 ```java
-public interface Searchable {
+public interface SearchableText {
     String searchableText();
 }
 ```
 
 `AutoCrud<T>` and `FilteredAutoCrud<F,T>` filter rows in memory using this priority:
-1. If `T` implements `Searchable` → use `searchableText()`.
+1. If `T` implements `SearchableText` → use `searchableText()`.
 2. Otherwise → use `toString()`.
 
 ```java
@@ -112,7 +112,7 @@ public record Product(
     String name,
     String description,
     BigDecimal price
-) implements Identifiable, Searchable {
+) implements Identifiable, SearchableText {
 
     @Override
     public String searchableText() {
@@ -121,7 +121,7 @@ public record Product(
 }
 ```
 
-This is only relevant when you rely on in-memory filtering. If you override `search()` in the adapter to run a database query, `Searchable` is not involved.
+This is only relevant when you rely on in-memory filtering. If you override `CrudStore.find(...)` to run a database query, `SearchableText` is not involved.
 
 ---
 
@@ -131,12 +131,12 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 |---|---|---|
 | `Identifiable` | `CrudStore<T>`, `AutoCrud<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
 | `Named` | `CompositionCrudStore<T, P>`, CRUD detail pages (optional) | Provides a human-readable title for detail views and breadcrumbs |
-| `Searchable` | `AutoCrud<T>`, `FilteredAutoCrud<F,T>` (optional) | Controls which text is matched during in-memory free-text search |
+| `SearchableText` | `AutoCrud<T>`, `FilteredAutoCrud<F,T>` (optional) | Controls which text is matched during in-memory free-text search |
 
 ---
 
 ## Next
 
-- [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — where `Identifiable` and `Searchable` are consumed
+- [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — where `Identifiable` and `SearchableText` are consumed
 - [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository that requires `T extends Identifiable`
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that put it all together

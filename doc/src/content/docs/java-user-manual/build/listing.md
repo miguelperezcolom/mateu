@@ -1,15 +1,16 @@
 ---
-title: "Listing<Filters, Row>"
-description: "A standalone filterable listing with toolbar actions, export, and optional selector support."
+title: "Listing<Row>"
+description: "A standalone listing with toolbar actions, export, and optional selector support."
 ---
 
-`Listing<Filters, Row>` is the base class for standalone listings that need custom filters, toolbar actions, or export — without routing to a detail view.
+`Listing<Row>` is the interface behind every standalone listing: implement its single `search(SearchRequest, HttpRequest)` method and Mateu renders a sortable, paginated grid of `Row` objects. Search box, filter bar, and every interaction (navigation, editing, creation, deletion) are **capabilities** you declare on the same class — see [Listings and capabilities](/java-user-manual/build/capability-listings/) for the full model.
 
-Unlike the orchestrators, a `Listing` is a self-contained component: it handles its own search and actions, but clicking a row does not navigate anywhere (unless you also implement `Selector`). Use it when you need a list on screen but no CRUD flow around it.
+This page covers the standalone-listing extras: toolbar actions, export, and using a listing as a lookup selector.
 
 ```java
-public abstract class Listing<Filters, Row>
-    implements ListingBackend<Filters, Row>, ActionSupplier
+public interface Listing<Row> extends ActionHandler, ActionSupplier {
+    ListingData<Row> search(SearchRequest request, HttpRequest httpRequest);
+}
 ```
 
 ---
@@ -18,7 +19,7 @@ public abstract class Listing<Filters, Row>
 
 | Method | Purpose |
 |---|---|
-| `search(searchText, filters, pageable, httpRequest)` | Return the rows to display |
+| `search(request, httpRequest)` | Return the rows to display — `request` carries `searchText()`, `filters()`, `criteria()`, and `pageable()` |
 
 Everything else is optional.
 
@@ -27,9 +28,9 @@ Everything else is optional.
 ## Minimal example
 
 ```java
-@Service
 @UI("/orders")
-public class OrderListing extends Listing<OrderFilters, OrderRow> {
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
+public class OrderListing implements Listing<OrderRow>, Searchable, Filterable<OrderFilters> {
 
     private final OrderQueryService queryService;
 
@@ -38,10 +39,8 @@ public class OrderListing extends Listing<OrderFilters, OrderRow> {
     }
 
     @Override
-    public ListingData<OrderRow> search(
-            String searchText, OrderFilters filters,
-            Pageable pageable, HttpRequest httpRequest) {
-        return queryService.search(searchText, filters, pageable);
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
+        return queryService.search(request.searchText(), filters(request), request.pageable());
     }
 }
 ```
@@ -64,7 +63,7 @@ public record OrderRow(
 ) implements Identifiable {}
 ```
 
-The filter bar is generated from `OrderFilters`, the grid columns from `OrderRow`. Both are inferred from the generic parameters via reflection.
+`Searchable` shows the free-text search box, `Filterable<OrderFilters>` generates the filter bar from `OrderFilters` (and `filters(request)` returns the hydrated instance, typed), and the grid columns come from `OrderRow` — all inferred via reflection.
 
 ---
 
@@ -73,9 +72,8 @@ The filter bar is generated from `OrderFilters`, the grid columns from `OrderRow
 Annotate methods with `@Toolbar` to add buttons to the listing toolbar. The method receives the HTTP request and can return any action result (message, navigation, etc.).
 
 ```java
-@Service
 @UI("/orders")
-public class OrderListing extends Listing<OrderFilters, OrderRow> {
+public class OrderListing implements Listing<OrderRow>, Searchable {
 
     @Toolbar
     public Object exportSelected(HttpRequest httpRequest) {
@@ -85,7 +83,7 @@ public class OrderListing extends Listing<OrderFilters, OrderRow> {
     }
 
     @Override
-    public ListingData<OrderRow> search(...) { ... }
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) { ... }
 }
 ```
 
@@ -107,7 +105,7 @@ Override any of the three export methods to add the corresponding button to the 
 @Override public boolean csvExportable()   { return true; }
 ```
 
-Excel and PDF require optional modules on the classpath. See [ListingBackend](/java-ui-definition/interfaces/listing-backend/) for the dependency details.
+Excel and PDF require optional modules on the classpath. See [Listing (reference)](/java-ui-definition/interfaces/listing/) for the dependency details.
 
 ---
 
@@ -116,17 +114,25 @@ Excel and PDF require optional modules on the classpath. See [ListingBackend](/j
 When a `Listing` also implements `Selector<IdType>`, it can be used as the search modal for a `@Searchable` field. Clicking a row closes the modal and sets the field value.
 
 ```java
-@Service
-@Scope("prototype")
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 40rem;")
-public class ProductSelector extends Listing<ProductFilters, ProductRow>
-        implements Selector<String> {
+public class ProductSelector implements Listing<ProductRow>, Searchable,
+        Filterable<ProductFilters>, Selector<String> {
+
+    private String _fieldId;
 
     @Override
-    public ListingData<ProductRow> search(
-            String searchText, ProductFilters filters,
-            Pageable pageable, HttpRequest httpRequest) {
-        return productService.search(searchText, filters, pageable);
+    public String fieldId() { return _fieldId; }
+
+    @Override
+    public Selector withFieldId(String fieldId) {
+        _fieldId = fieldId;
+        return this;
+    }
+
+    @Override
+    public ListingData<ProductRow> search(SearchRequest request, HttpRequest httpRequest) {
+        return productService.search(request.searchText(), filters(request), request.pageable());
     }
 
     @Override
@@ -143,37 +149,42 @@ public class ProductSelector extends Listing<ProductFilters, ProductRow>
 String productId;
 ```
 
+> Note: the `@Searchable` **annotation** (lookup fields) and the `Searchable` **capability interface** (search box on a listing) are different things that share a name — the annotation goes on the form field, the interface on the listing class.
+
 ---
 
 ## Listing vs AutoCrud
 
-| | `Listing<F,R>` | `AutoCrud<T>` |
+| | `Listing<Row>` + capabilities | `AutoCrud<T>` |
 |---|---|---|
-| Filter bar | ✓ | ✓ |
+| Search box / filter bar | declare `Searchable` / `Filterable<F>` | ✓ (entity doubles as filters) |
 | Custom row type | ✓ | with `FilteredAutoCrud<F,T>` |
 | Toolbar actions (`@Toolbar`) | ✓ | — |
-| Navigation to detail on row click | — | ✓ |
+| Navigation to detail on row click | declare `Navigable<Detail,Id>` | ✓ |
+| Editing / creation / deletion | declare `Editable` / `Creatable` / `Deletable` | ✓ (or `@Not*` / `@ReadOnly`) |
 | Export (PDF/Excel/CSV) | ✓ | — |
 | Selector support | ✓ | — |
 
 Use `Listing` when:
 - You need toolbar actions or export.
-- There is no detail view to navigate to.
+- The rows come from a query service and differ from your domain entity.
 - The listing is used as a lookup selector for a `@Searchable` field.
 - The listing is embedded inside a form via a `Callable<?>` field.
+- You want only *some* interactions — declare exactly the capabilities you need.
 
-Use `AutoCrud<T> + @ReadOnly` (or `FilteredAutoCrud<Filters,T> + @ReadOnly`) when you need the same filter flexibility but also want row-click navigation to a detail view.
+Use `AutoCrud<T>` (or `FilteredAutoCrud<Filters,T>`) when a single entity backed by a `CrudStore` is the right model for every screen.
 
 ---
 
 ## Bulk import
 
-Implement `UploadEnabled` to add an import button to the toolbar. See [ListingBackend — Bulk import](/java-ui-definition/interfaces/listing-backend/#bulk-import----uploadenabled) for the full pattern.
+Implement `UploadEnabled` to add an import button to the toolbar. See [Listing (reference) — Bulk import](/java-ui-definition/interfaces/listing/#bulk-import----uploadenabled) for the full pattern.
 
 ---
 
 ## Next
 
+- [Listings and capabilities](/java-user-manual/build/capability-listings/) — the capability model: search, filters, navigation, editing, creation, deletion
 - [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — when you need both separate filter types and detail navigation
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
-- [ListingBackend reference](/java-ui-definition/interfaces/listing-backend/) — full API reference for `ListingData`, `Pageable`, `Page`, and export modules
+- [Listing reference](/java-ui-definition/interfaces/listing/) — full API reference for `ListingData`, `Pageable`, `Page`, and export modules

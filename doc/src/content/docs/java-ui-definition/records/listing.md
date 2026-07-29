@@ -2,7 +2,7 @@
 title: "Listing"
 ---
 
-A configurable grid-based list view with integrated search, filters, column definitions, pagination, and toolbar. Use it in combination with `ListingBackend` to wire it to a data source.
+A configurable grid-based list view with integrated search, filters, column definitions, pagination, and toolbar. Use it in combination with the [`Listing<Row>` interface](/java-ui-definition/interfaces/listing/) to wire it to a data source.
 
 ```java
 @Builder
@@ -77,7 +77,8 @@ public record Listing(
 
 ```java
 @Route("/customers")
-public class CustomerListing implements ComponentTreeSupplier, ListingBackend<CustomerFilters, CustomerRow> {
+public class CustomerListing implements ComponentTreeSupplier, Listing<CustomerRow>,
+        Searchable, Filterable<CustomerFilters> {
 
     @Override
     public Component component(HttpRequest httpRequest) {
@@ -91,7 +92,7 @@ public class CustomerListing implements ComponentTreeSupplier, ListingBackend<Cu
     }
 
     @Override
-    public ListingData<CustomerRow> search(String searchText, CustomerFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CustomerRow> search(SearchRequest request, HttpRequest httpRequest) {
         // return data
     }
 }
@@ -122,5 +123,5 @@ return Listing.builder()
 
 ## Notes
 
-- If no columns are specified, Mateu infers them from the `Row` generic type of `ListingBackend`.
+- If no columns are specified, Mateu infers them from the `Row` generic type of the `Listing` interface.
 - `Listing` is the fluent equivalent of `Grid` but is designed to work as a full-page component with integrated search and backend data loading.

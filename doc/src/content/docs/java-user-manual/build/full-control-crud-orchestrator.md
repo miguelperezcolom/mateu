@@ -11,8 +11,17 @@ Use it when `AutoCrud<T>` or `FilteredAutoCrud<Filters,T>` are not enough becaus
 
 ## Class signature
 
+`Crud` is a [`Listing`](/java-user-manual/build/capability-listings/) that declares **every** capability — search box, filter bar, navigation, editing, creation, and deletion — with an explicit type for each screen:
+
 ```java
 public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType>
+    implements Listing<Row>,
+        Searchable,
+        Filterable<Filters>,
+        Navigable<View, IdType>,
+        Editable<Editor, IdType>,
+        Creatable<CreationForm, IdType>,
+        Deletable<IdType>
 ```
 
 ### Type parameters
@@ -26,7 +35,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType>
 | `Row` | The DTO shown as a grid row in the listing |
 | `IdType` | The type of the entity identifier (usually `String`) |
 
-The editor and creation form are plain view models: Mateu renders their fields and hydrates them back from the submitted state. Persistence is the orchestrator's job — `save(httpRequest)` and `saveNew(httpRequest)` receive the submitted form state and decide how to store it.
+The editor and creation form are plain view models: Mateu renders their fields and hydrates them back from the submitted state. Persistence is the orchestrator's job — `save(httpRequest)` and `create(httpRequest)` receive the submitted form state and decide how to store it.
 
 ---
 
@@ -47,14 +56,15 @@ The whole CRUD lifecycle lives on the orchestrator — there is no separate data
 
 | Method | Return type | Purpose |
 |---|---|---|
-| `search(searchText, filters, pageable, httpRequest)` | `Object` | Executes the filtered search and returns `ListingData<Row>` |
-| `view(id, httpRequest)` | `Object` | Returns the `View` object for the read-only detail screen |
-| `edit(id, httpRequest)` | `Object` | Returns the `Editor` object for the edit screen |
-| `creationForm(httpRequest)` | `Object` | Returns a blank (or pre-populated) `CreationForm` |
-| `save(httpRequest)` | `Object` | Persists the edit form state and returns the entity id (used to navigate back to the detail view) |
-| `saveNew(httpRequest)` | `Object` | Persists the creation form state and returns the new entity's id |
+| `search(request, httpRequest)` | `ListingData<Row>` | Executes the search — `request` is a [`SearchRequest`](/java-ui-definition/interfaces/listing/#the-searchrequest) carrying `searchText()`, `filters()`, `criteria()`, and `pageable()` |
+| `view(id, httpRequest)` | `View` | Returns the `View` object for the read-only detail screen |
+| `edit(id, httpRequest)` | `Editor` | Returns the `Editor` object for the edit screen |
+| `creationForm(httpRequest)` | `CreationForm` | Returns a blank (or pre-populated) `CreationForm` |
+| `save(httpRequest)` | `IdType` | Persists the edit form state and returns the record id (used to navigate back to the detail view) |
+| `create(httpRequest)` | `IdType` | Persists the creation form state and returns the new record's id |
 | `deleteAllById(ids, httpRequest)` | `void` | Deletes the selected rows |
-| `getIdFieldForRow()` | `String` | Field name in `Row` that holds the identifier |
+
+`getIdFieldForRow()` has a default (the `@PrimaryKey`/`id` field of `Row`); override it only when the identifier lives in a differently-named field. `toId(String)` converts the route id into `IdType` automatically for strings, well-known scalars (`Integer`, `Long`, `UUID`, enums, …) and single-`String`-constructor types — override it for anything else.
 
 ---
 
@@ -116,7 +126,7 @@ public class ProductCreationForm {
 }
 ```
 
-Both are plain view models — no interface to implement. Persistence happens in the orchestrator's `save()`/`saveNew()` below.
+Both are plain view models — no interface to implement. Persistence happens in the orchestrator's `save()`/`create()` below.
 
 ### Orchestrator
 
@@ -133,8 +143,8 @@ public class ProductOrchestrator
     }
 
     @Override
-    public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-        return service.search(searchText, (ProductFilters) filters, pageable);
+    public ListingData<ProductRow> search(SearchRequest request, HttpRequest httpRequest) {
+        return service.search(request.searchText(), filters(request), request.pageable());
     }
 
     @Override
@@ -158,20 +168,17 @@ public class ProductOrchestrator
     }
 
     @Override
-    public Object save(HttpRequest httpRequest) {
+    public String save(HttpRequest httpRequest) {
         var editor = httpRequest.getComponentState(ProductEditor.class);
         service.update(editor.id, editor.name, editor.description, editor.price, editor.status);
         return editor.id;
     }
 
     @Override
-    public Object saveNew(HttpRequest httpRequest) {
+    public String create(HttpRequest httpRequest) {
         var form = httpRequest.getComponentState(ProductCreationForm.class);
         return service.create(form.name, form.price);
     }
-
-    @Override
-    public String getIdFieldForRow() { return "id"; }
 }
 ```
 
@@ -210,12 +217,13 @@ All capability annotations available on `AutoCrud<T>` also work on `Crud`:
 | `FilteredAutoCrud<Filters,T>` | Filters | T | ✓ (or `@ReadOnly`) | — |
 | `Crud<V,E,C,F,R,Id>` | F | R | ✓ (or `@ReadOnly`) | ✓ |
 
-Move to `Crud` only when the view, editor, or creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases.
+Move to `Crud` only when the view, editor, or creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases. And when you don't want the *whole* pack, don't extend `Crud` at all — implement `Listing<Row>` plus just the [capability interfaces](/java-user-manual/build/capability-listings/) you need.
 
 ---
 
 ## Next
 
+- [Listings and capabilities](/java-user-manual/build/capability-listings/) — the capability model `Crud` is built on
 - [Master-detail](/java-user-manual/build/master-detail/) — embedding a child CRUD inside a parent screen
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — choosing between `@Lookup`, `List<Entity>`, and an embedded orchestrator
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete business UI combining all of the above

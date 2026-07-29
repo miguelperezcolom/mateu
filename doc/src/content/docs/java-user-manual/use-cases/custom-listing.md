@@ -4,13 +4,13 @@ title: "Custom listing"
 
 Build a listing screen with custom row types, row actions, toolbar buttons, and access to the HTTP request.
 
-This case shows the `Listing<Filters, Row>` pattern, which gives you full control over what is shown and how data is fetched.
+This case shows the `Listing<Row>` pattern, which gives you full control over what is shown and how data is fetched.
 
 ---
 
 ## What this case teaches
 
-- how to use `Listing<Filters, Row>` for custom data sources
+- how to use `Listing<Row>` for custom data sources
 - how to define row types with actions and status badges
 - how to add toolbar buttons that open forms
 - how to access HTTP headers from an action (e.g., to extract a JWT)
@@ -58,19 +58,15 @@ Key points:
 @Scope("prototype")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("max-width:900px;margin: auto;")
-public class Changes extends Listing<NoFilters, ChangeRow> {
+public class Changes implements Listing<ChangeRow>, Searchable {
 
     final ChangeQueryService queryService;
     final CreateReleaseForm createReleaseForm;
 
     @Override
-    public ListingData<ChangeRow> search(
-            String searchText,
-            NoFilters filters,
-            Pageable pageable,
-            HttpRequest httpRequest) {
+    public ListingData<ChangeRow> search(SearchRequest request, HttpRequest httpRequest) {
 
-        var found = queryService.findAll(searchText, filters, pageable);
+        var found = queryService.findAll(request.searchText(), null, request.pageable());
         return ListingData.<ChangeRow>builder()
                 .page(Page.<ChangeRow>builder()
                         .searchSignature(found.page().searchSignature())
@@ -118,8 +114,8 @@ public class Changes extends Listing<NoFilters, ChangeRow> {
 
 Key points:
 
-- `extends Listing<NoFilters, ChangeRow>` gives full control: you define `search()` and Mateu calls it
-- `NoFilters` means no filter form above the list; replace it with a custom record to add filters
+- `implements Listing<ChangeRow>` gives full control: you define `search(SearchRequest, HttpRequest)` and Mateu calls it
+- `Searchable` shows the free-text search box; declare `Filterable<SomeFilters>` too for a filter form above the list
 - `@Scope("prototype")` is required because the class holds state per request
 - `@Trigger(type = TriggerType.OnLoad, actionId = "search")` automatically triggers `search()` when the page loads, so the list is not empty on first visit
 - `compare(ChangeRow row)` handles the `ColumnAction("compare", ...)` defined in the row
@@ -193,7 +189,7 @@ Key points:
 ## How the pieces connect
 
 ```
-Changes (Listing<NoFilters, ChangeRow>)
+Changes (Listing<ChangeRow> + Searchable)
   └── search() → ChangeQueryService → maps DTOs to ChangeRow
   └── compare(ChangeRow) → opens ComparisonResultPage
   └── createRelease() [@Toolbar] → opens CreateReleaseForm (pre-filled from JWT)
@@ -207,7 +203,7 @@ Changes (Listing<NoFilters, ChangeRow>)
 | Pattern | When to use |
 |---------|-------------|
 | `AutoCrud<T>` | Data fits a single model; standard CRUD operations |
-| `Listing<Filters, Row>` | Custom data source, rows differ from domain model, no standard CRUD |
+| `Listing<Row>` + capabilities | Custom data source, rows differ from domain model, declare only the interactions you need |
 
 ---
 
@@ -216,7 +212,7 @@ Changes (Listing<NoFilters, ChangeRow>)
 Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` to show export buttons in the toolbar. The framework calls `search()` with the current filters and produces the file.
 
 ```java
-public class Changes extends Listing<NoFilters, ChangeRow> {
+public class Changes implements Listing<ChangeRow>, Searchable {
 
     @Override
     public boolean csvExportable() { return true; }
@@ -226,7 +222,7 @@ public class Changes extends Listing<NoFilters, ChangeRow> {
 
     // search() is reused for export — no extra method needed
     @Override
-    public ListingData<ChangeRow> search(...) { ... }
+    public ListingData<ChangeRow> search(SearchRequest request, HttpRequest httpRequest) { ... }
 }
 ```
 
@@ -236,8 +232,8 @@ All three methods default to `false`; override only the formats you want to expo
 
 ## Mental model
 
-- `Listing<Filters, Row>` = custom list, you control the data
-- `NoFilters` = no filter form; replace with a record for custom filters
+- `Listing<Row>` = custom list, you control the data
+- `Searchable` / `Filterable<F>` = declare the search box / the filter form
 - `@Trigger(OnLoad, "search")` = auto-run search on page load
 - `@Toolbar` on a method = button in the list toolbar (receives selected rows)
 - Row action methods are matched by the `actionId` in `ColumnAction`

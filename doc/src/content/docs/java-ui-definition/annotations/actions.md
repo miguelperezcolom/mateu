@@ -174,7 +174,7 @@ No attributes. The action ID is derived from the method name.
 ### Example
 
 ```java
-public class InvoiceListing implements ListingBackend<Filters, InvoiceRow> {
+public class InvoiceListing implements Listing<InvoiceRow> {
 
     @RowAction
     void approve(InvoiceRow row) {

@@ -73,5 +73,5 @@ This lets you place a "Print" button on the page that opens the native print dia
 ## Notes
 
 - **Print preview** is the browser's own dialog — no extra UI needed.
-- **PDF export** from a listing (data as a file download) is a separate concern — see [export support](/java-ui-definition/interfaces/listing-backend/#export-support).
+- **PDF export** from a listing (data as a file download) is a separate concern — see [export support](/java-ui-definition/interfaces/listing/#export-support).
 - Avoid fixed heights and horizontal scrolling in print — both cause clipping. Use `@Style("width: 100%;")` on wide components.

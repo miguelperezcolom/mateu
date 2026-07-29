@@ -49,7 +49,7 @@ public ListingSummaries summaries(String searchText, Sale filters,
 }
 ```
 
-Declarative `Listing<Filters, Row>` classes own their `search(...)`, so they attach the numbers
+Declarative `Listing<Row>` classes own their `search(...)`, so they attach the numbers
 themselves: `ListingData.of(rows).withAggregates(totals).withGroups(groups)` — the `@Aggregate`
 and `@GroupBy` marks on the row class drive the rendering either way.
 

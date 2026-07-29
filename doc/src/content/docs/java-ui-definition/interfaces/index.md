@@ -27,8 +27,8 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 
 | Interface | Description |
 |---|---|
-| [`ListingBackend`](listing-backend/) | Provides paginated, searchable, filterable data for a grid |
-| [`ReactiveListingBackend`](listing-backend/) | Reactive (Reactor) variant of `ListingBackend` |
+| [`Listing`](listing/) | Provides paginated data for a grid; capabilities (`Searchable`, `Filterable`, `Navigable`, `Editable`, `Creatable`, `Deletable`) are declared on the same class |
+| [`ReactiveListing`](listing/) | Reactive (Reactor) variant of `Listing` |
 | [`DataSupplier`](data-supplier/) | Provides arbitrary data to the component |
 | [`CommandSupplier`](data-supplier/) | Provides UI commands to execute on the client side |
 | [`PostHydrationHandler`](post-hydration/) | Called after the server re-hydrates component state |

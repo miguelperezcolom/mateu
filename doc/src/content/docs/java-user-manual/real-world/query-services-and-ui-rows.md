@@ -43,11 +43,11 @@ These are not JPA entities. They are DTOs built from query results, with:
 
 ```java
 @Override
-public ListingData<OrderRow> search(
-        String searchText, OrderFilters filters, Pageable pageable, HttpRequest httpRequest) {
+public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
 
+    var pageable = request.pageable();
     var dtos = orderQueryService.search(
-            searchText, filters.status(), pageable.page(), pageable.size());
+            request.searchText(), filters(request).status(), pageable.page(), pageable.size());
 
     var rows = dtos.stream()
             .map(dto -> new OrderRow(
@@ -64,7 +64,7 @@ public ListingData<OrderRow> search(
             .toList();
 
     return new ListingData<>(new Page<>(
-            searchText,
+            request.searchText(),
             pageable.size(),
             pageable.page(),
             dtos.totalCount(),

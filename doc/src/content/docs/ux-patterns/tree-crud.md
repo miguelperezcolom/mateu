@@ -79,7 +79,7 @@ public class WorkspaceCrud extends Crud<
     @Override public boolean    searchable() { return true; }
 
     @Override
-    public Object save(HttpRequest req) {
+    public String save(HttpRequest req) {
         String id = req.getString(getIdFieldForRow());
         adapter.save(id, req);   // route by id — the adapter knows which editor the id belongs to
         return id;

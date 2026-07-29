@@ -27,10 +27,12 @@ public class Order {
 }
 
 public class CustomerLookup implements LookupOptionsSupplier {
-    public List<Option> search(String filter) {
-        return customerRepo.search(filter)
+    @Override
+    public ListingData<Option> search(String fieldName, String searchText,
+                                      Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(customerRepo.search(searchText)
             .map(c -> new Option(c.getId(), c.getFullName()))
-            .toList();
+            .toList());
     }
 }
 ```
@@ -52,20 +54,30 @@ public class BookingForm {
 }
 ```
 
-The selector class extends `Listing` and implements `Selector` (and optionally `LabelSupplier`):
+The selector class implements [`Listing`](/java-user-manual/build/capability-listings/) and `Selector` (and optionally `LookupLabelSupplier`):
 
 ```java
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 40rem;")
-public class HotelSelector extends Listing<Filters, Row>
-        implements Selector<String>, LabelSupplier {
+public class HotelSelector implements Listing<Row>, Searchable,
+        Selector<String>, LookupLabelSupplier {
+
+    private String _fieldId;
 
     @Override
-    public ListingData<Row> search(String searchText, Filters filters,
-                                   Pageable pageable, HttpRequest httpRequest) {
+    public String fieldId() { return _fieldId; }
+
+    @Override
+    public Selector withFieldId(String fieldId) {
+        _fieldId = fieldId;
+        return this;
+    }
+
+    @Override
+    public ListingData<Row> search(SearchRequest request, HttpRequest httpRequest) {
         return ListingData.of(
             hotels.stream()
-                .filter(h -> h.name().contains(searchText))
+                .filter(h -> h.name().contains(request.searchText()))
                 .toList()
         );
     }
@@ -142,8 +154,8 @@ then shows the hierarchy with expand/collapse carets and a per-row *Select* acti
 *Select* on any node picks it (`selected()` receives the clicked row as usual).
 
 ```java
-public class ZoneSelector extends Listing<Filters, ZoneRow>
-        implements Selector<String>, LookupLabelSupplier {
+public class ZoneSelector implements Listing<ZoneRow>, Searchable,
+        Selector<String>, LookupLabelSupplier {
 
     public record ZoneRow(String id, String name, List<ZoneRow> children) {}
 

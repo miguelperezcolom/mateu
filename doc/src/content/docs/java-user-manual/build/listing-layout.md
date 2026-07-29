@@ -151,7 +151,7 @@ public record CategoryRow(
 ```java
 @UI("/catalog")
 @Title("Catalog")
-public class CatalogTree extends Listing<NoFilters, CategoryRow> {
+public class CatalogTree implements Listing<CategoryRow>, Searchable {
 
     @Override
     public GridLayout gridLayout() {
@@ -159,8 +159,7 @@ public class CatalogTree extends Listing<NoFilters, CategoryRow> {
     }
 
     @Override
-    public ListingData<CategoryRow> search(
-            String searchText, NoFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CategoryRow> search(SearchRequest request, HttpRequest httpRequest) {
         return ListingData.of(rootCategories);   // roots only — each carries its children
     }
 }

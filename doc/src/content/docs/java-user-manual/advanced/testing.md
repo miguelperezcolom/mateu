@@ -107,7 +107,7 @@ void delete_removes_entity() {
 
 ## Testing listings
 
-For `Listing<Filters, Row>` classes, call `search()` directly:
+For `Listing<Row>` classes, call `search()` directly:
 
 ```java
 @Test
@@ -116,7 +116,8 @@ void search_returns_change_rows() {
     var form = new CreateReleaseForm();
     var changes = new Changes(queryService, form);
 
-    var result = changes.search("", new NoFilters(), Pageable.unpaged(), fakeRequest());
+    var request = new SearchRequest("", null, List.of(), new Pageable(0, 100, List.of()));
+    var result = changes.search(request, fakeRequest());
 
     assertThat(result.page().content()).isNotEmpty();
     assertThat(result.page().content().get(0)).isInstanceOf(ChangeRow.class);

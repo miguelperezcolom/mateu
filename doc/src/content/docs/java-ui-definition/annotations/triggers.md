@@ -93,11 +93,10 @@ The listing fires the built-in `search` action as soon as it renders, so the tab
 @Service
 @Scope("prototype")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class Changes extends Listing<NoFilters, ChangeRow> {
+public class Changes implements Listing<ChangeRow>, Searchable {
 
     @Override
-    public ListingData<ChangeRow> search(
-            String searchText, NoFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<ChangeRow> search(SearchRequest request, HttpRequest httpRequest) {
         // ...
     }
 }

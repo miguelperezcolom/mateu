@@ -114,4 +114,4 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 
 ## Relationship to other interfaces
 
-`ListingBackend` and `ReactiveListingBackend` both extend `ActionHandler`. Their `supportsAction` override restricts dispatch to `"search"` and the `action-on-row-*` / `action-on-view-*` families, and their `handleAction` override invokes `search(...)` automatically. When you implement `ListingBackend` you are also providing an `ActionHandler` — you only need to override `handleAction` for row-level or toolbar actions not covered by `search`.
+`Listing` and `ReactiveListing` both extend `ActionHandler`. Their `supportsAction` override restricts dispatch to `"search"` and the `action-on-row-*` / `action-on-view-*` families, and their `handleAction` override invokes `search(...)` automatically. When you implement `Listing` you are also providing an `ActionHandler` — you only need to override `handleAction` for row-level or toolbar actions not covered by `search`.

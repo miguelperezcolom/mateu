@@ -12,7 +12,7 @@ Read them in order to build up from basic CRUD to distributed and embedded scena
 
 - [Admin panel](/java-user-manual/use-cases/admin-panel/) — full CRUD from a Java model; status badges, nested collections, column actions, toolbar buttons
 - [Users CRUD with lookups](/java-user-manual/use-cases/users-crud/) — Spring injection, `@Lookup` fields, checkbox stereotype, custom editor page
-- [Custom listing](/java-user-manual/use-cases/custom-listing/) — `Listing<Filters, Row>`, toolbar actions, JWT extraction, auto-load trigger
+- [Custom listing](/java-user-manual/use-cases/custom-listing/) — `Listing<Row>`, toolbar actions, JWT extraction, auto-load trigger
 - [Nested CRUD](/java-user-manual/use-cases/nested-crud/) — hierarchical data, `@DetailFormCustomisation`, modal editors
 
 ## Architecture and integration

@@ -15,7 +15,7 @@ Dropping users on a dense listing when their task is "search for X" buries the s
 
 ## Solution
 
-Extend `HeroSearch<Filters, Row>` and implement `search(...)` exactly like a declarative `Listing`. The archetype renders a centered hero (title + subtitle, optional background image) followed by the standard searchable listing, with results as card tiles by default.
+Extend `HeroSearch<Filters, Row>` and implement `search(SearchRequest, HttpRequest)` exactly like any [listing](/java-user-manual/build/capability-listings/) (the archetype already declares `Searchable` and `Filterable<Filters>` for you). It renders a centered hero (title + subtitle, optional background image) followed by the standard searchable listing, with results as card tiles by default.
 
 ```java
 @UI("/hotel-search")
@@ -29,9 +29,9 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     @Override protected String heroSubtitle() { return "Search by name or zone…"; }
 
     @Override
-    public ListingData<Hotel> search(String searchText, HotelFilters filters,
-                                     Pageable pageable, HttpRequest httpRequest) {
-        // query your use case / repository with searchText + filters + pageable
+    public ListingData<Hotel> search(SearchRequest request, HttpRequest httpRequest) {
+        // query your use case / repository with
+        // request.searchText() + filters(request) + request.pageable()
         return ListingData.<Hotel>builder().page(/* … */).build();
     }
 }

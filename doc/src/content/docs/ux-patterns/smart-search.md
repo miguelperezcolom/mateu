@@ -15,7 +15,7 @@ A routed `Listing` preloads its rows and reads as "a grid page"; a crud adds cre
 
 ## Solution
 
-Extend `SmartSearchPage<Filters, Row>` and implement `search(...)` exactly like a declarative `Listing`. The archetype composes the optional `pageSubtitle()` intro line over the standard smart-search listing. It is read-only and starts **empty** (the user searches).
+Extend `SmartSearchPage<Filters, Row>` and implement `search(SearchRequest, HttpRequest)` exactly like any [listing](/java-user-manual/build/capability-listings/) (the archetype already declares `Searchable` and `Filterable<Filters>` for you). It composes the optional `pageSubtitle()` intro line over the standard smart-search listing. It is read-only and starts **empty** (the user searches).
 
 ```java
 @UI("/smart-search-demo")
@@ -37,9 +37,9 @@ public class AssetSearch extends SmartSearchPage<AssetFilters, AssetRow> {
     }
 
     @Override
-    public ListingData<AssetRow> search(String searchText, AssetFilters filters,
-                                        Pageable pageable, HttpRequest httpRequest) {
-        // query your use case / repository with searchText + filters + pageable
+    public ListingData<AssetRow> search(SearchRequest request, HttpRequest httpRequest) {
+        // query your use case / repository with
+        // request.searchText() + filters(request) + request.pageable()
         return ListingData.from(/* … */ rows);
     }
 }

@@ -117,4 +117,5 @@ Use `FilteredAutoCrud` when:
 ## Next
 
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for view, editor, creation form, filters, and rows
+- [Listings and capabilities](/java-user-manual/build/capability-listings/) — build a listing up from rows, declaring only the capabilities you need
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions

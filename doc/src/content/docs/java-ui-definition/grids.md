@@ -106,11 +106,11 @@ action that reads the list) — there is no per-cell save.
 
 ## Choosing the layout (`gridLayout()`)
 
-A declarative listing (`extends Listing<Filters, Row>`) can force how its rows are laid out by overriding `gridLayout()`. By default the renderer picks a layout from the column weights (`GridLayout.auto`), which for a wide, many-column row can fall back to `masterDetail`. Return `GridLayout.table` (or `list`, `cards`) to force it:
+A declarative listing (a `Listing<Row>` class) can force how its rows are laid out by overriding `gridLayout()`. By default the renderer picks a layout from the column weights (`GridLayout.auto`), which for a wide, many-column row can fall back to `masterDetail`. Return `GridLayout.table` (or `list`, `cards`) to force it:
 
 ```java
 @UI("/arrivals")
-public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
+public class Arrivals implements Listing<ArrivalRow>, Searchable, Filterable<ArrivalFilters> {
 
     @Override
     public GridLayout gridLayout() {
@@ -118,7 +118,7 @@ public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
     }
 
     @Override
-    public ListingData<ArrivalRow> search(...) { ... }
+    public ListingData<ArrivalRow> search(SearchRequest request, HttpRequest httpRequest) { ... }
 }
 ```
 

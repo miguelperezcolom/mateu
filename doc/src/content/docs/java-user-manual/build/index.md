@@ -21,12 +21,13 @@ If you are building something new, read the pages in order. If you are solving a
 ### Domain and data
 
 - [Domain models](/java-user-manual/build/domain-models/) — how ViewModels relate to your backend architecture
-- [Identifiable, Named, and Searchable](/java-user-manual/build/entity-interfaces/) — the marker interfaces entities must implement to work with the CRUD machinery
+- [Identifiable, Named, and SearchableText](/java-user-manual/build/entity-interfaces/) — the marker interfaces entities must implement to work with the CRUD machinery
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/) — `@Lookup`, options suppliers, and label resolution
 
 ### CRUD
 
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — the list → view → edit flow and how to customize it
+- [Listings and capabilities](/java-user-manual/build/capability-listings/) — the central model: a `Listing<Row>` plus the capability interfaces you declare (`Searchable`, `Filterable`, `Navigable`, `Editable`, `Creatable`, `Deletable`); a CRUD is the full pack
 - [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the simplest way to get a CRUD or read-only listing, with capability annotations
 - [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override `fetchRows`, `buildNamedView`, or `buildCreationForm` for custom search, pre-populated forms, and more
 - [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository contract consumed by the auto adapters, with Spring Data JPA integration
@@ -35,7 +36,7 @@ If you are building something new, read the pages in order. If you are solving a
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit models for filters, rows, views, editors, and creation forms
 - [EditableView](/java-user-manual/build/editable-view/) — single-entity view with an Edit button, no list
 - [MultiView](/java-user-manual/build/view-orchestrator/) — the root base class that handles routing and screen wrapping for all orchestrators
-- [Listing&lt;Filters, Row&gt;](/java-user-manual/build/listing/) — standalone filterable listing with toolbar actions, export, and selector support
+- [Listing&lt;Row&gt;](/java-user-manual/build/listing/) — standalone listings: toolbar actions, export, and selector support
 
 ### Composition
 

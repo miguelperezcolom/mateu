@@ -195,8 +195,8 @@ public class RolesCrud extends Crud<
   }
 
   @Override
-  public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-    return queryService.findAll(searchText, (NoFilters) filters, pageable);
+  public ListingData<RoleRow> search(SearchRequest request, HttpRequest httpRequest) {
+    return queryService.findAll(request.searchText(), filters(request), request.pageable());
   }
 
   @Override
@@ -220,26 +220,16 @@ public class RolesCrud extends Crud<
   }
 
   @Override
-  public Object save(HttpRequest httpRequest) {
+  public String save(HttpRequest httpRequest) {
     var form = httpRequest.getComponentState(RoleViewModel.class);
     form.save(httpRequest);
     return form.id();
   }
 
   @Override
-  public Object saveNew(HttpRequest httpRequest) {
+  public String create(HttpRequest httpRequest) {
     var form = httpRequest.getComponentState(RoleViewModel.class);
     return form.create(httpRequest);
-  }
-
-  @Override
-  public String getIdFieldForRow() {
-    return "id";
-  }
-
-  @Override
-  public String toId(String s) {
-    return s;
   }
 }
 ```
@@ -264,7 +254,7 @@ public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
   }
 
   @Override
-  public ListingData<Option> search(String searchText, Pageable pageable, HttpRequest httpRequest) {
+  public ListingData<Option> search(String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
     var found = queryService.findAll(searchText, null, pageable);
     return new ListingData<>(new Page<>(
         searchText,
@@ -282,7 +272,7 @@ public class PermissionIdOptionsSupplier implements LookupOptionsSupplier {
 ### Label supplier
 
 ```java
-public class PermissionIdLabelSupplier implements LabelSupplier {
+public class PermissionIdLabelSupplier implements LookupLabelSupplier {
 
   final PermissionQueryService queryService;
 
@@ -291,7 +281,7 @@ public class PermissionIdLabelSupplier implements LabelSupplier {
   }
 
   @Override
-  public String label(Object id, HttpRequest httpRequest) {
+  public String label(String fieldName, Object id, HttpRequest httpRequest) {
     return queryService.getLabel((String) id);
   }
 }

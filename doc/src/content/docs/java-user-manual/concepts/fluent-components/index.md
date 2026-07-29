@@ -51,7 +51,7 @@ public class MyPage implements ComponentTreeSupplier {
 | `RuleSupplier` | Declares client-side rules — implement `rules()` |
 | `ValidationSupplier` | Declares validations — implement `validations()` |
 | `TriggersSupplier` | Declares triggers — implement `triggers()` |
-| `ListingBackend` | Powers a data listing — implement `search()` |
+| `Listing<Row>` | Powers a data listing — implement `search(SearchRequest, HttpRequest)` |
 | `AppSupplier` | Defines a nested app with its own navigation — implement `getApp()` |
 
 A class can implement as many of these as needed.

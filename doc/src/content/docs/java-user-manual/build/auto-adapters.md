@@ -13,7 +13,7 @@ These methods are `public` in `FilteredAutoCrud` and can be overridden in any `A
 
 | Method | Default behaviour | Override to… |
 |---|---|---|
-| `fetchRows(searchText, filters, pageable, httpRequest)` | In-memory filter via `toString()` / `Searchable.searchableText()` | Query a database or external service |
+| `fetchRows(searchText, filters, pageable, httpRequest)` | In-memory filter via `toString()` / `SearchableText.searchableText()` | Query a database or external service |
 | `buildNamedView(id, httpRequest)` | Loads the entity via `store().findById(id)` | Return a customised entity (pre-loaded data, extra context, etc.) |
 | `buildCreationForm(httpRequest)` | Instantiates a new `T` | Return a pre-populated entity for the creation form |
 
@@ -81,7 +81,7 @@ public class OrderCrud extends AutoCrud<Order> {
 }
 ```
 
-Both hooks return the **entity itself** — Mateu renders its fields, serialises it as the form state, and persists the submitted state through `store()` in the orchestrator's `save()`/`saveNew()`.
+Both hooks return the **entity itself** — Mateu renders its fields, serialises it as the form state, and persists the submitted state through `store()` in the orchestrator's `save()`/`create()`.
 
 ---
 

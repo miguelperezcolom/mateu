@@ -2,7 +2,7 @@
 title: "Listings"
 ---
 
-`Listing` is the fluent API's data grid component. Combined with `ListingBackend`, it powers searchable, filterable, paginated tables with optional row actions.
+`Listing` is the fluent API's data grid component. Combined with the `Listing<Row>` interface (io.mateu.uidl.interfaces) — plus the `Searchable`/`Filterable` capabilities — it powers searchable, filterable, paginated tables with optional row actions.
 
 ---
 
@@ -10,7 +10,8 @@ title: "Listings"
 
 ```java
 @Route(value = "/my-listing", parentRoute = "")
-public class MyListing implements ComponentTreeSupplier, ListingBackend<MyFilters, MyRow>, TriggersSupplier {
+public class MyListing implements ComponentTreeSupplier, Listing<MyRow>,
+        Searchable, Filterable<MyFilters>, TriggersSupplier {
 
     @Override
     public Listing component(HttpRequest httpRequest) {
@@ -27,16 +28,12 @@ public class MyListing implements ComponentTreeSupplier, ListingBackend<MyFilter
     }
 
     @Override
-    public Class<MyFilters> filtersClass() {
-        return MyFilters.class;
-    }
-
-    @Override
-    public ListingData<MyRow> search(String searchText, MyFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest) {
         // fetch and filter your data
-        var rows = fetchRows(searchText, filters, pageable);
+        var pageable = request.pageable();
+        var rows = fetchRows(request.searchText(), filters(request), pageable);
         return new ListingData<>(new Page<>(
-                searchText,
+                request.searchText(),
                 pageable.size(),
                 pageable.page(),
                 rows.totalCount(),
@@ -121,13 +118,14 @@ Listing.builder()
         .build()
 ```
 
-The filter values are passed to `search()` as a typed `filters` object:
+The filter values are carried by the `SearchRequest` — declare `Filterable<MyFilters>` on the class and read them typed via `filters(request)`:
 
 ```java
 record MyFilters(int age) {}
 
 @Override
-public ListingData<MyRow> search(String searchText, MyFilters filters, Pageable pageable, HttpRequest httpRequest) {
+public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest) {
+    var filters = filters(request);
     return allItems.stream()
             .filter(item -> filters.age() == 0 || item.age() == filters.age())
             ...
@@ -138,11 +136,12 @@ public ListingData<MyRow> search(String searchText, MyFilters filters, Pageable 
 
 ## Sorting
 
-`Pageable` carries the sort state. Use it to sort your data:
+`request.pageable()` carries the sort state. Use it to sort your data:
 
 ```java
 @Override
-public ListingData<MyRow> search(String searchText, MyFilters filters, Pageable pageable, HttpRequest httpRequest) {
+public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest) {
+    var pageable = request.pageable();
     var sorted = allItems.stream()
             .sorted((a, b) -> {
                 for (Sort sort : pageable.sort()) {
@@ -156,7 +155,7 @@ public ListingData<MyRow> search(String searchText, MyFilters filters, Pageable 
             .toList();
     // paginate
     return new ListingData<>(new Page<>(
-            searchText,
+            request.searchText(),
             pageable.size(),
             pageable.page(),
             sorted.size(),
@@ -192,7 +191,7 @@ Handle the action in `handleAction` (override `supportsAction` too):
 @Override
 public boolean supportsAction(String actionId) {
     if ("export".equals(actionId)) return true;
-    return ListingBackend.super.supportsAction(actionId);
+    return Listing.super.supportsAction(actionId);
 }
 
 @Override
@@ -201,7 +200,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
         // run export
         return Message.builder().text("Exported!").build();
     }
-    return ListingBackend.super.handleAction(actionId, httpRequest);
+    return Listing.super.handleAction(actionId, httpRequest);
 }
 ```
 
@@ -228,7 +227,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
         var selected = httpRequest.getSelectedRows(MyRow.class);
         return Message.builder().text("Selected: " + selected).build();
     }
-    return ListingBackend.super.handleAction(actionId, httpRequest);
+    return Listing.super.handleAction(actionId, httpRequest);
 }
 ```
 
@@ -276,7 +275,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
         var row = httpRequest.getClickedRow(MyRow.class);
         return Message.builder().text(actionId + " on " + row.name()).build();
     }
-    return ListingBackend.super.handleAction(actionId, httpRequest);
+    return Listing.super.handleAction(actionId, httpRequest);
 }
 ```
 

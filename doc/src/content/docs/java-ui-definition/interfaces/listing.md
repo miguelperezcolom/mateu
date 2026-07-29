@@ -1,46 +1,65 @@
 ---
-title: "ListingBackend"
+title: "Listing"
 description: "Interface for implementing paginated, searchable list views."
 ---
 
-`ListingBackend<Filters, Row>` is the server-side contract for a grid. Implement it to supply paginated, searchable, and filterable rows to a `Listing` component. The only method you must provide is `search`; everything else has sensible defaults.
+`Listing<Row>` is the server-side contract for a grid. Implement it to supply paginated rows; declare the input capabilities (`Searchable`, `Filterable<F>`) on the same class to add the search box and the filter bar. The only method you must provide is `search`; everything else has sensible defaults.
 
 ```java
-public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSupplier {
+public interface Listing<Row> extends ActionHandler, ActionSupplier {
 
-    ListingData<Row> search(
-        String searchText,
-        Filters filters,
-        Pageable pageable,
-        HttpRequest httpRequest);
+    ListingData<Row> search(SearchRequest request, HttpRequest httpRequest);
 
     default boolean selectionEnabled() { return false; }
-    default Class<Filters> filtersClass() { /* auto-inferred via generics */ }
+    default Class<Row> rowClass() { /* auto-inferred via generics */ }
     default GridLayout gridLayout() { return GridLayout.auto; }
+    default boolean pdfExportable()   { return false; }
+    default boolean excelExportable() { return false; }
+    default boolean csvExportable()   { return false; }
 }
 ```
 
-## Type parameters
+## Type parameter
 
 | Parameter | Description |
 |---|---|
-| `Filters` | A class or record whose fields become the filter form rendered above the grid |
 | `Row` | A class or record whose fields become the grid columns |
+
+## The `SearchRequest`
+
+Everything a search receives travels in one object, so the signature never changes as inputs grow:
+
+```java
+public record SearchRequest(
+    String searchText,              // populated when the listing is Searchable
+    Object filters,                 // populated when the listing is Filterable<F>
+    List<FilterCriterion> criteria, // range / multi-select conditions (CRUD path)
+    Pageable pageable)              // page, size, sort
+```
+
+| Component | Filled when |
+|---|---|
+| `searchText()` | The class declares the `Searchable` marker interface — otherwise always empty |
+| `filters()` | The class declares `Filterable<F>` — read it typed via `filters(request)`; `null` otherwise |
+| `criteria()` | Range/multi-select filter conditions that don't fit the filters object (see [Filters & Listing](/ux-patterns/filters-and-listing/)) |
+| `pageable()` | Always — page number, page size, and sort state of the grid |
 
 ## Methods
 
 | Method | Description |
 |---|---|
-| `search(searchText, filters, pageable, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
+| `search(request, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
-| `filtersClass()` | Returns the `Filters` class; auto-inferred via generics, rarely overridden |
+| `rowClass()` | Returns the `Row` class; auto-inferred via generics, rarely overridden |
 | `gridLayout()` | Force a specific grid layout. Defaults to `GridLayout.auto` (auto-selection based on column weights). Override to pin a layout: `GridLayout.table`, `.list`, `.cards`, `.masterDetail`, or `.tree` (hierarchical rows with a self-referential `children` list) |
+
+Interaction capabilities — clickable rows, editing, creation, deletion — are separate interfaces (`Navigable`, `Editable`, `Creatable`, `Deletable`) declared on the same class. See [Listings and capabilities](/java-user-manual/build/capability-listings/).
 
 ### Overriding `gridLayout()`
 
 ```java
 @UI("/arrivals")
-public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
+public class Arrivals implements Listing<ArrivalRow>, Searchable, Filterable<ArrivalFilters> {
 
     @Override
     public GridLayout gridLayout() {
@@ -48,9 +67,7 @@ public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
     }
 
     @Override
-    public ListingData<ArrivalRow> search(
-            String searchText, ArrivalFilters filters,
-            Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<ArrivalRow> search(SearchRequest request, HttpRequest httpRequest) {
         // ...
     }
 }
@@ -60,7 +77,7 @@ See [Listing layout](/java-user-manual/build/listing-layout/) for the full auto-
 
 ## Export support
 
-When extending the `Listing<Filters, Row>` abstract class, you can enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server — no extra query code needed.
+Enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server — no extra query code needed.
 
 | Method | Default | Effect when `true` |
 |---|---|---|
@@ -71,16 +88,16 @@ When extending the `Listing<Filters, Row>` abstract class, you can enable export
 Override one or more to enable the corresponding button:
 
 ```java
-public class OrdersListing extends Listing<OrderFilters, OrderRow> {
+public class OrdersListing implements Listing<OrderRow>, Searchable, Filterable<OrderFilters> {
 
     @Override public boolean pdfExportable()   { return true; }
     @Override public boolean excelExportable() { return true; }
     @Override public boolean csvExportable()   { return true; }
 
     @Override
-    public ListingData<OrderRow> search(String searchText, OrderFilters filters,
-                                        Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(repository.findAll(searchText, filters, pageable));
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
+        return ListingData.of(repository.findAll(
+            request.searchText(), filters(request), request.pageable()));
     }
 }
 ```
@@ -161,16 +178,15 @@ From the Changes demo — a listing of content changes with a toolbar action tha
 @Scope("prototype")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("max-width:900px;margin: auto;")
-public class Changes extends Listing<NoFilters, ChangeRow> {
+public class Changes implements Listing<ChangeRow>, Searchable {
 
     final ChangeQueryService queryService;
     final CreateReleaseForm createReleaseForm;
 
     @Override
-    public ListingData<ChangeRow> search(
-            String searchText, NoFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<ChangeRow> search(SearchRequest request, HttpRequest httpRequest) {
 
-        var found = queryService.findAll(searchText, filters, pageable);
+        var found = queryService.findAll(request.searchText(), null, request.pageable());
 
         return ListingData.<ChangeRow>builder()
                 .page(Page.<ChangeRow>builder()
@@ -196,12 +212,10 @@ When all rows fit in memory and you do not need server-side pagination:
 
 ```java
 @Override
-public ListingData<CustomerRow> search(
-        String searchText, CustomerFilters filters,
-        Pageable pageable, HttpRequest httpRequest) {
+public ListingData<CustomerRow> search(SearchRequest request, HttpRequest httpRequest) {
 
     var rows = repository.findAll().stream()
-        .filter(c -> searchText == null || c.name().contains(searchText))
+        .filter(c -> request.searchText().isBlank() || c.name().contains(request.searchText()))
         .map(c -> new CustomerRow(c.id(), c.name(), c.email()))
         .toList();
 
@@ -211,7 +225,7 @@ public ListingData<CustomerRow> search(
 
 ## Bulk import — `UploadEnabled`
 
-If your `Listing` subclass also implements `UploadEnabled`, the framework adds an "Import" button to the listing toolbar. Clicking it opens an upload widget; the file is sent to `POST /upload` (the same endpoint used by file fields) and, once the upload completes, the framework calls `processUpload()` with the returned file id.
+If your `Listing` class also implements `UploadEnabled`, the framework adds an "Import" button to the listing toolbar. Clicking it opens an upload widget; the file is sent to `POST /upload` (the same endpoint used by file fields) and, once the upload completes, the framework calls `processUpload()` with the returned file id.
 
 ```java
 public interface UploadEnabled {
@@ -224,8 +238,8 @@ The return value follows the same conventions as any action: a `Message` for a s
 ### Example — synchronous CSV import
 
 ```java
-public class ProductsListing extends Listing<ProductFilters, ProductRow>
-        implements UploadEnabled {
+public class ProductsListing implements Listing<ProductRow>, Searchable,
+        Filterable<ProductFilters>, UploadEnabled {
 
     final ProductImportService importService;
 
@@ -237,7 +251,7 @@ public class ProductsListing extends Listing<ProductFilters, ProductRow>
     }
 
     @Override
-    public ListingData<ProductRow> search(...) { ... }
+    public ListingData<ProductRow> search(SearchRequest request, HttpRequest httpRequest) { ... }
 }
 ```
 
@@ -255,18 +269,14 @@ The `/upload` endpoint must be provided by your application — see [File Upload
 
 ---
 
-## ReactiveListingBackend
+## ReactiveListing
 
-`ReactiveListingBackend<Filters, Row>` is the Project Reactor variant. Use it when your data source is reactive (R2DBC, WebClient, etc.). The contract is identical to `ListingBackend` except that `search` returns `Mono<ListingData<Row>>` and `handleAction` returns `Flux<Object>`.
+`ReactiveListing<Row>` is the Project Reactor variant. Use it when your data source is reactive (R2DBC, WebClient, etc.). The contract is identical to `Listing` except that `search` returns `Mono<ListingData<Row>>` and `handleAction` returns `Flux<Object>`. The same input capabilities apply: `Searchable` shows the search box, `Filterable<F>` the filter bar.
 
 ```java
-public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
+public interface ReactiveListing<Row> extends ActionHandler {
 
-    Mono<ListingData<Row>> search(
-        String searchText,
-        Filters filters,
-        Pageable pageable,
-        HttpRequest httpRequest);
+    Mono<ListingData<Row>> search(SearchRequest request, HttpRequest httpRequest);
 
     default boolean selectionEnabled() { return false; }
 }
@@ -276,11 +286,9 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
 
 ```java
 @Override
-public Mono<ListingData<ProductRow>> search(
-        String searchText, ProductFilters filters,
-        Pageable pageable, HttpRequest httpRequest) {
+public Mono<ListingData<ProductRow>> search(SearchRequest request, HttpRequest httpRequest) {
 
-    return productRepository.findAll(searchText, pageable)
+    return productRepository.findAll(request.searchText(), request.pageable())
         .collectList()
         .map(rows -> ListingData.of(rows));
 }

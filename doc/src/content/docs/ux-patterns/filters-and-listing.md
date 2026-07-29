@@ -53,7 +53,7 @@ public class Product {
 Filters render as a **single search field** (after the Redwood Smart Search pattern), not as a row
 of inputs. The one field hosts both the free-text keyword search and the structured filters:
 
-- **Type and press Enter** to apply a keyword search (matched against `Searchable.searchableText()`
+- **Type and press Enter** to apply a keyword search (matched against `SearchableText.searchableText()`
   or `toString()`). Several words search for rows containing **all of them**, case-insensitively
   and in any order — "13 producto" finds "Producto 13".
 - **Click the field** to open the *Filter by* panel listing every filter. Picking one opens a
@@ -130,8 +130,9 @@ database.
 ## Typed filters on declarative listings
 
 The table above describes the **AutoCrud** path, where the entity doubles as the filters class and
-Mateu infers the widgets. A declarative `Listing<Filters, Row>` has its own Filters class — there
-the richer widgets are **opt-in by type**: declare the field as `DateRange`, `NumberRange`
+Mateu infers the widgets. A [capability listing](/java-user-manual/build/capability-listings/)
+declaring `Filterable<Filters>` has its own Filters class — there the richer widgets are
+**opt-in by type**: declare the field as `DateRange`, `NumberRange`
 (both in `io.mateu.uidl.data`) or `Set<SomeEnum>` and it renders as a from–to range or a
 multi-select, on any listing:
 
@@ -144,11 +145,11 @@ public class BookingsFilters {
 }
 
 @UI("/bookings")
-public class BookingsListing extends Listing<BookingsFilters, BookingRow> {
+public class BookingsListing implements Listing<BookingRow>, Searchable, Filterable<BookingsFilters> {
     @Override
-    public ListingData<BookingRow> search(String searchText, BookingsFilters filters,
-                                          Pageable pageable, HttpRequest httpRequest) {
-        // filters arrives fully typed — apply it however your data source needs
+    public ListingData<BookingRow> search(SearchRequest request, HttpRequest httpRequest) {
+        // filters(request) arrives fully typed — apply it however your data source needs
+        var filters = filters(request);
         var rows = bookings.stream()
                 .filter(b -> filters.getCreated() == null || filters.getCreated().contains(b.created()))
                 .filter(b -> filters.getTotal() == null || filters.getTotal().contains(b.total()))
@@ -169,10 +170,10 @@ types keep the classic single-value widgets.
 
 ## Export
 
-Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` in your `Listing` subclass to show the corresponding export button. The framework reuses `search()` with the active filters to collect the data — no extra code needed.
+Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` in your `Listing` class to show the corresponding export button. The framework reuses `search()` with the active filters to collect the data — no extra code needed.
 
 ```java
-public class ProductsListing extends Listing<ProductFilters, ProductRow> {
+public class ProductsListing implements Listing<ProductRow>, Searchable, Filterable<ProductFilters> {
 
     @Override public boolean excelExportable() { return true; }
     @Override public boolean csvExportable()   { return true; }

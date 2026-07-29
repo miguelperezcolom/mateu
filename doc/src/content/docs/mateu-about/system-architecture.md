@@ -67,8 +67,8 @@ For listings, Mateu connects naturally to query services.
 
 ```java
 @Override
-public ListingData<ProductRow> search(String searchText, ProductFilters filters, Pageable pageable) {
-    return productQueryService.findAll(searchText, filters, pageable);
+public ListingData<ProductRow> search(SearchRequest request, HttpRequest httpRequest) {
+    return productQueryService.findAll(request.searchText(), filters(request), request.pageable());
 }
 ```
 

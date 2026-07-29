@@ -268,7 +268,7 @@ public @interface Searchable {
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `selector` | `Class<? extends Selector>` | `Selector.class` | Screen opened in the modal. Must implement `Selector<IdType>`. Typically also extends `Listing`. |
+| `selector` | `Class<? extends Selector>` | `Selector.class` | Screen opened in the modal. Must implement `Selector<IdType>`. Typically also implements `Listing`. |
 | `label` | `Class<? extends LabelSupplier>` | `LabelSupplier.class` | Resolves the display text for a stored id. |
 | `bubble` | `boolean` | `false` | Propagates the selection event to the parent component. |
 | `editableCode` | `boolean` | `false` | Allows the user to type the code/id directly in the field. |
@@ -279,23 +279,31 @@ public @interface Searchable {
 The selector class must:
 
 1. Implement `Selector<IdType>` — `selected()` is called when the user clicks a row and must return a `SelectedItem` containing the `id` and a `label`.
-2. Optionally implement `LabelSupplier` — resolves a stored id back to its display text (reused in `label()`).
-3. Typically extend `Listing<Filters, Row>` to get a full filterable, pageable table inside the modal.
+2. Optionally implement `LookupLabelSupplier` — resolves a stored id back to its display text (reused in `label()`).
+3. Typically implement `Listing<Row>` (plus `Searchable`, and `Filterable<Filters>` for a filter bar) to get a full filterable, pageable table inside the modal.
 
 ```java
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 40rem;")
-public class HotelSelector extends Listing<Filters, Row>
-        implements Selector<String>, LabelSupplier {
+public class HotelSelector implements Listing<Row>, Searchable,
+        Selector<String>, LookupLabelSupplier {
 
-    String _fieldId;   // injected by the framework
+    String _fieldId;
 
     @Override
-    public ListingData<Row> search(String searchText, Filters filters,
-                                   Pageable pageable, HttpRequest httpRequest) {
+    public String fieldId() { return _fieldId; }
+
+    @Override
+    public Selector withFieldId(String fieldId) {
+        _fieldId = fieldId;
+        return this;
+    }
+
+    @Override
+    public ListingData<Row> search(SearchRequest request, HttpRequest httpRequest) {
         return ListingData.of(
             rows.stream()
-                .filter(r -> r.name().contains(searchText))
+                .filter(r -> r.name().contains(request.searchText()))
                 .toList()
         );
     }

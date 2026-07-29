@@ -41,7 +41,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Generic file upload field (`@FileUpload`, accept filter in the field attributes) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
-| Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
+| Declarative listings (`Listing<Row>` + capabilities) | ✅ | ✅ | ✅ |
 | — typed `DateRange`/`NumberRange`/`Set` filter fields | ✅ | ✅ | ✅ |
 | — DB pushdown (override `find`: one query, real total, in-memory pipeline skipped) | ✅ | ✅ | ✅ |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | ✅ | ✅ |
@@ -110,7 +110,7 @@ grid form fields (list-of-rows properties → dataType `array` + stereotype `gri
 `[OnRowSelected]`/`OnRowSelected()` injecting the clicked row into the handler method, and the
 `[Zone]`/`@zones` + `[FoldedLayout]`/`@folded_layout` multi-column layouts. Earlier (2026-07-10):
 CRUD search sorts and paginates; actions can return page banners, a `/route` or a UICommand.
-Declarative listings (`Listing<Filters, Row>` / `Listing[F, R]`) landed the same day with the
+Declarative listings (Java `Listing<Row>` + capabilities / Python `Listing[F, R]`) landed the same day with the
 typed `DateRange`/`NumberRange`/`Set` filters, the `_from`/`_to` state assembly, and the
 `Selector` contract on top: `@Searchable` fields open their selector listing in a modal
 (`codesearch-<field>` → Dialog; row pick → value-changed/data-changed/close-modal-requested),
