@@ -270,8 +270,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   }
 
   public boolean canDelete() {
-    return this instanceof AutoCrud
-        || io.mateu.uidl.interfaces.Deleteable.class.isAssignableFrom(viewClass());
+    return true;
   }
 
   /** Class whose annotations (@Title/@ReadOnly/@Style/@Not*…) describe this crud. */
