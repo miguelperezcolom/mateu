@@ -51,7 +51,7 @@ public abstract class MultiView
       if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {
 
-        if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
+        if (!serverSideTypeName().equals(httpRequest.runActionRq().serverSideType())) {
           var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
           if (componentRoute == null) {
             componentRoute = "";
@@ -90,6 +90,15 @@ public abstract class MultiView
           .build();
     }
     return this;
+  }
+
+  /**
+   * The type name advertised on the wire so actions route back to this orchestrator. The capability
+   * bridge overrides it with the underlying listing's class, so round-trips re-create the listing
+   * (and re-bridge it) instead of the anonymous bridge.
+   */
+  public String serverSideTypeName() {
+    return getClass().getName();
   }
 
   /**
@@ -170,7 +179,7 @@ public abstract class MultiView
         AppShell.builder()
             .clientSideComponentId(httpRequest.runActionRq().initiatorComponentId() + "_cs")
             .homeRoute(route)
-            .serverSideType(getClass().getName())
+            .serverSideType(serverSideTypeName())
             .homeConsumedRoute(consumedRoute)
             .variant(AppVariant.MEDIATOR)
             .layout(layout())

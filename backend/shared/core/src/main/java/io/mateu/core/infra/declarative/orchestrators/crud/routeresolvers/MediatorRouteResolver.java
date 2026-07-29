@@ -14,7 +14,7 @@ public class MediatorRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
     // if this is a first time, we return the mediator app
-    return !orchestrator.getClass().getName().equals(httpRequest.runActionRq().serverSideType());
+    return !orchestrator.serverSideTypeName().equals(httpRequest.runActionRq().serverSideType());
   }
 
   @Override

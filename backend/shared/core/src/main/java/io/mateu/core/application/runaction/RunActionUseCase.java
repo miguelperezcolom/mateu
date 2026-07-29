@@ -82,6 +82,12 @@ public class RunActionUseCase {
     log.info("run action {}", command.actionId());
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+            // a plain routed Listing declaring interaction capabilities is bridged into the CRUD
+            // engine BEFORE routing/dispatch, so it gets the mediator with only its declared routes
+            .map(
+                instance ->
+                    io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud
+                        .bridgeIfNeeded(instance))
             .flatMap(instance -> routeIfNeeded(command, instance))
             .flatMapMany(
                 instance ->

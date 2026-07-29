@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getFil
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.NotCreatable;
@@ -15,7 +14,6 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.Auditable;
-import io.mateu.uidl.interfaces.Deleteable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
 import java.util.ArrayList;
@@ -40,12 +38,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
 
   private static boolean notCreatable(Crud orchestrator) {
     return orchestrator.readOnly()
-        || MetaAnnotations.isPresent(orchestrator.getClass(), NotCreatable.class);
+        || MetaAnnotations.isPresent(orchestrator.metadataSource(), NotCreatable.class);
   }
 
   private static boolean notDeletable(Crud orchestrator) {
     return orchestrator.readOnly()
-        || MetaAnnotations.isPresent(orchestrator.getClass(), NotDeletable.class);
+        || MetaAnnotations.isPresent(orchestrator.metadataSource(), NotDeletable.class);
   }
 
   private List<GridContent> withViewOnFirstColumn(Collection<? extends GridContent> rawColumns) {
@@ -82,12 +80,10 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     if (orchestrator instanceof Auditable) {
       toolbar.add(new Button(orchestrator.historyLabel(), "history"));
     }
-    if (!notCreatable(orchestrator)) {
+    if (!notCreatable(orchestrator) && orchestrator.canCreate()) {
       toolbar.add(new Button(orchestrator.newLabel(), "new"));
     }
-    if (!notDeletable(orchestrator)
-        && (orchestrator instanceof AutoCrud
-            || Deleteable.class.isAssignableFrom(orchestrator.viewClass()))) {
+    if (!notDeletable(orchestrator) && orchestrator.canDelete()) {
       toolbar.add(
           Button.builder()
               .label(orchestrator.deleteLabel())
@@ -105,7 +101,8 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().initiatorComponentId(),
                     httpRequest)
-            : MetaAnnotations.isPresent(orchestrator.getClass(), NotNavigable.class)
+            : MetaAnnotations.isPresent(orchestrator.metadataSource(), NotNavigable.class)
+                    || !(orchestrator.canView() || orchestrator.editInDrawer())
                 ? (List<GridContent>)
                     getColumns(
                         orchestrator.rowClass(),

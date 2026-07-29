@@ -270,7 +270,18 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   }
 
   public boolean canDelete() {
-    return true;
+    return this instanceof AutoCrud
+        || io.mateu.uidl.interfaces.Deleteable.class.isAssignableFrom(viewClass());
+  }
+
+  /** Class whose annotations (@Title/@ReadOnly/@Style/@Not*…) describe this crud. */
+  public Class<?> metadataSource() {
+    return getClass();
+  }
+
+  /** Instance whose fields are serialized as the listing page state. */
+  protected Object stateSource() {
+    return this;
   }
 
   @Override
@@ -298,7 +309,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
 
   @Override
   public Object state(HttpRequest httpRequest) {
-    var map = io.mateu.core.infra.declarative.FormViewModel.toMap(this);
+    var map = io.mateu.core.infra.declarative.FormViewModel.toMap(stateSource());
     var route = httpRequest.runActionRq().route();
     if (route.contains("?")) {
       var params = route.substring(route.indexOf("?") + 1);

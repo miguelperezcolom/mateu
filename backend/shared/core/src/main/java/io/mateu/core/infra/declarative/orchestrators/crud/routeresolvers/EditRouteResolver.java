@@ -8,7 +8,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
-    return route.endsWith("/edit");
+    return route.endsWith("/edit")
+        && (!(orchestrator instanceof Crud<?, ?, ?, ?, ?, ?> crud) || crud.canEdit());
   }
 
   @Override

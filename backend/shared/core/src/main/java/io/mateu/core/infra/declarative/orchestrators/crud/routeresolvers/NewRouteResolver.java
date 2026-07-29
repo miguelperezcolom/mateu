@@ -8,7 +8,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class NewRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
-    return route.endsWith("/new");
+    return route.endsWith("/new")
+        && (!(orchestrator instanceof Crud<?, ?, ?, ?, ?, ?> crud) || crud.canCreate());
   }
 
   @Override
