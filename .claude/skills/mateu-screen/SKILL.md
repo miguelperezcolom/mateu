@@ -19,7 +19,9 @@ rest, use AskUserQuestion, in this order:
 3. **¿Ninguna de las dos?** — watching numbers → *Dashboard* · it's the front door → *Landing*
 
 Useful follow-ups (one each, only when the family needs it):
-- Collection: "¿tabla que se edita, cola de trabajo, calendario, o lista con panel de detalle?"
+- Collection: "¿CRUD completo de una entidad, o un listado (quizá con algo más)?" — full-pack CRUD
+  → `AutoCrud`; listado que crece → `implements Listing<Row>` + capacidades (see below). Then, if
+  needed: "¿tabla que se edita, cola de trabajo, calendario, o lista con panel de detalle?"
   → `AutoCrud` / `TodoList` / `CalendarPage` / `CollectionDetail`
 - Detail: "¿ficha con pestañas, con paneles laterales plegables, o con selector de registro
   arriba?" → `ItemOverview` / `Foldout` / `GeneralOverview`
@@ -28,7 +30,7 @@ Useful follow-ups (one each, only when the family needs it):
 
 | Family | Default | Siblings (only if the follow-up says so) |
 |---|---|---|
-| Collection | `AutoCrud<T>` | `Listing`, `SmartSearchPage`, `TodoList`, `CalendarPage`, `CollectionDetail`, `DataManagement` |
+| Collection | `AutoCrud<T>` (full pack) or `Listing<Row>` + capabilities (grows à la carte) | `SmartSearchPage`, `TodoList`, `CalendarPage`, `CollectionDetail`, `DataManagement` |
 | Detail | `ItemOverview` | `Foldout`, `GeneralOverview`, read-only `Drawer` |
 | Form | plain `@UI` class + `@AutoLayout` | — |
 | Process | `Wizard` | `ImportWizard` (CSV/import flows) |
@@ -71,9 +73,20 @@ API and the docs screenshots are generated from them:
 Minimal seeds for the two families that need no reference:
 
 ```java
-// Collection
+// Collection — full-pack CRUD
 @UI("/things")
 public class Things extends AutoCrud<Thing> {}   // Thing implements Identifiable
+
+// Collection — listing that grows by declaring capabilities (additive):
+// add Searchable (search box), Filterable<F> (filter bar), Navigable<Detail,Id>
+// (clickable rows + /:id), Editable<Editor,Id> (edit; drawer if not navigable),
+// Creatable<Form,Id> (New), Deletable<Id> (selection + Delete) as needed
+@UI("/orders")
+public class Orders implements Listing<OrderRow>, Searchable {
+  public ListingData<OrderRow> search(SearchRequest request, HttpRequest http) {
+    return ListingData.of(repo.find(request.searchText(), request.pageable()));
+  }
+}
 
 // Form
 @UI("/feedback")

@@ -72,12 +72,14 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | Type | Use |
 |---|---|
 | `AutoCrud<T extends Identifiable>` | full CRUD orchestrator |
-| `Listing<Filters,Row>` | custom listing page (override `search()`) |
+| `Listing<Row>` (interface) | listing page — single `search(SearchRequest, HttpRequest)`; grows by declaring capabilities |
+| `Searchable` / `Filterable<F>` | input capabilities: search box / filter bar (declared) |
+| `Navigable<D,Id>` / `Editable<E,Id>` / `Creatable<F,Id>` / `Deletable<Id>` | interaction capabilities: detail / edit (drawer if not navigable) / create / delete (implemented) |
 | `Wizard` + `WizardStep` | multi-step flow |
 | `AutoEditableView<T>` / `EditableView<V,E>` / `MultiView` | editor / composed views |
 | `ComponentTreeSupplier` | fluent component tree |
-| `CrudStore<T>` | CRUD data-access port (was `CrudRepository`)  |
-| `ListingBackend<Filters,Row>` | listing contract as an interface (when not extending `Listing`) |
+| `CrudStore<T>` | CRUD data-access port |
+| `ReactiveListing<Row>` | Reactor twin of `Listing` |
 | `Identifiable` | entity with `String id()` |
 | `ComponentAdapter<T>` | render a non-annotated domain object |
 | `LookupOptionsSupplier`, `LookupLabelSupplier` | `@Lookup` suppliers |

@@ -23,6 +23,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | You want | Use | Reference |
 |---|---|---|
 | list + create/edit/view/delete | `extends AutoCrud<T>` + `CrudStore<T>` | [crud.md](reference/crud.md) |
+| a listing that may grow (search/filters/detail/edit/create/delete à la carte) | `implements Listing<Row>` + capability interfaces (`Searchable`, `Filterable<F>`, `Navigable`, `Editable`, `Creatable`, `Deletable`) | [crud.md](reference/crud.md) |
 | a single form with an action | a class with fields + `@Button` | [form-actions.md](reference/form-actions.md) |
 | a multi-step flow | `extends Wizard` + `WizardStep` | [wizard.md](reference/wizard.md) |
 | a dashboard landing page | `extends Dashboard` + `MetricCard` fields + `@Panel` | [dashboard.md](reference/dashboard.md) |

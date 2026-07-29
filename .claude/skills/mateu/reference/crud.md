@@ -35,8 +35,7 @@ public class Products extends AutoCrud<Products.Product> {
 ## Store
 
 Implement `CrudStore<T>` (the data-access port) over any backing store (JPA, Mongo, a REST client,
-in-memory). Note: `CrudRepository`/`repository()` are the old names, kept as a deprecated alias —
-use `CrudStore`/`store()` in new code.
+in-memory). The old `CrudRepository`/`repository()` names were removed — always `CrudStore`/`store()`.
 
 ```java
 class ProductStore implements CrudStore<Product> {
@@ -55,7 +54,7 @@ class ProductStore implements CrudStore<Product> {
 - `toString()` is the row label in the list.
 - `find(String searchText, T filters, Pageable pageable)` returns `Page<T>` (which carries
   `totalElements` — no separate `count` needed). It has a **default** in-memory implementation
-  (filters by `searchText` via `Searchable.searchableText()`/`toString()`, sorts by
+  (filters by `searchText` via `SearchableText.searchableText()`/`toString()`, sorts by
   `pageable.sort()` reflectively, then paginates), so you only implement it to push
   search/filter/sort/paging to the database. `AutoCrud` calls `find` to fill the listing.
 
@@ -85,18 +84,20 @@ String customerId;
 `@NotEditable`, `@EditableOnlyWhenCreating`, `@NotCreatable`, `@NotDeletable`,
 `@ColumnWidth("200px")`, `@Weight(2)`, `@Label("…")`.
 
-## Advanced / custom listing
+## Capability listings — a listing that grows (additive)
 
-For server paging/sorting/custom queries on a standalone page, **extend
-`Listing<Filters, Row>`** and override `search(...)` (and optionally `gridLayout()`):
+When you don't want the whole CRUD pack, implement `Listing<Row>` (interface, uidl) with the
+single `search(SearchRequest, HttpRequest)` and DECLARE capabilities — each one adds only its
+own UI. Never switch base class as the screen grows: add an interface.
 
 ```java
 @UI("/orders")
-public class Orders extends Listing<OrderFilters, OrderRow> {
+public class Orders implements Listing<OrderRow>, Searchable, Filterable<OrderFilters> {
     @Override
-    public ListingData<OrderRow> search(String text, OrderFilters f,
-                                        Pageable pageable, HttpRequest req) {
-        return ListingData.of(repo.findAll(text, f, pageable));
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest http) {
+        var text = request.searchText();      // filled because Searchable
+        var filters = filters(request);       // typed OrderFilters, from Filterable
+        return ListingData.of(repo.findAll(text, filters, request.pageable()));
     }
     @Override public GridLayout gridLayout() { return GridLayout.table; }
 }
@@ -104,9 +105,24 @@ record OrderFilters(String status, LocalDate from, LocalDate to) {}
 record OrderRow(String id, String customer, double total, String status) {}
 ```
 
-`ListingBackend<Filters, Row>` is the same contract as an **interface** — implement it
-when you add listing behaviour to a class that already extends something else (e.g. a
-fluent `ComponentTreeSupplier`).
+- Bare `Listing<Row>`: just the table (sorting + pagination free). No search box, no buttons.
+- Input capabilities (declare): `Searchable` → search box; `Filterable<F>` → filter bar built
+  reflectively from `F` (`filters(request)` typed accessor).
+- Interaction capabilities (implement — the page auto-promotes to a CRUD mediator serving ONLY
+  what's declared): `Navigable<Detail,Id>` (`view(id)` → clickable rows + `/:id`),
+  `Editable<Editor,Id>` (`edit(id)`+`save()`; WITHOUT Navigable the editor opens in a drawer
+  over the listing — the "editable listing" idiom), `Creatable<Form,Id>`
+  (`creationForm()`+`create()` → New + `/new`), `Deletable<Id>` (`deleteAllById(ids)` →
+  selection + Delete).
+- `SearchRequest` carries `searchText/filters/criteria/pageable` — the signature never changes.
+- `ReactiveListing<Row>` is the Reactor twin. `@ListToolbarButton` bulk methods work on
+  capability listings too.
+
+Rule of thumb: listing that may grow → `Listing` + capabilities (additive). Entity CRUD →
+`AutoCrud<T>` (one line). CRUD with distinct per-screen models → `extends Crud<V,E,C,F,R,Id>`
+(the full pack — literally a Listing implementing ALL capabilities; its lifecycle is
+`search(SearchRequest)`, `view`, `edit`, `save`→id, `creationForm`, `create`→id,
+`deleteAllById`) and subtract with `@Not*`/`@ReadOnly`.
 
 ## Inline editing on the listing (class-level @InlineEditing)
 

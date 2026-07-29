@@ -17,9 +17,8 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     // @Override protected String heroImage() { return "/images/hero.jpg"; }  // optional bg
 
     @Override
-    public ListingData<Hotel> search(String searchText, HotelFilters filters,
-                                     Pageable pageable, HttpRequest req) {
-        // query use case with searchText + filters + pageable → ListingData page
+    public ListingData<Hotel> search(SearchRequest request, HttpRequest req) {
+        // request.searchText() + filters(request) + request.pageable() → ListingData page
     }
 }
 ```
