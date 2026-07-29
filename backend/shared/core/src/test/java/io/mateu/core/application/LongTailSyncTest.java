@@ -156,8 +156,8 @@ class LongTailSyncTest {
   public static class DevicesCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Device> {
     @Override
-    public io.mateu.uidl.interfaces.CrudRepository<Device> store() {
-      return new io.mateu.uidl.interfaces.CrudRepository<>() {
+    public io.mateu.uidl.interfaces.CrudStore<Device> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
         @Override
         public java.util.Optional<Device> findById(String id) {
           return DEVICES.stream().filter(device -> device.id().equals(id)).findFirst();

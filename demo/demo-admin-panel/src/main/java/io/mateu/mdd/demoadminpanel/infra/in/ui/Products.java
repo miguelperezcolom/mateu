@@ -8,7 +8,7 @@ import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
@@ -78,7 +78,7 @@ record Product(
     }
 }
 
-class ProductRepository implements CrudRepository<Product> {
+class ProductRepository implements CrudStore<Product> {
 
     private static final Map<String, Product> db = createDb();
 
@@ -128,7 +128,7 @@ class ProductRepository implements CrudRepository<Product> {
 public class Products extends AutoCrud<Product> {
 
     @Override
-    public CrudRepository<Product> store() {
+    public CrudStore<Product> store() {
         return new ProductRepository();
     }
 

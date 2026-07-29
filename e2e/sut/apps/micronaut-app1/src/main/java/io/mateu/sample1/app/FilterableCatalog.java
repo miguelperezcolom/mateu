@@ -2,7 +2,7 @@ package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
 public class FilterableCatalog extends AutoCrud<FilterableCatalog.Employee> {
 
     @Override
-    public CrudRepository<Employee> store() {
+    public CrudStore<Employee> store() {
         return new EmployeeRepository();
     }
 
@@ -44,7 +44,7 @@ public class FilterableCatalog extends AutoCrud<FilterableCatalog.Employee> {
         public String toString() { return name; }
     }
 
-    static class EmployeeRepository implements CrudRepository<Employee> {
+    static class EmployeeRepository implements CrudStore<Employee> {
         private static final Map<String, Employee> db = new HashMap<>(Map.of(
                 "e1", new Employee("e1", "Alice", "Engineering", 80000),
                 "e2", new Employee("e2", "Bob", "Marketing", 65000),

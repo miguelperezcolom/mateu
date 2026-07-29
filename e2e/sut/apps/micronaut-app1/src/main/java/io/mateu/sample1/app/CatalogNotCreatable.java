@@ -2,7 +2,7 @@ package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.Optional;
 public class CatalogNotCreatable extends AutoCrud<CatalogNotCreatable.Product> {
 
     @Override
-    public CrudRepository<Product> store() {
+    public CrudStore<Product> store() {
         return new ProductRepository();
     }
 
@@ -44,7 +44,7 @@ public class CatalogNotCreatable extends AutoCrud<CatalogNotCreatable.Product> {
         public String toString() { return name; }
     }
 
-    static class ProductRepository implements CrudRepository<Product> {
+    static class ProductRepository implements CrudStore<Product> {
         private static final Map<String, Product> db = new HashMap<>(Map.of(
                 "p1", new Product("p1", "Product A", 10.0),
                 "p2", new Product("p2", "Product B", 20.0)

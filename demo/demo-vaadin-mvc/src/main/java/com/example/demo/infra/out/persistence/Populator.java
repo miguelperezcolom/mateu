@@ -14,25 +14,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class Populator {
 
-    final ProcessCrudRepository processCrudRepository;
-    final StepCrudRepository stepCrudRepository;
-    final MessageCrudRepository messageCrudRepository;
-    final ErrorCrudRepository errorCrudRepository;
+    final ProcessCrudStore processCrudStore;
+    final StepCrudStore stepCrudStore;
+    final MessageCrudStore messageCrudStore;
+    final ErrorCrudStore errorCrudStore;
 
     @PostConstruct
     void populate() {
 
         var process = new Process("1", "Despliegue web", new Status(StatusType.WARNING, "In progress"));
-        processCrudRepository.save(process);
+        processCrudStore.save(process);
 
-        stepCrudRepository.save(new Step("1", "s1", "Build", new Status(StatusType.SUCCESS, "Completed")));
-        stepCrudRepository.save(new Step("1", "s2", "Deploy", new Status(StatusType.WARNING, "In progress")));
+        stepCrudStore.save(new Step("1", "s1", "Build", new Status(StatusType.SUCCESS, "Completed")));
+        stepCrudStore.save(new Step("1", "s2", "Deploy", new Status(StatusType.WARNING, "In progress")));
 
 
-        messageCrudRepository.save(new Message("1", "m1", "Project has been built."));
-        messageCrudRepository.save(new Message("1", "m2", "Project has been deployed."));
+        messageCrudStore.save(new Message("1", "m1", "Project has been built."));
+        messageCrudStore.save(new Message("1", "m2", "Project has been deployed."));
 
-        errorCrudRepository.save(new Error("1", "e1", "Exception when notifying final status."));
+        errorCrudStore.save(new Error("1", "e1", "Exception when notifying final status."));
     }
 
 

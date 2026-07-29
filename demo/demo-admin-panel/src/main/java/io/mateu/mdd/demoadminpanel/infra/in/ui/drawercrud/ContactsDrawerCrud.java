@@ -3,7 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.drawercrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
@@ -56,8 +56,8 @@ public class ContactsDrawerCrud extends AutoCrud<ContactsDrawerCrud.Contact> {
   }
 
   @Override
-  public CrudRepository<Contact> store() {
-    return new CrudRepository<>() {
+  public CrudStore<Contact> store() {
+    return new CrudStore<>() {
 
       @Override
       public Optional<Contact> findById(String id) {

@@ -4,7 +4,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
@@ -65,7 +65,7 @@ record Product2(
     }
 }
 
-class Product2Repository implements CrudRepository<Product2> {
+class Product2Repository implements CrudStore<Product2> {
 
     private static final Map<String, Product2> db = new HashMap<>(Map.of("1", new Product2("1", "Producto 1", "xxx", true, Product2Status.Available, List.of(
             new ProductComponent("x", 1, null, false, "yyy"),
@@ -101,7 +101,7 @@ class Product2Repository implements CrudRepository<Product2> {
 public class Products2 extends AutoCrud<Product2> {
 
     @Override
-    public CrudRepository<Product2> store() {
+    public CrudStore<Product2> store() {
         return new Product2Repository();
     }
 

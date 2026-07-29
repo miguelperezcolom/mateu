@@ -12,7 +12,7 @@ import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
@@ -95,8 +95,8 @@ class TailsSyncTest {
     static String closedId;
 
     @Override
-    public CrudRepository<Ticket> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Ticket> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Ticket> findById(String id) {
           return TICKETS.stream().filter(ticket -> ticket.id().equals(id)).findFirst();

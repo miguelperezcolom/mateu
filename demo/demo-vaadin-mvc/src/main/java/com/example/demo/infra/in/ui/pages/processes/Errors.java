@@ -1,10 +1,10 @@
 package com.example.demo.infra.in.ui.pages.processes;
 
-import com.example.demo.infra.out.persistence.ErrorCrudRepository;
+import com.example.demo.infra.out.persistence.ErrorCrudStore;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +21,10 @@ public class Errors extends AutoCrud<Error> {
         return this;
     }
 
-    final ErrorCrudRepository repository;
+    final ErrorCrudStore repository;
 
     @Override
-    public CrudRepository<Error> store() {
+    public CrudStore<Error> store() {
         return repository;
     }
 }

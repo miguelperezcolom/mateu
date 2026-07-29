@@ -10,7 +10,7 @@ import io.mateu.dtos.UICommandTypeDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,8 +64,8 @@ class EditInDrawerSyncTest {
     }
 
     @Override
-    public CrudRepository<Book> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Book> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Book> findById(String id) {
           return BOOKS.stream().filter(book -> book.id().equals(id)).findFirst();

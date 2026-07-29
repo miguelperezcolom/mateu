@@ -7,7 +7,7 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.fluent.GridLayout;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class Reservations extends AutoCrud<Reservation> {
     final ReservationRepository repository;
 
     @Override
-    public CrudRepository<Reservation> store() {
+    public CrudStore<Reservation> store() {
         return repository;
     }
 

@@ -10,7 +10,7 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.GridLayout;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +52,8 @@ class CrudSyncTest {
 
   static final List<Item> ITEMS = new ArrayList<>();
 
-  static CrudRepository<Item> itemsRepository() {
-    return new CrudRepository<>() {
+  static CrudStore<Item> itemsRepository() {
+    return new CrudStore<>() {
       @Override
       public Optional<Item> findById(String id) {
         return ITEMS.stream().filter(item -> item.id().equals(id)).findFirst();
@@ -96,7 +96,7 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<Item> store() {
+    public CrudStore<Item> store() {
       return itemsRepository();
     }
   }
@@ -152,8 +152,8 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<StockItem> store() {
-      return new CrudRepository<>() {
+    public CrudStore<StockItem> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<StockItem> findById(String id) {
           return STOCK.stream().filter(item -> item.id().equals(id)).findFirst();
@@ -210,7 +210,7 @@ class CrudSyncTest {
     }
 
     @Override
-    public CrudRepository<Item> store() {
+    public CrudStore<Item> store() {
       return itemsRepository();
     }
   }

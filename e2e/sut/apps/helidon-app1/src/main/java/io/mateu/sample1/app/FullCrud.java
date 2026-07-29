@@ -2,7 +2,7 @@ package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,7 +22,7 @@ import java.util.UUID;
 public class FullCrud extends AutoCrud<FullCrud.Task> {
 
     @Override
-    public CrudRepository<Task> store() {
+    public CrudStore<Task> store() {
         return new TaskRepository();
     }
 
@@ -51,7 +51,7 @@ public class FullCrud extends AutoCrud<FullCrud.Task> {
         public String toString() { return title != null ? title : "New Task"; }
     }
 
-    static class TaskRepository implements CrudRepository<Task> {
+    static class TaskRepository implements CrudStore<Task> {
         private static final Map<String, Task> db = new LinkedHashMap<>(Map.of(
                 "t1", new Task("t1", "Task Alpha", "First task", 1, false),
                 "t2", new Task("t2", "Task Beta", "Second task", 2, true),

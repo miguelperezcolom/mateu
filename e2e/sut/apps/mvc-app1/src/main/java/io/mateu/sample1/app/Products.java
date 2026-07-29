@@ -5,7 +5,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +19,7 @@ import java.util.Optional;
 public class Products extends AutoCrud<Products.Product> {
 
     @Override
-    public CrudRepository<Product> store() {
+    public CrudStore<Product> store() {
         return new ProductRepository();
     }
 
@@ -49,7 +49,7 @@ public class Products extends AutoCrud<Products.Product> {
         }
     }
 
-    static class ProductRepository implements CrudRepository<Product> {
+    static class ProductRepository implements CrudStore<Product> {
 
         private static final Map<String, Product> db = new LinkedHashMap<>(Map.of(
                 "p1", new Product("p1", "Laptop Pro 15", "High-performance laptop for professionals.", ProductStatus.Available),

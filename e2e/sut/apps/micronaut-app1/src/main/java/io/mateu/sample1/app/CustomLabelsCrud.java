@@ -2,7 +2,7 @@ package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -50,7 +50,7 @@ public class CustomLabelsCrud extends AutoCrud<CustomLabelsCrud.Item> {
     }
 
     @Override
-    public CrudRepository<Item> store() {
+    public CrudStore<Item> store() {
         return new ItemRepo();
     }
 
@@ -75,7 +75,7 @@ public class CustomLabelsCrud extends AutoCrud<CustomLabelsCrud.Item> {
         }
     }
 
-    static class ItemRepo implements CrudRepository<Item> {
+    static class ItemRepo implements CrudStore<Item> {
         private static final Map<String, Item> db =
                 new HashMap<>(Map.of("1", new Item("1", "Alpha"), "2", new Item("2", "Beta")));
 

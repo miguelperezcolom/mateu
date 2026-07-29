@@ -9,7 +9,7 @@ It is a **data-access port** — a thin adapter over persistence. The name "repo
 
 ## Deprecated alias
 
-The former name `CrudRepository` (and the `AutoCrud` override method `repository()`) still exist as a **deprecated alias marked for removal** (`@Deprecated(forRemoval = true)`): `CrudRepository extends CrudStore`, and `repository()` is still honored when `store()` is not overridden. Existing code keeps compiling unchanged, but new code should use `CrudStore` and override `store()`. The same applies to `CompositionCrudRepository` → `CompositionCrudStore`.
+The former names `CrudRepository`/`CompositionCrudRepository` (and the `AutoCrud` override method `repository()`) were **removed** after a deprecation period — use `CrudStore`/`CompositionCrudStore` and override `store()`.
 
 The type parameter `T` must implement `Identifiable`, which requires a single method:
 

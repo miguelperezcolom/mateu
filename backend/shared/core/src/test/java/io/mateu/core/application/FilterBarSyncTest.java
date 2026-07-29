@@ -6,7 +6,7 @@ import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.List;
 import java.util.Optional;
@@ -85,8 +85,8 @@ class FilterBarSyncTest {
   public static class CatalogCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
     @Override
-    public CrudRepository<Product> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Product> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Product> findById(String id) {
           return Optional.of(new Product());
@@ -121,8 +121,8 @@ class FilterBarSyncTest {
   public static class GadgetCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Gadget> {
     @Override
-    public CrudRepository<Gadget> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Gadget> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Gadget> findById(String id) {
           return findAll().stream().filter(gadget -> gadget.id().equals(id)).findFirst();
@@ -210,7 +210,7 @@ class FilterBarSyncTest {
     assertThat(filterOf("price").stereotype()).isEqualTo("numberRange");
   }
 
-  // ── filter application (default in-memory CrudRepository.find) ────────────────
+  // ── filter application (default in-memory CrudStore.find) ────────────────
 
   private List<?> search(java.util.Map<String, Object> state) {
     var fullState = new java.util.HashMap<String, Object>();

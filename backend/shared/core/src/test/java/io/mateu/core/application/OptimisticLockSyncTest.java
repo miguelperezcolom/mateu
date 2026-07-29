@@ -10,7 +10,7 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Version;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,8 +55,8 @@ class OptimisticLockSyncTest {
   @Title("Articles")
   public static class ArticlesCrud extends AutoCrud<Article> {
     @Override
-    public CrudRepository<Article> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Article> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Article> findById(String id) {
           return ARTICLES.stream().filter(article -> article.id().equals(id)).findFirst();

@@ -5,7 +5,7 @@ import io.mateu.uidl.annotations.InlineEditing;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +54,8 @@ public class StockCrud extends AutoCrud<StockCrud.StockItem> {
   }
 
   @Override
-  public CrudRepository<StockItem> store() {
-    return new CrudRepository<>() {
+  public CrudStore<StockItem> store() {
+    return new CrudStore<>() {
 
       @Override
       public Optional<StockItem> findById(String id) {

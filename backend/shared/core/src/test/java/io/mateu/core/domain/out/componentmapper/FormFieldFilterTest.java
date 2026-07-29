@@ -17,7 +17,7 @@ import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Status;
-import io.mateu.uidl.interfaces.CompositionCrudRepository;
+import io.mateu.uidl.interfaces.CompositionCrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Named;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
@@ -48,7 +48,7 @@ class FormFieldFilterTest {
     }
   }
 
-  static class LineRepository implements CompositionCrudRepository<Line, String> {
+  static class LineRepository implements CompositionCrudStore<Line, String> {
     public Optional<Line> findById(String id) {
       return Optional.empty();
     }

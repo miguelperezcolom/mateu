@@ -2,7 +2,7 @@ package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
 public class CatalogWithHiddenColumns extends AutoCrud<CatalogWithHiddenColumns.Order> {
 
     @Override
-    public CrudRepository<Order> store() {
+    public CrudStore<Order> store() {
         return new OrderRepository();
     }
 
@@ -52,7 +52,7 @@ public class CatalogWithHiddenColumns extends AutoCrud<CatalogWithHiddenColumns.
         public String toString() { return "Order " + id; }
     }
 
-    static class OrderRepository implements CrudRepository<Order> {
+    static class OrderRepository implements CrudStore<Order> {
         private static final Map<String, Order> db = new HashMap<>(Map.of(
                 "o1", new Order("o1", "Alice", "Note A", 100.0, "admin", "EXT-001"),
                 "o2", new Order("o2", "Bob", "Note B", 200.0, "admin", "EXT-002")

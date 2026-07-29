@@ -43,8 +43,8 @@ class SurgicalTailsSyncTest {
   public static class NotesCrud
       extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Note> {
     @Override
-    public io.mateu.uidl.interfaces.CrudRepository<Note> store() {
-      return new io.mateu.uidl.interfaces.CrudRepository<>() {
+    public io.mateu.uidl.interfaces.CrudStore<Note> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
         @Override
         public java.util.Optional<Note> findById(String id) {
           return java.util.Optional.of(new Note());

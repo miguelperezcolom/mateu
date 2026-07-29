@@ -1,7 +1,7 @@
 package com.example.demo.infra.out.persistence;
 
 import com.example.demo.infra.in.ui.pages.processes.Process;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import io.mateu.uidl.interfaces.Named;
 
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class AbstractAutoRepository<T extends Identifiable> implements CrudRepository<T> {
+public class AbstractAutoRepository<T extends Identifiable> implements CrudStore<T> {
 
     Map<String, T> db = new HashMap<>();
 

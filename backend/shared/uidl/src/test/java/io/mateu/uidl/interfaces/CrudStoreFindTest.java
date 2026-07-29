@@ -11,12 +11,12 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifies the default in-memory implementation of {@link CrudRepository#find(String, Identifiable,
- * Pageable)}: it filters {@link CrudRepository#findAll()} by {@code searchText}, sorts by {@link
+ * Verifies the default in-memory implementation of {@link CrudStore#find(String, Identifiable,
+ * Pageable)}: it filters {@link CrudStore#findAll()} by {@code searchText}, sorts by {@link
  * Pageable#sort()} (read reflectively) and paginates, returning a {@link Page} whose {@code
  * totalElements} reflects the filtered (not the paged) count.
  */
-class CrudRepositoryFindTest {
+class CrudStoreFindTest {
 
   /** Record entity — accessors are {@code id()}/{@code name()}/{@code price()} (record style). */
   record Product(String id, String name, int price) implements Identifiable {}
@@ -35,8 +35,8 @@ class CrudRepositoryFindTest {
   }
 
   /** Backs {@code find(...)} purely through {@code findAll()} — everything else is unused here. */
-  static <T extends Identifiable> CrudRepository<T> repoOf(List<T> rows) {
-    return new CrudRepository<>() {
+  static <T extends Identifiable> CrudStore<T> repoOf(List<T> rows) {
+    return new CrudStore<>() {
       @Override
       public Optional<T> findById(String id) {
         return rows.stream().filter(r -> r.id().equals(id)).findFirst();

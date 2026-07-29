@@ -15,7 +15,7 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.AggregateFunction;
 import io.mateu.uidl.data.GroupSummary;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ import org.junit.jupiter.api.Test;
  * Listing aggregation: {@code @Aggregate} columns get totals over the WHOLE filtered result set
  * (the listing's footer), and the {@code @GroupBy} column groups the rows — implicit primary sort
  * plus one {@link GroupSummary} per group with its row count and per-group aggregates. Everything
- * is computed by {@code CrudRepository.summaries} (in-memory default here; DB repositories override
- * it with one aggregate query).
+ * is computed by {@code CrudStore.summaries} (in-memory default here; DB repositories override it
+ * with one aggregate query).
  */
 class AggregatesSyncTest {
 
@@ -73,8 +73,8 @@ class AggregatesSyncTest {
   @Title("Sales")
   public static class SalesCrud extends AutoCrud<Sale> {
     @Override
-    public CrudRepository<Sale> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Sale> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Sale> findById(String id) {
           return SALES.stream().filter(sale -> sale.id().equals(id)).findFirst();

@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -12,7 +12,6 @@ import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.SneakyThrows;
@@ -47,7 +46,7 @@ record Grupo(@NotEmpty String id,
     }
 }
 
-class Adapter implements CrudRepository<Grupo> {
+class Adapter implements CrudStore<Grupo> {
 
     static Map<String, Grupo> db = new HashMap<>(Map.of(
             "1", new Grupo("1", "Test", "si", true, "miguel@test.com", List.of())
@@ -80,7 +79,7 @@ class Adapter implements CrudRepository<Grupo> {
 //@Trigger(type = TriggerType.OnLoad, route = "search", timeoutMillis = 4000, times = -1)
 public class GroupsCrud extends AutoCrud<Grupo> {
     @Override
-    public CrudRepository<Grupo> store() {
+    public CrudStore<Grupo> store() {
         return new Adapter();
     }
 

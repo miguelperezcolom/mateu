@@ -9,7 +9,7 @@ import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
@@ -72,8 +72,8 @@ class CrudMethodsSyncTest {
     }
 
     @Override
-    public CrudRepository<Job> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Job> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Job> findById(String id) {
           return JOBS.stream().filter(job -> job.id().equals(id)).findFirst();

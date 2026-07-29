@@ -2,7 +2,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.nestedcrud;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ public class NestedCrud extends AutoCrud<Level1View> {
 
 
     @Override
-    public CrudRepository<Level1View> store() {
+    public CrudStore<Level1View> store() {
         return repo;
     }
 }

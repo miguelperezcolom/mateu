@@ -14,7 +14,7 @@ import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Message;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
@@ -63,8 +63,8 @@ class BulkActionsSyncTest {
   public static class InvoicesCrud extends AutoCrud<Invoice> {
 
     @Override
-    public CrudRepository<Invoice> store() {
-      return new CrudRepository<>() {
+    public CrudStore<Invoice> store() {
+      return new CrudStore<>() {
         @Override
         public Optional<Invoice> findById(String id) {
           return INVOICES.stream().filter(invoice -> invoice.id().equals(id)).findFirst();

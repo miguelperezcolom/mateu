@@ -5,5 +5,5 @@ import com.example.demo.infra.in.ui.pages.processes.Step;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MessageCrudRepository extends AbstractAutoRepository<Message> {
+public class MessageCrudStore extends AbstractAutoRepository<Message> {
 }

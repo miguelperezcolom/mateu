@@ -2,7 +2,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.users;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +16,7 @@ public class UsersPage extends AutoCrud<User> {
     }
 
     @Override
-    public CrudRepository<User> store() {
+    public CrudStore<User> store() {
         return userRepository;
     }
 }

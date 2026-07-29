@@ -1,6 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.nestedcrud;
 
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class Level1ViewRepository implements CrudRepository<Level1View> {
+public class Level1ViewRepository implements CrudStore<Level1View> {
 
     final Map<String, Level1View> db = new HashMap<>();
 

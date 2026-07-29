@@ -1,7 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.reservations;
 
 import io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.MealPlan;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-public class ReservationRepository implements CrudRepository<Reservation> {
+public class ReservationRepository implements CrudStore<Reservation> {
 
     private final Map<String, Reservation> store = new ConcurrentHashMap<>();
     private final AtomicLong seq = new AtomicLong(100);

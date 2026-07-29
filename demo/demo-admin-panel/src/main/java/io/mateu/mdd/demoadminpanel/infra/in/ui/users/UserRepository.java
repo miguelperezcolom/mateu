@@ -1,6 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.users;
 
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class UserRepository implements CrudRepository<User> {
+public class UserRepository implements CrudStore<User> {
 
     private static final Map<String, User> db = new HashMap<>();
 
