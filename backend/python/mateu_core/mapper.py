@@ -8,7 +8,7 @@ from contextvars import ContextVar
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, get_args, get_origin, get_type_hints
+from typing import Any, TypeVar, get_args, get_origin, get_type_hints
 
 from mateu_dtos import (
     AccordionLayoutMetadata,
@@ -139,10 +139,15 @@ from mateu_uidl import (
     Audience,
     BulletedList,
     ComponentTreeSupplier,
+    Creatable,
     Crud,
     Dashboard,
     DateRange,
+    Deletable,
     Disabled,
+    Editable,
+    Filterable,
+    Navigable,
     DisabledUnless,
     EyesOnly,
     FileUpload,
@@ -225,18 +230,75 @@ def is_enum(t) -> bool:
     return isinstance(t, type) and issubclass(t, Enum)
 
 
-def listing_types(cls) -> tuple[type, type] | None:
-    """If ``cls`` derives from ``Listing[Filters, Row]``, return ``(Filters, Row)``; else None."""
+def _resolved_generic_args(cls, target) -> tuple | None:
+    """The type arguments ``cls`` binds for the generic base ``target``, walking the
+    inheritance chain and substituting type variables — the Python analogue of Java's
+    ``GenericClassProvider.getGenericClass`` (so ``SmartSearchPage[F, R]`` resolves
+    ``Listing[R]`` through the intermediate base)."""
+
+    def walk(c, mapping):
+        for base in getattr(c, "__orig_bases__", ()) or ():
+            origin = get_origin(base)
+            if not (isinstance(origin, type) and issubclass(origin, target)):
+                continue
+            args = tuple(
+                mapping.get(a, a) if isinstance(a, TypeVar) else a for a in get_args(base)
+            )
+            if origin is target:
+                return args
+            found = walk(origin, dict(zip(getattr(origin, "__parameters__", ()), args)))
+            if found is not None:
+                return found
+        for base in getattr(c, "__bases__", ()):
+            if isinstance(base, type) and base is not target and issubclass(base, target):
+                found = walk(base, {})
+                if found is not None:
+                    return found
+        return None
+
+    return walk(cls, {})
+
+
+def _generic_class(cls, target, index: int = 0) -> type | None:
+    """The resolved type argument at ``index`` of generic base ``target``, or None when the
+    class left it unbound (a bare TypeVar)."""
+    args = _resolved_generic_args(cls, target)
+    if args and index < len(args) and isinstance(args[index], type):
+        return args[index]
+    return None
+
+
+def capability_class(cls, capability, index: int = 0) -> type | None:
+    """The Detail/Editor/Form/Id class a capability declares via its generic arguments, or
+    None when the class does not declare the capability (or left the argument unbound) —
+    mirrors Java's ``CapabilityCrud.capabilityClass``."""
+    if not (isinstance(cls, type) and issubclass(cls, capability)):
+        return None
+    return _generic_class(cls, capability, index)
+
+
+def listing_row_type(cls) -> type | None:
+    """The ``Row`` type of a ``Listing[Row]`` subclass; None when unbound."""
+    return _generic_class(cls, Listing, 0)
+
+
+def filterable_filters_type(cls) -> type | None:
+    """The ``Filters`` type a ``Filterable`` listing declares — the explicit ``filters_class``
+    attribute wins over the ``Filterable[F]`` generic argument. None when not Filterable."""
+    if not (isinstance(cls, type) and issubclass(cls, Filterable)):
+        return None
+    explicit = getattr(cls, "filters_class", None)
+    if isinstance(explicit, type):
+        return explicit
+    return _generic_class(cls, Filterable, 0)
+
+
+def listing_types(cls) -> tuple[type | None, type | None] | None:
+    """If ``cls`` is a capability :class:`Listing`, return ``(Filters, Row)`` — ``Filters`` is
+    None unless the listing is :class:`Filterable`; else None."""
     if not (isinstance(cls, type) and issubclass(cls, Listing)):
         return None
-    for c in cls.__mro__:
-        for base in getattr(c, "__orig_bases__", ()):
-            origin = get_origin(base)
-            if isinstance(origin, type) and issubclass(origin, Listing):
-                args = get_args(base)
-                if len(args) == 2 and all(isinstance(a, type) for a in args):
-                    return args[0], args[1]
-    return None
+    return filterable_filters_type(cls), listing_row_type(cls)
 
 
 def enum_set_element_type(t) -> type | None:
@@ -475,9 +537,8 @@ class ReflectionMapper:
         element = crud_element_type(cls)
         if element is not None:
             return self.map_crud(cls, element, route, instance)
-        listing = listing_types(cls)
-        if listing is not None:
-            return self.map_listing(cls, listing[0], listing[1], route)
+        if listing_types(cls) is not None:
+            return self.map_listing(cls, route)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
         buttons = [
@@ -1681,6 +1742,8 @@ class ReflectionMapper:
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
                 group_by=self.group_by_of(element),
+                # a full Crud has all the capabilities: delete needs row selection
+                rows_selection_enabled=True,
             ),
             "crud",
             [],
@@ -1749,25 +1812,68 @@ class ReflectionMapper:
             return "datetime"
         return "text"
 
-    def map_listing(self, cls, filters_type, row_type, route: str) -> ServerSideComponent:
-        """A declarative Listing view: a read-only searchable listing — columns from the Row
-        type, the smart search bar from the Filters type (typed DateRange/NumberRange/set fields
-        render range and multi-select widgets — the type is the developer's explicit ask,
-        mirroring Java's PageListingBuilder.isTypedFilter)."""
+    def map_listing(self, cls, route: str) -> ServerSideComponent:
+        """A capability Listing view: columns from the Row type, and every further feature only
+        because the class DECLARES the capability (mirrors Java's ``CapabilityCrud``) —
+        Searchable the search box, Filterable the smart search bar built from the Filters type
+        (typed DateRange/NumberRange/set fields render range and multi-select widgets),
+        Navigable/Editable clickable rows (first column actionId "view"; the editor opens in a
+        drawer when Editable without Navigable), Creatable the New button, Deletable row
+        selection + the Delete button. A bare Listing is just the table."""
+        filters_type, row_type = listing_types(cls) or (None, None)
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
+        searchable = issubclass(cls, Searchable)
+        navigable = issubclass(cls, Navigable)
+        editable = issubclass(cls, Editable)
+        creatable = issubclass(cls, Creatable)
+        deletable = issubclass(cls, Deletable)
+        rows_clickable = navigable or editable
         # A self-referential children list makes rows hierarchical (grid_layout "tree"); it rides
         # inside the row dicts, never as a column.
-        columns = [
-            GridColumn(metadata=GridColumnMeta(
+        columns = []
+        for f in view_fields(row_type) if row_type is not None else []:
+            if self.grid_row_type(f) is not None or not self.visible(f):
+                continue
+            columns.append(GridColumn(metadata=GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 data_type=self.infer_data_type(f.type, f),
                 aggregate=self.aggregate_of(f),
-            ))
-            for f in view_fields(row_type)
-            if self.grid_row_type(f) is None and self.visible(f)
-        ]
+                # the first column of a Navigable/Editable listing opens the record
+                action_id="view" if rows_clickable and not columns else None,
+            )))
         actions = [Action(id="search")]
+        if rows_clickable:
+            actions.append(Action(id="view", validation_required=False))
+        if editable:
+            actions.append(Action(id="edit", validation_required=False))
+            actions.append(Action(id="save"))
+            actions.append(Action(id="cancel-edit", validation_required=False))
+        if creatable:
+            actions.append(Action(id="new", validation_required=False))
+            actions.append(Action(id="create"))
+            actions.append(Action(id="cancel-new", validation_required=False))
+        if deletable:
+            actions.append(Action(id="delete", validation_required=False))
+        toolbar = []
+        if creatable:
+            toolbar.append(Button(label="New", action_id="new"))
+        if deletable:
+            toolbar.append(Button(label="Delete", action_id="delete"))
+        # @list_toolbar_button methods on the listing: BULK actions over the selected rows
+        # (mirrors Java's behaviourSource — the bridged listing's methods become toolbar
+        # buttons).
+        for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
+            marker = getattr(fn, "__mateu_list_toolbar_button__")
+            action_id = "action-on-row-" + camel_case(name)
+            toolbar.append(Button(label=self.T(marker.label or humanize(name)), action_id=action_id))
+            actions.append(Action(
+                id=action_id,
+                validation_required=False,
+                confirmation_required=marker.confirmation_required,
+                rows_selected_required=marker.rows_selected_required,
+                bubble=True,
+            ))
         if issubclass(cls, Selector):
             # The rows of a selector dialog show a Select button (the frontend keys on the
             # "select" action column) and clicking dispatches action-on-row-select.
@@ -1776,10 +1882,13 @@ class ReflectionMapper:
             )))
             actions.append(Action(id="action-on-row-select", validation_required=False))
         crud = self.client(
-            CrudMetadata(title=title, columns=columns, toolbar=[],
-                         can_edit=False, filters=self.listing_filters(filters_type),
+            CrudMetadata(title=title, columns=columns, toolbar=toolbar,
+                         searchable=searchable,
+                         can_edit=editable,
+                         rows_selection_enabled=deletable,
+                         filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
-                         group_by=self.group_by_of(row_type)),
+                         group_by=self.group_by_of(row_type) if row_type is not None else None),
             "crud",
             [],
         )
@@ -1859,23 +1968,30 @@ class ReflectionMapper:
             )
         return out
 
-    def map_entity_form(self, crud_type, element, entity, mode: str, route: str) -> ServerSideComponent:
+    def map_entity_form(
+        self, crud_type, element, entity, mode: str, route: str,
+        can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
+    ) -> ServerSideComponent:
+        """The detail/edit/create form of a crud or capability listing. ``can_edit`` /
+        ``can_create`` trim the view-mode toolbar to the declared capabilities;
+        ``save_action_id`` is the action Save dispatches ("create" on the crud path, "save" on
+        a capability listing's editor)."""
         title = getattr(crud_type, "__mateu_title__", humanize(element.__name__))
         if mode == "view":
-            toolbar = [
-                Button(label="Back to list", action_id="cancel-view"),
-                Button(label="Edit", action_id="edit"),
-                Button(label="Add another", action_id="new"),
-            ]
+            toolbar = [Button(label="Back to list", action_id="cancel-view")]
+            if can_edit:
+                toolbar.append(Button(label="Edit", action_id="edit"))
+            if can_create:
+                toolbar.append(Button(label="Add another", action_id="new"))
         elif mode == "edit":
             toolbar = [
                 Button(label="Cancel", action_id="cancel-edit"),
-                Button(label="Save", action_id="create", button_style="Primary"),
+                Button(label="Save", action_id=save_action_id, button_style="Primary"),
             ]
         else:  # new
             toolbar = [
                 Button(label="Cancel", action_id="cancel-new"),
-                Button(label="Save", action_id="create", button_style="Primary"),
+                Button(label="Save", action_id=save_action_id, button_style="Primary"),
             ]
         page = self.client(
             PageMetadata(title=title, page_title=title, toolbar=toolbar,

@@ -1269,8 +1269,8 @@ def test_foldout_archetype_slots_overview_and_panels():
     (foldout,) = page_children(doc)
     assert foldout["metadata"]["type"] == "FoldoutLayout"
     assert foldout["metadata"]["panels"] == [
-        {"title": "Guests", "subtitle": "2 adults", "icon": "users", "open": True},
-        {"title": "Payments", "subtitle": None, "icon": None, "open": False},
+        {"title": "Guests", "subtitle": "2 adults", "icon": "users", "open": True, "width": None},
+        {"title": "Payments", "subtitle": None, "icon": None, "open": False, "width": None},
     ]
     # Header band: title from @title, chips flattened to text.
     assert foldout["metadata"]["headerTitle"] == "Booking"

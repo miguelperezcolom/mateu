@@ -233,6 +233,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     {
         var crudElement = CrudElementType(type);
         if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
+        if (CapabilityProfile.Of(type) is { } capability) return MapCapabilityListing(capability, route);
         if (ListingTypes(type) is { } listing) return MapListing(type, listing.Filters, listing.Row, route);
 
         var title = T(type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
@@ -852,15 +853,25 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {
+        var crud = instance ?? Activator.CreateInstance(viewType);
         // HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
-        var hero = (instance ?? Activator.CreateInstance(viewType)) as IHeroSearch;
+        var hero = crud as IHeroSearch;
         var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        // The crud's capability hooks (Crud<T>.CanView & co, default true): per-crud restrictions
+        // remove the matching chrome — no New without CanCreate, no selection/Delete without
+        // CanDelete, no clickable rows without CanView/CanEdit (mirrors Java's Crud switches).
+        bool Hook(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? true;
+        var canView = Hook("CanView");
+        var canEdit = Hook("CanEdit");
+        var canCreate = Hook("CanCreate");
+        var canDelete = Hook("CanDelete");
+        var rowsClickable = canView || canEdit;
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(element)
             .Where(Visible)
-            .Select(p =>
+            .Select((p, index) =>
             {
                 var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
                 return new GridColumnDto(new GridColumnMetaDto(
@@ -871,11 +882,24 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     EditorType = editable ? EditorTypeOf(p) : null,
                     EditorOptions = editable ? EditorOptionsOf(p) : null,
                     Aggregate = AggregateOf(p),
+                    // The first column is the row-open affordance (mirrors the Java crud wire).
+                    ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
             })
             .ToList();
-        var toolbar = new List<ButtonDto> { new("New", "new"), new("Delete", "delete") };
-        var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
+        var toolbar = new List<ButtonDto>();
+        var actions = new List<ActionDto> { new("search") };
+        if (canCreate)
+        {
+            toolbar.Add(new ButtonDto("New", "new"));
+            actions.Add(new ActionDto("new"));
+        }
+        if (canDelete)
+        {
+            toolbar.Add(new ButtonDto("Delete", "delete"));
+            actions.Add(new ActionDto("delete"));
+        }
+        if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
         // [ListToolbarButton] methods: BULK list actions — a listing toolbar button dispatching
         // action-on-row-<method> over the grid's selected rows; the action advertises the
@@ -892,17 +916,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 RowsSelectedRequired: bulk.RowsSelectedRequired,
                 Bubble: true));
         }
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        var crudComponent = Client(new CrudMetadataDto(title, columns, toolbar)
         {
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
+            RowsSelectionEnabled = canDelete,
         }, "crud", []);
         var pageChildren = new List<ComponentDto>();
         if (hero is not null)
             pageChildren.Add(Client(new HeroSectionMetadataDto(
                 hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
-        pageChildren.Add(crud);
+        pageChildren.Add(crudComponent);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
         // A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
         var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
@@ -912,6 +937,103 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             PageWidth = PageWidthOf(viewType, instance),
             PageType = PageTypeOf(viewType),
+        };
+    }
+
+    /// <summary>A capability listing (IListing + declared capabilities): the listing table with
+    /// ONLY the chrome its declared capabilities ask for — the search box when ISearchable, the
+    /// filter bar when IFilterable, clickable rows when INavigable/IEditable, New when ICreatable,
+    /// selection + Delete when IDeletable; a bare listing is just the table (mirrors Java's
+    /// CapabilityCrud + CapabilityListingSyncTest contract).</summary>
+    internal ServerSideComponentDto MapCapabilityListing(CapabilityProfile profile, string route)
+    {
+        var viewType = profile.ListingType;
+        var title = T(viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name));
+        var instance = Activator.CreateInstance(viewType);
+        var rowsClickable = profile.CanView || profile.CanEdit;
+        var columns = EditableProperties(profile.RowType)
+            .Where(p => GridRowType(p) is null && Visible(p))
+            .Select((p, index) => new GridColumnDto(new GridColumnMetaDto(
+                Naming.CamelCase(p.Name),
+                p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+            {
+                DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
+                Aggregate = AggregateOf(p),
+                // Rows open through their first column: the read-only detail when navigable, the
+                // edit drawer when editable-without-navigable (both dispatch "view").
+                ActionId = rowsClickable && index == 0 ? "view" : null,
+            }))
+            .ToList();
+        var toolbar = new List<ButtonDto>();
+        var actions = new List<ActionDto> { new("search") };
+        if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
+        if (profile.CanCreate)
+        {
+            toolbar.Add(new ButtonDto("New", "new"));
+            actions.Add(new ActionDto("new"));
+            actions.Add(new ActionDto("create"));
+            actions.Add(new ActionDto("cancel-new", ValidationRequired: false));
+        }
+        if (profile.CanDelete)
+        {
+            toolbar.Add(new ButtonDto("Delete", "delete"));
+            actions.Add(new ActionDto("delete"));
+        }
+        if (profile.CanEdit)
+        {
+            actions.Add(new ActionDto("edit", ValidationRequired: false));
+            actions.Add(new ActionDto("save"));
+            actions.Add(new ActionDto("cancel-edit", ValidationRequired: false));
+        }
+        if (profile.CanView) actions.Add(new ActionDto("cancel-view", ValidationRequired: false));
+        // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source).
+        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null))
+        {
+            var bulk = m.Find<ListToolbarButtonAttribute>()!;
+            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
+            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId));
+            actions.Add(new ActionDto(actionId, ValidationRequired: false,
+                ConfirmationRequired: bulk.ConfirmationRequired,
+                RowsSelectedRequired: bulk.RowsSelectedRequired,
+                Bubble: true));
+        }
+        var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
+        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        {
+            Searchable = profile.Searchable,
+            Filters = profile.FiltersType is { } filtersType ? MapListingFilters(filtersType) : [],
+            GridLayout = gridLayout,
+            GroupBy = GroupByOf(profile.RowType),
+            RowsSelectionEnabled = profile.CanDelete,
+        }, "crud", []);
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
+            new Dictionary<string, object?>(), actions,
+            new List<TriggerDto> { new("OnLoad", "search") }, null, null, null)
+        {
+            PageWidth = PageWidthOf(viewType, instance),
+            PageType = PageTypeOf(viewType),
+        };
+    }
+
+    /// <summary>A capability listing's detail/edit/create form: the reflected form of the type
+    /// the capability method returned, under the listing's title, with a caller-supplied toolbar
+    /// (only the buttons the declared capabilities allow).</summary>
+    internal ServerSideComponentDto MapCapabilityForm(
+        Type listingType, Type formType, object entity, bool readOnly,
+        IReadOnlyList<ButtonDto> toolbar, string route)
+    {
+        var title = T(listingType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(formType.Name));
+        var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
+            FormCards(formType, entity, readOnly));
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), listingType.FullName!, route, [page],
+            new Dictionary<string, object?>(), [], [], null, null, null)
+        {
+            Rules = MapRules(formType, entity),
+            PageType = PageTypeOf(listingType),
         };
     }
 
@@ -1002,6 +1124,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (DerivesFrom(type, typeof(GeneralOverview<>))) return "detail";
         if (CrudElementType(type) is not null) return "collection";
         if (ListingTypes(type) is not null) return "collection";
+        // A capability listing (IListing + declared capabilities) is a collection page too.
+        if (type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IListing<>)))
+            return "collection";
         if (type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Any(p => p.PropertyType == typeof(MetricCard))) return "dashboard";
         // Page-level inference renders this class as the Welcome landing ([AutoPage]).

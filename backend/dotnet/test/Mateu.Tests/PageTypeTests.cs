@@ -45,7 +45,7 @@ public class TypedSmartSearch : SmartSearchPage<TypedSmartSearch.Filters, TypedS
         public string? Id { get; set; }
     }
 
-    public override IEnumerable<Row> Search(string? searchText, Filters filters) => [];
+    public override ListingData<Row> Search(SearchRequest request) => ListingData.From<Row>([]);
 }
 
 [UI("typed-todos"), Title("Todos")]
@@ -153,7 +153,7 @@ public class TypedListing : Listing<TypedListing.Filters, TypedListing.Row>
         public string? Id { get; set; }
     }
 
-    public override IEnumerable<Row> Search(string? searchText, Filters filters) => [];
+    public override ListingData<Row> Search(SearchRequest request) => ListingData.From<Row>([]);
 }
 
 [UI("plain-type-form"), Title("Plain")]

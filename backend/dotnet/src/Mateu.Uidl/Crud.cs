@@ -5,8 +5,16 @@ namespace Mateu.Uidl;
 /// <summary>
 /// Base for a CRUD view of <typeparamref name="T"/>. The framework renders a searchable listing and
 /// detail/edit/new forms, calling these methods. (C# analogue of Java's AutoCrud&lt;T&gt;.)
+/// In the capability model a Crud is simply a listing with ALL the capabilities declared —
+/// searchable, filterable (by the entity's own fields), navigable, editable, creatable and
+/// deletable; override the <see cref="CanView"/>/<see cref="CanEdit"/>/<see cref="CanCreate"/>/
+/// <see cref="CanDelete"/> hooks for per-crud restrictions (mirrors Java's Crud capability
+/// switches).
 /// </summary>
-public abstract class Crud<T> where T : class, new()
+public abstract class Crud<T> :
+    IListing<T>, ISearchable, IFilterable<T>,
+    INavigable<T, string>, IEditable<T, string>, ICreatable<T, string>, IDeletable<string>
+    where T : class, new()
 {
     /// <summary>Rows to show, optionally filtered by the search box text.</summary>
     public abstract IEnumerable<T> Fetch(string? search);
@@ -41,6 +49,46 @@ public abstract class Crud<T> where T : class, new()
 
     /// <summary>Width of the create/edit drawer when <see cref="EditInDrawer"/> is on.</summary>
     public virtual string EditDrawerWidth => "36rem";
+
+    // ── The capability model over the classic Crud surface ─────────────────────
+    // A Crud declares every capability; these hooks narrow them per crud (consulted by the
+    // framework when building the listing's buttons/columns — mirrors Java's Crud.canView & co).
+
+    public virtual bool CanView => true;
+    public virtual bool CanEdit => true;
+    public virtual bool CanCreate => true;
+    public virtual bool CanDelete => true;
+
+    /// <summary>The capability-listing search: an overridden <see cref="Find"/> (database
+    /// pushdown) answers the ready page, else the whole in-memory <see cref="Fetch"/> result is
+    /// handed to the engine to sort + paginate.</summary>
+    public virtual ListingData<T> Search(SearchRequest request) =>
+        Find(request.SearchText, new Dictionary<string, object?>(), request.Pageable) is { } page
+            ? new ListingData<T>(page.Content, page.TotalElements)
+            : ListingData<T>.From(Fetch(request.SearchText));
+
+    public virtual T View(string id) => Get(id) ?? new T();
+
+    public virtual T Edit(string id) => Get(id) ?? new T();
+
+    string IEditable<T, string>.Save(T editor)
+    {
+        Save(editor);
+        return IdOf(editor) ?? "";
+    }
+
+    public virtual T CreationForm() => new();
+
+    string ICreatable<T, string>.Create(T form)
+    {
+        Save(form);
+        return IdOf(form) ?? "";
+    }
+
+    public virtual void DeleteAllById(IReadOnlyList<string> selectedIds)
+    {
+        foreach (var id in selectedIds) Delete(id);
+    }
 }
 
 /// <summary>The hero header of a <see cref="HeroSearch{T}"/> page (non-generic view of it).</summary>
@@ -91,14 +139,18 @@ public sealed record NumberRange(decimal? From = null, decimal? To = null)
 /// <summary>
 /// A declarative read-only listing: a Filters class (its properties become the smart search bar,
 /// with DateRange/NumberRange/ISet&lt;TEnum&gt; properties rendering range and multi-select
-/// widgets) and a Row class (its properties become the columns). Implement Search — it receives
-/// the hydrated typed filters; the framework sorts and paginates the returned rows.
-/// (C# analogue of Java's declarative Listing&lt;Filters, Row&gt;.)
+/// widgets) and a Row class (its properties become the columns). Implement
+/// <see cref="Search(SearchRequest)"/> — the request carries the free text and the hydrated typed
+/// filters (<c>request.Filters&lt;TFilters&gt;()</c>); return <c>ListingData.From(rows)</c> and
+/// the framework sorts and paginates them. In the capability model this base class is just
+/// IListing + ISearchable + IFilterable, pre-declared. (C# analogue of Java's Listing +
+/// Searchable + Filterable.)
 /// </summary>
-public abstract class Listing<TFilters, TRow> where TFilters : class, new() where TRow : class
+public abstract class Listing<TFilters, TRow> : IListing<TRow>, ISearchable, IFilterable<TFilters>
+    where TFilters : class, new() where TRow : class
 {
     /// <summary>Rows matching the free-text search and the applied filters.</summary>
-    public abstract IEnumerable<TRow> Search(string? searchText, TFilters filters);
+    public abstract ListingData<TRow> Search(SearchRequest request);
 
     /// <summary>The grid layout the renderer uses: "auto" (renderer decides), "table", "list",
     /// "cards", "masterDetail" or "tree" — tree shows hierarchical rows whose row type carries a

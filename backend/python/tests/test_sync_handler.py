@@ -38,6 +38,7 @@ from mateu_uidl import (  # noqa: E402
     app_context,
     Crud,
     DateRange,
+    Filterable,
     HeroSearch,
     LinkSupplier,
     Listing,
@@ -280,19 +281,23 @@ class SelectorHotelFilters:
 
 @ui("hotel-selector")
 @title("Hotels")
-class HotelSelector(Listing[SelectorHotelFilters, SelectorHotelRow], Selector, LookupLabelSupplier):
-    def search(self, search_text, filters):
+class HotelSelector(Listing[SelectorHotelRow], Searchable, Selector, LookupLabelSupplier):
+    @staticmethod
+    def _all():
         a = SelectorHotelRow()
         a.id, a.name = "h1", "Palace"
         b = SelectorHotelRow()
         b.id, b.name = "h2", "Marina"
         return [a, b]
 
+    def search(self, request, http=None):
+        return self._all()
+
     def selected(self, row):
         return SelectedItem(id=row.id, label=row.name)
 
     def label(self, field_name, id):
-        return next((h.name for h in self.search(None, None) if h.id == str(id)), None)
+        return next((h.name for h in self._all() if h.id == str(id)), None)
 
 
 @ui("reservation")
@@ -319,11 +324,11 @@ def _zone(id_, name, children=()):
 
 @ui("zone-selector")
 @title("Zones")
-class ZoneSelector(Listing[ZoneFilters, ZoneRow], Selector):
+class ZoneSelector(Listing[ZoneRow], Searchable, Selector):
     def grid_layout(self):
         return "tree"
 
-    def search(self, search_text, filters):
+    def search(self, request, http=None):
         return [
             _zone("espana", "España", [
                 _zone("baleares", "Baleares", [_zone("mallorca", "Mallorca")]),
@@ -372,8 +377,10 @@ _LISTED_BOOKINGS = [
 
 @ui("bookings-listing")
 @title("Bookings (typed filters)")
-class BookingsListing(Listing[ListedBookingFilters, ListedBooking]):
-    def search(self, search_text, filters):
+class BookingsListing(Listing[ListedBooking], Searchable, Filterable[ListedBookingFilters]):
+    def search(self, request, http=None):
+        search_text = request.search_text
+        filters = self.filters(request)
         return [
             r for r in _LISTED_BOOKINGS
             if (not search_text or search_text.lower() in f"{r.guest} {r.locator}".lower())
@@ -419,7 +426,9 @@ class AssetSearch(SmartSearchPage[AssetFilters, AssetRow]):
     def page_subtitle(self):
         return "Find assets by name, status or purchase date."
 
-    def search(self, search_text, filters):
+    def search(self, request, http=None):
+        search_text = request.search_text
+        filters = self.filters(request)
         return [
             a for a in _ASSETS
             if (not search_text or search_text.lower() in f"{a.code} {a.name}".lower())
@@ -432,7 +441,7 @@ class AssetSearch(SmartSearchPage[AssetFilters, AssetRow]):
 @title("Wide assets")
 @page_width(PageWidth.FULL_WIDTH)
 class WideAssetSearch(SmartSearchPage[AssetFilters, AssetRow]):
-    def search(self, search_text, filters):
+    def search(self, request, http=None):
         return list(_ASSETS)
 
 

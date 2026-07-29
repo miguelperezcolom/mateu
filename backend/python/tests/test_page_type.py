@@ -27,12 +27,14 @@ from mateu_uidl import (  # noqa: E402
     ComponentTreeSupplier,
     Crud,
     Dashboard,
+    Filterable,
     Foldout,
     GeneralOverview,
     HeroSearch,
     ItemOverview,
     Listing,
     PageType,
+    Searchable,
     SmartSearchPage,
     TodoList,
     Welcome,
@@ -143,8 +145,8 @@ class BookingRow:
 
 @ui("bookings")
 @title("Bookings")
-class BookingsListing(Listing[BookingFilters, BookingRow]):
-    def search(self, search_text, filters):
+class BookingsListing(Listing[BookingRow], Searchable, Filterable[BookingFilters]):
+    def search(self, request, http=None):
         return []
 
 

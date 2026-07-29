@@ -20,7 +20,7 @@ Example::
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field as dataclass_field, replace
 from datetime import date
 from enum import Enum
 from typing import Callable, Generic, Iterable, TypeVar
@@ -520,14 +520,22 @@ class Lookup:
     set is too large to embed in the form. The Python analogue of Java's ``@Lookup``."""
 
 
-@dataclass(frozen=True)
 class Searchable:
-    """A reference field picked through a full selector DIALOG instead of a combo: clicking the
-    field fires ``codesearch-<fieldId>``, which opens the given selector — a :class:`Listing`
-    with the :class:`Selector` mixin — in a modal; selecting a row writes its (id, label) back
-    into the field and closes the dialog. The Python analogue of Java's ``@Searchable``."""
+    """Two roles, mirroring the two ``Searchable`` of Java (interface + annotation):
 
-    selector: type
+    1. **Listing capability (base class)** — declaring it on a :class:`Listing` shows the
+       free-text search box, and the typed text arrives as ``SearchRequest.search_text``. A
+       listing that does not declare it shows no search box and always receives an empty
+       ``search_text``. The Python analogue of ``io.mateu.uidl.interfaces.Searchable``.
+
+    2. **Field marker (``Annotated`` instance)** — a reference field picked through a full
+       selector DIALOG instead of a combo: clicking the field fires ``codesearch-<fieldId>``,
+       which opens the given ``selector`` — a :class:`Listing` with the :class:`Selector`
+       mixin — in a modal; selecting a row writes its (id, label) back into the field and
+       closes the dialog. The Python analogue of Java's ``@Searchable`` annotation."""
+
+    def __init__(self, selector: type | None = None):
+        self.selector = selector
 
 
 @dataclass(frozen=True)
@@ -1180,17 +1188,67 @@ class Selector:
 
 F = TypeVar("F")
 R = TypeVar("R")
+D = TypeVar("D")
+E = TypeVar("E")
+C = TypeVar("C")
+I = TypeVar("I")  # noqa: E741 - the record id type, mirroring Java's <Id>
 
 
-class Listing(Generic[F, R]):
-    """A declarative read-only listing: a Filters class (its fields become the smart search bar,
-    with ``DateRange``/``NumberRange``/``set[SomeEnum]`` fields rendering range and multi-select
-    widgets) and a Row class (its fields become the columns). Implement ``search`` — it receives
-    the hydrated typed filters; the framework sorts and paginates the returned rows. The Python
-    analogue of Java's declarative ``Listing<Filters, Row>``."""
+@dataclass(frozen=True)
+class SearchRequest:
+    """Everything a listing search receives, in one object: the free-text ``search_text``
+    (populated when the listing is :class:`Searchable`), the hydrated ``filters`` object (when
+    it is :class:`Filterable` — read it typed via ``Filterable.filters(request)``), the
+    range/multi-select ``criteria`` the filters object cannot carry, and the :class:`Pageable`
+    (page/size/sort). Adding a new search input in the future means adding a component here —
+    the ``search(request, http)`` signature never changes. The Python analogue of
+    ``io.mateu.uidl.data.SearchRequest``."""
 
-    def search(self, search_text: str | None, filters: F) -> Iterable[R]:
-        """Rows matching the free-text search and the applied filters."""
+    search_text: str = ""
+    filters: object | None = None
+    criteria: tuple = ()
+    pageable: Pageable = dataclass_field(default_factory=Pageable)
+
+
+@dataclass(frozen=True)
+class ListingData:
+    """What a listing search returns: the ``Row`` objects plus an optional real total. With
+    ``total_elements`` set the framework treats ``rows`` as the already-paged window (database
+    pushdown); left ``None`` the framework sorts and paginates ``rows`` in memory. The Python
+    analogue of ``io.mateu.uidl.data.ListingData``."""
+
+    rows: list
+    total_elements: int | None = None
+
+    @staticmethod
+    def of(rows: Iterable) -> "ListingData":
+        return ListingData(rows=list(rows))
+
+
+class Listing(Generic[R]):
+    """A listing: rows shown as a searchable, sortable, paginated grid. Implement
+    ``search(request, http)`` to return the ``Row`` objects (a :class:`ListingData`, or any
+    iterable) — that alone gives you the listing with column sorting and pagination; the Row
+    type's fields become the columns.
+
+    Every further feature is an optional capability, activated by DECLARING it as an extra
+    base class:
+
+    - :class:`Searchable` — free-text search box (``request.search_text``)
+    - :class:`Filterable` ``[F]`` — filter bar built reflectively from ``F``
+      (``self.filters(request)``)
+    - :class:`Navigable` ``[Detail, Id]`` — rows open a read-only detail (``/:id``)
+    - :class:`Editable` ``[Editor, Id]`` — records can be edited; WITHOUT :class:`Navigable`
+      the editor opens in a drawer over the listing (the "editable listing" idiom)
+    - :class:`Creatable` ``[Form, Id]`` — the New button + create form (``/new``)
+    - :class:`Deletable` ``[Id]`` — row selection + the Delete button
+
+    A listing with none of them is just the table. :class:`Crud` is simply a listing with all
+    the capabilities; the Python analogue of Java's ``Listing<Row>`` + capability interfaces."""
+
+    def search(self, request: SearchRequest, http=None) -> "ListingData | Iterable[R]":
+        """The rows matching the request (``http`` — the inbound action request — is optional
+        in overrides: implement ``search(self, request)`` if you don't need it)."""
         raise NotImplementedError
 
     def grid_layout(self) -> str:
@@ -1199,6 +1257,68 @@ class Listing(Generic[F, R]):
         whose row type carries a self-referential children list, and is never auto-selected. The
         Python analogue of ``ListingBackend.gridLayout``."""
         return "auto"
+
+
+class Filterable(Generic[F]):
+    """Input capability: declaring it on a :class:`Listing` shows the filter bar, built
+    reflectively from the ``F`` filters type — each field becomes a filter widget
+    (``DateRange``/``NumberRange``/``set[SomeEnum]`` fields render range and multi-select
+    widgets). The hydrated filters object travels inside the :class:`SearchRequest`; read it
+    typed via :meth:`filters`. A listing that does not declare ``Filterable`` shows no filter
+    bar and receives ``None`` filters. The filters type comes from the generic argument, or
+    from the ``filters_class`` class attribute."""
+
+    #: Explicit filters type; overrides the ``Filterable[F]`` generic argument when set.
+    filters_class = None
+
+    def filters(self, request: SearchRequest):
+        """The hydrated filters object carried by the request, typed."""
+        return request.filters
+
+
+class Navigable(Generic[D, I]):
+    """Interaction capability: declaring it on a :class:`Listing` makes rows clickable —
+    clicking opens the read-only detail page (``/:id``) rendered from the object :meth:`view`
+    returns."""
+
+    def view(self, id, http=None) -> D:
+        raise NotImplementedError
+
+
+class Editable(Generic[E, I]):
+    """Interaction capability: declaring it on a :class:`Listing` makes records editable — the
+    detail gains an Edit button opening the form :meth:`edit` returns (``/:id/edit``), and
+    submitting it calls :meth:`save` with the form state hydrated into an ``Editor`` instance.
+    WITHOUT :class:`Navigable`, the editor opens in a DRAWER over the listing instead of
+    navigating (the "editable listing" idiom, like ``@edit_in_drawer`` cruds)."""
+
+    def edit(self, id, http=None) -> E:
+        raise NotImplementedError
+
+    def save(self, editor: E, http=None):
+        """Persists the submitted edit-form state and returns the record id."""
+        raise NotImplementedError
+
+
+class Creatable(Generic[C, I]):
+    """Interaction capability: declaring it on a :class:`Listing` adds the New button — it
+    opens the blank (or pre-populated) form :meth:`creation_form` returns (``/new``), and
+    submitting it calls :meth:`create` with the form state hydrated into a ``Form`` instance."""
+
+    def creation_form(self, http=None) -> C:
+        raise NotImplementedError
+
+    def create(self, form: C, http=None):
+        """Persists the submitted creation-form state and returns the new record's id."""
+        raise NotImplementedError
+
+
+class Deletable(Generic[I]):
+    """Interaction capability: declaring it on a :class:`Listing` enables row selection and the
+    Delete button — deleting calls :meth:`delete_all_by_id` with the selected ids."""
+
+    def delete_all_by_id(self, selected_ids: list, http=None) -> None:
+        raise NotImplementedError
 
 
 class HeroSearch(Crud[T]):
@@ -1217,11 +1337,12 @@ class HeroSearch(Crud[T]):
         return None
 
 
-class SmartSearchPage(Listing[F, R]):
+class SmartSearchPage(Listing[R], Filterable[F], Searchable, Generic[F, R]):
     """Smart search page (the Oracle Redwood "Smart Search" template): a standalone, search-first
     page — an optional intro line under the page title, the smart search bar (typed filter facets
     and chips) and the results collection. Read-only and starts EMPTY (the user searches): no
-    OnLoad→search preload trigger. The Python analogue of Java's SmartSearchPage archetype."""
+    OnLoad→search preload trigger. A :class:`Listing` that is :class:`Searchable` and
+    :class:`Filterable` — the Python analogue of Java's SmartSearchPage archetype."""
 
     def page_subtitle(self) -> str | None:
         """Optional intro line rendered under the page title, above the smart search bar."""
@@ -1344,7 +1465,7 @@ __all__ = [
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
-    "Crud", "HeroSearch", "Listing", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
+    "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
 ]

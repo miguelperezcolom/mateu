@@ -228,6 +228,9 @@ class CrudMetadata(Wire):
     #: by it — implicit primary sort + a group subtotal row whenever the value changes. None
     #: when the row class declares no GroupBy() column (mirrors CrudlDto.groupBy).
     group_by: str | None = None
+    #: Row selection checkboxes on (a Deletable listing / a full crud); mirrors
+    #: CrudlDto.rowsSelectionEnabled.
+    rows_selection_enabled: bool = False
 
 
 class ProgressBarMetadata(Wire):
@@ -1262,6 +1265,9 @@ class GridColumnMeta(Wire):
     #: filtered result set and shown in the listing's totals footer (and per group). None on
     #: non-aggregated columns (mirrors GridColumnDto.aggregate).
     aggregate: str | None = None
+    #: Action dispatched when the cell is clicked — "view" on the first column of a
+    #: Navigable/Editable listing makes its rows clickable (mirrors GridColumnDto.actionId).
+    action_id: str | None = None
 
 
 class GridColumn(Wire):

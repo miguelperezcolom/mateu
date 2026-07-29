@@ -684,6 +684,10 @@ public record CrudMetadataDto(
     /// its rows by it — implicit primary sort + a group subtotal row whenever the value changes.
     /// Null when the row class declares no [GroupBy] column (mirrors CrudlDto.groupBy).</summary>
     public string? GroupBy { get; init; }
+
+    /// <summary>Row selection checkboxes on the listing (a deletable/bulk-capable listing needs
+    /// them; a bare listing shows none — mirrors CrudlDto.rowsSelectionEnabled).</summary>
+    public bool RowsSelectionEnabled { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);
@@ -712,6 +716,11 @@ public record GridColumnMetaDto(string Id, string Label)
     /// the WHOLE filtered result set and shown in the listing's totals footer (and per group).
     /// Null on non-aggregated columns (mirrors GridColumnDto.aggregate).</summary>
     public string? Aggregate { get; init; }
+
+    /// <summary>Action dispatched when the cell is clicked — the listing's first column carries
+    /// "view" when rows are clickable (navigable/editable listings); null on plain columns
+    /// (mirrors GridColumnDto.actionId).</summary>
+    public string? ActionId { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);

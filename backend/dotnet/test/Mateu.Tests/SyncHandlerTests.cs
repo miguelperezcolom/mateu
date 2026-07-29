@@ -243,13 +243,13 @@ public class HotelFilters;
 [UI("hotel-selector"), Title("Hotels")]
 public class HotelSelector : Listing<HotelFilters, HotelRow>, ISelector<HotelRow>, ILookupLabelSupplier
 {
-    public override IEnumerable<HotelRow> Search(string? searchText, HotelFilters filters) =>
-        [new() { Id = "h1", Name = "Palace" }, new() { Id = "h2", Name = "Marina" }];
+    public override ListingData<HotelRow> Search(SearchRequest request) =>
+        ListingData.From<HotelRow>([new() { Id = "h1", Name = "Palace" }, new() { Id = "h2", Name = "Marina" }]);
 
     public SelectedItem Selected(HotelRow row) => new(row.Id, row.Name);
 
     public string? Label(string fieldName, object id) =>
-        Search(null, new HotelFilters()).FirstOrDefault(h => h.Id == (string)id)?.Name;
+        Search(new SearchRequest()).Content.FirstOrDefault(h => h.Id == (string)id)?.Name;
 }
 
 [UI("reservation"), Title("Reservation")]
@@ -272,7 +272,7 @@ public class ZoneSelector : Listing<ZoneFilters, ZoneRow>, ISelector<ZoneRow>
 {
     public override string GridLayout() => "tree";
 
-    public override IEnumerable<ZoneRow> Search(string? searchText, ZoneFilters filters) =>
+    public override ListingData<ZoneRow> Search(SearchRequest request) => ListingData.From<ZoneRow>(
     [
         new()
         {
@@ -283,7 +283,7 @@ public class ZoneSelector : Listing<ZoneFilters, ZoneRow>, ISelector<ZoneRow>
             ],
         },
         new() { Id = "portugal", Name = "Portugal" },
-    ];
+    ]);
 
     public SelectedItem Selected(ZoneRow row) => new(row.Id, row.Name);
 }
@@ -299,12 +299,16 @@ public class BookingsListing : Listing<BookingFilters, BookingRow>
         new() { Locator = "B-004", Guest = "Brown", Source = BookingSource.Web, Created = new DateOnly(2026, 7, 12), Total = 260 },
     ];
 
-    public override IEnumerable<BookingRow> Search(string? searchText, BookingFilters filters) =>
-        Rows.Where(r => string.IsNullOrWhiteSpace(searchText)
-                        || (r.Guest + " " + r.Locator).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+    public override ListingData<BookingRow> Search(SearchRequest request)
+    {
+        var filters = request.Filters<BookingFilters>() ?? new BookingFilters();
+        return ListingData.From(Rows
+            .Where(r => string.IsNullOrWhiteSpace(request.SearchText)
+                        || (r.Guest + " " + r.Locator).Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
             .Where(r => filters.Created is null || filters.Created.Contains(r.Created))
             .Where(r => filters.Total is null || filters.Total.Contains((decimal)r.Total))
-            .Where(r => filters.Sources is null || filters.Sources.Count == 0 || filters.Sources.Contains(r.Source));
+            .Where(r => filters.Sources is null || filters.Sources.Count == 0 || filters.Sources.Contains(r.Source)));
+    }
 }
 
 public enum AssetKind { Machine, Vehicle, Tool }
@@ -337,11 +341,15 @@ public class AssetSearch : SmartSearchPage<AssetFilters, AssetRow>
 
     public override string? PageSubtitle() => "Find assets by kind, purchase date or name";
 
-    public override IEnumerable<AssetRow> Search(string? searchText, AssetFilters filters) =>
-        Rows.Where(r => string.IsNullOrWhiteSpace(searchText)
-                        || (r.Name + " " + r.Code).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+    public override ListingData<AssetRow> Search(SearchRequest request)
+    {
+        var filters = request.Filters<AssetFilters>() ?? new AssetFilters();
+        return ListingData.From(Rows
+            .Where(r => string.IsNullOrWhiteSpace(request.SearchText)
+                        || (r.Name + " " + r.Code).Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
             .Where(r => filters.Purchased is null || filters.Purchased.Contains(r.Purchased))
-            .Where(r => filters.Kinds is null || filters.Kinds.Count == 0 || filters.Kinds.Contains(r.Kind));
+            .Where(r => filters.Kinds is null || filters.Kinds.Count == 0 || filters.Kinds.Contains(r.Kind)));
+    }
 }
 
 [UI("full-form"), Title("Full Form"), PageWidth(PageWidthStyle.FullWidth)]
