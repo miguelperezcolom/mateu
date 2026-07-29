@@ -14,7 +14,7 @@ final class CrudViewMethodInvoker {
 
   @SneakyThrows
   static Object invoke(String methodName, Object item, Crud orchestrator, HttpRequest httpRequest) {
-    for (Object subject : List.of(item, orchestrator)) {
+    for (Object subject : List.of(item, orchestrator.behaviourSource())) {
       for (Method method : getAllMethods(subject.getClass())) {
         if (methodName.equals(method.getName())) {
           method.setAccessible(true);

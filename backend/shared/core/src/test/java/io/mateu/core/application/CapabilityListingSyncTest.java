@@ -123,6 +123,24 @@ class CapabilityListingSyncTest {
     }
   }
 
+  @UI("/bulk-books")
+  public static class BulkBooks implements Listing<Book>, Deletable<String> {
+    static volatile List<String> lastArchived;
+
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      return all();
+    }
+
+    @Override
+    public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {}
+
+    @io.mateu.uidl.annotations.ListToolbarButton(rowsSelectedRequired = true)
+    public void archive(List<Book> selection, HttpRequest httpRequest) {
+      lastArchived = selection.stream().map(Book::id).toList();
+    }
+  }
+
   @UI("/deletable-books")
   public static class DeletableBooks implements Listing<Book>, Deletable<String> {
     static volatile List<String> lastDeleted;
@@ -149,7 +167,8 @@ class CapabilityListingSyncTest {
             NavigableBooks.class,
             EditableBooks.class,
             CreatableBooks.class,
-            DeletableBooks.class);
+            DeletableBooks.class,
+            BulkBooks.class);
   }
 
   @AfterAll
@@ -314,5 +333,23 @@ class CapabilityListingSyncTest {
         Map.of("crud_selected_items", List.of(Map.of("id", "b1"))),
         null);
     assertThat(DeletableBooks.lastDeleted).containsExactly("b1");
+  }
+
+  // ── @ListToolbarButton methods on the bridged listing (behaviourSource) ───
+
+  @Test
+  void bulkMethodsDeclaredOnTheBridgedListingBecomeToolbarButtonsAndAreInvoked() {
+    var crudl = listingOf(load(BulkBooks.class, "/bulk-books"));
+    assertThat(toolbarActionIds(crudl)).contains("action-on-row-archive");
+
+    run(
+        BulkBooks.class,
+        "/bulk-books",
+        "action-on-row-archive",
+        Map.of(
+            "crud_selected_items",
+            List.of(Map.of("id", "b1", "title", "El Quijote", "pages", 863))),
+        null);
+    assertThat(BulkBooks.lastArchived).containsExactly("b1");
   }
 }

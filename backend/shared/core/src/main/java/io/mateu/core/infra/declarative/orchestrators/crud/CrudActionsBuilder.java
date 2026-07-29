@@ -41,14 +41,14 @@ final class CrudActionsBuilder {
               .rowsSelectedRequired(true)
               .bubble(true)
               .build());
-      if (orchestrator instanceof UploadEnabled) {
+      if (orchestrator.behaviourSource() instanceof UploadEnabled) {
         actions.add(Action.builder().id("import").build());
         actions.add(Action.builder().id("process-import").build());
       }
-      if (orchestrator instanceof Auditable) {
+      if (orchestrator.behaviourSource() instanceof Auditable) {
         actions.add(Action.builder().id("history").build());
       }
-      getAllMethods(orchestrator.getClass()).stream()
+      getAllMethods(orchestrator.behaviourSource().getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
           .forEach(
               method ->
@@ -65,7 +65,7 @@ final class CrudActionsBuilder {
                           .build()));
     }
     if (httpRequest.getAttribute("view") != null) {
-      getAllMethods(orchestrator.getClass()).stream()
+      getAllMethods(orchestrator.behaviourSource().getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
           .forEach(
               method ->

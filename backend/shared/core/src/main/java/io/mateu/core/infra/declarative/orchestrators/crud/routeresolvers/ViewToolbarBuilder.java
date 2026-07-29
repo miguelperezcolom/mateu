@@ -26,7 +26,7 @@ final class ViewToolbarBuilder {
   static List<UserTrigger> createViewToolbar(
       Object item, Crud orchestrator, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
-    getAllMethods(orchestrator.getClass()).stream()
+    getAllMethods(orchestrator.behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
         .forEach(
             method ->

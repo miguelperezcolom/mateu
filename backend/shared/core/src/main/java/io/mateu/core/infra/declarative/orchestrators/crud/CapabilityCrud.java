@@ -219,4 +219,9 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
   protected Object stateSource() {
     return target;
   }
+
+  @Override
+  public Object behaviourSource() {
+    return target;
+  }
 }

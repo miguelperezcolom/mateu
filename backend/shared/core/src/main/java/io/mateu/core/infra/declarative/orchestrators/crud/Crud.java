@@ -83,7 +83,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   }
 
   public void addButtonsToList(List<UserTrigger> toolbar) {
-    getAllMethods(getClass()).stream()
+    getAllMethods(behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
         .forEach(
             method -> {
@@ -280,6 +280,16 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
 
   /** Instance whose fields are serialized as the listing page state. */
   protected Object stateSource() {
+    return this;
+  }
+
+  /**
+   * Instance whose METHODS and interfaces define the crud's extra behaviour —
+   * {@code @ListToolbarButton}/{@code @Toolbar}/{@code @ViewToolbarButton}/{@code @GroupAction}
+   * methods, {@code UploadEnabled}/{@code Auditable} — and on which row/view methods are invoked.
+   * The capability bridge points it at the underlying listing.
+   */
+  public Object behaviourSource() {
     return this;
   }
 

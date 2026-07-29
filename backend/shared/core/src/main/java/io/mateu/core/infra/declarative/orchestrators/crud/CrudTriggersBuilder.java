@@ -26,7 +26,7 @@ final class CrudTriggersBuilder {
       }
     }
     for (io.mateu.uidl.annotations.Trigger annotation :
-        crud.getClass().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {
+        crud.metadataSource().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {
       triggers.add(mapToTrigger(annotation));
     }
     return triggers;

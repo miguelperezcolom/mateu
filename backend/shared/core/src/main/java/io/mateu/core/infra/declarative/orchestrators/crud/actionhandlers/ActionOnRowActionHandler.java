@@ -20,7 +20,8 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String methodName = actionId.substring("action-on-row-".length());
-    for (Method method : getAllMethods(orchestrator.getClass()).reversed()) {
+    var behaviour = orchestrator.behaviourSource();
+    for (Method method : getAllMethods(behaviour.getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
         method.setAccessible(true);
         var rq = httpRequest.runActionRq();
@@ -37,7 +38,7 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
                 httpRequest,
                 rq.serverSideType(),
                 rq.serverSideComponentRoute());
-        Object result = invoke(method, orchestrator, command);
+        Object result = invoke(method, behaviour, command);
         if (result != null) {
           return result;
         }
