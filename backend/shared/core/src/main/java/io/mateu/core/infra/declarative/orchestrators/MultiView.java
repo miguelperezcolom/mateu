@@ -92,6 +92,17 @@ public abstract class MultiView
     return this;
   }
 
+  /**
+   * Orchestrators own their whole action vocabulary (delete, bulk methods, action-on-row-*…).
+   * {@code Listing} — which {@code Crud} also implements — narrows the claim to {@code search} for
+   * plain listings; materializing the broad {@link ActionHandler} default as a class method makes
+   * it win over that interface default for every orchestrator.
+   */
+  @Override
+  public boolean supportsAction(String actionId) {
+    return ActionHandler.super.supportsAction(actionId);
+  }
+
   protected abstract OrchestrationResult resolveInternalRoute(
       String route, HttpRequest httpRequest);
 

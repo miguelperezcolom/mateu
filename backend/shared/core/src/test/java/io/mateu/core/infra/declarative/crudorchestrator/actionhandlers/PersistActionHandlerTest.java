@@ -41,7 +41,7 @@ class PersistActionHandlerTest {
 
   @Test
   void createRouteContainsNewlySavedId() {
-    when(orchestrator.saveNew(httpRequest)).thenReturn("new-456");
+    when(orchestrator.create(httpRequest)).thenReturn("new-456");
 
     var result = (CrudActionResult) handler.handleAction("create", httpRequest, orchestrator);
 

@@ -12,7 +12,6 @@ import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.GridContent;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.AppLayout;
 import io.mateu.uidl.fluent.GridLayout;
@@ -22,7 +21,14 @@ import io.mateu.uidl.interfaces.*;
 import java.util.List;
 
 public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> extends MultiView
-    implements StateSupplier {
+    implements Listing<Row>,
+        Searchable,
+        Filterable<Filters>,
+        Navigable<View, IdType>,
+        Editable<Editor, IdType>,
+        Creatable<CreationForm, IdType>,
+        Deletable<IdType>,
+        StateSupplier {
 
   private final List<CrudOrchestratorRouteResolver> routeResolvers =
       List.of(
@@ -218,21 +224,9 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return getGenericClass(this.getClass(), Crud.class, "EntityType");
   }
 
-  /** The object rendered in the read-only detail screen for the given id. */
-  public abstract Object view(IdType id, HttpRequest httpRequest);
-
   public String getStyleForView() {
     return CrudOrchestratorMetadata.getStyleForView(this);
   }
-
-  /** The form shown in the edit screen for the given id. */
-  public abstract Object edit(IdType id, HttpRequest httpRequest);
-
-  /** A blank (or pre-populated) form for the create screen. */
-  public abstract Object creationForm(HttpRequest httpRequest);
-
-  /** Deletes the selected rows. */
-  public abstract void deleteAllById(List<IdType> selectedIds, HttpRequest httpRequest);
 
   /**
    * The editor form class. Defaults to the {@code Editor} type argument read off the concrete
@@ -252,11 +246,32 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return getGenericClass(this.getClass(), Crud.class, "CreationForm");
   }
 
-  public abstract Object save(HttpRequest httpRequest);
+  /** Field of {@code Row} holding the id; defaults to the {@code @PrimaryKey}/{@code id} field. */
+  public String getIdFieldForRow() {
+    return CrudAdapterHelper.getIdField(rowClass());
+  }
 
-  public abstract Object saveNew(HttpRequest httpRequest);
+  /**
+   * Capability switches consulted by the route resolvers, action handlers and button builders.
+   * Always on for a {@code Crud} subclass (it declares every capability); the capability bridge
+   * narrows them to what the underlying listing actually implements. Use the {@code @Not*}
+   * annotations / {@code readOnly()} for per-crud restrictions, as before.
+   */
+  public boolean canView() {
+    return true;
+  }
 
-  public abstract String getIdFieldForRow();
+  public boolean canEdit() {
+    return true;
+  }
+
+  public boolean canCreate() {
+    return true;
+  }
+
+  public boolean canDelete() {
+    return true;
+  }
 
   @Override
   public List<String> supportedActions() {
@@ -266,23 +281,6 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
     return CrudActionsBuilder.buildActions(this, httpRequest);
-  }
-
-  public abstract Object search(
-      String searchText, Object filters, Pageable pageable, HttpRequest httpRequest);
-
-  /**
-   * Search with the range/multi-select conditions the example object can't carry (see {@link
-   * io.mateu.uidl.data.FilterCriterion}). Subclasses that don't understand criteria inherit this
-   * default and simply ignore them.
-   */
-  public Object search(
-      String searchText,
-      Object filters,
-      java.util.List<io.mateu.uidl.data.FilterCriterion> criteria,
-      Pageable pageable,
-      HttpRequest httpRequest) {
-    return search(searchText, filters, pageable, httpRequest);
   }
 
   @Override

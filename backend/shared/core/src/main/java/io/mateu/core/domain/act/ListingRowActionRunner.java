@@ -23,7 +23,10 @@ public class ListingRowActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
+    // mediator orchestrators (Crud & co.) are Listings too, but their own action-handler chain
+    // owns the action-on-row-* semantics — this runner only serves plain routed listings
     return instance instanceof Listing<?>
+        && !(instance instanceof io.mateu.uidl.interfaces.RouteHandler)
         && actionId != null
         && actionId.startsWith("action-on-row-");
   }

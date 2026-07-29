@@ -20,7 +20,7 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
       savedId =
           "save".equals(actionId)
               ? orchestrator.save(httpRequest)
-              : orchestrator.saveNew(httpRequest);
+              : orchestrator.create(httpRequest);
     } catch (
         io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.StaleEditException
             conflict) {

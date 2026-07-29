@@ -152,7 +152,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   @Override
-  public Object save(HttpRequest httpRequest) {
+  public String save(HttpRequest httpRequest) {
     var entity = toEntity(httpRequest);
     // optimistic locking (@Version field): reject the save when someone else saved in between,
     // bump the version otherwise — both no-ops for entities without a version field
@@ -173,7 +173,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   @Override
-  public Object saveNew(HttpRequest httpRequest) {
+  public String create(HttpRequest httpRequest) {
     return store().save(toEntity(httpRequest));
   }
 
@@ -184,20 +184,13 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
   @Override
   @SuppressWarnings("unchecked")
-  public Object search(
-      String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-    return fetchRows(searchText, (Filters) filters, pageable, httpRequest);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public Object search(
-      String searchText,
-      Object filters,
-      List<io.mateu.uidl.data.FilterCriterion> criteria,
-      Pageable pageable,
-      HttpRequest httpRequest) {
-    return fetchRows(searchText, (Filters) filters, criteria, pageable, httpRequest);
+  public ListingData<T> search(io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+    return fetchRows(
+        request.searchText(),
+        (Filters) request.filters(),
+        request.criteria(),
+        request.pageable(),
+        httpRequest);
   }
 
   /** The data-access port for this crud's entity. */

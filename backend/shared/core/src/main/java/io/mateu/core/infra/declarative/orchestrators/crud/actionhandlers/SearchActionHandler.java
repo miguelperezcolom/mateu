@@ -39,10 +39,9 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
             io.mateu.uidl.interfaces.FilterStateAssembler.assemble(
                 orchestrator.filtersClass(), extracted.exampleState()),
             httpRequest);
-    return new Data(
-        Map.of(
-            "crud",
-            orchestrator.search(searchText, filters, extracted.criteria(), pageable, httpRequest)));
+    var request =
+        new io.mateu.uidl.data.SearchRequest(searchText, filters, extracted.criteria(), pageable);
+    return new Data(Map.of("crud", orchestrator.search(request, httpRequest)));
   }
 
   /**

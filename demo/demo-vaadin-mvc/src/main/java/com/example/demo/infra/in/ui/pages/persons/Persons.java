@@ -3,7 +3,7 @@ package com.example.demo.infra.in.ui.pages.persons;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,24 +42,19 @@ public class Persons extends Crud<
     }
 
     @Override
-    public Object save(HttpRequest httpRequest) {
+    public String save(HttpRequest httpRequest) {
         var editor = httpRequest.getComponentState(PersonEditorView.class);
         editor.save(httpRequest);
         return editor.id();
     }
 
     @Override
-    public Object saveNew(HttpRequest httpRequest) {
+    public String create(HttpRequest httpRequest) {
         return creationForm(httpRequest).create(httpRequest);
     }
 
     @Override
-    public String getIdFieldForRow() {
-        return "id";
-    }
-
-    @Override
-    public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<PersonRow> search(SearchRequest request, HttpRequest httpRequest) {
         return ListingData.of(List.of(new PersonRow("1", "Mateu", 17)));
     }
 
