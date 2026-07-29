@@ -8,7 +8,7 @@ import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.Image;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
@@ -19,9 +19,10 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -43,7 +44,7 @@ record ProductInventoryRow(
 
 @Route(value="/use-cases/rra/inventory", parentRoute="/use-cases/rra")
 @Singleton
-public class ProductInventoryPage implements ComponentTreeSupplier, ListingBackend<ProductInventoryFilters, ProductInventoryRow>, TriggersSupplier, ActionHandler {
+public class ProductInventoryPage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<ProductInventoryRow>, Searchable, Filterable<ProductInventoryFilters>, TriggersSupplier, ActionHandler {
 
     private final ProductRepository productRepository;
 
@@ -80,7 +81,10 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
     }
 
     @Override
-    public ListingData<ProductInventoryRow> search(String searchText, ProductInventoryFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<ProductInventoryRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var ordersFilters = filters(request);
+        var pageable = request.pageable();
         var found = productRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
         return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
@@ -104,7 +108,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
         if ("go-to-selected-product".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 
     @Override
@@ -112,7 +116,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
         if ("go-to-selected-product".equals(actionId)) {
             return UICommand.navigateTo("/use-cases/rra/inventory/" + httpRequest.getSelectedRows(ProductInventoryRow.class).get(0).id());
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 
     public static Card createCard(Product product) {

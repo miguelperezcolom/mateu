@@ -28,8 +28,7 @@ public class ExportActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return (instance instanceof ListingBackend<?, ?>
-            || instance instanceof ReactiveListingBackend<?, ?>)
+    return (instance instanceof Listing<?> || instance instanceof ReactiveListing<?>)
         && actionId != null
         && actionId.startsWith("export-");
   }
@@ -82,36 +81,27 @@ public class ExportActionRunner implements ActionRunner {
                 .build()));
   }
 
-  @SuppressWarnings("unchecked")
   private List<?> fetchAllRows(Object instance, HttpRequest httpRequest) {
-    var searchText = httpRequest.getString("searchText");
-    var pageable = new Pageable(0, 10_000, List.of());
+    // export the WHOLE filtered set: same search inputs as the on-screen listing, one huge page
+    var base = io.mateu.uidl.interfaces.SearchRequestBuilder.build(instance, httpRequest);
+    var request =
+        new io.mateu.uidl.data.SearchRequest(
+            base.searchText(), base.filters(), base.criteria(), new Pageable(0, 10_000, List.of()));
 
-    if (instance instanceof ListingBackend<?, ?> listing) {
-      var filters =
-          MateuInstanceFactory.newInstance(
-              listing.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
-      var data =
-          ((ListingBackend<Object, Object>) listing)
-              .search(searchText != null ? searchText : "", filters, pageable, httpRequest);
+    if (instance instanceof Listing<?> listing) {
+      var data = listing.search(request, httpRequest);
       return data != null && data.page() != null ? data.page().content() : List.of();
     }
-    if (instance instanceof ReactiveListingBackend<?, ?> listing) {
-      var filters =
-          MateuInstanceFactory.newInstance(
-              listing.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
-      var data =
-          ((ReactiveListingBackend<Object, Object>) listing)
-              .search(searchText != null ? searchText : "", filters, pageable, httpRequest)
-              .block();
+    if (instance instanceof ReactiveListing<?> listing) {
+      var data = listing.search(request, httpRequest).block();
       return data != null && data.page() != null ? data.page().content() : List.of();
     }
     return List.of();
   }
 
   private Class<?> rowClass(Object instance) {
-    if (instance instanceof ListingBackend<?, ?> listing) return listing.rowClass();
-    if (instance instanceof ReactiveListingBackend<?, ?> listing) return listing.rowClass();
+    if (instance instanceof Listing<?> listing) return listing.rowClass();
+    if (instance instanceof ReactiveListing<?> listing) return listing.rowClass();
     return Object.class;
   }
 

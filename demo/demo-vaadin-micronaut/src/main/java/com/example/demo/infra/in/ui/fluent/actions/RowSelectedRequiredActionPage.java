@@ -8,7 +8,7 @@ import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
@@ -16,8 +16,10 @@ import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ReactiveListingBackend;
+import io.mateu.uidl.interfaces.ReactiveListing;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -32,7 +34,7 @@ record Row(String name, int age) {}
 
 @Route(value="/logic/actions/row-selected-required", parentRoute="")
 @Slf4j
-public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveListingBackend<Filters, Row>, ActionSupplier {
+public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveListing<Row>, Searchable, Filterable<Filters>, ActionSupplier {
 
     @JsonIgnore
     List<Row> allItems = List.of(
@@ -89,7 +91,10 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     }
 
     @Override
-    public Mono<ListingData<Row>> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    public Mono<ListingData<Row>> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
+        var pageable = request.pageable();
         log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
@@ -126,7 +131,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
 
     @Override
     public boolean supportsAction(String actionId) {
-        return ReactiveListingBackend.super.supportsAction(actionId) || "xx".equals(actionId);
+        return ReactiveListing.super.supportsAction(actionId) || "xx".equals(actionId);
     }
 
     @Override
@@ -135,7 +140,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
             log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
             return Flux.just(new State(this));
         }
-        return ReactiveListingBackend.super.handleAction(actionId, httpRequest);
+        return ReactiveListing.super.handleAction(actionId, httpRequest);
     }
 
     @Override

@@ -14,8 +14,7 @@ import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.HorizontalLayout;
-import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Action;
@@ -28,8 +27,8 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
+import io.mateu.uidl.interfaces.Searchable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
 import io.micronaut.serde.annotation.Serdeable;
@@ -51,7 +50,7 @@ record OrderCrudRow(String id,
 }
 
 @Serdeable
-class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTreeSupplier, TriggersSupplier, ActionSupplier {
+class OrdersCrud implements io.mateu.uidl.interfaces.Listing<OrderCrudRow>, Searchable, ComponentTreeSupplier, TriggersSupplier, ActionSupplier {
 
     private final OrderRepository orderRepository;
     private final String customerId;
@@ -62,7 +61,9 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
     }
 
     @Override
-    public ListingData<OrderCrudRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<OrderCrudRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var pageable = request.pageable();
         var orders = orderRepository.findAll().stream()
                 .filter(order -> order.customer().id().equals(customerId)).toList();
         return new ListingData<>(new io.mateu.uidl.data.Page<>(
@@ -134,7 +135,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
         if ("edit-selected-order".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 
     @SneakyThrows
@@ -150,7 +151,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
         if ("edit-selected-order".equals(actionId)) {
             return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getClickedRow(OrderRow.class).customerId() + "/edit");
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 
     @Override

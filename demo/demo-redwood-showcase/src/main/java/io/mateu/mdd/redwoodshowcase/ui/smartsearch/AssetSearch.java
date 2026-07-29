@@ -7,7 +7,7 @@ import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.DateRange;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.time.LocalDate;
 import java.util.List;
@@ -60,8 +60,9 @@ public class AssetSearch extends SmartSearchPage<AssetSearch.AssetFilters, Asset
   }
 
   @Override
-  public ListingData<AssetRow> search(
-      String searchText, AssetFilters filters, Pageable pageable, HttpRequest httpRequest) {
+  public ListingData<AssetRow> search(SearchRequest request, HttpRequest httpRequest) {
+    var searchText = request.searchText();
+    var filters = filters(request);
     var found =
         ASSETS.stream()
             .filter(

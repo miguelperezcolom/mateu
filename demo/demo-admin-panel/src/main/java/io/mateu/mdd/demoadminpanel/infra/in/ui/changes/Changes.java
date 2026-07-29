@@ -1,6 +1,5 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.changes;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
@@ -10,11 +9,12 @@ import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
@@ -32,14 +32,16 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Slf4j
 @Style("max-width:900px;margin: auto;")
-public class Changes extends Listing<NoFilters, ChangeRow>  {
+public class Changes implements Listing<ChangeRow>, Searchable {
 
     final io.mateu.mdd.demoadminpanel.infra.in.ui.changes.ChangeQueryService queryService;
     final CreateReleaseForm createReleaseForm;
 
     @Override
-    public ListingData<ChangeRow> search(String searchText, NoFilters filters, Pageable pageable, HttpRequest httpRequest) {
-        var found = queryService.findAll(searchText, filters, pageable);
+    public ListingData<ChangeRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var pageable = request.pageable();
+        var found = queryService.findAll(searchText, new NoFilters(), pageable);
         return ListingData.<ChangeRow>builder()
                 .page(Page.<ChangeRow>builder()
                         .searchSignature(found.page().searchSignature())

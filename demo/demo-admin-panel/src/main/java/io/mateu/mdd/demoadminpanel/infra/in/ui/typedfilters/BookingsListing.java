@@ -1,6 +1,5 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.typedfilters;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -8,8 +7,11 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.DateRange;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NumberRange;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,7 +23,7 @@ import java.util.List;
 @UI("/typed-filters")
 @Title("Bookings (typed filters)")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class BookingsListing extends Listing<BookingsFilters, BookingRow> {
+public class BookingsListing implements Listing<BookingRow>, Searchable, Filterable<BookingsFilters> {
 
     private static final List<BookingRow> BOOKINGS = List.of(
             new BookingRow("B-001", "Smith", Channel.WEB, LocalDate.of(2026, 7, 2), 320.0),
@@ -32,8 +34,9 @@ public class BookingsListing extends Listing<BookingsFilters, BookingRow> {
             new BookingRow("B-006", "Rossi", Channel.PHONE, LocalDate.of(2026, 7, 20), 75.0));
 
     @Override
-    public ListingData<BookingRow> search(
-            String searchText, BookingsFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<BookingRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
         var rows = BOOKINGS.stream()
                 .filter(row -> searchText == null || searchText.isBlank()
                         || (row.guest() + " " + row.locator()).toLowerCase()

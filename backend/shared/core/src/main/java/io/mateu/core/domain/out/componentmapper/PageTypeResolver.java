@@ -23,14 +23,14 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.PageTemplate;
 import io.mateu.uidl.annotations.PageType;
 import io.mateu.uidl.data.MetricCard;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Listing;
 
 /**
  * Resolves the page's coarse template type (the Oracle Redwood page-template families) to its wire
  * name: the explicit {@code @PageTemplate} on the view class wins; otherwise the type is inferred
- * from the ModelView's shape — archetypes map to their family, a {@code ListingBackend} is a
- * collection page, a ModelView with {@code MetricCard} fields is a dashboard, and a plain reflected
- * form is a form page.
+ * from the ModelView's shape — archetypes map to their family, a {@code Listing} is a collection
+ * page, a ModelView with {@code MetricCard} fields is a dashboard, and a plain reflected form is a
+ * form page.
  */
 public final class PageTypeResolver {
 
@@ -66,7 +66,7 @@ public final class PageTypeResolver {
     if (EditableView.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (DataManagement.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (Crud.class.isAssignableFrom(type)) return PageType.COLLECTION;
-    if (ListingBackend.class.isAssignableFrom(type)) return PageType.COLLECTION;
+    if (Listing.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (getAllFields(type).stream().anyMatch(field -> MetricCard.class.equals(field.getType()))) {
       // Typed dashboard on the wire, but still rendered as a plain form — hint the archetype.
       ArchetypeAdvisor.advise(type);

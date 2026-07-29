@@ -58,8 +58,8 @@ public class ReflectionPageMapper {
         // un LISTADO enrutado muestra su toolbar en el HEADER de la página (título y
         // acciones en una línea); el crud del renderer compartido suprime su copia
         .toolbar(
-            instance instanceof io.mateu.uidl.interfaces.ListingBackend<?, ?>
-                    || instance instanceof io.mateu.uidl.interfaces.ReactiveListingBackend<?, ?>
+            instance instanceof io.mateu.uidl.interfaces.Listing<?>
+                    || instance instanceof io.mateu.uidl.interfaces.ReactiveListing<?>
                 ? java.util.stream.Stream.concat(
                         getToolbar(instance, httpRequest).stream(),
                         PageListingBuilder.getToolbarButtons(instance).stream())

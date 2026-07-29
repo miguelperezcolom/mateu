@@ -2,7 +2,6 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.Title;
@@ -10,8 +9,11 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.DateRange;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NumberRange;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -54,13 +56,14 @@ class TypedFiltersSyncTest {
   @SuppressWarnings("unused")
   @UI("/bookings")
   @Title("Bookings")
-  public static class BookingSearch extends Listing<BookingFilters, BookingRow> {
+  public static class BookingSearch
+      implements Listing<BookingRow>, Searchable, Filterable<BookingFilters> {
 
     static volatile BookingFilters lastFilters;
 
     @Override
-    public ListingData<BookingRow> search(
-        String searchText, BookingFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<BookingRow> search(SearchRequest request, HttpRequest httpRequest) {
+      var filters = filters(request);
       lastFilters = filters;
       var rows =
           BOOKINGS.stream()

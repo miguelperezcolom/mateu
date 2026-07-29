@@ -12,8 +12,7 @@ import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.Image;
-import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Component;
@@ -24,8 +23,8 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Searchable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -35,7 +34,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 
 @Route(value="/use-cases/rra/home", parentRoute="/use-cases/rra")
 @Singleton
-public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters, CardRow>, TriggersSupplier {
+public class HomePage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<CardRow>, Searchable, TriggersSupplier {
 
     private final OrderRepository orderRepository;
 
@@ -97,12 +96,9 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
     }
 
     @Override
-    public Class<NoFilters> filtersClass() {
-        return NoFilters.class;
-    }
-
-    @Override
-    public ListingData<CardRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CardRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var pageable = request.pageable();
         var filteredItems = orderRepository.findAll().stream()
                 .filter(order -> OrderStatus.Draft.equals(order.status())).toList();
         return new ListingData<>(new io.mateu.uidl.data.Page<>(
@@ -127,7 +123,7 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
         if ("go-to-selected-order".equals(actionId)) {
             return UICommand.navigateTo("/use-cases/rra/orders/" + httpRequest.getSelectedRows(CardRow.class).get(0).id());
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 
     @Override
@@ -135,6 +131,6 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
         if ("go-to-selected-order".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 }

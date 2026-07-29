@@ -2,7 +2,6 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.core.infra.declarative.orchestrators.masterdetail.MasterDetailView;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
@@ -20,13 +19,16 @@ import io.mateu.uidl.data.ContextMenu;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Directory;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -95,7 +97,8 @@ class MixedComponentsSyncTest {
   @SuppressWarnings("unused")
   @UI("/cities")
   @Title("Cities")
-  public static class CitiesListing extends Listing<CityFilters, CityRow> {
+  public static class CitiesListing
+      implements Listing<CityRow>, Searchable, Filterable<CityFilters> {
     static final List<CityRow> CITIES =
         List.of(
             new CityRow("Palma", 420_000),
@@ -103,8 +106,8 @@ class MixedComponentsSyncTest {
             new CityRow("Madrid", 3_200_000));
 
     @Override
-    public ListingData<CityRow> search(
-        String searchText, CityFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CityRow> search(SearchRequest request, HttpRequest httpRequest) {
+      var searchText = request.searchText();
       var rows =
           CITIES.stream()
               .filter(

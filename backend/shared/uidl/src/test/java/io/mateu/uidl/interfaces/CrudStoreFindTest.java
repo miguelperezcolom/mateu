@@ -21,8 +21,8 @@ class CrudStoreFindTest {
   /** Record entity — accessors are {@code id()}/{@code name()}/{@code price()} (record style). */
   record Product(String id, String name, int price) implements Identifiable {}
 
-  /** A {@link Searchable} entity whose searchable text differs from {@code toString()}. */
-  record Doc(String id, String tag) implements Identifiable, Searchable {
+  /** A {@link SearchableText} entity whose searchable text differs from {@code toString()}. */
+  record Doc(String id, String tag) implements Identifiable, SearchableText {
     @Override
     public String searchableText() {
       return tag;

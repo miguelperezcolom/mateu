@@ -1,14 +1,16 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.tree;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.fluent.GridLayout;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
 import io.mateu.uidl.interfaces.LookupLabelSupplier;
+import io.mateu.uidl.interfaces.Searchable;
 import io.mateu.uidl.interfaces.SelectedItem;
 import io.mateu.uidl.interfaces.Selector;
 import java.util.List;
@@ -20,8 +22,12 @@ import java.util.List;
  */
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 30rem;")
-public class ZoneSelector extends Listing<ZoneSelector.Filters, ZoneSelector.ZoneRow>
-    implements Selector<String>, LookupLabelSupplier {
+public class ZoneSelector
+    implements Listing<ZoneSelector.ZoneRow>,
+        Searchable,
+        Filterable<ZoneSelector.Filters>,
+        Selector<String>,
+        LookupLabelSupplier {
 
   public record Filters() {}
 
@@ -53,9 +59,21 @@ public class ZoneSelector extends Listing<ZoneSelector.Filters, ZoneSelector.Zon
     return GridLayout.tree;
   }
 
+  private String _fieldId;
+
   @Override
-  public ListingData<ZoneRow> search(
-      String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+  public String fieldId() {
+    return _fieldId;
+  }
+
+  @Override
+  public Selector withFieldId(String fieldId) {
+    _fieldId = fieldId;
+    return this;
+  }
+
+  @Override
+  public ListingData<ZoneRow> search(SearchRequest request, HttpRequest httpRequest) {
     return ListingData.of(ROOTS.toArray(ZoneRow[]::new));
   }
 

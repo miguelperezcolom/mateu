@@ -1,13 +1,15 @@
 package io.mateu.core.infra.declarative.orchestrators.smartsearch;
 
 import io.mateu.core.domain.out.componentmapper.PageListingBuilder;
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,8 +26,8 @@ import java.util.List;
  * @param <Filters> the type carrying the filter facet fields (use {@code NoFilters} for none)
  * @param <Row> the type of each result row/card
  */
-public abstract class SmartSearchPage<Filters, Row> extends Listing<Filters, Row>
-    implements ComponentTreeSupplier {
+public abstract class SmartSearchPage<Filters, Row>
+    implements Listing<Row>, Searchable, Filterable<Filters>, ComponentTreeSupplier {
 
   /** Optional intro line rendered under the page title, above the smart search bar. */
   protected String pageSubtitle() {

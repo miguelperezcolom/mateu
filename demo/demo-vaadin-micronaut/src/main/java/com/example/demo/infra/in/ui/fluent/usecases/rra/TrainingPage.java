@@ -4,8 +4,7 @@ import com.example.demo.domain.TrainingRepository;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.data.UICommand;
@@ -18,8 +17,8 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -42,7 +41,7 @@ record TrainingRow(
 @Route(value="/use-cases/rra/training", parentRoute="/use-cases/rra")
 @Singleton
 @Action(id="go-to-selected-training")
-public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFilters, TrainingRow>, TriggersSupplier {
+public class TrainingPage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<TrainingRow>, Searchable, TriggersSupplier {
 
     private final TrainingRepository trainingRepository;
 
@@ -72,7 +71,9 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
     }
 
     @Override
-    public ListingData<TrainingRow> search(String searchText, NoFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<TrainingRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var pageable = request.pageable();
         List<TrainingRow> allRows = trainingRepository.findAll().stream().map(training -> new TrainingRow(
                 training.id(),
                 training.name(),
@@ -98,7 +99,7 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
         if ("go-to-selected-training".equals(actionId)) {
             return UICommand.navigateTo("/use-cases/rra/trainings/" + httpRequest.getSelectedRows(TrainingRow.class).get(0).id());
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 
     @Override
@@ -106,6 +107,6 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
         if ("go-to-selected-training".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 }

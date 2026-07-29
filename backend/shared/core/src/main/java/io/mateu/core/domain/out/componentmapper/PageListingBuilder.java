@@ -40,15 +40,18 @@ public class PageListingBuilder {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    var filters =
-        getFilters(
-            getFiltersClass(instance),
-            instance,
-            baseUrl,
-            route,
-            consumedRoute,
-            initiatorComponentId,
-            httpRequest);
+    var filtersClass = getFiltersClass(instance);
+    Collection<FormField> filters =
+        filtersClass == null
+            ? List.of()
+            : getFilters(
+                filtersClass,
+                instance,
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest);
     FiltersLayout filtersLayout =
         FILTER_LAYOUT_SELECTOR.selectLayout(isSearchable(instance), filters.stream().toList(), 0);
     var builder =
@@ -96,9 +99,9 @@ public class PageListingBuilder {
    */
   private static Collection<? extends GridContent> withViewOnFirstColumnIfNavigable(
       Object instance, Collection<? extends GridContent> rawColumns) {
-    if (!(instance instanceof ListingBackend<?, ?> listingBackend)
+    if (!(instance instanceof io.mateu.uidl.interfaces.Listing<?> listing)
         || instance instanceof Selector<?>
-        || !listingBackend.supportsAction("view")) {
+        || !listing.supportsAction("view")) {
       return rawColumns;
     }
     var list = new java.util.ArrayList<GridContent>(rawColumns);
@@ -129,7 +132,7 @@ public class PageListingBuilder {
     if (instance instanceof io.mateu.uidl.interfaces.Auditable) {
       buttons.add(new Button("History", "history"));
     }
-    if (instance instanceof io.mateu.core.infra.declarative.Listing<?, ?> listing) {
+    if (instance instanceof io.mateu.uidl.interfaces.Listing<?> listing) {
       if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
         buttons.add(new Button("Export CSV", "export-csv"));
       }
@@ -144,8 +147,8 @@ public class PageListingBuilder {
   }
 
   private static GridLayout getGridLayout(Object instance) {
-    if (instance instanceof ListingBackend<?, ?> listingBackend) {
-      return listingBackend.gridLayout();
+    if (instance instanceof io.mateu.uidl.interfaces.Listing<?> listing) {
+      return listing.gridLayout();
     }
     return GridLayout.auto;
   }
@@ -159,11 +162,11 @@ public class PageListingBuilder {
   }
 
   private static boolean isRowSelectionEnabled(Object instance) {
-    if (instance instanceof ListingBackend<?, ?> listingBackend) {
-      return listingBackend.selectionEnabled();
+    if (instance instanceof io.mateu.uidl.interfaces.Listing<?> listing) {
+      return listing.selectionEnabled();
     }
-    if (instance instanceof ReactiveListingBackend<?, ?> reactiveListingBackend) {
-      return reactiveListingBackend.selectionEnabled();
+    if (instance instanceof ReactiveListing<?> reactiveListing) {
+      return reactiveListing.selectionEnabled();
     }
     if (instance != null) {
       return getAllMethods(instance.getClass()).stream()
@@ -173,21 +176,22 @@ public class PageListingBuilder {
   }
 
   private static boolean isSearchable(Object instance) {
-    return true;
+    return instance instanceof Searchable;
   }
 
   private static Class getRowClass(Object instance) {
-    if (instance instanceof ReactiveListingBackend<?, ?>) {
-      return getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Row");
+    if (instance instanceof ReactiveListing<?> reactiveListing) {
+      return reactiveListing.rowClass();
     }
-    return getGenericClass(instance.getClass(), ListingBackend.class, "Row");
+    return getGenericClass(instance.getClass(), io.mateu.uidl.interfaces.Listing.class, "Row");
   }
 
+  /** The filters type comes from the {@link Filterable} capability; null = no filter bar. */
   private static Class getFiltersClass(Object instance) {
-    if (instance instanceof ReactiveListingBackend<?, ?>) {
-      return getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Filters");
+    if (instance instanceof Filterable<?> filterable) {
+      return filterable.filtersClass();
     }
-    return getGenericClass(instance.getClass(), ListingBackend.class, "Filters");
+    return null;
   }
 
   public static Collection<? extends GridContent> getColumns(

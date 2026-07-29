@@ -1,6 +1,5 @@
 package io.mateu.mdd.demofrontoffice.ui.automatizaciones;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.mdd.demofrontoffice.domain.automation.Automation;
 import io.mateu.mdd.demofrontoffice.domain.automation.ConnectedSystem;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
@@ -13,9 +12,12 @@ import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -31,7 +33,9 @@ import java.util.stream.Collectors;
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Trigger(type = TriggerType.OnCustomEvent, actionId = "search", eventName = "automatizacion-arreglada")
 public class AutomatizacionesListing
-    extends Listing<AutomatizacionesListing.Filtros, AutomatizacionesListing.Proceso> {
+    implements Listing<AutomatizacionesListing.Proceso>,
+        Searchable,
+        Filterable<AutomatizacionesListing.Filtros> {
 
   /** Vista rápida por estado (chips junto al smart search). */
   public enum Estado {
@@ -73,8 +77,9 @@ public class AutomatizacionesListing
       @Label("") ColumnActionGroup acciones) {}
 
   @Override
-  public ListingData<Proceso> search(
-      String searchText, Filtros filtros, Pageable pageable, HttpRequest httpRequest) {
+  public ListingData<Proceso> search(SearchRequest request, HttpRequest httpRequest) {
+    var searchText = request.searchText();
+    var filtros = filters(request);
     var rows =
         FrontOffice.automations().findAll().stream()
             .filter(a -> matchesEstado(a, filtros == null ? null : filtros.estado))

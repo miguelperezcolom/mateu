@@ -5,7 +5,7 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
@@ -41,8 +41,9 @@ public class HotelSearch extends HeroSearch<HotelSearch.HotelFilters, HotelSearc
   }
 
   @Override
-  public ListingData<Hotel> search(
-      String searchText, HotelFilters filters, Pageable pageable, HttpRequest httpRequest) {
+  public ListingData<Hotel> search(SearchRequest request, HttpRequest httpRequest) {
+    var searchText = request.searchText();
+    var filters = filters(request);
     var found =
         HOTELS.stream()
             .filter(

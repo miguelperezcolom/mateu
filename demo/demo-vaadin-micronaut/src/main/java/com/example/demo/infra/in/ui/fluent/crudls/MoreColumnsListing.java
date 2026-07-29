@@ -9,7 +9,7 @@ import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -18,9 +18,10 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +42,7 @@ record Row2(
 
 @Route(value="/components/high-level/crudls/more-columns", parentRoute="")
 @Slf4j
-public class MoreColumnsListing implements ComponentTreeSupplier, ListingBackend<Filters2, Row2>, TriggersSupplier {
+public class MoreColumnsListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row2>, Searchable, Filterable<Filters2>, TriggersSupplier {
 
     @JsonIgnore
     List<Row2> allItems = List.of(
@@ -122,7 +123,10 @@ public class MoreColumnsListing implements ComponentTreeSupplier, ListingBackend
     }
 
     @Override
-    public ListingData<Row2> search(String searchText, Filters2 filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row2> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
+        var pageable = request.pageable();
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()

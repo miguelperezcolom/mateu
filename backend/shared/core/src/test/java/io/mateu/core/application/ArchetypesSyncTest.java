@@ -141,7 +141,6 @@ import io.mateu.uidl.data.OfferCard;
 import io.mateu.uidl.data.OrgChart;
 import io.mateu.uidl.data.OrgNode;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.PaymentMethod;
 import io.mateu.uidl.data.PaymentPicker;
 import io.mateu.uidl.data.PricingPlan;
@@ -156,6 +155,7 @@ import io.mateu.uidl.data.ResourceGrid;
 import io.mateu.uidl.data.ResourceItem;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.Scroller;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Skeleton;
 import io.mateu.uidl.data.SkeletonVariant;
 import io.mateu.uidl.data.SplitLayout;
@@ -346,8 +346,7 @@ class ArchetypesSyncTest {
     }
 
     @Override
-    public ListingData<Room> search(
-        String searchText, RoomFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Room> search(SearchRequest request, HttpRequest httpRequest) {
       var rooms = List.of(new Room("Sea view", "Beach", 2), new Room("Loft", "City", 1));
       return new ListingData<>(new Page<>("", rooms.size(), 0, rooms.size(), rooms));
     }

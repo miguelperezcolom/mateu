@@ -3,7 +3,7 @@ package io.mateu.uidl.annotations;
 /**
  * The coarse type of a page, in the vocabulary of the Oracle Redwood page templates. Selected with
  * {@link PageTemplate}; when absent, Mateu infers it from the ModelView's shape (see {@code
- * PageTypeResolver} — archetypes declare theirs, a {@code ListingBackend} is a collection page, a
+ * PageTypeResolver} — archetypes declare theirs, a {@code Listing} is a collection page, a
  * dashboard shows through its metric cards, a plain reflected form is a form page).
  *
  * <p>The type anchors the page's anatomy defaults (e.g. its default width) and gives the wire a

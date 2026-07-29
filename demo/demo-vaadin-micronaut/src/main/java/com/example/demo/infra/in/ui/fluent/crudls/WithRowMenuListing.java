@@ -15,7 +15,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -24,9 +24,10 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,7 +57,7 @@ record Params(String name, int age) {
 
 @Route(value="/components/high-level/crudls/with-row-menu", parentRoute="")
 @Slf4j
-public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend<Filters3, Row3>, TriggersSupplier {
+public class WithRowMenuListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row3>, Searchable, Filterable<Filters3>, TriggersSupplier {
 
     @JsonIgnore
     List<Row3> allItems = List.of(
@@ -167,7 +168,10 @@ public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend
     }
 
     @Override
-    public ListingData<Row3> search(String searchText, Filters3 filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row3> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
+        var pageable = request.pageable();
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -206,7 +210,7 @@ public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend
         if (List.of("unblockRow", "blockRow", "deleteRow", "action-id-1", "action-id-2").contains(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 
     @Override
@@ -225,7 +229,7 @@ public class WithRowMenuListing implements ComponentTreeSupplier, ListingBackend
                     .text(actionId + " on " + (params != null?params.name():null))
                     .build();
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 
     @Override

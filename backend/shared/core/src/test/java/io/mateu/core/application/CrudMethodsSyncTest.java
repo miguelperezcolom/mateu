@@ -144,7 +144,7 @@ class CrudMethodsSyncTest {
 
   @Test
   void selectorSelectEmitsTheValueChangedEvents() {
-    // pure ListingBackend path: action-on-row-select on a Selector listing emits the
+    // pure Listing path: action-on-row-select on a Selector listing emits the
     // value-changed + data-changed + close-modal-requested DispatchEvent commands
     var increment =
         mateu.run(
@@ -162,7 +162,7 @@ class CrudMethodsSyncTest {
 
   @Test
   void pureListingRowMethodsInvokeReflectively() {
-    // ListingBackend.handleAction routes action-on-row-<method> to handleActionOnRow, which
+    // Listing.handleAction routes action-on-row-<method> to handleActionOnRow, which
     // reflectively invokes the named method on the listing
     TreeActionsAndCrudNavigationSyncTest.toolbarRan = null;
     mateu.run(

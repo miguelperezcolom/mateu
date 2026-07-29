@@ -16,7 +16,7 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.DateRange;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -72,8 +72,8 @@ class SmartSearchPageSyncTest {
     }
 
     @Override
-    public ListingData<AssetRow> search(
-        String searchText, AssetFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<AssetRow> search(SearchRequest request, HttpRequest httpRequest) {
+      var filters = filters(request);
       lastFilters = filters;
       var rows =
           ASSETS.stream()

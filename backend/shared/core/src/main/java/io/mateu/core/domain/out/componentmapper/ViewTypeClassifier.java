@@ -19,7 +19,7 @@ import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Listing;
 import io.mateu.uidl.interfaces.Page;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -68,7 +68,7 @@ public final class ViewTypeClassifier {
       return true;
     }
     return instance instanceof Page
-        || instance instanceof ListingBackend<?, ?>
+        || instance instanceof Listing<?>
         || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
         || instance.getClass().isRecord()

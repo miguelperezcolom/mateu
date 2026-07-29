@@ -45,8 +45,7 @@ final class PageContentBuilder {
     if (instance instanceof ContentSupplier contentSupplier) {
       return contentSupplier.content();
     }
-    if (instance instanceof ListingBackend<?, ?>
-        || instance instanceof ReactiveListingBackend<?, ?>) {
+    if (instance instanceof Listing<?> || instance instanceof ReactiveListing<?>) {
       return getCrud(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (isApp(instance.getClass(), route)) {

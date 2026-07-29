@@ -9,7 +9,7 @@ import io.mateu.uidl.data.*;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
-import io.mateu.uidl.interfaces.Searchable;
+import io.mateu.uidl.interfaces.SearchableText;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -49,7 +49,7 @@ public record WorkflowDefinition(
         @Colspan(4)
         @DetailFormCustomisation(position = FormPosition.modalRight, style = "display: block; min-width: 70rem;")
         List<Step> steps
-) implements Identifiable, Searchable, LookupOptionsSupplier {
+) implements Identifiable, SearchableText, LookupOptionsSupplier {
 
     @Override
     public String toString() {

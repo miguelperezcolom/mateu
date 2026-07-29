@@ -3,7 +3,6 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage;
 import io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
@@ -30,9 +29,11 @@ import io.mateu.uidl.data.CalendarEvent;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
@@ -41,8 +42,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The page's coarse template type (the Redwood page-template families) travels on the wire and is
- * inferred from the ModelView's shape: archetypes map to their family, a {@code ListingBackend} is
- * a collection page, {@code MetricCard} fields make a dashboard, a plain reflected form is a form
+ * inferred from the ModelView's shape: archetypes map to their family, a {@code Listing} is a
+ * collection page, {@code MetricCard} fields make a dashboard, a plain reflected form is a form
  * page — and the explicit {@code @PageTemplate} always wins.
  */
 class PageTypeResolverSyncTest {
@@ -58,10 +59,7 @@ class PageTypeResolverSyncTest {
                 new HeroSearch<Object, Object>() {
                   @Override
                   public ListingData<Object> search(
-                      String searchText,
-                      Object filters,
-                      Pageable pageable,
-                      HttpRequest httpRequest) {
+                      SearchRequest request, HttpRequest httpRequest) {
                     return null;
                   }
                 }))
@@ -71,10 +69,7 @@ class PageTypeResolverSyncTest {
                 new SmartSearchPage<Object, Object>() {
                   @Override
                   public ListingData<Object> search(
-                      String searchText,
-                      Object filters,
-                      Pageable pageable,
-                      HttpRequest httpRequest) {
+                      SearchRequest request, HttpRequest httpRequest) {
                     return null;
                   }
                 }))
@@ -231,10 +226,9 @@ class PageTypeResolverSyncTest {
   @SuppressWarnings("unused")
   @UI("/plain-listing")
   @Title("Listing")
-  public static class PlainListing extends Listing<Object, Row> {
+  public static class PlainListing implements Listing<Row>, Searchable {
     @Override
-    public ListingData<Row> search(
-        String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row> search(SearchRequest request, HttpRequest httpRequest) {
       return ListingData.from(List.of());
     }
   }

@@ -45,8 +45,8 @@ public interface CrudStore<T extends Identifiable> {
    * is needed on the port).
    *
    * <p>The default implementation loads {@link #findAll()} and filters/sorts/paginates in memory:
-   * rows are matched against {@code searchText} using {@link Searchable#searchableText()} (or
-   * {@code toString()} when the entity is not {@link Searchable}) — word by word: every
+   * rows are matched against {@code searchText} using {@link SearchableText#searchableText()} (or
+   * {@code toString()} when the entity is not {@link SearchableText}) — word by word: every
    * whitespace-separated word must be contained, case-insensitively and in any order — then against
    * each basic field of {@code filters} whose value differs from a freshly-constructed instance of
    * the filters class — the difference-from-default check is what tells a filter the user actually
@@ -183,7 +183,7 @@ public interface CrudStore<T extends Identifiable> {
 
   /**
    * Word-based free-text match: the search text is split on whitespace and a row matches when its
-   * searchable text ({@link Searchable#searchableText()} or {@code toString()}) contains EVERY
+   * searchable text ({@link SearchableText#searchableText()} or {@code toString()}) contains EVERY
    * word, case-insensitively and in any order — "13 producto" finds "Producto 13", while requiring
    * the literal whole phrase would not.
    */
@@ -192,7 +192,7 @@ public interface CrudStore<T extends Identifiable> {
       return true;
     }
     var haystack =
-        (item instanceof Searchable searchable ? searchable.searchableText() : item.toString())
+        (item instanceof SearchableText searchable ? searchable.searchableText() : item.toString())
             .toLowerCase();
     for (String word : searchText.trim().split("\\s+")) {
       if (!haystack.contains(word.toLowerCase())) {

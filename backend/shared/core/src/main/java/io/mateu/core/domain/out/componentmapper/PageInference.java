@@ -9,7 +9,7 @@ import io.mateu.uidl.annotations.AutoPage;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Listing;
 import java.lang.reflect.Field;
 
 /**
@@ -86,7 +86,7 @@ public final class PageInference {
     return enabled(type)
         && !Component.class.isAssignableFrom(type) // covers ComponentTreeSupplier + fluent trees
         && !Crud.class.isAssignableFrom(type)
-        && !ListingBackend.class.isAssignableFrom(type);
+        && !Listing.class.isAssignableFrom(type);
   }
 
   private PageInference() {}

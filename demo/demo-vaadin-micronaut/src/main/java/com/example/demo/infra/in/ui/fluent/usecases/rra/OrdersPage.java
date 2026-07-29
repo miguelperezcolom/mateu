@@ -12,7 +12,7 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.data.UICommand;
@@ -26,10 +26,11 @@ import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -57,7 +58,7 @@ record OrderRow(
 @Route(value="/use-cases/rra/orders", parentRoute="/use-cases/rra")
 @Singleton
 @io.mateu.uidl.annotations.Action(id="go-to-selected-order")
-public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
+public class OrdersPage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<OrderRow>, Searchable, Filterable<OrdersFilters>, TriggersSupplier, ActionHandler, ActionSupplier {
 
     private final OrderRepository orderRepository;
 
@@ -119,7 +120,10 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
     }
 
     @Override
-    public ListingData<OrderRow> search(String searchText, OrdersFilters ordersFilters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var ordersFilters = filters(request);
+        var pageable = request.pageable();
         var found = orderRepository.findAll().stream().filter(order -> matches(order, searchText, ordersFilters)).toList();
         return new ListingData<>(new io.mateu.uidl.data.Page<>(
                 searchText,
@@ -196,7 +200,7 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
         if ("go-to-selected-customer".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 
     @SneakyThrows
@@ -215,6 +219,6 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
         if ("go-to-selected-customer".equals(actionId)) {
             return UICommand.navigateTo("/use-cases/rra/customers/" + httpRequest.getClickedRow(OrderRow.class).customerId());
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 }

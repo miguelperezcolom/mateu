@@ -13,7 +13,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Page;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
@@ -22,9 +22,10 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.IconKey;
+import io.mateu.uidl.interfaces.Searchable;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.With;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ record Row(
 @Route(value="/components/high-level/crudls/basic", parentRoute="")
 @Slf4j
 @With
-public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filters, Row>, TriggersSupplier {
+public class BasicListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row>, Searchable, Filterable<Filters>, TriggersSupplier {
 
     public BasicListing() {
     }
@@ -211,7 +212,10 @@ public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filte
     }
 
     @Override
-    public ListingData<Row> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Row> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
+        var pageable = request.pageable();
         var filteredItems = allItems.stream()
                 .filter(item -> (searchText.isEmpty()
                         || item.name()
@@ -255,7 +259,7 @@ public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filte
         if ("row-selected".equals(actionId)) {
             return true;
         }
-        return ListingBackend.super.supportsAction(actionId);
+        return io.mateu.uidl.interfaces.Listing.super.supportsAction(actionId);
     }
 
     @Override
@@ -265,6 +269,6 @@ public class BasicListing implements ComponentTreeSupplier, ListingBackend<Filte
                     .text("row selected" + httpRequest.getSelectedRows(Row.class))
                     .build();
         }
-        return ListingBackend.super.handleAction(actionId, httpRequest);
+        return io.mateu.uidl.interfaces.Listing.super.handleAction(actionId, httpRequest);
     }
 }

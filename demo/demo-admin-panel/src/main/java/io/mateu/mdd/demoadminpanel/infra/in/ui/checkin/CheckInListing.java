@@ -1,6 +1,5 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -9,10 +8,13 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.GridLayout;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Route(value = "/checkin", parentRoute = "")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
+public class CheckInListing implements Listing<CheckInRow>, Searchable, Filterable<CheckInFilters> {
 
     final ReservationLineRepository repository;
 
@@ -33,8 +35,9 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
     }
 
     @Override
-    public ListingData<CheckInRow> search(
-            String searchText, CheckInFilters filters, Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<CheckInRow> search(SearchRequest request, HttpRequest httpRequest) {
+        var searchText = request.searchText();
+        var filters = filters(request);
 
         var rows = repository.findAll(searchText, filters.getArrivalDate(), filters.getStatus())
                 .stream()

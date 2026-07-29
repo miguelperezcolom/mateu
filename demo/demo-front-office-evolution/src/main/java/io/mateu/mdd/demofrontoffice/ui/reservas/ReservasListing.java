@@ -1,6 +1,5 @@
 package io.mateu.mdd.demofrontoffice.ui.reservas;
 
-import io.mateu.core.infra.declarative.Listing;
 import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Label;
@@ -9,8 +8,11 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.SearchRequest;
+import io.mateu.uidl.interfaces.Filterable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import io.mateu.uidl.interfaces.Searchable;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +31,8 @@ import java.util.Locale;
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 // tras seedear reservas de demo, el propio listado se refresca (bus estándar)
 @Trigger(type = TriggerType.OnCustomEvent, actionId = "search", eventName = "reservas-seeded")
-public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasListing.Reserva> {
+public class ReservasListing
+    implements Listing<ReservasListing.Reserva>, Searchable, Filterable<ReservasListing.Filtros> {
 
   private static final DateTimeFormatter FECHA =
       DateTimeFormatter.ofPattern("d MMM", Locale.forLanguageTag("es"));
@@ -59,8 +62,9 @@ public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasLi
       @Label("Tier") String tier) {}
 
   @Override
-  public ListingData<Reserva> search(
-      String searchText, Filtros filtros, Pageable pageable, HttpRequest httpRequest) {
+  public ListingData<Reserva> search(SearchRequest request, HttpRequest httpRequest) {
+    var searchText = request.searchText();
+    var filtros = filters(request);
     var rows =
         FrontOffice.stays().findAll().stream()
             .filter(s -> matchesVista(s, filtros == null ? null : filtros.vista))
@@ -204,7 +208,7 @@ public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasLi
 
   @Override
   public boolean supportsAction(String actionId) {
-    return "view".equals(actionId) || "seedDemo".equals(actionId) || super.supportsAction(actionId);
+    return "view".equals(actionId) || "seedDemo".equals(actionId) || Listing.super.supportsAction(actionId);
   }
 
   @Override
@@ -222,6 +226,6 @@ public class ReservasListing extends Listing<ReservasListing.Filtros, ReservasLi
       // (anidada bajo /reservas para que la pestaña Reservas siga marcada)
       return URI.create("/reservas/" + id);
     }
-    return super.handleAction(actionId, httpRequest);
+    return Listing.super.handleAction(actionId, httpRequest);
   }
 }
