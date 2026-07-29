@@ -22,7 +22,9 @@ import java.util.Optional;
  * findAll()} in memory, so override it to push the work to the database.
  *
  * <p>For the whole CRUD lifecycle with distinct view/editor/creation objects (when this data port
- * is not enough), implement {@link CrudAdapter} instead.
+ * is not enough), extend {@code Crud} directly and implement its lifecycle methods ({@code view},
+ * {@code edit}, {@code creationForm}, {@code search}, {@code save}, {@code saveNew}, {@code
+ * deleteAllById}).
  *
  * @param <T> the entity type, which must be {@link Identifiable}
  */

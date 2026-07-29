@@ -29,7 +29,6 @@ If you are building something new, read the pages in order. If you are solving a
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — the list → view → edit flow and how to customize it
 - [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the simplest way to get a CRUD or read-only listing, with capability annotations
 - [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override `fetchRows`, `buildNamedView`, or `buildCreationForm` for custom search, pre-populated forms, and more
-- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
 - [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository contract consumed by the auto adapters, with Spring Data JPA integration
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and capability annotations
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants

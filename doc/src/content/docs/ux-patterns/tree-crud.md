@@ -60,11 +60,11 @@ public class CatalogTree extends AutoCrud<Category> {
 
 ### Heterogeneous tree — a different editor per node
 
-Real workspaces mix node types: a project holds services, a service holds modules, a module holds entities — and each edits with its own form. Drop to the lower-level `Crud<…>` and supply the tree through a `CrudAdapter`:
+Real workspaces mix node types: a project holds services, a service holds modules, a module holds entities — and each edits with its own form. Drop to the lower-level `Crud<…>` and supply the tree from its lifecycle methods:
 
 - a single **row record** describes every node (`label`, a hidden `id`, `children`);
 - `search()` builds the whole tree once;
-- `save()` / `getEditor(id)` **route to the right editor** by decoding the node id;
+- `save()` / `edit(id)` **route to the right editor** by decoding the node id;
 - grouping nodes (a folder, a category header) set **`viewable = false`** so they show no open button and own no editor — only their children are openable.
 
 ```java
@@ -100,7 +100,7 @@ public record WorkspaceRow(
 ) {}
 ```
 
-The adapter's `search()` returns the roots with their children nested; `getEditor(id)` and `getView(id)` inspect the id to return the correct concept's form. See [CRUD interfaces](/java-ui-definition/interfaces/) for the `CrudAdapter` contract.
+The orchestrator's `search()` returns the roots with their children nested; `edit(id)` and `view(id)` inspect the id to return the correct concept's form — in the example above they delegate to a `WorkspaceAdapter` service that owns the per-node routing.
 
 ## Structure
 

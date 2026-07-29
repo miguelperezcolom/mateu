@@ -280,5 +280,5 @@ Use `CompositionCrudStore` when an embedded child grid inside a parent form must
 
 ## Next
 
-- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the lower-level interface for full control over each operation
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the lower-level orchestrator for full control over each operation
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrator that consumes this store

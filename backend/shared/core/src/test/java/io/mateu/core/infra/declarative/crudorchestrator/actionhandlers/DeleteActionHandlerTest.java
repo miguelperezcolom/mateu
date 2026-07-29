@@ -11,7 +11,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.DeleteEditActionHandler;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import org.mockito.quality.Strictness;
 class DeleteActionHandlerTest {
 
   @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
-  @Mock CrudAdapter<?, ?, ?, ?, ?> adapter;
   @Mock HttpRequest httpRequest;
 
   private final DeleteEditActionHandler handler = new DeleteEditActionHandler();
@@ -37,7 +35,6 @@ class DeleteActionHandlerTest {
   @SuppressWarnings("unchecked")
   void setUp() {
     when(orchestrator.getIdFieldForRow()).thenReturn("id");
-    when(orchestrator.adapter()).thenAnswer(inv -> adapter);
     when(httpRequest.runActionRq())
         .thenReturn(RunActionRqDto.builder().initiatorComponentId("test_app").build());
   }
@@ -67,7 +64,7 @@ class DeleteActionHandlerTest {
 
     handler.handleAction("delete", httpRequest, orchestrator);
 
-    verify(adapter).deleteAllById(eq((List) List.of("id-1", "id-2")), eq(httpRequest));
+    verify(orchestrator).deleteAllById(eq((List) List.of("id-1", "id-2")), eq(httpRequest));
   }
 
   @Test
@@ -76,7 +73,7 @@ class DeleteActionHandlerTest {
 
     handler.handleAction("delete", httpRequest, orchestrator);
 
-    verify(adapter, never()).deleteAllById(any(), any());
+    verify(orchestrator, never()).deleteAllById(any(), any());
   }
 
   @Test

@@ -250,7 +250,6 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/crud-navigation-flow' },
 								{ slug: 'java-user-manual/build/auto-orchestrators' },
 								{ slug: 'java-user-manual/build/auto-adapters' },
-								{ slug: 'java-user-manual/build/crud-adapter' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },
 								{ slug: 'java-user-manual/build/listing-layout' },
 								{ slug: 'java-user-manual/build/listing-row-actions' },

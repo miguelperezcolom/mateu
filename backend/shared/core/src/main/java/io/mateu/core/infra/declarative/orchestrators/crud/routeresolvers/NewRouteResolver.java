@@ -13,7 +13,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
 
   @Override
   public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
-    var editor = orchestrator.adapter().getCreationForm(httpRequest);
+    var editor = orchestrator.creationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(
         "new", editor, CrudFormComponentBuilder.build(true, httpRequest, editor, orchestrator));

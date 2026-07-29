@@ -202,8 +202,6 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return (IdType) CrudIdConverter.convert(id, idClass(), getClass());
   }
 
-  public abstract CrudAdapter<Editor, CreationForm, Filters, Row, IdType> adapter();
-
   public Class<Filters> filtersClass() {
     return getGenericClass(this.getClass(), Crud.class, "Filters");
   }
@@ -220,17 +218,21 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return getGenericClass(this.getClass(), Crud.class, "EntityType");
   }
 
-  public Object view(IdType id, HttpRequest httpRequest) {
-    return adapter().getView(id, httpRequest);
-  }
+  /** The object rendered in the read-only detail screen for the given id. */
+  public abstract Object view(IdType id, HttpRequest httpRequest);
 
   public String getStyleForView() {
     return CrudOrchestratorMetadata.getStyleForView(this);
   }
 
-  public Object edit(IdType id, HttpRequest httpRequest) {
-    return adapter().getEditor(id, httpRequest);
-  }
+  /** The form shown in the edit screen for the given id. */
+  public abstract Object edit(IdType id, HttpRequest httpRequest);
+
+  /** A blank (or pre-populated) form for the create screen. */
+  public abstract Object creationForm(HttpRequest httpRequest);
+
+  /** Deletes the selected rows. */
+  public abstract void deleteAllById(List<IdType> selectedIds, HttpRequest httpRequest);
 
   /**
    * The editor form class. Defaults to the {@code Editor} type argument read off the concrete

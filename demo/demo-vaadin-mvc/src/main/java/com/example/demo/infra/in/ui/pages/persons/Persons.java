@@ -1,15 +1,17 @@
 package com.example.demo.infra.in.ui.pages.persons;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class Persons extends Crud<
         PersonDetailView,
         PersonEditorView,
@@ -19,11 +21,24 @@ public class Persons extends Crud<
         String
         > {
 
-    final PersonsCrudAdapter adapter;
+    @Override
+    public PersonDetailView view(String id, HttpRequest httpRequest) {
+        return new PersonDetailView(id, "Mateu", 17);
+    }
 
     @Override
-    public CrudAdapter<PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> adapter() {
-        return adapter;
+    public PersonEditorView edit(String id, HttpRequest httpRequest) {
+        return new PersonEditorView(id, "Mateu", 17, List.of());
+    }
+
+    @Override
+    public PersonCreationForm creationForm(HttpRequest httpRequest) {
+        return new PersonCreationForm("", 50, List.of());
+    }
+
+    @Override
+    public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
+        log.info("deleting " + selectedIds);
     }
 
     @Override
@@ -35,7 +50,7 @@ public class Persons extends Crud<
 
     @Override
     public Object saveNew(HttpRequest httpRequest) {
-        return adapter.getCreationForm(httpRequest).create(httpRequest);
+        return creationForm(httpRequest).create(httpRequest);
     }
 
     @Override
@@ -45,7 +60,7 @@ public class Persons extends Crud<
 
     @Override
     public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-        return adapter.search(searchText, (NoFilters) filters, pageable, httpRequest);
+        return ListingData.of(List.of(new PersonRow("1", "Mateu", 17)));
     }
 
 }

@@ -167,64 +167,9 @@ It sits on top of it.
 
 ---
 
-## Step 4 — Add the CRUD adapter
+## Step 4 — Expose the CRUD
 
-The adapter connects Mateu's CRUD lifecycle to your query services and use cases.
-
-```java
-public class RoleCrudAdapter implements CrudAdapter<
-        RoleViewModel,
-        RoleViewModel,
-        RoleViewModel,
-        NoFilters,
-        RoleRow,
-        String> {
-
-  final RoleViewModel viewModel;
-  final RoleQueryService queryService;
-  final DeleteRoleUseCase deleteRoleUseCase;
-
-  public RoleCrudAdapter(
-      RoleViewModel viewModel,
-      RoleQueryService queryService,
-      DeleteRoleUseCase deleteRoleUseCase) {
-    this.viewModel = viewModel;
-    this.queryService = queryService;
-    this.deleteRoleUseCase = deleteRoleUseCase;
-  }
-
-  @Override
-  public ListingData<RoleRow> search(String searchText, NoFilters filters, Pageable pageable) {
-    return queryService.findAll(searchText, filters, pageable);
-  }
-
-  @Override
-  public void deleteAllById(List<String> selectedIds) {
-    deleteRoleUseCase.handle(new DeleteRoleCommand(selectedIds));
-  }
-
-  @Override
-  public RoleViewModel getView(String id) {
-    return viewModel.load(queryService.getById(id).orElseThrow());
-  }
-
-  @Override
-  public RoleViewModel getEditor(String id) {
-    return viewModel.load(queryService.getById(id).orElseThrow());
-  }
-
-  @Override
-  public RoleViewModel getCreationForm(HttpRequest httpRequest) {
-    return viewModel;
-  }
-}
-```
-
----
-
-## Step 5 — Expose the CRUD
-
-Now expose it through a `Crud`.
+Now expose the form through a `Crud`. The whole lifecycle — listing, view, edit, create, delete, persistence — lives on the orchestrator, wired straight to your query services and use cases.
 
 ```java
 @Title("Roles")
@@ -236,15 +181,42 @@ public class RolesCrud extends Crud<
         RoleRow,
         String> {
 
-  final RoleCrudAdapter adapter;
+  final RoleViewModel viewModel;
+  final RoleQueryService queryService;
+  final DeleteRoleUseCase deleteRoleUseCase;
 
-  public RolesCrud(RoleCrudAdapter adapter) {
-    this.adapter = adapter;
+  public RolesCrud(
+      RoleViewModel viewModel,
+      RoleQueryService queryService,
+      DeleteRoleUseCase deleteRoleUseCase) {
+    this.viewModel = viewModel;
+    this.queryService = queryService;
+    this.deleteRoleUseCase = deleteRoleUseCase;
   }
 
   @Override
-  public CrudAdapter<RoleViewModel, RoleViewModel, RoleViewModel, NoFilters, RoleRow, String> adapter() {
-    return adapter;
+  public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
+    return queryService.findAll(searchText, (NoFilters) filters, pageable);
+  }
+
+  @Override
+  public RoleViewModel view(String id, HttpRequest httpRequest) {
+    return viewModel.load(queryService.getById(id).orElseThrow());
+  }
+
+  @Override
+  public RoleViewModel edit(String id, HttpRequest httpRequest) {
+    return viewModel.load(queryService.getById(id).orElseThrow());
+  }
+
+  @Override
+  public RoleViewModel creationForm(HttpRequest httpRequest) {
+    return viewModel;
+  }
+
+  @Override
+  public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
+    deleteRoleUseCase.handle(new DeleteRoleCommand(selectedIds));
   }
 
   @Override
@@ -261,6 +233,11 @@ public class RolesCrud extends Crud<
   }
 
   @Override
+  public String getIdFieldForRow() {
+    return "id";
+  }
+
+  @Override
   public String toId(String s) {
     return s;
   }
@@ -271,7 +248,7 @@ Now you have a real CRUD screen in your backoffice.
 
 ---
 
-## Step 6 — Resolve relationships dynamically
+## Step 5 — Resolve relationships dynamically
 
 Mateu can resolve foreign keys dynamically through backend suppliers.
 
@@ -324,7 +301,7 @@ So your form can work with real relationships without moving logic into the fron
 
 ---
 
-## Step 7 — Return user feedback directly
+## Step 6 — Return user feedback directly
 
 You can return browser feedback straight from backend methods.
 

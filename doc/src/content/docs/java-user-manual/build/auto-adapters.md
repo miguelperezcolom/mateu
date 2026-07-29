@@ -87,12 +87,12 @@ Both hooks return the **entity itself** — Mateu renders its fields, serialises
 
 ## When these hooks are not enough
 
-If the view, editor, and creation form need to be **genuinely different types** (different fields, different DTOs), step up to [`Crud<View,Editor,CreationForm,Filters,Row,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) and implement [`CrudAdapter`](/java-user-manual/build/crud-adapter/) directly.
+If the view, editor, and creation form need to be **genuinely different types** (different fields, different DTOs), step up to [`Crud<View,Editor,CreationForm,Filters,Row,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) and implement its lifecycle methods directly.
 
 ---
 
 ## Next
 
 - [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model
-- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the orchestrator for a fully custom lifecycle
 - [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository contract these hooks delegate to

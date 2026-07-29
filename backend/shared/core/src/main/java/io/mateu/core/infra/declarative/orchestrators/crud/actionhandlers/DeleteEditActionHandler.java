@@ -19,7 +19,7 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
       var idField = orchestrator.getIdFieldForRow();
       List selectedIds =
           selection.stream().map(map -> ((Map<String, Object>) map).get(idField)).toList();
-      orchestrator.adapter().deleteAllById(selectedIds, httpRequest);
+      orchestrator.deleteAllById(selectedIds, httpRequest);
     }
     return CrudActionResult.of(actionId)
         .withRoute("/list")

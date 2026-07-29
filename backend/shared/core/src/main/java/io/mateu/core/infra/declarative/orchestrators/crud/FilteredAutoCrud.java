@@ -15,34 +15,23 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     extends Crud<T, T, T, Filters, T, String> {
 
   @Override
-  public CrudAdapter<T, T, Filters, T, String> adapter() {
-    return new CrudAdapter<>() {
-      @Override
-      public ListingData<T> search(
-          String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
-        return fetchRows(searchText, filters, pageable, httpRequest);
-      }
+  public T view(String id, HttpRequest httpRequest) {
+    return buildNamedView(id, httpRequest);
+  }
 
-      @Override
-      public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
-        store().deleteAllById(selectedIds);
-      }
+  @Override
+  public T edit(String id, HttpRequest httpRequest) {
+    return buildNamedView(id, httpRequest);
+  }
 
-      @Override
-      public Object getView(String id, HttpRequest httpRequest) {
-        return buildNamedView(id, httpRequest);
-      }
+  @Override
+  public T creationForm(HttpRequest httpRequest) {
+    return buildCreationForm(httpRequest);
+  }
 
-      @Override
-      public Object getEditor(String id, HttpRequest httpRequest) {
-        return buildNamedView(id, httpRequest);
-      }
-
-      @Override
-      public Object getCreationForm(HttpRequest httpRequest) {
-        return buildCreationForm(httpRequest);
-      }
-    };
+  @Override
+  public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
+    store().deleteAllById(selectedIds);
   }
 
   @SuppressWarnings("unchecked")
@@ -194,9 +183,10 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Object search(
       String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-    return adapter().search(searchText, (Filters) filters, pageable, httpRequest);
+    return fetchRows(searchText, (Filters) filters, pageable, httpRequest);
   }
 
   @Override
