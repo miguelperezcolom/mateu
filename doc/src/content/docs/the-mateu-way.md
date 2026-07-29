@@ -5,13 +5,24 @@ description: "The golden path: every screen is one of six things. Pick the famil
 
 Mateu has a large vocabulary — dozens of annotations, twenty-plus archetypes, some eighty UX
 patterns. **You do not need to know it.** That vocabulary is a reference library, not a syllabus.
-Building with Mateu is three moves:
+
+**Building a UI starts before any code: list the screens.** Take the app you have in mind and
+write down the screens it needs — "a products listing, a product detail, a check-in wizard, an
+operations dashboard". That screen map is the design. Then, screen by screen, it's three moves:
 
 1. **Pick the family.** Every screen is one of six things (a business question, not a framework one).
 2. **Start from the family's archetype.** One class, nearly empty, gives you a working screen.
-3. **Refine only where you disagree.** Explicit always wins; inference fills every gap you leave.
+3. **Refine only where you disagree.** Explicit always wins; below the template, layout inference
+   fills the gaps you leave (columns, sections, widgets — see
+   [layout inference](/ux-patterns/layout-inference/)).
 
-If you remember nothing else: *start at the top of the ladder, descend only on disagreement.*
+Choosing the template is a decision **you** make per screen — that's the normal path, not a
+fallback. Mateu can compose the template itself only for two fully-derivable shapes (a class of
+`MetricCard` fields → Dashboard, a class of `Button` CTAs → Welcome); for everything else it can
+at most hint (the advisor logs "this looks like a CollectionDetail"), and you pick.
+
+If you remember nothing else: *first the screen map, then start at the top of the ladder, descend
+only on disagreement.*
 
 ## Every screen is one of six things
 

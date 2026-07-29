@@ -148,7 +148,7 @@ public class ConfirmationPage {
 
 ## @Title and @Subtitle
 
-Applied at type level. See [App Annotations](./app) for full documentation.
+Applied at type level. See [App Annotations](/java-ui-definition/annotations/app/) for full documentation.
 
 - `@Title` — sets the visible heading rendered inside the page.
 - `@Subtitle` — sets a subtitle displayed below the title.

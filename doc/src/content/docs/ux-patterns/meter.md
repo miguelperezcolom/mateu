@@ -29,4 +29,4 @@ The value is formatted client-side like the money stereotype (thousands separato
 
 ## When to use it
 
-Use a `Meter` when a value is only meaningful **relative to a limit** — balance vs preauthorization, occupancy vs capacity, usage vs quota. For a metric with a trend and sparkline use [Stat](./stat); for dashboard tiles use `MetricCard` inside a [Dashboard](./dashboard). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/meter-demo`.
+Use a `Meter` when a value is only meaningful **relative to a limit** — balance vs preauthorization, occupancy vs capacity, usage vs quota. For a metric with a trend and sparkline use [Stat](/ux-patterns/stat/); for dashboard tiles use `MetricCard` inside a [Dashboard](/ux-patterns/dashboard/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/meter-demo`.

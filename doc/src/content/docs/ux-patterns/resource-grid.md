@@ -35,4 +35,4 @@ Clicking an **enabled** card dispatches the standard `action-requested` event wi
 
 ## When to use it
 
-Use a `ResourceGrid` to **pick one unit from a set of physical resources** where the spatial/status overview matters — room assignment in a check-in wizard, table allocation, dock scheduling. To pick an entity from a large searchable collection use an [Entity Picker](./entity-picker); to present a paid upgrade next to the assigned unit pair it with an [Offer card](./offer-card). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/resource-grid-demo`.
+Use a `ResourceGrid` to **pick one unit from a set of physical resources** where the spatial/status overview matters — room assignment in a check-in wizard, table allocation, dock scheduling. To pick an entity from a large searchable collection use an [Entity Picker](/ux-patterns/entity-picker/); to present a paid upgrade next to the assigned unit pair it with an [Offer card](/ux-patterns/offer-card/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/resource-grid-demo`.

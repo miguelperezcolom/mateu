@@ -7,7 +7,7 @@ The Redwood **Advanced Create & Edit** template is the single-page transactional
 object: many fields grouped into sections, a canonical header with the save/cancel affordances and
 the object's context, and one lateral aid — either a **section index** to jump around a long form,
 or a **detail slot** with supporting information. It is the heavier sibling of the
-[simple create & edit](./create-and-edit) (`AutoCrud`'s generated `/new`—`/{id}/edit` forms).
+[simple create & edit](/ux-patterns/create-and-edit/) (`AutoCrud`'s generated `/new`—`/{id}/edit` forms).
 
 Mateu doesn't ship a dedicated archetype for it, because by now every region is a piece you already
 have — it is **composition**, the same slot grammar the archetypes are written in.
@@ -17,12 +17,12 @@ have — it is **composition**, the same slot grammar the archetypes are written
 | Redwood region | Mateu piece |
 |---|---|
 | Page header — title, **cancel** (left) + **save/primary** (right) | `@Title` + `@Button`/`@Toolbar` (the header places cancel/back left, actions right) |
-| Header — **last updated** timestamp | [`@Timestamp("Last updated")`](../reference/key-annotations) on a field |
-| Header — **contextual facts** ("at a glance") | [`@KPI`](../reference/key-annotations) label/value fields |
-| Header — **next / previous object** | [`PeerNavigationSupplier`](./page-templates#peer-navigation) → prev/next arrows |
+| Header — **last updated** timestamp | [`@Timestamp("Last updated")`](/reference/key-annotations/) on a field |
+| Header — **contextual facts** ("at a glance") | [`@KPI`](/reference/key-annotations/) label/value fields |
+| Header — **next / previous object** | [`PeerNavigationSupplier`](/ux-patterns/page-templates/#peer-navigation) → prev/next arrows |
 | **Main** slot — the sectioned form | `@Section` (and `@Zones`/tabs) fields |
-| **Anchor navigator** — sticky section index | [`@Toc`](./sections-index) |
-| **Detail slot** — a contextual side panel | [`@Aside`](./layout-inference#aside--a-content-page-from-a-plain-form) → a `ContentLayout` aside |
+| **Anchor navigator** — sticky section index | [`@Toc`](/ux-patterns/sections-index/) |
+| **Detail slot** — a contextual side panel | [`@Aside`](/ux-patterns/layout-inference/#aside--a-content-page-from-a-plain-form) → a `ContentLayout` aside |
 | Save — validation, optimistic locking, dirty guard | bean-validation annotations, `@Version`, `@ConfirmOnNavigationIfDirty` (automatic on CRUD) |
 
 **The rule from Redwood holds:** the anchor navigator and the detail slot are *mutually exclusive* —
@@ -90,4 +90,4 @@ persist.
 
 Everything here is composition of pieces that render on every renderer and have .NET/Python parity —
 `[Timestamp]`/`[Section]` and `Timestamp()`/`Section()`, `[Aside]`/`Aside()`, the peer-navigation
-supplier, and the bean-validation attributes. See [choosing a page template](./choosing-a-page-template).
+supplier, and the bean-validation attributes. See [choosing a page template](/ux-patterns/choosing-a-page-template/).

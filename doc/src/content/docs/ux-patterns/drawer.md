@@ -136,7 +136,7 @@ Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
 ## Guided Process Drawer (a wizard in a drawer, `EmbeddedView`)
 
 The Redwood **Guided Process Drawer** runs a short multi-step process inside a drawer — a subflow
-or a batch action (≤5 steps; a longer process uses the full-page [wizard](./wizard)). Return a
+or a batch action (≤5 steps; a longer process uses the full-page [wizard](/ux-patterns/wizard/)). Return a
 `Drawer` whose content is a wizard wrapped in **`EmbeddedView`**:
 
 ```java

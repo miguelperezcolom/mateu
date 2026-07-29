@@ -49,4 +49,4 @@ case "upgrade" -> {
 
 ## When to use it
 
-Use an `OfferCard` for a **single, contextual offer** — typically a current-vs-upgrade pair side by side. To compare several plans/tiers in columns use a [Pricing table](./pricing-table); for many small priced extras with a running total use an [Add-on picker](./addon-picker). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/offer-card-demo`.
+Use an `OfferCard` for a **single, contextual offer** — typically a current-vs-upgrade pair side by side. To compare several plans/tiers in columns use a [Pricing table](/ux-patterns/pricing-table/); for many small priced extras with a running total use an [Add-on picker](/ux-patterns/addon-picker/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/offer-card-demo`.

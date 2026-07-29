@@ -13,7 +13,7 @@ The same screen often serves several personas: the front-desk agent needs the in
 
 Two pieces:
 
-1. **The switch** — an [`@AppContext`](./app-context) field named exactly `audience` on the app class. It renders as a selector on the app header and its value travels with every request. An enum gives you the options for free (constants travel as their `name()`):
+1. **The switch** — an [`@AppContext`](/ux-patterns/app-context/) field named exactly `audience` on the app class. It renders as a selector on the app header and its value travels with every request. An enum gives you the options for free (constants travel as their `name()`):
 
 ```java
 @UI("")
@@ -82,4 +82,4 @@ The annotation is composable (semantic annotations can embed it), and the same b
 
 ## When to use it
 
-Use it whenever one screen serves several personas whose *relevance* differs but whose *rights* don't have to (kiosk vs desk mode, agent vs customer view, novice vs expert density). Pair it with [`@AppContext`](./app-context) for the switch and with the security annotations when visibility must actually be enforced. Demo: `/audience-demo` (switch the "Modo" selector between Staff and Cliente).
+Use it whenever one screen serves several personas whose *relevance* differs but whose *rights* don't have to (kiosk vs desk mode, agent vs customer view, novice vs expert density). Pair it with [`@AppContext`](/ux-patterns/app-context/) for the switch and with the security annotations when visibility must actually be enforced. Demo: `/audience-demo` (switch the "Modo" selector between Staff and Cliente).

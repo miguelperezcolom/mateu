@@ -11,7 +11,7 @@ A multi-panel environment where several related views coexist at once.
 
 ## Difference from Split View
 
-[Split View](./split-view) is two panels — master list and detail — for the same collection. A Workspace is the composition of several heterogeneous views on one screen: a queue, a detail, KPIs, a context panel.
+[Split View](/ux-patterns/split-view/) is two panels — master list and detail — for the same collection. A Workspace is the composition of several heterogeneous views on one screen: a queue, a detail, KPIs, a context panel.
 
 ## Problem
 

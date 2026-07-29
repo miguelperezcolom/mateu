@@ -13,7 +13,7 @@ round-trip for them.
 
 :::note
 For when to reach for an adapter vs. a semantic annotation vs. a custom supplier, see
-[Build Your Domain Vocabulary](../domain-vocabulary/).
+[Build Your Domain Vocabulary](/java-ui-definition/domain-vocabulary/).
 :::
 
 ```java

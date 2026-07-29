@@ -178,6 +178,6 @@ the loaded options and (debounced) asks the server for matches beyond the loaded
 
 ## See also
 
-- [Audience projection](./audience-projection) — an `@AppContext` field named `audience` becomes a
+- [Audience projection](/ux-patterns/audience-projection/) — an `@AppContext` field named `audience` becomes a
   persona switch: `@Audience`-marked fields, buttons and menu entries filter to the selected
   audience (unset → everything visible).

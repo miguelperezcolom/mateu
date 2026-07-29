@@ -15,19 +15,19 @@ Mateu covers this with a family of high-level components that compose into one d
 
 | Concern | Component |
 |---|---|
-| Work queue rail (arrivals / departures / in-house) | [Task queue](./task-queue) |
-| Context banner of the current guest | [Entity header](./entity-header) |
-| Check-in steps | [Wizard](./wizard) |
-| Room assignment | [Resource grid](./resource-grid) |
-| Upgrade offer | [Offer card](./offer-card) |
-| Priced extras | [Add-on picker](./addon-picker) |
-| Side-effects checklist / incidents | [Status list](./status-list) |
-| Pax registered N of M | [Task progress](./task-progress) |
-| Folio breakdown at check-out | [Ledger](./ledger) |
-| Method + charge | [Payment picker](./payment-picker) |
-| Balance vs preauthorization | [Meter](./meter) |
-| Stay-history KPIs | [Stat](./stat) |
-| Automations health | [Process monitor](./process-monitor) |
+| Work queue rail (arrivals / departures / in-house) | [Task queue](/ux-patterns/task-queue/) |
+| Context banner of the current guest | [Entity header](/ux-patterns/entity-header/) |
+| Check-in steps | [Wizard](/ux-patterns/wizard/) |
+| Room assignment | [Resource grid](/ux-patterns/resource-grid/) |
+| Upgrade offer | [Offer card](/ux-patterns/offer-card/) |
+| Priced extras | [Add-on picker](/ux-patterns/addon-picker/) |
+| Side-effects checklist / incidents | [Status list](/ux-patterns/status-list/) |
+| Pax registered N of M | [Task progress](/ux-patterns/task-progress/) |
+| Folio breakdown at check-out | [Ledger](/ux-patterns/ledger/) |
+| Method + charge | [Payment picker](/ux-patterns/payment-picker/) |
+| Balance vs preauthorization | [Meter](/ux-patterns/meter/) |
+| Stay-history KPIs | [Stat](/ux-patterns/stat/) |
+| Automations health | [Process monitor](/ux-patterns/process-monitor/) |
 
 ## Structure
 
@@ -47,11 +47,11 @@ Mateu covers this with a family of high-level components that compose into one d
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-Arrange the panels with the usual layout primitives — `@Zones` for the columns, `@Compact` for density, `@Section(sticky=true)` to pin the queue or the header — exactly like a [Workspace](./workspace). The queue's `actionId` loads the selected guest into the central panels ([component communication](./component-communication) handles the refresh); the wizard's completion action confirms the check-in.
+Arrange the panels with the usual layout primitives — `@Zones` for the columns, `@Compact` for density, `@Section(sticky=true)` to pin the queue or the header — exactly like a [Workspace](/ux-patterns/workspace/). The queue's `actionId` loads the selected guest into the central panels ([component communication](/ux-patterns/component-communication/) handles the refresh); the wizard's completion action confirms the check-in.
 
 ## Runnable reference app
 
-The whole pattern is implemented end to end in `demo/demo-front-office` (Spring Boot MVC, `mvn spring-boot:run`, port 8594): a Check-In work queue feeding a 4-step wizard with a persistent `EntityHeader`, Check-Out with `Ledger` + `PaymentPicker`, an En Casa guest 360 with `Meter`s and a `Stat` history row, and an Automatizaciones board with `Scoreboard` + `ProcessMonitor` — plus a **Modo Staff/Cliente** header selector ([`@AppContext`](./app-context)) that re-projects every screen via [`@Audience`](./audience-projection).
+The whole pattern is implemented end to end in `demo/demo-front-office` (Spring Boot MVC, `mvn spring-boot:run`, port 8594): a Check-In work queue feeding a 4-step wizard with a persistent `EntityHeader`, Check-Out with `Ledger` + `PaymentPicker`, an En Casa guest 360 with `Meter`s and a `Stat` history row, and an Automatizaciones board with `Scoreboard` + `ProcessMonitor` — plus a **Modo Staff/Cliente** header selector ([`@AppContext`](/ux-patterns/app-context/)) that re-projects every screen via [`@Audience`](/ux-patterns/audience-projection/).
 
 ## Principles served
 

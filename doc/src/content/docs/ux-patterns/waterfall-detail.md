@@ -47,4 +47,4 @@ public class ContractView implements ComponentTreeSupplier {
 
 ## When to use it
 
-Use the waterfall for **read-mostly record stories**: contracts, orders, invoices, dossiers. Prefer [item overview](./item-overview) when the record has a strong key-info + tabbed shape, and [general overview](./general-overview) when the user jumps between records of the same type.
+Use the waterfall for **read-mostly record stories**: contracts, orders, invoices, dossiers. Prefer [item overview](/ux-patterns/item-overview/) when the record has a strong key-info + tabbed shape, and [general overview](/ux-patterns/general-overview/) when the user jumps between records of the same type.

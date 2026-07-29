@@ -85,15 +85,15 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 
 | Annotation | Target | Description |
 |---|---|---|
-| [`@Button`](actions/) | Field, method | Renders a button that calls the annotated method |
-| [`@Action`](actions/) | Class, method | Attaches a configurable action |
-| [`@RowAction`](actions/) | Method | Marks a method as a row-level action in a grid |
-| [`@ListToolbarButton`](actions/) | Method | Adds a toolbar button to a listing |
-| [`@ViewToolbarButton`](actions/) | Method | Adds a toolbar button to a view |
-| [`@Toolbar`](actions/) | Field, method | Places an element in the toolbar area |
-| [`@WizardCompletionAction`](actions/) | Field, method | Marks the final action of a wizard |
-| [`@Banner`](actions/) | Method | Renders a highlighted message block below the page header |
-| [`@Fab`](actions/) | Method | Renders a Floating Action Button fixed to the bottom-right |
+| [`@Button`](/java-ui-definition/actions/) | Field, method | Renders a button that calls the annotated method |
+| [`@Action`](/java-ui-definition/actions/) | Class, method | Attaches a configurable action |
+| [`@RowAction`](/java-ui-definition/actions/) | Method | Marks a method as a row-level action in a grid |
+| [`@ListToolbarButton`](/java-ui-definition/actions/) | Method | Adds a toolbar button to a listing |
+| [`@ViewToolbarButton`](/java-ui-definition/actions/) | Method | Adds a toolbar button to a view |
+| [`@Toolbar`](/java-ui-definition/actions/) | Field, method | Places an element in the toolbar area |
+| [`@WizardCompletionAction`](/java-ui-definition/actions/) | Field, method | Marks the final action of a wizard |
+| [`@Banner`](/java-ui-definition/actions/) | Method | Renders a highlighted message block below the page header |
+| [`@Fab`](/java-ui-definition/actions/) | Method | Renders a Floating Action Button fixed to the bottom-right |
 
 ## Navigation
 

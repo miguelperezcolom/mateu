@@ -10,7 +10,7 @@ declare it once and reuse a meaningful name.
 :::note
 This is the lightest way to build a semantic layer over Mateu. For the bigger picture —
 when to use this vs. component adapters vs. custom suppliers — see
-[Build Your Domain Vocabulary](../domain-vocabulary/).
+[Build Your Domain Vocabulary](/java-ui-definition/domain-vocabulary/).
 :::
 
 For example, a string field that holds a supplier id is normally a `@Lookup` with an

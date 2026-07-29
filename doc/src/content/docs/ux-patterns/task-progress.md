@@ -28,4 +28,4 @@ Clicking the button dispatches the standard `action-requested` event with the co
 
 ## When to use it
 
-Use `TaskProgress` when a task contains a **known number of identical subtasks** and you want completion status plus a one-click path to the next one. For the stage of a linear flow use [Progress steps](./progress-steps); for heterogeneous pending items use a [Status list](./status-list). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/task-progress-demo`.
+Use `TaskProgress` when a task contains a **known number of identical subtasks** and you want completion status plus a one-click path to the next one. For the stage of a linear flow use [Progress steps](/ux-patterns/progress-steps/); for heterogeneous pending items use a [Status list](/ux-patterns/status-list/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/task-progress-demo`.

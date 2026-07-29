@@ -134,6 +134,6 @@ For a **non-hierarchical** listing you never choose the layout: Mateu auto-selec
 
 ## Related
 
-- [Split View](./split-view) — the flat (non-hierarchical) master-detail CRUD this pattern builds on.
+- [Split View](/ux-patterns/split-view/) — the flat (non-hierarchical) master-detail CRUD this pattern builds on.
 - [Listing layout](/java-user-manual/build/listing-layout/) — how the flat layouts are auto-selected, and every `GridLayout` value.
-- [Workspace](./workspace) — composing several heterogeneous panels on one screen.
+- [Workspace](/ux-patterns/workspace/) — composing several heterogeneous panels on one screen.

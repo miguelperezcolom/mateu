@@ -24,7 +24,7 @@ Use `Hydratable` when:
 - You want to apply validation or transformation during hydration itself.
 - The ViewModel wraps a domain object that should not expose public setters.
 
-For the common case of running extra logic *after* automatic hydration, use [`PostHydrationHandler`](post-hydration/) instead — it is simpler and does not require you to manually read all fields from the request.
+For the common case of running extra logic *after* automatic hydration, use [`PostHydrationHandler`](/java-ui-definition/interfaces/post-hydration/) instead — it is simpler and does not require you to manually read all fields from the request.
 
 ---
 

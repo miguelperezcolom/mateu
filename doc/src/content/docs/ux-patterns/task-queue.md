@@ -41,4 +41,4 @@ Clicking a card selects it visually and dispatches the standard `action-requeste
 
 ## When to use it
 
-Use a `TaskQueue` as the **left rail of a workspace**: the queue drives which entity the rest of the screen shows. It is the work-queue counterpart of a master list in a [Split View](./split-view), and composes naturally into a [Workspace](./workspace) with an [Entity header](./entity-header) and detail panels — see [Front-office screens](./front-office). For a full searchable collection use a CRUD listing instead. Demo: `/task-queue-demo`.
+Use a `TaskQueue` as the **left rail of a workspace**: the queue drives which entity the rest of the screen shows. It is the work-queue counterpart of a master list in a [Split View](/ux-patterns/split-view/), and composes naturally into a [Workspace](/ux-patterns/workspace/) with an [Entity header](/ux-patterns/entity-header/) and detail panels — see [Front-office screens](/ux-patterns/front-office/). For a full searchable collection use a CRUD listing instead. Demo: `/task-queue-demo`.

@@ -38,7 +38,7 @@ An item's button dispatches the standard `action-requested` event with the **ite
 
 ## When to use it
 
-Use a `StatusList` for **stateful checklists and incident lists** — things that are *about* the current entity but not a collection to browse. To narrate events in chronological order use a [Timeline](./timeline); for N-of-M identical subtasks use [Task progress](./task-progress). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/status-list-demo`.
+Use a `StatusList` for **stateful checklists and incident lists** — things that are *about* the current entity but not a collection to browse. To narrate events in chronological order use a [Timeline](/ux-patterns/timeline/); for N-of-M identical subtasks use [Task progress](/ux-patterns/task-progress/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/status-list-demo`.
 
 ## Related
 

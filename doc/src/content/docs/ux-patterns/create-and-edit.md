@@ -22,11 +22,11 @@ The Redwood **Create and Edit — Advanced** template is the same edit form comp
 - **Tabs** — a `@Panel`-grouped tab layout or a `TabLayout` in a custom form component for "Details / History / Attachments" areas.
 - **`@ReadOnly`, `@Help`, `@Stereotype`** fine-tune per-field behavior; bean-validation annotations drive validation.
 
-All of it renders with the same anatomy (page header, color strip, footer actions) on every renderer — see the demo classes in `demo/demo-admin-panel` for live examples and [the forms guide](../java-user-manual/build/forms) for the full field/layout vocabulary.
+All of it renders with the same anatomy (page header, color strip, footer actions) on every renderer — see the demo classes in `demo/demo-admin-panel` for live examples and [the forms guide](/java-ui-definition/forms/) for the full field/layout vocabulary.
 
 ## Drawer: edit over the listing
 
-`editInDrawer()` on the crud switches New/Edit to the **Create and Edit — Drawer** template: the form slides over the listing, which never unmounts; saving persists, closes the drawer and re-runs the search in place. See [Drawer](./drawer#crud-editing-in-a-drawer-editindrawer) and the `/drawer-crud-demo` showcase page.
+`editInDrawer()` on the crud switches New/Edit to the **Create and Edit — Drawer** template: the form slides over the listing, which never unmounts; saving persists, closes the drawer and re-runs the search in place. See [Drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) and the `/drawer-crud-demo` showcase page.
 
 ## When to use what
 

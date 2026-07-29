@@ -147,46 +147,46 @@ Stay fully declarative when:
 
 ### Layout and structure
 
-- [VerticalLayout](components/vertical-layout/)
-- [HorizontalLayout](components/horizontal-layout/)
-- [FormLayout](components/form-layout/)
-- [SplitLayout](components/split-layout/)
-- [AccordionLayout](components/accordion-layout/)
-- [TabLayout](components/tab-layout/)
-- [BoardLayout](components/board-layout/)
-- [CarouselLayout](components/carousel-layout/)
-- [MasterDetailLayout](components/master-detail-layout/)
-- [Scroller](components/scroller/)
-- [Container](components/container/)
-- [FullWidth](components/full-width/)
+- [VerticalLayout](/java-ui-definition/components/vertical-layout/)
+- [HorizontalLayout](/java-ui-definition/components/horizontal-layout/)
+- [FormLayout](/java-ui-definition/components/form-layout/)
+- [SplitLayout](/java-ui-definition/components/split-layout/)
+- [AccordionLayout](/java-ui-definition/components/accordion-layout/)
+- [TabLayout](/java-ui-definition/components/tab-layout/)
+- [BoardLayout](/java-ui-definition/components/board-layout/)
+- [CarouselLayout](/java-ui-definition/components/carousel-layout/)
+- [MasterDetailLayout](/java-ui-definition/components/master-detail-layout/)
+- [Scroller](/java-ui-definition/components/scroller/)
+- [Container](/java-ui-definition/components/container/)
+- [FullWidth](/java-ui-definition/components/full-width/)
 
 ### Forms and inputs
 
-- [Form](components/form/)
-- [FormField](components/form-field/)
+- [Form](/java-ui-definition/components/form/)
+- [FormField](/java-ui-definition/components/form-field/)
 - FormItem
 - FormRow
 - FormSection
 - FormSubSection
 - CustomField
-- [Button](components/button/)
+- [Button](/java-ui-definition/components/button/)
 - MessageInput
 
 ### Data display
 
-- [Grid](components/grid/)
-- [TreeGrid](components/tree-grid/)
-- [VirtualList](components/virtual-list/)
-- [Directory](components/directory/)
-- [Card](components/card/)
-- [Details](components/details/)
-- [KPI](components/kpi/)
-- [Badge](components/badge/)
-- [Chart](components/chart/)
-- [Markdown](components/markdown/)
-- [Text](components/text/)
-- [Image](components/image/)
-- [Avatar](components/avatar/)
+- [Grid](/java-ui-definition/components/grid/)
+- [TreeGrid](/java-ui-definition/components/tree-grid/)
+- [VirtualList](/java-ui-definition/components/virtual-list/)
+- [Directory](/java-ui-definition/components/directory/)
+- [Card](/java-ui-definition/components/card/)
+- [Details](/java-ui-definition/components/details/)
+- [KPI](/java-ui-definition/components/kpi/)
+- [Badge](/java-ui-definition/components/badge/)
+- [Chart](/java-ui-definition/components/chart/)
+- [Markdown](/java-ui-definition/components/markdown/)
+- [Text](/java-ui-definition/components/text/)
+- [Image](/java-ui-definition/components/image/)
+- [Avatar](/java-ui-definition/components/avatar/)
 - AvatarGroup
 
 ### Navigation and app structure
@@ -194,27 +194,27 @@ Stay fully declarative when:
 - App
 - Page
 - MenuBar
-- [Breadcrumbs](components/breadcrumbs/)
-- [Anchor](components/anchor/)
+- [Breadcrumbs](/java-ui-definition/components/breadcrumbs/)
+- [Anchor](/java-ui-definition/components/anchor/)
 - Tab
 
 ### Feedback and overlays
 
-- [Dialog](components/dialog/)
-- [ConfirmDialog](components/confirm-dialog/)
-- [Notification](components/notification/)
-- [Tooltip](components/tooltip/)
-- [Popover](components/popover/)
-- [ProgressBar](components/progress-bar/)
-- [CookieConsent](components/cookie-consent/)
+- [Dialog](/java-ui-definition/components/dialog/)
+- [ConfirmDialog](/java-ui-definition/components/confirm-dialog/)
+- [Notification](/java-ui-definition/components/notification/)
+- [Tooltip](/java-ui-definition/components/tooltip/)
+- [Popover](/java-ui-definition/components/popover/)
+- [ProgressBar](/java-ui-definition/components/progress-bar/)
+- [CookieConsent](/java-ui-definition/components/cookie-consent/)
 
 ### Rich / specialized
 
 - Bpmn
-- [Map](components/map/)
-- [MicroFrontend](components/micro-frontend/)
-- [Element](components/element/)
-- [Icon](components/icon/)
+- [Map](/java-ui-definition/components/map/)
+- [MicroFrontend](/java-ui-definition/components/micro-frontend/)
+- [Element](/java-ui-definition/components/element/)
+- [Icon](/java-ui-definition/components/icon/)
 
 ### State and infrastructure
 

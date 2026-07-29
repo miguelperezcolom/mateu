@@ -33,4 +33,4 @@ The fix button dispatches the standard `action-requested` event with the **item'
 
 ## When to use it
 
-Use a `ProcessMonitor` on **operations/health screens** — nightly interfaces, billing robots, channel synchronizations — where each row is a process, not a data record. For numeric KPIs and drill-in tiles use a [Dashboard](./dashboard) (it composes well as a dashboard panel); to narrate one process's events over time use a [Timeline](./timeline). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/process-monitor-demo`.
+Use a `ProcessMonitor` on **operations/health screens** — nightly interfaces, billing robots, channel synchronizations — where each row is a process, not a data record. For numeric KPIs and drill-in tiles use a [Dashboard](/ux-patterns/dashboard/) (it composes well as a dashboard panel); to narrate one process's events over time use a [Timeline](/ux-patterns/timeline/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/process-monitor-demo`.

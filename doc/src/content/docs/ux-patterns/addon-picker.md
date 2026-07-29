@@ -36,4 +36,4 @@ Toggling happens client-side (the total recomputes live as the sum of added pric
 
 ## When to use it
 
-Use an `AddOnPicker` for **multiple optional priced items** attached to a booking/order, where the running total is the feedback that drives the sale. For one big contextual upsell use an [Offer card](./offer-card); to compare plans use a [Pricing table](./pricing-table); the resulting charges land in a [Ledger](./ledger) at check-out. See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/addon-picker-demo`.
+Use an `AddOnPicker` for **multiple optional priced items** attached to a booking/order, where the running total is the feedback that drives the sale. For one big contextual upsell use an [Offer card](/ux-patterns/offer-card/); to compare plans use a [Pricing table](/ux-patterns/pricing-table/); the resulting charges land in a [Ledger](/ux-patterns/ledger/) at check-out. See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/addon-picker-demo`.

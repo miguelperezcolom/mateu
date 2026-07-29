@@ -18,9 +18,9 @@ Each links to its reference page for the full detail.
 
 | You want to… | Use | Reference |
 |---|---|---|
-| Re-label / bundle existing Mateu configuration under a domain name | **Semantic (composed) annotation** | [Semantic Annotations](annotations/semantic-annotations/) |
-| Render an object that is **not** a Mateu component (a plain/legacy model) and round-trip it | **`ComponentAdapter`** | [ComponentAdapter](interfaces/component-adapter/) |
-| Take full control of the component tree, the state, or the option lists | **Custom suppliers** | [ComponentTreeSupplier](interfaces/component-tree-supplier/), [StateSupplier](interfaces/state-supplier/), [DataSupplier](interfaces/data-supplier/) |
+| Re-label / bundle existing Mateu configuration under a domain name | **Semantic (composed) annotation** | [Semantic Annotations](/java-ui-definition/annotations/semantic-annotations/) |
+| Render an object that is **not** a Mateu component (a plain/legacy model) and round-trip it | **`ComponentAdapter`** | [ComponentAdapter](/java-ui-definition/interfaces/component-adapter/) |
+| Take full control of the component tree, the state, or the option lists | **Custom suppliers** | [ComponentTreeSupplier](/java-ui-definition/interfaces/component-tree-supplier/), [StateSupplier](/java-ui-definition/interfaces/state-supplier/), [DataSupplier](/java-ui-definition/interfaces/data-supplier/) |
 
 The three compose: an adapter can return components that use your semantic annotations; a
 supplier can back a field that a semantic annotation declares. Start with the lightest one
@@ -50,7 +50,7 @@ public @interface ProveedorId {}
 
 One annotation can bundle several (`@Stereotype(money) @Label @Help`), and it works on
 fields, methods and classes. This is the **lightest** option — no new code paths, just a
-name. → [Semantic Annotations](annotations/semantic-annotations/)
+name. → [Semantic Annotations](/java-ui-definition/annotations/semantic-annotations/)
 
 ## 2. Component adapters — adopt foreign models
 
@@ -68,7 +68,7 @@ public class PedidoAdapter implements ComponentAdapter<Pedido> {
 ```
 
 The model renders both as a top-level route and as a nested field (an independent island with
-its own state and actions). → [ComponentAdapter](interfaces/component-adapter/)
+its own state and actions). → [ComponentAdapter](/java-ui-definition/interfaces/component-adapter/)
 
 ## 3. Custom suppliers — control the mechanics
 
@@ -77,7 +77,7 @@ supplier interfaces directly: a `ComponentTreeSupplier` to emit an arbitrary com
 for a route, a `StateSupplier` to decide exactly what state is sent to the client, a
 `DataSupplier`/options supplier to feed lookups and grids. These are the building blocks the
 two mechanisms above are built on, exposed for when you need them. →
-[Interfaces reference](interfaces/)
+[Interfaces reference](/java-ui-definition/interfaces/)
 
 ## A note on routing
 

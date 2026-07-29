@@ -43,6 +43,6 @@ plan shown as a table and as a Gantt, switchable from the toolbar.
 
 ## See also
 
-- [Gantt](./gantt) — the Gantt component and the `GanttPage` archetype used as the timeline view.
-- [Inline editing in listings](./inline-crud-editing) and [High-density screens](./high-density) —
+- [Gantt](/ux-patterns/gantt/) — the Gantt component and the `GanttPage` archetype used as the timeline view.
+- [Inline editing in listings](/ux-patterns/inline-crud-editing/) and [High-density screens](/ux-patterns/high-density/) —
   for the dense, editable grid view.

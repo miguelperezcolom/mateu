@@ -28,8 +28,8 @@ Component folio = Ledger.builder()
 
 ![Ledger](/images/docs/ledger/ledger.png)
 
-All formatting (thousands separator, two decimals, currency symbol) happens client-side like the money stereotype. The component is display-only — it dispatches no actions; pair it with a [Payment picker](./payment-picker) for the charge itself.
+All formatting (thousands separator, two decimals, currency symbol) happens client-side like the money stereotype. The component is display-only — it dispatches no actions; pair it with a [Payment picker](/ux-patterns/payment-picker/) for the charge itself.
 
 ## When to use it
 
-Use a `Ledger` wherever the user must **verify a monetary breakdown before committing** — check-out, order confirmation, refund review. For plan/tier comparison use a [Pricing table](./pricing-table); to track the balance against a limit while charges accrue use a [Meter](./meter). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/ledger-demo`.
+Use a `Ledger` wherever the user must **verify a monetary breakdown before committing** — check-out, order confirmation, refund review. For plan/tier comparison use a [Pricing table](/ux-patterns/pricing-table/); to track the balance against a limit while charges accrue use a [Meter](/ux-patterns/meter/). See it composed into a whole screen in [Front-office screens](/ux-patterns/front-office/). Demo: `/ledger-demo`.

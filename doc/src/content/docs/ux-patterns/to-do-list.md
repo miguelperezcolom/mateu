@@ -50,4 +50,4 @@ public class FrontDeskTasks extends TodoList<FrontDeskTasks.Task> {
 
 ## When to use it
 
-Use the to-do list for **personal or team work queues**: approvals, reviews, front-desk tasks, follow-ups. Prefer [collection detail](./collection-detail) when browsing a collection calls for an in-place detail pane, and a [smart search](./smart-search) page when finding the item is the hard part.
+Use the to-do list for **personal or team work queues**: approvals, reviews, front-desk tasks, follow-ups. Prefer [collection detail](/ux-patterns/collection-detail/) when browsing a collection calls for an in-place detail pane, and a [smart search](/ux-patterns/smart-search/) page when finding the item is the hard part.

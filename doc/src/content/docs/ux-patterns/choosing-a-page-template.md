@@ -9,7 +9,13 @@ that picks the right one, the way an enterprise design system teaches you to: st
 Redwood page templates — the clearest public reference for this — expressed once in Mateu and
 rendered by every design system.
 
-For the catalog (template → Mateu piece → demo route) see [Page templates](./page-templates). This
+**This choice is the normal starting point of building a UI**, not an afterthought: list the
+screens your app needs, then run each one through this guide. Picking the template per screen is a
+decision you make — Mateu infers the template itself only in two specific cases (see
+[the last section](#what-mateu-can-infer--and-what-it-cant)); everything below the template
+(layout, widgets, sections) is where inference does the heavy lifting.
+
+For the catalog (template → Mateu piece → demo route) see [Page templates](/ux-patterns/page-templates/). This
 page is the *how do I pick one*.
 
 ## Step 1 — Category, from the user's goal
@@ -28,7 +34,7 @@ If the user only **reads aggregated** information → Overview. If they **read o
 ## Step 2 — Data density, from the content
 
 Every template is sized with one of three widths — Mateu's `@PageWidth` / `PageWidthSupplier`
-([page width](./page-templates)):
+([page width](/ux-patterns/page-templates/)):
 
 | Width | Use for | Mateu |
 |---|---|---|
@@ -42,47 +48,50 @@ wrong for your case.
 
 ## Step 3 — Template, from the shape of your data
 
+### Collection pages (many records)
+
+| You need… | Template | Mateu |
+|---|---|---|
+| Full CRUD of one entity (list + create/edit/view/delete) | **Create & Edit (simple)** | [`AutoCrud<T>`](/ux-patterns/create-and-edit/) |
+| A listing that grows à la carte — search, filters, detail, edit, create, delete as needed | **Smart Filter and Search** | [`Listing<Row>` + capability interfaces](/java-user-manual/build/capability-listings/) |
+| A standalone search-first page (typed facets, starts empty) | **Smart Search page** | [`SmartSearchPage<Filters, Row>`](/ux-patterns/smart-search/) |
+| A hero banner over a faceted search (landing + collection) | — | [`HeroSearch<Filters, Row>`](/ux-patterns/hero-search/) |
+| Pending work as counted buckets of actionable cards | **To-do list** | [`TodoList<Row>`](/ux-patterns/to-do-list/) |
+| A month grid with event actions | **Calendar** | [`CalendarPage`](/ux-patterns/calendar/) |
+| A searchable list with an in-place detail pane | **Collection Detail** | [`CollectionDetail<Row>`](/ux-patterns/collection-detail/) |
+
 ### Overview pages
 
 | You need… | Template | Mateu |
 |---|---|---|
-| A prioritized snapshot: KPIs + charts to start the day | **Dashboard Landing** | [`Dashboard`](./dashboard) |
-| A visually engaging entry point into a workflow, with CTAs | **Welcome** | [`Welcome`](./welcome-page) + `@WelcomeBanner` |
+| A prioritized snapshot: KPIs + charts to start the day | **Dashboard Landing** | [`Dashboard`](/ux-patterns/dashboard/) |
+| A visually engaging entry point into a workflow, with CTAs | **Welcome** | [`Welcome`](/ux-patterns/welcome-page/) + `@WelcomeBanner` |
 
 ### Detail pages (one entity)
 
 | You need… | Template | Mateu |
 |---|---|---|
-| An overview across the top + several categories in lateral panels | **Foldout** | [`Foldout`](./foldout) |
-| The simplest detail page: context strip over property cards, with a record switcher | **General Overview** | [`GeneralOverview<Row>`](./general-overview) |
-| A sticky key-info panel + tabbed detail for one item | **Item Overview** | [`ItemOverview`](./item-overview) |
-| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | [`Drawer`](./drawer#general-drawer) (subtitle/size/maximizable/peer-nav) |
-| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | [`Drawer`](./drawer#bottom-drawer) (`DrawerPosition.bottom` + `collapsible`) |
+| An overview across the top + several categories in lateral panels | **Foldout** | [`Foldout`](/ux-patterns/foldout/) |
+| The simplest detail page: context strip over property cards, with a record switcher | **General Overview** | [`GeneralOverview<Row>`](/ux-patterns/general-overview/) |
+| A sticky key-info panel + tabbed detail for one item | **Item Overview** | [`ItemOverview`](/ux-patterns/item-overview/) |
+| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | [`Drawer`](/ux-patterns/drawer/#general-drawer) (subtitle/size/maximizable/peer-nav) |
+| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | [`Drawer`](/ux-patterns/drawer/#bottom-drawer) (`DrawerPosition.bottom` + `collapsible`) |
 
 ### Transactional pages (create / edit)
 
 | You need… | Template | Mateu |
 |---|---|---|
-| Create/edit a record — validation, optimistic locking, dirty guard | **Create & Edit (simple)** | [`AutoCrud<T>`](./create-and-edit) |
-| The same for a complex object: section index + a contextual detail panel | **Advanced Create & Edit** | [`@Toc`](./sections-index) (anchor nav) *or* [`@Aside`](./layout-inference#aside--a-content-page-from-a-plain-form) (detail slot) + `@KPI`/`@Timestamp`/peer-nav — see [Advanced create & edit](./advanced-create-and-edit) |
-| Create/edit in a panel that slides over the listing (which never unmounts) | **Create & Edit Drawer** | [`editInDrawer()`](./drawer#crud-editing-in-a-drawer-editindrawer) |
-| A list with an in-place detail pane and actions on the selected item | **Collection Detail** | [`CollectionDetail<Row>`](./collection-detail) |
-| A multi-step process, 2–25 steps, with a lateral progress rail | **Guided Process** | [`Wizard`](./wizard) + `@WizardProgress(RAIL)` |
-| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | [`Drawer`](./drawer) + `EmbeddedView(wizard)` |
-| A dense datagrid you edit in place, optionally switching to a Gantt | **Data Management** | [`DataManagement`](./data-management) (grid ⇄ Gantt switch) |
-| A scheduling canvas: Gantt + docked detail panel | **Gantt page** | [`GanttPage`](./gantt#gantt-page-template-ganttpage-archetype) |
+| Create/edit a record — validation, optimistic locking, dirty guard | **Create & Edit (simple)** | [`AutoCrud<T>`](/ux-patterns/create-and-edit/) |
+| The same for a complex object: section index + a contextual detail panel | **Advanced Create & Edit** | [`@Toc`](/ux-patterns/sections-index/) (anchor nav) *or* [`@Aside`](/ux-patterns/layout-inference/#aside--a-content-page-from-a-plain-form) (detail slot) + `@KPI`/`@Timestamp`/peer-nav — see [Advanced create & edit](/ux-patterns/advanced-create-and-edit/) |
+| Create/edit in a panel that slides over the listing (which never unmounts) | **Create & Edit Drawer** | [`editInDrawer()`](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) |
+| A list with an in-place detail pane and actions on the selected item | **Collection Detail** | [`CollectionDetail<Row>`](/ux-patterns/collection-detail/) |
+| A multi-step process, 2–25 steps, with a lateral progress rail | **Guided Process** | [`Wizard`](/ux-patterns/wizard/) + `@WizardProgress(RAIL)` |
+| A short sub-flow or batch action inside a drawer (≤5 steps) | **Guided Process Drawer** | [`Drawer`](/ux-patterns/drawer/) + `EmbeddedView(wizard)` |
+| A dense datagrid you edit in place, optionally switching to a Gantt | **Data Management** | [`DataManagement`](/ux-patterns/data-management/) (grid ⇄ Gantt switch) |
+| A scheduling canvas: Gantt + docked detail panel | **Gantt page** | [`GanttPage`](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) |
 
 Every template in the tables above is available today — each links to its archetype, annotation or
 composition.
-
-## Mateu also ships templates Redwood doesn't name
-
-These fit the same categories and declare their `pageType` the same way:
-
-- **Smart Search page** ([`SmartSearchPage`](./smart-search)) — search-first collection page.
-- **To-do list** ([`TodoList`](./to-do-list)) — actionable buckets of pending work (collection).
-- **Calendar** ([`CalendarPage`](./calendar)) — month grid with event actions (collection).
-- **Hero Search** ([`HeroSearch`](./hero-search)) — a hero banner over a faceted search (landing).
 
 ## How the choice is encoded
 
@@ -93,22 +102,28 @@ These fit the same categories and declare their `pageType` the same way:
   composition of wire components that already render on every renderer.
 
 You are never forced onto a template: a plain `@UI` class with declared fields still infers a valid
-layout ([layout inference](./layout-inference)). The templates are opinionated rails on top, not a
+layout ([layout inference](/ux-patterns/layout-inference/)). The templates are opinionated rails on top, not a
 requirement.
 
-## Often you don't pick at all
+## What Mateu can infer — and what it can't
 
-Page inference is **on by default**, so for the fully-derivable shapes you just declare the data and
-the right template composes itself:
+Be clear about the division of labor. **Choosing the template is your decision** — that's this
+guide, and it's the normal path, not a failure of the framework. What Mateu infers:
 
-- Consecutive `MetricCard` fields → a **Dashboard**; only `Button` fields + `@Panel` tiles → a
-  **Welcome** landing. No archetype, no annotation. `@AutoPage(false)` opts a class out.
-- A plain **form with a supporting side panel** → mark that one component-holder field `@Aside` and
-  the form composes a **content-page** (`ContentLayout`): the field becomes the contextual aside,
-  the rest of the form the main region (`position`/`width`/`sticky` on the annotation).
+- **Below the template, a lot.** Field types → widgets, field count/weight → columns and sections,
+  read-only shape → tabs, and so on ([layout inference](/ux-patterns/layout-inference/)). This is
+  why an archetype with a nearly-empty body already renders well.
+- **The template itself, in exactly two cases.** A class whose shape is fully derivable composes
+  its template with no archetype: consecutive `MetricCard` fields → a **Dashboard**; only `Button`
+  fields + `@Panel` tiles → a **Welcome** landing (`@AutoPage(false)` opts out).
+- **A hint, for a few more.** When a plain form structurally resembles an archetype (a selectable
+  list next to a detail pane → CollectionDetail), the advisor logs a one-time suggestion — but it
+  doesn't compose it; you decide.
+- **Convenience shortcuts are still explicit choices.** `@Aside` (one field → contextual side
+  panel of a content-page) or `@Toc` (section index) are annotations you add — tiny decisions, but
+  yours.
 
-Reach for an explicit archetype when you need its knobs, or when the shape isn't self-evident from
-the fields. Everything above is the same uniform slot grammar the archetypes themselves compose.
+Everything above is the same uniform slot grammar the archetypes themselves compose.
 
 ## Status
 
