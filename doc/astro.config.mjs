@@ -251,7 +251,6 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/auto-orchestrators' },
 								{ slug: 'java-user-manual/build/auto-adapters' },
 								{ slug: 'java-user-manual/build/crud-adapter' },
-								{ slug: 'java-user-manual/build/crud-forms' },
 								{ slug: 'java-user-manual/build/named-view' },
 								{ slug: 'java-user-manual/build/simple-view' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },

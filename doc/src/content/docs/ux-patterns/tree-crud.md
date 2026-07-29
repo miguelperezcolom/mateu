@@ -71,8 +71,7 @@ Real workspaces mix node types: a project holds services, a service holds module
 @UI("/workspace")
 @SplitCrud @NotCreatable @NotDeletable
 public class WorkspaceCrud extends Crud<
-        CrudEditorForm<String>, CrudEditorForm<String>,
-        CrudCreationForm<String>, NoFilters, WorkspaceRow, String> {
+        Object, Object, Object, NoFilters, WorkspaceRow, String> {
 
     private final WorkspaceAdapter adapter;   // supplies the tree + the per-node editors
 
@@ -82,7 +81,7 @@ public class WorkspaceCrud extends Crud<
     @Override
     public Object save(HttpRequest req) {
         String id = req.getString(getIdFieldForRow());
-        ((CrudEditorForm<?>) adapter.getEditor(id, req)).save(req);   // route by id
+        adapter.save(id, req);   // route by id — the adapter knows which editor the id belongs to
         return id;
     }
 }

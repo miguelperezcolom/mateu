@@ -21,14 +21,8 @@ import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 
-public abstract class Crud<
-        View,
-        Editor extends CrudEditorForm<IdType>,
-        CreationForm extends CrudCreationForm<IdType>,
-        Filters,
-        Row,
-        IdType>
-    extends MultiView implements StateSupplier {
+public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> extends MultiView
+    implements StateSupplier {
 
   private final List<CrudOrchestratorRouteResolver> routeResolvers =
       List.of(

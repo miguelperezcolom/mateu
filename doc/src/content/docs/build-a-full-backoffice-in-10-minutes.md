@@ -69,7 +69,7 @@ This already gives you:
 Now define the form for one entity.
 
 ```java
-public class RoleViewModel implements Identifiable, CrudEditorForm<String>, CrudCreationForm<String> {
+public class RoleViewModel implements Identifiable {
 
   @EditableOnlyWhenCreating
   @NotEmpty
@@ -93,12 +93,10 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
     return id;
   }
 
-  @Override
   public String create(HttpRequest httpRequest) {
     return id;
   }
 
-  @Override
   public void save(HttpRequest httpRequest) {
   }
 }
@@ -120,7 +118,7 @@ In one class, you just defined:
 Now wire the form to your actual use cases.
 
 ```java
-public class RoleViewModel implements Identifiable, CrudEditorForm<String>, CrudCreationForm<String> {
+public class RoleViewModel implements Identifiable {
 
   @EditableOnlyWhenCreating
   @NotEmpty
@@ -147,13 +145,11 @@ public class RoleViewModel implements Identifiable, CrudEditorForm<String>, Crud
     this.saveRoleUseCase = saveRoleUseCase;
   }
 
-  @Override
   public String create(HttpRequest httpRequest) {
     createRoleUseCase.handle(new CreateRoleCommand(id, name, description, permissions));
     return id;
   }
 
-  @Override
   public void save(HttpRequest httpRequest) {
     saveRoleUseCase.handle(new SaveRoleCommand(id, name, description, permissions));
   }
@@ -249,6 +245,19 @@ public class RolesCrud extends Crud<
   @Override
   public CrudAdapter<RoleViewModel, RoleViewModel, RoleViewModel, NoFilters, RoleRow, String> adapter() {
     return adapter;
+  }
+
+  @Override
+  public Object save(HttpRequest httpRequest) {
+    var form = httpRequest.getComponentState(RoleViewModel.class);
+    form.save(httpRequest);
+    return form.id();
+  }
+
+  @Override
+  public Object saveNew(HttpRequest httpRequest) {
+    var form = httpRequest.getComponentState(RoleViewModel.class);
+    return form.create(httpRequest);
   }
 
   @Override

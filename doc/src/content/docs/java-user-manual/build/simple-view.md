@@ -10,7 +10,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String>
 ```
 
-`AutoNamedView<T>` satisfies the `CrudEditorForm<String>` and `CrudCreationForm<String>` bounds that `Crud` requires for `Editor` and `CreationForm`. You never instantiate or implement these type parameters yourself — `FilteredAutoCrud` creates `AutoNamedView` instances internally via `buildNamedView()` and `buildCreationForm()`.
+You never instantiate or implement these type parameters yourself — `FilteredAutoCrud` creates `AutoNamedView` instances internally via `buildNamedView()` and `buildCreationForm()`, and its `save()`/`saveNew()` persist through them.
 
 ---
 

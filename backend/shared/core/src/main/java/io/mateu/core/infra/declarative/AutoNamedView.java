@@ -10,12 +10,7 @@ import java.util.Map;
 import lombok.SneakyThrows;
 
 public class AutoNamedView<T extends Identifiable>
-    implements Named,
-        CrudEditorForm<String>,
-        CrudCreationForm<String>,
-        EditableFieldsProvider,
-        StateSupplier,
-        ModelSupplier {
+    implements Named, EditableFieldsProvider, StateSupplier, ModelSupplier {
 
   T entity;
   Class<T> entityClass;
@@ -37,13 +32,11 @@ public class AutoNamedView<T extends Identifiable>
     return getAllEditableFields(entityClass);
   }
 
-  @Override
   public String create(HttpRequest httpRequest) {
     T entity = (T) toEntity(httpRequest);
     return store.save(entity);
   }
 
-  @Override
   public void save(HttpRequest httpRequest) {
     T entity = (T) toEntity(httpRequest);
     // optimistic locking (@Version field): reject the save when someone else saved in between,
@@ -54,7 +47,6 @@ public class AutoNamedView<T extends Identifiable>
     store.save(entity);
   }
 
-  @Override
   public String id() {
     return entity.id();
   }

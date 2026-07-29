@@ -12,13 +12,7 @@ Use it when `AutoCrud<T>` or `FilteredAutoCrud<Filters,T>` are not enough becaus
 ## Class signature
 
 ```java
-public abstract class Crud<
-    View,
-    Editor extends CrudEditorForm<IdType>,
-    CreationForm extends CrudCreationForm<IdType>,
-    Filters,
-    Row,
-    IdType>
+public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType>
 ```
 
 ### Type parameters
@@ -26,11 +20,13 @@ public abstract class Crud<
 | Type | Meaning |
 |---|---|
 | `View` | The object rendered in the read-only detail screen |
-| `Editor` | The form shown in the edit screen — must implement `CrudEditorForm<IdType>` |
-| `CreationForm` | The form shown in the create screen — must implement `CrudCreationForm<IdType>` |
+| `Editor` | The form shown in the edit screen — any class; no interface required |
+| `CreationForm` | The form shown in the create screen — any class; no interface required |
 | `Filters` | The filter bar DTO |
 | `Row` | The DTO shown as a grid row in the listing |
 | `IdType` | The type of the entity identifier (usually `String`) |
+
+The editor and creation form are plain view models: Mateu renders their fields and hydrates them back from the submitted state. Persistence is the orchestrator's job — `save(httpRequest)` and `saveNew(httpRequest)` receive the submitted form state and decide how to store it.
 
 ---
 
@@ -57,8 +53,8 @@ public abstract class Crud<
 | `toId(String id)` | `IdType` | Converts the URL string id to the actual `IdType` |
 | `getIdFieldForRow()` | `String` | Field name in `Row` that holds the identifier |
 | `search(searchText, filters, pageable, httpRequest)` | `Object` | Executes the filtered search and returns `ListingData<Row>` |
-| `save(httpRequest)` | `Object` | Persists the edit form |
-| `saveNew(httpRequest)` | `Object` | Persists the creation form |
+| `save(httpRequest)` | `Object` | Persists the edit form state and returns the entity id (used to navigate back to the detail view) |
+| `saveNew(httpRequest)` | `Object` | Persists the creation form state and returns the new entity's id |
 
 ### On the adapter (`CrudAdapter`)
 
@@ -69,35 +65,6 @@ public abstract class Crud<
 | `getEditor(id, httpRequest)` | Returns the `Editor` object |
 | `getCreationForm(httpRequest)` | Returns a blank `CreationForm` |
 | `deleteAllById(ids, httpRequest)` | Deletes selected rows |
-
----
-
-## Required interfaces
-
-### CrudEditorForm&lt;IdType&gt;
-
-The editor must implement this interface:
-
-```java
-public interface CrudEditorForm<IdType> {
-    void save(HttpRequest httpRequest);
-    IdType id();
-}
-```
-
-`save()` is called when the user submits the edit form. `id()` is used to navigate back to the detail view after saving.
-
-### CrudCreationForm&lt;IdType&gt;
-
-The creation form must implement this interface:
-
-```java
-public interface CrudCreationForm<IdType> {
-    IdType create(HttpRequest httpRequest);
-}
-```
-
-`create()` is called when the user submits the creation form. It returns the id of the newly created entity.
 
 ---
 
@@ -132,7 +99,7 @@ public record ProductView(
 ```
 
 ```java
-public class ProductEditor implements CrudEditorForm<String> {
+public class ProductEditor {
 
     public String id;
 
@@ -145,33 +112,21 @@ public class ProductEditor implements CrudEditorForm<String> {
     public BigDecimal price;
 
     public ProductStatus status;
-
-    @Override
-    public String id() { return id; }
-
-    @Override
-    public void save(HttpRequest httpRequest) {
-        // persist changes — inject services via constructor or Spring
-    }
 }
 ```
 
 ```java
-public class ProductCreationForm implements CrudCreationForm<String> {
+public class ProductCreationForm {
 
     @NotEmpty
     public String name;
 
     @NotNull
     public BigDecimal price;
-
-    @Override
-    public String create(HttpRequest httpRequest) {
-        // create and persist — return the new entity's id
-        return UUID.randomUUID().toString();
-    }
 }
 ```
+
+Both are plain view models — no interface to implement. Persistence happens in the orchestrator's `save()`/`saveNew()` below.
 
 ### Adapter
 
@@ -223,9 +178,11 @@ public class ProductOrchestrator
     extends Crud<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> {
 
     private final ProductCrudAdapter adapter;
+    private final ProductService service;
 
-    public ProductOrchestrator(ProductCrudAdapter adapter) {
+    public ProductOrchestrator(ProductCrudAdapter adapter, ProductService service) {
         this.adapter = adapter;
+        this.service = service;
     }
 
     @Override
@@ -253,14 +210,14 @@ public class ProductOrchestrator
     @Override
     public Object save(HttpRequest httpRequest) {
         var editor = httpRequest.getComponentState(ProductEditor.class);
-        editor.save(httpRequest);
-        return editor.id();
+        service.update(editor.id, editor.name, editor.description, editor.price, editor.status);
+        return editor.id;
     }
 
     @Override
     public Object saveNew(HttpRequest httpRequest) {
         var form = httpRequest.getComponentState(ProductCreationForm.class);
-        return form.create(httpRequest);
+        return service.create(form.name, form.price);
     }
 }
 ```
