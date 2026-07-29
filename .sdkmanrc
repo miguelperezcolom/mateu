@@ -1,0 +1,4 @@
+# Enable auto-env through the sdkman_auto_env config, or run `sdk env` on entering the repo.
+# Mateu targets Java 21 (see maven.compiler.source/target and the CI workflows); building with
+# a newer JDK breaks the kotlin kapt demo and the webflux demo's lombok.
+java=21.0.12-tem
