@@ -48,7 +48,9 @@ backend/dotnet/
   Mateu.sln
   src/
     Mateu.Uidl/         ← public API: attributes ([UI],[Title],[Section],[Button],[Action]…),
-                          interfaces (ICrudRepository<T>, IListingBackend…), data types (Message…)
+                          interfaces (IListing<TRow> + capability interfaces ISearchable/
+                          IFilterable/INavigable/IEditable/ICreatable/IDeletable, Crud<T>…),
+                          data types (SearchRequest, ListingData, Message…)
     Mateu.Dtos/         ← the wire model (UIIncrementDto, ComponentDto + metadata subtypes, …),
                           a 1:1 mirror of backend/shared/dtos, serialized to the same JSON
     Mateu.Core/         ← the engine: route registry, reflection mapper (model → component tree),

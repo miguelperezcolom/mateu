@@ -11,6 +11,9 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   detail / edit / new** — row → read-only view, Edit/New → form, **Save** (with server-side
 >   `[Required]` validation; untouched fields preserved), Delete, and back-to-list navigation, all via
 >   the route flow (`/reservations`, `/{id}`, `/{id}/edit`, `/new`) the renderer already drives.
+> - **Capability listings** — `IListing<TRow>` + `ISearchable`/`IFilterable<F>`/`INavigable`/
+>   `IEditable`/`ICreatable`/`IDeletable`: a listing that grows by declaring capabilities
+>   (mirror of the Java model; `Crud<T>` = all of them at once).
 > - **M4** — `[App]` shell + a menu from `[MenuItem]` methods + route navigation between views.
 > - **M5** — `Wizard` (multi-step, `[Step(n)]`, progress + Back/Next, state via componentState);
 >   page decorations (`[Subtitle]`, `[Banner]`, `[HeaderBadge]`); **i18n** (`ITranslator`); **events**

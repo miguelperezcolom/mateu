@@ -123,6 +123,38 @@ list on the left, the selected item's detail re-rendered in place on the right) 
 `GeneralOverview` (a record context switcher over the selected record's overview). Both are built
 on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
 
+## Listings & capabilities
+
+When you don't want the whole CRUD pack, subclass `Listing` — one method — and grow the page by
+**declaring capabilities as extra base classes** (multiple inheritance is the Python idiom for
+the Java capability interfaces):
+
+```python
+@ui("/orders")
+class Orders(Listing[OrderRow], Searchable, Filterable[OrderFilters]):
+    def search(self, request: SearchRequest, http=None):
+        text = request.search_text              # filled because Searchable
+        filters = self.filters(request)         # typed OrderFilters, from Filterable
+        return ListingData.of(repo.find(text, filters, request.pageable))
+```
+
+A bare `Listing[Row]` is just the table (sorting + pagination free). Then:
+
+| Declare | Contract | You get |
+|---|---|---|
+| `Searchable` | — (marker) | the search box |
+| `Filterable[F]` | — (marker; or a `filters_class` attribute) | the filter bar, built reflectively from `F` |
+| `Navigable[Detail, Id]` | `view(id)` | clickable rows + the `/:id` detail page |
+| `Editable[Editor, Id]` | `edit(id)` + `save(editor)` | editing — in a **drawer over the listing** when not navigable |
+| `Creatable[Form, Id]` | `creation_form()` + `create(form)` | the New button + `/new` form |
+| `Deletable[Id]` | `delete_all_by_id(ids)` | row selection + the Delete button |
+
+Capability methods receive **typed objects** (the framework hydrates the submitted state —
+`save(editor)`, `create(form)`). `ListingData.of(rows)` sorts and pages in memory; pass an
+explicit `total_elements` to push paging to the database. `Crud[T]` is the full pack — all
+capabilities at once, restricted with the subtractive decorators as before. Note: `Searchable`
+keeps its second role as the selector-field marker, mirroring Java's interface/annotation pair.
+
 ## App shell & navigation
 
 An `@app` class is the application shell; each `@menu_item` method contributes a menu entry that

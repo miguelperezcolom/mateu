@@ -130,6 +130,41 @@ list on the left, the selected item's detail re-rendered in place on the right) 
 `GeneralOverview<TRow>` (a record context switcher over the selected record's overview). Both are
 built on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
 
+## Listings & capabilities
+
+When you don't want the whole CRUD pack, implement `IListing<TRow>` — one method — and grow the
+page by **declaring capabilities**, exactly like the Java model:
+
+```csharp
+[UI("/orders")]
+public class Orders : IListing<OrderRow>, ISearchable, IFilterable<OrderFilters>
+{
+    public ListingData<OrderRow> Search(SearchRequest request)
+    {
+        var text = request.SearchText;                 // filled because ISearchable
+        var filters = request.Filters<OrderFilters>(); // typed, from IFilterable
+        return ListingData.From(repo.Find(text, filters, request.Pageable));
+    }
+}
+```
+
+A bare `IListing<TRow>` is just the table (sorting + pagination free). Then:
+
+| Declare | Contract | You get |
+|---|---|---|
+| `ISearchable` | — (marker) | the search box |
+| `IFilterable<TFilters>` | — (marker) | the filter bar, built reflectively from `TFilters` |
+| `INavigable<TDetail, TId>` | `View(id)` | clickable rows + the `/:id` detail page |
+| `IEditable<TEditor, TId>` | `Edit(id)` + `Save(editor)` | editing — in a **drawer over the listing** when not navigable |
+| `ICreatable<TForm, TId>` | `CreationForm()` + `Create(form)` | the New button + `/new` form |
+| `IDeletable<TId>` | `DeleteAllById(ids)` | row selection + the Delete button |
+
+Capability methods take **typed objects** (the framework binds the submitted state for you —
+`Save(editor)`, `Create(form)`), the C# idiom of the port. `ListingData.From(rows)` sorts and
+pages in memory; construct it with an explicit `TotalElements` to push paging to the database.
+`Crud<T>` is the full pack — all capabilities at once, restricted with `[ReadOnly]`/`[NotCreatable]`… —
+and the virtual `CanView`/`CanEdit`/`CanCreate`/`CanDelete` hooks narrow it programmatically.
+
 ## App shell & navigation
 
 An `[App]` class is the application shell; each `[MenuItem]` method contributes a menu entry that

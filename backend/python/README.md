@@ -18,6 +18,9 @@ for the sibling implementation.
 - **CRUD** — `Crud[T]`: searchable listing (table on desktop, cards on mobile) **plus** full
   detail / edit / new (routes `/x`, `/x/{id}`, `/x/{id}/edit`, `/x/new`), save with validation,
   delete, back-to-list navigation.
+- **Capability listings** — `Listing[Row]` + mixins `Searchable`/`Filterable[F]`/`Navigable`/
+  `Editable`/`Creatable`/`Deletable`: a listing that grows by declaring capabilities as base
+  classes (mirror of the Java model; `Crud[T]` = all of them at once).
 - **App shell** — `@app` + a menu from `@menu_item` methods + route navigation.
 - **Wizards** — `Wizard` base, `Step(n)` fields, progress + Back/Next, state round-trip.
 - **Decorations** — `@subtitle`, `@banner`, `HeaderBadge`.
