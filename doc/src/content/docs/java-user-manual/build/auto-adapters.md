@@ -14,8 +14,8 @@ These methods are `public` in `FilteredAutoCrud` and can be overridden in any `A
 | Method | Default behaviour | Override to… |
 |---|---|---|
 | `fetchRows(searchText, filters, pageable, httpRequest)` | In-memory filter via `toString()` / `Searchable.searchableText()` | Query a database or external service |
-| `buildNamedView(id, httpRequest)` | Loads via `store().findById(id)`, wraps in `AutoNamedView` | Return a custom view (pre-loaded data, extra context, etc.) |
-| `buildCreationForm(httpRequest)` | Instantiates a new `T`, wraps in `AutoNamedView` | Pre-populate fields on the creation form |
+| `buildNamedView(id, httpRequest)` | Loads the entity via `store().findById(id)` | Return a customised entity (pre-loaded data, extra context, etc.) |
+| `buildCreationForm(httpRequest)` | Instantiates a new `T` | Return a pre-populated entity for the creation form |
 
 ---
 
@@ -72,30 +72,16 @@ public class OrderCrud extends AutoCrud<Order> {
     }
 
     @Override
-    public AutoNamedView<Order> buildCreationForm(HttpRequest httpRequest) {
+    public Order buildCreationForm(HttpRequest httpRequest) {
         var order = new Order();
         order.setDate(LocalDate.now());
         order.setStatus(OrderStatus.DRAFT);
-        return new AutoNamedView<>(Order.class, order, store());
+        return order;
     }
 }
 ```
 
----
-
-## AutoNamedView
-
-`AutoNamedView<T>` is what `buildNamedView` and `buildCreationForm` return by default. It wraps any `T extends Identifiable` and wires all CRUD contracts to the entity and the repository:
-
-```java
-new AutoNamedView<>(entityClass, entity, repository)
-```
-
-| Constructor parameter | Purpose |
-|---|---|
-| `entityClass` | Determines which fields to render |
-| `entity` | The object serialised as form state |
-| `repository` | Called by `save()` and `create()` to persist |
+Both hooks return the **entity itself** — Mateu renders its fields, serialises it as the form state, and persists the submitted state through `store()` in the orchestrator's `save()`/`saveNew()`.
 
 ---
 

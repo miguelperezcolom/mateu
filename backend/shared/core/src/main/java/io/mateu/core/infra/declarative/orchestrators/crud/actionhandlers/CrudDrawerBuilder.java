@@ -1,6 +1,5 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.CrudFormComponentBuilder;
@@ -21,13 +20,12 @@ final class CrudDrawerBuilder {
     // On the routed /new — /{id}/edit pages the form values travel as a State fragment; the
     // drawer instead seeds them through Drawer.initialData (the mateu-drawer element adopts it
     // as its state), so the editor's fields arrive populated.
-    var model = editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     return Drawer.builder()
         .id("crud-edit-drawer")
         .headerTitle(headerTitle)
         .width(orchestrator.editDrawerWidth())
         .content(CrudFormComponentBuilder.build(isCreation, rq, editor, orchestrator, true))
-        .initialData(FormViewModel.toMap(model))
+        .initialData(FormViewModel.toMap(editor))
         .build();
   }
 

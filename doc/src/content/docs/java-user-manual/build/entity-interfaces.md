@@ -86,7 +86,7 @@ public record Product(
 }
 ```
 
-`AutoNamedView` calls `named.name()` as the page title when the entity implements `Named`. If it does not, it falls back to `entity.toString()`.
+The CRUD detail pages use `named.name()` as the page title when the entity implements `Named`. If it does not, the title falls back to the standard title resolution (`@Title`, `TitleSupplier`, class name).
 
 `Named` is also required by `CompositionCrudStore` — child entities used in embedded grids must implement `Named`.
 
@@ -130,7 +130,7 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 | Interface | Required by | Purpose |
 |---|---|---|
 | `Identifiable` | `CrudStore<T>`, `AutoCrud<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
-| `Named` | `CompositionCrudStore<T, P>`, `AutoNamedView` (optional) | Provides a human-readable title for detail views and breadcrumbs |
+| `Named` | `CompositionCrudStore<T, P>`, CRUD detail pages (optional) | Provides a human-readable title for detail views and breadcrumbs |
 | `Searchable` | `AutoCrud<T>`, `FilteredAutoCrud<F,T>` (optional) | Controls which text is matched during in-memory free-text search |
 
 ---

@@ -4,7 +4,6 @@ import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addData;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.Message;
@@ -100,9 +99,6 @@ public abstract class MultiView
       String viewName, Object modelView, Component component, HttpRequest httpRequest) {
     setRouteTo(viewName);
     httpRequest.setAttribute(viewName, true);
-    if (modelView instanceof AutoNamedView<?> autoNamedView) {
-      modelView = autoNamedView.entity();
-    }
     addData(modelView, httpRequest);
     return wrap(
             component,

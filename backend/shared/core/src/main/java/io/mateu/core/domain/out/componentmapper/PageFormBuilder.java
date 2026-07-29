@@ -4,7 +4,6 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
 import io.mateu.core.domain.Authorizer;
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
@@ -48,9 +47,6 @@ public class PageFormBuilder {
       HttpRequest httpRequest,
       boolean readOnly,
       boolean forCreationForm) {
-    if (instance instanceof AutoNamedView<?> autoNamedView) {
-      instance = autoNamedView.entity();
-    }
     var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
     int maxColumns = getFormColumns(instanceType);
     return getForm(

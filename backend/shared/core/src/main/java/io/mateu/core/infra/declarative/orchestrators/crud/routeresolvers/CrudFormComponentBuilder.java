@@ -4,7 +4,6 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.SplitCrud;
@@ -38,8 +37,7 @@ public class CrudFormComponentBuilder {
       Object editor,
       Crud orchestrator,
       boolean buttonsAtBottom) {
-    Object viewModel =
-        editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
+    Object viewModel = editor;
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
     var buttons = buildToolbar(isCreation, orchestrator);

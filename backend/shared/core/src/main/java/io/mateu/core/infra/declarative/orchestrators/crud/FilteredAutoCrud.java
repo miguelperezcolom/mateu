@@ -3,7 +3,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.getIdField;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -13,10 +12,10 @@ import java.util.Map;
 import lombok.SneakyThrows;
 
 public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
-    extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> {
+    extends Crud<T, T, T, Filters, T, String> {
 
   @Override
-  public CrudAdapter<AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> adapter() {
+  public CrudAdapter<T, T, Filters, T, String> adapter() {
     return new CrudAdapter<>() {
       @Override
       public ListingData<T> search(
@@ -101,14 +100,15 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     return data.withAggregates(summaries.totals()).withGroups(summaries.groups());
   }
 
-  public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {
-    var entity = store().findById(id).orElseThrow();
-    return new AutoNamedView<>(entityClass(), entity, store());
+  /** The entity shown in the read-only view and the edit form. Override to customise the load. */
+  public T buildNamedView(String id, HttpRequest httpRequest) {
+    return store().findById(id).orElseThrow();
   }
 
+  /** The entity backing the creation form. Override to return a pre-populated instance. */
   @SneakyThrows
   @SuppressWarnings("unchecked")
-  public AutoNamedView<T> buildCreationForm(HttpRequest httpRequest) {
+  public T buildCreationForm(HttpRequest httpRequest) {
     Map<String, Object> data = Map.of();
     if ("create".equals(httpRequest.runActionRq().actionId())) {
       if (httpRequest.runActionRq().parameters() != null
@@ -116,10 +116,9 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
         data = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
       }
     }
-    var instance =
+    return (T)
         MateuBeanProvider.getBean(InstanceFactory.class)
             .newInstance(entityClass(), data, httpRequest);
-    return new AutoNamedView<>(entityClass(), (T) instance, store());
   }
 
   @SneakyThrows
@@ -166,7 +165,11 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @Override
   public Object save(HttpRequest httpRequest) {
     var entity = toEntity(httpRequest);
-    buildNamedView(entity.id(), httpRequest).save(httpRequest);
+    // optimistic locking (@Version field): reject the save when someone else saved in between,
+    // bump the version otherwise — both no-ops for entities without a version field
+    OptimisticLock.check(entity, store().findById(entity.id()), httpRequest);
+    OptimisticLock.bump(entity);
+    store().save(entity);
     return entity.id();
   }
 
@@ -182,7 +185,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
   @Override
   public Object saveNew(HttpRequest httpRequest) {
-    return buildCreationForm(httpRequest).create(httpRequest);
+    return store().save(toEntity(httpRequest));
   }
 
   @Override

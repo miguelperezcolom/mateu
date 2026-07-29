@@ -428,7 +428,7 @@ class SyncHandler:
         # Optimistic locking (Version()): an EDITOR save (creates don't check/bump) whose version
         # is older than the stored one is rejected with the reload/overwrite conflict dialog —
         # BEFORE the state binds, so the stored entity is never mutated on a conflict (mirrors
-        # Java's AutoNamedView.save → OptimisticLock.check/bump).
+        # Java's FilteredAutoCrud.save → OptimisticLock.check/bump).
         version = version_field(element) if id_ is not None else None
         stored_version = None
         if version is not None and crud.get(id_) is not None:

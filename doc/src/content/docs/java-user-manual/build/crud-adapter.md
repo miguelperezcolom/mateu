@@ -105,7 +105,7 @@ public class ProductCrudAdapter
 |---|---|---|
 | View / Editor / CreationForm types | All `T` | Separate types |
 | Search | In-memory (override `fetchRows()` directly in your `AutoCrud` subclass to customise) | Fully custom |
-| Save / Create | Via `AutoNamedView` + `store()` | Fully custom |
+| Save / Create | Via `store()` | Fully custom |
 | Boilerplate | Minimal | Full |
 
 ---

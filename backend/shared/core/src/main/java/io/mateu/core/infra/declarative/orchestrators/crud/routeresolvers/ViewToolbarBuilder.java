@@ -3,7 +3,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
@@ -34,12 +33,8 @@ final class ViewToolbarBuilder {
                 toolbar.add(
                     new Button(
                         toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName())));
-    var entity = item;
-    if (entity instanceof AutoNamedView<?> autoNamedView) {
-      entity = autoNamedView.entity();
-    }
-    final var finalEntity = entity;
-    getAllMethods(entity.getClass()).stream()
+    final var finalEntity = item;
+    getAllMethods(finalEntity.getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
         .filter(
             method ->

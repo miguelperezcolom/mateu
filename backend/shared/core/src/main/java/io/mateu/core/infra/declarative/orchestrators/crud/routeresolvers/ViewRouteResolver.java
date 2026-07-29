@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
@@ -38,7 +37,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   private Component createViewComponent(HttpRequest httpRequest, Object view, Crud orchestrator) {
-    Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
+    Object viewModel = view;
     var toolbar = createViewToolbar(viewModel, orchestrator, httpRequest);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));

@@ -235,8 +235,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   /**
    * The editor form class. Defaults to the {@code Editor} type argument read off the concrete
    * subclass's {@code extends Crud<...>} signature — override only when it can't be derived
-   * reflectively (e.g. {@link FilteredAutoCrud}, whose editor is the generic {@code
-   * AutoNamedView}).
+   * reflectively (e.g. {@link FilteredAutoCrud}, whose editor is the entity itself).
    */
   public Class<Editor> editorClass() {
     return getGenericClass(this.getClass(), Crud.class, "Editor");

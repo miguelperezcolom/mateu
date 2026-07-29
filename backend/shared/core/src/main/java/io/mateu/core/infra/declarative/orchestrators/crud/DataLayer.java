@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
-import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,9 +16,6 @@ public class DataLayer {
   public static HttpRequest addData(Object item, HttpRequest httpRequest) {
     if (item == null) {
       return httpRequest;
-    }
-    if (item instanceof AutoNamedView<?> autoNamedView) {
-      item = autoNamedView.entity();
     }
     var data = createData(item, httpRequest);
     httpRequest.setAttribute("data", data);
