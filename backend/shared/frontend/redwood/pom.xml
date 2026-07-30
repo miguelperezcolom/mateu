@@ -1,0 +1,23 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.mateu</groupId>
+        <artifactId>frontend</artifactId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <artifactId>redwood</artifactId>
+    <packaging>jar</packaging>
+
+    <name>redwood</name>
+    <description>Mateu renderer sobre Oracle Visual Builder / Redwood. Los recursos estáticos
+        (la app VB optimizada) se generan con `npm run copy` desde
+        frontend/web/monorepo/redwood — no editar a mano. Los componentes JET/oj-sp y el
+        visual-runtime se cargan del CDN de Oracle en runtime; este jar no los vendoriza
+        (ver frontend/web/monorepo/redwood/NOTICE.md).</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>

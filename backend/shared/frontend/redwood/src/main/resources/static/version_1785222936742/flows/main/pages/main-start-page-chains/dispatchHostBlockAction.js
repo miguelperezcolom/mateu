@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{actionId,parameters,fromNested}){await Actions.callChain(context,{chain:fromNested?"runMateuIslandAction":"runMateuAction",params:{actionId,parameters}})}};});
+//# sourceMappingURL=dispatchHostBlockAction.js.map

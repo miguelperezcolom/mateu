@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{fieldId,value}){const{$application}=context;if(fieldId&&value){const current=$application.variables.mateuQuickFilter||{};$application.variables.mateuQuickFilter=current.fieldId===fieldId&&current.value===value?{}:{fieldId:fieldId,value:value},await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText:$application.variables.mateuLastSearchText||""}})}}};});
+//# sourceMappingURL=listingQuickFilter.js.map

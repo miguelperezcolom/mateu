@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{open}){const{$application}=context,next=null==open?!$application.variables.mateuNavDrawerOpen:!!open;if($application.variables.mateuNavDrawerOpen=next,next)try{await Actions.callComponentMethod(context,{selector:"#mateuNavList",method:"refresh"})}catch(ignored){}}};});
+//# sourceMappingURL=toggleMateuNavDrawer.js.map

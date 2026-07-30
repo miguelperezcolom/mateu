@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context){const{$application,$page}=context;$application.variables.mateuRegistry=bridge.dismissOverlay($application.variables.mateuRegistry),$application.variables.mateuDrawerOpen=!1,$application.variables.mateuDrawer={title:"",fields:[],actions:[],blocks:[],texts:[],state:{}},$page.variables.mateuDrawerDraft={}}};});
+//# sourceMappingURL=mateuDrawerDismissed.js.map

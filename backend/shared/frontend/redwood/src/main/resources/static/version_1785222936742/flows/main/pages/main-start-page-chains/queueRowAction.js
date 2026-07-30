@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{actionId,parameters}){actionId&&(window.__mateuQueueRowActionAt=Date.now(),await Actions.callChain(context,{chain:"runMateuAction",params:{actionId,parameters}}))}};});
+//# sourceMappingURL=queueRowAction.js.map

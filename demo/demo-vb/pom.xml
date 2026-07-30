@@ -13,9 +13,11 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>demo-vb</name>
     <description>Backend de soporte del renderer Mateu-sobre-VB (Visual Builder / Redwood).
-        Sirve las pantallas de referencia de cada fase del roadmap (.dev/vb/RENDERER-ROADMAP.md)
-        en el puerto 9005 y expone la API estándar /mateu/v3 con CORS abierto para que la app VB
-        (bridge JS) pueda consumirla desde otro origen.</description>
+        Sirve las pantallas de referencia de cada fase del roadmap
+        (frontend/web/monorepo/redwood/RENDERER-ROADMAP.md) en el puerto 9005, sirve el renderer
+        empaquetado (io.mateu:redwood) en la raíz y expone la API estándar /mateu/v3 con CORS
+        abierto para que la app VB en desarrollo (grunt vb-serve) pueda consumirla desde otro
+        origen.</description>
     <properties>
         <java.version>21</java.version>
     </properties>
@@ -47,11 +49,10 @@
             <artifactId>mvc-core</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
-        <!-- vaadin-lit only serves as the visual cross-check while the VB renderer is built;
-             the VB bridge consumes the JSON API directly -->
+        <!-- el renderer VB/Redwood empaquetado: sirve la app VB optimizada en la raíz -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>redwood</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>

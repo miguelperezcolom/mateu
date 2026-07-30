@@ -1,0 +1,1 @@
+{"version":3,"names":["define"],"sources":["main-flow.js"],"sourcesContent":["/* Copyright (c) 2026, Oracle and/or its affiliates */\n\ndefine([], function() {\n  'use strict';\n\n  class FlowModule {\n  }\n\n  return FlowModule;\n});\n"],"mappings":"aAEAA,MAAM,CAAC,EAAE,CAAE,UAAW,CACpB,YAAY,CAKZ,MAHA,MAAiB,EAChB,CAGH,CAAC,CAAC","ignoreList":[]}

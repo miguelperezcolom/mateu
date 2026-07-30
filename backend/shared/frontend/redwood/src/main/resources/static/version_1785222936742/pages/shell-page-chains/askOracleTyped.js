@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","./askOracleOpen"],(ActionChain,askOracleOpen)=>{"use strict";return class extends ActionChain{async run(context,{event}){const{$application,$page}=context,text=event&&event.detail?event.detail.value:"";$page.variables.mateuAskResults=askOracleOpen.buildResults($application,text)}};});
+//# sourceMappingURL=askOracleTyped.js.map

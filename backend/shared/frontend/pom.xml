@@ -15,6 +15,7 @@
 
   <modules>
     <module>vaadin-lit</module>
+    <module>redwood</module>
   </modules>
 
 </project>

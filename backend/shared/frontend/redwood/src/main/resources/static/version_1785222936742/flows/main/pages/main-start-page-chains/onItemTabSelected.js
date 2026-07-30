@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],ActionChain=>{"use strict";return class extends ActionChain{async run(context,{event}){const{$application}=context,detail=event&&(event.detail||event)||{};if(!(detail.updatedFrom&&"internal"!==detail.updatedFrom)){const item=$application.variables.mateuItemOv;if(item&&detail.value){const selected=item.tabs.find(tab=>tab.id===detail.value);selected&&($application.variables.mateuItemTabTexts=selected.texts)}}}};});
+//# sourceMappingURL=onItemTabSelected.js.map
