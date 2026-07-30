@@ -57,10 +57,14 @@ Cualquier app Java lo consume añadiendo la dependencia (en lugar de `vaadin-lit
 
 El controller generado por el AP sirve `_index.html` en la ruta del `@UI` y la app VB llama a
 `/mateu/v3/...` del MISMO origen (el copy sustituye `mateuBaseUrl` por `''`). Las rutas de Mateu
-viajan como hash (`/#/products`), así que no hace falta soporte del servidor para deep-links.
-App de referencia: `demo/demo-vb` (:9005). Limitación v1: la app VB empaquetada asume el `@UI`
-en la ruta raíz `""` (el `<mateu-ui>` oculto que inyecta el controller transporta el baseUrl para
-cuando el bridge quiera soportar UIs anidadas en otra ruta).
+van **por path, sin hash** (`/products`, deep-links y back/forward incluidos): el
+`SpaRedirectFilter` reenvía cualquier path al index, el copy inyecta `vbInitConfig.BASE_URL =
+'/version_<ts>/'` (la base de módulos del visual-runtime ignora `<base href>` — ver
+DESIGN-NOTES) y los chains detectan el modo por el `<mateu-ui>` oculto que inyecta el controller;
+en serving estático (`vb-serve`, VB hosteado) siguen usando hash (`#/ruta`). App de referencia:
+`demo/demo-vb` (:9005). Limitación v1: la app VB empaquetada asume el `@UI` en la ruta raíz `""`
+(el `<mateu-ui>` oculto transporta el baseUrl para cuando el bridge quiera soportar UIs anidadas
+en otra ruta).
 
 Los componentes JET/oj-sp y el visual-runtime se cargan del CDN de Oracle en runtime: el jar no
 vendoriza nada de `static.oracle.com` (ver `NOTICE.md`) y el navegador necesita acceso al CDN.

@@ -50,9 +50,13 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
                             en backend/shared/frontend/redwood (jar io.mateu:redwood — añadirlo
                             como dependencia en lugar de vaadin-lit sirve la app VB: _index.html
                             con marcadores AQUIELTITULODELAPAGINA + AQUIUI/HASTAAQUIUI — el
-                            <mateu-ui> que inyecta el controller queda display:none y transporta
-                            el baseUrl —, mateuBaseUrl → '' same-origin, rutas Mateu como hash
-                            #/ruta; JET/oj-sp/visual-runtime SIEMPRE desde el CDN de Oracle, nada
+                            <mateu-ui> que inyecta el controller queda display:none, transporta
+                            el baseUrl Y es la señal del modo URL —, mateuBaseUrl → '' same-origin,
+                            rutas Mateu POR PATH sin hash (/products; deep-link+popstate; el copy
+                            inyecta vbInitConfig.BASE_URL='/version_<ts>/' porque la base de
+                            módulos del visual-runtime deriva de location.pathname e ignora <base
+                            href>; en serving estático vb-serve/VB hosteado los chains siguen en
+                            hash #/ruta); JET/oj-sp/visual-runtime SIEMPRE desde el CDN de Oracle, nada
                             de static.oracle.com se vendoriza — ver su NOTICE.md). App de
                             referencia: demo/demo-vb (:9005). Ver README/DESIGN-NOTES/ROADMAP en
                             el propio directorio.

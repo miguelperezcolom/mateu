@@ -1475,3 +1475,24 @@ pide SOLO las pendientes.
   propio del header (`:host([data-edge])`); vars `--mateu-shell-gutter(-top)` declaradas por el
   shell vaadin. Foldout: FABs solo con overflow real (>32px + ResizeObserver) y el último fold
   nunca más estrecho que el overview. StatusList grid row-gap 2rem (vars overridables).
+
+## URL por path en el jar de renderer (2026-07-30)
+
+- **Doble modo de URL** (fijado en el bootstrap de `loadMateuShell`): **PATH** (`/products`, sin
+  `#`) cuando la app la sirve el backend Mateu — la señal es el `<mateu-ui>` oculto que inyecta
+  el controller generado (marcadores AQUIUI/HASTAAQUIUI del `_index.html` del jar) —, **HASH**
+  (`#/ruta`) en serving estático (`vb-serve` local, VB hosteado en Oracle), donde el server no
+  puede reescribir paths arbitrarios al index. `window.__mateuUrlPathMode` publica el modo;
+  back/forward = `popstate` en path, `hashchange` en hash; en path la home (incluido el sentinel
+  `_no_home_route` del server) se refleja como `/`, nunca como path.
+- **GOTCHA visual-runtime**: la base de MÓDULOS (requirejs) se deriva de `location.pathname`
+  (fallback que ignora `<base href>`), así que servida en `/products` pedía
+  `/products/version_<ts>/bundles/...` → 404 y la shell no arrancaba. La salida:
+  `vbInitConfig.BASE_URL` GANA sobre ese fallback (visto en el fuente del runtime: `BASE_URL ||
+  (pageDir + BASE_URL_TOKEN)`, y con token que empieza por `/` usaría origin+token) —
+  `scripts/copy.mjs` inyecta `BASE_URL: '/version_<ts>/'` derivado del propio token, además del
+  `<base href="/">` para el resto de recursos relativos (css). El deep-link multi-segmento queda
+  cubierto por el SpaRedirectFilter (forward al index) + base absoluta.
+- Verificado con Playwright contra demo-vb :9005 servido por el jar: deep-link `/products`
+  (filas del crud), clic de menú → `/stock` sin hash, back → `/products` re-renderizado, raíz
+  estable en `/`.

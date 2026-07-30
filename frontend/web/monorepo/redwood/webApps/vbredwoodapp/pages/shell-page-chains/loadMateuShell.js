@@ -59,8 +59,18 @@ define([
       const homeRoute = nav.homeRoute || (first ? first.id : '');
       $application.variables.mateuHomeRoute = homeRoute;
 
-      // 1.5: deep-link — si la URL trae un hash (#/ruta), bootear ESA ruta
-      const deepLink = (window.location.hash || '').replace(/^#/, '');
+      // 1.5: URL de la shell — modo PATH (/ruta) cuando la app la sirve el backend Mateu
+      // (jar de renderer: el controller generado inyecta un <mateu-ui> oculto, la señal),
+      // modo HASH (#/ruta) en serving estático (vb-serve local / VB hosteado en Oracle,
+      // donde el server no puede reescribir paths arbitrarios al index)
+      const pathMode = !!document.querySelector('mateu-ui');
+      window.__mateuUrlPathMode = pathMode;
+      const urlRoute = () => (pathMode
+        ? (window.location.pathname === '/' ? '' : window.location.pathname)
+        : (window.location.hash || '').replace(/^#/, ''));
+
+      // deep-link — si la URL trae ruta, bootear ESA ruta
+      const deepLink = urlRoute();
       const startRoute = deepLink || homeRoute;
       if (startRoute) {
         await Actions.callChain(context, {
@@ -69,12 +79,13 @@ define([
         });
       }
 
-      // 1.5: back/forward — el hash es la URL de la shell; el listener reutiliza el
-      // context del chain (los scopes de VB siguen vivos tras el vbEnter)
+      // 1.5: back/forward — el listener reutiliza el context del chain (los scopes de VB
+      // siguen vivos tras el vbEnter); popstate en modo path, hashchange en modo hash
       if (!window.__mateuHashWired) {
         window.__mateuHashWired = true;
-        window.addEventListener('hashchange', () => {
-          const route = (window.location.hash || '').replace(/^#/, '');
+        window.addEventListener(pathMode ? 'popstate' : 'hashchange', () => {
+          // en modo path, volver a '/' es volver a la home
+          const route = urlRoute() || (pathMode ? ($application.variables.mateuHomeRoute || '') : '');
           if (route) {
             Actions.callChain(context, {
               chain: 'onMateuNavigate',

@@ -47,6 +47,13 @@ const transform = (file) => {
   let content = original.split(DEV_BASE_URL).join('')
   if (file.endsWith('index.html')) {
     content = content
+      // servida en rutas profundas (/checkin/3) los assets relativos (version_.../...)
+      // resolverían contra la ruta — la base ancla toda resolución relativa a la raíz
+      .replace('<head>', '<head>\n    <base href="/">')
+      // ...pero el visual-runtime deriva la base de MÓDULOS de location.pathname (ignora
+      // <base>): vbInitConfig.BASE_URL absoluto gana sobre ese fallback y ancla los
+      // bundles a /version_<ts>/ desde cualquier ruta
+      .replace(/BASE_URL_TOKEN: '([^']+)'/, "BASE_URL: '/$1/',\n        BASE_URL_TOKEN: '$1'")
       .replace('<title>Oracle Applications</title>', '<title>AQUIELTITULODELAPAGINA</title>')
       .replace('</head>', '    <style>mateu-ui { display: none !important; }</style>\n  </head>')
       .replace('</body>', '    <!-- AQUIUI --><!-- HASTAAQUIUI -->\n  </body>')

@@ -393,9 +393,19 @@ define([
       } else {
         $application.variables.mateuBandBoxMargin = '0 auto';
       }
-      // 1.5: la URL refleja la ruta (hash — deep-linkable y con back/forward)
-      if (!fromUrl && window.location.hash !== '#' + route) {
-        window.history.pushState(null, '', '#' + route);
+      // 1.5: la URL refleja la ruta — path (/ruta) servida por el backend Mateu, hash
+      // (#/ruta) en serving estático (el modo lo fija loadMateuShell en el bootstrap)
+      if (!fromUrl) {
+        if (window.__mateuUrlPathMode) {
+          // la home (incluido el sentinel _no_home_route del server) es '/', no un path
+          const home = $application.variables.mateuHomeRoute || '';
+          const target = (!route || route === home) ? '/' : route;
+          if (window.location.pathname !== target) {
+            window.history.pushState(null, '', target);
+          }
+        } else if (window.location.hash !== '#' + route) {
+          window.history.pushState(null, '', '#' + route);
+        }
       }
       $application.variables.mateuDirty = false;
 
