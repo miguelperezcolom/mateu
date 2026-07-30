@@ -386,19 +386,6 @@
   resolved "https://registry.npmjs.org/@open-wc/dedupe-mixin/-/dedupe-mixin-1.4.0.tgz"
   integrity sha512-Sj7gKl1TLcDbF7B6KUhtvr+1UCxdhMbNY5KxdU5IfMFWqL8oy1ZeAcCANjoB1TL0AJTcPmcCFsCbHf8X2jGDUA==
 
-"@oracle/oraclejet-preact@19.0.9":
-  version "19.0.9"
-  resolved "https://registry.npmjs.org/@oracle/oraclejet-preact/-/oraclejet-preact-19.0.9.tgz"
-  integrity sha512-CsrU7jHvpdTtirhUBvZL5wKu7Uq+DhFzSR+RMQlY5OWs704F4QTAU/E6MLRuE2j2xmHfaS8+1LpqTOKM9hSOQg==
-  dependencies:
-    "@oracle/oraclejet-testing" "19.0.9"
-    csstype "3.1.1"
-
-"@oracle/oraclejet-testing@19.0.9":
-  version "19.0.9"
-  resolved "https://registry.npmjs.org/@oracle/oraclejet-testing/-/oraclejet-testing-19.0.9.tgz"
-  integrity sha512-lp92aAdbvM1j5mAtPy+VXcUaix53zq7uzqS/8YomnOh8o8uebTmBt78mN87sb9pE2LAzENXCTeeN65NRNCP9Pw==
-
 "@oxc-project/types@=0.139.0":
   version "0.139.0"
   resolved "https://registry.npmjs.org/@oxc-project/types/-/types-0.139.0.tgz"
@@ -1318,83 +1305,83 @@
   resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.0.2.tgz#cf3b7b0d6ce5635daca4c8e01c189cdcde47ec3c"
   integrity sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==
 
-"@ui5/webcomponents-ai@^2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-ai/-/webcomponents-ai-2.24.2.tgz"
-  integrity sha512-h0tr+r6UBoMk/fzdDBIt5iRUx3P6i7RTWunWBfUVwcMW1o9hmcxDFACKITj+J0Yc+0rJ3f2NKFbGofSTfKLY1w==
+"@ui5/webcomponents-ai@^2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-ai/-/webcomponents-ai-2.25.0.tgz#09dca67c1b8c1525e85d59d51541810d3b28666b"
+  integrity sha512-WkWgShOOORkWuhhVhfC+Y4gdw08AYpLZ2EHREGMg8eM4tnvzZ6ZFVjXx9Efy90K4+y080P+BVn6zyqTiSvz8/A==
   dependencies:
-    "@ui5/webcomponents" "2.24.2"
-    "@ui5/webcomponents-base" "2.24.2"
-    "@ui5/webcomponents-icons" "2.24.2"
-    "@ui5/webcomponents-theming" "2.24.2"
+    "@ui5/webcomponents" "2.25.0"
+    "@ui5/webcomponents-base" "2.25.0"
+    "@ui5/webcomponents-icons" "2.25.0"
+    "@ui5/webcomponents-theming" "2.25.0"
 
-"@ui5/webcomponents-base@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-base/-/webcomponents-base-2.24.2.tgz"
-  integrity sha512-7sevDFu+ITzHyo2rDT6v33G3U3d6mVa6+eDIHF2dXx0/rlIPgBzhE6pceC/07JdC6ls5J8Hatet5cFvWBGO7Og==
+"@ui5/webcomponents-base@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-base/-/webcomponents-base-2.25.0.tgz#5cb82b820dd0ba916763c3b40093920685155eac"
+  integrity sha512-pVQ6TbAXpE0OD5vcXezf7QK53U05rO1wqrkQLus9fXengTuwr1h8MKWgT+OLYlAycFfrj0HS5JnRAn3i3e0p6g==
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.1.2"
     lit-html "^2.0.1"
 
-"@ui5/webcomponents-fiori@^2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-fiori/-/webcomponents-fiori-2.24.2.tgz"
-  integrity sha512-93JOvdx5zooO6dEUbju+WbEdMG981wao+owVWc+3OFEODtjBbC2jn1cYWgg1Jzcmbf9u+WYUYsyukdYDIG1wIA==
+"@ui5/webcomponents-fiori@^2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-fiori/-/webcomponents-fiori-2.25.0.tgz#75c859da63b7bf8903b134bb1aeabf350ae5fe2a"
+  integrity sha512-ZNy+6z4DNrquwiwaje9STjM7E7bML+VGVsiB3l4+Oy3Xlsm8fTlrUAMNNmTZGe2uqim7ZT5qHIudKpSv1ZSTbQ==
   dependencies:
-    "@ui5/webcomponents" "2.24.2"
-    "@ui5/webcomponents-base" "2.24.2"
-    "@ui5/webcomponents-icons" "2.24.2"
-    "@ui5/webcomponents-theming" "2.24.2"
+    "@ui5/webcomponents" "2.25.0"
+    "@ui5/webcomponents-base" "2.25.0"
+    "@ui5/webcomponents-icons" "2.25.0"
+    "@ui5/webcomponents-theming" "2.25.0"
     "@zxing/library" "^0.21.3"
 
-"@ui5/webcomponents-icons-business-suite@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-icons-business-suite/-/webcomponents-icons-business-suite-2.24.2.tgz"
-  integrity sha512-IX0E8Zmm2+OKacwfJw0EoypbwRRG0ivx7vxmsH7upGo9Tq3OX3BJFV6gL4RvltO+3zN4NMWRQNMC4YRDvAyh3A==
+"@ui5/webcomponents-icons-business-suite@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons-business-suite/-/webcomponents-icons-business-suite-2.25.0.tgz#9fde85add9a2f681441d4f40e075d8ab1621018c"
+  integrity sha512-WzHf27/wavUjDy1dE4KnGCB+esBsmx8YTI8cA7o8DrOVuDFstFxCGj2eDRtTGSXag1Vynn8pxH+X+CcibkX8oQ==
   dependencies:
-    "@ui5/webcomponents-base" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
 
-"@ui5/webcomponents-icons-tnt@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-icons-tnt/-/webcomponents-icons-tnt-2.24.2.tgz"
-  integrity sha512-Uv2LyfgC5PBk96u9ZTOqFqA6B+TqWeFecmCjqZVXSZsur0BHMcFgDsZkoxWWE+NPt9qCsGeXKJpGRxGEn3a7ww==
+"@ui5/webcomponents-icons-tnt@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons-tnt/-/webcomponents-icons-tnt-2.25.0.tgz#69fc94fd2e11fed2f6019a17e616b41446bd0bcc"
+  integrity sha512-AnDU3a6hXNB1Myyq6VW5zvyjPO+mCqcuVJJuzN24AED6bfgNqtlFTQeNxl/8ab1UxpTeY/N57FH8PKHeg/albg==
   dependencies:
-    "@ui5/webcomponents-base" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
 
-"@ui5/webcomponents-icons@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-icons/-/webcomponents-icons-2.24.2.tgz"
-  integrity sha512-76YweZ6/YJdZ0e0t2j6XyomQ8HUgM0Xw4QOGlZq+czO/dfPeilDDr+9EIIQ7iDAaRecFf/py11C0ZzDqA6BEVg==
+"@ui5/webcomponents-icons@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-icons/-/webcomponents-icons-2.25.0.tgz#05d211998e373a59d15c180ef25eb1405a0d96ea"
+  integrity sha512-Nn9742mh/KSMg2dtCsboMJ9CI1KRnLlNvaq0BDIBbK/38F5uol5Coj6uJaqphoAp7M/5C6TbGqliYB/nTRuwkw==
   dependencies:
-    "@ui5/webcomponents-base" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
 
-"@ui5/webcomponents-localization@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-localization/-/webcomponents-localization-2.24.2.tgz"
-  integrity sha512-jW0CwxHMLwsJvYtKSF8dQUngdyyr+XLnKjgh4HlKeB0k2zF7yfCq1P+taMcU7Ng3JrgP8Vi141dSncr7m/Qn0A==
+"@ui5/webcomponents-localization@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-localization/-/webcomponents-localization-2.25.0.tgz#014e301e10e3cae9c37d447ca5087c5f5cd73b14"
+  integrity sha512-FJb+xlOG9fkFO4J2uqR9v8nkuCBgDArIUHHXCbGk4xaG4Cog4rCn2PgPolDD7yJXQ28WybuCZTQvbCK//1mc+Q==
   dependencies:
     "@types/openui5" "^1.146.0"
-    "@ui5/webcomponents-base" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
 
-"@ui5/webcomponents-theming@2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents-theming/-/webcomponents-theming-2.24.2.tgz"
-  integrity sha512-91HrRDrBajEQlB7bt43SmYBILvAgDoVv7P0gpFOXWA3nrub1ZsEV2G6m85kY4hXT9hBg6aojlurAmv/mj7/uzw==
+"@ui5/webcomponents-theming@2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents-theming/-/webcomponents-theming-2.25.0.tgz#56b5be42e2848702fd4b0dba5afd53001e924775"
+  integrity sha512-10kIKrfQY8FrZmpHGwJkJkW88QlHObGcVbO+1wPnADU9umL0+0D9d7ZSQY2sb3RFLfqMv+cyY92eY9s9malBsw==
   dependencies:
     "@sap-theming/theming-base-content" "11.36.4"
-    "@ui5/webcomponents-base" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
 
-"@ui5/webcomponents@2.24.2", "@ui5/webcomponents@^2.24.2":
-  version "2.24.2"
-  resolved "https://registry.npmjs.org/@ui5/webcomponents/-/webcomponents-2.24.2.tgz"
-  integrity sha512-8dWIdHhwIpWh6HH4jAJj16B/HRQQhojb7LD4W71P7JlljvGu9v7+84zetEXs0R5kjxLz7eCX0nMHgzttz2vmyQ==
+"@ui5/webcomponents@2.25.0", "@ui5/webcomponents@^2.25.0":
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/@ui5/webcomponents/-/webcomponents-2.25.0.tgz#e8f612419acaa7804d7101a4a8df2d465f9ab2fb"
+  integrity sha512-blw4useiTszptLw3PrsiugfRukdohn/EJl+4+YS+sg/4WjGvujFALTi2xCuY82pf5qs543JqhP302hz718E2KQ==
   dependencies:
-    "@ui5/webcomponents-base" "2.24.2"
-    "@ui5/webcomponents-icons" "2.24.2"
-    "@ui5/webcomponents-icons-business-suite" "2.24.2"
-    "@ui5/webcomponents-icons-tnt" "2.24.2"
-    "@ui5/webcomponents-localization" "2.24.2"
-    "@ui5/webcomponents-theming" "2.24.2"
+    "@ui5/webcomponents-base" "2.25.0"
+    "@ui5/webcomponents-icons" "2.25.0"
+    "@ui5/webcomponents-icons-business-suite" "2.25.0"
+    "@ui5/webcomponents-icons-tnt" "2.25.0"
+    "@ui5/webcomponents-localization" "2.25.0"
+    "@ui5/webcomponents-theming" "2.25.0"
 
 "@vaadin-component-factory/vcf-date-range-picker@^6.0.0":
   version "6.0.0"
@@ -2527,13 +2514,13 @@ asynckit@^0.4.0:
   resolved "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
   integrity sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==
 
-axios@^1.16.0:
-  version "1.18.1"
-  resolved "https://registry.npmjs.org/axios/-/axios-1.18.1.tgz"
-  integrity sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==
+axios@^1.19.0:
+  version "1.19.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.19.0.tgz#ddf864d4c8233c0e6873746ab59361537d05ad39"
+  integrity sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==
   dependencies:
     follow-redirects "^1.16.0"
-    form-data "^4.0.5"
+    form-data "^4.0.6"
     https-proxy-agent "^5.0.1"
     proxy-from-env "^2.1.0"
 
@@ -2552,13 +2539,13 @@ balanced-match@^4.0.2:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-4.0.4.tgz"
   integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
 
-bpmn-js@^18.22.0:
-  version "18.22.0"
-  resolved "https://registry.npmjs.org/bpmn-js/-/bpmn-js-18.22.0.tgz"
-  integrity sha512-hM5aOiyLVdVGA80nveJLXFVQMpsaST7RilErjeKfXMhpZQJTnzU+yLDaenIJsq2f90+9inyktVPqsS1Ersik2A==
+bpmn-js@^18.22.1:
+  version "18.22.1"
+  resolved "https://registry.yarnpkg.com/bpmn-js/-/bpmn-js-18.22.1.tgz#ebad55ca62ab7af304e37700d3c18d3f55a3b05e"
+  integrity sha512-rO2WTTHGtnCejd4QwzIAXhy0cdSWzM1tU+SSd0WQCpmO5Xq/YsEpNKU+oOD+piboEi0P98RZbQ98JrjyKb+NZg==
   dependencies:
     bpmn-moddle "^10.0.0"
-    diagram-js "^15.23.0"
+    diagram-js "^15.23.2"
     diagram-js-direct-editing "^3.5.1"
     ids "^3.0.2"
     inherits-browser "^0.1.0"
@@ -2590,7 +2577,7 @@ brace-expansion@^2.0.2:
   dependencies:
     balanced-match "^1.0.0"
 
-brace-expansion@^5.0.2, brace-expansion@^5.0.5:
+brace-expansion@^5.0.2, brace-expansion@^5.0.8:
   version "5.0.8"
   resolved "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.8.tgz"
   integrity sha512-JZyDyq3D4AUifKTPOB7DELf6XsB3WdPuNxCtob1vFXPsSXhdAiHBWJ/tJ8HAc9aH84BK+5JFZLNkJKx3G9kzQg==
@@ -2853,11 +2840,6 @@ csscolorparser@~1.0.2:
   resolved "https://registry.npmjs.org/csscolorparser/-/csscolorparser-1.0.3.tgz"
   integrity sha512-umPSgYwZkdFoUrH5hIq5kf0wPSXiro51nPw0j2K/c83KflkPSTBGMz6NJvMB+07VlL0y7VPo6QJcDjcgKTTm3w==
 
-csstype@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.npmjs.org/csstype/-/csstype-3.1.1.tgz"
-  integrity sha512-DJR/VvkAvSZW9bTouZue2sSxDwdTN92uHjqeKVm+0dAqdfNykRzQ95tay8aXMBAAPpUiq4Qcug2L7neoRh2Egw==
-
 date-fns@^4.1.0:
   version "4.4.0"
   resolved "https://registry.npmjs.org/date-fns/-/date-fns-4.4.0.tgz"
@@ -2962,10 +2944,10 @@ diagram-js-direct-editing@^3.5.1:
     min-dash "^5.0.0"
     min-dom "^5.3.0"
 
-diagram-js@^15.23.0:
-  version "15.23.0"
-  resolved "https://registry.npmjs.org/diagram-js/-/diagram-js-15.23.0.tgz"
-  integrity sha512-cCgL+4Ep0xrLe6TtdvRVgo6bWYjUbrQg+ES/9rpltqmTD2YaPoC+NYcRsKYw/fDO+1RN0q16NzErP1svVZhNQg==
+diagram-js@^15.23.2:
+  version "15.23.2"
+  resolved "https://registry.yarnpkg.com/diagram-js/-/diagram-js-15.23.2.tgz#9afec8973423350278ae07cd02ac2302c4d85b90"
+  integrity sha512-J/CSCKSq62z7aYr643sf+IBiBv3oaJVJc0PivNi09Wdnd/aUOGpIl8PC0HrJn8sLC/lVNtd80MyscbSg2xDZmA==
   dependencies:
     "@bpmn-io/diagram-js-ui" "^0.2.4"
     clsx "^2.1.1"
@@ -3078,7 +3060,7 @@ es-set-tostringtag@^2.1.0:
 
 "esbuild@^0.27.0 || ^0.28.0", esbuild@^0.28.1:
   version "0.28.1"
-  resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.28.1.tgz"
+  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.28.1.tgz#ef45b4634c9c9d97a296aea4114a5f9840f95578"
   integrity sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==
   optionalDependencies:
     "@esbuild/aix-ppc64" "0.28.1"
@@ -3219,9 +3201,9 @@ follow-redirects@^1.16.0:
   resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.16.0.tgz"
   integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
 
-form-data@^4.0.5:
+form-data@^4.0.6:
   version "4.0.6"
-  resolved "https://registry.npmjs.org/form-data/-/form-data-4.0.6.tgz"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.6.tgz#28e864e1b786dbebb68db1f452f9635278665827"
   integrity sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==
   dependencies:
     asynckit "^0.4.0"
@@ -3571,10 +3553,10 @@ jju@~1.4.0:
   resolved "https://registry.npmjs.org/jju/-/jju-1.4.0.tgz"
   integrity sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==
 
-js-base64@^3.9.1:
-  version "3.9.1"
-  resolved "https://registry.npmjs.org/js-base64/-/js-base64-3.9.1.tgz"
-  integrity sha512-U73qptcvf/HIOauFOmqT3a0mDUp0MYlfd15oqoe9kqZt5XhiXVb+HG09sLvI9PQ9tZIBFS4nlErai8zbWazP0g==
+js-base64@^3.9.2:
+  version "3.9.2"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.2.tgz#e40151b78f76d3294340edbb79b231ba82193ba1"
+  integrity sha512-6zayE8QlUdiweYI6cETD/XBSqFcoCUlufn/29PJR99r82x1yDnIprRca0YvAYpAW+ez0GuQkVBC6xG5QkD7OjA==
 
 js-tokens@^4.0.0:
   version "4.0.0"
@@ -3870,11 +3852,6 @@ mapbox-to-css-font@^2.4.1:
   resolved "https://registry.npmjs.org/mapbox-to-css-font/-/mapbox-to-css-font-2.4.5.tgz"
   integrity sha512-VJ6nB8emkO9VODI0Fk+TQ/0zKBTqmf/Pkt8Xv0kHstoc0iXRajA00DAid4Kc3K5xeFIOoiZrVxijEzj0GLVO2w==
 
-marked@^15.0.11:
-  version "15.0.12"
-  resolved "https://registry.npmjs.org/marked/-/marked-15.0.12.tgz"
-  integrity sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==
-
 marked@^16.0.0:
   version "16.4.2"
   resolved "https://registry.npmjs.org/marked/-/marked-16.4.2.tgz"
@@ -3937,12 +3914,12 @@ minimatch@10.2.3:
   dependencies:
     brace-expansion "^5.0.2"
 
-minimatch@^10.2.3:
-  version "10.2.5"
-  resolved "https://registry.npmjs.org/minimatch/-/minimatch-10.2.5.tgz"
-  integrity sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==
+minimatch@^10.2.6:
+  version "10.2.6"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-10.2.6.tgz#fd956bbe0b77241e9f15ac5dccb1c638060968ef"
+  integrity sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==
   dependencies:
-    brace-expansion "^5.0.5"
+    brace-expansion "^5.0.8"
 
 minimatch@^3.0.4, minimatch@^3.1.1:
   version "3.1.5"
@@ -4788,11 +4765,6 @@ typescript@^3.0.1:
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.10.tgz"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
 
-typescript@~5.8.3:
-  version "5.8.3"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz"
-  integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==
-
 typescript@~7.0.2:
   version "7.0.2"
   resolved "https://registry.npmjs.org/typescript/-/typescript-7.0.2.tgz"
@@ -4885,7 +4857,7 @@ vite-plugin-dts@^4.5.4:
     local-pkg "^1.0.0"
     magic-string "^0.30.17"
 
-"vite@^5.0.0 || ^6.0.0 || ^7.0.0-0", vite@^7.1.2:
+"vite@^5.0.0 || ^6.0.0 || ^7.0.0-0":
   version "7.3.6"
   resolved "https://registry.npmjs.org/vite/-/vite-7.3.6.tgz"
   integrity sha512-4XP60spRGjSZFf1qYH+dJIkK2znL3zQfl9KkOV9MkkRR/3Dls0dxaBsQPTloEc5BLXWPL9vsOxopxyKoMmDueg==
