@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(here, '..')
 const src = join(rendererRoot, 'build', 'optimized', 'webApps', 'vbredwoodapp')
-const repoRoot = join(rendererRoot, '..', '..', '..', '..')
+const repoRoot = join(rendererRoot, '..', '..', '..', '..', '..')
 const moduleResources = join(repoRoot, 'backend', 'shared', 'frontend', 'redwood', 'src', 'main', 'resources')
 const dests = [join(moduleResources, 'META-INF', 'resources'), join(moduleResources, 'static')]
 

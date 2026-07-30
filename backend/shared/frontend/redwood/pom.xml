@@ -13,9 +13,9 @@
     <name>redwood</name>
     <description>Mateu renderer sobre Oracle Visual Builder / Redwood. Los recursos estáticos
         (la app VB optimizada) se generan con `npm run copy` desde
-        frontend/web/monorepo/redwood — no editar a mano. Los componentes JET/oj-sp y el
+        frontend/web/monorepo/apps/redwood — no editar a mano. Los componentes JET/oj-sp y el
         visual-runtime se cargan del CDN de Oracle en runtime; este jar no los vendoriza
-        (ver frontend/web/monorepo/redwood/NOTICE.md).</description>
+        (ver frontend/web/monorepo/apps/redwood/NOTICE.md).</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

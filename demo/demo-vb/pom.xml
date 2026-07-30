@@ -14,7 +14,7 @@
     <name>demo-vb</name>
     <description>Backend de soporte del renderer Mateu-sobre-VB (Visual Builder / Redwood).
         Sirve las pantallas de referencia de cada fase del roadmap
-        (frontend/web/monorepo/redwood/RENDERER-ROADMAP.md) en el puerto 9005, sirve el renderer
+        (frontend/web/monorepo/apps/redwood/RENDERER-ROADMAP.md) en el puerto 9005, sirve el renderer
         empaquetado (io.mateu:redwood) en la raíz y expone la API estándar /mateu/v3 con CORS
         abierto para que la app VB en desarrollo (grunt vb-serve) pueda consumirla desde otro
         origen.</description>

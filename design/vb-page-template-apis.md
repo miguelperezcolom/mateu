@@ -4,7 +4,7 @@
 > los loaders del pack **`oj-sp` 2604.1.0** servido por el CDN oficial
 > (`https://static.oracle.com/cdn/spectra-ui/oj-sp/2604.1.0/<componente>/loader.js` — cada loader
 > embebe su `component.json` o su `_metadata` de VComponent). Es la MISMA versión que consume
-> nuestra app VB (`frontend/web/monorepo/redwood/webApps/vbredwoodapp/app-flow.json`, requirejs paths).
+> nuestra app VB (`frontend/web/monorepo/apps/redwood/webApps/vbredwoodapp/app-flow.json`, requirejs paths).
 > 34 componentes extraídos, 2026-07-30. Complementa (no sustituye) el plan
 > `design/redwood-page-templates-plan.md`, que se hizo desde la anatomía visual de
 > redwood.oracle.com; esto es la superficie de API real que Oracle da al desarrollador VB.

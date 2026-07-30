@@ -8,9 +8,9 @@
 ## Dónde está cada cosa
 
 - **Roadmap por fases (con puertas visuales) + entregable final**: `RENDERER-ROADMAP.md` (este directorio)
-- **POC ejecutable** (valida la LÓGICA): `frontend/web/monorepo/redwood/poc/` — `reduceContexts.mjs` + `fixtures/*.json` +
-  `test.mjs`. Correr: `cd frontend/web/monorepo/redwood/poc && node test.mjs` → 10 tests OK.
-- **Diseño completo (PDF)**: `frontend/web/monorepo/redwood-renderer-design.pdf`
+- **POC ejecutable** (valida la LÓGICA): `frontend/web/monorepo/apps/redwood/poc/` — `reduceContexts.mjs` + `fixtures/*.json` +
+  `test.mjs`. Correr: `cd frontend/web/monorepo/apps/redwood/poc && node test.mjs` → 10 tests OK.
+- **Diseño completo (PDF)**: `frontend/web/monorepo/apps/redwood-renderer-design.pdf`
 - **Apps VB de referencia**: `.dev/vb/dashboard` (JET clásico), `.dev/vb/empty` (dynamic UI), `.dev/vb/frontoffice`
   (Redwood Starter con el pack `oj-sp`/Spectra — la BASE sobre la que construir).
 
@@ -179,7 +179,7 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
 
 ## Fase 1 — HECHA (pendiente de verificación visual del usuario)
 
-- **App VB de trabajo**: `frontend/web/monorepo/redwood` (copia del Redwood Starter `frontoffice`). Local:
+- **App VB de trabajo**: `frontend/web/monorepo/apps/redwood` (copia del Redwood Starter `frontoffice`). Local:
   `npm install` una vez; `npx grunt vb-build --no-optimize=true --force` (el --force salta el paso
   de deploy que pide --url; las dependencias de exchange se vaciaron — los `oj-sp` cargan del CDN por
   los paths de `app-flow.json`); `npx grunt vb-serve --port=9006` → http://localhost:9006 (con

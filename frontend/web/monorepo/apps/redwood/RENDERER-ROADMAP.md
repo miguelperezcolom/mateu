@@ -31,7 +31,7 @@ Los intentos anteriores fallaron porque **aproximaban** el chrome y los componen
    - densidad de tabla + smart-search bar + estados vacíos
    - `pageWidth` (fixed / fullWidth / edgeToEdge)
    - light/dark si aplica
-4. **Salida**: guardar la captura en `frontend/web/monorepo/redwood/poc/shots/faseN.png` como evidencia; si NO pasa,
+4. **Salida**: guardar la captura en `frontend/web/monorepo/apps/redwood/poc/shots/faseN.png` como evidencia; si NO pasa,
    no se abre la fase siguiente.
 
 ## Fases

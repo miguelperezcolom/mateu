@@ -1,6 +1,6 @@
 # NOTICE — Renderer de Mateu sobre Oracle Visual Builder / Redwood
 
-Este directorio (`frontend/web/monorepo/redwood/`) contiene el renderer de Mateu construido sobre Oracle
+Este directorio (`frontend/web/monorepo/apps/redwood/`) contiene el renderer de Mateu construido sobre Oracle
 Visual Builder y el Redwood Design System. Este NOTICE aclara qué se publica bajo la
 licencia de Mateu, qué pertenece a Oracle, y qué necesita un usuario para ejecutarlo.
 
