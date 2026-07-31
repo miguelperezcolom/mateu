@@ -1382,6 +1382,13 @@ class ReflectionMapper:
                 css_classes=c.css_classes, app_state=c.app_state,
             )
             return self._fluent_client(meta, c)
+        # A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component:
+        # it maps to a ServerSideComponent carrying the view's OWN serverSideType + actions, so its
+        # actions (a wizard's step navigation) route back to itself instead of bubbling to the host
+        # — what makes a wizard-in-a-drawer navigate (the Guided Process Drawer). Mirrors Java's
+        # ComponentToFragmentDtoMapper EmbeddedView branch.
+        if isinstance(c, fluent.EmbeddedView):
+            return self.map_embedded_view(c.view)
         # Overlays — returned from actions; the sync handler emits them as Add fragments.
         if isinstance(c, fluent.Drawer):
             meta = DrawerMetadata(
@@ -1425,6 +1432,24 @@ class ReflectionMapper:
             )
             return self._fluent_client(meta, c)
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
+
+    def map_embedded_view(self, view):
+        """A routed model view embedded via :class:`fluent.EmbeddedView`. If the wrapped value is
+        already a fluent component, it maps inline; otherwise it is a routed view (e.g. a Wizard)
+        turned into an INDEPENDENT ServerSideComponent carrying its OWN serverSideType + actions,
+        so its actions dispatch back to itself (Java parity: the EmbeddedView branch of
+        ComponentToFragmentDtoMapper)."""
+        from mateu_uidl import Wizard
+
+        if isinstance(view, fluent.Component):
+            return self.map_component(view)
+        cls = type(view)
+        route = "/" + normalize(getattr(cls, "__mateu_ui__", ""))
+        if isinstance(view, Wizard):
+            # The embedded wizard opens on its first step; its "next"/"back" buttons carry the
+            # wizard's own serverSideType so navigation routes back to it.
+            return self.map_wizard(cls, view, route, 1)
+        return self.map_view(cls, view, route)
 
     def _comment(self, cm) -> CommentRecord:
         return CommentRecord(

@@ -223,9 +223,16 @@ Data Management, que los usan como paneles inferior/lateral).
   `Drawer.content(new EmbeddedView(wizard))`. El wizard avanza paso a paso dentro del drawer (test
   `GuidedProcessDrawerSyncTest`: embebido como ServerSideComponent + "next" avanza). Demo
   `/guided-process-drawer-demo`; doc ux-patterns/drawer.md.
+- **HECHO — paridad .NET/Python de `EmbeddedView` (2026-07-31):** .NET `EmbeddedView(object View)`
+  (Mateu.Uidl) + `ReflectionMapper.MapEmbeddedView` (Wizard → `MapWizard(...,1)`, otra vista →
+  `MapView`) enganchado en `ComponentMapper.MapContent` (compartido por Drawer Y Dialog); Python
+  `fluent.EmbeddedView(view)` + `mapper.map_embedded_view` (rama en `map_component`). Ambos producen
+  el mismo `ServerSideComponent` independiente con el serverSideType de la vista + sus acciones (wire
+  idéntico a Java). Tests espejo de `GuidedProcessDrawerSyncTest`: .NET `GuidedProcessDrawerTests`
+  (suite 227), Python `test_guided_process_drawer.py` (suite 226). Sin tipo wire nuevo en ningún puerto.
 - **PENDIENTE:** paginación "2|4" en la cabecera del drawer (el wizard ya muestra su progreso
   STEPS/RAIL dentro); límite explícito de 5 pasos; patrón *batch* (N ítems → un paso por ítem);
-  paridad .NET/Python de `EmbeddedView`; validación visual.
+  validación visual.
 
 ### 5.4 Advanced Create & Edit *(Transactional)* — **HECHA (composición, Capa 4, 2026-07-26)**
 - **Redwood:** transaccional de página única para objetos complejos. 4 regiones: page header

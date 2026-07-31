@@ -386,6 +386,21 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
     /// <summary>A wizard step: title + progress bar + the current step's fields + Back/Next. The state
     /// (__step + all field values) rides in initialData so it round-trips through componentState.</summary>
+    /// <summary>Maps a routed view embedded via <see cref="EmbeddedView"/> into an INDEPENDENT
+    /// ServerSideComponentDto carrying the view's OWN serverSideType + actions + its page as a child,
+    /// so the view's actions (a wizard's step navigation) route back to itself instead of bubbling to
+    /// the host (the Guided Process Drawer pattern). Mirrors Java's ComponentToFragmentDtoMapper's
+    /// EmbeddedView branch, reusing the same view→ServerSideComponent machinery a route would.</summary>
+    public ServerSideComponentDto MapEmbeddedView(object view)
+    {
+        var type = view.GetType();
+        var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
+        // A wizard opens on its first step; any other routed view maps as its own page.
+        return typeof(Wizard).IsAssignableFrom(type)
+            ? MapWizard(type, view, route, 1)
+            : MapView(type, view, route);
+    }
+
     public ServerSideComponentDto MapWizard(Type type, object instance, string route, int step)
     {
         var stepProps = EditableProperties(type)

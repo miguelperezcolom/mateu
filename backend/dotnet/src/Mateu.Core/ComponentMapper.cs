@@ -177,7 +177,7 @@ public static class ComponentMapper
         }),
 
         // Overlays — returned from actions; SyncHandler emits them as Add fragments.
-        Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : Map(dr.Content))
+        Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : MapContent(dr.Content))
         {
             Subtitle = dr.Subtitle,
             Header = dr.Header is null ? null : Map(dr.Header),
@@ -191,7 +191,7 @@ public static class ComponentMapper
             NoPadding = dr.NoPadding,
             Modeless = dr.Modeless,
         }),
-        Dialog dg => Dto(dg, new DialogMetadataDto(dg.Id, dg.HeaderTitle, dg.Content is null ? null : Map(dg.Content))
+        Dialog dg => Dto(dg, new DialogMetadataDto(dg.Id, dg.HeaderTitle, dg.Content is null ? null : MapContent(dg.Content))
         {
             Header = dg.Header is null ? null : Map(dg.Header),
             Footer = dg.Footer is null ? null : Map(dg.Footer),
@@ -203,6 +203,19 @@ public static class ComponentMapper
         }),
 
         _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
+    };
+
+    /// <summary>Reusable mapper for a slotted content component (drawer/dialog Content): an
+    /// <see cref="EmbeddedView"/> wrapping a routed model view becomes an INDEPENDENT
+    /// ServerSideComponentDto carrying the view's own serverSideType + actions (so its actions —
+    /// a wizard's step navigation — route back to itself, not the host); an EmbeddedView wrapping a
+    /// plain fluent component maps it directly; anything else maps as a client-side component.
+    /// Mirrors Java's ComponentToFragmentDtoMapper EmbeddedView branch.</summary>
+    private static ComponentDto MapContent(IComponent content) => content switch
+    {
+        EmbeddedView ev when ev.View is IComponent c => Map(c),
+        EmbeddedView ev => new ReflectionMapper().MapEmbeddedView(ev.View),
+        _ => Map(content),
     };
 
     /// <summary>Foldout: panel headers ride in the metadata; the overview travels as the child

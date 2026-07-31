@@ -1247,6 +1247,20 @@ class Drawer(Component):
     css_classes: str | None = None
 
 
+@dataclass
+class EmbeddedView(Component):
+    """Embeds a routed view (a ``@ui``/``@route`` model view — e.g. a :class:`Wizard`) as an
+    INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions
+    back to itself (its step navigation, saves, etc.), unlike ``ModelViewComponent``, which renders
+    the view inline and lets its actions bubble to the host.
+
+    This is what makes a wizard-in-a-drawer work (the Redwood "Guided Process Drawer"): return a
+    :class:`Drawer` whose ``content`` is ``EmbeddedView(wizard)`` and the wizard advances step by
+    step inside the drawer. The Python analogue of ``io.mateu.uidl.data.EmbeddedView``."""
+
+    view: object
+
+
 @dataclass(frozen=True)
 class Dialog(Component):
     """A modal window, returned from any action to open its ``content`` on top of the current
@@ -1272,6 +1286,7 @@ __all__ = [
     "SkeletonVariant",
     "DrawerPosition",
     "Drawer",
+    "EmbeddedView",
     "Dialog",
     "MicroFrontend",
     "Text",

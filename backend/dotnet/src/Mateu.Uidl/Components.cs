@@ -959,6 +959,14 @@ public sealed record Dialog : ComponentBase
     public bool CloseButtonOnHeader { get; init; } = true;
 }
 
+/// <summary>Embeds a routed view (a [UI]/[Route] model view — e.g. a <see cref="Wizard"/>) as an
+/// INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions
+/// back to itself (its step navigation, saves, etc.) instead of bubbling to the host. This is what
+/// makes a wizard-in-a-drawer work (the Redwood "Guided Process Drawer"): return a <see cref="Drawer"/>
+/// whose Content is <c>new EmbeddedView(wizard)</c> and the wizard advances step by step inside the
+/// drawer. (C# analogue of io.mateu.uidl.data.EmbeddedView.)</summary>
+public sealed record EmbeddedView(object View) : ComponentBase;
+
 // ── [Panel] — archetype tile marker ────────────────────────────────────────────
 
 /// <summary>Marks a component property of an archetype (Dashboard, Foldout, Welcome, ItemOverview)
