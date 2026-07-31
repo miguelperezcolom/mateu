@@ -249,7 +249,24 @@ class SyncHandler:
         elif rq.action_id == "next":
             wizard.on_next(step, step + 1)
             step += 1
+        elif rq.action_id == "goToStep":
+            # The drawer step pager's jump-to-step: `_stepId` = the bullet id "step-N"; jump only
+            # BACKWARD (to an already-visited step) so we never skip a step's validation forward.
+            target = self._go_to_step_target(rq)
+            if target is not None and 1 <= target < step:
+                step = target
         return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step), rq)
+
+    @staticmethod
+    def _go_to_step_target(rq: RunActionRq) -> int | None:
+        params = rq.parameters or {}
+        sid = params.get("_stepId") if isinstance(params, dict) else None
+        if isinstance(sid, str) and sid.startswith("step-"):
+            try:
+                return int(sid[5:])
+            except ValueError:
+                return None
+        return None
 
     @staticmethod
     def step_of(rq: RunActionRq) -> int:

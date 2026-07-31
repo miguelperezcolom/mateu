@@ -122,4 +122,36 @@ public class GuidedProcessDrawerTests
             .ToList();
         Assert.Contains("age", fieldIds);
     }
+
+    [Fact]
+    public void GoToStep_jumps_back_to_an_already_visited_step()
+    {
+        // On the second step (age), the drawer pager's jump-to-step to "step-1" goes back to the
+        // first step (name) — backward-only, so it never skips a step's validation forward.
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "/gpd-wizard", ActionId = "goToStep",
+            ServerSideType = typeof(SignupWizard).FullName, InitiatorComponentId = "cmp-1",
+            ComponentState = new Dictionary<string, object?>
+            {
+                ["__step"] = JsonSerializer.SerializeToElement(2),
+                ["age"] = JsonSerializer.SerializeToElement(30),
+            },
+            Parameters = new Dictionary<string, object?>
+            {
+                ["_stepId"] = JsonSerializer.SerializeToElement("step-1"),
+            },
+        });
+
+        var server = inc.Fragments
+            .Select(f => f.Component)
+            .OfType<ServerSideComponentDto>()
+            .First();
+        var fieldIds = Walk(server)
+            .Where(c => c.Metadata is FormFieldMetadataDto)
+            .Select(c => ((FormFieldMetadataDto)c.Metadata).FieldId)
+            .ToList();
+        Assert.Contains("name", fieldIds);
+        Assert.DoesNotContain("age", fieldIds);
+    }
 }

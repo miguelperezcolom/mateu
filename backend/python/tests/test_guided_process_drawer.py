@@ -106,3 +106,17 @@ def test_next_advances_the_embedded_wizard_to_its_second_step():
     )
     j = _all_json(inc).replace(" ", "")
     assert '"fieldId":"age"' in j
+
+
+def test_go_to_step_jumps_back_to_an_already_visited_step():
+    # On the second step (age), the drawer pager's jump-to-step to "step-1" goes back to the first
+    # step (name) — backward-only, so it never skips a step's validation forward.
+    inc = handler().handle(
+        RunActionRq(route="/gpd-wizard", actionId="goToStep",
+                    serverSideType=f"{__name__}.SignupWizard", initiatorComponentId="cmp-1",
+                    componentState={"__step": 2, "age": 30},
+                    parameters={"_stepId": "step-1"})
+    )
+    j = _all_json(inc).replace(" ", "")
+    assert '"fieldId":"name"' in j
+    assert '"fieldId":"age"' not in j
