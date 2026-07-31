@@ -52,12 +52,6 @@ public class BatchApprovalWizard extends Wizard {
       this.requester = requester;
       this.system = system;
     }
-
-    // The completion button lives on the PENULTIMATE step (the last reviewed item, `third`); the
-    // framework shows it there automatically even though the method is declared on the shared class.
-    @WizardCompletionAction
-    @Label("Apply decisions")
-    public void apply() {}
   }
 
   @PlainText
@@ -69,4 +63,12 @@ public class BatchApprovalWizard extends Wizard {
   public ReviewStep second = new ReviewStep("Bob Stevens", "CRM");
   public ReviewStep third = new ReviewStep("Cleo Nardo", "Wiki");
   public DoneStep done;
+
+  // The completion action lives on the WIZARD class (not a step): the framework shows its button on
+  // the penultimate step (the last reviewed item) and runs it to finish the batch.
+  @WizardCompletionAction
+  @Label("Apply decisions")
+  void apply() {
+    done = new DoneStep();
+  }
 }

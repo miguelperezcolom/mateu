@@ -175,12 +175,14 @@ public class BatchApprovalWizard extends Wizard {
     public static class ReviewStep implements WizardStep {
         @PlainText @Label("Requester") public String requester;
         @Label("Decision") public Decision decision = Decision.APPROVE;
-        @WizardCompletionAction @Label("Apply decisions") public void apply() {}
     }
     public ReviewStep first  = new ReviewStep("Ada",  "VPN");
     public ReviewStep second = new ReviewStep("Bob",  "CRM");
     public ReviewStep third  = new ReviewStep("Cleo", "Wiki");
     public DoneStep done;
+
+    // completion action on the WIZARD class — its button shows on the penultimate step
+    @WizardCompletionAction @Label("Apply decisions") void apply() { done = new DoneStep(); }
 }
 ```
 

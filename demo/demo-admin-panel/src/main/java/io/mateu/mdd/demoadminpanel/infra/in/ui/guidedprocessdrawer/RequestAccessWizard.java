@@ -35,10 +35,6 @@ public class RequestAccessWizard extends Wizard {
 
     @Label("Reason")
     public String reason = "";
-
-    @WizardCompletionAction
-    @Label("Request")
-    public void request() {}
   }
 
   @PlainText
@@ -49,4 +45,12 @@ public class RequestAccessWizard extends Wizard {
   public WhoStep who = new WhoStep();
   public WhatStep what = new WhatStep();
   public DoneStep done;
+
+  // The completion action lives on the WIZARD class (the framework shows its button on the
+  // penultimate step and runs it to finish the flow).
+  @WizardCompletionAction
+  @Label("Request")
+  void request() {
+    done = new DoneStep();
+  }
 }
