@@ -68,6 +68,7 @@ public class DrawerMapper {
                     : null)
             .noPadding(drawer.noPadding())
             .modeless(drawer.modeless())
+            .layout(drawer.layout())
             .build(),
         "fieldId",
         List.of(),

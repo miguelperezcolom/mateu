@@ -133,7 +133,12 @@ export class MateuProgressSteps extends LitElement {
         const current = currentIdx >= 0 ? currentIdx + 1 : allDone ? total : 0
         this.dispatchEvent(
             new CustomEvent('mateu-guided-progress', {
-                detail: { current, total },
+                detail: {
+                    current,
+                    total,
+                    // carry the step list so an enclosing pager can offer a jump-to-step menu
+                    steps: this.steps.map((s) => ({ id: s.id, title: s.title, status: s.status ?? 'upcoming' })),
+                },
                 bubbles: true,
                 composed: true,
             }),

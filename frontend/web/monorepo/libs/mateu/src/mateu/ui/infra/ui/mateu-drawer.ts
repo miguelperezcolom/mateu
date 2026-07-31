@@ -25,11 +25,30 @@ export class MateuDrawer extends ComponentElement {
     // Guided Process Drawer: "current | total" step pager, fed live by the embedded wizard's
     // ProgressSteps (which bubbles a `mateu-guided-progress` event on every step change).
     @state()
-    private guidedProgress?: { current: number; total: number }
+    private guidedProgress?: { current: number; total: number; steps?: { id?: string; title?: string; status?: string }[] }
+
+    // Whether the clickable pager's jump-to-step menu is open.
+    @state()
+    private pagerMenuOpen = false
 
     private onGuidedProgress = (e: Event) => {
-        const detail = (e as CustomEvent<{ current: number; total: number }>).detail
+        const detail = (e as CustomEvent<{ current: number; total: number; steps?: any[] }>).detail
         if (detail && detail.total > 0) this.guidedProgress = detail
+    }
+
+    // Jump the embedded guided process back to an already-visited step: dispatch `goToStep` from the
+    // embedded mateu-component (the wizard claims it) with the step's field id. Only 'done' steps are
+    // offered, so this never skips a step's validation forward.
+    private jumpToStep(stepId?: string) {
+        this.pagerMenuOpen = false
+        if (!stepId) return
+        const embedded = (this.renderRoot as ShadowRoot).querySelector('.content mateu-component')
+            ?? (this.renderRoot as ShadowRoot).querySelector('mateu-component')
+        embedded?.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: 'goToStep', parameters: { _stepId: stepId } },
+            bubbles: true,
+            composed: true,
+        }))
     }
 
     // Standard Redwood drawer widths (s→m→l→xl). An explicit `width` overrides these.
@@ -60,10 +79,13 @@ export class MateuDrawer extends ComponentElement {
         requestAnimationFrame(() => this.opened = true)
         // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
         this.addEventListener('mateu-guided-progress', this.onGuidedProgress)
+        const metadata = (this.component as ClientSideComponent)?.metadata as Drawer | undefined
+        if (metadata) requestAnimationFrame(() => this.applyLayoutInset(metadata))
     }
 
     close = () => {
         this.opened = false
+        this.releaseLayoutInset()
         // after the slide-out transition, unmount THROUGH the owner (splice from its children
         // + owner re-render) so Lit's bookkeeping stays sound and the drawer can reopen; only
         // detach manually when no declarative owner holds us (defensive fallback)
@@ -72,6 +94,30 @@ export class MateuDrawer extends ComponentElement {
                 this.parentElement?.removeChild(this)
             }
         }, 300)
+    }
+
+    // Layout (non-overlay) mode: push the app content aside by insetting the root <mateu-ui> on the
+    // drawer's edge (self-contained, works on every shell — the drawer stays position:fixed in the
+    // reserved gap). Cleared on close/disconnect so no residual inset survives the drawer.
+    private _insetProp?: 'paddingRight' | 'paddingLeft' | 'paddingBottom'
+    private applyLayoutInset(metadata: Drawer) {
+        if (!metadata.layout) return
+        const root = document.querySelector('mateu-ui') as HTMLElement | null
+        if (!root) return
+        const position = metadata.position ?? 'end'
+        const size = position === 'bottom'
+            ? 'var(--mateu-drawer-height, 50vh)'
+            : (this.effectiveWidth(metadata) ?? '648px')
+        this._insetProp = position === 'start' ? 'paddingLeft'
+            : position === 'bottom' ? 'paddingBottom' : 'paddingRight'
+        root.style.transition = 'padding .25s ease'
+        root.style[this._insetProp] = size
+    }
+    private releaseLayoutInset() {
+        if (!this._insetProp) return
+        const root = document.querySelector('mateu-ui') as HTMLElement | null
+        if (root) root.style[this._insetProp] = ''
+        this._insetProp = undefined
     }
 
     applyFragment(fragment: UIFragment) {
@@ -97,6 +143,7 @@ export class MateuDrawer extends ComponentElement {
 
     disconnectedCallback() {
         document.removeEventListener('keydown', this._escListener)
+        this.releaseLayoutInset()
         super.disconnectedCallback()
     }
 
@@ -128,7 +175,7 @@ export class MateuDrawer extends ComponentElement {
             ? metadata.peerNav : undefined
 
         return html`
-        ${metadata.modeless ? nothing : html`
+        ${metadata.modeless || metadata.layout ? nothing : html`
             <div class="backdrop ${this.opened ? 'open' : ''}" @click="${this.close}"></div>
         `}
         <section
@@ -143,7 +190,19 @@ export class MateuDrawer extends ComponentElement {
                     ? html`<div class="titles"><h3>${title}</h3>${subtitle ? html`<span class="subtitle">${subtitle}</span>` : nothing}</div>`
                     : html`<span class="spacer"></span>`}
                 ${this.guidedProgress && this.guidedProgress.total > 1 ? html`
-                    <span class="guided-pager" aria-label="Step ${this.guidedProgress.current} of ${this.guidedProgress.total}">${this.guidedProgress.current} | ${this.guidedProgress.total}</span>
+                    <div class="guided-pager-wrap">
+                        <button class="guided-pager" aria-haspopup="true" aria-expanded="${this.pagerMenuOpen}"
+                                aria-label="Step ${this.guidedProgress.current} of ${this.guidedProgress.total}"
+                                @click="${() => this.pagerMenuOpen = !this.pagerMenuOpen}">${this.guidedProgress.current} | ${this.guidedProgress.total}<span class="caret">▾</span></button>
+                        ${this.pagerMenuOpen && this.guidedProgress.steps ? html`
+                            <div class="guided-pager-menu">
+                                ${this.guidedProgress.steps.map((s, i) => html`
+                                    <button class="guided-pager-item ${s.status}" ?disabled="${s.status !== 'done'}"
+                                            @click="${() => this.jumpToStep(s.id)}"><span class="pager-dot">${s.status === 'done' ? '✓' : i + 1}</span>${s.title ?? `Step ${i + 1}`}</button>
+                                `)}
+                            </div>
+                        ` : nothing}
+                    </div>
                 ` : nothing}
                 ${metadata.header ? html`
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
@@ -282,13 +341,81 @@ export class MateuDrawer extends ComponentElement {
         header .spacer {
             flex: 1;
         }
+        .guided-pager-wrap {
+            position: relative;
+        }
         .guided-pager {
+            display: inline-flex;
+            align-items: center;
+            gap: .15rem;
             font-size: var(--lumo-font-size-m, 1rem);
             font-weight: 300;
             letter-spacing: .1em;
             color: var(--lumo-secondary-text-color, #6b7280);
             white-space: nowrap;
-            padding: 0 .25rem;
+            padding: .1rem .35rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            cursor: pointer;
+        }
+        .guided-pager:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.05));
+        }
+        .guided-pager .caret {
+            font-size: .7em;
+            letter-spacing: 0;
+        }
+        .guided-pager-menu {
+            position: absolute;
+            top: calc(100% + .25rem);
+            right: 0;
+            z-index: 10;
+            min-width: 12rem;
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            border-radius: var(--lumo-border-radius-m, 6px);
+            box-shadow: var(--lumo-box-shadow-m, 0 4px 16px rgba(0,0,0,.16));
+            padding: .25rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .guided-pager-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .4rem .5rem;
+            border: none;
+            background: transparent;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-body-text-color, #1a1a1a);
+            text-align: left;
+            cursor: pointer;
+            letter-spacing: 0;
+        }
+        .guided-pager-item:hover:not(:disabled) {
+            background: var(--lumo-primary-color-10pct, rgba(0,90,200,.1));
+        }
+        .guided-pager-item:disabled {
+            color: var(--lumo-tertiary-text-color, #9aa0a6);
+            cursor: default;
+        }
+        .guided-pager-item .pager-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.15rem;
+            height: 1.15rem;
+            border-radius: 50%;
+            font-size: .7rem;
+            background: var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            color: var(--lumo-secondary-text-color, #6b7280);
+            flex: none;
+        }
+        .guided-pager-item.done .pager-dot {
+            background: var(--lumo-primary-color, #0b57d0);
+            color: var(--lumo-primary-contrast-color, #fff);
         }
         .drawer-icon {
             border: none;

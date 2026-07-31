@@ -19,6 +19,7 @@ export default interface Drawer extends ComponentMetadata {
     peerNav?: PeerNav
     noPadding: boolean
     modeless: boolean
+    layout?: boolean
     initialData: ComponentState
 
 }

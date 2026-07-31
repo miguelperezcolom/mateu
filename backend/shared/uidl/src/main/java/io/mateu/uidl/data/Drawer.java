@@ -28,6 +28,13 @@ public record Drawer(
     PeerNav peerNav,
     boolean noPadding,
     boolean modeless,
+    /**
+     * Layout (non-overlay) mode: instead of floating over the page with a backdrop, the drawer
+     * docks to its edge and PUSHES the page content aside (reflow) so both stay usable at once —
+     * the Redwood drawer "layout" variant. Implies non-modal (no backdrop). Works for every {@link
+     * DrawerPosition} (start/end push horizontally, bottom pushes vertically).
+     */
+    boolean layout,
     String style,
     String cssClasses,
     Object initialData)

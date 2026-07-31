@@ -126,6 +126,29 @@ class GuidedProcessDrawerSyncTest {
   }
 
   @Test
+  void goToStepJumpsBackToAnAlreadyVisitedStep() {
+    // The wizard is on its second step (age); clicking the drawer pager jumps back to the first
+    // (name) via goToStep with the target step's field id — a backward-only, safe jump.
+    var state = new HashMap<String, Object>();
+    state.put("position", 1);
+    state.put("age", 30);
+    UIIncrementDto increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/gpd-wizard")
+                .actionId("goToStep")
+                .serverSideType(SignupWizard.class.getName())
+                .initiatorComponentId("cmp-1")
+                .componentState(state)
+                .parameters(Map.of("_stepId", "nameStep"))
+                .build());
+    var root = increment.fragments().get(0).component();
+    var fields = collect(root, FormFieldDto.class).stream().map(FormFieldDto::fieldId).toList();
+    assertThat(fields).contains("name");
+    assertThat(fields).doesNotContain("age");
+  }
+
+  @Test
   void nextAdvancesTheEmbeddedWizardToItsSecondStep() {
     // dispatch "next" against the wizard's own serverSideType (as the embedded component would),
     // carrying the first step's state — it advances to the age step.

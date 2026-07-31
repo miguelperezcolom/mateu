@@ -79,6 +79,16 @@ class DrawerSyncTest {
     }
 
     @Action
+    Drawer openLayoutDrawer() {
+      return Drawer.builder()
+          .headerTitle("Layout")
+          .position(DrawerPosition.end)
+          .layout(true)
+          .content(new Text("pushes the page"))
+          .build();
+    }
+
+    @Action
     UICommand saveAndClose() {
       return UICommand.closeModal("guest-saved", Map.of("id", 7));
     }
@@ -155,6 +165,15 @@ class DrawerSyncTest {
         (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
     assertThat(drawer.position()).isEqualTo(DrawerPositionDto.bottom);
     assertThat(drawer.collapsible()).isTrue();
+  }
+
+  @Test
+  void layoutDrawerCarriesTheLayoutFlag() {
+    var increment = run("openLayoutDrawer");
+    var drawer =
+        (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
+    assertThat(drawer.layout()).isTrue();
+    assertThat(drawer.position()).isEqualTo(DrawerPositionDto.end);
   }
 
   @Test

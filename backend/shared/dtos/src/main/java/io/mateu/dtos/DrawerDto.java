@@ -26,5 +26,10 @@ public record DrawerDto(
     PeerNavDto peerNav,
     boolean noPadding,
     boolean modeless,
+    /**
+     * Layout (non-overlay) mode: the drawer docks to its edge and pushes the page content aside
+     * (reflow) instead of floating over it with a backdrop. Implies non-modal.
+     */
+    boolean layout,
     Object initialData)
     implements ComponentMetadataDto {}

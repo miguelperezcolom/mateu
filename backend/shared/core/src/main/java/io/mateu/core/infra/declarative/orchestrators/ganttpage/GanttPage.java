@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Drawer;
+import io.mateu.uidl.data.DrawerPosition;
 import io.mateu.uidl.data.DrawerSize;
 import io.mateu.uidl.data.Gantt;
 import io.mateu.uidl.data.GanttTask;
@@ -48,6 +49,22 @@ public abstract class GanttPage implements ComponentTreeSupplier, PageWidthSuppl
   }
 
   /**
+   * An optional PERSISTENT bottom drawer of supporting data (typically tables) — the Redwood Gantt
+   * page uses a docked bottom drawer AND a side task drawer at the same time. When non-null it is
+   * composed as a collapsible, modeless bottom {@link Drawer} that stays docked while the side
+   * {@link #taskDrawer} opens over the canvas on a bar click, so both are usable at once. {@code
+   * null} (default) means no bottom drawer.
+   */
+  protected Component bottomPanel(HttpRequest httpRequest) {
+    return null;
+  }
+
+  /** Header title of the persistent {@link #bottomPanel} bottom drawer. */
+  protected String bottomPanelTitle() {
+    return "Details";
+  }
+
+  /**
    * The page heading shown above the canvas (the Redwood Gantt-page header). Defaults to the view's
    * title ({@code @Title} / {@code TitleSupplier} / class name); return {@code null} or blank to
    * omit it.
@@ -79,6 +96,20 @@ public abstract class GanttPage implements ComponentTreeSupplier, PageWidthSuppl
     Component detail = detail(httpRequest);
     if (detail != null) {
       content.add(Card.builder().id("gantt-detail").content(detail).build());
+    }
+    Component bottom = bottomPanel(httpRequest);
+    if (bottom != null) {
+      // A persistent, collapsible, modeless bottom drawer docked to the viewport bottom — it stays
+      // put while the side task drawer opens over the canvas, so both are used simultaneously.
+      content.add(
+          Drawer.builder()
+              .id("gantt-bottom-drawer")
+              .headerTitle(bottomPanelTitle())
+              .position(DrawerPosition.bottom)
+              .collapsible(true)
+              .modeless(true)
+              .content(bottom)
+              .build());
     }
     return VerticalLayout.builder()
         .id("gantt-page")

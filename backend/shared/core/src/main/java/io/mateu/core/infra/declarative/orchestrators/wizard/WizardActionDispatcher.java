@@ -36,6 +36,29 @@ final class WizardActionDispatcher {
     if ("back".equals(actionId)) {
       wizard.position = wizard.previousApplicable(wizard.position);
     }
+    if ("goToStep".equals(actionId)) {
+      // Clicking the drawer step pager jumps to an already-visited step (its field name arrives as
+      // `_stepId`). Persist the current step first, then jump — only BACKWARD (target before the
+      // current position), so we never skip the validation of the steps in between.
+      var stepField = wizard.currentStepField();
+      setValue(
+          stepField,
+          wizard,
+          MateuBeanProvider.getBean(InstanceFactory.class)
+              .newInstance(
+                  stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
+      var params = httpRequest.runActionRq().parameters();
+      var stepId = params != null ? params.get("_stepId") : null;
+      if (stepId != null) {
+        var fields = WizardStepInspector.getStepFields(wizard);
+        for (int i = 0; i < fields.size() && i < wizard.position; i++) {
+          if (fields.get(i).getName().equals(stepId.toString())) {
+            wizard.position = i;
+            break;
+          }
+        }
+      }
+    }
     if (!"".equals(actionId)) {
       var found =
           getAllMethods(wizard.getClass()).stream()
