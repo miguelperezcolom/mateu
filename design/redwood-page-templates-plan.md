@@ -188,8 +188,11 @@ relacionadas con **drawers** y **canvases densos** — precisamente lo que Mateu
   `Drawer { Subtitle, Size, Maximizable, PeerNav }`) y Python (`DrawerSize`, `Drawer(subtitle,
   size, maximizable, peer_nav)`). Tests: `DrawerSyncTest` (Java 6/6), `SyncHandlerTests` (.NET
   +1), `test_sync_handler.py` (Python +1). Demo: `/general-drawer-demo`. Doc: ux-patterns/drawer.md.
-- **PENDIENTE (opcional):** variante *layout* que empuja el contenido en vez de solapar (no
-  crítica para el uso read-only).
+- **HECHO — variante *layout* (push) (2026-07-31):** `Drawer.layout` (uidl/dtos/mapper + .NET
+  `Drawer.Layout`/Python `layout`) → en modo layout el drawer no flota con backdrop: acopla al borde
+  y EMPUJA el contenido (reflow) — `mateu-drawer` insetea el `<mateu-ui>` raíz por el lado del drawer
+  (start/end horizontal, bottom vertical) e implica non-modal. Test `DrawerSyncTest.layoutDrawer…`;
+  demo `/layout-drawer-demo`; verificado visual (paddingRight 648px, sin backdrop).
 
 ### 5.2 Bottom Drawer *(Detail)* — **HECHO (Fase 1, 2026-07-20)**
 - **Redwood:** drawer anclado abajo, *closable* o *expand/collapse* fijo. Header (title o tabs) +
@@ -203,8 +206,10 @@ relacionadas con **drawers** y **canvases densos** — precisamente lo que Mateu
   (`DrawerPosition.Bottom` + `Drawer.Collapsible`) y Python (`DrawerPosition.bottom` +
   `Drawer(collapsible=…)`). Tests: `DrawerSyncTest` (Java 7/7), `SyncHandlerTests` (.NET),
   `test_sync_handler.py` (Python). Demo: `/bottom-drawer-demo`. Doc: ux-patterns/drawer.md.
-- **PENDIENTE (opcional):** variante *layout* que reflow/empuja el contenido; tab-bar en la
-  cabecera del bottom drawer.
+- **HECHO (2026-07-31):** variante *layout* (push) — el bottom drawer con `.layout(true)` empuja el
+  contenido hacia arriba (ver §5.1). **Tab-bar en la cabecera**: sin API nueva — un `TabLayout` como
+  `content` de un bottom drawer collapsible renderiza el bottom drawer con pestañas. Demo
+  `/bottom-tabs-drawer-demo` (Líneas/Pagos/Envío); verificado visual.
 
 **Estado de la Fase 1: los dos drawers base ENTREGADOS.** Desbloquean la Fase 2 (Gantt page +
 Data Management, que los usan como paneles inferior/lateral).
@@ -271,8 +276,10 @@ Data Management, que los usan como paneles inferior/lateral).
   (`DataManagement`, atributo `view` sin underscore para que persista en estado). Tests:
   `DataManagementSyncTest` (Java 2/2), `ArchetypeTests` (.NET), `test_data_management.py` (Python).
   Demo `/data-management-demo`; doc ux-patterns/data-management.md.
-- **PENDIENTE (opcional):** grid denso "real" (Grid fluent con columnas) en el demo, y drawer de
-  detalle en la vista grid (la vista gantt ya abre el drawer de tarea vía `GanttPage`).
+- **HECHO (2026-07-31):** el demo `/data-management-demo` usa ahora un `Grid` fluent denso
+  (`.compact(true)`, columnas name/start/end/progress) y un **drawer de detalle** al click de fila
+  (primera columna `actionId="openRowDetail"` → `@Action` que lee la fila de `parameters` y devuelve
+  un `Drawer`). Verificado visual (grid + detail drawer).
 
 ### 5.6 Gantt page *(Transactional)* — **HECHO (Fase 2, 2026-07-20)**
 - **Redwood:** canvas Gantt + **bottom drawer** (tablas) + **side panel** (detalle) usados
@@ -285,8 +292,12 @@ Data Management, que los usan como paneles inferior/lateral).
   .NET (`GanttPage`/`IGanttPage`) y Python (`GanttPage`). `PageTypeResolver`→DETAIL. Tests:
   `GanttPageSyncTest` (Java 5/5), `ArchetypeTests` (.NET), `test_gantt_page.py` (Python). Demo
   `/gantt-page-demo` (verificado visualmente); doc ux-patterns/gantt.md.
-- **PENDIENTE (opcional):** bottom drawer de tablas simultáneo al side drawer (Redwood los usa a la
-  vez); actualmente la interacción abre un único side drawer por tarea.
+- **HECHO — bottom + side drawer simultáneos (2026-07-31):** `GanttPage.bottomPanel(rq)` /
+  `bottomPanelTitle()` componen un bottom `Drawer` PERSISTENTE (collapsible, modeless) de tablas
+  acoplado abajo, que coexiste con el side task drawer del click de barra — los dos abiertos a la
+  vez, como Redwood. Paridad .NET (`GanttPage.BottomPanel`) y Python (`bottom_panel`); tests
+  `ArchetypeTests`/`test_gantt_page.py`. Demo `/gantt-page-demo` (bottom "Tareas" grid + side
+  "Análisis"); verificado visual (2 drawers a la vez).
 
 **Estado de la Fase 2: Gantt page + Data Management ENTREGADOS en las 3 backends.**
 

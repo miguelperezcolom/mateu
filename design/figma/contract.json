@@ -2270,6 +2270,108 @@
           { "t": "tile", "text": "Panel" }
         ] }
       ]
+    },
+    {
+      "name": "Mateu/Page Templates/Gantt Page",
+      "kind": "ganttPage",
+      "variants": {
+        "pageWidth": ["edgeToEdge"]
+      },
+      "java": "GanttPage",
+      "csharp": "GanttPage",
+      "python": "GanttPage",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "table", "cols": 6, "rows": 3, "gantt": true },
+        { "t": "slot", "h": 90, "label": "detail" }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Data Management",
+      "kind": "dataManagement",
+      "variants": {
+        "pageWidth": ["fullWidth"]
+      },
+      "java": "DataManagement",
+      "csharp": "DataManagement",
+      "python": "DataManagement",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "button", "text": "Grid" },
+          { "t": "button", "text": "Gantt", "secondary": true }
+        ] },
+        { "t": "table", "cols": 5, "rows": 4 }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Guided Process Drawer",
+      "kind": "guidedProcessDrawer",
+      "java": "Drawer.content(new EmbeddedView(wizard))",
+      "csharp": "Drawer.Content(new EmbeddedView(wizard))",
+      "python": "fluent.Drawer(content=fluent.EmbeddedView(wizard))",
+      "texts": {
+        "Title": "headerTitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "row", "spread": true, "items": [
+          { "t": "title", "text": "Title", "size": 16 },
+          { "t": "text", "text": "2 | 4", "color": "secondary" }
+        ] },
+        { "t": "hr" },
+        { "t": "stepper", "steps": ["Paso 1", "Paso 2", "Paso 3"], "current": 1 },
+        { "t": "slot", "h": 120 },
+        { "t": "row", "right": true, "items": [
+          { "t": "button", "text": "Back", "secondary": true },
+          { "t": "button", "text": "Continue" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Overlay/Drawer",
+      "kind": "drawer",
+      "variants": {
+        "position": ["end", "start", "bottom"],
+        "size": ["s", "m", "l", "xl"]
+      },
+      "java": "Drawer (General / Bottom Drawer)",
+      "csharp": "Drawer { Position, Size, Maximizable, Collapsible, PeerNav }",
+      "python": "fluent.Drawer(position=…, size=…, maximizable=…, collapsible=…, peer_nav=…)",
+      "props": {
+        "maximizable": "BOOLEAN",
+        "collapsible": "BOOLEAN",
+        "modeless": "BOOLEAN"
+      },
+      "texts": {
+        "Title": "headerTitle",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "row", "spread": true, "items": [
+          { "t": "col", "items": [
+            { "t": "title", "text": "Title", "size": 16 },
+            { "t": "label", "text": "Subtitle" }
+          ] },
+          { "t": "row", "items": [
+            { "t": "text", "text": "‹", "color": "secondary" },
+            { "t": "text", "text": "›", "color": "secondary" },
+            { "t": "text", "text": "⤢", "color": "secondary" },
+            { "t": "text", "text": "✕", "color": "secondary" }
+          ] }
+        ] },
+        { "t": "hr" },
+        { "t": "slot", "h": 200, "label": "content" }
+      ]
     }
   ]
 }
