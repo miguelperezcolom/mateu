@@ -22,6 +22,16 @@ export class MateuDrawer extends ComponentElement {
     @state()
     private collapsed = false
 
+    // Guided Process Drawer: "current | total" step pager, fed live by the embedded wizard's
+    // ProgressSteps (which bubbles a `mateu-guided-progress` event on every step change).
+    @state()
+    private guidedProgress?: { current: number; total: number }
+
+    private onGuidedProgress = (e: Event) => {
+        const detail = (e as CustomEvent<{ current: number; total: number }>).detail
+        if (detail && detail.total > 0) this.guidedProgress = detail
+    }
+
     // Standard Redwood drawer widths (s→m→l→xl). An explicit `width` overrides these.
     private static readonly SIZE_LADDER = ['s', 'm', 'l', 'xl'] as const
     private static readonly SIZE_WIDTHS: Record<string, string> = {
@@ -48,6 +58,8 @@ export class MateuDrawer extends ComponentElement {
 
     firstUpdated() {
         requestAnimationFrame(() => this.opened = true)
+        // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
+        this.addEventListener('mateu-guided-progress', this.onGuidedProgress)
     }
 
     close = () => {
@@ -130,6 +142,9 @@ export class MateuDrawer extends ComponentElement {
                 ${title
                     ? html`<div class="titles"><h3>${title}</h3>${subtitle ? html`<span class="subtitle">${subtitle}</span>` : nothing}</div>`
                     : html`<span class="spacer"></span>`}
+                ${this.guidedProgress && this.guidedProgress.total > 1 ? html`
+                    <span class="guided-pager" aria-label="Step ${this.guidedProgress.current} of ${this.guidedProgress.total}">${this.guidedProgress.current} | ${this.guidedProgress.total}</span>
+                ` : nothing}
                 ${metadata.header ? html`
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 ` : nothing}
@@ -266,6 +281,14 @@ export class MateuDrawer extends ComponentElement {
         }
         header .spacer {
             flex: 1;
+        }
+        .guided-pager {
+            font-size: var(--lumo-font-size-m, 1rem);
+            font-weight: 300;
+            letter-spacing: .1em;
+            color: var(--lumo-secondary-text-color, #6b7280);
+            white-space: nowrap;
+            padding: 0 .25rem;
         }
         .drawer-icon {
             border: none;

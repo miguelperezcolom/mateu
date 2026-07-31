@@ -17,6 +17,7 @@ import io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
+import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
@@ -27,9 +28,39 @@ import io.mateu.uidl.interfaces.DtoSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class ComponentToFragmentDtoMapper {
+
+  /**
+   * The Redwood Guided Process Drawer is meant for SHORT subflows — up to 5 steps. A longer wizard
+   * embedded in a drawer should be a full-page Guided Process instead. We warn once per wizard
+   * class rather than failing (the drawer still works, it just isn't the recommended surface).
+   */
+  private static final int MAX_GUIDED_PROCESS_DRAWER_STEPS = 5;
+
+  private static final Set<String> warnedLongEmbeddedWizards = ConcurrentHashMap.newKeySet();
+
+  private static void warnIfGuidedProcessDrawerTooLong(Object view) {
+    if (!(view instanceof Wizard wizard)) {
+      return;
+    }
+    // numberOfSteps() counts the trailing read-only result step too, so real steps = total - 1.
+    var realSteps = wizard.numberOfSteps() - 1;
+    if (realSteps > MAX_GUIDED_PROCESS_DRAWER_STEPS
+        && warnedLongEmbeddedWizards.add(wizard.getClass().getName())) {
+      log.warn(
+          "Guided Process Drawer {} embeds a {}-step wizard; the Redwood pattern is for <= {} steps."
+              + " Consider a full-page Guided Process (a routed Wizard) for longer flows.",
+          wizard.getClass().getName(),
+          realSteps,
+          MAX_GUIDED_PROCESS_DRAWER_STEPS);
+    }
+  }
 
   public static ComponentDto mapComponentToDto(
       ComponentTreeSupplier componentSupplier,
@@ -100,6 +131,7 @@ public final class ComponentToFragmentDtoMapper {
         return mapComponentToDto(
             null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
+      warnIfGuidedProcessDrawerTooLong(view);
       // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
       // its page in a ServerSideComponentDto carrying the view's own serverSideType + actions, so
       // its actions (a wizard's step navigation) route back to itself instead of bubbling to the

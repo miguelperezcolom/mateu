@@ -122,6 +122,24 @@ export class MateuProgressSteps extends LitElement {
         }
     `
 
+    updated() {
+        // Publish the step position so an enclosing surface (e.g. a Guided Process Drawer header)
+        // can show a "current | total" pager that stays live as the embedded wizard advances — the
+        // embedded component re-renders independently of the drawer, so a static read wouldn't track.
+        const total = this.steps.length
+        if (total === 0) return
+        const currentIdx = this.steps.findIndex((s) => s.status === 'current')
+        const allDone = this.steps.every((s) => s.status === 'done')
+        const current = currentIdx >= 0 ? currentIdx + 1 : allDone ? total : 0
+        this.dispatchEvent(
+            new CustomEvent('mateu-guided-progress', {
+                detail: { current, total },
+                bubbles: true,
+                composed: true,
+            }),
+        )
+    }
+
     render() {
         return html`
             <div class="steps">

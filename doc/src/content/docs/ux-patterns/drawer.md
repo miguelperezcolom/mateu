@@ -157,6 +157,38 @@ Continue/Back to the host. This is the difference from `ModelViewComponent`, whi
 inline (fine for client-side chrome like tabs, but a wizard's step navigation would leak to the
 host). Demo: `/guided-process-drawer-demo`.
 
+The drawer header shows a **step pager** (`2 | 3`) driven live by the embedded wizard's progress —
+no extra wiring, it appears whenever the embedded wizard uses `@WizardProgress(STEPS)` or `RAIL`. As
+a subflow surface the Guided Process Drawer is meant for **short** processes (≤ 5 steps); embedding a
+longer wizard still works but logs a warning suggesting a full-page [wizard](/ux-patterns/wizard/)
+instead.
+
+### Batch action (one step per item)
+
+The same shape drives a **batch action** — walk the user through a set of selected items, one review
+step per item, inside the drawer. Reuse a single step type across several step fields (one field =
+one step) so N items read as N screens without N step classes:
+
+```java
+@WizardProgress(WizardProgressStyle.STEPS)
+public class BatchApprovalWizard extends Wizard {
+    public static class ReviewStep implements WizardStep {
+        @PlainText @Label("Requester") public String requester;
+        @Label("Decision") public Decision decision = Decision.APPROVE;
+        @WizardCompletionAction @Label("Apply decisions") public void apply() {}
+    }
+    public ReviewStep first  = new ReviewStep("Ada",  "VPN");
+    public ReviewStep second = new ReviewStep("Bob",  "CRM");
+    public ReviewStep third  = new ReviewStep("Cleo", "Wiki");
+    public DoneStep done;
+}
+```
+
+The header pager tracks the batch (`1 | 3` → `3 | 3`). Because a Mateu wizard declares its steps as
+**fields**, the batch size is fixed at authoring time; a batch whose size is only known at runtime is
+the limit of this pattern — use a full-page Guided Process for a longer or dynamic flow. Demo:
+`/batch-approval-demo`.
+
 ## CRUD editing in a drawer (`editInDrawer()`)
 
 For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you don't need to build the drawer yourself: override `editInDrawer()` on any `AutoCrud` subclass and the crud's **New** button and row clicks open the create/edit form in a drawer sliding over the listing instead of navigating to the `/new` — `/{id}/edit` routes:

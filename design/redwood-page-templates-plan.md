@@ -230,9 +230,21 @@ Data Management, que los usan como paneles inferior/lateral).
   el mismo `ServerSideComponent` independiente con el serverSideType de la vista + sus acciones (wire
   idéntico a Java). Tests espejo de `GuidedProcessDrawerSyncTest`: .NET `GuidedProcessDrawerTests`
   (suite 227), Python `test_guided_process_drawer.py` (suite 226). Sin tipo wire nuevo en ningún puerto.
-- **PENDIENTE:** paginación "2|4" en la cabecera del drawer (el wizard ya muestra su progreso
-  STEPS/RAIL dentro); límite explícito de 5 pasos; patrón *batch* (N ítems → un paso por ítem);
-  validación visual.
+- **HECHO — pulido del Guided Process Drawer (2026-07-31):**
+  (a) **Pager "2|3" en la cabecera del drawer** — `mateu-progress-steps` emite un evento burbujeante
+  `mateu-guided-progress {current,total}` en cada render; `mateu-drawer` lo escucha y pinta
+  `current | total` en el header (vivo, porque el wizard embebido re-renderiza independiente del
+  drawer). Sin wire nuevo; aparece cuando el wizard usa `@WizardProgress(STEPS|RAIL)`.
+  (b) **Guía de ≤5 pasos** — la rama `EmbeddedView` del `ComponentToFragmentDtoMapper` hace `log.warn`
+  una vez por clase de wizard con >5 pasos no-resultado (no falla; sugiere el Guided Process de
+  página).
+  (c) **Patrón batch (N ítems → un paso por ítem)** — demo `/batch-approval-demo` +
+  `BatchApprovalWizard` (una clase `ReviewStep` reutilizada en varios campos = un paso por ítem) +
+  doc ux-patterns/drawer.md. Limitación documentada: el nº de pasos es de autoría (los pasos son
+  campos), no dinámico.
+- **PENDIENTE:** paginación "2|4" clicable que abra un menú de pasos (hoy solo muestra el contador);
+  límite de 5 pasos como validación dura (hoy es un warn); batch de tamaño dinámico (runtime);
+  **validación visual** (puerta de Miguel — el renderer vaadin ya está reconstruido con el pager).
 
 ### 5.4 Advanced Create & Edit *(Transactional)* — **HECHA (composición, Capa 4, 2026-07-26)**
 - **Redwood:** transaccional de página única para objetos complejos. 4 regiones: page header
