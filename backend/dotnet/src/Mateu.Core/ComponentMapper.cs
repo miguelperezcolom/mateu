@@ -190,6 +190,7 @@ public static class ComponentMapper
             PeerNav = dr.PeerNav is { } p ? new PeerNavDto(p.PrevLabel, p.PrevRoute, p.NextLabel, p.NextRoute) : null,
             NoPadding = dr.NoPadding,
             Modeless = dr.Modeless,
+            Layout = dr.Layout,
         }),
         Dialog dg => Dto(dg, new DialogMetadataDto(dg.Id, dg.HeaderTitle, dg.Content is null ? null : MapContent(dg.Content))
         {

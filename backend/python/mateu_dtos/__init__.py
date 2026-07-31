@@ -1061,6 +1061,9 @@ class DrawerMetadata(Wire):
     maximizable: bool = False
     #: Bottom drawer only: a handle collapses the drawer to its header strip and back.
     collapsible: bool = False
+    #: Push (layout) mode: the drawer docks to its edge and pushes page content aside instead of
+    #: overlaying it (implies non-modal). Mirrors ``io.mateu.dtos.DrawerDto.layout``.
+    layout: bool = False
     #: Previous/next peer-object arrows in the drawer header; None when none.
     peer_nav: "PeerNav | None" = None
     no_padding: bool = False

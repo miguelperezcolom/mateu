@@ -942,6 +942,9 @@ public sealed record Drawer : ComponentBase
     public bool NoPadding { get; init; }
     /// <summary>No backdrop — the page behind stays interactive.</summary>
     public bool Modeless { get; init; }
+    /// <summary>Push (layout) mode: the drawer docks to its edge and pushes the page content aside
+    /// instead of overlaying it (implies non-modal).</summary>
+    public bool Layout { get; init; }
 }
 
 /// <summary>A modal window, returned from any action to open its Content on top of the current

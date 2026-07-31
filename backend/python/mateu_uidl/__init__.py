@@ -1845,6 +1845,18 @@ class GanttPage(ComponentTreeSupplier):
         """Optional detail component docked below the canvas (the Redwood bottom panel); None = none."""
         return None
 
+    def bottom_panel(self, http_request):
+        """An optional PERSISTENT bottom drawer of supporting data (typically tables) — the Redwood
+        Gantt page uses a docked bottom drawer AND a side task drawer at the same time. When non-null
+        it is composed as a collapsible, modeless bottom ``Drawer`` that stays docked while the side
+        :meth:`task_drawer` opens over the canvas on a bar click, so both are usable at once. ``None``
+        (default) means no bottom drawer."""
+        return None
+
+    def bottom_panel_title(self) -> str:
+        """Header title of the persistent :meth:`bottom_panel` bottom drawer."""
+        return "Details"
+
     def heading(self) -> str | None:
         """The page heading above the canvas; defaults to the class ``@title``, None/blank hides it."""
         return getattr(type(self), "__mateu_title__", None)
@@ -1866,6 +1878,15 @@ class GanttPage(ComponentTreeSupplier):
         d = self.detail(self.http_request)
         if d is not None:
             content.append(d)
+        bottom = self.bottom_panel(self.http_request)
+        if bottom is not None:
+            # A persistent, collapsible, modeless bottom drawer docked to the viewport bottom — it
+            # stays put while the side task drawer opens over the canvas, so both are used at once.
+            content.append(
+                fluent.Drawer(id="gantt-bottom-drawer", header_title=self.bottom_panel_title(),
+                              position=fluent.DrawerPosition.bottom, collapsible=True,
+                              modeless=True, content=bottom)
+            )
         return fluent.VerticalLayout(id="gantt-page", spacing=True, content=tuple(content))
 
     def select_gantt_task(self, task_id):

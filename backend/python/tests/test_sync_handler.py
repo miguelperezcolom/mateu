@@ -550,6 +550,14 @@ class OverlayDemo:
         )
 
     @button()
+    def open_layout_drawer(self):
+        return Drawer(
+            header_title="Filters",
+            layout=True,
+            content=Text(text="push-mode body"),
+        )
+
+    @button()
     def open_dialog(self):
         return Dialog(header_title="Confirm", content=Text(text="dialog body"))
 
@@ -1393,6 +1401,19 @@ def test_bottom_drawer_carries_the_bottom_position_and_collapsible_flag():
     drawer = inc.fragments[0].component.metadata
     assert drawer.position == "bottom"
     assert drawer.collapsible is True
+
+
+def test_layout_drawer_carries_the_push_mode_flag():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="openLayoutDrawer",
+            route="overlays",
+            server_side_type=_name(OverlayDemo),
+            initiator_component_id="comp-9",
+        )
+    )
+    drawer = inc.fragments[0].component.metadata
+    assert drawer.layout is True
 
 
 def test_action_returned_dialog_is_an_add_fragment_too():

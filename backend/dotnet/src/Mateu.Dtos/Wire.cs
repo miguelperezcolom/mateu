@@ -955,6 +955,9 @@ public record DrawerMetadataDto(string? Id, string? HeaderTitle, ComponentDto? C
     public PeerNavDto? PeerNav { get; init; }
     public bool NoPadding { get; init; }
     public bool Modeless { get; init; }
+    /// <summary>Push (layout) mode: the drawer docks to its edge and pushes the page content aside
+    /// instead of overlaying it (implies non-modal).</summary>
+    public bool Layout { get; init; }
     public object? InitialData { get; init; }
 }
 

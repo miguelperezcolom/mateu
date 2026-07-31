@@ -1237,6 +1237,9 @@ class Drawer(Component):
     maximizable: bool = False
     #: Bottom drawer only: a handle collapses the drawer to its header strip and expands it back.
     collapsible: bool = False
+    #: Push (layout) mode: the drawer docks to its edge and pushes the page content aside instead of
+    #: overlaying it (implies non-modal). The Python analogue of ``io.mateu.uidl.data.Drawer.layout``.
+    layout: bool = False
     #: Previous/next peer-object arrows in the drawer header (the Redwood General Drawer).
     peer_nav: "PeerNav | None" = None
     no_padding: bool = False

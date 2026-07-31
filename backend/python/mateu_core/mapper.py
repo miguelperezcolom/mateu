@@ -1403,6 +1403,7 @@ class ReflectionMapper:
                 size=c.size.value if c.size is not None else None,
                 maximizable=c.maximizable,
                 collapsible=c.collapsible,
+                layout=c.layout,
                 peer_nav=(
                     PeerNav(
                         prev_label=c.peer_nav.prev_label,

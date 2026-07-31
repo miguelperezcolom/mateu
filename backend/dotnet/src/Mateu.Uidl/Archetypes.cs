@@ -624,6 +624,16 @@ public abstract class GanttPage : IComponentTreeSupplier, IPageWidthSupplier, IG
     /// <summary>Optional detail panel docked below the canvas (the Redwood bottom panel); null = none.</summary>
     protected virtual IComponent? Detail() => null;
 
+    /// <summary>An optional PERSISTENT bottom drawer of supporting data (typically tables) — the
+    /// Redwood Gantt page uses a docked bottom drawer AND a side task drawer at the same time. When
+    /// non-null it is composed as a collapsible, modeless bottom <see cref="Drawer"/> that stays
+    /// docked while the side task drawer opens over the canvas on a bar click, so both are usable at
+    /// once. null (default) means no bottom drawer.</summary>
+    protected virtual IComponent? BottomPanel() => null;
+
+    /// <summary>Header title of the persistent BottomPanel bottom drawer.</summary>
+    protected virtual string BottomPanelTitle() => "Details";
+
     /// <summary>The page heading above the canvas; defaults to the class [Title], null/blank hides it.</summary>
     protected virtual string? Heading =>
         GetType().GetCustomAttribute<TitleAttribute>()?.Value is { Length: > 0 } t ? t : null;
@@ -635,6 +645,18 @@ public abstract class GanttPage : IComponentTreeSupplier, IPageWidthSupplier, IG
             content.Add(new Text(h) { Id = "gantt-page-title", Size = "xl", NoMargins = true, Style = "font-weight: 600;" });
         content.Add(new Gantt { Id = "gantt", Tasks = Tasks(), OnTaskSelectionActionId = "selectGanttTask" });
         if (Detail() is { } d) content.Add(new Card { Id = "gantt-detail", Content = d });
+        if (BottomPanel() is { } bottom)
+            // A persistent, collapsible, modeless bottom drawer docked to the viewport bottom — it
+            // stays put while the side task drawer opens over the canvas, so both are used at once.
+            content.Add(new Drawer
+            {
+                Id = "gantt-bottom-drawer",
+                HeaderTitle = BottomPanelTitle(),
+                Position = DrawerPosition.Bottom,
+                Collapsible = true,
+                Modeless = true,
+                Content = bottom,
+            });
         return new VerticalLayout { Id = "gantt-page", Spacing = true, Content = content };
     }
 

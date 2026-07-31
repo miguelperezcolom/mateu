@@ -472,6 +472,13 @@ public class OverlayDemo
         Content = new Text("bottom body"),
     };
 
+    [Button] public Drawer OpenLayoutDrawer() => new()
+    {
+        HeaderTitle = "Filters",
+        Layout = true,
+        Content = new Text("push body"),
+    };
+
     [Button] public Dialog OpenDialog() => new()
     {
         HeaderTitle = "Confirm",
@@ -1472,6 +1479,21 @@ public class SyncHandlerTests
         var drawer = (DrawerMetadataDto)((ClientSideComponentDto)Handler().Handle(rq).Fragments.Single().Component!).Metadata;
         Assert.Equal("bottom", drawer.Position);
         Assert.True(drawer.Collapsible);
+    }
+
+    [Fact]
+    public void Layout_drawer_carries_the_layout_push_flag()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "openLayoutDrawer",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+            InitiatorComponentId = "comp-9",
+        };
+
+        var drawer = (DrawerMetadataDto)((ClientSideComponentDto)Handler().Handle(rq).Fragments.Single().Component!).Metadata;
+        Assert.True(drawer.Layout);
     }
 
     [Fact]

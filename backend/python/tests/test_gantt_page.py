@@ -28,6 +28,18 @@ class ProjectPlan(GanttPage):
         return Text(text="detail panel")
 
 
+@ui("/project-plan-bottom")
+@title("Project plan bottom")
+class ProjectPlanWithBottomPanel(GanttPage):
+    def tasks(self, http_request):
+        return [
+            GanttTask(id="t1", title="Design", start=date(2026, 1, 1), end=date(2026, 1, 10), progress=100),
+        ]
+
+    def bottom_panel(self, http_request):
+        return Text(text="supporting tables")
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -35,11 +47,11 @@ def _handler() -> SyncHandler:
     return SyncHandler(MateuRegistry(MODULE))
 
 
-def _render(view_cls, action_id=None, parameters=None) -> str:
+def _render(view_cls, action_id=None, parameters=None, route="/project-plan") -> str:
     inc = _handler().handle(
         RunActionRq(
             server_side_type=type_name(view_cls),
-            route="/project-plan",
+            route=route,
             action_id=action_id,
             parameters=parameters or {},
         )
@@ -61,3 +73,13 @@ def test_clicking_a_gantt_task_opens_it_in_a_drawer():
     j = _render(ProjectPlan, action_id="selectGanttTask", parameters={"_clickedTaskId": "t2"})
     assert '"type":"Drawer"' in j
     assert '"headerTitle":"Build"' in j
+
+
+def test_bottom_panel_composes_a_persistent_collapsible_bottom_drawer_in_the_tree():
+    j = _render(ProjectPlanWithBottomPanel, route="/project-plan-bottom")
+    assert '"type":"Drawer"' in j
+    assert '"position":"bottom"' in j
+    assert '"collapsible":true' in j
+    assert '"modeless":true' in j
+    assert '"headerTitle":"Details"' in j   # the default bottom_panel_title
+    assert "supporting tables" in j          # the bottom panel content

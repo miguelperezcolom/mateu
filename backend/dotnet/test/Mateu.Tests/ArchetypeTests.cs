@@ -46,6 +46,17 @@ public class GanttProjectPlan : GanttPage
     protected override IComponent Detail() => new Text("detail panel");
 }
 
+[UI("gantt-with-bottom-panel"), Title("Project plan")]
+public class GanttWithBottomPanel : GanttPage
+{
+    protected override IReadOnlyList<GanttTask> Tasks() =>
+    [
+        new() { Id = "t1", Title = "Design", Start = new DateOnly(2026, 1, 1), End = new DateOnly(2026, 1, 10), Progress = 100 },
+    ];
+
+    protected override IComponent? BottomPanel() => new Text("supporting tables");
+}
+
 [UI("schedule-board"), Title("Schedule board")]
 public class ScheduleBoard : DataManagement
 {
@@ -192,6 +203,18 @@ public class ArchetypeTests
         Assert.Contains("\"onTaskSelectionActionId\":\"selectGanttTask\"", json);
         Assert.Contains("Project plan", json);   // the heading
         Assert.Contains("detail panel", json);    // the docked detail
+    }
+
+    [Fact]
+    public void Gantt_page_docks_a_persistent_collapsible_bottom_drawer()
+    {
+        var json = Render(Run("/gantt-with-bottom-panel", typeof(GanttWithBottomPanel), null));
+        Assert.Contains("\"type\":\"Drawer\"", json);
+        Assert.Contains("\"position\":\"bottom\"", json);
+        Assert.Contains("\"collapsible\":true", json);
+        Assert.Contains("\"modeless\":true", json);
+        Assert.Contains("supporting tables", json);
+        Assert.Contains("Details", json);   // default bottom panel title
     }
 
     [Fact]
