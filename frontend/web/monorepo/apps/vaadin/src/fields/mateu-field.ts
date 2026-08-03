@@ -53,6 +53,7 @@ import {Notification, NotificationPosition} from "@vaadin/notification";
 import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import {TextField} from "@vaadin/text-field";
+import {announce} from "@infra/a11y/announcer.ts";
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -472,8 +473,64 @@ export class MateuField extends LitElement {
         return evalIfNecessary(this.field?.description ?? '', this.state, this.data) ?? ''
     }
 
+    /** Validation messages the server sent for this field, if any. */
+    private fieldErrors(): string[] {
+        const fieldId = this.field?.fieldId ?? ''
+        const errors = this.data?.errors?.[fieldId]
+        return Array.isArray(errors) ? errors.filter((e: unknown) => !!e) : []
+    }
+
+    /**
+     * The rendered control, when it is one that owns a validity state (every vaadin field does).
+     * Found by property probing rather than by tag name so it keeps working as branches are added
+     * and as controls are swapped for other design systems' equivalents.
+     */
+    private validatableControl(): (HTMLElement & { invalid?: boolean, errorMessage?: string }) | null {
+        const candidates = this.renderRoot.querySelectorAll<HTMLElement>('*')
+        for (const el of candidates) {
+            if ('invalid' in el && 'errorMessage' in el) {
+                return el as HTMLElement & { invalid?: boolean, errorMessage?: string }
+            }
+        }
+        return null
+    }
+
+    /** The last error text pushed into the control, so a repeat render does not re-announce it. */
+    private lastAnnouncedError = ''
+
+    /**
+     * Puts the server's validation result ON the control.
+     *
+     * Until this existed the errors were painted as a detached `<ul>` beside the field: visible,
+     * but with no relationship to the input. The control kept `aria-invalid="false"`, nothing
+     * pointed at the message, and a screen-reader user pressing Save heard nothing at all — the
+     * single worst accessibility defect in the framework, because forms are what Mateu generates.
+     *
+     * Setting `invalid`/`errorMessage` hands the job to the design system, which already knows how
+     * to wire `aria-invalid` and `aria-describedby` inside its own shadow root — something no
+     * amount of markup out here could do across that boundary.
+     */
+    private applyValidationState() {
+        const errors = this.fieldErrors()
+        const control = this.validatableControl()
+        if (!control) {
+            this.lastAnnouncedError = errors.join('. ')
+            return
+        }
+        const message = errors.join('. ')
+        control.errorMessage = message
+        control.invalid = errors.length > 0
+        // Announce a newly-arrived error. The control's own aria-describedby covers a user who
+        // walks back to the field; this covers the far more common case of pressing Save and
+        // staying where they are.
+        if (message && message !== this.lastAnnouncedError) {
+            const label = (this.field?.label ?? '').toString().trim()
+            announce(label ? `${label}: ${message}` : message, { politeness: 'assertive' })
+        }
+        this.lastAnnouncedError = message
+    }
+
     render() {
-        const fieldId = this.field?.fieldId??''
         this.rendered = true
         const navLink = this.renderNavLink()
         // renderField() must run before the fallback help below is decided: the chosen branch
@@ -482,16 +539,25 @@ export class MateuField extends LitElement {
         const field = this.renderField()
         const help = this.field?.description && !this.helperShownInControl
             ? evalIfNecessary(this.field.description, this.state, this.data) : undefined
+        const errors = this.fieldErrors()
+        // The list is only for controls with no validity state of their own (a plain-text or
+        // custom branch). When the control HAS one, applyValidationState() puts the message
+        // inside it, and repeating it here would have a screen reader read it twice.
+        const showErrorList = errors.length > 0 && !this.controlOwnsValidity
         return html`<div style="display: block;">
             <div style="${navLink !== nothing ? 'display: flex; gap: var(--lumo-space-xs);' : ''}"><div style="flex: 1; min-width: 0;">${field}</div>${navLink}</div>
             ${help?html`
                 <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${help}</div>
             `:nothing}
-            ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
-                <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
+            ${showErrorList?html`
+                <div role="alert"><ul>${errors.map((error: string) => html`<li>${error}</li>`)}</ul></div>
             `:nothing}
         </div>`
     }
+
+    /** Whether the rendered control displays its own validation message (set after each render). */
+    @state()
+    private controlOwnsValidity = false
 
     fileUploaded = (e:CustomEvent) => {
         const fieldId = this.field?.fieldId??''
@@ -629,6 +695,11 @@ export class MateuField extends LitElement {
     protected override updated(changedProperties: PropertyValues) {
         super.updated(changedProperties);
         this.positionNavLink()
+        this.applyValidationState()
+        // Whether the control displays its own message decides if the fallback list is rendered.
+        // It can only be known after the control exists, so it feeds the NEXT render — which Lit
+        // schedules because it is @state.
+        this.controlOwnsValidity = !!this.validatableControl()
     }
 
     iconFilterChanged = (event: CustomEvent) => {

@@ -42,7 +42,12 @@ export const neutralNotifier: Notifier = {
         const corner = anchor(message.position)
 
         const toast = document.createElement('div')
-        toast.setAttribute('role', 'status')
+        // An error the user must not miss interrupts; everything else waits for a pause. A single
+        // role="status" for both meant a failed save could go unannounced entirely.
+        const urgent = message.variant === 'error'
+        toast.setAttribute('role', urgent ? 'alert' : 'status')
+        toast.setAttribute('aria-live', urgent ? 'assertive' : 'polite')
+        toast.setAttribute('aria-atomic', 'true')
         Object.assign(toast.style, {
             position: 'fixed',
             zIndex: '2000',

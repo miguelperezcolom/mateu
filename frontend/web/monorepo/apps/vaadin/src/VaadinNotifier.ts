@@ -1,5 +1,6 @@
 import { Notification, NotificationPosition } from '@vaadin/notification'
 import { Notifier, ToastMessage } from '@application/Notifier.ts'
+import { announce } from '@infra/a11y/announcer.ts'
 
 /**
  * Vaadin {@link Notifier} adapter — renders toasts with vaadin-notification for full Lumo
@@ -68,6 +69,10 @@ function showWithControl(message: ToastMessage, initiator: HTMLElement) {
 
 export const vaadinNotifier: Notifier = {
     show(message: ToastMessage, initiator: HTMLElement): void {
+        // vaadin-notification renders into a shared overlay that is not a live region, so a toast
+        // can appear and vanish without ever being announced. Announce it ourselves: errors
+        // interrupt, everything else waits for a pause.
+        announce(message.text, { politeness: message.variant === 'error' ? 'assertive' : 'polite' })
         if (message.undoActionId || message.onAction) {
             showWithControl(message, initiator)
             return

@@ -3,6 +3,8 @@ import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /** One inbox entry as served by the _notifications-list / _notifications-read actions. */
 interface AppNotification {
@@ -147,8 +149,8 @@ export class MateuNotificationBell extends LitElement {
 
     private renderEntry(notification: AppNotification): TemplateResult {
         return html`
-            <div class="entry ${notification.unread ? 'entry--unread' : ''}"
-                 @click="${() => this.entryClicked(notification)}">
+            <div role="button" tabindex="0" class="entry ${notification.unread ? 'entry--unread' : ''}"
+                 @click="${() => this.entryClicked(notification)}" @keydown="${onActivate(() => this.entryClicked(notification))}">
                 <span class="unread-dot" aria-hidden="true"></span>
                 <div class="entry-body">
                     <div class="entry-top">
@@ -344,6 +346,8 @@ export class MateuNotificationBell extends LitElement {
             color: var(--lumo-disabled-text-color, rgba(0, 0, 0, 0.3));
             cursor: default;
         }
+    
+        ${activatableFocusStyles}
     `
 }
 

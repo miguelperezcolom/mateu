@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 import StatusItem from "@mateu/shared/apiClients/dtos/componentmetadata/StatusItem";
 import { chipStyles } from "@infra/ui/uxShared.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Bordered list of rows with an icon (or a circular initials avatar), a title + muted description,
@@ -24,7 +26,7 @@ export class MateuStatusList extends LitElement {
     /** heading level of item titles in stacked mode (3 → h3, 4 → h4 under an h3 group) */
     @property({ type: Number }) itemHeadingLevel = 3
 
-    static styles = [chipStyles, css`
+    static styles = [chipStyles, activatableFocusStyles, css`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -174,8 +176,8 @@ export class MateuStatusList extends LitElement {
                 <div class="list stacked ${this.compact ? 'compact' : ''} ${this.columns > 1 ? 'grid' : ''}"
                      style="${this.columns > 1 ? `grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));` : ''}">
                     ${this.items.map(item => html`
-                        <div class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
-                             @click="${() => this.rowClicked(item)}">
+                        <div role="button" tabindex="0" class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
+                             @click="${() => this.rowClicked(item)}" @keydown="${onActivate(() => this.rowClicked(item))}">
                             <div class="cell-title-row">
                                 ${heading === 'h4'
                                     ? html`<h4 class="cell-title">${item.title}</h4>`
@@ -198,8 +200,8 @@ export class MateuStatusList extends LitElement {
         return html`
             <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''}">
                 ${this.items.map(item => html`
-                    <div class="row ${this.rowActionId ? 'clickable' : ''}"
-                         @click="${() => this.rowClicked(item)}">
+                    <div role="button" tabindex="0" class="row ${this.rowActionId ? 'clickable' : ''}"
+                         @click="${() => this.rowClicked(item)}" @keydown="${onActivate(() => this.rowClicked(item))}">
                         ${item.avatar
                             ? html`<span class="avatar">${item.avatar}</span>`
                             : item.icon ? html`<span class="icon">${item.icon}</span>` : nothing}

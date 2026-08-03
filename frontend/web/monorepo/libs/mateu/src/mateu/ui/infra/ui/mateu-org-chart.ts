@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import OrgNode from "@mateu/shared/apiClients/dtos/componentmetadata/OrgNode";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free top-down org chart: each node is a card; its children sit in a row below,
@@ -109,6 +111,8 @@ export class MateuOrgChart extends LitElement {
         @media (prefers-color-scheme: dark) {
             .node { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
+    
+        ${activatableFocusStyles}
     `
 
     private clickNode(node: OrgNode) {
@@ -127,9 +131,9 @@ export class MateuOrgChart extends LitElement {
         const isImg = avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))
         return html`
             <li>
-                <div class="node ${node.actionId ? 'clickable' : ''}"
+                <div role="button" tabindex="0" class="node ${node.actionId ? 'clickable' : ''}"
                      style="${node.color ? `--mateu-org-accent: ${node.color};` : ''}"
-                     @click="${() => this.clickNode(node)}">
+                     @click="${() => this.clickNode(node)}" @keydown="${onActivate(() => this.clickNode(node))}">
                     ${avatar ? html`<span class="avatar">${isImg ? html`<img src="${avatar}" alt="">` : avatar}</span>` : nothing}
                     <span class="title">${node.title}</span>
                     ${node.subtitle ? html`<span class="subtitle">${node.subtitle}</span>` : nothing}

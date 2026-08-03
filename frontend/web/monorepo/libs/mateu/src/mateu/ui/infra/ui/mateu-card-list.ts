@@ -4,6 +4,8 @@ import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 
 @customElement('mateu-card-list')
@@ -135,7 +137,7 @@ export class MateuCardList extends LitElement {
         const page = this.data[this.id]?.page
         return html`
             <div class="card-container">
-                ${page?.content?.map((item:any) => html`<div @click="${() => this.clickedOnCard(item)}" class="car-container">${this.renderItem(item)}</div>`)}
+                ${page?.content?.map((item:any) => html`<div role="button" tabindex="0" @click="${() => this.clickedOnCard(item)}" @keydown="${onActivate(() => this.clickedOnCard(item))}" class="car-container">${this.renderItem(item)}</div>`)}
                 <div id="ask-for-more" style="display: ${this.hasMore?'flex':'none'}; width: 100%; justify-content: center; padding: var(--lumo-space-m); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Loading more…</div>
             </div>
 
@@ -167,6 +169,8 @@ export class MateuCardList extends LitElement {
         .neutral-card .card-head { display: flex; align-items: center; gap: .5rem; justify-content: space-between; }
         .neutral-card .card-title { font-weight: 600; }
         .neutral-card .card-subtitle { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem); }
+    
+        ${activatableFocusStyles}
     `
 }
 

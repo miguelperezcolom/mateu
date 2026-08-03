@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import Feature from "@mateu/shared/apiClients/dtos/componentmetadata/Feature";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free responsive feature grid: cards of icon + title + description. `columns` fixes the
@@ -42,6 +44,8 @@ export class MateuFeatureGrid extends LitElement {
         @media (prefers-color-scheme: dark) {
             .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
+    
+        ${activatableFocusStyles}
     `
 
     private clickFeature(feature: Feature) {
@@ -62,7 +66,7 @@ export class MateuFeatureGrid extends LitElement {
         return html`
             <div class="grid" style="grid-template-columns: ${cols};">
                 ${this.features.map(feature => html`
-                    <div class="card ${feature.actionId ? 'clickable' : ''}" @click="${() => this.clickFeature(feature)}">
+                    <div role="button" tabindex="0" class="card ${feature.actionId ? 'clickable' : ''}" @click="${() => this.clickFeature(feature)}" @keydown="${onActivate(() => this.clickFeature(feature))}">
                         ${feature.icon ? html`<span class="icon">${feature.icon}</span>` : nothing}
                         <span class="title">${feature.title}</span>
                         ${feature.description ? html`<span class="desc">${feature.description}</span>` : nothing}

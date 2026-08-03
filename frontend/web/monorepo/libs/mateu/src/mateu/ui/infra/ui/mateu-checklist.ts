@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import ChecklistItem from "@mateu/shared/apiClients/dtos/componentmetadata/ChecklistItem";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free checklist with a progress bar: a header shows how many of N items are done; each
@@ -31,6 +33,8 @@ export class MateuChecklist extends LitElement {
         .item.done .box { background: var(--lumo-success-color, #12b76a); border-color: var(--lumo-success-color, #12b76a); }
         .label { color: var(--lumo-body-text-color, #333); }
         .item.done .label { color: var(--lumo-secondary-text-color, #999); text-decoration: line-through; }
+    
+        ${activatableFocusStyles}
     `
 
     private isDone(item: ChecklistItem, i: number): boolean {
@@ -63,7 +67,7 @@ export class MateuChecklist extends LitElement {
             ${this.items.map((item, i) => {
                 const d = this.isDone(item, i)
                 return html`
-                    <div class="item ${d ? 'done' : ''}" @click="${() => this.toggle(item, i)}">
+                    <div role="button" tabindex="0" class="item ${d ? 'done' : ''}" @click="${() => this.toggle(item, i)}" @keydown="${onActivate(() => this.toggle(item, i))}">
                         <span class="box">${d ? '✓' : nothing}</span>
                         <span class="label">${item.label}</span>
                     </div>

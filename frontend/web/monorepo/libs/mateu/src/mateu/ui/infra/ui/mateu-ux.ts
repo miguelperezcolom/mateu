@@ -85,6 +85,32 @@ export class MateuUx extends ConnectedElement {
     @state()
     private showSkeleton = false
 
+    /**
+     * Focus handling across a route change.
+     *
+     * After navigating, the focus sits wherever it was — usually the menu link that was just
+     * clicked. A keyboard user then has to Tab forward through the whole shell to reach the
+     * content they asked for, and a screen-reader user is left reading the old position. Moving
+     * the focus to the new content's heading is the accepted answer for a single-page app.
+     *
+     * Deliberately narrow: only the TOP-level ux (an embedded island must never steal the focus),
+     * only on a real route change (not on a re-render, which would yank the focus out of a field
+     * mid-edit), and not on the first load (the document already starts at the top, and moving
+     * the focus there would be noise).
+     */
+    private pendingRouteFocus = false
+    private hasRenderedContent = false
+
+    private focusNewContent() {
+        requestAnimationFrame(() => {
+            const root = this.renderRoot as ParentNode
+            const heading = root?.querySelector?.('h1, h2, [role="heading"]') as HTMLElement | null
+            const target = heading ?? (this as unknown as HTMLElement)
+            if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+            target.focus?.({ preventScroll: true } as FocusOptions)
+        })
+    }
+
     /** Delays the skeleton so a fast load never flashes one. */
     private skeletonTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -333,6 +359,9 @@ export class MateuUx extends ConnectedElement {
             }
         }
         if (_changedProperties.has('route') && !!this.top) {
+            // Remember that the NEXT content to arrive is the result of a navigation, so the
+            // focus can follow it there.
+            if (!this.preventNavigation) this.pendingRouteFocus = true
             if (!this.preventNavigation) {
                 this.dispatchEvent(new CustomEvent('route-changed', {
                     detail: {
@@ -362,6 +391,13 @@ export class MateuUx extends ConnectedElement {
             return
         }
         this.fragment = fragment
+        if (fragment.component) {
+            if (this.pendingRouteFocus && this.hasRenderedContent) {
+                this.focusNewContent()
+            }
+            this.pendingRouteFocus = false
+            this.hasRenderedContent = true
+        }
         // Tag the host with the resolved page width (fixed|full|edge) so the renderer's
         // stylesheet can size the content column — redwood-oj paints the RDS page-width modes
         // from it. Recomputed on every load: each routed component can carry its own pageWidth

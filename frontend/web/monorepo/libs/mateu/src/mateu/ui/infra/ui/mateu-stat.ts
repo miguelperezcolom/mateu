@@ -1,5 +1,7 @@
 import { css, html, LitElement, nothing, svg } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free KPI stat tile: a label, a big value with optional unit, a delta colored by trend
@@ -72,6 +74,8 @@ export class MateuStat extends LitElement {
         @media (prefers-color-scheme: dark) {
             .tile { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
+    
+        ${activatableFocusStyles}
     `
 
     private sparkline() {
@@ -118,7 +122,7 @@ export class MateuStat extends LitElement {
     render() {
         const trend = this.trend ?? 'up'
         return html`
-            <div class="tile ${this.actionId ? 'clickable' : ''}" @click="${() => this.dispatchAction()}">
+            <div role="button" tabindex="0" class="tile ${this.actionId ? 'clickable' : ''}" @click="${() => this.dispatchAction()}" @keydown="${onActivate(() => this.dispatchAction())}">
                 ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
                 <span class="value">${this.value}${this.unit ? html`<span class="unit">${this.unit}</span>` : nothing}</span>
                 <div class="foot">

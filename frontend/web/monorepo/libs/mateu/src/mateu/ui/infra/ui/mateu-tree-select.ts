@@ -1,6 +1,8 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * A select whose dropdown is a TREE (stereotype `treeSelect`, see @TreeSelect): the options carry
@@ -109,12 +111,12 @@ export class MateuTreeSelect extends LitElement {
         const selectable = !this.leavesOnly || !hasChildren
         const isSelected = String(option.value) === String(this.value ?? '')
         return html`
-            <div class="node ${isSelected ? 'node--selected' : ''} ${selectable ? '' : 'node--group'}"
+            <div role="button" tabindex="0" class="node ${isSelected ? 'node--selected' : ''} ${selectable ? '' : 'node--group'}"
                  style="padding-left: ${0.5 + depth * 1.1}rem;"
                  @mousedown="${(e: Event) => e.preventDefault()}"
-                 @click="${() => selectable ? this.pick(option) : this.toggle(option)}">
+                 @click="${() => selectable ? this.pick(option) : this.toggle(option)}" @keydown="${onActivate(() => selectable ? this.pick(option) : this.toggle(option))}">
                 ${hasChildren ? html`
-                    <span class="caret" @click="${(e: Event) => { e.stopPropagation(); this.toggle(option) }}"
+                    <span role="button" tabindex="0" class="caret" @click="${(e: Event) => { e.stopPropagation(); this.toggle(option) }}" @keydown="${onActivate((e: Event) => { e.stopPropagation(); this.toggle(option) })}"
                     >${isExpanded ? '▾' : '▸'}</span>` : html`<span class="caret caret--empty"></span>`}
                 ${option.label}
             </div>
@@ -134,9 +136,9 @@ export class MateuTreeSelect extends LitElement {
                 ${this.opened ? html`
                     <div class="panel">
                         ${this.value ? html`
-                            <div class="node node--clear"
+                            <div role="button" tabindex="0" class="node node--clear"
                                  @mousedown="${(e: Event) => e.preventDefault()}"
-                                 @click="${this.clear}">— (clear)</div>` : nothing}
+                                 @click="${this.clear}" @keydown="${onActivate(this.clear)}">— (clear)</div>` : nothing}
                         ${this.options.map(option => this.renderNode(option, 0))}
                     </div>` : nothing}
             </div>`
@@ -219,6 +221,8 @@ export class MateuTreeSelect extends LitElement {
         .caret--empty::before {
             content: '';
         }
+    
+        ${activatableFocusStyles}
     `
 }
 

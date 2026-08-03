@@ -8,10 +8,13 @@
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "report": "playwright show-report",
-    "screenshot": "node screenshot.mjs"
+    "screenshot": "node screenshot.mjs",
+    "a11y": "node a11y-audit.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
-    "@types/node": "^26.1.1"
+    "@types/node": "^26.1.1",
+    "@axe-core/playwright": "^4.12.1",
+    "axe-core": "^4.12.1"
   }
 }

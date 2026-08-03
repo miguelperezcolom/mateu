@@ -27,6 +27,8 @@ import {
 } from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -500,14 +502,19 @@ export class MateuTableCrud extends LitElement {
                 <div class="m-listbox" style="width: 100%;">
                     ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                     ${rows.map(item => html`
-                        <div class="m-item"
+                        <div role="button" tabindex="0" class="m-item"
                             ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             @click="${() => {
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
                                 this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'view', parameters: item }, bubbles: true, composed: true }))
-                            }}"
+                            }}" @keydown="${onActivate(() => {
+                                if (idField && item[idField] !== undefined) {
+                                    this.state = { ...this.state, _selectedId: String(item[idField]) }
+                                }
+                                this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'view', parameters: item }, bubbles: true, composed: true }))
+                            })}"
                             style="cursor: pointer;"
                         >
                             <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
@@ -598,12 +605,14 @@ export class MateuTableCrud extends LitElement {
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
                     ${rows.length === 0 ? html`<div style="grid-column: 1 / -1;">${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                     ${rows.map(item => html`
-                        <div class="crud-card"
+                        <div role="button" tabindex="0" class="crud-card"
                             ?data-selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             style="cursor: pointer;"
                             @click="${(e: Event) => isSelector
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
-                                : handleCardClick(e.target as HTMLElement, 'view', item)}"
+                                : handleCardClick(e.target as HTMLElement, 'view', item)}" @keydown="${onActivate((e: Event) => isSelector
+                                ? dispatchRowAction(e, 'action-on-row-select', item)
+                                : handleCardClick(e.target as HTMLElement, 'view', item))}"
                         >
                             ${imageCols.length ? html`<img src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />` : nothing}
                             ${titleCol ? html`<div class="crud-card-title">${item[titleCol.id] ?? ''}</div>` : nothing}
@@ -631,9 +640,9 @@ export class MateuTableCrud extends LitElement {
                         <div class="m-listbox" style="width: 100%;">
                             ${rows.length === 0 ? html`<div class="m-item" disabled>${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                             ${rows.map(item => html`
-                                <div class="m-item"
+                                <div role="button" tabindex="0" class="m-item"
                                     ?selected="${this.selectedItem === item}"
-                                    @click="${() => { this.selectedItem = item }}"
+                                    @click="${() => { this.selectedItem = item }}" @keydown="${onActivate(() => { this.selectedItem = item })}"
                                     style="cursor: pointer;"
                                 >
                                     <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
@@ -761,7 +770,7 @@ export class MateuTableCrud extends LitElement {
 
         const paginationHtml = metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)
         const importDialog = this.showImportDialog ? html`
-            <div class="crud-modal-backdrop" @click="${(e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false }}">
+            <div role="button" tabindex="0" class="crud-modal-backdrop" @click="${(e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false }}" @keydown="${onActivate((e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false })}">
                 <div class="crud-modal">
                     <h3 style="margin: 0 0 .75rem;">Import</h3>
                     <input type="file" @change="${(e: Event) => {
@@ -890,6 +899,8 @@ export class MateuTableCrud extends LitElement {
             outline: 2px solid var(--lumo-primary-color);
             outline-offset: -2px;
         }
+    
+        ${activatableFocusStyles}
     `
 }
 

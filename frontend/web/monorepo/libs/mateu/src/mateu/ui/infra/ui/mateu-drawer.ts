@@ -6,6 +6,7 @@ import ComponentElement from "@infra/ui/ComponentElement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
+import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -83,9 +84,20 @@ export class MateuDrawer extends ComponentElement {
         if (metadata) requestAnimationFrame(() => this.applyLayoutInset(metadata))
     }
 
+    /** Owns the focus while the drawer is open; see infra/a11y/focusTrap. */
+    private focusTrap: FocusTrap | undefined
+
+    private releaseFocusTrap() {
+        this.focusTrap?.release()
+        this.focusTrap = undefined
+    }
+
     close = () => {
         this.opened = false
         this.releaseLayoutInset()
+        // Release BEFORE the unmount, while the element the focus should return to is still
+        // known and the drawer's own content still exists to be released from.
+        this.releaseFocusTrap()
         // after the slide-out transition, unmount THROUGH the owner (splice from its children
         // + owner re-render) so Lit's bookkeeping stays sound and the drawer can reopen; only
         // detach manually when no declarative owner holds us (defensive fallback)
@@ -134,6 +146,20 @@ export class MateuDrawer extends ComponentElement {
             const metadata = (this.component as ClientSideComponent).metadata as Drawer
             this.state = metadata.initialData
         }
+        // Take the focus once the panel is rendered. A modeless drawer sits alongside the page
+        // rather than over it, so it neither blocks nor claims the focus; same for a layout
+        // drawer, which reserves space instead of overlaying.
+        const metadata = (this.component as ClientSideComponent | undefined)?.metadata as Drawer | undefined
+        // Located by its role rather than by a class name, so a restyle cannot silently detach
+        // the focus trap from the panel it is meant to own.
+        const panel = this.renderRoot.querySelector('[role="dialog"]') as HTMLElement | null
+        const claimsFocus = this.opened && !!panel && !metadata?.modeless && !metadata?.layout
+        if (claimsFocus && !this.focusTrap) {
+            this.focusTrap = trapFocus(panel!)
+        } else if (this.focusTrap && this.opened) {
+            // Content changes while open (a wizard step, a re-render): re-read the tab order.
+            this.focusTrap.refresh()
+        }
     }
 
     connectedCallback() {
@@ -144,6 +170,9 @@ export class MateuDrawer extends ComponentElement {
     disconnectedCallback() {
         document.removeEventListener('keydown', this._escListener)
         this.releaseLayoutInset()
+        // A drawer torn down without close() (an owner re-render, a navigation) must not leave
+        // the trap installed.
+        this.releaseFocusTrap()
         super.disconnectedCallback()
     }
 

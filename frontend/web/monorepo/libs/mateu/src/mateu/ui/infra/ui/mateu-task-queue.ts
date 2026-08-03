@@ -2,6 +2,8 @@ import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import QueueGroup from "@mateu/shared/apiClients/dtos/componentmetadata/QueueGroup";
 import { chipStyles } from "@infra/ui/uxShared.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Grouped work-queue rail (e.g. today's arrivals/departures): groups with a small-caps label and
@@ -17,7 +19,7 @@ export class MateuTaskQueue extends LitElement {
 
     @state() private selectedId: string | undefined
 
-    static styles = [chipStyles, css`
+    static styles = [chipStyles, activatableFocusStyles, css`
         :host { display: block; width: 100%; }
         .rail { display: flex; flex-direction: column; gap: var(--lumo-space-m, 1rem); }
         .group { display: flex; flex-direction: column; gap: .45rem; }
@@ -92,11 +94,11 @@ export class MateuTaskQueue extends LitElement {
         return html`
             <div class="rail">
                 ${this.groups.map(group => html`
-                    <div class="group">
+                    <div class="group" role="listbox">
                         ${group.label ? html`<span class="group-label">${group.label}</span>` : nothing}
                         ${(group.items ?? []).map(item => html`
-                            <div class="card ${item.id === this.selectedId ? 'selected' : ''}"
-                                 @click="${() => this.select(item.id)}">
+                            <div role="option" tabindex="0" aria-selected="${item.id === this.selectedId}" class="card ${item.id === this.selectedId ? 'selected' : ''}"
+                                 @click="${() => this.select(item.id)}" @keydown="${onActivate(() => this.select(item.id))}">
                                 <span class="title">${item.title}</span>
                                 <div class="meta">
                                     ${item.caption ? html`<span class="caption">${item.caption}</span>` : nothing}

@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import GanttTask from "@mateu/shared/apiClients/dtos/componentmetadata/GanttTask";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -102,6 +104,8 @@ export class MateuGantt extends LitElement {
             background: var(--lumo-error-color, #e11d48);
             opacity: .55;
         }
+    
+        ${activatableFocusStyles}
     `
 
     private range(): { min: number, max: number } | null {
@@ -156,9 +160,11 @@ export class MateuGantt extends LitElement {
                         <div class="label" title="${task.title}">${task.title}</div>
                         <div class="lane">
                             ${now >= range.min && now <= range.max ? html`<div class="today" style="left: ${pct(now)}%;"></div>` : nothing}
-                            <div class="bar ${this.onTaskSelectionActionId ? 'clickable' : ''}"
+                            <div role="button" tabindex="0"
+                                 aria-label="${task.title}, ${task.start} to ${task.end}${task.progress ? `, ${task.progress}% complete` : ''}"
+                                 class="bar ${this.onTaskSelectionActionId ? 'clickable' : ''}"
                                  title="${task.title} · ${task.start} → ${task.end}${task.progress ? ` · ${task.progress}%` : ''}"
-                                 @click="${() => this.selectTask(task)}"
+                                 @click="${() => this.selectTask(task)}" @keydown="${onActivate(() => this.selectTask(task))}"
                                  style="left: ${pct(start)}%; width: ${(end - start) / span * 100}%; ${task.color ? `--mateu-gantt-fill: ${task.color};` : ''}">
                                 <div class="fill" style="width: ${task.progress ?? 0}%;"></div>
                             </div>

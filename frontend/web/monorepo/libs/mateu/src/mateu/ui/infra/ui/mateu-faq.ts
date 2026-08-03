@@ -1,6 +1,8 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import FaqItem from "@mateu/shared/apiClients/dtos/componentmetadata/FaqItem";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free FAQ accordion: click a question to expand/collapse its answer. Items marked `open`
@@ -37,6 +39,8 @@ export class MateuFaq extends LitElement {
             line-height: 1.55;
         }
         @media (prefers-color-scheme: dark) { .q { background: var(--lumo-contrast-5pct, #2a2a2a); } }
+    
+        ${activatableFocusStyles}
     `
 
     private seed() {
@@ -64,7 +68,7 @@ export class MateuFaq extends LitElement {
                     const open = this.openSet.has(i)
                     return html`
                         <div class="item ${open ? 'open' : ''}">
-                            <div class="q" @click="${() => this.toggle(i)}">
+                            <div role="button" tabindex="0" aria-expanded="${open}" class="q" @click="${() => this.toggle(i)}" @keydown="${onActivate(() => this.toggle(i))}">
                                 <span>${item.question}</span>
                                 <span class="chevron">›</span>
                             </div>

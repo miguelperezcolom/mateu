@@ -498,6 +498,7 @@ export class MateuComponent extends ComponentElement {
         const text = 'There are validation errors\n'
             + lines.map(({ label, msg }) => label ? `• ${label}: ${msg}` : `• ${msg}`).join('\n')
         showToast({ text, variant: 'error', position: 'bottomEnd', duration: Math.max(3000, 1500 + lines.length * 1000) }, this)
+        this.focusFirstInvalidField()
     }
 
     notify = (message: string) => {
@@ -717,6 +718,53 @@ export class MateuComponent extends ComponentElement {
                     }
                 })
         }
+    }
+
+    /**
+     * Moves the focus to the first field the server rejected.
+     *
+     * Refusing to submit without saying where the problem is leaves a keyboard or screen-reader
+     * user to walk the whole form looking for it — and on a long form the offending field is
+     * often scrolled out of sight even for everyone else. WCAG asks that the error be identified;
+     * putting the focus on it identifies it in the most direct way available.
+     *
+     * The control is found by the `invalid` flag mateu-field sets from the same errors, so this
+     * stays correct without a second mapping from field id to DOM. It runs on the next frame
+     * because the flags are applied in the render that this call precedes.
+     */
+    private focusFirstInvalidField() {
+        // The flags are set by each mateu-field's own `updated()`, which runs after the render
+        // this call precedes — so look on the frame AFTER next, and give it one more try if the
+        // fields have not caught up yet.
+        const attempt = (remaining: number) => requestAnimationFrame(() => {
+            const control = this.findFirstInvalid(this.renderRoot as ParentNode)
+            if (control) {
+                control.focus?.()
+                control.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+                return
+            }
+            if (remaining > 0) attempt(remaining - 1)
+        })
+        attempt(3)
+    }
+
+    /**
+     * First control flagged invalid, crossing shadow boundaries.
+     *
+     * Every field renders through nested custom elements, so a plain `querySelectorAll` from the
+     * component's own root sees none of the actual inputs — it stops at the first shadow
+     * boundary and finds nothing to focus.
+     */
+    private findFirstInvalid(root: ParentNode): HTMLElement | null {
+        if (!root?.querySelectorAll) return null
+        for (const el of Array.from(root.querySelectorAll<HTMLElement>('*'))) {
+            if ((el as HTMLElement & { invalid?: boolean }).invalid === true) return el
+            if (el.shadowRoot) {
+                const nested = this.findFirstInvalid(el.shadowRoot)
+                if (nested) return nested
+            }
+        }
+        return null
     }
 
     /** Controls decorated as busy by this component, by action id, so each can be un-decorated. */

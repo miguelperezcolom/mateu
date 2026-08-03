@@ -1,6 +1,8 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import CalendarEvent from "@mateu/shared/apiClients/dtos/componentmetadata/CalendarEvent";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free month-grid calendar: a 7-column grid (Mon–Sun) with the days of the given month,
@@ -86,6 +88,8 @@ export class MateuCalendar extends LitElement {
             .cell { background: var(--lumo-contrast-5pct, #2a2a2a); }
             .dow { background: var(--lumo-contrast-10pct, #333); }
         }
+    
+        ${activatableFocusStyles}
     `
 
     private clickEvent(event: CalendarEvent) {
@@ -125,10 +129,10 @@ export class MateuCalendar extends LitElement {
                 <div class="cell ${isToday(d) ? 'today' : ''}">
                     <span class="num">${d}</span>
                     ${(eventsByDay[d] ?? []).map(ev => html`
-                        <span class="chip ${ev.actionId ? 'clickable' : ''}"
+                        <span role="button" tabindex="0" class="chip ${ev.actionId ? 'clickable' : ''}"
                               style="${ev.color ? `--mateu-cal-accent: ${ev.color};` : ''}"
                               title="${ev.title ?? ''}"
-                              @click="${() => this.clickEvent(ev)}">${ev.title}</span>
+                              @click="${() => this.clickEvent(ev)}" @keydown="${onActivate(() => this.clickEvent(ev))}">${ev.title}</span>
                     `)}
                 </div>
             `)

@@ -144,7 +144,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
     if (metadata.chromeless) {
         return html`
             <div class="app chromeless">
-                <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="height: 100%;">
+                <div role="main" class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="height: 100%;">
                     <div class="m-md">
                         <div class="m-scroll" style="height: 100%;">
                             <mateu-api-caller>
@@ -265,7 +265,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${container.renderSideNav(items, undefined)}
                             </nav>
                         </aside>
-                        <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="flex: 1; min-width: 0;">
+                        <div role="main" class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="flex: 1; min-width: 0;">
                             <div class="m-md">
                                 <div class="m-scroll" style="height: 100%;">
                                     <mateu-api-caller>
@@ -426,7 +426,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
                     </div>
-                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
+                    <div role="main" class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
                         <div class="m-md">
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
@@ -484,7 +484,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             </div>
                         </div>
                     </div>
-                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
+                    <div role="main" class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
                         <div class="m-md">
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>

@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import TimelineItem from "@mateu/shared/apiClients/dtos/componentmetadata/TimelineItem";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free vertical timeline / activity feed: a rail of dots down the left, each entry with a
@@ -84,6 +86,8 @@ export class MateuTimeline extends LitElement {
             color: var(--lumo-secondary-text-color, #666);
             margin-top: .15rem;
         }
+    
+        ${activatableFocusStyles}
     `
 
     private clickItem(item: TimelineItem) {
@@ -106,7 +110,7 @@ export class MateuTimeline extends LitElement {
                             <div class="dot" style="${item.color ? `--mateu-timeline-dot: ${item.color};` : ''}">${item.icon ?? ''}</div>
                             <div class="line"></div>
                         </div>
-                        <div class="body" @click="${() => this.clickItem(item)}">
+                        <div role="button" tabindex="0" class="body" @click="${() => this.clickItem(item)}" @keydown="${onActivate(() => this.clickItem(item))}">
                             <div class="head">
                                 <span class="title">${item.title}</span>
                                 ${item.timestamp ? html`<span class="time">${item.timestamp}</span>` : nothing}

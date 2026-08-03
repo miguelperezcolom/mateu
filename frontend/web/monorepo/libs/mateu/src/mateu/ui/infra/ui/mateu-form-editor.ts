@@ -2,6 +2,8 @@ import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing} from "lit";
 import Sortable from "sortablejs";
 import {neutralButtonStyles, iconCog, iconPlus, iconDownload} from "./neutralChrome";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 // ── Domain types ──────────────────────────────────────────────────────────────
 
@@ -243,9 +245,9 @@ export class MateuFormEditor extends LitElement {
         const color = TYPE_COLOR[f.dataType] ?? "#64748b";
         const selected = this.selectedId === f.id;
         return html`
-            <div class="field-row ${selected ? "selected" : ""}"
+            <div role="button" tabindex="0" class="field-row ${selected ? "selected" : ""}"
                  data-id="${f.id}"
-                 @click="${() => this.selectedId = this.selectedId === f.id ? null : f.id}">
+                 @click="${() => this.selectedId = this.selectedId === f.id ? null : f.id}" @keydown="${onActivate(() => this.selectedId = this.selectedId === f.id ? null : f.id)}">
                 <span class="drag-handle" title="Drag to reorder">⠿</span>
                 <span class="type-badge" style="background:${color}">${f.dataType}</span>
                 <span class="field-label-text">${f.label}</span>
@@ -324,7 +326,7 @@ export class MateuFormEditor extends LitElement {
 
     // ── Styles ────────────────────────────────────────────────────────────────
 
-    static styles = [neutralButtonStyles, css`
+    static styles = [neutralButtonStyles, activatableFocusStyles, css`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }

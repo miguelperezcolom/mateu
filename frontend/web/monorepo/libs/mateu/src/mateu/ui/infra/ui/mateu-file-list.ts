@@ -1,6 +1,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import FileItem from "@mateu/shared/apiClients/dtos/componentmetadata/FileItem";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 const ICONS: Record<string, string> = {
     pdf: '📕', image: '🖼️', img: '🖼️', doc: '📘', docx: '📘', word: '📘',
@@ -33,6 +35,8 @@ export class MateuFileList extends LitElement {
         .name { flex: 1; min-width: 0; font-weight: 500; color: var(--lumo-body-text-color, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .size { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .75rem); flex: 0 0 auto; }
         .dl { color: var(--lumo-primary-color, #1a73e8); flex: 0 0 auto; }
+    
+        ${activatableFocusStyles}
     `
 
     private icon(type?: string): string {
@@ -66,7 +70,7 @@ export class MateuFileList extends LitElement {
                     `
                     return file.url
                         ? html`<a class="file clickable" href="${file.url}" download target="_blank" rel="noopener">${inner}</a>`
-                        : html`<div class="file ${clickable ? 'clickable' : ''}" @click="${(e: Event) => this.clickFile(file, e)}">${inner}</div>`
+                        : html`<div role="button" tabindex="0" class="file ${clickable ? 'clickable' : ''}" @click="${(e: Event) => this.clickFile(file, e)}" @keydown="${onActivate((e: Event) => this.clickFile(file, e))}">${inner}</div>`
                 })}
             </div>
         `

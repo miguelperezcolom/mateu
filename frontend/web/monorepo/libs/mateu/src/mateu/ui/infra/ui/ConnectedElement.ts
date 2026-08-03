@@ -14,6 +14,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
+import { announce } from "@infra/a11y/announcer.ts";
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -161,6 +162,11 @@ export default abstract class ConnectedElement extends LitElement {
 
         if ('SetWindowTitle' == command.type) {
             document.title = command.data as string
+            // A single-page app changes what is on screen without changing the page, so a screen
+            // reader has nothing to announce and the user is told nothing about where they landed.
+            // The backend sends this command on every route load, which makes it the one reliable
+            // "navigation happened, and here is its name" signal available to every renderer.
+            announce(document.title)
         }
         if ('SetFavicon' == command.type) {
             this.changeFavicon(command.data as string)

@@ -2,6 +2,8 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import KanbanColumn from "@mateu/shared/apiClients/dtos/componentmetadata/KanbanColumn";
 import KanbanCard from "@mateu/shared/apiClients/dtos/componentmetadata/KanbanCard";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Dependency-free kanban board: horizontally scrolling columns, each with a header (title + count)
@@ -96,6 +98,8 @@ export class MateuKanban extends LitElement {
         @media (prefers-color-scheme: dark) {
             .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
+    
+        ${activatableFocusStyles}
     `
 
     private clickCard(card: KanbanCard) {
@@ -119,9 +123,9 @@ export class MateuKanban extends LitElement {
                             <span class="count">${column.cards?.length ?? 0}</span>
                         </div>
                         ${(column.cards ?? []).map(card => html`
-                            <div class="card ${card.actionId ? 'clickable' : ''}"
+                            <div role="button" tabindex="0" class="card ${card.actionId ? 'clickable' : ''}"
                                  style="${card.color ? `--mateu-kanban-card-accent: ${card.color};` : ''}"
-                                 @click="${() => this.clickCard(card)}">
+                                 @click="${() => this.clickCard(card)}" @keydown="${onActivate(() => this.clickCard(card))}">
                                 <span class="card-title">${card.title}</span>
                                 ${card.description ? html`<span class="card-desc">${card.description}</span>` : nothing}
                                 ${card.badge ? html`<span class="badge">${card.badge}</span>` : nothing}

@@ -2,6 +2,8 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 
 @customElement('mateu-choice')
@@ -68,7 +70,7 @@ export class MateuChoice extends LitElement {
         return html`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${divStyle}">
                                     ${options?.map(option => html`
-                            <div 
+                            <div role="button" tabindex="0" 
                                     class="choice ${(this.value == option.value || (Array.isArray(this.value) && this.value.includes(option.value)))?'selected':''}"
                                     @click="${() => this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
@@ -77,7 +79,14 @@ export class MateuChoice extends LitElement {
             },
             bubbles: true,
             composed: true
-        }))}"
+        }))}" @keydown="${onActivate(() => this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: {
+                value: this.getNewValue(option.value),
+                fieldId: this.field?.fieldId
+            },
+            bubbles: true,
+            composed: true
+        })))}"
                             >${option.description || option.image?html`
                                 <div style="display: flex; align-items: center; gap: var(--lumo-space-m, 1rem);">
                                     ${option.image?html`
@@ -121,7 +130,9 @@ export class MateuChoice extends LitElement {
         .selected, .selected:hover {
             border: 1px solid var(--lumo-shade-20pct);
         }
-  `
+  
+        ${activatableFocusStyles}
+    `
 }
 
 declare global {

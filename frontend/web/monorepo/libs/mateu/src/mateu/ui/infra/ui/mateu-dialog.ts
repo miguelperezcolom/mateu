@@ -7,6 +7,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 import './mateu-event-interceptor.ts';
+import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts';
 
 /*
  * Design-system-neutral modal dialog — a fixed backdrop + centered card (no `@vaadin`). Preserves
@@ -19,8 +20,14 @@ export class MateuDialog extends ComponentElement {
     @state()
     opened = true
 
+    /** Owns the focus while the dialog is open; see infra/a11y/focusTrap. */
+    private focusTrap: FocusTrap | undefined
+
     close = () => {
         this.opened = false
+        // Release BEFORE the unmount, while the element the focus should return to is still
+        // known and the dialog's own content still exists to be released from.
+        this.releaseFocusTrap()
         // after the fade-out, unmount THROUGH the owner (splice from its children + owner
         // re-render) so Lit's bookkeeping stays sound and the dialog can reopen; only detach
         // manually when no declarative owner holds us (defensive fallback)
@@ -40,6 +47,18 @@ export class MateuDialog extends ComponentElement {
         this.addEventListener('keydown', this.onKeydown)
     }
 
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        // A dialog torn down without close() (an owner re-render, a navigation) must not leave
+        // the trap installed.
+        this.releaseFocusTrap()
+    }
+
+    private releaseFocusTrap() {
+        this.focusTrap?.release()
+        this.focusTrap = undefined
+    }
+
     applyFragment(fragment: UIFragment) {
         super.applyFragment(fragment)
         const millis = fragment.state?.['_closeAfterMillis'] as number | undefined
@@ -53,6 +72,16 @@ export class MateuDialog extends ComponentElement {
         if (_changedProperties.has('component') && this.component) {
             const metadata = (this.component as ClientSideComponent).metadata as Dialog
             this.state = metadata.initialData
+        }
+        // Take the focus once the dialog is actually rendered. A modeless dialog does not block
+        // the page, so it does not take the focus either — it is a panel, not a modal.
+        const panel = this.renderRoot.querySelector('[role="dialog"]') as HTMLElement | null
+        const modeless = ((this.component as ClientSideComponent | undefined)?.metadata as Dialog | undefined)?.modeless
+        if (this.opened && panel && !this.focusTrap && !modeless) {
+            this.focusTrap = trapFocus(panel)
+        } else if (this.focusTrap && this.opened) {
+            // Content can change while open (a wizard step, a re-render): re-read the tab order.
+            this.focusTrap.refresh()
         }
     }
 
@@ -71,7 +100,11 @@ export class MateuDialog extends ComponentElement {
         return html`
             <div class="backdrop ${metadata.modeless ? 'modeless' : ''}"
                  @click="${(e: Event) => { if (!metadata.modeless && e.target === e.currentTarget) this.close() }}">
-                <div class="dialog ${metadata.noPadding ? 'no-padding' : ''} ${this.component?.cssClasses ?? ''}" style="${sizeStyle} ${this.component?.style ?? ''}">
+                <div class="dialog ${metadata.noPadding ? 'no-padding' : ''} ${this.component?.cssClasses ?? ''}"
+                     role="dialog"
+                     aria-modal="${metadata.modeless ? 'false' : 'true'}"
+                     aria-label="${title || 'Dialog'}"
+                     style="${sizeStyle} ${this.component?.style ?? ''}">
                     ${hasHeader ? html`
                         <div class="dialog-header">
                             <mateu-event-interceptor .target="${this}" style="flex:1; min-width:0;">

@@ -2,6 +2,8 @@ import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import ResourceItem from "@mateu/shared/apiClients/dtos/componentmetadata/ResourceItem";
 import { chipStyles } from "@infra/ui/uxShared.ts";
+import { onActivate } from '@infra/a11y/activate.ts';
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
  * Availability/selection grid (e.g. room picker): cards with a big title, muted subtitle, a status
@@ -20,7 +22,7 @@ export class MateuResourceGrid extends LitElement {
 
     @state() private selectedId: string | undefined
 
-    static styles = [chipStyles, css`
+    static styles = [chipStyles, activatableFocusStyles, css`
         /* explicit line-height: inside a form field wrapper the inherited one is the 44px
            field height, which blows up every text row */
         :host { display: block; width: 100%; line-height: var(--lumo-line-height-m, 1.4); }
@@ -97,8 +99,8 @@ export class MateuResourceGrid extends LitElement {
         return html`
             <div class="grid" style="${gridStyle}">
                 ${this.items.map(item => html`
-                    <div class="cell ${item.disabled ? 'disabled' : ''} ${item.recommended ? 'recommended' : ''} ${item.id === this.selectedId ? 'selected' : ''}"
-                         @click="${() => this.select(item)}">
+                    <div role="button" tabindex="0" class="cell ${item.disabled ? 'disabled' : ''} ${item.recommended ? 'recommended' : ''} ${item.id === this.selectedId ? 'selected' : ''}"
+                         @click="${() => this.select(item)}" @keydown="${onActivate(() => this.select(item))}">
                         ${item.recommended ? html`<span class="tag">${this.recommendedLabel || 'Recommended'}</span>` : nothing}
                         <span class="title">${item.title}</span>
                         ${item.subtitle ? html`<span class="subtitle">${item.subtitle}</span>` : nothing}
