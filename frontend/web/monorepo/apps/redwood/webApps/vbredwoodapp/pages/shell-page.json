@@ -220,6 +220,13 @@
           }
         }
       ]
+    },
+    "dismissMateuError": {
+      "chains": [
+        {
+          "chainId": "dismissMateuError"
+        }
+      ]
     }
   },
   "imports": {
@@ -274,5 +281,10 @@
       }
     }
   },
-  "translations": {}
+  "translations": {},
+  "chains": {
+    "dismissMateuError": {
+      "root": "dismissMateuError"
+    }
+  }
 }

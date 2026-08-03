@@ -1,5 +1,7 @@
 // Genera el módulo AMD del bridge para la app VB a partir de la FUENTE ÚNICA del core:
-// reduceContexts.mjs + transport.mjs (los mismos ficheros que testea test.mjs/capture.mjs).
+// reduceContexts.mjs + resilience.mjs + transport.mjs (los mismos ficheros que testea
+// test.mjs/capture.mjs). El orden importa: transport.mjs usa lo de resilience.mjs, y al
+// concatenar todo cae en un mismo scope sin imports.
 // Uso: node make-amd.mjs   → escribe ../webApps/vbredwoodapp/resources/js/mateu-bridge.js
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
@@ -16,7 +18,7 @@ const strip = (file) =>
     .map((l) => l.replace(/^export (async |const |function |class )/, '$1').replace(/^export /, ''))
     .join('\n')
 
-const body = `${strip('reduceContexts.mjs')}\n\n${strip('transport.mjs')}`
+const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('transport.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -73,6 +75,14 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     composeInnerRoute,
     runMateuAction,
     runMateuActionSse,
+    // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión
+    // y el mensaje de error ya traducido
+    classifyRequestFailure,
+    isIdempotentAction,
+    connectivity,
+    pendingActions,
+    setTransportHooks,
+    DEFAULT_TIMEOUT_MS,
   };
 });
 `

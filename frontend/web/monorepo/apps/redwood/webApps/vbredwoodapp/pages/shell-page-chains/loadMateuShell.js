@@ -18,6 +18,26 @@ define([
       const { $application } = context;
 
       const base = $application.constants.mateuBaseUrl;
+
+      // Resiliencia del transporte (mismo contrato que los renderers web, ver poc/resilience.mjs).
+      // Se cablea ANTES del primer bootstrapShell para que hasta la carga inicial cuente: si el
+      // backend está caído al arrancar, el usuario ve un mensaje en vez de una pantalla muerta.
+      bridge.connectivity.start();
+      bridge.setTransportHooks({
+        onStart: () => { $application.variables.mateuBusy = true; },
+        onSettle: ({ failure }) => {
+          $application.variables.mateuBusy = false;
+          // 'cancelled' es una decisión nuestra (navegación, abort): nunca es noticia.
+          if (failure && failure.kind !== 'cancelled') {
+            $application.variables.mateuLastError = failure.message;
+          }
+        },
+      });
+      // Perder la conexión es un ESTADO, no un evento: mientras dura se sostiene una banda,
+      // en vez de un aviso por clic que el usuario ve pasar cinco segundos cada vez.
+      bridge.connectivity.subscribe((online) => {
+        $application.variables.mateuOffline = !online;
+      });
       const reg = bridge.reduceContexts(
         { contexts: {}, stack: [], shell: null },
         await bridge.bootstrapShell(base),

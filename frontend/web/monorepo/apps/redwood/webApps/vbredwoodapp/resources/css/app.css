@@ -244,3 +244,47 @@ oj-action-card.mateu-row-card:first-of-type {
 .oj-sp-logo-global-header-logo-container {
   display: none !important;
 }
+
+/* ── Resiliencia del transporte ────────────────────────────────────────────────────────
+   Estilos de las tres señales que pinta la shell cuando el backend va lento o no responde
+   (las alimenta poc/resilience.mjs a través de setTransportHooks/connectivity). */
+
+/* Barra de ocupado: retardada medio segundo por animación, no por temporizador — por debajo
+   de ese umbral la petición suele ganar y el usuario no ve nada, que es lo correcto para una
+   espera demasiado corta como para explicarla. */
+.mateu-busy-bar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  z-index: 1200;
+  background: var(--oj-core-brand-color-1, #3b5bdb);
+  transform-origin: 0 50%;
+  opacity: 0;
+  animation: mateu-busy-appear .2s linear .5s forwards, mateu-busy-slide 1.4s ease-in-out .5s infinite;
+}
+@keyframes mateu-busy-appear { to { opacity: 1; } }
+@keyframes mateu-busy-slide {
+  0%   { transform: scaleX(0); }
+  50%  { transform: scaleX(.7); }
+  100% { transform: scaleX(1); opacity: .2; }
+}
+
+/* Bandas de estado: pasteles claros con tinta oscura, siempre legibles en cualquier tema —
+   la misma convención que las bandas de página de los renderers web. */
+.mateu-offline-band,
+.mateu-error-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .5rem 1rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+.mateu-offline-band { background: #ffe0b2; }
+.mateu-error-band { background: #ffcdd2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mateu-busy-bar { animation: mateu-busy-appear .2s linear .5s forwards; transform: scaleX(1); }
+}

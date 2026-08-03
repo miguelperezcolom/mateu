@@ -173,6 +173,27 @@
            (anclado al viewport, como la caja del shell) del chrome flotante del shell -->
       <div class="oj-web-applayout-content-nopad">
 
+        <!-- Resiliencia del transporte (poc/resilience.mjs). Perder la conexión es un ESTADO,
+             no un evento: se sostiene una banda mientras dure, en vez de un aviso por clic que
+             el usuario ve pasar cinco segundos cada vez. La barra de ocupado sólo aparece
+             pasado medio segundo (animación con delay): por debajo de eso la petición suele
+             ganar y un destello sería peor que no mostrar nada. -->
+        <oj-bind-if test="[[ $application.variables.mateuOffline ]]">
+          <div class="mateu-offline-band" role="status">
+            Sin conexión — los cambios que hagas ahora no se guardarán.
+          </div>
+        </oj-bind-if>
+        <oj-bind-if test="[[ $application.variables.mateuBusy ]]">
+          <div class="mateu-busy-bar" role="status" aria-label="Cargando"></div>
+        </oj-bind-if>
+        <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]">
+          <div class="mateu-error-band" role="alert">
+            <span><oj-bind-text value="[[ $application.variables.mateuLastError ]]"></oj-bind-text></span>
+            <oj-button chroming="borderless" display="all"
+              on-oj-action="[[ $listeners.dismissMateuError ]]">Cerrar</oj-button>
+          </div>
+        </oj-bind-if>
+
         <div class="oj-flex">
           <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12"
             on-sp-close="[[$listeners.messagesBannerSpClose]]"

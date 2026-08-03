@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],ActionChain=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context;$application.variables.mateuLastError=""}};});
+//# sourceMappingURL=dismissMateuError.js.map

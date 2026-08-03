@@ -618,6 +618,21 @@
       "type": "string",
       "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png",
       "description": "capa de fondo de la ilustración del hero (galería oficial fnd)"
+    },
+    "mateuBusy": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "hay una peticion al backend en vuelo (lo pone el transporte via setTransportHooks)"
+    },
+    "mateuOffline": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "el backend no es alcanzable; sostiene la banda de sin-conexion mientras dure"
+    },
+    "mateuLastError": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "ultimo fallo de transporte YA TRADUCIDO a lenguaje de usuario (classifyRequestFailure)"
     }
   },
   "userConfig": {

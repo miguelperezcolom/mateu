@@ -9,6 +9,10 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { composeInnerRoute } from './transport.mjs'
 import {
+  classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
+  connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
+} from './resilience.mjs'
+import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
@@ -24,6 +28,14 @@ const fieldIds = (tree) => [...new Set(collectFields(tree).map((f) => f.fieldId)
 
 let pass = 0
 const test = (name, fn) => { fn(); console.log(`  ✓ ${name}`); pass++ }
+
+// Los tests del transporte son async y SUSTITUYEN globalThis.fetch por un doble. Tienen que
+// correr en SERIE: lanzados a la vez, el doble de uno reemplaza al del anterior mientras éste
+// sigue en vuelo, y el reintento del primero acaba hablando con el doble del segundo (me pasó).
+let queue = Promise.resolve()
+const atest = (name, fn) => {
+  queue = queue.then(async () => { await fn(); console.log(`  ✓ ${name}`); pass++ })
+}
 
 // 1) Bootstrap: el App configura la shell (menú→navigator) y no crea contexto de contenido.
 test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
@@ -579,4 +591,209 @@ test('overlay Dialog: los botones con parameters van al pie del modal', () => {
   assert.ok(!overlay.content.some((b) => b.items.some((a) => a.isButtons)))
 })
 
+
+// ── resiliencia del transporte ───────────────────────────────────────────────────────────
+// Este core no comparte nada con libs/mateu, así que las mismas garantías se testean aquí
+// otra vez. Lo que cambia respecto a los renderers web es la FORMA del fallo: fetch resuelve
+// un 5xx como éxito y señala un fallo de red con un TypeError sin código.
+
+test('clasifica un 5xx como fallo de servidor reintentable, con su status', () => {
+  const err = Object.assign(new Error('HTTP 503'), { status: 503 })
+  const f = classifyRequestFailure(err)
+  assert.equal(f.kind, 'server')
+  assert.equal(f.retryable, true)
+  assert.equal(f.status, 503)
+  assert.ok(f.message.includes('503'))
+})
+
+test('un TypeError de fetch se lee como sin-conexión aunque el navegador diga que hay red', () => {
+  // "Failed to fetch" es TODO lo que da fetch: sin respuesta, la falta de respuesta es la prueba.
+  const f = classifyRequestFailure(Object.assign(new TypeError('Failed to fetch')), { online: true })
+  assert.equal(f.kind, 'offline')
+})
+
+test('un abort propio es cancelación silenciosa; uno por timeout sí es noticia', () => {
+  const abort = Object.assign(new Error('aborted'), { name: 'AbortError' })
+  assert.equal(classifyRequestFailure(abort).kind, 'cancelled')
+  assert.equal(classifyRequestFailure(abort).message, '')
+  const timedOut = Object.assign(new Error('aborted'), { name: 'AbortError', __mateuTimedOut: true })
+  assert.equal(classifyRequestFailure(timedOut).kind, 'timeout')
+  assert.ok(timedOut.message !== classifyRequestFailure(timedOut).message)
+})
+
+test('nunca ofrece reintentar una petición rechazada (4xx)', () => {
+  const f = classifyRequestFailure(Object.assign(new Error('bad'), { status: 400 }))
+  assert.equal(f.kind, 'client')
+  assert.equal(f.retryable, false)
+})
+
+test('el mensaje al usuario no filtra jerga de transporte', () => {
+  const raw = ['Failed to fetch', 'HTTP 500', 'AbortError']
+  for (const e of [new TypeError('Failed to fetch'),
+                   Object.assign(new Error('HTTP 500'), { status: 500 })]) {
+    const msg = classifyRequestFailure(e, { online: false }).message
+    assert.ok(msg.length > 0)
+    for (const jargon of raw) assert.ok(!msg.includes(jargon), `"${msg}" filtra "${jargon}"`)
+  }
+})
+
+test('reconoce las lecturas del framework — incluida la carga de ruta, que usa id vacío', () => {
+  for (const id of ['', '__load__', 'search', '_globalsearch', 'search-pais', '_appcontext-search-hotel']) {
+    assert.ok(isIdempotentAction(id), `${JSON.stringify(id)} debería ser lectura`)
+  }
+  for (const id of ['save', 'create', 'delete', '_notifications-read']) {
+    assert.ok(!isIdempotentAction(id), `${id} NO debería ser lectura`)
+  }
+  // un id AUSENTE es trabajo desconocido, y no debe confundirse con el vacío de la carga
+  assert.ok(!isIdempotentAction(undefined))
+  // la bandera del wire es un opt-IN: nunca saca a una lectura conocida de la lista
+  assert.ok(isIdempotentAction('recalcular', true))
+  assert.ok(isIdempotentAction('search', false))
+})
+
+test('reintenta una lectura transitoria y JAMÁS una escritura', () => {
+  const timeout = classifyRequestFailure(Object.assign(new Error('x'), { __mateuTimedOut: true }))
+  const server = classifyRequestFailure(Object.assign(new Error('x'), { status: 500 }))
+  assert.ok(shouldRetry(timeout, 1, { idempotent: true }))
+  assert.ok(shouldRetry(server, 1, { idempotent: true }))
+  // tras un timeout no sabemos si el servidor lo aplicó: repetir arriesga un duplicado
+  assert.ok(!shouldRetry(timeout, 1, { idempotent: false }))
+  assert.ok(!shouldRetry(server, 1, { idempotent: false }))
+  // el offline lo lleva connectivity, no el bucle de reintentos
+  const offline = classifyRequestFailure(new TypeError('Failed to fetch'), { online: false })
+  assert.ok(!shouldRetry(offline, 1, { idempotent: true }))
+  // y hay presupuesto
+  assert.ok(shouldRetry(timeout, MAX_RETRIES, { idempotent: true }))
+  assert.ok(!shouldRetry(timeout, MAX_RETRIES + 1, { idempotent: true }))
+})
+
+test('el backoff crece y lleva jitter de ±25%', () => {
+  assert.ok(retryDelayMs(1, () => 0.5) < retryDelayMs(2, () => 0.5))
+  assert.equal(retryDelayMs(1, () => 0), 225)
+  assert.equal(retryDelayMs(1, () => 1), 375)
+})
+
+test('conectividad: el tráfico propio manda sobre la bandera del navegador', () => {
+  connectivity.reset()
+  assert.equal(connectivity.isOnline(), true)
+  connectivity.noteUnreachable()
+  assert.equal(connectivity.isOnline(), false)
+  connectivity.noteReachable()
+  assert.equal(connectivity.isOnline(), true)
+  connectivity.reset()
+})
+
+test('el guard deja pasar la primera y descarta la idéntica en vuelo', () => {
+  pendingActions.reset()
+  const k = pendingActions.key('form-1', 'save')
+  assert.equal(pendingActions.begin(k), true)
+  assert.equal(pendingActions.begin(k), false)
+  pendingActions.end(k)
+  assert.equal(pendingActions.begin(k), true)
+  // el bloqueo es por (componente, acción): otra acción u otro componente no se ven afectados
+  assert.equal(pendingActions.begin(pendingActions.key('form-1', 'delete')), true)
+  assert.equal(pendingActions.begin(pendingActions.key('form-2', 'save')), true)
+  pendingActions.reset()
+})
+
+test('el guard libera un hueco que nadie pudo cerrar (válvula de caducidad)', () => {
+  pendingActions.reset()
+  const k = pendingActions.key('form-1', 'save')
+  const t0 = 1000000
+  assert.equal(pendingActions.begin(k, t0), true)
+  assert.equal(pendingActions.begin(k, t0 + 119000), false)
+  assert.equal(pendingActions.begin(k, t0 + 121000), true)
+  pendingActions.reset()
+})
+
+atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN solo resultado', async () => {
+  connectivity.reset()
+  const events = []
+  setTransportHooks({
+    onStart: (e) => events.push(['start', e.actionId]),
+    onSettle: (e) => events.push(['settle', e.actionId, e.failure ? e.failure.kind : 'ok']),
+  })
+  let calls = 0
+  const original = globalThis.fetch
+  globalThis.fetch = async () => {
+    calls++
+    if (calls === 1) return { ok: false, status: 503, text: async () => 'nope' }
+    return { ok: true, json: async () => ({ fragments: [] }) }
+  }
+  try {
+    const res = await fetchWithPolicy('http://x/', {}, { actionId: 'search' })
+    assert.ok(res.ok)
+    assert.equal(calls, 2, 'la lectura se reenvió una vez')
+    // N intentos = UN estado de carga y UN resultado de cara a la UI
+    assert.deepEqual(events, [['start', 'search'], ['settle', 'search', 'ok']])
+  } finally {
+    globalThis.fetch = original
+    setTransportHooks(null)
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy envía una escritura EXACTAMENTE una vez ante un 503, con el fallo clasificado', async () => {
+  connectivity.reset()
+  let calls = 0
+  const original = globalThis.fetch
+  globalThis.fetch = async () => { calls++; return { ok: false, status: 503, text: async () => 'nope' } }
+  try {
+    await assert.rejects(
+      () => fetchWithPolicy('http://x/', {}, { actionId: 'save' }),
+      (e) => {
+        assert.equal(e.failure.kind, 'server')     // el error viaja clasificado
+        assert.ok(e.failure.message.includes('503'))
+        return true
+      },
+    )
+    assert.equal(calls, 1, 'una escritura no se repite a espaldas del usuario')
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy corta una petición colgada por timeout — fetch no trae ninguno', async () => {
+  connectivity.reset()
+  const original = globalThis.fetch
+  globalThis.fetch = (url, init) => new Promise((_, reject) => {
+    // simula el servidor que nunca responde: sólo termina cuando abortamos
+    init.signal.addEventListener('abort', () => {
+      reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+    })
+  })
+  try {
+    await assert.rejects(
+      () => fetchWithPolicy('http://x/', {}, { actionId: 'save', timeoutMillis: 60 }),
+      (e) => {
+        assert.equal(e.failure.kind, 'timeout')   // no 'cancelled': al usuario sí le importa
+        return true
+      },
+    )
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+  }
+})
+
+atest('timeoutMillis negativo = sin ceiling, para un stream que dura lo que dure', async () => {
+  connectivity.reset()
+  const original = globalThis.fetch
+  let sawSignal
+  globalThis.fetch = async (url, init) => {
+    sawSignal = init.signal
+    await new Promise((r) => setTimeout(r, 40))
+    return { ok: true, json: async () => ({}) }
+  }
+  try {
+    await fetchWithPolicy('http://x/', {}, { actionId: 'longTask', timeoutMillis: -1 })
+    assert.ok(!sawSignal || !sawSignal.aborted, 'un LongTask no puede morir por el ceiling')
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+  }
+})
+
+await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)

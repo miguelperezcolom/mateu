@@ -4,11 +4,12 @@
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
 import { reduceContexts, mediatorOf, HOST_ID } from './reduceContexts.mjs'
+import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
-export async function callMateu(base, body) {
+export async function callMateu(base, body, options = {}) {
   const bare = (body.route || '').replace(/^\//, '')
-  const res = await fetch(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
+  const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -21,19 +22,17 @@ export async function callMateu(base, body) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  })
-  if (!res.ok) throw new Error(`Mateu ${body.route} ${body.actionId} → HTTP ${res.status}: ${await res.text()}`)
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent })
   return res.json()
 }
 
 /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico. */
 export async function bootstrapShell(base, initiator = 'shell') {
-  const res = await fetch(`${base}/mateu/v3/components/_/action`, {
+  const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-  })
-  if (!res.ok) throw new Error(`Mateu bootstrap → HTTP ${res.status}`)
+  }, { actionId: '__load__' })
   return res.json()
 }
 
@@ -56,15 +55,28 @@ export const loadRoute = (base, route, initiator = '', extra = {}) =>
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
   const outbound = (ctx && ctx.outbound) || {}
+  const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
+  // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
+  // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
+  // lectura sólo significa datos más frescos — y bloquearlas rompería el type-ahead, donde la
+  // búsqueda de "mad" se descartaría por estar en vuelo la de "ma".
+  const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
+  const key = pendingActions.key(initiator, actionId)
+  if (exclusive && !pendingActions.begin(key)) {
+    // Duplicado: se descarta ANTES de construir la petición.
+    return Promise.resolve(null)
+  }
+  const release = () => { if (exclusive) pendingActions.end(key) }
   return callMateu(base, {
     route: outbound.route || route,
     consumedRoute: outbound.consumedRoute || '',
     actionId,
     componentState: componentState || (ctx && ctx.state) || {},
     serverSideType: outbound.serverSideType || (ctx && ctx.tree && ctx.tree.serverSideType),
-    initiatorComponentId: (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || '',
+    initiatorComponentId: initiator,
     ...extra,
-  })
+  }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
+    .then((inc) => { release(); return inc }, (e) => { release(); throw e })
 }
 
 /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
@@ -78,7 +90,9 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   const outbound = (ctx && ctx.outbound) || {}
   const effectiveRoute = outbound.route || route || ''
   const bare = effectiveRoute.replace(/^\//, '')
-  const res = await fetch(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
+  // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
+  // mataría a mitad. Pasa igualmente por la política para que el fallo llegue clasificado.
+  const res = await fetchWithPolicy(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
     body: JSON.stringify({
@@ -92,8 +106,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       route: bare ? `/${bare}` : '',
       actionId,
     }),
-  })
-  if (!res.ok) throw new Error(`Mateu sse ${route} ${actionId} → HTTP ${res.status}: ${await res.text()}`)
+  }, { actionId, timeoutMillis: -1 })
   const increments = []
   const handle = async (raw) => {
     const line = raw.trim()
