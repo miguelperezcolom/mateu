@@ -288,3 +288,49 @@ oj-action-card.mateu-row-card:first-of-type {
 @media (prefers-reduced-motion: reduce) {
   .mateu-busy-bar { animation: mateu-busy-appear .2s linear .5s forwards; transform: scaleX(1); }
 }
+
+/* ── Accesibilidad ─────────────────────────────────────────────────────────────────────
+
+   Contraste en la cabecera global. Los botones borderless heredan
+   --oj-core-text-color-primary (tinta casi negra), que sobre la cabecera OSCURA de Redwood
+   da un contraste de 1.33 — muy por debajo del 4.5 que exige WCAG AA, y en la práctica
+   texto ilegible. Afecta a las header actions de Mateu (@AppActionsSupplier), que son
+   etiquetas de negocio, no decoración.
+
+   El token inverso no está definido en este tema, así que el fallback es el que manda. */
+oj-sp-global-header oj-button .oj-button-text,
+oj-sp-global-header oj-menu-button .oj-button-text,
+oj-sp-global-header .oj-button-text {
+  color: var(--oj-core-text-color-inverse, #fff);
+}
+oj-sp-global-header oj-button .oj-button-icon,
+oj-sp-global-header oj-menu-button .oj-button-icon {
+  color: var(--oj-core-text-color-inverse, #fff);
+}
+
+/* Salto al contenido (WCAG 2.4.1): primer elemento tabulable del documento, invisible hasta
+   que recibe foco. Oculto con transform y NO con display:none, porque un elemento
+   display:none no puede recibir foco y el enlace sería inalcanzable. */
+.mateu-skip-link {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 4000;
+  transform: translateY(-200%);
+  margin: .5rem;
+  padding: .5rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--oj-core-brand-color-1, #3b5bdb);
+  border: 2px solid var(--oj-core-brand-color-1, #3b5bdb);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+.mateu-skip-link:focus,
+.mateu-skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid #161513;
+  outline-offset: 2px;
+}

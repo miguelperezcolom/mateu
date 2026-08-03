@@ -170,6 +170,10 @@ define([
       $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
+      // Navegar en una SPA no cambia la página, así que no hay nada que un lector de pantalla
+      // anuncie solo, y el foco se queda en el enlace del menú recién pulsado. Sólo aquí, en
+      // una navegación REAL: en un re-render arrancaría el foco del campo que se esté editando.
+      bridge.announceNavigation(summary.title || route);
       $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;

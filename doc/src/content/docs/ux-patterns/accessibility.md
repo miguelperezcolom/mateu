@@ -117,6 +117,35 @@ cd frontend/app/intellij-plugin
 Each component prints `a11yName`, `a11yDesc` and `labelFor` — a control with no accessible name is
 indistinguishable from a correct one in a screenshot, which is exactly why the probe reports it.
 
+### Redwood / Visual Builder
+
+This renderer shares no core with the web ones, so the guarantees are implemented again in
+`apps/redwood/poc/a11y.mjs` (bundled into the AMD bridge like the rest of the core).
+
+Measured before writing anything: the `oj-sp-*` composition comes out almost clean, for the same
+reason Vaadin did — those components carry their own accessibility. Two real defects turned up
+and were fixed:
+
+- **The header actions were unreadable.** `@AppActionsSupplier` buttons inherited the primary text
+  colour (near-black) on Redwood's dark global header — a contrast ratio of **1.33** where WCAG AA
+  asks for 4.5. These are business labels, not decoration.
+- **The menu's expand/collapse icons had no name.** `oj-navigation-list` emits them as empty
+  `<a role="button">`; a screen reader announced "button" without saying what for. The app names
+  them from the group they belong to, after the list refreshes.
+
+The SPA gaps axe cannot see are covered too: live regions created at boot, a skip link, a `main`
+landmark, and navigation that announces the destination and moves the focus there — **except on
+the first load**, where moving it would leave the skip link behind the starting point.
+
+```bash
+cd frontend/web/monorepo/apps/redwood && npm run serve   # :9006, backend demo-vb en :9005
+cd e2e && node vb-a11y-probe.mjs
+```
+
+One scoped exclusion, same shape as the Vaadin one: `oj-navigation-list` puts its own
+`role="button"` collapse icon inside the list, which axe counts as a disallowed child of the
+list's role. Only upstream can change it.
+
 ## Writing accessible screens yourself
 
 The framework covers the generated UI. Two things are still yours:

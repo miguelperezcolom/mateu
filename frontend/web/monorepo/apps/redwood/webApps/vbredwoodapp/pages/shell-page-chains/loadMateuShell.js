@@ -12,6 +12,24 @@ define([
 ) => {
   'use strict';
 
+  /**
+   * Pone nombre a los iconos de expandir/colapsar de los grupos del menú.
+   *
+   * Los genera oj-navigation-list por dentro como `<a role="button">` VACÍOS: un lector de
+   * pantalla los anuncia como "botón", sin decir de qué. No es marcado nuestro y no podemos
+   * cambiar cómo los emite JET, pero sí nombrarlos después, tomando el texto del grupo al
+   * que pertenecen — que es lo que el usuario necesita oír.
+   */
+  const nameCollapseIcons = () => {
+    const list = document.querySelector('#mateuNavList');
+    if (!list) return;
+    list.querySelectorAll('.oj-navigationlist-collapse-icon').forEach((icon) => {
+      const item = icon.closest('li');
+      const label = item ? (item.textContent || '').trim().split('\n')[0].trim() : '';
+      icon.setAttribute('aria-label', label ? `Desplegar ${label}` : 'Desplegar grupo');
+    });
+  };
+
   class loadMateuShell extends ActionChain {
 
     async run(context) {
@@ -23,6 +41,10 @@ define([
       // Se cablea ANTES del primer bootstrapShell para que hasta la carga inicial cuente: si el
       // backend está caído al arrancar, el usuario ve un mensaje en vez de una pantalla muerta.
       bridge.connectivity.start();
+      // Las regiones vivas tienen que EXISTIR antes de que nada escriba en ellas: una creada
+      // y rellenada en el mismo tick a menudo no se anuncia.
+      bridge.installAnnouncer();
+      bridge.mountSkipLink();
       bridge.setTransportHooks({
         onStart: () => { $application.variables.mateuBusy = true; },
         onSettle: ({ failure }) => {
@@ -30,6 +52,8 @@ define([
           // 'cancelled' es una decisión nuestra (navegación, abort): nunca es noticia.
           if (failure && failure.kind !== 'cancelled') {
             $application.variables.mateuLastError = failure.message;
+            // La banda es una señal visual; quien usa lector de pantalla no se enteraría.
+            bridge.announce(failure.message, { politeness: 'assertive' });
           }
         },
       });
@@ -68,6 +92,7 @@ define([
         // el navigation-list parsea su <ul> en el init; los li estampados llegan después
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuNavList', method: 'refresh' });
+          nameCollapseIcons();
         } catch (ignored) { /* aún no montado: el refresh del toggle lo cubrirá */ }
       }
 
