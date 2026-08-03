@@ -113,6 +113,27 @@ BASE=http://localhost:8081 node slow-network-probe.mjs
 
 It exits non-zero on the first failed check, so it can gate a change to the transport layer.
 
+## Redwood / Visual Builder
+
+This renderer has its own transport (`apps/redwood/poc/transport.mjs`, plain `fetch`), so the
+guarantees are implemented again in `poc/resilience.mjs` rather than inherited. The behaviour is
+the same — per-action timeout, reads retried automatically and writes never, honest connectivity
+tracking, no double submit, plain-language errors, busy bar, offline band, loading skeleton, busy
+state on the pressed control, and a Retry that re-runs the whole action.
+
+Three differences worth knowing, all forced by `fetch`:
+
+- It has **no timeout**, so one is imposed with `AbortController`; without it a request can hang
+  forever with no error and no end.
+- It does **not reject on a 4xx/5xx** — it resolves with `res.ok === false`, so the status has to
+  be read and attached to the error by hand.
+- A network failure is a bare `TypeError`, with no code to switch on.
+
+```bash
+cd frontend/web/monorepo/apps/redwood && npm run serve   # :9006, backend demo-vb en :9005
+cd e2e && node vb-slow-network-probe.mjs
+```
+
 ## Related
 
 - [Empty states and skeletons](/ux-patterns/empty-states-and-skeletons/) — the developer-declared `Skeleton` component

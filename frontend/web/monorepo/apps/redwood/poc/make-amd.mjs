@@ -92,6 +92,15 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     focusContentSoon,
     mountSkipLink,
     resetNavigationState,
+    markPending,
+    clearPending,
+    pressedControl,
+    trackPressedControls,
+    markPressedControlBusy,
+    clearPressedControlBusy,
+    setLastRetry,
+    hasLastRetry,
+    takeLastRetry,
   };
 });
 `

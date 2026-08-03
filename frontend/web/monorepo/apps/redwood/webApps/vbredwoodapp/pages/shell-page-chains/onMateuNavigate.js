@@ -32,6 +32,9 @@ define([
       if (route == null || route === '') {
         return;
       }
+      // Cualquier fallo de transporte durante esta navegación deja registrado un reintento
+      // que la repite entera (la banda de error lo ofrece).
+      const registerRetry = () => bridge.setLastRetry({ kind: 'navigate', route });
       // ?campo=valor en la ruta (p.ej. /reservas?vista=LLEGADAS_HOY, los KPIs de la
       // home): el filtro rápido viaja en la URL — se consume aquí como filtro
       // PENDIENTE (misma mecánica que el Ask Oracle) y la ruta queda limpia
@@ -64,8 +67,16 @@ define([
 
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};
-      let reg = await bridge.loadRouteInto(
-        base, $application.variables.mateuRegistry, route, '', { appState });
+      let reg;
+      try {
+        reg = await bridge.loadRouteInto(
+          base, $application.variables.mateuRegistry, route, '', { appState });
+      } catch (e) {
+        // La banda de error ya la puso el transporte (onSettle); aquí sólo se deja el
+        // reintento a mano, y se corta: sin registro no hay nada que proyectar.
+        registerRetry();
+        return;
+      }
 
       // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
       const loaded = reg.contexts[bridge.HOST_ID];
@@ -168,6 +179,8 @@ define([
         ? { label: primaryToolbar.label } : { label: '', display: 'off' };
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
       $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
+      // Si la carga falló, el reintento vuelve a entrar en ESTA chain con la misma ruta.
+      bridge.setLastRetry(null);
       const summary = bridge.summarizeHost(reg, route);
       $application.variables.mateuHostTitle = summary.title;
       // Navegar en una SPA no cambia la página, así que no hay nada que un lector de pantalla

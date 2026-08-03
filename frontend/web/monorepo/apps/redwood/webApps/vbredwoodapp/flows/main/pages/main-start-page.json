@@ -448,6 +448,17 @@
           }
         }
       ]
+    },
+    "mateuRetryAction": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.actionId }}",
+            "parameters": "{{ $event.parameters }}"
+          },
+          "chain": "runMateuAction"
+        }
+      ]
     }
   },
   "imports": {

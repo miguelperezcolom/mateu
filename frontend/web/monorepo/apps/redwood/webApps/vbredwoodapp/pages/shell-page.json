@@ -224,7 +224,14 @@
     "dismissMateuError": {
       "chains": [
         {
-          "chainId": "dismissMateuError"
+          "chain": "dismissMateuError"
+        }
+      ]
+    },
+    "retryMateuAction": {
+      "chains": [
+        {
+          "chain": "retryMateuAction"
         }
       ]
     }
@@ -281,10 +288,5 @@
       }
     }
   },
-  "translations": {},
-  "chains": {
-    "dismissMateuError": {
-      "root": "dismissMateuError"
-    }
-  }
+  "translations": {}
 }

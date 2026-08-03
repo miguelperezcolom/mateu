@@ -66,6 +66,62 @@ const browser = await chromium.launch()
   await ctx.close()
 }
 
+// 4) esqueleto: una carga lenta SIN contenido aún no deja la pantalla en blanco
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
+  const page = await ctx.newPage()
+  await page.route(SYNC, async r => { await sleep(4000); await r.continue() })
+  page.goto('http://localhost:9006/').catch(()=>{})
+  await sleep(6000)
+  check('una carga sin contenido aún enseña un esqueleto', await page.locator('.mateu-skeleton').count() > 0)
+  await page.screenshot({ path: '/tmp/vb-skeleton.png' })
+  await ctx.close()
+}
+
+// 5) el control pulsado se marca ocupado, y el error ofrece Reintentar que RE-EJECUTA
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
+  const page = await ctx.newPage()
+  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await sleep(6000)
+  await page.getByText('Products', { exact: true }).first().click().catch(()=>{})
+  await sleep(4000)
+
+  // acción lenta → el botón pulsado queda marcado
+  await page.route(SYNC, async r => { await sleep(3000); await r.continue() })
+  const btn = page.locator('oj-button:visible, oj-c-button:visible').filter({ hasText: /Do something on rows|Set as blue/i }).first()
+  if (await btn.count()) {
+    await btn.click().catch(()=>{})
+    await sleep(800)
+    check('el control pulsado se marca ocupado mientras su acción está en vuelo',
+      await page.locator('[data-mateu-pending]').count() > 0)
+    await page.screenshot({ path: '/tmp/vb-pending.png' })
+    await sleep(3200)
+  } else {
+    check('el control pulsado se marca ocupado mientras su acción está en vuelo', false, 'sin botón que pulsar')
+  }
+  await page.unroute(SYNC)
+
+  // fallo de navegación → la banda ofrece Reintentar, y al pulsarlo la pantalla carga
+  let failNext = true
+  await page.route(SYNC, async r => {
+    if (failNext) { failNext = false; return r.abort('failed') }
+    await r.continue()
+  })
+  await page.getByText('Reservations', { exact: true }).first().click().catch(()=>{})
+  await sleep(2500)
+  const retry = page.locator('.mateu-error-band oj-button').filter({ hasText: /reintentar/i }).first()
+  check('un fallo ofrece Reintentar', await retry.count() > 0)
+  if (await retry.count()) {
+    await retry.click()
+    await sleep(4500)
+    const title = await page.evaluate(() => (document.querySelector('[data-mateu-live-region="polite"]')||{}).textContent || '')
+    check('Reintentar re-ejecuta la navegación y la pantalla carga',
+      /reservations/i.test(title), JSON.stringify(title.trim()))
+  }
+  await ctx.close()
+}
+
 await browser.close()
 const bad = results.filter(r => !r).length
 console.log(`\n${results.length - bad}/${results.length} comprobaciones OK`)

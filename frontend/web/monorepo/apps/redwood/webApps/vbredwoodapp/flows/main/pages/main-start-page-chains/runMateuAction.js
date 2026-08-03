@@ -28,6 +28,21 @@ define([
     async run(context, { actionId, parameters, event }) {
       const { $application, $page } = context;
 
+      // El marcado del control pulsado lo hacen los hooks del transporte a nivel de documento
+      // (bridge.trackPressedControls): así cubre TODAS las chains, no sólo ésta.
+      try {
+        return await this.dispatch(context, { actionId, parameters, event });
+      } catch (e) {
+        // "Reintentar" tiene que re-ejecutar la ACCIÓN entera, no sólo la petición: una
+        // respuesta que nadie procesa no cambia nada en pantalla.
+        bridge.setLastRetry({ kind: 'action', actionId: actionId || (event && event.target && event.target.dataset && event.target.dataset.actionId), parameters });
+        throw e;
+      }
+    }
+
+    async dispatch(context, { actionId, parameters, event }) {
+      const { $application, $page } = context;
+
       let id = actionId;
       if (!id && event && event.target && event.target.dataset) {
         id = event.target.dataset.actionId;

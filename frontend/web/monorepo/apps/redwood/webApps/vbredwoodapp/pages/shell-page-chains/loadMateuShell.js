@@ -45,10 +45,14 @@ define([
       // y rellenada en el mismo tick a menudo no se anuncia.
       bridge.installAnnouncer();
       bridge.mountSkipLink();
+      // El control pulsado se sigue a nivel de documento: los botones de la app pasan por
+      // chains distintas y enhebrar el evento por todas ellas se olvidaría en la siguiente.
+      bridge.trackPressedControls();
       bridge.setTransportHooks({
-        onStart: () => { $application.variables.mateuBusy = true; },
+        onStart: () => { $application.variables.mateuBusy = true; bridge.markPressedControlBusy(); },
         onSettle: ({ failure }) => {
           $application.variables.mateuBusy = false;
+          bridge.clearPressedControlBusy();
           // 'cancelled' es una decisión nuestra (navegación, abort): nunca es noticia.
           if (failure && failure.kind !== 'cancelled') {
             $application.variables.mateuLastError = failure.message;

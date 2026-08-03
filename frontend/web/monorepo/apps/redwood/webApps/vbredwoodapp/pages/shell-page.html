@@ -189,6 +189,11 @@
         <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]">
           <div class="mateu-error-band" role="alert">
             <span><oj-bind-text value="[[ $application.variables.mateuLastError ]]"></oj-bind-text></span>
+            <!-- Lo que el cliente podía reintentar solo, ya lo ha hecho en silencio. El que se
+                 ofrece aquí es el caso en que repetir era NUESTRA decisión y decidimos no
+                 tomarla: la toma el usuario, que sabe si puede permitirse un duplicado. -->
+            <oj-button chroming="callToAction" display="all"
+              on-oj-action="[[ $listeners.retryMateuAction ]]">Reintentar</oj-button>
             <oj-button chroming="borderless" display="all"
               on-oj-action="[[ $listeners.dismissMateuError ]]">Cerrar</oj-button>
           </div>
@@ -201,6 +206,16 @@
         </div>
 
         <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
+
+        <oj-bind-if test="[[ $application.variables.mateuBusy && !$application.variables.mateuHostTitle ]]">
+          <div class="mateu-skeleton" aria-hidden="true">
+            <div class="mateu-skeleton-bone mateu-skeleton-title"></div>
+            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+          </div>
+        </oj-bind-if>
 
         <div class="oj-flex">
           <!-- Renders flow content. min-width:0 = fix estándar flexbox (min-width:auto):

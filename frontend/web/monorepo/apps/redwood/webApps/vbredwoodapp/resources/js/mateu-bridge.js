@@ -2061,6 +2061,118 @@ define([], () => {
     document.body.insertBefore(link, document.body.firstChild)
   }
 
+  // ── estado de ocupado en el control pulsado ──────────────────────────────────────────────
+
+  /**
+   * Marca ocupado el control que el usuario pulsó, mientras su acción está en vuelo.
+   *
+   * La barra global responde a "¿está ocupada la app?", pero la pregunta que se hace quien está
+   * en una conexión lenta es "¿se ha enterado de mi clic?". Sin esto pulsa Guardar, no cambia
+   * nada, y vuelve a pulsar.
+   *
+   * Anima la OPACIDAD del propio elemento y no dibuja un spinner en ::after: sobre un shadow
+   * host el pseudo-elemento no se pinta (comprobado en los renderers web con un
+   * `inset:0;background:red` sobre un vaadin-button vivo), y no hay garantía de que los
+   * componentes de JET no lo sean.
+   */
+  function markPending(element) {
+    if (!element || !element.setAttribute) return
+    if (element.hasAttribute('data-mateu-pending')) return
+    element.setAttribute('data-mateu-pending', '')
+    element.setAttribute('aria-busy', 'true')
+  }
+
+  function clearPending(element) {
+    if (!element || !element.removeAttribute) return
+    element.removeAttribute('data-mateu-pending')
+    element.removeAttribute('aria-busy')
+  }
+
+  /**
+   * El control realmente pulsado a partir del evento, o null si no lo hay.
+   *
+   * Sólo se decora una lista CERRADA de cosas con pinta de botón: atenuar un contenedor (una
+   * tabla, un formulario entero) sería peor que no mostrar nada, y una acción puede dispararse
+   * desde cualquier sitio — un trigger, un atajo, el clic de una fila.
+   */
+  const INTERACTIVE = 'oj-button, oj-menu-button, oj-c-button, button, [role="button"], a[href]'
+
+  function pressedControl(event) {
+    const target = event && (event.target || event.currentTarget)
+    if (!target || !target.closest) return null
+    return target.closest(INTERACTIVE)
+  }
+
+  /**
+   * Sigue el control pulsado a nivel de DOCUMENTO y lo marca mientras haya trabajo en vuelo.
+   *
+   * Enhebrar el evento por cada chain no vale: los botones de la app pasan por chains
+   * distintas (toolbar, listado, wizard, isla…) y cualquiera nueva se olvidaría de hacerlo. En
+   * cambio el clic siempre pasa por el documento, y el transporte siempre avisa de cuándo
+   * empieza y acaba — así que emparejar las dos señales cubre todos los caminos, incluidos los
+   * que aún no existen.
+   *
+   * La ventana de gracia evita marcar un control por trabajo que no desencadenó él (un trigger
+   * OnLoad, un autosave): sólo cuenta si la petición sale justo detrás del clic.
+   */
+  const PRESS_GRACE_MS = 400
+  let lastPress = { control: null, at: 0 }
+  let markedControl = null
+
+  function trackPressedControls() {
+    if (typeof document === 'undefined') return
+    document.addEventListener('click', (e) => {
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : []
+      const origin = path[0] || e.target
+      const control = origin && origin.closest ? origin.closest(INTERACTIVE) : null
+      lastPress = { control, at: Date.now() }
+    }, true)
+  }
+
+  /** Llamar desde el hook onStart del transporte. */
+  function markPressedControlBusy() {
+    if (!lastPress.control) return
+    if (Date.now() - lastPress.at > PRESS_GRACE_MS) return
+    markedControl = lastPress.control
+    markPending(markedControl)
+  }
+
+  /** Llamar desde el hook onSettle. */
+  function clearPressedControlBusy() {
+    clearPending(markedControl)
+    markedControl = null
+  }
+
+  // ── reintento a nivel de chain ───────────────────────────────────────────────────────────
+
+  /**
+   * Qué hay que rehacer tras un fallo.
+   *
+   * Se guarda un DESCRIPTOR, no un cierre. Un cierre atrapa el `context` de VB de la ejecución
+   * que falló, y ese contexto ya no sirve cuando el usuario pulsa Reintentar un segundo después:
+   * la llamada no hace nada y falla en silencio (me pasó). Con un descriptor, quien reintenta
+   * usa SU contexto, que está vivo.
+   *
+   * Reenviar sólo la petición tampoco valdría: una respuesta que nadie procesa no cambia nada en
+   * pantalla — la misma lección que en los renderers web. Por eso lo que se rehace es la acción
+   * o la navegación ENTERA.
+   */
+  let lastRetry = null
+
+  /** `{ kind: 'navigate', route }` o `{ kind: 'action', actionId, parameters }`. */
+  function setLastRetry(descriptor) {
+    lastRetry = descriptor && descriptor.kind ? descriptor : null
+  }
+
+  function hasLastRetry() { return !!lastRetry }
+
+  /** Devuelve el descriptor y lo olvida: un reintento se ofrece una vez. */
+  function takeLastRetry() {
+    const descriptor = lastRetry
+    lastRetry = null
+    return descriptor
+  }
+
 
   // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
   // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
@@ -2310,5 +2422,14 @@ define([], () => {
     focusContentSoon,
     mountSkipLink,
     resetNavigationState,
+    markPending,
+    clearPending,
+    pressedControl,
+    trackPressedControls,
+    markPressedControlBusy,
+    clearPressedControlBusy,
+    setLastRetry,
+    hasLastRetry,
+    takeLastRetry,
   };
 });

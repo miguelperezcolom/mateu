@@ -661,6 +661,13 @@
         "message": "string"
       },
       "description": "Fire this event with an acknowledgement message to indicate to user that an operation was successful. The shell page will render the message using oj-sp-messages-toast component."
+    },
+    "mateuRetryAction": {
+      "description": "reintento de una accion que fallo: la banda de error de la shell la reenvia a la pagina de contenido, que es quien sabe ejecutarla",
+      "payloadType": {
+        "actionId": "string",
+        "parameters": "any"
+      }
     }
   }
 }
