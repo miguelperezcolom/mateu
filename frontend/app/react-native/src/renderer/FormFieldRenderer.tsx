@@ -29,6 +29,7 @@ import { LookupField } from './LookupField';
 import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 
 interface Option {
   children?: Option[];
@@ -47,6 +48,8 @@ interface GridColumnMeta {
 interface FieldMeta {
   fieldId: string;
   label?: string;
+  /** @Help — read after the field name as guidance (accessibilityHint). */
+  description?: string;
   dataType?: string;
   stereotype?: string;
   required?: boolean;
@@ -100,6 +103,18 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   if (ruleAttrs['hidden']) return null;
 
   const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
+
+  // A TextInput cannot be associated with the <Text> label above it — React Native has no
+  // labelFor and no aria-labelledby — so the name has to be handed to the control itself, or the
+  // field is announced as a bare "text field". Computed once and spread onto whichever branch
+  // below actually renders.
+  const a11y = fieldA11y({
+    label: label || fieldId,
+    description: metadata.description,
+    required,
+    editable,
+    error,
+  });
 
   // Property-list row (@Section(propertyList=true)): read-only, label left / plain-text value
   // right, divider under the row — same contract as the web renderers' FormField.propertyRow.
@@ -198,6 +213,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (stereotype === 'slider') {
       return (
         <SliderField
+          {...a11y}
           min={metadata.sliderMin ?? 0}
           max={metadata.sliderMax ?? 100}
           step={metadata.step ?? 1}
@@ -231,6 +247,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       if (!editable) return <RichText value={stringValue} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
       return (
         <TextInput
+          {...a11y}
           style={[styles.input, styles.textarea]}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
@@ -245,6 +262,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (dataType === 'date' || dataType === 'datetime') {
       return (
         <DateField
+          {...a11y}
           value={stringValue}
           editable={editable}
           withTime={dataType === 'datetime'}
@@ -258,6 +276,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (stereotype === 'searchable' || (stereotype === 'combobox' && metadata.remoteCoordinates)) {
       return (
         <LookupField
+          {...a11y}
           fieldId={fieldId}
           label={label}
           value={stringValue}
@@ -299,6 +318,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (stereotype === 'textarea') {
       return (
         <TextInput
+          {...a11y}
           style={[styles.input, styles.textarea]}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
@@ -314,6 +334,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (stereotype === 'password') {
       return (
         <TextInput
+          {...a11y}
           style={styles.input}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
@@ -328,6 +349,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (dataType === 'time') {
       return (
         <TextInput
+          {...a11y}
           style={styles.input}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v)}
@@ -352,6 +374,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       }
       return (
         <TextInput
+          {...a11y}
           style={styles.input}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v === '' ? null : parseInt(v, 10))}
@@ -369,6 +392,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       }
       return (
         <TextInput
+          {...a11y}
           style={styles.input}
           value={stringValue}
           onChangeText={(v) => commit(fieldId, v === '' ? null : parseFloat(v))}
@@ -382,6 +406,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // Default text (email keyboard for the email stereotype)
     return (
       <TextInput
+        {...a11y}
         style={styles.input}
         value={stringValue}
         onChangeText={(v) => commit(fieldId, v)}
@@ -452,7 +477,7 @@ function GridField({ columns, rows, editable, onChange, onRowSelected }: {
       </View>
       {rows.length === 0 && <Text style={styles.gridEmpty}>No data</Text>}
       {rows.map((row, i) => (
-        <TouchableOpacity
+        <TouchableOpacity {...buttonA11y()}
           key={i}
           style={[styles.gridRow, i % 2 === 1 && styles.gridRowAlt]}
           disabled={!editable && !onRowSelected}
@@ -466,7 +491,7 @@ function GridField({ columns, rows, editable, onChange, onRowSelected }: {
         </TouchableOpacity>
       ))}
       {editable && (
-        <TouchableOpacity style={styles.gridAdd} onPress={() => setEditingIndex(rows.length)}>
+        <TouchableOpacity {...buttonA11y()} style={styles.gridAdd} onPress={() => setEditingIndex(rows.length)}>
           <Text style={styles.gridAddText}>+ Add</Text>
         </TouchableOpacity>
       )}
@@ -503,7 +528,7 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
     typeof row[c.id] === 'number';
 
   return (
-    <Modal animationType="fade" transparent onRequestClose={onCancel}>
+    <Modal accessibilityViewIsModal accessibilityLabel="Edit row" animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.rowFormBackdrop}>
         <View style={styles.rowFormCard}>
           <ScrollView>
@@ -548,15 +573,15 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
           </ScrollView>
           <View style={styles.rowFormButtons}>
             {!isNew && (
-              <TouchableOpacity style={[styles.rowFormButton, styles.rowFormDelete]} onPress={onDelete}>
+              <TouchableOpacity {...buttonA11y()} style={[styles.rowFormButton, styles.rowFormDelete]} onPress={onDelete}>
                 <Text style={styles.rowFormDeleteText}>Delete</Text>
               </TouchableOpacity>
             )}
             <View style={{ flex: 1 }} />
-            <TouchableOpacity style={styles.rowFormButton} onPress={onCancel}>
+            <TouchableOpacity {...buttonA11y()} style={styles.rowFormButton} onPress={onCancel}>
               <Text>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.rowFormButton, styles.rowFormSave]} onPress={() => onSave(draft)}>
+            <TouchableOpacity {...buttonA11y()} style={[styles.rowFormButton, styles.rowFormSave]} onPress={() => onSave(draft)}>
               <Text style={styles.rowFormSaveText}>Save</Text>
             </TouchableOpacity>
           </View>
@@ -572,14 +597,14 @@ function OptionsField({ options, value, editable, onChange }: { options: Option[
 
   return (
     <View>
-      <TouchableOpacity style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
+      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
         <Text style={!selected ? styles.placeholder : undefined}>{selected?.label ?? (value || 'Select…')}</Text>
       </TouchableOpacity>
       {open && (
         <View style={styles.dropdown}>
           <ScrollView style={{ maxHeight: 200 }}>
             {options.map((opt) => (
-              <TouchableOpacity
+              <TouchableOpacity {...buttonA11y()}
                 key={opt.value}
                 style={styles.dropdownItem}
                 onPress={() => { onChange(opt.value); setOpen(false); }}
@@ -624,7 +649,7 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 
   return (
     <View>
-      <TouchableOpacity style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
+      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
         <Text style={!value ? styles.placeholder : undefined}>{currentLabel}</Text>
       </TouchableOpacity>
       {open && (
@@ -637,14 +662,14 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
               return (
                 <View key={opt.value} style={[styles.dropdownItem, { paddingLeft: 12 + depth * 16, flexDirection: 'row', alignItems: 'center' }]}>
                   {isGroup ? (
-                    <TouchableOpacity
+                    <TouchableOpacity {...buttonA11y()}
                       onPress={() => setOpenNodes(isOpen ? openNodes.filter((n) => n !== opt.value) : [...openNodes, opt.value])}
                       style={{ paddingRight: 6 }}
                     >
                       <Text>{isOpen ? '▾' : '▸'}</Text>
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity
+                  <TouchableOpacity {...buttonA11y()}
                     style={{ flex: 1 }}
                     onPress={() => {
                       if (leavesOnly && isGroup) {

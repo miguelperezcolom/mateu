@@ -134,6 +134,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // Boolean → inline checkbox carrying its own label, no separate caption.
     if (dataType in BOOL_TYPES) {
         val cb = JBCheckBox(label, rawValue.asBoolean(false))
+        cb.accessibleName(label).accessibleDescription(metadata.text("description"))
         cb.isEnabled = enabled
         cb.addActionListener { ctx.putState(fieldId, cb.isSelected) }
         cb.alignmentX = Component.LEFT_ALIGNMENT
@@ -179,12 +180,32 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     input.alignmentX = Component.LEFT_ALIGNMENT
     container.add(input)
 
+    // Bind the caption to the control it names. Until this existed the two were unrelated in the
+    // accessibility tree, so the field was announced as an unnamed edit box and the label read as
+    // stray text — the desktop counterpart of the web renderers' missing aria-describedby.
+    caption.labelling(input)
+    // Lets the context find this control to focus it when the server rejects the field; keyed by
+    // the wire id, so it cannot drift as the branches above change.
+    input.putClientProperty("mateu.fieldId", fieldId)
+    val help = metadata.text("description")
+    // The visual caption marks required with an asterisk, which is read as punctuation or skipped
+    // entirely; the state has to be said in words.
+    val baseDescription = listOfNotNull(
+        if (required) "Required" else null,
+        help.ifBlank { null },
+    ).joinToString(". ")
+    if (baseDescription.isNotBlank()) input.accessibleDescription(baseDescription)
+
     val error = ctx.currentFieldErrors[fieldId]
     if (error != null) {
         val err = JBLabel(error)
         err.foreground = Color(0xC9, 0x19, 0x0B)
         err.alignmentX = Component.LEFT_ALIGNMENT
         container.add(err)
+        // A red caption below the field is invisible to a screen reader: fold the message into
+        // the control's own description, where it is read as part of the field.
+        input.accessibleDescription(
+            if (baseDescription.isNotBlank()) "$baseDescription. Invalid: $error" else "Invalid: $error")
     }
     return container
 }
@@ -471,8 +492,8 @@ private fun showRowFormNavigator(
 
     fun apply() = onApply(index, collectRowEditors(cols, editors, rowsLive.getOrNull(index)))
 
-    val prev = javax.swing.JButton("◀")
-    val next = javax.swing.JButton("▶")
+    val prev = javax.swing.JButton("◀").also { it.accessibleName("Previous") }
+    val next = javax.swing.JButton("▶").also { it.accessibleName("Next") }
     fun refreshNav() {
         prev.isEnabled = index > 0
         next.isEnabled = index < rowsLive.size - 1

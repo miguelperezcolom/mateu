@@ -107,7 +107,18 @@ private fun dump(c: JComponent, depth: Int) {
         is javax.swing.text.JTextComponent -> " text='${c.text.take(40)}'"
         else -> ""
     }
-    println("  ".repeat(depth) + c.javaClass.simpleName + " [${c.width}x${c.height}]" + extra)
+    // What a screen reader would announce for this component. Printed so the probe verifies the
+    // accessibility tree, not only the visual one — a control with no accessible name is
+    // indistinguishable from a correct one in a screenshot.
+    val name = c.accessibleContext?.accessibleName
+    val description = c.accessibleContext?.accessibleDescription
+    val labels = (c as? javax.swing.JLabel)?.labelFor?.javaClass?.simpleName
+    val a11y = buildString {
+        if (!name.isNullOrBlank()) append(" a11yName='$name'")
+        if (!description.isNullOrBlank()) append(" a11yDesc='$description'")
+        if (labels != null) append(" labelFor=$labels")
+    }
+    println("  ".repeat(depth) + c.javaClass.simpleName + " [${c.width}x${c.height}]" + extra + a11y)
     for (child in c.components) if (child is JComponent) dump(child, depth + 1)
 }
 

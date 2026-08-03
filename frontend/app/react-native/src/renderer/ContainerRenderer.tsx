@@ -4,6 +4,7 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -64,7 +65,7 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
     <View>
       <View style={styles.tabBar}>
         {tabs.map((t, i) => (
-          <TouchableOpacity key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
+          <TouchableOpacity {...buttonA11y()} key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
             <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{interpolate((meta(t)['label'] as string) ?? '', { state })}</Text>
           </TouchableOpacity>
         ))}
@@ -88,7 +89,7 @@ export function AccordionRenderer({ component, state }: { component: unknown; st
     <View>
       {panels.map((p, i) => (
         <View key={i} style={styles.panel}>
-          <TouchableOpacity style={styles.panelHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
+          <TouchableOpacity {...buttonA11y()} style={styles.panelHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
             <Text style={styles.panelTitle}>{interpolate((meta(p)['label'] as string) ?? '', { state })}</Text>
             <Text style={styles.panelChevron}>{open[i] ? '▾' : '▸'}</Text>
           </TouchableOpacity>
@@ -127,7 +128,7 @@ export function AnchorRenderer({ metadata }: { metadata: Dict }) {
   // Internal routes open in-app; external URLs (or target="_blank") hand off to the OS browser.
   const external = !url.startsWith('/') || (metadata['target'] as string) === '_blank';
   return (
-    <TouchableOpacity onPress={() => { if (!url) return; if (external) { void Linking.openURL(url); } else { navigate(url); } }}>
+    <TouchableOpacity {...buttonA11y()} onPress={() => { if (!url) return; if (external) { void Linking.openURL(url); } else { navigate(url); } }}>
       <Text style={styles.link}>{text}</Text>
     </TouchableOpacity>
   );
@@ -168,16 +169,16 @@ export function ConfirmDialogRenderer({ metadata, state }: { metadata: Dict; sta
       {!!m['header'] && <Text style={styles.dialogTitle}>{m['header'] as string}</Text>}
       {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
       <View style={styles.dialogFooter}>
-        <TouchableOpacity style={styles.btnPrimary} onPress={() => runAction((m['confirmActionId'] as string) ?? '')}>
+        <TouchableOpacity {...buttonA11y()} style={styles.btnPrimary} onPress={() => runAction((m['confirmActionId'] as string) ?? '')}>
           <Text style={styles.btnPrimaryText}>{(m['confirmText'] as string) ?? 'OK'}</Text>
         </TouchableOpacity>
         {!!m['canReject'] && (
-          <TouchableOpacity style={styles.btnDefault} onPress={() => runAction((m['rejectActionId'] as string) ?? '')}>
+          <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => runAction((m['rejectActionId'] as string) ?? '')}>
             <Text>{(m['rejectText'] as string) ?? 'No'}</Text>
           </TouchableOpacity>
         )}
         {!!m['canCancel'] && (
-          <TouchableOpacity style={styles.btnDefault} onPress={() => runAction((m['cancelActionId'] as string) ?? '')}>
+          <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => runAction((m['cancelActionId'] as string) ?? '')}>
             <Text>{(m['cancelText'] as string) ?? 'Cancel'}</Text>
           </TouchableOpacity>
         )}

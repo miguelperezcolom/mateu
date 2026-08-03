@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 /**
  * Dependency-free date / datetime picker (like the IntelliJ and Compose renderers' own
@@ -98,19 +99,19 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
 
   return (
     <View>
-      <TouchableOpacity style={styles.input} onPress={openCalendar} activeOpacity={editable ? 0.7 : 1}>
+      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={openCalendar} activeOpacity={editable ? 0.7 : 1}>
         <Text style={!display ? styles.placeholder : undefined}>{display || placeholder || 'YYYY-MM-DD'}</Text>
       </TouchableOpacity>
       {open && (
-        <Modal animationType="fade" transparent onRequestClose={() => setOpen(false)}>
-          <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
-            <TouchableOpacity activeOpacity={1} style={styles.calendar} onPress={() => {}}>
+        <Modal accessibilityViewIsModal accessibilityLabel="Date picker" animationType="fade" transparent onRequestClose={() => setOpen(false)}>
+          <TouchableOpacity {...buttonA11y()} style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
+            <TouchableOpacity {...buttonA11y()} activeOpacity={1} style={styles.calendar} onPress={() => {}}>
               <View style={styles.monthBar}>
-                <TouchableOpacity style={styles.monthNav} onPress={() => shiftMonth(-1)}>
+                <TouchableOpacity {...buttonA11y({ label: 'Previous month' })} style={styles.monthNav} onPress={() => shiftMonth(-1)}>
                   <Text style={styles.monthNavText}>‹</Text>
                 </TouchableOpacity>
                 <Text style={styles.monthTitle}>{MONTHS[cursor.m - 1]} {cursor.y}</Text>
-                <TouchableOpacity style={styles.monthNav} onPress={() => shiftMonth(1)}>
+                <TouchableOpacity {...buttonA11y({ label: 'Next month' })} style={styles.monthNav} onPress={() => shiftMonth(1)}>
                   <Text style={styles.monthNavText}>›</Text>
                 </TouchableOpacity>
               </View>
@@ -127,7 +128,7 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
                       !!selected && selected.y === cursor.y && selected.m === cursor.m && selected.d === day;
                     const isToday = now.y === cursor.y && now.m === cursor.m && now.d === day;
                     return (
-                      <TouchableOpacity
+                      <TouchableOpacity {...buttonA11y()}
                         key={di}
                         style={[styles.dayCell, styles.dayTouch, isToday && styles.todayCell, isSelected && styles.selectedCell]}
                         onPress={() => commit({ y: cursor.y, m: cursor.m, d: day })}
@@ -152,12 +153,12 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
               )}
               <View style={styles.footer}>
                 {!!value && (
-                  <TouchableOpacity style={styles.footerButton} onPress={() => { onChange(''); setOpen(false); }}>
+                  <TouchableOpacity {...buttonA11y()} style={styles.footerButton} onPress={() => { onChange(''); setOpen(false); }}>
                     <Text style={styles.footerText}>Clear</Text>
                   </TouchableOpacity>
                 )}
                 <View style={{ flex: 1 }} />
-                <TouchableOpacity style={styles.footerButton} onPress={() => commit(today())}>
+                <TouchableOpacity {...buttonA11y()} style={styles.footerButton} onPress={() => commit(today())}>
                   <Text style={styles.footerText}>Today</Text>
                 </TouchableOpacity>
               </View>

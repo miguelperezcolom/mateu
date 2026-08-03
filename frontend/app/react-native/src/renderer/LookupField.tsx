@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 interface LookupOption {
   value: string;
@@ -74,13 +75,13 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
 
   return (
     <View>
-      <TouchableOpacity style={styles.input} onPress={openPanel} activeOpacity={editable ? 0.7 : 1}>
+      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={openPanel} activeOpacity={editable ? 0.7 : 1}>
         <Text style={!display ? styles.placeholder : undefined}>{display || label || 'Select…'}</Text>
       </TouchableOpacity>
       {open && (
-        <Modal animationType="fade" transparent onRequestClose={() => setOpen(false)}>
-          <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
-            <TouchableOpacity activeOpacity={1} style={styles.panel} onPress={() => {}}>
+        <Modal accessibilityViewIsModal accessibilityLabel="Select a value" animationType="fade" transparent onRequestClose={() => setOpen(false)}>
+          <TouchableOpacity {...buttonA11y()} style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
+            <TouchableOpacity {...buttonA11y()} activeOpacity={1} style={styles.panel} onPress={() => {}}>
               <TextInput
                 style={styles.search}
                 value={searchText}
@@ -93,14 +94,14 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
               <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
                 {!loading && options.length === 0 && <Text style={styles.empty}>No results</Text>}
                 {options.map((opt) => (
-                  <TouchableOpacity key={opt.value} style={styles.option} onPress={() => pick(opt)}>
+                  <TouchableOpacity {...buttonA11y()} key={opt.value} style={styles.option} onPress={() => pick(opt)}>
                     <Text style={opt.value === value ? styles.optionSelected : undefined}>{opt.label}</Text>
                     {!!opt.description && <Text style={styles.optionDescription}>{opt.description}</Text>}
                   </TouchableOpacity>
                 ))}
               </ScrollView>
               {!!value && (
-                <TouchableOpacity style={styles.clear} onPress={() => { setPickedLabel(null); onChange(''); setOpen(false); }}>
+                <TouchableOpacity {...buttonA11y()} style={styles.clear} onPress={() => { setPickedLabel(null); onChange(''); setOpen(false); }}>
                   <Text style={styles.clearText}>Clear</Text>
                 </TouchableOpacity>
               )}

@@ -20,7 +20,9 @@ import { MateuViewHost } from './src/renderer/MateuViewHost';
 // the required renderer version (see src/core/AppRegistry.ts). No registry configured →
 // DEV fallback: on a real device (Expo Go) "localhost" is the PHONE, so the backend host is
 // derived from the Expo dev server the bundle was loaded from (hostUri).
-const MATEU_BACKEND_PORT = 8594;
+// Overridable so a dev (or a probe) can point the app at a different backend without editing
+// this file — e.g. EXPO_PUBLIC_MATEU_BACKEND_PORT=8080 for the e2e SUT.
+const MATEU_BACKEND_PORT = Number(process.env.EXPO_PUBLIC_MATEU_BACKEND_PORT) || 8594;
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const DEV_CONFIG = {
   baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,

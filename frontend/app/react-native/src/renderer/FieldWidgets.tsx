@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { buttonA11y } from '../a11y/a11y';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
  *  color, image upload, money text, light markdown) — dependency-free except expo-image-picker. */
@@ -33,7 +34,7 @@ export function RadioField({ options, value, editable, onChange }: {
       {options.map((opt) => {
         const on = opt.value === value;
         return (
-          <TouchableOpacity
+          <TouchableOpacity {...buttonA11y()}
             key={opt.value}
             style={styles.radioRow}
             disabled={!editable}
@@ -63,7 +64,7 @@ export function MultiSelectField({ options, value, editable, onChange }: {
       {options.map((opt) => {
         const on = value.includes(opt.value);
         return (
-          <TouchableOpacity
+          <TouchableOpacity {...buttonA11y()}
             key={opt.value}
             style={[styles.chip, on && styles.chipOn]}
             disabled={!editable}
@@ -135,11 +136,11 @@ export function StepperField({ value, step, editable, onChange }: {
   const delta = step > 0 ? step : 1;
   return (
     <View style={styles.stepperRow}>
-      <TouchableOpacity style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value - delta)}>
+      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value - delta)}>
         <Text style={styles.stepperButtonText}>−</Text>
       </TouchableOpacity>
       <Text style={styles.stepperValue}>{value}</Text>
-      <TouchableOpacity style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value + delta)}>
+      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value + delta)}>
         <Text style={styles.stepperButtonText}>+</Text>
       </TouchableOpacity>
     </View>
@@ -156,7 +157,7 @@ export function StarsField({ value, editable, onChange }: {
   return (
     <View style={styles.starsRow}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <TouchableOpacity key={n} disabled={!editable} onPress={() => onChange(n === value ? 0 : n)}>
+        <TouchableOpacity {...buttonA11y()} key={n} disabled={!editable} onPress={() => onChange(n === value ? 0 : n)}>
           <Text style={[styles.star, n <= value && styles.starOn]}>★</Text>
         </TouchableOpacity>
       ))}
@@ -189,7 +190,7 @@ export function ColorField({ value, editable, onChange }: {
       {editable && (
         <View style={styles.chips}>
           {PALETTE.map((c) => (
-            <TouchableOpacity key={c} style={[styles.colorOption, { backgroundColor: c }]} onPress={() => onChange(c)} />
+            <TouchableOpacity {...buttonA11y()} key={c} style={[styles.colorOption, { backgroundColor: c }]} onPress={() => onChange(c)} />
           ))}
         </View>
       )}
@@ -222,11 +223,11 @@ export function UploadableImageField({ value, editable, onChange }: {
       {value ? <Image source={{ uri: value }} style={styles.imagePreview} resizeMode="contain" /> : null}
       {editable && (
         <View style={styles.imageButtons}>
-          <TouchableOpacity style={styles.imageButton} onPress={() => void pick()}>
+          <TouchableOpacity {...buttonA11y()} style={styles.imageButton} onPress={() => void pick()}>
             <Text style={styles.imageButtonText}>{value ? 'Replace' : 'Upload'}</Text>
           </TouchableOpacity>
           {!!value && (
-            <TouchableOpacity style={styles.imageButton} onPress={() => onChange('')}>
+            <TouchableOpacity {...buttonA11y()} style={styles.imageButton} onPress={() => onChange('')}>
               <Text style={styles.imageDeleteText}>Delete</Text>
             </TouchableOpacity>
           )}
@@ -256,7 +257,7 @@ export function formatMoney(value: unknown): string {
 export function LinkText({ value }: { value: string }) {
   if (!value) return <Text style={styles.emptyText}>—</Text>;
   return (
-    <TouchableOpacity onPress={() => void Linking.openURL(value)}>
+    <TouchableOpacity {...buttonA11y()} onPress={() => void Linking.openURL(value)}>
       <Text style={styles.link}>{value}</Text>
     </TouchableOpacity>
   );

@@ -32,6 +32,7 @@ import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 interface Props {
   component: unknown;
@@ -147,7 +148,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
       return (
-        <TouchableOpacity style={styles.btnDefault} onPress={() => void controller.runAction(id, parameters)}>
+        <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => void controller.runAction(id, parameters)}>
           <Text style={styles.btnDefaultText}>{label}</Text>
         </TouchableOpacity>
       );

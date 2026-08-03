@@ -23,6 +23,7 @@ import {
   isGroupRow,
   ListingData,
 } from '../core/listingGroups';
+import { buttonA11y } from '../a11y/a11y';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -305,7 +306,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 const id = btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
                 return (
-                  <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => void controller.runAction(id)}>
+                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => void controller.runAction(id)}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{btn.label ?? id}</Text>
                   </TouchableOpacity>
                 );
@@ -326,13 +327,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             returnKeyType="search"
           />
           {filters.length > 0 && (
-            <TouchableOpacity style={styles.btnDefault} onPress={() => setFiltersOpen(!filtersOpen)}>
+            <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => setFiltersOpen(!filtersOpen)}>
               <Text style={styles.btnDefaultText}>
                 Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
               </Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.btnPrimary} onPress={() => doSearch()}>
+          <TouchableOpacity {...buttonA11y()} style={styles.btnPrimary} onPress={() => doSearch()}>
             <Text style={styles.btnPrimaryText}>Search</Text>
           </TouchableOpacity>
         </View>
@@ -365,14 +366,14 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.cardRow} onPress={() => handleRowPress(item)}>
+                <TouchableOpacity {...buttonA11y()} style={styles.cardRow} onPress={() => handleRowPress(item)}>
                   {rowsSelectionEnabled && (
-                    <TouchableOpacity style={styles.checkboxCard} onPress={() => toggleRow(item)}>
+                    <TouchableOpacity {...buttonA11y()} style={styles.checkboxCard} onPress={() => toggleRow(item)}>
                       <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
                     </TouchableOpacity>
                   )}
                   {editableCols.length > 0 && (
-                    <TouchableOpacity style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
+                    <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
                       <Text style={styles.editPencilText}>✎</Text>
                     </TouchableOpacity>
                   )}
@@ -408,11 +409,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
               ) : (
                 <View style={styles.listRowWrap}>
                   {rowsSelectionEnabled && (
-                    <TouchableOpacity style={styles.checkboxList} onPress={() => toggleRow(item)}>
+                    <TouchableOpacity {...buttonA11y()} style={styles.checkboxList} onPress={() => toggleRow(item)}>
                       <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
+                  <TouchableOpacity {...buttonA11y()} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
                     <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''])}</Text>
                     <Text style={styles.listSecondary} numberOfLines={1}>
                       {colDefs.slice(1).map((c) => cellText(item[c.fieldId])).filter(Boolean).join(' · ')}
@@ -439,12 +440,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             {/* Table header — tapping a sortable column cycles the sort */}
             <View style={styles.tableHeader}>
               {rowsSelectionEnabled && (
-                <TouchableOpacity style={styles.checkboxCell} onPress={toggleAll}>
+                <TouchableOpacity {...buttonA11y()} style={styles.checkboxCell} onPress={toggleAll}>
                   <Text style={styles.checkboxText}>{allSelected ? '☑' : '☐'}</Text>
                 </TouchableOpacity>
               )}
               {colDefs.map((col) => (
-                <TouchableOpacity
+                <TouchableOpacity {...buttonA11y()}
                   key={col.fieldId}
                   style={styles.headerCell}
                   disabled={!col.sortable}
@@ -478,9 +479,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
                   </View>
                 ) : (
-                  <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
+                  <TouchableOpacity {...buttonA11y()} style={styles.tableRow} onPress={() => handleRowPress(item)}>
                     {rowsSelectionEnabled && (
-                      <TouchableOpacity style={styles.checkboxCell} onPress={() => toggleRow(item)}>
+                      <TouchableOpacity {...buttonA11y()} style={styles.checkboxCell} onPress={() => toggleRow(item)}>
                         <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
                       </TouchableOpacity>
                     )}
@@ -490,7 +491,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       </View>
                     ))}
                     {editableCols.length > 0 && (
-                      <TouchableOpacity style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
+                      <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
                         <Text style={styles.editPencilText}>✎</Text>
                       </TouchableOpacity>
                     )}
@@ -537,7 +538,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar}>
-          <TouchableOpacity
+          <TouchableOpacity {...buttonA11y()}
             style={[styles.btnDefault, pageNumber <= 0 && styles.btnDisabled]}
             onPress={() => pageNumber > 0 && changePage(-1)}
             disabled={pageNumber <= 0}
@@ -547,7 +548,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           <Text style={styles.paginationInfo}>
             Page {pageNumber + 1} / {totalPages} ({totalElements} total)
           </Text>
-          <TouchableOpacity
+          <TouchableOpacity {...buttonA11y()}
             style={[styles.btnDefault, (pageNumber + 1) * pageSize >= totalElements && styles.btnDisabled]}
             onPress={() => (pageNumber + 1) * pageSize < totalElements && changePage(1)}
             disabled={(pageNumber + 1) * pageSize >= totalElements}
@@ -578,7 +579,7 @@ function TreeRows({ rows, colDefs, depth, onPress }: {
           <View key={i}>
             <View style={[styles.listRow, { paddingLeft: 12 + depth * 20, flexDirection: 'row', alignItems: 'center' }]}>
               {children.length > 0 ? (
-                <TouchableOpacity
+                <TouchableOpacity {...buttonA11y()}
                   style={styles.treeCaret}
                   onPress={() => setOpenRows(open ? openRows.filter((n) => n !== i) : [...openRows, i])}
                 >
@@ -587,7 +588,7 @@ function TreeRows({ rows, colDefs, depth, onPress }: {
               ) : (
                 <View style={styles.treeCaret} />
               )}
-              <TouchableOpacity style={{ flex: 1 }} onPress={() => onPress(row)}>
+              <TouchableOpacity {...buttonA11y()} style={{ flex: 1 }} onPress={() => onPress(row)}>
                 <Text style={styles.cardPrimary} numberOfLines={1}>
                   {String(row[colDefs[0]?.fieldId ?? ''] ?? '')}
                 </Text>
@@ -677,7 +678,7 @@ function FilterPanel({ filters, values, onChange, onApply, onClear }: {
                 {(f.options ?? []).map((opt) => {
                   const on = selected.includes(opt.value);
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity {...buttonA11y()}
                       key={opt.value}
                       style={[styles.filterChip, on && styles.filterChipOn]}
                       onPress={() =>
@@ -702,10 +703,10 @@ function FilterPanel({ filters, values, onChange, onApply, onClear }: {
         );
       })}
       <View style={styles.filterButtons}>
-        <TouchableOpacity style={styles.btnDefault} onPress={onClear}>
+        <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={onClear}>
           <Text style={styles.btnDefaultText}>Clear filters</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPrimary} onPress={onApply}>
+        <TouchableOpacity {...buttonA11y()} style={styles.btnPrimary} onPress={onApply}>
           <Text style={styles.btnPrimaryText}>Apply</Text>
         </TouchableOpacity>
       </View>

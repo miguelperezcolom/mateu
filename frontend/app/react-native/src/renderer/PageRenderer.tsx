@@ -5,6 +5,7 @@ import { PageBanner } from '../core/MateuViewController';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { theme } from '../theme';
+import { buttonA11y, headingA11y } from '../a11y/a11y';
 
 interface ButtonDto {
   actionId?: string;
@@ -66,7 +67,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
               {!!banner.description && <Text style={styles.bannerText}>{interpolate(banner.description, { state })}</Text>}
             </View>
             {banner.hasCloseButton && (
-              <TouchableOpacity onPress={() => setDismissed((d) => [...d, i])}>
+              <TouchableOpacity {...buttonA11y({ label: 'Dismiss notice' })} onPress={() => setDismissed((d) => [...d, i])}>
                 <Text style={styles.bannerClose}>✕</Text>
               </TouchableOpacity>
             )}
@@ -97,7 +98,11 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
     <View style={styles.root}>
       {(!!title || !!subtitle || toolbar.length > 0) && (
         <View style={styles.header}>
-          {!!title && <Text style={styles.title}>{title}</Text>}
+          {!!title && (
+            // Marked as a heading so the rotor / reading controls can jump between screens'
+            // sections instead of forcing a linear read from the top.
+            <Text style={styles.title} {...headingA11y(1)}>{title}</Text>
+          )}
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           {badges.length > 0 && (
             <View style={styles.badges}>
@@ -124,7 +129,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
                 const id = btn.actionId ?? btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
                 return (
-                  <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                       {interpolate(btn.label ?? id, ctx)}
                     </Text>
@@ -147,7 +152,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
       {fabs.length > 0 && (
         <View style={styles.fabStack} pointerEvents="box-none">
           {fabs.map((fab, i) => (
-            <TouchableOpacity key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
+            <TouchableOpacity {...buttonA11y()} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
               <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
             </TouchableOpacity>
           ))}
@@ -160,7 +165,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
             const id = btn.actionId ?? btn.id ?? '';
             const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
             return (
-              <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+              <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
                 <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                   {interpolate(btn.label ?? id, ctx)}
                 </Text>

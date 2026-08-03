@@ -4,6 +4,7 @@ import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { DashboardPanel, MetricCard } from '../api/metadata';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -43,7 +44,7 @@ export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
 
   if (actionId) {
     return (
-      <TouchableOpacity style={styles.metricCard} onPress={() => runAction(actionId)}>
+      <TouchableOpacity {...buttonA11y()} style={styles.metricCard} onPress={() => runAction(actionId)}>
         {body}
       </TouchableOpacity>
     );

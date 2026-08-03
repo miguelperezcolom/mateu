@@ -18,6 +18,9 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     val actionId = metadata.text("actionId", id)
     val label = metadata.text("label", actionId)
     val button = JButton(label)
+    // A label rendered as a glyph or an icon leaves the accessible name empty; setting it from
+    // the wire label makes every Mateu button announce what it does, whatever it looks like.
+    button.accessibleName(label)
     button.isEnabled = !metadata.bool("disabled")
     if (metadata.text("buttonStyle").equals("Primary", ignoreCase = true)) {
         button.putClientProperty("gotItButton", true)

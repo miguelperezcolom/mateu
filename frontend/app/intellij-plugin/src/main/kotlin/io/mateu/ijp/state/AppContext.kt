@@ -449,7 +449,13 @@ class AppContext(val session: AppSession) {
             if (fieldErrors.isNotEmpty()) {
                 currentFieldErrors.putAll(fieldErrors)
                 rerenderCurrentForm()
-                showMessage(fieldErrors.entries.joinToString("; ") { "${it.key}: ${it.value}" }, "warning", "Revisa los campos")
+                val summary = fieldErrors.entries.joinToString("; ") { "${it.key}: ${it.value}" }
+                showMessage(summary, "warning", "Revisa los campos")
+                // A balloon is a visual affordance; a screen-reader user gets no signal that the
+                // save was refused. Speak it, and put the focus on the first rejected field so
+                // they are taken to the problem rather than told there is one somewhere.
+                contentPane?.let { io.mateu.ijp.ui.announce(it, "Revisa los campos. $summary") }
+                focusFirstInvalidField(fieldErrors.keys.firstOrNull())
                 return
             }
         }
@@ -518,6 +524,25 @@ class AppContext(val session: AppSession) {
     // shortcuts scoped to this view's root component — they show in tooltips, respect focus, and
     // never fight the editor's keymap outside the view. Re-registered on every component (re)load.
     private val shortcutActions = ArrayList<com.intellij.openapi.actionSystem.AnAction>()
+
+    /**
+     * Puts the focus on the control the server (or client validation) rejected.
+     *
+     * Fields are found by the `fieldId` the renderer stamps as a client property, so this needs no
+     * second map from id to component and cannot drift as the field branches change.
+     */
+    private fun focusFirstInvalidField(fieldId: String?) {
+        if (fieldId == null) return
+        val root = contentPane ?: return
+        fun find(c: java.awt.Container): JComponent? {
+            for (child in c.components) {
+                if (child is JComponent && child.getClientProperty("mateu.fieldId") == fieldId) return child
+                if (child is java.awt.Container) find(child)?.let { return it }
+            }
+            return null
+        }
+        find(root)?.let { javax.swing.SwingUtilities.invokeLater { it.requestFocusInWindow() } }
+    }
 
     private fun registerShortcutActions(actionNodes: JsonNode) {
         val root = contentPane ?: return

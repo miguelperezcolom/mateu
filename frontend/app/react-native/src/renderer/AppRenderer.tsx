@@ -9,6 +9,7 @@ import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -95,7 +96,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { rou
     <View style={styles.stackHost}>
       {stack.length > 0 && (
         <View style={styles.backBar}>
-          <TouchableOpacity onPress={pop} style={styles.backButton}>
+          <TouchableOpacity {...buttonA11y()} onPress={pop} style={styles.backButton}>
             <Text style={styles.backText}>‹ Back</Text>
           </TouchableOpacity>
           {!!top.label && <Text style={styles.backTitle}>{top.label}</Text>}
@@ -196,7 +197,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
           : base;
         return (
           <View key={selector.fieldName}>
-            <TouchableOpacity
+            <TouchableOpacity {...buttonA11y()}
               style={styles.contextRow}
               onPress={() => {
                 setSearchText('');
@@ -218,7 +219,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
             )}
             {open &&
               [{ value: '', label: '—' }, ...visible].map((option, i) => (
-                <TouchableOpacity
+                <TouchableOpacity {...buttonA11y()}
                   key={i}
                   style={styles.contextOption}
                   onPress={() => {
@@ -328,7 +329,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
 
   return (
     <View>
-      <TouchableOpacity
+      <TouchableOpacity {...buttonA11y()}
         style={styles.contextRow}
         onPress={() => {
           const next = !open;
@@ -351,7 +352,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
         <View>
           {notifications.length === 0 && <Text style={styles.bellEmpty}>No notifications</Text>}
           {notifications.map((n, i) => (
-            <TouchableOpacity key={n.id ?? i} style={styles.bellEntry} onPress={() => void entryPressed(n)}>
+            <TouchableOpacity {...buttonA11y()} key={n.id ?? i} style={styles.bellEntry} onPress={() => void entryPressed(n)}>
               <View style={[styles.bellDot, n.unread && styles.bellDotUnread]} />
               <View style={styles.bellEntryBody}>
                 <View style={styles.bellEntryTop}>
@@ -365,7 +366,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
             </TouchableOpacity>
           ))}
           {notifications.length > 0 && (
-            <TouchableOpacity style={styles.bellMarkAll} disabled={unread === 0} onPress={() => void markRead('all')}>
+            <TouchableOpacity {...buttonA11y()} style={styles.bellMarkAll} disabled={unread === 0} onPress={() => void markRead('all')}>
               <Text style={[styles.bellMarkAllText, unread === 0 && styles.bellMarkAllDisabled]}>Mark all read</Text>
             </TouchableOpacity>
           )}
@@ -438,13 +439,13 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
       {!!text && (menuMatches.length > 0 || hits.length > 0) && (
         <View style={styles.globalSearchResults}>
           {menuMatches.map((item, i) => (
-            <TouchableOpacity key={`menu-${i}`} style={styles.globalSearchHit} onPress={() => pick(item)}>
+            <TouchableOpacity {...buttonA11y()} key={`menu-${i}`} style={styles.globalSearchHit} onPress={() => pick(item)}>
               <Text style={styles.globalSearchHitLabel} numberOfLines={1}>{item.label}</Text>
               <Text style={styles.globalSearchHitCategory}>Menu</Text>
             </TouchableOpacity>
           ))}
           {hits.map((hit, i) => (
-            <TouchableOpacity
+            <TouchableOpacity {...buttonA11y()}
               key={`hit-${i}`}
               style={styles.globalSearchHit}
               onPress={() => pick({ label: hit.label, route: hit.route, consumedRoute: '', serverSideType: '' })}
@@ -481,7 +482,7 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
         );
       }
       return (
-        <TouchableOpacity key={i} style={[styles.menuItem, { paddingLeft: 20 + depth * 12 }]} onPress={() => onNavigate(item)}>
+        <TouchableOpacity {...buttonA11y()} key={i} style={[styles.menuItem, { paddingLeft: 20 + depth * 12 }]} onPress={() => onNavigate(item)}>
           <Text style={styles.menuItemText}>{item.label}</Text>
         </TouchableOpacity>
       );
@@ -531,12 +532,12 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
     <>
       <View style={styles.appFabStack} pointerEvents="box-none">
         {fabs.map((fab, i) => (
-          <TouchableOpacity key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
+          <TouchableOpacity {...buttonA11y()} key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
             <Text style={styles.appFabText}>{fab.label || '+'}</Text>
           </TouchableOpacity>
         ))}
         {!!appMeta.sseUrl && (
-          <TouchableOpacity style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
+          <TouchableOpacity {...buttonA11y({ label: 'Open assistant' })} style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
             <Text style={styles.appFabText}>💬</Text>
           </TouchableOpacity>
         )}
@@ -623,7 +624,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
             title: appMeta.title ?? 'Mateu',
             headerRight: appMeta.themeToggle
               ? () => (
-                  <TouchableOpacity style={styles.themeToggle} onPress={() => setDark(!dark)}>
+                  <TouchableOpacity {...buttonA11y()} style={styles.themeToggle} onPress={() => setDark(!dark)}>
                     <Text style={styles.themeToggleText}>{dark ? '☀️' : '🌙'}</Text>
                   </TouchableOpacity>
                 )

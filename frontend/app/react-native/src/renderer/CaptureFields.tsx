@@ -4,6 +4,7 @@ import { Image, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'r
 import Svg, { Polyline } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 // Capture fields (@Signature / @PhotoCapture): both commit a data URI through onChange, the same
 // self-contained wire contract as the web renderers — the value travels in the field string, no
@@ -66,10 +67,10 @@ export function SignatureField({ value, editable, onChange }: {
         <Image source={{ uri: value }} style={styles.preview} resizeMode="contain" />
         {editable && (
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.button} onPress={() => { setStrokes([]); setSigning(true); }}>
+            <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => { setStrokes([]); setSigning(true); }}>
               <Text>Sign again</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={() => onChange('')}>
+            <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => onChange('')}>
               <Text style={styles.danger}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -89,15 +90,15 @@ export function SignatureField({ value, editable, onChange }: {
         </Svg>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.button} onPress={() => setStrokes([])}>
+        <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => setStrokes([])}>
           <Text>Clear</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.primary, !hasStrokes && styles.disabled]}
+        <TouchableOpacity {...buttonA11y()} style={[styles.button, styles.primary, !hasStrokes && styles.disabled]}
                           onPress={accept} disabled={!hasStrokes}>
           <Text style={styles.primaryText}>Accept</Text>
         </TouchableOpacity>
         {!!value && (
-          <TouchableOpacity style={styles.button} onPress={() => setSigning(false)}>
+          <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => setSigning(false)}>
             <Text>Cancel</Text>
           </TouchableOpacity>
         )}
@@ -140,10 +141,10 @@ export function PhotoCaptureField({ value, editable, onChange }: {
       <View>
         <CameraView ref={cameraRef} style={styles.viewfinder} facing="back" />
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.button, styles.primary]} onPress={shoot}>
+          <TouchableOpacity {...buttonA11y()} style={[styles.button, styles.primary]} onPress={shoot}>
             <Text style={styles.primaryText}>Capture</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setCameraOpen(false)}>
+          <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => setCameraOpen(false)}>
             <Text>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -158,11 +159,11 @@ export function PhotoCaptureField({ value, editable, onChange }: {
         : <View style={styles.placeholderBox}><Text style={styles.placeholderIcon}>📷</Text></View>}
       {editable && (
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.button, styles.primary]} onPress={open}>
+          <TouchableOpacity {...buttonA11y()} style={[styles.button, styles.primary]} onPress={open}>
             <Text style={styles.primaryText}>{value ? 'Retake' : 'Take photo'}</Text>
           </TouchableOpacity>
           {!!value && (
-            <TouchableOpacity style={styles.button} onPress={() => onChange('')}>
+            <TouchableOpacity {...buttonA11y()} style={styles.button} onPress={() => onChange('')}>
               <Text style={styles.danger}>Delete</Text>
             </TouchableOpacity>
           )}

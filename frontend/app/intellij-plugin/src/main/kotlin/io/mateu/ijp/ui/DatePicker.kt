@@ -43,10 +43,10 @@ private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) :
 
     init {
         val nav = JPanel(BorderLayout())
-        nav.add(JButton("‹").apply { addActionListener { ym = ym.minusMonths(1); rebuild() } }, BorderLayout.WEST)
+        nav.add(JButton("‹").apply { accessibleName("Previous month"); addActionListener { ym = ym.minusMonths(1); rebuild() } }, BorderLayout.WEST)
         header.font = header.font.deriveFont(Font.BOLD)
         nav.add(header, BorderLayout.CENTER)
-        nav.add(JButton("›").apply { addActionListener { ym = ym.plusMonths(1); rebuild() } }, BorderLayout.EAST)
+        nav.add(JButton("›").apply { accessibleName("Next month"); addActionListener { ym = ym.plusMonths(1); rebuild() } }, BorderLayout.EAST)
         add(nav, BorderLayout.NORTH)
         add(grid, BorderLayout.CENTER)
         rebuild()
@@ -116,8 +116,14 @@ class DateField(
         val pick = JButton()
         runCatching { pick.icon = com.intellij.icons.AllIcons.General.ArrowDownSmall }
             .onFailure { pick.text = "▾" }
+        // Named on BOTH paths: with the icon there is no text at all, so without this the button
+        // is announced as an unnamed button — the icon path is the common one.
+        pick.accessibleName("Pick a date")
         pick.preferredSize = java.awt.Dimension(JBUI.scale(24), input.preferredSize.height)
-        pick.isFocusable = false
+        // Focusable, or browsing months is mouse-only. Typing an ISO date into the field is a
+        // valid alternative, but it is not the same functionality, so the picker needs its own
+        // keyboard route to it.
+        pick.isFocusable = true
         pick.isEnabled = enabled
         pick.addActionListener {
             val current = runCatching { LocalDate.parse(input.text.trim()) }.getOrNull()

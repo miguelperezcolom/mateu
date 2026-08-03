@@ -368,6 +368,9 @@ tasks.register<JavaExec>("renderProbe") {
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
     (findProperty("probe.nativeToolbar") as String?)?.let { systemProperty("probe.nativeToolbar", it) }
     (findProperty("probe.followUp") as String?)?.let { systemProperty("probe.followUp", it) }
+    // Without this the nested loads (a routed component inside an app shell) go to the default
+    // backend and silently render nothing — the probe then reports an app shell with no content.
+    (findProperty("probe.baseUrl") as String?)?.let { systemProperty("probe.baseUrl", it) }
     jvmArgs(
         "--add-exports=java.desktop/sun.swing=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",

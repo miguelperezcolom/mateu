@@ -62,6 +62,61 @@ cd e2e && npm run a11y          # ad-hoc audit over a set of routes
 
 `vaadin-tabs` is `role="tablist"` and puts a `<div part="tabs" tabindex="-1">` inside its own shadow root; axe counts that as a child the role does not allow. Nothing in the wire model or in any Mateu renderer can change it — the fix belongs upstream. The carve-out is scoped to that one rule on that one element, so a real tablist mistake still fails the build.
 
+## Native renderers
+
+The same guarantees, expressed in each platform's own accessibility API rather than in ARIA.
+
+### React Native (iOS & Android)
+
+Mobile screen readers read an accessibility tree that React Native builds only from explicit
+props — there is nothing to infer it from. Two differences from the web matter:
+
+- **A `TextInput` cannot be associated with a nearby label.** There is no `labelFor`, no
+  `aria-labelledby`. So the field's name is handed to the control itself: `"Name, required"`, and
+  `"Name, required, invalid: Cannot be empty"` once the server rejects it. The error goes in the
+  NAME, not the hint — hints are announced last and can be switched off entirely in the OS
+  settings, so a message the user must hear cannot live there.
+- **A tappable is accessible by default but is not announced AS a button.** Every one now carries
+  a role; icon-only ones ("✕", "➤", "💬") carry an explicit label, since otherwise the glyph is
+  all the user hears.
+
+Overlays are marked modal, headings are marked as headings, and a refused save or a completed
+navigation is spoken through `AccessibilityInfo.announceForAccessibility` — the mobile equivalent
+of the web renderers' live region.
+
+Verify it with the probe (React Native for Web maps the props onto their DOM equivalents, which is
+what makes this checkable without a device farm):
+
+```bash
+cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8080 npx expo start --web --port 19006
+cd e2e && RN_SUBMIT=1 node rn-a11y-probe.mjs
+```
+
+### IntelliJ plugin (desktop)
+
+Desktop screen readers read Swing's `AccessibleContext`, which Swing populates almost not at all.
+
+- **The caption is bound to the control it names** (`setLabelFor`) — the Swing analogue of
+  `<label for>`. Without it the field is announced as an unnamed edit box and the label reads as
+  stray text.
+- **Composite fields name their inner control too.** A date field is a text box plus a button, a
+  stepper is a spinner wrapping a formatted field; the screen reader follows the FOCUS, which
+  lands inside, so a name on the wrapper alone is never read.
+- **Required state and `@Help` are spoken**, not just drawn as an asterisk and a grey caption, and
+  a validation error is folded into the control's own description.
+- Icon-only buttons carry names, and the date picker's trigger is now focusable — browsing months
+  used to be mouse-only.
+
+Verify it with the render probe, which prints the accessibility tree beside the visual one:
+
+```bash
+cd frontend/app/intellij-plugin
+./gradlew renderProbe -Pprobe.json=<increment.json> -Pprobe.baseUrl=http://localhost:8080
+```
+
+Each component prints `a11yName`, `a11yDesc` and `labelFor` — a control with no accessible name is
+indistinguishable from a correct one in a screenshot, which is exactly why the probe reports it.
+
 ## Writing accessible screens yourself
 
 The framework covers the generated UI. Two things are still yours:

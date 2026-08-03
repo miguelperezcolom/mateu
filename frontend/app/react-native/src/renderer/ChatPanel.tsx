@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { MateuSession } from '../core/MateuSession';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 interface Message {
   from: 'user' | 'agent';
@@ -53,12 +54,12 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
   };
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={onClose}>
+    <Modal accessibilityViewIsModal accessibilityLabel="Assistant" animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Assistant</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity {...buttonA11y({ label: 'Close assistant' })} onPress={onClose}>
               <Text style={styles.close}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -80,7 +81,7 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
               onSubmitEditing={() => void send()}
               editable={!busy}
             />
-            <TouchableOpacity style={styles.send} onPress={() => void send()} disabled={busy}>
+            <TouchableOpacity {...buttonA11y({ label: 'Send message', disabled: busy })} style={styles.send} onPress={() => void send()} disabled={busy}>
               <Text style={styles.sendText}>➤</Text>
             </TouchableOpacity>
           </View>

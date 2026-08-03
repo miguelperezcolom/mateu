@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { ComponentRenderer } from './ComponentRenderer';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 interface ButtonDto {
   actionId?: string;
@@ -44,7 +45,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
               {actions.map((a, i) => {
                 const id = a.actionId ?? a.id ?? '';
                 return (
-                  <TouchableOpacity key={i} style={styles.btnPrimary} onPress={() => handleAction(id)}>
+                  <TouchableOpacity {...buttonA11y()} key={i} style={styles.btnPrimary} onPress={() => handleAction(id)}>
                     <Text style={styles.btnPrimaryText}>{a.label ?? id}</Text>
                   </TouchableOpacity>
                 );
@@ -66,7 +67,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
             const id = btn.actionId ?? btn.id ?? '';
             const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
             return (
-              <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+              <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
                 <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{btn.label ?? id}</Text>
               </TouchableOpacity>
             );

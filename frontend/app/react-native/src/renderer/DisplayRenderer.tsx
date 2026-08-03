@@ -4,6 +4,7 @@ import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { AddOn, CalendarEvent, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -35,7 +36,7 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
         const icon = displayIcon(p.icon);
         return (
           <View key={i} style={styles.foldoutPanel}>
-            <TouchableOpacity style={styles.foldoutHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
+            <TouchableOpacity {...buttonA11y()} style={styles.foldoutHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
               <View style={styles.foldoutHeaderText}>
                 <Text style={styles.foldoutTitle}>{icon ? `${icon} ` : ''}{p.title ?? ''}</Text>
                 {!!p.subtitle && <Text style={styles.foldoutSubtitle}>{p.subtitle}</Text>}
@@ -113,7 +114,7 @@ export function EmptyStateRenderer({ metadata }: { metadata: EmptyState }) {
       {!!metadata.title && <Text style={styles.emptyTitle}>{metadata.title}</Text>}
       <Text style={styles.emptyDescription}>{metadata.description ?? 'Nothing here yet.'}</Text>
       {!!actionId && !!metadata.actionLabel && (
-        <TouchableOpacity style={styles.emptyBtn} onPress={() => runAction(actionId)}>
+        <TouchableOpacity {...buttonA11y()} style={styles.emptyBtn} onPress={() => runAction(actionId)}>
           <Text style={styles.emptyBtnText}>{metadata.actionLabel}</Text>
         </TouchableOpacity>
       )}
@@ -243,7 +244,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
               </View>
             );
             return card.actionId ? (
-              <TouchableOpacity key={card.id ?? j} onPress={() => void controller.runAction(card.actionId!)}>
+              <TouchableOpacity {...buttonA11y()} key={card.id ?? j} onPress={() => void controller.runAction(card.actionId!)}>
                 {body}
               </TouchableOpacity>
             ) : body;
@@ -279,7 +280,7 @@ export function TimelineRenderer({ component }: { component: unknown }) {
           </View>
         );
         return it.actionId ? (
-          <TouchableOpacity key={it.id ?? i} onPress={() => void controller.runAction(it.actionId!)}>
+          <TouchableOpacity {...buttonA11y()} key={it.id ?? i} onPress={() => void controller.runAction(it.actionId!)}>
             {body}
           </TouchableOpacity>
         ) : (
@@ -351,7 +352,7 @@ export function StatRenderer({ component }: { component: unknown }) {
     </View>
   );
   return m.actionId ? (
-    <TouchableOpacity onPress={() => void controller.runAction(m.actionId!)}>{tile}</TouchableOpacity>
+    <TouchableOpacity {...buttonA11y()} onPress={() => void controller.runAction(m.actionId!)}>{tile}</TouchableOpacity>
   ) : tile;
 }
 
@@ -384,7 +385,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
           </View>
         );
         return e.actionId ? (
-          <TouchableOpacity key={e.id ?? i} onPress={() => void controller.runAction(e.actionId!)}>{row}</TouchableOpacity>
+          <TouchableOpacity {...buttonA11y()} key={e.id ?? i} onPress={() => void controller.runAction(e.actionId!)}>{row}</TouchableOpacity>
         ) : (
           <View key={e.id ?? i}>{row}</View>
         );
@@ -411,7 +412,7 @@ export function PricingTableRenderer({ component }: { component: unknown }) {
             <Text key={j} style={styles.planFeature}>✓ {f}</Text>
           ))}
           {!!p.ctaLabel && (
-            <TouchableOpacity
+            <TouchableOpacity {...buttonA11y()}
               style={[styles.planCta, p.featured && styles.planCtaFeatured]}
               onPress={() => p.actionId && void controller.runAction(p.actionId)}
             >
@@ -440,7 +441,7 @@ function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
   return (
     <>
       {node.actionId ? (
-        <TouchableOpacity onPress={() => void controller.runAction(node.actionId!)}>{row}</TouchableOpacity>
+        <TouchableOpacity {...buttonA11y()} onPress={() => void controller.runAction(node.actionId!)}>{row}</TouchableOpacity>
       ) : row}
       {(node.children ?? []).map((c, i) => (
         <OrgNodeRow key={c.id ?? i} node={c} depth={depth + 1} />
@@ -547,7 +548,7 @@ export function FeatureGridRenderer({ component }: { component: unknown }) {
           </View>
         );
         return f.actionId ? (
-          <TouchableOpacity key={i} onPress={() => void controller.runAction(f.actionId!)}>{card}</TouchableOpacity>
+          <TouchableOpacity {...buttonA11y()} key={i} onPress={() => void controller.runAction(f.actionId!)}>{card}</TouchableOpacity>
         ) : <View key={i}>{card}</View>;
       })}
     </View>
@@ -587,7 +588,7 @@ export function FaqRenderer({ component }: { component: unknown }) {
     <View style={styles.faq}>
       {items.map((it, i) => (
         <View key={i} style={styles.faqItem}>
-          <TouchableOpacity style={styles.faqQ} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
+          <TouchableOpacity {...buttonA11y()} style={styles.faqQ} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
             <Text style={styles.faqQText}>{it.question ?? ''}</Text>
             <Text style={styles.faqChevron}>{open[i] ? '⌄' : '›'}</Text>
           </TouchableOpacity>
@@ -614,7 +615,7 @@ export function CalloutCardRenderer({ component }: { component: unknown }) {
         {!!m['title'] && <Text style={styles.calloutTitle}>{m['title'] as string}</Text>}
         {!!m['description'] && <Text style={styles.calloutDesc}>{m['description'] as string}</Text>}
         {!!m['ctaLabel'] && (
-          <TouchableOpacity style={[styles.calloutCta, { backgroundColor: accent }]} onPress={() => actionId && void controller.runAction(actionId)}>
+          <TouchableOpacity {...buttonA11y()} style={[styles.calloutCta, { backgroundColor: accent }]} onPress={() => actionId && void controller.runAction(actionId)}>
             <Text style={styles.calloutCtaText}>{m['ctaLabel'] as string}</Text>
           </TouchableOpacity>
         )}
@@ -673,7 +674,7 @@ export function FileListRenderer({ component }: { component: unknown }) {
           </View>
         );
         return f.actionId ? (
-          <TouchableOpacity key={i} onPress={() => void controller.runAction(f.actionId!)}>{row}</TouchableOpacity>
+          <TouchableOpacity {...buttonA11y()} key={i} onPress={() => void controller.runAction(f.actionId!)}>{row}</TouchableOpacity>
         ) : <View key={i}>{row}</View>;
       })}
     </View>
@@ -707,7 +708,7 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
       </View>
       <View style={styles.checkBar}><View style={[styles.checkFill, { width: `${pct}%` }]} /></View>
       {items.map((it, i) => (
-        <TouchableOpacity key={it.id ?? i} style={styles.checkItem} onPress={() => toggle(it, i)}>
+        <TouchableOpacity {...buttonA11y()} key={it.id ?? i} style={styles.checkItem} onPress={() => toggle(it, i)}>
           <View style={[styles.checkBox, done[i] && styles.checkBoxDone]}>
             {done[i] && <Text style={styles.checkMark}>✓</Text>}
           </View>
@@ -814,7 +815,7 @@ export function TaskProgressRenderer({ component }: { component: unknown }) {
         ))}
       </View>
       {!complete && !!actionId && !!actionLabel && (
-        <TouchableOpacity style={styles.taskProgressBtn} onPress={() => void controller.runAction(actionId)}>
+        <TouchableOpacity {...buttonA11y()} style={styles.taskProgressBtn} onPress={() => void controller.runAction(actionId)}>
           <Text style={styles.taskProgressBtnText}>{actionLabel} →</Text>
         </TouchableOpacity>
       )}
@@ -846,7 +847,7 @@ export function StatusListRenderer({ component }: { component: unknown }) {
           </View>
           {!!it.status && <ChipView chip={{ label: it.status, color: it.statusColor }} />}
           {!!it.actionLabel && !!it.actionId && (
-            <TouchableOpacity style={styles.statusBtn} onPress={() => void controller.runAction(it.actionId!, { _item: it.id })}>
+            <TouchableOpacity {...buttonA11y()} style={styles.statusBtn} onPress={() => void controller.runAction(it.actionId!, { _item: it.id })}>
               <Text style={styles.statusBtnText}>{it.actionLabel}</Text>
             </TouchableOpacity>
           )}
@@ -897,7 +898,7 @@ export function NoticeRenderer({ component, state, renderComponent }: {
         ))}
       </View>
       {!!actionLabel && !!actionId ? (
-        <TouchableOpacity
+        <TouchableOpacity {...buttonA11y()}
           style={[styles.noticeBtn, { backgroundColor: colors.badge }]}
           onPress={() => void controller.runAction(actionId)}>
           <Text style={styles.noticeBtnText}>{actionLabel}</Text>
@@ -973,7 +974,7 @@ export function TaskQueueRenderer({ component }: { component: unknown }) {
           {(g.items ?? []).map((it, i) => {
             const sel = it.id === selected;
             return (
-              <TouchableOpacity
+              <TouchableOpacity {...buttonA11y()}
                 key={it.id ?? i}
                 style={[styles.queueCard, sel && styles.queueCardSelected]}
                 onPress={() => {
@@ -1023,7 +1024,7 @@ export function ResourceGridRenderer({ component }: { component: unknown }) {
         return (
           <View key={it.id ?? i} style={{ width: cardWidth, padding: 4 }}>
             {it.disabled ? card : (
-              <TouchableOpacity
+              <TouchableOpacity {...buttonA11y()}
                 onPress={() => {
                   setSelected(it.id);
                   if (actionId) void controller.runAction(actionId, { _item: it.id });
@@ -1065,7 +1066,7 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
           !!m.currentLabel && <Text style={styles.offerCurrentLabel}>{m.currentLabel}</Text>
         ) : (
           !!m.actionLabel && (
-            <TouchableOpacity
+            <TouchableOpacity {...buttonA11y()}
               style={[styles.offerCta, m.added === true && styles.offerCtaAdded]}
               onPress={() => m.actionId && void controller.runAction(m.actionId)}
             >
@@ -1119,7 +1120,7 @@ export function AddOnPickerRenderer({ component }: { component: unknown }) {
                   {!!it.description && <Text style={styles.addOnDesc}>{it.description}</Text>}
                 </View>
                 {!it.includedLabel && (
-                  <TouchableOpacity
+                  <TouchableOpacity {...buttonA11y()}
                     style={[styles.addOnToggle, isAdded && styles.addOnToggleAdded]}
                     onPress={() => toggle(it)}
                   >
@@ -1190,7 +1191,7 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
         {methods.map((pm, i) => {
           const sel = pm.id === selected;
           return (
-            <TouchableOpacity
+            <TouchableOpacity {...buttonA11y()}
               key={pm.id ?? i}
               style={[styles.paymentMethod, sel && styles.paymentMethodSelected]}
               onPress={() => {
@@ -1210,7 +1211,7 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
         </View>
       )}
       {!!m['confirmLabel'] && (
-        <TouchableOpacity
+        <TouchableOpacity {...buttonA11y()}
           style={styles.paymentConfirm}
           onPress={() => actionId && void controller.runAction(actionId, { _method: selected })}
         >
@@ -1248,7 +1249,7 @@ export function ProcessMonitorRenderer({ component }: { component: unknown }) {
             )}
           </View>
           {!!it.actionLabel && !!it.actionId && (
-            <TouchableOpacity style={styles.processBtn} onPress={() => void controller.runAction(it.actionId!)}>
+            <TouchableOpacity {...buttonA11y()} style={styles.processBtn} onPress={() => void controller.runAction(it.actionId!)}>
               <Text style={styles.processBtnText}>{it.actionLabel}</Text>
             </TouchableOpacity>
           )}

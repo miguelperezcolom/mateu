@@ -1,5 +1,6 @@
 import { evaluateExpression } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
+import { announce } from '../a11y/a11y';
 
 type Json = Record<string, any>;
 
@@ -173,11 +174,11 @@ export class MateuViewController {
         this.fieldErrors = errors;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
-        this.session.notify(
-          'Revisa los campos',
-          Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; '),
-          'warning',
-        );
+        const summary = Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; ');
+        this.session.notify('Revisa los campos', summary, 'warning');
+        // A toast is a visual affordance: a screen-reader user gets no indication that the save
+        // was refused, let alone why. Speak it.
+        announce(`Revisa los campos. ${summary}`);
         return;
       }
     }
@@ -672,7 +673,13 @@ export class MateuViewController {
     switch (type) {
       case 'SetWindowTitle': {
         const title = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['title']);
-        if (title && !title.startsWith('[')) this.session.setTitle(title);
+        if (title && !title.startsWith('[')) {
+          this.session.setTitle(title);
+          // Navigating in a native app replaces the screen without any platform-level signal a
+          // screen reader would pick up on its own, so it is announced here — the mobile
+          // counterpart of the web renderers' live-region announcement.
+          announce(title);
+        }
         break;
       }
       case 'NavigateTo': {

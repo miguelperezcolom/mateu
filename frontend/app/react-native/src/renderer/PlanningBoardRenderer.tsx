@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
+import { buttonA11y } from '../a11y/a11y';
 
 /**
  * Planning board / tape chart (PlanningBoardDto) — READ-ONLY on native: rows = resources (with
@@ -137,7 +138,7 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
                   <View key={dayIndex} style={[styles.gridLine, { left: dayIndex * DAY_W }]} />
                 ))}
                 {blocksFor(row.resource.id).map(({ block, left, width }, j) => (
-                  <TouchableOpacity
+                  <TouchableOpacity {...buttonA11y()}
                     key={block.id ?? j}
                     style={[styles.block, { left, width, backgroundColor: block.color || '#7aa7d9' }]}
                     disabled={!metadata.selectActionId}
