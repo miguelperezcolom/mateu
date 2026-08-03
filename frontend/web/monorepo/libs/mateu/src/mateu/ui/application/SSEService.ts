@@ -6,10 +6,17 @@ import { appData, appState, upstream } from "@domain/state.ts";
 import { notify } from "@application/Notifier.ts";
 import { LitElement } from "lit";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
+import { RunActionOptions } from "@domain/MateuApiClient";
 
 export class SSEService implements Service {
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: ComponentState, serverSideType: string, componentState: ComponentState, parameters: Record<string, unknown>, initiator: HTMLElement, background: boolean, callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: ComponentState, serverSideType: string, componentState: ComponentState, parameters: Record<string, unknown>, initiator: HTMLElement, background: boolean, callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string, options: RunActionOptions = {}): Promise<void> {
+        // Same contract as HttpService: "Retry" re-runs the whole streamed action.
+        const retry = () => {
+            void this.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId,
+                initiatorComponentId, _appState, serverSideType, componentState, parameters,
+                initiator, background, callback, callbackonly, callbackToken, options)
+        }
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -135,7 +142,8 @@ export class SSEService implements Service {
                     composed: true,
                     detail: {
                         actionId,
-                        reason: this.serialize(reason)
+                        reason: this.serialize(reason),
+                        retry
                     }
                 }))
                     initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {

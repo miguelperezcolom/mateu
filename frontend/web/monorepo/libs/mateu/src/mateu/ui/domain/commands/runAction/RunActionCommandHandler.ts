@@ -17,7 +17,8 @@ export class RunActionCommandHandler {
             command.componentState,
             command.parameters,
             command.initiator,
-            command.background
+            command.background,
+            command.options
         )
     }
 

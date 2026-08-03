@@ -123,6 +123,29 @@ Use it when you need more than a bare button.
 - modal settings
 - selected-row requirement
 - fields to validate
+- how the CLIENT calls the action: `timeoutMillis` and `idempotent`
+
+### Behaviour on a slow or unreliable connection
+
+```java
+// A lookup the user is waiting on: give up quickly so they can retype.
+@Action(timeoutMillis = 5000)
+public void quickLookup() { … }
+
+// Batch work: a long ceiling, and safe for the client to re-send after a blip.
+@Action(timeoutMillis = 120000, idempotent = true)
+public Message recalculateTotals() { … }
+```
+
+- `timeoutMillis` — request ceiling for this action in ms. `0` (the default) keeps the client's
+  own 60 s ceiling. One global timeout cannot serve both a type-ahead lookup and a report export.
+- `idempotent` — declares that re-running the action cannot apply the same change twice, so the
+  client may retry it by itself after a transient failure. Defaults to `false`: after a timeout
+  the client cannot know whether the server processed the request, so writes are never repeated
+  behind the user's back. Reads (route loads, searches, lookups) are detected automatically.
+
+See [Slow connections](/ux-patterns/slow-connections/) for everything the framework does on a bad
+network without any declaration.
 
 ---
 

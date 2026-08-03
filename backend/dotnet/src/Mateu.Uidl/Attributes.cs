@@ -110,6 +110,27 @@ public sealed class ButtonAttribute(string? label = null) : Attribute
     public string? Label { get; } = label;
 }
 
+/// <summary>
+/// Per-action transport knobs. Composes with [Button]/[Toolbar]/[Fab] on the same method — it
+/// declares nothing about the UI, only how the CLIENT should call this action.
+///
+/// <para><c>TimeoutMillis</c>: how long to wait before giving up, in ms (0 = the client default,
+/// 60s). One global ceiling cannot serve both a type-ahead lookup, which should give up in
+/// seconds so the user can retype, and a report export, which may legitimately run for minutes.
+/// </para>
+///
+/// <para><c>Idempotent</c>: re-running this action cannot apply the same change twice, so the
+/// client may retry it by itself after a transient network failure. Only for genuine reads or
+/// naturally idempotent writes — when a request times out the client does NOT know whether the
+/// server processed it, so marking a create idempotent risks a silent duplicate.</para>
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class ActionOptionsAttribute : Attribute
+{
+    public int TimeoutMillis { get; init; }
+    public bool Idempotent { get; init; }
+}
+
 /// <summary>An overridden display label for a field or method.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class LabelAttribute(string value) : Attribute

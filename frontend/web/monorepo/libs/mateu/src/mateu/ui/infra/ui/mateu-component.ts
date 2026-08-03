@@ -38,6 +38,9 @@ import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadat
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
+import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
+import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -388,8 +391,14 @@ export class MateuComponent extends ComponentElement {
             callback: (() => void) | undefined,
             callbackonly: boolean,
             initiatorComponentId: string,
-            callbackToken: string
+            callbackToken: string,
+            _originElement?: Element
         }
+        // The control the user pressed, so the busy state can be shown ON it. An action that
+        // bubbles up to an ancestor component carries the original control in the detail —
+        // without that, the re-dispatch would report this component as the origin and the busy
+        // state would land on the whole subtree instead of the button.
+        const origin = detail?._originElement ?? originOf(e)
         if (e.type == 'action-requested') {
             e.preventDefault()
             e.stopPropagation()
@@ -425,9 +434,9 @@ export class MateuComponent extends ComponentElement {
                     initiatorComponentId: this.id
                 }
                 if (action && action.confirmationRequired) {
-                    this.callAfterConfirmation(action, () => this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action))
+                    this.callAfterConfirmation(action, () => this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action, origin))
                 } else {
-                    this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action)
+                    this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action, origin)
                 }
 
             } else {
@@ -441,6 +450,7 @@ export class MateuComponent extends ComponentElement {
                 this.dispatchEvent(new CustomEvent(e.type, {
                     detail: {
                         ...e.detail,
+                        _originElement: origin,
                         parameters
                     },
                     bubbles: true,
@@ -537,7 +547,7 @@ export class MateuComponent extends ComponentElement {
         callbackonly: boolean,
         initiatorComponentId: string,
         callbackToken: string
-    }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
+    }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
         if (action && action.bubble) {
             const parameters = {...detail.parameters}
             if (!parameters['initiatorState']) {
@@ -546,13 +556,14 @@ export class MateuComponent extends ComponentElement {
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
                     ...detail,
+                    _originElement: origin,
                     parameters
                 },
                 bubbles: true,
                 composed: true
             }))
         } else {
-            this.requestActionCallToServer(detail, serverSideComponent, action)
+            this.requestActionCallToServer(detail, serverSideComponent, action, origin)
         }
     }
 
@@ -563,7 +574,7 @@ export class MateuComponent extends ComponentElement {
         callbackonly: boolean,
         initiatorComponentId: string,
         callbackToken: string
-    }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
+    }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
             window.location.href = action.href
@@ -605,6 +616,26 @@ export class MateuComponent extends ComponentElement {
             }
         }
 
+        // Double-submit guard + local busy state. A `background` action (autosave, polling) is
+        // invisible by design and must never dim a control nor block its own next run, so it
+        // opts out entirely.
+        if (!action?.background) {
+            // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
+            // second POST of a write means a second row; a second read means fresher data. Worse,
+            // blocking them would break type-ahead: while the search for "ma" is in flight the
+            // search for "mad" would be dropped and the user would be left looking at stale
+            // results. Latest-wins is the correct semantics for a read, first-wins for a write.
+            const exclusive = !isIdempotentAction(detail.actionId, action?.idempotent)
+            if (exclusive && !pendingActions.begin(pendingKey(this.id, detail.actionId))) {
+                return
+            }
+            // The busy affordance applies either way — a slow read should still show that the
+            // press was heard.
+            const control = decorable(origin)
+            this._pendingOrigins.set(detail.actionId, control)
+            markPending(control)
+        }
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 route: this.route,
@@ -618,6 +649,8 @@ export class MateuComponent extends ComponentElement {
                 initiator: this,
                 background: action?.background,
                 sse: action?.sse,
+                timeoutMillis: action?.timeoutMillis,
+                idempotent: action?.idempotent,
                 callback: detail.callback,
                 callbackonly: detail.callbackonly,
                 callbackToken: detail.callbackToken??this.callbackToken
@@ -686,6 +719,35 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    /** Controls decorated as busy by this component, by action id, so each can be un-decorated. */
+    private _pendingOrigins = new Map<string, Element | undefined>()
+
+    /**
+     * Releases the in-flight slot (and the control's busy state) for `actionId`, or for every
+     * action of this component when no id is given — a cancellation carries none, and abandoning
+     * a component abandons all of its runs.
+     */
+    private _releasePending(actionId?: string) {
+        const ids = actionId !== undefined ? [actionId] : Array.from(this._pendingOrigins.keys())
+        ids.forEach(id => {
+            pendingActions.end(pendingKey(this.id, id))
+            clearPending(this._pendingOrigins.get(id))
+            this._pendingOrigins.delete(id)
+        })
+    }
+
+    /**
+     * The transport reports every outcome on the initiator — this component — as a composed,
+     * bubbling event, so a child component's outcome passes through here on its way up. Only the
+     * run this component started may be released, hence the at-target check: `composedPath()[0]`
+     * is the real dispatcher even across shadow boundaries, where `target` has been retargeted.
+     */
+    private _backendSettledListener = (e: Event) => {
+        const path = typeof e.composedPath === 'function' ? e.composedPath() : []
+        if ((path[0] ?? e.target) !== this) return
+        this._releasePending((e as CustomEvent).detail?.actionId)
+    }
+
     private _shortcutMatchesEvent(shortcut: string, e: KeyboardEvent): boolean {
         return shortcutMatchesEvent(shortcut, e)
     }
@@ -751,6 +813,9 @@ export class MateuComponent extends ComponentElement {
         super.connectedCallback();
         this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded)
         this.addEventListener('backend-call-failed', this.handleBackendFailed)
+        this.addEventListener('backend-succeeded-event', this._backendSettledListener)
+        this.addEventListener('backend-failed-event', this._backendSettledListener)
+        this.addEventListener('backend-cancelled-event', this._backendSettledListener)
         document.addEventListener('keydown', this._keydownListener)
     }
 
@@ -758,7 +823,13 @@ export class MateuComponent extends ComponentElement {
         super.disconnectedCallback();
         this.removeEventListener('backend-call-succeeded', this.handleBackendSucceeded)
         this.removeEventListener('backend-call-failed', this.handleBackendFailed)
+        this.removeEventListener('backend-succeeded-event', this._backendSettledListener)
+        this.removeEventListener('backend-failed-event', this._backendSettledListener)
+        this.removeEventListener('backend-cancelled-event', this._backendSettledListener)
         document.removeEventListener('keydown', this._keydownListener)
+        // A component torn down mid-request will never see its outcome event: release its slots
+        // now, or the same action would stay blocked if the component is mounted again.
+        this._releasePending()
     }
 
     render() {

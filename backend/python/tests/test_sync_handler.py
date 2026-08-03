@@ -15,6 +15,7 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_dtos import Option, UICommand  # noqa: E402
 from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
+    action_options,
     Aggregate,
     AggregateFunction,
     AppActionsSupplier,
@@ -116,6 +117,30 @@ class SimpleForm:
     @button()
     def go_home(self):
         return "/things"
+
+
+@ui("action-options")
+@title("Action options")
+class ActionOptionsForm:
+    """Two buttons that differ only in how the CLIENT should call them."""
+
+    q: str | None = None
+
+    # A lookup the user waits on: give up quickly so they can retype instead of staring.
+    @button()
+    @action_options(timeout_millis=5000)
+    def quick_lookup(self):
+        return None
+
+    # Batch work: a long ceiling, and safe for the client to re-send after a network blip.
+    @button()
+    @action_options(timeout_millis=120000, idempotent=True)
+    def recalculate_totals(self):
+        return None
+
+    @button()
+    def save(self):
+        return None
 
 
 @ui("amounts")
@@ -720,6 +745,22 @@ def handler(translator=None) -> SyncHandler:
 
 def render(inc) -> str:
     return json.dumps(inc.model_dump(by_alias=True, mode="json"))
+
+
+def test_action_options_travel_on_the_action_dto():
+    inc = handler().handle(RunActionRq(route="action-options", consumed_route="action-options"))
+    actions = {a.id: a for a in inc.fragments[0].component.actions}
+
+    assert actions["quickLookup"].timeout_millis == 5000
+    assert actions["quickLookup"].idempotent is False
+    assert actions["recalculateTotals"].timeout_millis == 120000
+    assert actions["recalculateTotals"].idempotent is True
+
+    # Safe defaults when nothing is declared: the client's own timeout applies, and the action is
+    # never re-sent on its own — after a timeout the client cannot know whether the server
+    # already applied it.
+    assert actions["save"].timeout_millis == 0
+    assert actions["save"].idempotent is False
 
 
 def test_initial_load_form_with_required_field_and_button():
@@ -1501,11 +1542,13 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     # (same field names as Java's ActionDto).
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
-        '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true}'
+        '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
+        '"timeoutMillis": 0, "idempotent": false}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
-        '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true}'
+        '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
+        '"timeoutMillis": 0, "idempotent": false}'
     ) in j
 
 

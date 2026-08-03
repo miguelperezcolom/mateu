@@ -20,4 +20,8 @@ public record Action(
     boolean sse,
     String fieldsToValidate,
     boolean bubble,
-    String shortcut) {}
+    String shortcut,
+    /** Client-side request ceiling in ms; 0 keeps the client default. */
+    int timeoutMillis,
+    /** Safe to re-send: the client may retry it on a transient failure. */
+    boolean idempotent) {}

@@ -20,7 +20,25 @@ function mapPosition(position: string | undefined): NotificationPosition {
     return 'bottom-end'
 }
 
-function showUndoable(message: ToastMessage, initiator: HTMLElement) {
+/** One inline control on the toast: a client-side closure (Retry) or a server action (Undo). */
+function controlOf(message: ToastMessage, initiator: HTMLElement) {
+    if (message.onAction) {
+        return { label: message.actionLabel ?? 'Retry', run: message.onAction }
+    }
+    if (message.undoActionId) {
+        return {
+            label: message.undoLabel ?? 'Undo',
+            run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
+                bubbles: true,
+                composed: true,
+            })),
+        }
+    }
+    return undefined
+}
+
+function showWithControl(message: ToastMessage, initiator: HTMLElement) {
     const notification = new Notification()
     notification.position = mapPosition(message.position)
     notification.duration = message.duration ?? 10000
@@ -29,20 +47,17 @@ function showUndoable(message: ToastMessage, initiator: HTMLElement) {
         if (root.firstElementChild) return
         const text = document.createElement('span')
         text.textContent = message.text
-        const undo = document.createElement('button')
-        undo.textContent = message.undoLabel ?? 'Undo'
-        undo.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
+        const control = controlOf(message, initiator)!
+        const button = document.createElement('button')
+        button.textContent = control.label
+        button.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
             + ' border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer;'
             + ' padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;'
-        undo.addEventListener('click', () => {
-            initiator.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                bubbles: true,
-                composed: true,
-            }))
+        button.addEventListener('click', () => {
+            control.run()
             notification.opened = false
         })
-        root.append(text, undo)
+        root.append(text, button)
     }
     document.body.appendChild(notification)
     notification.opened = true
@@ -53,8 +68,8 @@ function showUndoable(message: ToastMessage, initiator: HTMLElement) {
 
 export const vaadinNotifier: Notifier = {
     show(message: ToastMessage, initiator: HTMLElement): void {
-        if (message.undoActionId) {
-            showUndoable(message, initiator)
+        if (message.undoActionId || message.onAction) {
+            showWithControl(message, initiator)
             return
         }
         Notification.show(message.text, {

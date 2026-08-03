@@ -18,6 +18,23 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+// Per-action transport knobs: two buttons that differ only in how the CLIENT should call them.
+[UI("action-options"), Title("Action options")]
+public class ActionOptionsForm
+{
+    public string? Q { get; set; }
+
+    // A lookup the user waits on: give up quickly so they can retype instead of staring.
+    [Button, ActionOptions(TimeoutMillis = 5000)]
+    public Message QuickLookup() => new("looked up");
+
+    // Batch work: a long ceiling, and safe for the client to re-send after a network blip.
+    [Button, ActionOptions(TimeoutMillis = 120000, Idempotent = true)]
+    public Message RecalculateTotals() => new("recalculated");
+
+    [Button] public Message Save() => new("saved");
+}
+
 [UI("amounts"), Title("Amounts")]
 public class AmountsForm
 {
@@ -722,6 +739,30 @@ public class SyncHandlerTests
     private static SyncHandler Handler() => new(new MateuRegistry(typeof(SimpleForm).Assembly));
 
     private static string Render(UIIncrementDto inc) => JsonSerializer.Serialize(inc, Json);
+
+    [Fact]
+    public void Action_options_travel_on_the_action_dto()
+    {
+        var inc = Handler().Handle(
+            new RunActionRqDto { Route = "action-options", ConsumedRoute = "action-options" });
+        var json = Render(inc);
+
+        Assert.Contains(
+            "{\"id\":\"quickLookup\",\"validationRequired\":true,\"confirmationRequired\":false,"
+            + "\"rowsSelectedRequired\":false,\"bubble\":false,"
+            + "\"timeoutMillis\":5000,\"idempotent\":false}", json);
+        Assert.Contains(
+            "{\"id\":\"recalculateTotals\",\"validationRequired\":true,\"confirmationRequired\":false,"
+            + "\"rowsSelectedRequired\":false,\"bubble\":false,"
+            + "\"timeoutMillis\":120000,\"idempotent\":true}", json);
+        // Safe defaults when nothing is declared: the client's own timeout applies, and the action
+        // is never re-sent on its own — after a timeout the client cannot know whether the server
+        // already applied it.
+        Assert.Contains(
+            "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
+            + "\"rowsSelectedRequired\":false,\"bubble\":false,"
+            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+    }
 
     [Fact]
     public void InitialLoad_emits_window_title_and_form_with_required_name_field_and_greet_button()
@@ -1603,12 +1644,16 @@ public class SyncHandlerTests
         Assert.Contains("\"label\":\"Restock everything\",\"actionId\":\"action-on-row-restockAll\"", json);
         // …and its action advertises the confirmation/selection flags the frontend enforces
         // (same field names as Java's ActionDto).
+        // The trailing transport knobs (timeoutMillis/idempotent) carry their safe defaults: the
+        // client's own timeout applies and nothing is ever re-sent without the user asking.
         Assert.Contains(
             "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
-            + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true}", json);
+            + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true,"
+            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
         Assert.Contains(
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
-            + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true}", json);
+            + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
+            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
     }
 
     [Fact]

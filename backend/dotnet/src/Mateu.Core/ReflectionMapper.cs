@@ -243,8 +243,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .Select(MapButton).ToList();
         var fabs = Fabs(type);
         // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.
-        var actions = buttons.Select(b => new ActionDto(b.ActionId))
-            .Concat(fabs.Select(f => new ActionDto(f.ActionId))).ToList();
+        var actions = buttons.Select(b => WithActionOptions(new ActionDto(b.ActionId), type, b.ActionId))
+            .Concat(fabs.Select(f => WithActionOptions(new ActionDto(f.ActionId), type, f.ActionId))).ToList();
         // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
         actions.AddRange(EditableProperties(type)
             .Select(p => p.Find<OnRowSelectedAttribute>())
@@ -1423,6 +1423,20 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         DateTime dt => dt.ToString("yyyy-MM-dd"),
         _ => value.ToString(),
     };
+
+    /// <summary>
+    /// Copies the method's [ActionOptions] onto the action heading to the client. The action id is
+    /// the camel-cased method name, so the declaring method is found by matching that back.
+    /// Without a declaration the safe defaults ride: the client's own timeout, and no self-retry.
+    /// </summary>
+    private static ActionDto WithActionOptions(ActionDto action, Type type, string actionId)
+    {
+        var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .FirstOrDefault(m => Naming.CamelCase(m.Name) == actionId);
+        var options = method?.Find<ActionOptionsAttribute>();
+        if (options is null) return action;
+        return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
+    }
 
     private ButtonDto MapButton(MethodInfo m)
     {

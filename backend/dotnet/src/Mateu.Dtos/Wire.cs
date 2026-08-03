@@ -128,7 +128,19 @@ public record ActionDto(
     bool ValidationRequired = true,
     bool ConfirmationRequired = false,
     bool RowsSelectedRequired = false,
-    bool Bubble = false);
+    bool Bubble = false)
+{
+    /// <summary>Client-side request ceiling in ms for this action; 0 keeps the client default
+    /// (60s). One global timeout cannot serve both a type-ahead lookup and a report export.
+    /// </summary>
+    public int TimeoutMillis { get; init; }
+
+    /// <summary>Declares that re-sending this action cannot apply the same change twice, so the
+    /// client may retry it by itself after a transient network failure. Only for genuine reads or
+    /// naturally idempotent writes: after a timeout the client cannot know whether the server
+    /// processed the request.</summary>
+    public bool Idempotent { get; init; }
+}
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
 public record CustomTriggerDto(string Event, string ActionId)

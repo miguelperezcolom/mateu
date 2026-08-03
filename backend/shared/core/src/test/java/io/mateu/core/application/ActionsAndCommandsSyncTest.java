@@ -189,6 +189,14 @@ class ActionsAndCommandsSyncTest {
 
     @Action(validationRequired = true)
     void validateAndSave() {}
+
+    /** A lookup the user waits on: give up quickly so they can retype instead of staring. */
+    @Action(timeoutMillis = 5000)
+    void quickLookup() {}
+
+    /** Batch work: a long ceiling, and safe for the client to re-send after a network blip. */
+    @Action(timeoutMillis = 120000, idempotent = true)
+    void recalculateTotals() {}
   }
 
   /** Class-level triggers, subscriptions and emits name. */
@@ -550,6 +558,31 @@ class ActionsAndCommandsSyncTest {
     assertThat(action.confirmationTexts().message()).isEqualTo("Really delete?");
     assertThat(action.confirmationTexts().confirmationText()).isEqualTo("Yes");
     assertThat(action.confirmationTexts().denialText()).isEqualTo("No");
+  }
+
+  @Test
+  void perActionTimeoutAndIdempotenceTravelOnTheActionDto() {
+    var component = syncComponent("/toolbar");
+    ActionDto quick = action(component, "quickLookup");
+    assertThat(quick.timeoutMillis()).isEqualTo(5000);
+    assertThat(quick.idempotent()).isFalse();
+
+    ActionDto batch = action(component, "recalculateTotals");
+    assertThat(batch.timeoutMillis()).isEqualTo(120000);
+    assertThat(batch.idempotent()).isTrue();
+  }
+
+  @Test
+  void actionsCarryNoTimeoutAndAreNotIdempotentUnlessDeclared() {
+    // The safe defaults: the client's own ceiling applies, and nothing is re-sent on its own —
+    // after a timeout the client cannot know whether the server already applied the action.
+    ActionDto save = action(syncComponent("/toolbar"), "save");
+    assertThat(save.timeoutMillis()).isZero();
+    assertThat(save.idempotent()).isFalse();
+  }
+
+  private static ActionDto action(ServerSideComponentDto component, String id) {
+    return component.actions().stream().filter(a -> id.equals(a.id())).findFirst().orElseThrow();
   }
 
   @Test

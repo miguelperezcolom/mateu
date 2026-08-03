@@ -1,4 +1,5 @@
 import { ComponentState } from "@infra/ui/renderers/types"
+import { RunActionOptions } from "@domain/MateuApiClient"
 
 export interface RunActionCommand {
     baseUrl: string
@@ -12,4 +13,6 @@ export interface RunActionCommand {
     initiatorComponentId: string
     initiator: HTMLElement
     background: boolean
+    /** Per-call transport knobs (timeout, self-retry, user retry). Optional. */
+    options?: RunActionOptions
 }

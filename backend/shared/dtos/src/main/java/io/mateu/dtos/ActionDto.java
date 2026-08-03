@@ -15,6 +15,9 @@ import lombok.With;
  * @param modalTitle The initialValue for the dialog header
  * @param customEvent In case a browser custom event is to be thrown
  * @param href The location to go to, in case we want this to act as a link
+ * @param timeoutMillis Client-side request ceiling in ms for this action; 0 keeps the client
+ *     default
+ * @param idempotent Whether the client may re-send this action by itself after a transient failure
  */
 @Builder
 @With
@@ -33,4 +36,6 @@ public record ActionDto(
     boolean sse,
     String fieldsToValidate,
     boolean bubble,
-    String shortcut) {}
+    String shortcut,
+    int timeoutMillis,
+    boolean idempotent) {}

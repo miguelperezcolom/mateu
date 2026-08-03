@@ -23,6 +23,13 @@ export interface ToastMessage {
     undoLabel?: string
     undoActionId?: string
     undoParameters?: Record<string, unknown>
+    /**
+     * An inline control handled entirely on the client — "Retry" on a failed request, where
+     * there is no server action to dispatch, only a closure that re-runs the call. Takes
+     * precedence over the undo control when both are set.
+     */
+    actionLabel?: string
+    onAction?: () => void
 }
 
 export interface Notifier {

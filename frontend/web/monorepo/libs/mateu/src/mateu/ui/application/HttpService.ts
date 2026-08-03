@@ -8,6 +8,7 @@ import {notify} from "@application/Notifier.ts";
 import {LitElement} from "lit";
 import {nanoid} from "nanoid";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
+import {RunActionOptions} from "@domain/MateuApiClient";
 
 export class HttpService implements Service {
 
@@ -81,7 +82,16 @@ export class HttpService implements Service {
                     parameters: Record<string, unknown>,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string) {
+    callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string,
+    options: RunActionOptions = {}) {
+        // "Retry" must re-run the WHOLE action, not just re-send the HTTP request: a response
+        // that arrives without this method to apply it changes nothing on screen. So the retry
+        // closure re-enters here, with the same arguments, and the response is handled normally.
+        const retry = () => {
+            void this.runAction(mateuApiClient, baseUrl, route, consumedRoute, actionId,
+                initiatorComponentId, _appState, serverSideType, componentState, parameters,
+                initiator, background, callback, callbackonly, callbackToken, options)
+        }
         try {
             const uiIncrement = await runActionCommandHandler.handle(mateuApiClient, {
                 baseUrl,
@@ -94,7 +104,8 @@ export class HttpService implements Service {
                 parameters,
                 serverSideType,
                 initiator,
-                background
+                background,
+                options: { ...options, retry }
             } as RunActionCommand)
 
             if (callback) {
@@ -128,14 +139,21 @@ export class HttpService implements Service {
 
         } catch(reason) {
             console.warn('Action request failed', reason)
-                initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
-                    bubbles: true,
-                    composed: true,
-                    detail: {
-                        actionId,
-                        reason: this.serialize(reason)
-                    }
-                }))
+                // The transport already announced (and toasted) a failure it saw itself; raising
+                // a second `backend-failed-event` here would show the user two toasts for one
+                // failure. Only failures that happen AFTER a successful response — while applying
+                // the increment — are still ours to report.
+                if (!(reason as { __mateuReported?: boolean })?.__mateuReported) {
+                    initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
+                        bubbles: true,
+                        composed: true,
+                        detail: {
+                            actionId,
+                            reason: this.serialize(reason),
+                            retry
+                        }
+                    }))
+                }
                 initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
                     detail: {
                         actionId

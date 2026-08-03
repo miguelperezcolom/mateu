@@ -1,6 +1,7 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import './mateu-component'
+import './mateu-skeleton'
 import {parseOverrides} from "@infra/ui/common";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import ConnectedElement from "@infra/ui/ConnectedElement";
@@ -68,6 +69,44 @@ export class MateuUx extends ConnectedElement {
 
     @state()
     fragment: UIFragment | undefined = undefined;
+
+    /**
+     * Loading placeholder for a route that has nothing to show yet.
+     *
+     * The existing veil dims content that is already on screen — it has no answer for the FIRST
+     * load of a route, where the screen is simply blank. On a fast backend that blank lasts a
+     * frame and nobody notices; on a slow one it is several seconds of nothing, which reads as a
+     * broken page rather than a loading one. A skeleton says "content is coming, and roughly this
+     * shape" and gives the wait a visible structure.
+     *
+     * Only when there is NO content: once a fragment has rendered, a re-load keeps the old
+     * content under the veil, because stale content beats a skeleton that throws away context.
+     */
+    @state()
+    private showSkeleton = false
+
+    /** Delays the skeleton so a fast load never flashes one. */
+    private skeletonTimer: ReturnType<typeof setTimeout> | undefined
+
+    /** Long enough that a healthy backend never shows a skeleton at all. */
+    private static SKELETON_DELAY_MS = 400
+
+    /**
+     * A route load reports its lifecycle on this element (it is the initiator of the `''`
+     * action fired from `updated()`). The at-target check keeps a descendant component's own
+     * traffic — which bubbles through here — from driving the page-level placeholder.
+     */
+    private loadLifecycleListener = (e: Event) => {
+        const path = typeof e.composedPath === 'function' ? e.composedPath() : []
+        if ((path[0] ?? e.target) !== this) return
+        clearTimeout(this.skeletonTimer)
+        if (e.type === 'backend-called-event') {
+            if (this.fragment?.component) return
+            this.skeletonTimer = setTimeout(() => { this.showSkeleton = true }, MateuUx.SKELETON_DELAY_MS)
+        } else {
+            this.showSkeleton = false
+        }
+    }
 
     actionRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
         if (e instanceof CustomEvent) {
@@ -160,6 +199,8 @@ export class MateuUx extends ConnectedElement {
         initiator: HTMLElement
         background: boolean
         sse: boolean
+        timeoutMillis?: number
+        idempotent?: boolean
         callback: ((result?: unknown) => void) | undefined
         callbackonly: boolean
         callbackToken: string
@@ -179,6 +220,8 @@ export class MateuUx extends ConnectedElement {
             initiator: HTMLElement
             background: boolean
             sse: boolean
+            timeoutMillis?: number
+            idempotent?: boolean
             callback: ((result?: unknown) => void) | undefined
             callbackonly: boolean
             callbackToken: string
@@ -202,7 +245,9 @@ export class MateuUx extends ConnectedElement {
                 detail.background,
                 detail.callback,
                     detail.callbackonly,
-                    detail.callbackToken);
+                    detail.callbackToken,
+                    // Per-action transport knobs declared on the wire (@Action).
+                    {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent});
         }
     }
 
@@ -222,6 +267,10 @@ export class MateuUx extends ConnectedElement {
         this.addEventListener('backend-call-failed', this.backendFailedListener)
         this.addEventListener('history-pushed', this.historyPushed)
         this.addEventListener('route-changed', this.routeChangedListener)
+        this.addEventListener('backend-called-event', this.loadLifecycleListener)
+        this.addEventListener('backend-succeeded-event', this.loadLifecycleListener)
+        this.addEventListener('backend-failed-event', this.loadLifecycleListener)
+        this.addEventListener('backend-cancelled-event', this.loadLifecycleListener)
     }
 
     disconnectedCallback() {
@@ -230,6 +279,11 @@ export class MateuUx extends ConnectedElement {
         this.removeEventListener('backend-call-failed', this.backendFailedListener)
         this.removeEventListener('history-pushed', this.historyPushed)
         this.removeEventListener('route-changed', this.routeChangedListener)
+        this.removeEventListener('backend-called-event', this.loadLifecycleListener)
+        this.removeEventListener('backend-succeeded-event', this.loadLifecycleListener)
+        this.removeEventListener('backend-failed-event', this.loadLifecycleListener)
+        this.removeEventListener('backend-cancelled-event', this.loadLifecycleListener)
+        clearTimeout(this.skeletonTimer)
     }
 
 
@@ -323,12 +377,23 @@ export class MateuUx extends ConnectedElement {
     }
 
     render(): TemplateResult {
+        if (!this.fragment?.component && this.showSkeleton) {
+            // A page-shaped placeholder: a title bar and a few field pairs. Deliberately generic —
+            // nothing is known about the route yet, and a wrong-shaped skeleton is worse than a
+            // neutral one.
+            return html`
+                <div class="route-skeleton" aria-busy="true" aria-live="polite">
+                    <mateu-skeleton variant="text" count="1"></mateu-skeleton>
+                    <mateu-skeleton variant="form" count="4"></mateu-skeleton>
+                </div>
+            `
+        }
         return html`
            ${this.fragment?.component?renderComponent(
                this,
-               this.fragment?.component, 
-                   this.baseUrl, 
-                   this.fragment?.state??{}, 
+               this.fragment?.component,
+                   this.baseUrl,
+                   this.fragment?.state??{},
                    this.fragment?.data??{},
                    this.appState,
                    this.appData
@@ -358,6 +423,16 @@ export class MateuUx extends ConnectedElement {
         :host([data-page-width='fixed']) {
             max-width: min(1408px, 100%);
             margin-inline: auto;
+        }
+
+        /* Loading placeholder for a route with nothing on screen yet. */
+        .route-skeleton {
+            padding: var(--lumo-space-m, 1rem);
+            max-width: 40rem;
+        }
+        .route-skeleton mateu-skeleton:first-child {
+            max-width: 16rem;
+            margin-block-end: var(--lumo-space-l, 1.5rem);
         }
   `
 }

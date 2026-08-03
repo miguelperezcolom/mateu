@@ -8,11 +8,15 @@ import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {registerNeutralNotifier} from "@infra/notify/neutralNotifier.ts";
+import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {nanoid} from "nanoid";
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
 registerNeutralNotifier()
+// Losing the connection is a state, not an event: one document-wide strip states it for as long
+// as it lasts, on every renderer, without any shell having to render it.
+mountConnectivityBanner()
 
 
 @customElement('mateu-ui')

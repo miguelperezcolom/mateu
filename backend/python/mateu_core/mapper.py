@@ -213,6 +213,23 @@ def set_current_audience(value) -> None:
     _current_audience.set(text if text.strip() else None)
 
 
+def with_action_options(action: Action, cls, action_id: str) -> Action:
+    """Copies the method's ``@action_options`` onto the action heading to the client.
+
+    The action id is the camel-cased method name, so the declaring method is found by matching
+    that back. Without a declaration the safe defaults ride: the client's own timeout, and no
+    self-retry (after a timeout the client cannot know whether the server applied the action).
+    """
+    for name, fn in methods_with(cls, "__mateu_action_options__"):
+        if camel_case(name) != action_id:
+            continue
+        timeout_millis, idempotent = fn.__mateu_action_options__
+        return action.model_copy(
+            update={"timeout_millis": timeout_millis, "idempotent": idempotent}
+        )
+    return action
+
+
 def for_current_audience(gate: Audience | None) -> bool:
     """``Audience(...)``: shown when no audience is set (full view) or when the declared values
     contain the current one. A UX projection, NOT security (that's ``EyesOnly()``)."""
@@ -547,7 +564,9 @@ class ReflectionMapper:
             if for_current_audience(getattr(f, "__mateu_audience__", None))
         ]
         fabs = self.fabs(cls)
-        actions = [Action(id=b.action_id) for b in buttons] + [Action(id=f.action_id) for f in fabs]
+        actions = [
+            with_action_options(Action(id=b.action_id), cls, b.action_id) for b in buttons
+        ] + [with_action_options(Action(id=f.action_id), cls, f.action_id) for f in fabs]
         # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
         for f in view_fields(cls):
             on_row = f.marker(OnRowSelected)

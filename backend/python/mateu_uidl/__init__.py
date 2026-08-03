@@ -1032,6 +1032,27 @@ def fab(icon: str, label: str | None = None, order: int = 0):
     return deco
 
 
+def action_options(timeout_millis: int = 0, idempotent: bool = False):
+    """Per-action transport knobs. Composes with ``@button``/``@toolbar``/``@fab`` on the same
+    method — it says nothing about the UI, only how the CLIENT should call this action.
+
+    ``timeout_millis``: how long to wait before giving up (0 = the client default, 60s). One
+    global ceiling cannot serve both a type-ahead lookup, which should give up in seconds so the
+    user can retype, and a report export, which may legitimately run for minutes.
+
+    ``idempotent``: re-running this action cannot apply the same change twice, so the client may
+    retry it by itself after a transient network failure. Only for genuine reads or naturally
+    idempotent writes — when a request times out the client does NOT know whether the server
+    processed it, so marking a create idempotent risks a silent duplicate.
+    """
+
+    def deco(fn):
+        fn.__mateu_action_options__ = (timeout_millis, idempotent)
+        return fn
+
+    return deco
+
+
 def banner(theme: BannerTheme = BannerTheme.INFO, title_: str | None = None):
     def deco(fn):
         fn.__mateu_banner__ = _Banner(theme, title_)

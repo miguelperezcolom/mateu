@@ -40,6 +40,8 @@ final class ActionDtoMapper {
         .background(annotation.background())
         .sse(annotation.sse())
         .shortcut(annotation.shortcut().isEmpty() ? null : annotation.shortcut())
+        .timeoutMillis(annotation.timeoutMillis())
+        .idempotent(annotation.idempotent())
         .build();
   }
 
@@ -62,6 +64,8 @@ final class ActionDtoMapper {
                 : null)
         .sse(action.sse())
         .shortcut(action.shortcut())
+        .timeoutMillis(action.timeoutMillis())
+        .idempotent(action.idempotent())
         .build();
   }
 

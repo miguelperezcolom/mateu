@@ -909,6 +909,10 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
         "confirmationRequired": False,
         "rowsSelectedRequired": False,
         "bubble": False,
+        # No per-action transport knobs declared: the client's own timeout applies and the
+        # action is never re-sent on its own.
+        "timeoutMillis": 0,
+        "idempotent": False,
     } in component["actions"]
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))

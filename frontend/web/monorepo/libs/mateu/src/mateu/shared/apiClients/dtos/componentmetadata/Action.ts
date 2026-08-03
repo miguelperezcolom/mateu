@@ -23,4 +23,8 @@ export default interface Action {
     fieldsToValidate: string
     bubble: boolean
     shortcut: string
+    /** Per-action request ceiling in ms; 0/absent uses the client default. */
+    timeoutMillis: number
+    /** Declared safe to re-send: the client may retry it by itself on a transient failure. */
+    idempotent: boolean
 }

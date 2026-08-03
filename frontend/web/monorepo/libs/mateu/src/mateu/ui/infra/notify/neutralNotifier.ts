@@ -71,28 +71,39 @@ export const neutralNotifier: Notifier = {
             setTimeout(() => toast.remove(), 200)
         }
 
-        if (message.undoActionId) {
-            const undo = document.createElement('button')
-            undo.textContent = message.undoLabel ?? 'Undo'
-            undo.style.cssText =
+        // One inline control, from either source: a client-side closure (Retry) or a server
+        // action (Undo). The closure wins when both are present.
+        const control = message.onAction
+            ? { label: message.actionLabel ?? 'Retry', run: message.onAction }
+            : message.undoActionId
+                ? {
+                    label: message.undoLabel ?? 'Undo',
+                    run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
+                        detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
+                        bubbles: true,
+                        composed: true,
+                    })),
+                }
+                : undefined
+
+        if (control) {
+            const button = document.createElement('button')
+            button.textContent = control.label
+            button.style.cssText =
                 'margin-left: 0.25rem; background: none; border: 1px solid currentColor;'
                 + ' border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer;'
                 + ' padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;'
-            undo.addEventListener('click', () => {
-                initiator.dispatchEvent(new CustomEvent('action-requested', {
-                    detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                    bubbles: true,
-                    composed: true,
-                }))
+            button.addEventListener('click', () => {
+                control.run()
                 remove()
             })
-            toast.appendChild(undo)
+            toast.appendChild(button)
         }
 
         document.body.appendChild(toast)
         requestAnimationFrame(() => { toast.style.opacity = '1' })
 
-        const duration = message.duration ?? (message.undoActionId ? 10000 : 5000)
+        const duration = message.duration ?? (control ? 10000 : 5000)
         if (duration > 0) setTimeout(remove, duration)
     },
 }

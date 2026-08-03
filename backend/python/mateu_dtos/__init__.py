@@ -1343,6 +1343,13 @@ class Action(Wire):
     confirmation_required: bool = False
     rows_selected_required: bool = False
     bubble: bool = False
+    # Client-side request ceiling in ms; 0 keeps the client default (60s). One global timeout
+    # cannot serve both a type-ahead lookup and a report export.
+    timeout_millis: int = 0
+    # Declares that re-sending this action cannot apply the same change twice, so the client may
+    # retry it by itself after a transient failure. Only for reads or naturally idempotent
+    # writes: after a timeout the client cannot know whether the server processed the request.
+    idempotent: bool = False
 
 
 class Trigger(Wire):
