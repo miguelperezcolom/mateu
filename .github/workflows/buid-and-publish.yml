@@ -42,8 +42,15 @@ jobs:
         with:
           node-version: 24
 
+      # npm ci contra el lockfile commiteado, NO `rm package-lock.json && npm install`.
+      # Re-resolver desde cero en cada release hacía dos cosas malas: la build dejaba de ser
+      # reproducible (el artefacto publicado dependía del estado del registro en ese minuto) y
+      # cualquier publicación de una dependencia transitiva podía romper la release sin que
+      # nadie hubiera tocado el repo — que es exactamente lo que pasó con la v3.0-alpha.274
+      # (ERESOLVE determinista en CI, imposible de reproducir en local).
+      # El e2e no lo detecta: solo instala e2e/, no el monorepo.
       - name: Install monorepo dependencies
-        run: cd frontend/web/monorepo && rm -f package-lock.json && npm install
+        run: cd frontend/web/monorepo && npm ci
       - name: Build Vaadin front
         run: cd frontend/web/monorepo/apps/vaadin && npm run copy
 
