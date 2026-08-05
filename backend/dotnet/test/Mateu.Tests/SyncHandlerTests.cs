@@ -764,6 +764,48 @@ public class SyncHandlerTests
             + "\"timeoutMillis\":0,\"idempotent\":false}", json);
     }
 
+    // ── Structure ETag / template-ref (phase b of the client structure cache) ──────
+
+    private static ServerSideComponentDto ComponentOf(UIIncrementDto inc) =>
+        (ServerSideComponentDto)inc.Fragments[0].Component!;
+
+    [Fact]
+    public void RouteLoad_carries_a_structure_hash()
+    {
+        var c = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" }));
+        Assert.False(string.IsNullOrEmpty(c.StructureHash));
+    }
+
+    [Fact]
+    public void Structure_hash_is_stable_across_identical_loads()
+    {
+        var h1 = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        var h2 = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        Assert.Equal(h1, h2);
+    }
+
+    [Fact]
+    public void Echoing_the_matching_hash_omits_the_component_but_keeps_the_fragment()
+    {
+        var hash = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        var inc = Handler().Handle(
+            new RunActionRqDto { Route = "", ConsumedRoute = "_empty", KnownStructureHash = hash });
+        Assert.Single(inc.Fragments);
+        Assert.Null(inc.Fragments[0].Component);
+    }
+
+    [Fact]
+    public void A_stale_or_missing_hash_still_sends_the_full_structure()
+    {
+        var stale = Handler().Handle(
+            new RunActionRqDto { Route = "", ConsumedRoute = "_empty", KnownStructureHash = "not-the-hash" });
+        Assert.NotNull(stale.Fragments[0].Component);
+        Assert.False(string.IsNullOrEmpty(ComponentOf(stale).StructureHash));
+
+        var cold = Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" });
+        Assert.NotNull(cold.Fragments[0].Component);
+    }
+
     [Fact]
     public void InitialLoad_emits_window_title_and_form_with_required_name_field_and_greet_button()
     {

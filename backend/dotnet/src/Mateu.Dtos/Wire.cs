@@ -105,6 +105,12 @@ public record ServerSideComponentDto(
     /// <summary>Client-side rules ([Hidden]/[Disabled] fields, IRuleSupplier): the renderer's
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
+
+    /// <summary>Stable content hash (ETag) of this component's structure (phase b of the client
+    /// structure cache). The client stores it next to the cached structure and echoes it back as
+    /// RunActionRqDto.KnownStructureHash; when it still matches, the server omits the component and
+    /// the client reuses its cache. (Mirrors io.mateu.dtos.ServerSideComponentDto.structureHash.)</summary>
+    public string? StructureHash { get; init; }
 }
 
 /// <summary>A client-side rule (mirrors io.mateu.dtos.RuleDto): when Filter evaluates truthy the
@@ -1030,4 +1036,10 @@ public record RunActionRqDto
     public string? Route { get; init; }
     public string? ServerSideType { get; init; }
     public string? ServerSideComponentRoute { get; init; }
+
+    /// <summary>The structure hash (ETag) the client already holds for this route (phase b of the
+    /// client structure cache). When it matches the hash of the structure the server would send,
+    /// the server omits the component and replies with only state/data. Null = full structure.
+    /// (Mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash.)</summary>
+    public string? KnownStructureHash { get; init; }
 }
