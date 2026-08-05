@@ -19,6 +19,7 @@ import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -100,6 +101,26 @@ export class MateuUx extends ConnectedElement {
      */
     private pendingRouteFocus = false
     private hasRenderedContent = false
+
+    /**
+     * Key of the route whose AUTHORITATIVE structure this ux is currently showing (set when a
+     * real fragment lands). Guards the cache seed: we only paint a cached structure when moving
+     * to a DIFFERENT route — never when re-loading the one already on screen (e.g. an `instant`
+     * self-refresh), where blowing the live content away for a data-less skeleton would be a
+     * regression.
+     */
+    private lastAuthoritativeKey: string | undefined
+
+    /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
+    private structureCacheKey(): string {
+        return structureCacheKey({
+            baseUrl: this.baseUrl,
+            consumedRoute: this.consumedRoute,
+            route: this.route,
+            serverSideType: this.serverSideType,
+            initialState: this.initialState,
+        })
+    }
 
     private focusNewContent() {
         requestAnimationFrame(() => {
@@ -341,6 +362,27 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('instant')) {
             if (!this.preventNavigation) {
                 this.callbackToken = this.instant || nanoid()
+                // Predict the screen's structure from the client cache so its real layout paints
+                // immediately instead of a generic skeleton. This is a PREDICTION: the server
+                // request below still fires and its authoritative fragment overwrites this seed
+                // in applyFragment (stale-while-revalidate). Structure only — state/data stay
+                // empty and arrive fresh from the server, so no stale business data is shown.
+                // Skipped when re-loading the route already on screen, to preserve its live
+                // content (see lastAuthoritativeKey). See routeStructureCache.ts.
+                const cacheKey = this.structureCacheKey()
+                if (cacheKey !== this.lastAuthoritativeKey) {
+                    const cached = getCachedStructure(cacheKey)
+                    if (cached) {
+                        this.fragment = {
+                            targetComponentId: this.id,
+                            component: cached,
+                            state: {},
+                            data: {},
+                            action: UIFragmentAction.Replace,
+                            containerId: undefined,
+                        }
+                    }
+                }
                 this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
                         route: this.route,
@@ -392,6 +434,15 @@ export class MateuUx extends ConnectedElement {
         }
         this.fragment = fragment
         if (fragment.component) {
+            // Cache the authoritative STRUCTURE so the next visit to this route can paint it
+            // instantly. Overlay pushes (Add) are not route content — skip them. Remember the
+            // key so an in-place re-load of this same route won't reseed a data-less structure
+            // over the live content.
+            if (fragment.action !== UIFragmentAction.Add) {
+                const cacheKey = this.structureCacheKey()
+                putCachedStructure(cacheKey, fragment.component)
+                this.lastAuthoritativeKey = cacheKey
+            }
             if (this.pendingRouteFocus && this.hasRenderedContent) {
                 this.focusNewContent()
             }
