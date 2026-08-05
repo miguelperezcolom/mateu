@@ -252,7 +252,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
             initiatorComponentId,
             consumedRoute,
             route: (route && route != '')?'/' + route:'',
-            actionId
+            actionId,
+            // ETag of the structure the client already has for this route: lets the server omit the
+            // component and reply with only state/data when it still matches (phase b).
+            knownStructureHash: options.knownStructureHash
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
         const send = () => this.post(uri, payload, options.timeoutMillis)

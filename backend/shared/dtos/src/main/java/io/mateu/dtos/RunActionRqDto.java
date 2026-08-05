@@ -14,7 +14,15 @@ public record RunActionRqDto(
     String actionId,
     String route,
     String serverSideType,
-    String serverSideComponentRoute) {
+    String serverSideComponentRoute,
+    /**
+     * The structure hash (ETag) the client currently holds for this route's component, from its
+     * client-side structure cache. When it matches the hash of the structure the server would send,
+     * the server OMITS the component from the response (sending only state/data) so the client
+     * reuses its cached structure. Null for clients that don't cache (old clients / cache miss),
+     * which always get the full structure. See {@code ServerSideComponentDto.structureHash}.
+     */
+    String knownStructureHash) {
 
   public RunActionRqDto {
     componentState =

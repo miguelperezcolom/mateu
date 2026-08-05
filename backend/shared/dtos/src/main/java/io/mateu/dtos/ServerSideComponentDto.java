@@ -45,7 +45,16 @@ public record ServerSideComponentDto(
      * {@code "dashboard"} — inferred from the ModelView's shape unless declared with
      * {@code @PageTemplate}.
      */
-    String pageType)
+    String pageType,
+    /**
+     * Stable content hash (ETag) of this component's STRUCTURE — everything but per-request
+     * state/data. The client stores it next to the cached structure and echoes it back as {@code
+     * RunActionRqDto.knownStructureHash}; when it still matches, the server omits the component
+     * from the response and the client reuses its cached structure (template-ref /
+     * stale-while-revalidate, phase b). Computed by the server after mapping; {@code null} on the
+     * wire only for old backends.
+     */
+    String structureHash)
     implements ComponentDto {
 
   @Override
@@ -67,7 +76,8 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        structureHash);
   }
 
   @Override
@@ -91,7 +101,8 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        structureHash);
   }
 
   @Override
@@ -113,7 +124,8 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        structureHash);
   }
 
   @Override
@@ -135,6 +147,7 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        structureHash);
   }
 }

@@ -17,6 +17,7 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
@@ -110,6 +111,13 @@ export class MateuUx extends ConnectedElement {
      * regression.
      */
     private lastAuthoritativeKey: string | undefined
+
+    /**
+     * The server's structure ETag for the structure this ux currently shows (seeded from cache or
+     * set when a real fragment lands). Echoed as knownStructureHash on the next load so the server
+     * can reply state-only when the structure is unchanged (phase b). Undefined = full structure.
+     */
+    private currentStructureHash: string | undefined
 
     /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
     private structureCacheKey(): string {
@@ -248,6 +256,7 @@ export class MateuUx extends ConnectedElement {
         sse: boolean
         timeoutMillis?: number
         idempotent?: boolean
+        knownStructureHash?: string
         callback: ((result?: unknown) => void) | undefined
         callbackonly: boolean
         callbackToken: string
@@ -269,6 +278,7 @@ export class MateuUx extends ConnectedElement {
             sse: boolean
             timeoutMillis?: number
             idempotent?: boolean
+            knownStructureHash?: string
             callback: ((result?: unknown) => void) | undefined
             callbackonly: boolean
             callbackToken: string
@@ -293,8 +303,10 @@ export class MateuUx extends ConnectedElement {
                 detail.callback,
                     detail.callbackonly,
                     detail.callbackToken,
-                    // Per-action transport knobs declared on the wire (@Action).
-                    {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent});
+                    // Per-action transport knobs declared on the wire (@Action), plus the structure
+                    // ETag for a route load (phase b of the client structure cache).
+                    {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent,
+                        knownStructureHash: detail.knownStructureHash});
         }
     }
 
@@ -371,11 +383,16 @@ export class MateuUx extends ConnectedElement {
                 // content (see lastAuthoritativeKey). See routeStructureCache.ts.
                 const cacheKey = this.structureCacheKey()
                 if (cacheKey !== this.lastAuthoritativeKey) {
+                    // Fresh navigation: seed from cache (if any) and adopt its ETag; a miss clears
+                    // the ETag so we don't echo the previous route's hash. When re-loading the SAME
+                    // route (key unchanged) we keep both the live content AND its hash, so the
+                    // request still carries knownStructureHash and the server can reply state-only.
                     const cached = getCachedStructure(cacheKey)
+                    this.currentStructureHash = cached?.hash
                     if (cached) {
                         this.fragment = {
                             targetComponentId: this.id,
-                            component: cached,
+                            component: cached.component,
                             state: {},
                             data: {},
                             action: UIFragmentAction.Replace,
@@ -393,6 +410,9 @@ export class MateuUx extends ConnectedElement {
                         initiatorComponentId: this.id,
                         initiator: this,
                         componentState: this.initialState,
+                        // ETag the client already holds for this route → the server omits the
+                        // structure and replies state-only when it still matches (phase b).
+                        knownStructureHash: this.currentStructureHash,
                         callbackToken: this.callbackToken
                     },
                     bubbles: true,
@@ -440,8 +460,13 @@ export class MateuUx extends ConnectedElement {
             // over the live content.
             if (fragment.action !== UIFragmentAction.Add) {
                 const cacheKey = this.structureCacheKey()
-                putCachedStructure(cacheKey, fragment.component)
+                // Store the server's ETag next to the structure and remember it as the one now on
+                // screen, so the next load of this route echoes it and the server can reply
+                // state-only (phase b). Non-server components carry no hash → undefined.
+                const hash = (fragment.component as ServerSideComponent).structureHash
+                putCachedStructure(cacheKey, fragment.component, hash)
                 this.lastAuthoritativeKey = cacheKey
+                this.currentStructureHash = hash
             }
             if (this.pendingRouteFocus && this.hasRenderedContent) {
                 this.focusNewContent()

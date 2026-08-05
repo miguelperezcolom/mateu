@@ -81,7 +81,8 @@ public class ComponentStateHelper {
         false,
         emitsName(modelView),
         PageWidthResolver.wirePageWidth(modelView),
-        PageTypeResolver.wirePageType(modelView));
+        PageTypeResolver.wirePageType(modelView),
+        null);
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {

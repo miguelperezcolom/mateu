@@ -2,6 +2,7 @@ package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
+import io.mateu.core.infra.StructureHashPostProcessor;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
@@ -146,7 +147,16 @@ public class RunActionUseCase {
             command.route(),
             command.consumedRoute(),
             command.initiatorComponentId(),
-            command.httpRequest());
+            command.httpRequest())
+        // Stamp each routed component with a structure hash (ETag) and, when the client echoed a
+        // still-matching hash, omit the structure so only state/data travel (phase b of the client
+        // structure cache). This is the single chokepoint every increment mapper flows through.
+        .map(increment -> StructureHashPostProcessor.apply(increment, knownStructureHash(command)));
+  }
+
+  private static String knownStructureHash(RunActionCommand command) {
+    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
+    return rq != null ? rq.knownStructureHash() : null;
   }
 
   // ── Routing ───────────────────────────────────────────────────────────────

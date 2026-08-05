@@ -46,6 +46,7 @@ public class ComponentTreeSupplierMapper {
         false,
         EmitsMapper.emitsName(componentTreeSupplier),
         PageWidthResolver.wirePageWidth(componentTreeSupplier),
-        PageTypeResolver.wirePageType(componentTreeSupplier));
+        PageTypeResolver.wirePageType(componentTreeSupplier),
+        null);
   }
 }

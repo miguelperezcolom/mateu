@@ -67,16 +67,24 @@ describe('routeStructureCache', () => {
     it('round-trips a structure by key', () => {
         putCachedStructure(key('/a'), comp('a'))
         putCachedStructure(key('/b'), comp('b'))
-        expect(getCachedStructure(key('/a'))?.id).toBe('a')
-        expect(getCachedStructure(key('/b'))?.id).toBe('b')
+        expect(getCachedStructure(key('/a'))?.component.id).toBe('a')
+        expect(getCachedStructure(key('/b'))?.component.id).toBe('b')
         expect(getCachedStructure(key('/missing'))).toBeUndefined()
+    })
+
+    it('round-trips the server ETag next to the structure', () => {
+        putCachedStructure(key('/a'), comp('a'), 'hash-123')
+        expect(getCachedStructure(key('/a'))?.hash).toBe('hash-123')
+        // a store without a hash (old backend) reads back undefined, not a crash
+        putCachedStructure(key('/b'), comp('b'))
+        expect(getCachedStructure(key('/b'))?.hash).toBeUndefined()
     })
 
     it('separates entries seeded with different initialState', () => {
         putCachedStructure(key('/a', { stayId: 1 }), comp('one'))
         putCachedStructure(key('/a', { stayId: 2 }), comp('two'))
-        expect(getCachedStructure(key('/a', { stayId: 1 }))?.id).toBe('one')
-        expect(getCachedStructure(key('/a', { stayId: 2 }))?.id).toBe('two')
+        expect(getCachedStructure(key('/a', { stayId: 1 }))?.component.id).toBe('one')
+        expect(getCachedStructure(key('/a', { stayId: 2 }))?.component.id).toBe('two')
         expect(getCachedStructure(key('/a'))).toBeUndefined()
     })
 
@@ -95,8 +103,8 @@ describe('routeStructureCache', () => {
         // the 10 oldest (r0..r9) are gone, the newest survive
         expect(getCachedStructure(key('/r0'))).toBeUndefined()
         expect(getCachedStructure(key('/r9'))).toBeUndefined()
-        expect(getCachedStructure(key('/r10'))?.id).toBe('r10')
-        expect(getCachedStructure(key('/r59'))?.id).toBe('r59')
+        expect(getCachedStructure(key('/r10'))?.component.id).toBe('r10')
+        expect(getCachedStructure(key('/r59'))?.component.id).toBe('r59')
         spy.mockRestore()
     })
 
@@ -113,7 +121,7 @@ describe('routeStructureCache', () => {
         localStorage.setItem('mateu-route-structure-cache', 'not json')
         expect(getCachedStructure(key('/a'))).toBeUndefined()
         putCachedStructure(key('/a'), comp('a'))
-        expect(getCachedStructure(key('/a'))?.id).toBe('a')
+        expect(getCachedStructure(key('/a'))?.component.id).toBe('a')
     })
 
     it('clears the whole cache', () => {

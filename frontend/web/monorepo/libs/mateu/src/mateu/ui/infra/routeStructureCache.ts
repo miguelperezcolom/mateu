@@ -21,6 +21,15 @@ interface Entry {
     v: number
     t: number            // last write (epoch ms), for LRU eviction
     component: Component
+    // The server's structure ETag for this component (phase b). Echoed back as knownStructureHash
+    // so the server can omit the structure when it still matches. undefined against old backends.
+    hash?: string
+}
+
+/** A cache hit: the cached structure plus the server ETag to echo on revalidation. */
+export interface CachedStructure {
+    component: Component
+    hash: string | undefined
 }
 
 type Store = Record<string, Entry>
@@ -86,20 +95,20 @@ export const structureCacheKey = (parts: {
     ].join('|') + seed
 }
 
-/** The cached STRUCTURE for a route, or undefined on miss / version mismatch / disabled. */
-export const getCachedStructure = (key: string): Component | undefined => {
+/** The cached STRUCTURE (+ its ETag) for a route, or undefined on miss / version mismatch / disabled. */
+export const getCachedStructure = (key: string): CachedStructure | undefined => {
     if (!enabled) return undefined
     const entry = readAll()[key]
     if (!entry || entry.v !== CACHE_VERSION) return undefined
-    return entry.component
+    return { component: entry.component, hash: entry.hash }
 }
 
-/** Record the authoritative structure for a route, evicting the least-recently-written entries
- *  once the cache is full. */
-export const putCachedStructure = (key: string, component: Component): void => {
+/** Record the authoritative structure (and its server ETag) for a route, evicting the
+ *  least-recently-written entries once the cache is full. */
+export const putCachedStructure = (key: string, component: Component, hash?: string): void => {
     if (!enabled) return
     const store = readAll()
-    store[key] = { v: CACHE_VERSION, t: Date.now(), component }
+    store[key] = { v: CACHE_VERSION, t: Date.now(), component, hash }
     const keys = Object.keys(store)
     if (keys.length > MAX_ENTRIES) {
         const oldest = keys.sort((a, b) => store[a].t - store[b].t).slice(0, keys.length - MAX_ENTRIES)
