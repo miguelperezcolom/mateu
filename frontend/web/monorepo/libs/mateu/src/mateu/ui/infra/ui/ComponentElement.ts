@@ -117,6 +117,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     }
                 } else {
                     this.callbackToken = nanoid()
+                    // Whether this fragment re-renders the component that is already here or
+                    // replaces it with a different one. Decided inside the ServerSide branch and
+                    // read again below, where it decides whether state and data survive.
+                    let inPlace = false
                     if (fragment.component?.type == ComponentType.ServerSide) {
                         if (this.component) {
                             const c0 = this.component as ServerSideComponent
@@ -127,7 +131,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             // toggling an add-on refreshes the host without closing its drawer.
                             // NOTE: component ids are fresh uuids on every render, so the stable
                             // signal is the serverSideType
-                            const inPlace = c0.serverSideType == c1.serverSideType
+                            inPlace = c0.serverSideType == c1.serverSideType
                             const openOverlays = inPlace
                                 ? (c0.children ?? []).filter(child => this.isOverlayChild(child))
                                 : []
@@ -162,7 +166,14 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             this.component.children = children
                         }
                     }
-                    if (fragment.action !== UIFragmentAction.ReplaceKeepData) {
+                    // Wiping is for a component being REPLACED by a different one, where the
+                    // outgoing component's state must not leak into the incoming one. A view that
+                    // re-renders itself is not that: its fragment carries its own state, and
+                    // starting from an empty map throws away everything its surroundings had put
+                    // there. A polling detail view lost the CRUD chrome around it — "Back to
+                    // list", the overflow menu and the status badge — on its first refresh, two
+                    // seconds after it opened, and got it back only on a full page load.
+                    if (fragment.action !== UIFragmentAction.ReplaceKeepData && !inPlace) {
                         this.state = { }
                         this.data = { }
                     }
