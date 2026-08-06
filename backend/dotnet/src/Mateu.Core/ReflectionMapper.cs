@@ -339,6 +339,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Rules = MapRules(type, instance),
             PageWidth = PageWidthOf(type, instance),
             PageType = PageTypeOf(type),
+            StaticView = type.Find<StaticViewAttribute>() != null,
         };
     }
 

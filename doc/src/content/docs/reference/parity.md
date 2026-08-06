@@ -58,6 +58,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Global entity search (`GlobalSearchSupplier` → `globalSearchEnabled` + `_globalsearch`) | ✅ | ✅ | ✅ |
 | Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
+| Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |

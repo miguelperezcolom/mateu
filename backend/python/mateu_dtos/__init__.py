@@ -1211,6 +1211,10 @@ class ServerSideComponent(Wire):
     #: the family of Redwood page templates the view belongs to; never None on the wire
     #: (mirrors ServerSideComponentDto.pageType).
     page_type: str | None = None
+    #: The view is declared @static_view: its full response never varies, so the client caches it
+    #: for the session and skips the round-trip on return visits (mirrors
+    #: ServerSideComponentDto.staticView). A developer promise; False unless declared.
+    static_view: bool = False
     #: Stable content hash (ETag) of this component's structure (phase b of the client structure
     #: cache). The client stores it next to the cached structure and echoes it back as
     #: RunActionRq.known_structure_hash; when it still matches, the server omits the component and

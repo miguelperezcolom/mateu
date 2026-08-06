@@ -1387,7 +1387,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         if (component is not ServerSideComponentDto ss) return component;
         var hash = StructureHashOf(ss);
-        if (rq.KnownStructureHash is { Length: > 0 } known && known == hash) return null;
+        // A [StaticView] is never omitted: the client caches its FULL response the first time it
+        // sees it each session and then skips the round-trip entirely, so it must always receive
+        // the component (carrying staticView=true) to learn that.
+        if (!ss.StaticView && rq.KnownStructureHash is { Length: > 0 } known && known == hash) return null;
         return ss with { StructureHash = hash };
     }
 

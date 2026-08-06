@@ -64,6 +64,7 @@ from mateu_uidl import (  # noqa: E402
     banner,
     button,
     compact,
+    static_view,
     confirm_on_navigation_if_dirty,
     emits,
     fab,
@@ -117,6 +118,13 @@ class SimpleForm:
     @button()
     def go_home(self):
         return "/things"
+
+
+@ui("static-view")
+@title("About")
+@static_view
+class StaticViewForm:
+    heading: str = "About"
 
 
 @ui("action-options")
@@ -799,6 +807,20 @@ def test_a_stale_or_missing_hash_still_sends_the_full_structure():
 
     cold = handler().handle(RunActionRq(route="", consumed_route="_empty"))
     assert cold.fragments[0].component is not None
+
+
+def test_static_view_is_flagged_only_when_declared():
+    assert _component_of(handler().handle(RunActionRq(route="static-view", consumed_route="_empty"))).static_view is True
+    assert _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).static_view is False
+
+
+def test_a_static_view_is_never_omitted_even_when_the_hash_matches():
+    h = _component_of(handler().handle(RunActionRq(route="static-view", consumed_route="_empty"))).structure_hash
+    inc = handler().handle(
+        RunActionRq(route="static-view", consumed_route="_empty", known_structure_hash=h)
+    )
+    assert inc.fragments[0].component is not None
+    assert _component_of(inc).static_view is True
 
 
 def test_initial_load_form_with_required_field_and_button():
