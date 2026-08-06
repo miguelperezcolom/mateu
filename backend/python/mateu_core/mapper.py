@@ -1940,7 +1940,9 @@ class ReflectionMapper:
                          rows_selection_enabled=deletable,
                          filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
-                         group_by=self.group_by_of(row_type) if row_type is not None else None),
+                         group_by=self.group_by_of(row_type) if row_type is not None else None,
+                         # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
+                         rows_source=self._rest_listing(cls)),
             "crud",
             [],
         )
@@ -2577,6 +2579,24 @@ class ReflectionMapper:
             items_path=a.items_path,
             value_path=a.value_path,
             label_path=a.label_path,
+        )
+
+    @staticmethod
+    def _rest_listing(cls) -> "RestDataSource | None":
+        """The client-side external rows descriptor when the listing class carries
+        ``@rest_listing`` (columns come from the Row type; each item is keyed by column id); None
+        otherwise."""
+        spec = getattr(cls, "__mateu_rest_listing__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, items_path = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestDataSource(
+            url=url, method=method, headers=headers, body=body, items_path=items_path
         )
 
     def link_of(self, f, instance) -> NavLinkRecord | None:

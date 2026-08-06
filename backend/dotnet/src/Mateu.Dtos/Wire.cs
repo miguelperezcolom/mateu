@@ -711,6 +711,11 @@ public record CrudMetadataDto(
     /// <summary>Row selection checkboxes on the listing (a deletable/bulk-capable listing needs
     /// them; a bare listing shows none — mirrors CrudlDto.rowsSelectionEnabled).</summary>
     public bool RowsSelectionEnabled { get; init; }
+
+    /// <summary>Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint
+    /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
+    /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
+    public RestDataSourceDto? RowsSource { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);

@@ -69,6 +69,26 @@ public sealed class RestOptionsAttribute(string url) : Attribute
     public string LabelPath { get; init; } = "label";
 }
 
+/// <summary>Fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE: the renderer calls <see cref="Url"/> directly, navigates <see cref="ItemsPath"/>
+/// to the array in the JSON response and maps each item into a row by reading each COLUMN by its
+/// field name. Put it on a class implementing <c>IListing&lt;TRow&gt;</c>; its columns come from the
+/// TRow type as usual and its Fetch is never called. Url/Headers/Body support <c>${state.x}</c>
+/// interpolation. (C# analogue of Java's @RestListing.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class RestListingAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the array inside the response; blank means the root IS the array.</summary>
+    public string ItemsPath { get; init; } = "";
+}
+
 /// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking
 /// the field fires <c>codesearch-&lt;fieldId&gt;</c>, which opens the given selector — a Listing
 /// implementing ISelector — in a modal; selecting a row writes its (id, label) back into the

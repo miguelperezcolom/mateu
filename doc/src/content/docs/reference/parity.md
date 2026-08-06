@@ -48,7 +48,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs (`Selector` + `codesearch`) | ✅ | ✅ | ✅ |
 | External REST options (`@RestOptions`/`[RestOptions]`/`RestOptions()` → select; options fetched client-side from an arbitrary endpoint via `FormField.optionsSource`) | ✅ | ✅ | ✅ |
-| External REST listing rows (`@RestListing` on a `Listing<Row>` → rows fetched client-side from an arbitrary endpoint via `Crudl.rowsSource`; columns from the Row type) | ✅ | — | — |
+| External REST listing rows (`@RestListing`/`[RestListing]`/`@rest_listing` on a listing → rows fetched client-side from an arbitrary endpoint via `Crudl.rowsSource`; columns from the Row type) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |

@@ -99,6 +99,7 @@ from mateu_uidl import (  # noqa: E402
     audience,
     disabled_unless,
     remote_menu,
+    rest_listing,
 )
 from mateu_uidl.components import MicroFrontend  # noqa: E402
 
@@ -1692,6 +1693,37 @@ def test_rest_options_field_is_a_select_carrying_the_endpoint_descriptor():
     assert '"valuePath": "code"' in j
     assert '"labelPath": "name.common"' in j
     assert '"Authorization": "Bearer x"' in j  # header parsed from "Name: Value"
+
+
+class RestCountryRow:
+    code: str = ""
+    name: str = ""
+    population: int = 0
+
+
+@ui("rest-list")
+@title("Rest listing")
+@rest_listing(
+    url="https://api.example.com/countries?q=${state.searchText}",
+    headers=("Authorization: Bearer x",),
+    items_path="data.countries",
+)
+class RestListingView(Listing[RestCountryRow]):
+    def search(self, request, http=None):
+        return []
+
+
+def test_rest_listing_carries_the_endpoint_descriptor_and_columns_from_the_row_type():
+    inc = handler().handle(RunActionRq(route="rest-list", consumed_route="rest-list"))
+    j = render(inc)
+
+    assert '"rowsSource": {' in j
+    assert '"url": "https://api.example.com/countries?q=${state.searchText}"' in j
+    assert '"itemsPath": "data.countries"' in j
+    assert '"Authorization": "Bearer x"' in j
+    # columns come from the Row type (the frontend keys each JSON item by column id)
+    assert '"id": "code"' in j
+    assert '"id": "population"' in j
 
 
 def test_lookup_search_filters_and_pages_the_suppliers_options():

@@ -746,6 +746,27 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
     return deco
 
 
+def rest_listing(
+    url: str,
+    method: str = "GET",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    items_path: str = "",
+) -> Callable[[type], type]:
+    """Class-level: fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
+    CLIENT-SIDE. The renderer calls ``url`` directly, navigates ``items_path`` to the array in the
+    JSON response and maps each item into a row by reading each COLUMN by its field name. Put it on
+    a class implementing ``Listing[Row]``; its columns come from the Row type as usual and its
+    ``search`` is never called. ``url``/``headers``/``body`` support ``${state.x}`` interpolation
+    (including ``${searchText}``/``${page}``/``${size}``). Python analogue of Java's @RestListing."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path)
+        return cls
+
+    return deco
+
+
 def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
@@ -1512,7 +1533,7 @@ __all__ = [
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
