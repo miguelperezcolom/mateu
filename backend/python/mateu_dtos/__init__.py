@@ -166,6 +166,10 @@ class FormFieldMetadata(Wire):
     #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
     #: with {searchText, page, size} and expects a page of options back. None on other fields.
     remote_coordinates: "RemoteCoordinates | None" = None
+    #: Options fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (``RestOptions()``):
+    #: the renderer calls the URL directly and maps the JSON into the select's options. None on
+    #: fields without an external source.
+    options_source: "RestDataSource | None" = None
     #: Grid (list-of-rows) fields: one GridColumn per row-type field. None on non-grid fields.
     columns: "list[GridColumn] | None" = None
     #: Grid fields: the row-identity path ("_rowNumber" — rows are identified by position).
@@ -195,6 +199,21 @@ class RemoteCoordinates(Wire):
     base_url: str | None = None
     route: str | None = None
     params: dict[str, Any] | None = None
+
+
+class RestDataSource(Wire):
+    """Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
+    ``io.mateu.dtos.RestDataSourceDto``): the renderer fetches ``url`` directly, navigates
+    ``items_path`` to the response array and maps each item via ``value_path``/``label_path``.
+    ``url``/``headers``/``body`` support ``${state.x}`` interpolation."""
+
+    url: str
+    method: str | None = None
+    headers: dict[str, str] | None = None
+    body: str | None = None
+    items_path: str | None = None
+    value_path: str | None = None
+    label_path: str | None = None
 
 
 class NavLinkRecord(Wire):

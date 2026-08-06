@@ -64,3 +64,22 @@ String city;
 This is the **options** surface. Consuming external endpoints for listing rows, form data and
 button actions reuses the same `RestDataSource` descriptor and is on the roadmap.
 :::
+
+## Other backends
+
+Mateu.NET and the Python backend emit the same `optionsSource` descriptor, so any renderer fetches
+the endpoint the same way:
+
+```csharp
+// .NET
+[RestOptions("https://api.example.com/countries",
+    ItemsPath = "data.countries", ValuePath = "code", LabelPath = "name.common")]
+public string Country { get; set; } = "";
+```
+
+```python
+# Python
+country: Annotated[str, RestOptions(
+    url="https://api.example.com/countries",
+    items_path="data.countries", value_path="code", label_path="name.common")] = ""
+```

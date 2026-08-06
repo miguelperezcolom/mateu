@@ -1361,6 +1361,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             RemoteCoordinates = p.Find<LookupAttribute>() != null
                 ? new RemoteCoordinatesDto("search-" + fieldId)
                 : null,
+            // [RestOptions]: options fetched client-side from an arbitrary REST endpoint.
+            OptionsSource = RestOptionsOf(p),
             // [FileUpload(Accept = ".csv")]: the file input's accept filter travels in the
             // field's generic attributes list — no dedicated wire field (Java parity).
             Attributes = p.Find<FileUploadAttribute>() is { Accept.Length: > 0 } fileUpload
@@ -1402,6 +1404,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (p.Find<TreeSelectAttribute>() != null) return "treeSelect";
         if (p.Find<PasswordAttribute>() != null) return "password";
         if (p.Find<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
+        // [RestOptions]: options fetched client-side from an arbitrary REST endpoint → a select.
+        if (p.Find<RestOptionsAttribute>() != null) return "select";
         if (p.Find<LookupAttribute>() != null) return "combobox";
         if (p.Find<SearchableAttribute>() != null) return "searchable";
         if (plainText) return "plainText";
@@ -1411,6 +1415,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 : "select";
         if (multiline) return "textarea";
         return "regular";
+    }
+
+    /// <summary>The client-side external options descriptor when the property carries [RestOptions]
+    /// (headers parsed from "Name: Value" strings); null otherwise.</summary>
+    private static RestDataSourceDto? RestOptionsOf(PropertyInfo p)
+    {
+        if (p.Find<RestOptionsAttribute>() is not { } a) return null;
+        var headers = new Dictionary<string, string>();
+        foreach (var h in a.Headers)
+        {
+            var i = h.IndexOf(':');
+            if (i > 0) headers[h[..i].Trim()] = h[(i + 1)..].Trim();
+        }
+        return new RestDataSourceDto(a.Url)
+        {
+            Method = a.Method,
+            Headers = headers,
+            Body = a.Body,
+            ItemsPath = a.ItemsPath,
+            ValuePath = a.ValuePath,
+            LabelPath = a.LabelPath,
+        };
     }
 
     /// <summary>The stereotype a field renders with, including its plain-text context — the weight

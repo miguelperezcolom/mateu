@@ -47,6 +47,7 @@ from mateu_uidl import (  # noqa: E402
     LinkTo,
     Lookup,
     Message,
+    RestOptions,
     Money,
     Multiline,
     NavLink,
@@ -1663,6 +1664,34 @@ def test_lookup_field_renders_a_remote_combobox_on_the_wire():
 
     assert '"stereotype": "combobox"' in j
     assert '"remoteCoordinates": {"action": "search-supplier"' in j
+
+
+@ui("rest-opts")
+@title("Rest options")
+class RestOptsForm:
+    country: Annotated[
+        str,
+        RestOptions(
+            url="https://api.example.com/countries",
+            headers=("Authorization: Bearer x",),
+            items_path="data.countries",
+            value_path="code",
+            label_path="name.common",
+        ),
+    ] = ""
+
+
+def test_rest_options_field_is_a_select_carrying_the_endpoint_descriptor():
+    inc = handler().handle(RunActionRq(route="rest-opts", consumed_route="rest-opts"))
+    j = render(inc)
+
+    assert '"stereotype": "select"' in j
+    assert '"optionsSource": {' in j
+    assert '"url": "https://api.example.com/countries"' in j
+    assert '"itemsPath": "data.countries"' in j
+    assert '"valuePath": "code"' in j
+    assert '"labelPath": "name.common"' in j
+    assert '"Authorization": "Bearer x"' in j  # header parsed from "Name: Value"
 
 
 def test_lookup_search_filters_and_pages_the_suppliers_options():

@@ -47,6 +47,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | ✅ | ✅ |
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs (`Selector` + `codesearch`) | ✅ | ✅ | ✅ |
+| External REST options (`@RestOptions`/`[RestOptions]`/`RestOptions()` → select; options fetched client-side from an arbitrary endpoint via `FormField.optionsSource`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |

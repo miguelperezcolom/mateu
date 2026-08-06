@@ -177,6 +177,23 @@ class FileUpload:
 
 
 @dataclass(frozen=True)
+class RestOptions:
+    """Fills a field's select options from an arbitrary (non-Mateu) REST endpoint, fetched
+    CLIENT-SIDE: the renderer calls ``url`` directly (no Mateu server mediating), navigates
+    ``items_path`` to the array in the JSON response and maps each item via
+    ``value_path``/``label_path``. The field renders as a select. ``url``/``headers``/``body``
+    support ``${state.x}`` interpolation. Python analogue of Java's @RestOptions."""
+
+    url: str = ""
+    method: str = "GET"
+    headers: tuple[str, ...] = ()  #: "Name: Value" strings (values interpolated)
+    body: str = ""
+    items_path: str = ""  #: dot path to the response array; blank means the root IS the array
+    value_path: str = "value"
+    label_path: str = "label"
+
+
+@dataclass(frozen=True)
 class RangeFilter:
     """On a numeric field of a Crud entity: the listing filter becomes a min-max RANGE widget
     (the bounds travel as <field>_from/<field>_to state keys) instead of an equality input.
@@ -1491,7 +1508,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
