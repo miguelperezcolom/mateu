@@ -18,9 +18,7 @@ class YamlUidlLoaderTest {
 
   @Test
   void loadsVerticalLayoutFromYaml() {
-    var command = command("demo/hello");
-
-    Component component = loader.load(command).block();
+    Component component = layoutFor("demo/hello");
 
     assertThat(component).isInstanceOf(VerticalLayout.class);
     VerticalLayout layout = (VerticalLayout) component;
@@ -31,9 +29,7 @@ class YamlUidlLoaderTest {
 
   @Test
   void parsesNestedComponentsCorrectly() {
-    var command = command("demo/hello");
-
-    VerticalLayout layout = (VerticalLayout) loader.load(command).block();
+    VerticalLayout layout = (VerticalLayout) layoutFor("demo/hello");
 
     assertThat(layout.content().get(0)).isInstanceOf(Text.class);
     Text title = (Text) layout.content().get(0);
@@ -51,9 +47,7 @@ class YamlUidlLoaderTest {
 
   @Test
   void parsesFormFieldsCorrectly() {
-    var command = command("demo/hello");
-
-    VerticalLayout layout = (VerticalLayout) loader.load(command).block();
+    VerticalLayout layout = (VerticalLayout) layoutFor("demo/hello");
 
     FormLayout form = (FormLayout) layout.content().get(3);
     assertThat(form.content()).hasSize(3);
@@ -72,30 +66,18 @@ class YamlUidlLoaderTest {
   }
 
   @Test
-  void returnsEmptyWhenFileNotFound() {
-    var command = command("nonexistent/page");
-
-    Component component = loader.load(command).block();
-
-    assertThat(component).isNull();
+  void returnsNullWhenFileNotFound() {
+    assertThat(loader.loadSpec("nonexistent/page")).isNull();
   }
 
   @Test
   void stripsLeadingSlashFromRoute() {
-    var command = command("/demo/hello");
-
-    Component component = loader.load(command).block();
-
-    assertThat(component).isInstanceOf(VerticalLayout.class);
+    assertThat(layoutFor("/demo/hello")).isInstanceOf(VerticalLayout.class);
   }
 
   @Test
   void stripsQueryParamsFromRoute() {
-    var command = command("demo/hello?foo=bar");
-
-    Component component = loader.load(command).block();
-
-    assertThat(component).isInstanceOf(VerticalLayout.class);
+    assertThat(layoutFor("demo/hello?foo=bar")).isInstanceOf(VerticalLayout.class);
   }
 
   @Test
@@ -112,7 +94,8 @@ class YamlUidlLoaderTest {
     assertThat(component).isNull();
   }
 
-  private RunActionCommand command(String route) {
-    return new RunActionCommand(null, null, route, null, null, null, null, null, null, null, null);
+  private Component layoutFor(String route) {
+    var spec = loader.loadSpec(route);
+    return spec == null ? null : spec.layout();
   }
 }

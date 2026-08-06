@@ -1,0 +1,18 @@
+# A page defined in YAML that declares its ModelView (the inverse of @UISpec): the layout lives
+# here, the behaviour/state in the referenced Java class. Used by YamlModelViewSyncTest.
+modelView: io.mateu.core.application.YamlModelViewSyncTest$GreeterView
+layout:
+  type: VerticalLayout
+  spacing: true
+  padding: true
+  content:
+    - type: FormLayout
+      content:
+        - type: FormField
+          id: name
+          label: "Name"
+          dataType: string
+    - type: Button
+      label: "Greet"
+      actionId: greet
+      buttonStyle: primary

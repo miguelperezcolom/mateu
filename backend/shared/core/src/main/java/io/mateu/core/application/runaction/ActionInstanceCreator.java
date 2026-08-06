@@ -63,7 +63,24 @@ public class ActionInstanceCreator {
     RunActionCommand finalCommand = command;
     return routeInstanceCreator
         .findRouteResolver(command)
-        .switchIfEmpty((Mono) Mono.defer(() -> yamlUidlLoader.load(finalCommand)));
+        .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)));
+  }
+
+  /**
+   * Route with no Java class: fall back to a YAML page. A bare layout renders as-is (static); a
+   * page that declares a {@code modelView:} instantiates that class as the ModelView (state +
+   * actions), and the reflective mapper re-applies the YAML layout to it (by route). Empty when
+   * there is no spec.
+   */
+  private Mono<?> loadYaml(RunActionCommand command) {
+    var spec = yamlUidlLoader.loadSpec(command.route());
+    if (spec == null) {
+      return Mono.empty();
+    }
+    if (spec.modelView() == null || spec.modelView().isBlank()) {
+      return Mono.justOrEmpty(spec.layout());
+    }
+    return createInstanceAndPostHydrate(spec.modelView(), command);
   }
 
   private Mono<?> instantiateWithKnownType(RunActionCommand command) {
