@@ -744,6 +744,17 @@ class Featured:
         return Message(f"Saved {self.name}")
 
 
+class YamlBoundView:
+    """A plain logic class (no @ui): a YAML page under specs/ui declares it as its modelView, so
+    the YAML supplies the layout while this supplies the state (name) and the action (greet),
+    bound by convention (FormField id="name" → name, Button actionId="greet" → greet())."""
+
+    name: str | None = "seed"
+
+    def greet(self) -> Message:
+        return Message(f"Hello {self.name}!")
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -883,6 +894,50 @@ def test_preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing():
         )
     )
     assert inc.fragments[0].component is not None
+
+
+def test_yaml_page_binds_its_layout_to_the_declared_modelView():
+    spec_dir = Path("specs") / "ui"
+    spec_dir.mkdir(parents=True, exist_ok=True)
+    spec_file = spec_dir / "yaml-bound-demo.yaml"
+    spec_file.write_text(
+        f"""
+modelView: {_name(YamlBoundView)}
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: Name
+    - type: Button
+      label: Greet
+      actionId: greet
+"""
+    )
+    try:
+        # First load: no view class resolves the route → the YAML page binds to its modelView.
+        inc = handler().handle(
+            RunActionRq(route="yaml-bound-demo", consumed_route="yaml-bound-demo")
+        )
+        j = render(inc)
+        assert _name(YamlBoundView) in j  # serverSideType is the modelView
+        assert '"fieldId": "name"' in j or '"fieldId":"name"' in j  # the YAML layout's field
+        assert '"greet"' in j  # the YAML button routes to the modelView method
+        assert '"seed"' in j  # the modelView's state seeded into initialData
+
+        # Action round-trip: the button dispatches greet on the modelView (resolved by
+        # serverSideType, which carries no @ui route — resolved by full name).
+        acted = handler().handle(
+            RunActionRq(
+                route="yaml-bound-demo",
+                action_id="greet",
+                server_side_type=_name(YamlBoundView),
+                component_state={"name": "Ann"},
+            )
+        )
+        assert acted.messages[0].text == "Hello Ann!"
+    finally:
+        spec_file.unlink()
 
 
 def test_initial_load_form_with_required_field_and_button():

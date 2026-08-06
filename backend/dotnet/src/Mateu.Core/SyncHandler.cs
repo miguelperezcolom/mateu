@@ -11,6 +11,7 @@ namespace Mateu.Core;
 public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null)
 {
     private readonly ReflectionMapper _mapper = new(translator, identity);
+    private readonly YamlSpecLoader _yaml = new();
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
@@ -54,7 +55,23 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
 
         var type = registry.Resolve(rq.ServerSideType, rq.Route);
+        var yamlSpec = _yaml.LoadSpec(rq.Route);
+        if (type is null && yamlSpec is not null)
+        {
+            // A route with no view class → a YAML page. A bare layout renders as a static, unbound
+            // page; a page that declares modelView: instantiates that logic class (state + actions)
+            // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
+            if (string.IsNullOrEmpty(yamlSpec.ModelView))
+                return yamlSpec.Layout is { } bare
+                    ? FragmentResponse(rq.Route ?? "", ComponentMapper.Map(bare), rq)
+                    : Error($"Route not found: {rq.Route}");
+            type = registry.TypeByName(yamlSpec.ModelView);
+        }
         if (type is null) return Error($"Route not found: {rq.Route}");
+        // A YAML page bound to this modelView re-applies its layout on every render (first load AND
+        // any in-place re-render) so the layout stays authoritative (mirrors Java's
+        // ReflectionObjectToComponentMapper.layoutForRoute).
+        var layoutOverride = yamlSpec?.ModelView == type.FullName ? yamlSpec!.Layout : null;
 
         // 2b. A declarative Listing — a read-only searchable listing with typed filters.
         if (ReflectionMapper.ListingTypes(type) is { } listing)
@@ -146,7 +163,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 return Render(type, instance, rq);
             }
         }
-        return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
+        return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq, layoutOverride) : RunAction(type, instance, rq);
     }
 
     private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
@@ -1317,10 +1334,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), _mapper.MapApp(appType, requestBaseUrl), null, null, "Replace", null)]);
 
-    private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq)
+    private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route), rq,
+        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route, layoutOverride), rq,
             LookupLabels(type, instance, instance));
     }
 

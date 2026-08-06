@@ -550,7 +550,7 @@ class ReflectionMapper:
         return MenuItem(label=self.T(label), route=route, server_side_type=ssn, consumed_route=route)
 
     # ── Plain view ─────────────────────────────────────────────────────────────
-    def map_view(self, cls, instance, route: str) -> ServerSideComponent:
+    def map_view(self, cls, instance, route: str, layout_override=None) -> ServerSideComponent:
         element = crud_element_type(cls)
         if element is not None:
             return self.map_crud(cls, element, route, instance)
@@ -573,7 +573,11 @@ class ReflectionMapper:
             if on_row is not None and all(a.id != camel_case(on_row.value) for a in actions):
                 actions.append(Action(id=camel_case(on_row.value), validation_required=False))
 
-        tree = self.component_tree(instance)
+        # A YAML page's layout (bound to this instance as its ModelView) renders as the page
+        # content exactly like an archetype's fluent tree — its FormField ids bind to the
+        # instance's state (seeded into initialData below), its Button actionIds (collected below)
+        # route back to the instance's methods.
+        tree = layout_override if layout_override is not None else self.component_tree(instance)
         if tree is not None:
             children = [self.map_component(tree)]
             known = {a.id for a in actions}

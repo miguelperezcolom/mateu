@@ -26,6 +26,23 @@ public static class YamlComponentBuilder
         return Build(root);
     }
 
+    /// <summary>
+    /// Parse a page spec (a file under specs/ui): the declared ModelView class name (or null for a
+    /// bare, unbound layout) plus the layout component. Envelope-aware — a `layout:` key holds the
+    /// tree and a `modelView:` key names the logic class the tooling binds it to.
+    /// </summary>
+    public static (string? ModelView, IComponent? Layout) ParseSpec(string yaml)
+    {
+        if (string.IsNullOrWhiteSpace(yaml)) return (null, null);
+        object? root;
+        try { root = Yaml.Deserialize<object>(yaml); }
+        catch { return (null, null); }
+        if (root is not IDictionary<object, object> map) return (null, Build(root));
+        var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString() : null;
+        var layoutNode = map.TryGetValue("layout", out var layout) ? layout : root;
+        return (modelView, Build(layoutNode));
+    }
+
     private static IComponent? Build(object? node)
     {
         if (node is not IDictionary<object, object> map) return null;

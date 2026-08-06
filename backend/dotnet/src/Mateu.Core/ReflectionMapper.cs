@@ -229,7 +229,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
 
-    public ServerSideComponentDto MapView(Type type, object instance, string route)
+    public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null)
     {
         var crudElement = CrudElementType(type);
         if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
@@ -260,11 +260,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // is composed as it — the C# analogue of Java's InferredDashboard/InferredWelcome. The
         // welcome hero title is the declared [Title]; subtitle/image have no declarative source,
         // so setting them remains a reason to subclass Welcome.
-        var tree = instance is IComponentTreeSupplier supplier ? supplier.Component()
+        // A YAML page's layout (bound to this instance as its ModelView) is rendered as the page
+        // content exactly like an archetype's fluent tree — its FormField ids bind to the instance's
+        // state, its Button actionIds (collected below) route back to the instance's methods.
+        var tree = layoutOverride
+            ?? (instance is IComponentTreeSupplier supplier ? supplier.Component()
             : PageInference.ComposesDashboard(type) ? ArchetypeComposers.ComposeDashboard(instance, 0)
             : PageInference.ComposesWelcome(type)
                 ? ArchetypeComposers.ComposeWelcome(instance, type.Find<TitleAttribute>()?.Value, null, null)
-                : null;
+                : null);
         if (tree is not null)
         {
             content = [ComponentMapper.Map(tree)];
@@ -307,10 +311,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
         var (triggers, emits) = EventsOf(type);
         var initialData = new Dictionary<string, object?>();
-        if (instance is IComponentTreeSupplier)
+        if (instance is IComponentTreeSupplier || layoutOverride is not null)
         {
-            // Tree-supplier views (archetypes): scalar properties are the view's state — seed
-            // them into initialData so they round-trip through componentState (search text,
+            // Tree-supplier views (archetypes) and YAML-bound modelViews: scalar properties are the
+            // view's state — seed them into initialData so they round-trip through componentState
+            // (a YAML FormField id="name" reads its value from the seeded "name", search text,
             // selection, switcher value…).
             foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {

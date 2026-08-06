@@ -45,6 +45,28 @@ class MateuRegistry:
             return self._by_route[norm]
         return self.app_type if norm == "" else None
 
+    def type_by_name(self, full_name: str | None) -> type | None:
+        """Resolve any class by full name (``module.QualName``) — used to instantiate a YAML page's
+        declared ``modelView:`` logic class, which need not be a registered @ui view."""
+        if not full_name:
+            return None
+        if full_name in self._by_name:
+            return self._by_name[full_name]
+        module_name, _, qual = full_name.rpartition(".")
+        if not module_name:
+            return None
+        try:
+            import importlib
+
+            obj = importlib.import_module(module_name)
+        except ImportError:
+            return None
+        for part in qual.split("."):
+            obj = getattr(obj, part, None)
+            if obj is None:
+                return None
+        return obj if isinstance(obj, type) else None
+
     def resolve_by_prefix(self, route: str | None) -> tuple[type, str] | None:
         """The registered view whose route is the longest prefix of ``route`` (for CRUD sub-routes)."""
         norm = normalize(route)
