@@ -1,6 +1,6 @@
 # Mateu
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/2E34heWF)
+[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/YFb9utDMYK)
 
 Mateu is a **model-driven UI framework for Java** that lets you build **business web applications** at very high speed.
 
@@ -88,7 +88,7 @@ Mateu is **not designed for**:
 
 Have questions, ideas or feedback?
 
-👉 **Join our Discord**: https://discord.gg/2E34heWF
+👉 **Join our Discord**: https://discord.gg/YFb9utDMYK
 
 ---
 
