@@ -831,6 +831,24 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Contract_action_returns_the_bindable_fields_and_actions_on_appdata()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__contract__",
+            ServerSideType = typeof(SimpleForm).FullName,
+            Route = "",
+            ConsumedRoute = "_empty",
+        });
+        var json = Render(inc);
+        Assert.Contains("\"_contract\"", json);
+        Assert.Contains("\"modelView\":\"Mateu.Tests.SimpleForm\"", json);
+        Assert.Contains("\"id\":\"name\"", json); // a bindable field
+        Assert.Contains("\"dataType\":\"string\"", json);
+        Assert.Contains("\"id\":\"greet\"", json); // a bindable action
+    }
+
+    [Fact]
     public void InitialLoad_emits_window_title_and_form_with_required_name_field_and_greet_button()
     {
         var inc = Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" });

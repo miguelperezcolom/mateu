@@ -19,6 +19,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         ReflectionMapper.SetCurrentAudience(
             rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
 
+        // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
+        // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
+        // action (mirrors Java's __contract__ reserved action).
+        if (rq.ActionId == "__contract__" && !string.IsNullOrEmpty(rq.ServerSideType)
+            && registry.Resolve(rq.ServerSideType, rq.Route) is { } contractType)
+            return ContractResponse(contractType, rq);
+
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
@@ -1377,6 +1384,59 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), null, data, "Replace", null)]);
+
+    // ── ModelView contract ─────────────────────────────────────────────────────
+    private UIIncrementDto ContractResponse(Type type, RunActionRqDto rq)
+    {
+        var instance = Activator.CreateInstance(type)!;
+        BindState(instance, rq.ComponentState);
+        var component = _mapper.MapView(type, instance, rq.ConsumedRoute ?? "_empty");
+        var fields = new List<ModelViewContractDto.Field>();
+        CollectFields(component, fields);
+        var actions = component.Actions
+            .Select(a => a.Id)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .Select(id => new ModelViewContractDto.Action(id))
+            .ToList();
+        var contract = new ModelViewContractDto(type.FullName ?? "", fields, actions);
+        return new UIIncrementDto([], [], [], [], false, new Dictionary<string, object?> { ["_contract"] = contract }, null);
+    }
+
+    // A form field is the metadata of a ClientSideComponentDto — but the components themselves nest
+    // inside METADATA records (a Page/Form/Card holds its content there), not always in Children, so
+    // descend into metadata reflectively too (mirrors Java's walk + walkMetadata).
+    private static void CollectFields(ComponentDto? component, List<ModelViewContractDto.Field> fields)
+    {
+        switch (component)
+        {
+            case ClientSideComponentDto client:
+                if (client.Metadata is FormFieldMetadataDto f && !string.IsNullOrEmpty(f.FieldId)
+                    && fields.All(x => x.Id != f.FieldId))
+                    fields.Add(new ModelViewContractDto.Field(f.FieldId, f.DataType, f.Stereotype, f.Label, f.Required, f.ReadOnly));
+                if (client.Metadata is { } md) WalkMetadata(md, fields);
+                foreach (var child in client.Children) CollectFields(child, fields);
+                break;
+            case ServerSideComponentDto server:
+                foreach (var child in server.Children) CollectFields(child, fields);
+                break;
+        }
+    }
+
+    private static void WalkMetadata(object metadata, List<ModelViewContractDto.Field> fields)
+    {
+        foreach (var prop in metadata.GetType().GetProperties())
+        {
+            object? value;
+            try { value = prop.GetValue(metadata); }
+            catch { continue; }
+            if (value is ComponentDto dto)
+                CollectFields(dto, fields);
+            else if (value is System.Collections.IEnumerable seq and not string)
+                foreach (var item in seq)
+                    if (item is ComponentDto d) CollectFields(d, fields);
+        }
+    }
 
     // Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
     // component with a stable hash of its structure and, when the client echoed a still-matching
