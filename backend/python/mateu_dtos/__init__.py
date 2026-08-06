@@ -250,6 +250,10 @@ class CrudMetadata(Wire):
     #: Row selection checkboxes on (a Deletable listing / a full crud); mirrors
     #: CrudlDto.rowsSelectionEnabled.
     rows_selection_enabled: bool = False
+    #: Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (@rest_listing): the
+    #: renderer maps each JSON item into a row keyed by column id instead of dispatching the server
+    #: search. None on server-backed listings (mirrors CrudlDto.rowsSource).
+    rows_source: "RestDataSource | None" = None
 
 
 class ProgressBarMetadata(Wire):

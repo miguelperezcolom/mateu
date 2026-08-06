@@ -28,6 +28,25 @@ public class RestOptsForm
     public string Country { get; set; } = "";
 }
 
+// A listing whose rows come from an arbitrary REST endpoint, fetched client-side. Columns come
+// from the Row type; Search() is never called.
+[UI("rest-list"), Title("Rest listing"),
+ RestListing("https://api.example.com/countries?q=${state.searchText}",
+     Headers = ["Authorization: Bearer x"], ItemsPath = "data.countries")]
+public class RestList : Listing<RestList.Filters, RestList.Row>
+{
+    public class Filters { }
+
+    public class Row
+    {
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public long Population { get; set; }
+    }
+
+    public override ListingData<Row> Search(SearchRequest request) => ListingData.From<Row>([]);
+}
+
 // A fully-static screen: the client caches its whole response and skips the round-trip on return.
 [UI("static-view"), Title("About"), StaticView]
 public class StaticViewForm
@@ -1791,6 +1810,21 @@ public class SyncHandlerTests
         Assert.Contains("\"valuePath\":\"code\"", json);
         Assert.Contains("\"labelPath\":\"name.common\"", json);
         Assert.Contains("\"Authorization\":\"Bearer x\"", json); // header parsed from "Name: Value"
+    }
+
+    [Fact]
+    public void RestListing_carries_the_endpoint_descriptor_and_columns_from_the_row_type()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-list", ConsumedRoute = "rest-list" });
+        var json = Render(inc);
+
+        Assert.Contains("\"rowsSource\":{", json);
+        Assert.Contains("\"url\":\"https://api.example.com/countries?q=${state.searchText}\"", json);
+        Assert.Contains("\"itemsPath\":\"data.countries\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json);
+        // columns come from the Row type (the frontend keys each JSON item by column id)
+        Assert.Contains("\"id\":\"code\"", json);
+        Assert.Contains("\"id\":\"population\"", json);
     }
 
     [Fact]

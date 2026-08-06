@@ -62,5 +62,30 @@ needs nothing). The listing is read-only.
 :::note
 Rows and [options](./rest-options) are the shipped surfaces of consuming external endpoints. Form/
 screen data load and endpoint button actions reuse the same `RestDataSource` descriptor and are on
-the roadmap. This surface is currently Java-only; the .NET/Python port is a follow-up.
+the roadmap.
 :::
+
+## Other backends
+
+Mateu.NET and the Python backend emit the same `rowsSource` descriptor:
+
+```csharp
+// .NET
+[UI("rest-countries"),
+ RestListing("/countries.json", ItemsPath = "data.countries")]
+public class RestCountries : Listing<RestCountries.Filters, RestCountries.Row>
+{
+    public class Filters { }
+    public class Row { public string? Code { get; set; } public string? Name { get; set; } }
+    public override ListingData<Row> Search(SearchRequest r) => ListingData.From<Row>([]);
+}
+```
+
+```python
+# Python
+@ui("rest-countries")
+@rest_listing(url="/countries.json", items_path="data.countries")
+class RestCountries(Listing[Row]):
+    def search(self, request, http=None):
+        return []
+```

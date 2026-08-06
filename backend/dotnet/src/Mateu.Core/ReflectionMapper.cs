@@ -818,6 +818,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
+            // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
+            RowsSource = RestListingOf(viewType),
         }, "crud", []);
         var pageChildren = new List<ComponentDto>();
         if (smartSearch?.PageSubtitle() is { } subtitle)
@@ -1422,21 +1424,42 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private static RestDataSourceDto? RestOptionsOf(PropertyInfo p)
     {
         if (p.Find<RestOptionsAttribute>() is not { } a) return null;
-        var headers = new Dictionary<string, string>();
-        foreach (var h in a.Headers)
-        {
-            var i = h.IndexOf(':');
-            if (i > 0) headers[h[..i].Trim()] = h[(i + 1)..].Trim();
-        }
         return new RestDataSourceDto(a.Url)
         {
             Method = a.Method,
-            Headers = headers,
+            Headers = ParseHeaders(a.Headers),
             Body = a.Body,
             ItemsPath = a.ItemsPath,
             ValuePath = a.ValuePath,
             LabelPath = a.LabelPath,
         };
+    }
+
+    /// <summary>The client-side external rows descriptor when the listing class carries
+    /// [RestListing] (columns come from the row type; each item is keyed by column id); null
+    /// otherwise.</summary>
+    private static RestDataSourceDto? RestListingOf(Type type)
+    {
+        if (type.Find<RestListingAttribute>() is not { } a) return null;
+        return new RestDataSourceDto(a.Url)
+        {
+            Method = a.Method,
+            Headers = ParseHeaders(a.Headers),
+            Body = a.Body,
+            ItemsPath = a.ItemsPath,
+        };
+    }
+
+    /// <summary>Parses "Name: Value" header strings into a map.</summary>
+    private static Dictionary<string, string> ParseHeaders(string[] headers)
+    {
+        var map = new Dictionary<string, string>();
+        foreach (var h in headers)
+        {
+            var i = h.IndexOf(':');
+            if (i > 0) map[h[..i].Trim()] = h[(i + 1)..].Trim();
+        }
+        return map;
     }
 
     /// <summary>The stereotype a field renders with, including its plain-text context — the weight
