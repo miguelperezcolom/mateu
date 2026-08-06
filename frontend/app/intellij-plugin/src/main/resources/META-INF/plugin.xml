@@ -16,6 +16,9 @@
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
+        <!-- Visual-builder component palette (insert components into a page YAML). -->
+        <toolWindow id="Mateu Components" anchor="left"
+                    factoryClass="io.mateu.ijp.contract.MateuPaletteToolWindowFactory"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <!-- Visual-builder live preview: a split editor for specs/ui/*.yaml pages. -->
         <fileEditorProvider implementation="io.mateu.ijp.contract.YamlPagePreviewProvider"/>
