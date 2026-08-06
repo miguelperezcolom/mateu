@@ -31,4 +31,11 @@ class PaletteSnippetsTest {
   fun indentPrefixesEveryLine() {
     assertEquals("  - type: X\n    id: y", PaletteSnippets.indent("- type: X\n  id: y", "  "))
   }
+
+  @Test
+  fun dndTypeOfParsesTheDragPayload() {
+    assertEquals("Button", PaletteDnD.typeOf(PaletteDnD.PREFIX + "Button"))
+    assertNull(PaletteDnD.typeOf("something-else"))
+    assertNull(PaletteDnD.typeOf(null))
+  }
 }
