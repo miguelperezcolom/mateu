@@ -91,7 +91,7 @@ private class YamlPagePreviewEditor(
         event.acceptDrop(DnDConstants.ACTION_COPY)
         val transfer = event.transferable.getTransferData(DataFlavor.stringFlavor) as? String
         val type = PaletteDnD.typeOf(transfer)
-        if (type != null) onDrop(type)
+        if (type != null) onDrop(type, event.dropTargetContext.component)
         event.dropComplete(type != null)
       } catch (e: Exception) {
         event.dropComplete(false)
@@ -113,15 +113,29 @@ private class YamlPagePreviewEditor(
     if (component is Container) component.components.forEach { installDropTargets(it) }
   }
 
-  private fun onDrop(type: String) {
+  private fun onDrop(type: String, droppedOn: AwtComponent?) {
     val item = PaletteSnippets.byType(type) ?: return
     val doc = document ?: return
-    val insertion = PaletteDnD.appendToRootContent(project, file, doc, item.snippet)
+    // Map the widget dropped on → its wire component → its path → the YAML insertion point. Falls
+    // back to a root append when the drop target can't be resolved (see DropTargeting).
+    val path = DropTargeting.pathOf(lastRoot, wireNodeOf(droppedOn)) ?: emptyList()
+    val insertion = DropTargeting.insertionAtPath(project, file, doc, path, item.snippet)
+      ?: PaletteDnD.appendToRootContent(project, file, doc, item.snippet)
       ?: (doc.textLength to ("\n" + item.snippet))
     WriteCommandAction.runWriteCommandAction(project) {
       doc.insertString(insertion.first, insertion.second)
     }
     scheduleRefresh(delayMs = 0)
+  }
+
+  /** The wire component a widget was rendered from (walking up to the nearest tagged ancestor). */
+  private fun wireNodeOf(component: AwtComponent?): JsonNode? {
+    var c = component
+    while (c != null) {
+      if (c is JComponent) (c.getClientProperty(DropTargeting.WIRE_KEY) as? JsonNode)?.let { return it }
+      c = c.parent
+    }
+    return null
   }
 
   private fun scheduleRefresh(delayMs: Int = 350) {
@@ -161,10 +175,15 @@ private class YamlPagePreviewEditor(
     }
   }
 
+  // The wire root of the last rendered preview — the tree drop targeting searches for a widget's path.
+  @Volatile
+  private var lastRoot: JsonNode? = null
+
   private fun renderIncrement(increment: JsonNode): JComponent {
     val fragment = increment.path("fragments").firstOrNull() ?: return hint("Nothing to preview.")
     val component = fragment.path("component")
     if (component.isMissingNode || component.isNull) return hint("Nothing to preview.")
+    lastRoot = component
     val state = fragment.path("state")
     val data = fragment.path("data")
     val ctx = AppContext(session)
