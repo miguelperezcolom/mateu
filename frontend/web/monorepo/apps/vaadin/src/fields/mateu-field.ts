@@ -7,6 +7,7 @@ import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
+import { fetchExternalOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -964,6 +965,41 @@ export class MateuField extends LitElement {
                 `
             }
             if (this.field?.stereotype == 'select') {
+                if (this.field?.optionsSource) {
+                    // Options from an arbitrary REST endpoint, fetched CLIENT-SIDE (no Mateu server
+                    // mediating). Refetch only when the interpolated url changes (a state-dependent
+                    // source), keyed by a signature so re-renders don't loop.
+                    const src = this.field.optionsSource
+                    const signature = interpolate(src.url, this.state, this.data) ?? src.url
+                    if (this.data[this.id]?.sourceSignature !== signature) {
+                        this.data[this.id] = { content: this.data[this.id]?.content ?? [], sourceSignature: signature }
+                        fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
+                            .then((opts) => {
+                                this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
+                                this.requestUpdate()
+                            })
+                            .catch((e) => console.warn('mateu: external options fetch failed', e))
+                    }
+                    let realValue = value
+                    if (value && value.value) {
+                        realValue = value.value
+                    }
+                    return html`
+                    <vaadin-select
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.data[this.id]?.content ?? []}"
+                            .helperText="${this.helperText()}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${realValue}"
+                            ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required || nothing}"
+                            data-colspan="${this.field.colspan}"
+                    ></vaadin-select>
+                    `
+                }
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
                     const filter = ''

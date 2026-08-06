@@ -30,6 +30,7 @@ final class StandardFormFieldBuilder {
         .max(getMax(field))
         .stepButtonsVisible(getStepButtonsVisible(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
+        .optionsSource(getOptionsSource(field))
         .readOnly(
             readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))
         .options(getOptions(field, instance, httpRequest))

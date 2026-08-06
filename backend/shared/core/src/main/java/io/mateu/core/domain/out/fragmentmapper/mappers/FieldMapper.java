@@ -31,6 +31,7 @@ public class FieldMapper {
             .options(formField.options().stream().map(FieldMapper::mapOption).toList())
             .treeLeavesOnly(formField.treeLeavesOnly())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
+            .optionsSource(mapRestDataSource(formField.optionsSource()))
             .initialValue(formField.initialValue())
             .readOnly(formField.readOnly())
             .required(formField.required())
@@ -94,6 +95,20 @@ public class FieldMapper {
       return null;
     }
     return new NavLinkDto(link.href(), link.icon(), link.title(), link.target());
+  }
+
+  private static RestDataSourceDto mapRestDataSource(io.mateu.uidl.data.RestDataSource source) {
+    if (source == null) {
+      return null;
+    }
+    return new RestDataSourceDto(
+        source.url(),
+        source.method(),
+        source.headers(),
+        source.body(),
+        source.itemsPath(),
+        source.valuePath(),
+        source.labelPath());
   }
 
   private static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {
