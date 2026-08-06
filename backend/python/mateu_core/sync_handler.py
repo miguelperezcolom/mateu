@@ -142,6 +142,12 @@ class SyncHandler:
             if cls is not None:
                 return self._contract_response(cls, rq)
 
+        # 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview
+        # pane POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors
+        # Java's __preview__ reserved action / YamlUidlLoader.parseText).
+        if rq.action_id == "__preview__" and rq.parameters.get("_yaml"):
+            return self._preview_response(rq.parameters["_yaml"], rq)
+
         # 1. App shell at the root route.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)
@@ -1406,6 +1412,14 @@ class SyncHandler:
             rq,
             self.lookup_labels(type_, instance, instance),
         )
+
+    # ── Visual-builder live preview ────────────────────────────────────────────
+    def _preview_response(self, yaml_text: str, rq: RunActionRq) -> UIIncrement:
+        from mateu_core.yaml_preview import build_from_yaml
+        from mateu_uidl import components as fluent
+
+        tree = build_from_yaml(yaml_text) or fluent.Text(text="Invalid YAML")
+        return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
 
     # ── ModelView contract ─────────────────────────────────────────────────────
     def _contract_response(self, cls, rq: RunActionRq) -> UIIncrement:

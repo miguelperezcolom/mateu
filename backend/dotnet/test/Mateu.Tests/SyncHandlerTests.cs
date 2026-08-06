@@ -849,6 +849,53 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Preview_action_renders_arbitrary_yaml_page_text()
+    {
+        const string yaml = """
+            type: VerticalLayout
+            spacing: true
+            content:
+              - type: Text
+                text: "Hi"
+              - type: FormField
+                id: email
+                dataType: string
+                label: "Email"
+                required: true
+              - type: Button
+                label: "Save"
+                actionId: "save"
+                buttonStyle: primary
+            """;
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__preview__",
+            Route = "",
+            ConsumedRoute = "_empty",
+            Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(yaml) },
+        });
+        var json = Render(inc);
+        Assert.Contains("\"type\":\"VerticalLayout\"", json);
+        Assert.Contains("\"type\":\"Text\"", json);
+        Assert.Contains("\"fieldId\":\"email\"", json); // YAML id → wire fieldId
+        Assert.Contains("\"required\":true", json);
+        Assert.Contains("\"actionId\":\"save\"", json);
+    }
+
+    [Fact]
+    public void Preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__preview__",
+            Route = "",
+            ConsumedRoute = "_empty",
+            Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(":\n  - broken: [") },
+        });
+        Assert.NotNull(inc.Fragments[0].Component); // a notice fragment, not an exception
+    }
+
+    [Fact]
     public void InitialLoad_emits_window_title_and_form_with_required_name_field_and_greet_button()
     {
         var inc = Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" });

@@ -9,4 +9,7 @@
     <ProjectReference Include="../Mateu.Uidl/Mateu.Uidl.csproj" />
     <ProjectReference Include="../Mateu.Dtos/Mateu.Dtos.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
 </Project>

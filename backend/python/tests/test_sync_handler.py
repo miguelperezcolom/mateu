@@ -841,6 +841,50 @@ def test_contract_action_returns_bindable_fields_and_actions_on_app_data():
     assert "greet" in [a["id"] for a in contract["actions"]]
 
 
+def test_preview_action_renders_arbitrary_yaml_page_text():
+    yaml_text = """
+type: VerticalLayout
+spacing: true
+content:
+  - type: Text
+    text: "Hi"
+  - type: FormField
+    id: email
+    dataType: string
+    label: "Email"
+    required: true
+  - type: Button
+    label: "Save"
+    actionId: "save"
+    buttonStyle: primary
+"""
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__preview__",
+            parameters={"_yaml": yaml_text},
+        )
+    )
+    j = render(inc)
+    assert '"VerticalLayout"' in j
+    assert '"email"' in j  # YAML id → wire fieldId
+    assert '"save"' in j
+    assert '"required": true' in j or '"required":true' in j
+
+
+def test_preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing():
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__preview__",
+            parameters={"_yaml": ":\n  - broken: ["},
+        )
+    )
+    assert inc.fragments[0].component is not None
+
+
 def test_initial_load_form_with_required_field_and_button():
     inc = handler().handle(RunActionRq(route="", consumed_route="_empty"))
     j = render(inc)
