@@ -26,6 +26,16 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } contractType)
             return ContractResponse(contractType, rq);
 
+        // 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview pane
+        // POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors Java's
+        // __preview__ reserved action / YamlUidlLoader.parseText).
+        if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
+        {
+            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "")
+                              ?? new Text("Invalid YAML");
+            return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
+        }
+
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0

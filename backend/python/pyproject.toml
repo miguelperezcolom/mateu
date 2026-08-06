@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Mateu server-side for Python — annotate Python classes; any Mateu renderer renders them."
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-dependencies = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.6"]
+dependencies = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.6", "pyyaml>=6"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "httpx>=0.27"]
