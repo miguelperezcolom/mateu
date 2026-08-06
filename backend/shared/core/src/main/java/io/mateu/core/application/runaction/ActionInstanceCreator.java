@@ -123,6 +123,11 @@ public class ActionInstanceCreator {
     if (actionId.startsWith(io.mateu.core.domain.act.AppContextSearchActionRunner.ACTION_PREFIX)) {
       return true;
     }
+    // The visual-builder contract request addresses the ModelView instance directly (skip
+    // menu/route resolution), same as the context selectors' remote search.
+    if (RunActionUseCase.CONTRACT_ACTION.equals(actionId)) {
+      return true;
+    }
     // The notification inbox's list/read actions are app-level too (the bell lives on the shell).
     if (actionId.startsWith(io.mateu.core.domain.act.NotificationsActionRunner.ACTION_PREFIX)) {
       return true;

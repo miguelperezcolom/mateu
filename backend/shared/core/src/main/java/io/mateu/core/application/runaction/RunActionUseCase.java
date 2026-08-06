@@ -1,8 +1,11 @@
 package io.mateu.core.application.runaction;
 
+import io.mateu.core.application.contract.ModelViewContractExtractor;
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.infra.StructureHashPostProcessor;
+import io.mateu.dtos.ModelViewContractDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
@@ -81,6 +84,9 @@ public class RunActionUseCase {
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {}", command.actionId());
+    if (CONTRACT_ACTION.equals(command.actionId())) {
+      return handleContract(command);
+    }
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
             // a plain routed Listing declaring interaction capabilities is bridged into the CRUD
@@ -114,6 +120,50 @@ public class RunActionUseCase {
         .switchIfEmpty(
             mapToUiIncrement(
                 Text.builder().text("Not found.").style("color: red;").build(), command));
+  }
+
+  // ── Bindable contract ─────────────────────────────────────────────────────
+  // A reserved "action" that returns the ModelView's bindable contract (its fields + actions)
+  // instead of running anything: the visual-builder tooling POSTs a normal sync request with the
+  // ModelView as serverSideType and this actionId, and reads the contract off the response's
+  // appData. Reuses the real mapping (so the contract can't drift) and rides the existing
+  // transport,
+  // so it needs no new endpoint on any adapter. The contract itself is computed by
+  // ModelViewContractExtractor over the mapped component. Key in appData:
+  public static final String CONTRACT_ACTION = "__contract__";
+  public static final String CONTRACT_KEY = "_contract";
+
+  private Flux<UIIncrementDto> handleContract(RunActionCommand command) {
+    return Mono.just(command)
+        .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+        .map(
+            instance ->
+                io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
+                    instance))
+        .flatMap(instance -> routeIfNeeded(command, instance))
+        // Map the instance as a plain load (no action is run) so we get its component, then reduce
+        // the response to just the extracted contract.
+        .flatMap(instance -> mapToUiIncrement(instance, command))
+        .map(RunActionUseCase::toContractResponse)
+        .flux();
+  }
+
+  private static UIIncrementDto toContractResponse(UIIncrementDto increment) {
+    return UIIncrementDto.builder()
+        .appData(java.util.Map.of(CONTRACT_KEY, extractContract(increment)))
+        .build();
+  }
+
+  private static ModelViewContractDto extractContract(UIIncrementDto increment) {
+    if (increment.fragments() == null) {
+      return new ModelViewContractDto(null, List.of(), List.of());
+    }
+    return increment.fragments().stream()
+        .map(fragment -> fragment.component())
+        .filter(component -> component instanceof ServerSideComponentDto)
+        .map(component -> ModelViewContractExtractor.extract((ServerSideComponentDto) component))
+        .findFirst()
+        .orElse(new ModelViewContractDto(null, List.of(), List.of()));
   }
 
   private String extractTitle(Throwable e) {
