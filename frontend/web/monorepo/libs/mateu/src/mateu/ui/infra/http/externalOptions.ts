@@ -65,12 +65,12 @@ export function mapItemsToRows(
 }
 
 /** Interpolate the url/headers/body of a {@link RestDataSource} and fetch it — the shared leg of the
- * options and rows fetches. `resolve` interpolates `${state.x}` templates (pass the shared
+ * options, rows and action fetches. `resolve` interpolates `${state.x}` templates (pass the shared
  * `interpolate`); defaults to identity for tests. Throws on a non-2xx response. */
-async function fetchJson(
+export async function fetchExternalJson(
     source: RestDataSource,
-    resolve: (tpl: string | undefined) => string | undefined,
-    fetchImpl: typeof fetch,
+    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    fetchImpl: typeof fetch = fetch,
 ): Promise<unknown> {
     const url = resolve(source.url) ?? source.url
     const method = (source.method || 'GET').toUpperCase()
@@ -93,7 +93,7 @@ export async function fetchExternalOptions(
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<FetchedOption[]> {
-    const json = await fetchJson(source, resolve, fetchImpl)
+    const json = await fetchExternalJson(source, resolve, fetchImpl)
     return mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)
 }
 
@@ -108,6 +108,6 @@ export async function fetchExternalRows(
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<Record<string, unknown>[]> {
-    const json = await fetchJson(source, resolve, fetchImpl)
+    const json = await fetchExternalJson(source, resolve, fetchImpl)
     return mapItemsToRows(json, source.itemsPath, columnIds)
 }

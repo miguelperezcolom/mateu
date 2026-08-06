@@ -66,7 +66,29 @@ final class ActionDtoMapper {
         .shortcut(action.shortcut())
         .timeoutMillis(action.timeoutMillis())
         .idempotent(action.idempotent())
+        .restAction(mapRestAction(action.restAction()))
         .build();
+  }
+
+  private static io.mateu.dtos.RestActionDto mapRestAction(
+      io.mateu.uidl.data.RestAction restAction) {
+    if (restAction == null) {
+      return null;
+    }
+    var s = restAction.source();
+    var sourceDto =
+        s == null
+            ? null
+            : new io.mateu.dtos.RestDataSourceDto(
+                s.url(),
+                s.method(),
+                s.headers(),
+                s.body(),
+                s.itemsPath(),
+                s.valuePath(),
+                s.labelPath());
+    return new io.mateu.dtos.RestActionDto(
+        sourceDto, restAction.successMessage(), restAction.resultPath());
   }
 
   private static ConfirmationTextsDto mapConfirmationTexts(ConfirmationTexts confirmationTexts) {

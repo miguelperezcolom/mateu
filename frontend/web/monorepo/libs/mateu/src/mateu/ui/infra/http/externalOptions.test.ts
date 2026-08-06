@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows } from './externalOptions'
+import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson } from './externalOptions'
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 
 describe('getByPath', () => {
@@ -71,6 +71,25 @@ describe('fetchExternalRows', () => {
             fetchImpl,
         )
         expect(rows).toEqual([{ code: 'FR', name: 'France' }])
+    })
+})
+
+describe('fetchExternalJson', () => {
+    it('interpolates url/headers/body and returns the raw JSON (the leg a @RestAction uses)', async () => {
+        let seen: { url?: string; init?: RequestInit } = {}
+        const fetchImpl = (async (url: string, init: RequestInit) => {
+            seen = { url, init }
+            return { ok: true, status: 200, json: async () => ({ address: { city: 'Madrid' } }) }
+        }) as unknown as typeof fetch
+        const json = await fetchExternalJson(
+            { url: 'https://x/${state.zip}', method: 'POST', headers: { Authorization: 'Bearer ${state.t}' }, body: '{"z":"${state.zip}"}' } as RestDataSource,
+            (t) => t?.replace('${state.zip}', '28001').replace('${state.t}', 'abc'),
+            fetchImpl,
+        )
+        expect(seen.url).toBe('https://x/28001')
+        expect((seen.init?.headers as Record<string, string>).Authorization).toBe('Bearer abc')
+        expect(seen.init?.body).toBe('{"z":"28001"}')
+        expect(getByPath(json, 'address.city')).toBe('Madrid')
     })
 })
 
