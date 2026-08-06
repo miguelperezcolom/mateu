@@ -10,6 +10,9 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.datatransfer.StringSelection
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DragSource
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
@@ -39,13 +42,23 @@ class MateuPaletteToolWindowFactory : ToolWindowFactory, DumbAware {
         JButton(item.label).apply {
           alignmentX = Component.LEFT_ALIGNMENT
           maximumSize = java.awt.Dimension(Int.MAX_VALUE, preferredSize.height)
+          toolTipText = "Click to insert at the caret, or drag onto the preview"
           addActionListener { insert(project, item) }
+          makeDraggable(this, item.type)
         },
       )
       panel.add(Box.createVerticalStrut(4))
     }
     val content = ContentFactory.getInstance().createContent(panel, "", false)
     toolWindow.contentManager.addContent(content)
+  }
+
+  /** Let a palette button be dragged onto the preview (carries the component type as a string). */
+  private fun makeDraggable(button: JButton, type: String) {
+    DragSource.getDefaultDragSource().createDefaultDragGestureRecognizer(
+      button,
+      DnDConstants.ACTION_COPY,
+    ) { event -> event.startDrag(DragSource.DefaultCopyDrop, StringSelection(PaletteDnD.PREFIX + type)) }
   }
 
   private fun insert(project: Project, item: PaletteSnippets.Item) {

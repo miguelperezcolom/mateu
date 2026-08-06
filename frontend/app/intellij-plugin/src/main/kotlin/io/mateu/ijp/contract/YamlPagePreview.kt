@@ -15,8 +15,16 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.Alarm
+import java.awt.Component as AwtComponent
+import java.awt.Container
+import java.awt.datatransfer.DataFlavor
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DropTarget
+import java.awt.dnd.DropTargetAdapter
+import java.awt.dnd.DropTargetDropEvent
 import io.mateu.ijp.plugin.loadMateuConfig
 import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
@@ -76,9 +84,43 @@ private class YamlPagePreviewEditor(
     override fun documentChanged(event: DocumentEvent) = scheduleRefresh()
   }
 
+  /** Accepts a component dragged from the palette and drops it into the page (root content). */
+  private val dropListener = object : DropTargetAdapter() {
+    override fun drop(event: DropTargetDropEvent) {
+      try {
+        event.acceptDrop(DnDConstants.ACTION_COPY)
+        val transfer = event.transferable.getTransferData(DataFlavor.stringFlavor) as? String
+        val type = PaletteDnD.typeOf(transfer)
+        if (type != null) onDrop(type)
+        event.dropComplete(type != null)
+      } catch (e: Exception) {
+        event.dropComplete(false)
+      }
+    }
+  }
+
   init {
-    root.add(hint("Rendering preview…"), BorderLayout.CENTER)
+    root.add(hint("Rendering preview…  (drag components here from the palette)"), BorderLayout.CENTER)
+    DropTarget(root, DnDConstants.ACTION_COPY, dropListener, true)
     document?.addDocumentListener(documentListener, this)
+    scheduleRefresh(delayMs = 0)
+  }
+
+  /** Make the whole preview a drop zone: Swing has no drop bubbling, so install the target on every
+   *  rendered widget, not just the container. */
+  private fun installDropTargets(component: AwtComponent) {
+    DropTarget(component, DnDConstants.ACTION_COPY, dropListener, true)
+    if (component is Container) component.components.forEach { installDropTargets(it) }
+  }
+
+  private fun onDrop(type: String) {
+    val item = PaletteSnippets.byType(type) ?: return
+    val doc = document ?: return
+    val insertion = PaletteDnD.appendToRootContent(project, file, doc, item.snippet)
+      ?: (doc.textLength to ("\n" + item.snippet))
+    WriteCommandAction.runWriteCommandAction(project) {
+      doc.insertString(insertion.first, insertion.second)
+    }
     scheduleRefresh(delayMs = 0)
   }
 
@@ -109,7 +151,9 @@ private class YamlPagePreviewEditor(
       ApplicationManager.getApplication().invokeLater({
         if (!project.isDisposed) {
           root.removeAll()
-          root.add(wrapScroll(rendered), BorderLayout.CENTER)
+          val wrapped = wrapScroll(rendered)
+          root.add(wrapped, BorderLayout.CENTER)
+          installDropTargets(wrapped) // every rendered widget accepts palette drops
           root.revalidate()
           root.repaint()
         }
