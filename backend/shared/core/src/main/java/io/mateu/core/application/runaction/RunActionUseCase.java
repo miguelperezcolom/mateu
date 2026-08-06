@@ -33,6 +33,7 @@ public class RunActionUseCase {
   private final ActionRunnerProvider actionRunnerProvider;
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
   private final ActionInstanceCreator actionInstanceCreator;
+  private final YamlUidlLoader yamlUidlLoader;
 
   // ── Public static helpers (used by other classes in the framework) ────────
 
@@ -86,6 +87,9 @@ public class RunActionUseCase {
     log.info("run action {}", command.actionId());
     if (CONTRACT_ACTION.equals(command.actionId())) {
       return handleContract(command);
+    }
+    if (PREVIEW_ACTION.equals(command.actionId())) {
+      return handlePreview(command);
     }
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
@@ -164,6 +168,28 @@ public class RunActionUseCase {
         .map(component -> ModelViewContractExtractor.extract((ServerSideComponentDto) component))
         .findFirst()
         .orElse(new ModelViewContractDto(null, List.of(), List.of()));
+  }
+
+  // ── Live preview ──────────────────────────────────────────────────────────
+  // Renders arbitrary YAML page TEXT (the visual builder sends the editor's current, unsaved
+  // content in parameters._yaml) into the same wire increment a real route would produce, so the
+  // plugin's preview is faithful (real mapper) and updates as you type. The layout only — no
+  // ModelView instance/data is bound (a layout preview).
+  public static final String PREVIEW_ACTION = "__preview__";
+  public static final String PREVIEW_YAML_KEY = "_yaml";
+
+  private Flux<UIIncrementDto> handlePreview(RunActionCommand command) {
+    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
+    var parameters = rq != null ? rq.parameters() : null;
+    var yaml =
+        parameters != null ? String.valueOf(parameters.getOrDefault(PREVIEW_YAML_KEY, "")) : "";
+    var component = yamlUidlLoader.parseText(yaml);
+    if (component == null) {
+      return mapToUiIncrement(
+              Text.builder().text("Invalid or empty YAML").style("color: red;").build(), command)
+          .flux();
+    }
+    return mapToUiIncrement(component, command).flux();
   }
 
   private String extractTitle(Throwable e) {

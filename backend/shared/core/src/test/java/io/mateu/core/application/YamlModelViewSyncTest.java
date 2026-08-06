@@ -103,6 +103,25 @@ class YamlModelViewSyncTest {
   }
 
   @Test
+  void previewRendersArbitraryYamlTextForTheLiveEditor() {
+    // The visual builder's preview: the editor's current (unsaved) YAML text is rendered into the
+    // same wire increment a real route would produce.
+    var yaml =
+        "type: VerticalLayout\ncontent:\n  - type: Text\n    text: \"Hello preview\"\n"
+            + "  - type: Button\n    label: \"Go\"\n    actionId: go\n";
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .actionId("__preview__")
+                .initiatorComponentId("preview")
+                .parameters(Map.of("_yaml", yaml))
+                .build());
+    assertThat(increment.fragments()).isNotEmpty();
+    assertThat(increment.fragments().get(0).component()).isNotNull();
+    assertThat(increment.fragments().get(0).component().children()).isNotEmpty();
+  }
+
+  @Test
   void aBareLayoutYamlWithoutAModelViewStillRenders() {
     // backward compatibility: the legacy shape (whole file is a component tree, no modelView)
     var increment = mateu.sync("demo/hello");

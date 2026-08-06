@@ -17,6 +17,8 @@
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
+        <!-- Visual-builder live preview: a split editor for specs/ui/*.yaml pages. -->
+        <fileEditorProvider implementation="io.mateu.ijp.contract.YamlPagePreviewProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
         <frameTitleBuilder implementation="io.mateu.ijp.plugin.MateuFrameTitleBuilder"/>
         <applicationService serviceInterface="com.intellij.openapi.fileEditor.impl.EditorEmptyTextPainter"

@@ -49,6 +49,24 @@ public class YamlUidlLoader {
     mapper = YamlUidlMapperFactory.create();
   }
 
+  /**
+   * Parse a YAML page from raw TEXT (not the classpath) into its layout component — the
+   * live-preview path for the visual builder, which sends the editor's current, unsaved content.
+   * Envelope-aware: unwraps {@code layout:} when present, else treats the whole doc as the layout.
+   * Null on blank/invalid input.
+   */
+  public Component parseText(String yaml) {
+    if (yaml == null || yaml.isBlank()) {
+      return null;
+    }
+    try {
+      return layoutOf(mapper.readTree(yaml));
+    } catch (Exception e) {
+      log.warn("Failed to parse YAML preview: {}", e.getMessage());
+      return null;
+    }
+  }
+
   /** Load a layout from an explicit spec path (the {@code @UISpec} path); envelope-aware. */
   public Component loadFromSpec(String specPath) {
     var resource = resolve(specPath);
