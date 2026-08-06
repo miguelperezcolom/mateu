@@ -53,10 +53,18 @@ public class ReflectionObjectToComponentMapper {
           UIFragmentActionDto.Replace,
           serverSideComponentDto.containerId());
     }
-    if (!(instance instanceof ComponentTreeSupplier)
-        && MetaAnnotations.isPresent(instance.getClass(), UISpec.class)) {
+    if (!(instance instanceof ComponentTreeSupplier)) {
+      // Layout from a YAML file bound to this instance as its ModelView: either the class points at
+      // the YAML (@UISpec) or the route's YAML points at this class (modelView:). Applied on every
+      // request for the route — first load AND action round-trips — so the layout stays
+      // authoritative.
+      Component component = null;
       var uiSpec = MetaAnnotations.find(instance.getClass(), UISpec.class);
-      var component = yamlUidlLoader.loadFromSpec(uiSpec.value());
+      if (uiSpec != null) {
+        component = yamlUidlLoader.loadFromSpec(uiSpec.value());
+      } else {
+        component = yamlUidlLoader.layoutForRoute(route, instance.getClass());
+      }
       if (component != null) {
         return buildPageUIFragment(
             instance, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
