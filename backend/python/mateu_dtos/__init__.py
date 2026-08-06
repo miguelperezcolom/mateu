@@ -1382,6 +1382,21 @@ class Action(Wire):
     # retry it by itself after a transient failure. Only for reads or naturally idempotent
     # writes: after a timeout the client cannot know whether the server processed the request.
     idempotent: bool = False
+    #: Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+    #: dispatching to the Mateu server (@rest_action); None for normal actions (mirrors
+    #: io.mateu.dtos.ActionDto.restAction).
+    rest_action: "RestAction | None" = None
+
+
+class RestAction(Wire):
+    """Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
+    (mirrors ``io.mateu.dtos.RestActionDto``): the renderer fetches ``source`` directly, shows
+    ``success_message`` as a toast on a 2xx response and — when ``result_path`` is set — merges the
+    object at that path in the JSON response into the form state."""
+
+    source: "RestDataSource"
+    success_message: str | None = None
+    result_path: str | None = None
 
 
 class Trigger(Wire):

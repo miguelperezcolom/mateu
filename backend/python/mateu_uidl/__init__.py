@@ -767,6 +767,29 @@ def rest_listing(
     return deco
 
 
+def rest_action(
+    url: str,
+    method: str = "POST",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    success_message: str = "",
+    result_path: str = "",
+) -> Callable[[Callable], Callable]:
+    """Method-level: makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead
+    of dispatching to the Mateu server. On click the renderer calls ``url`` directly with the
+    interpolated ``body``, then applies the response — shows ``success_message`` as a toast and,
+    when ``result_path`` is set, merges the object at that path in the JSON response into the form
+    state (so bound fields refresh). Put it on a method that is ALSO a ``@button``/``@toolbar``;
+    ``url``/``headers``/``body`` support ``${state.x}`` interpolation. Python analogue of Java's
+    @RestAction."""
+
+    def deco(fn: Callable) -> Callable:
+        fn.__mateu_rest_action__ = (url, method, headers, body, success_message, result_path)
+        return fn
+
+    return deco
+
+
 def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
@@ -1533,7 +1556,7 @@ __all__ = [
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",

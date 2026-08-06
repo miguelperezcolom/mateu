@@ -151,7 +151,18 @@ public record ActionDto(
     /// naturally idempotent writes: after a timeout the client cannot know whether the server
     /// processed the request.</summary>
     public bool Idempotent { get; init; }
+
+    /// <summary>Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+    /// dispatching to the Mateu server ([RestAction]); null for normal actions (mirrors
+    /// io.mateu.dtos.ActionDto.restAction).</summary>
+    public RestActionDto? RestAction { get; init; }
 }
+
+/// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
+/// (mirrors io.mateu.dtos.RestActionDto): the renderer fetches <c>Source</c> directly, shows
+/// <c>SuccessMessage</c> as a toast on a 2xx response and — when <c>ResultPath</c> is set — merges
+/// the object at that path in the JSON response into the form state.</summary>
+public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath);
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
 public record CustomTriggerDto(string Event, string ActionId)
