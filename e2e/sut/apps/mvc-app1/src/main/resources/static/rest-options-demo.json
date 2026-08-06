@@ -1,0 +1,11 @@
+{
+  "data": {
+    "countries": [
+      { "code": "ES", "name": { "common": "Spain" } },
+      { "code": "FR", "name": { "common": "France" } },
+      { "code": "DE", "name": { "common": "Germany" } },
+      { "code": "IT", "name": { "common": "Italy" } },
+      { "code": "PT", "name": { "common": "Portugal" } }
+    ]
+  }
+}

@@ -189,6 +189,34 @@ public class FieldMetadataExtractor {
     return null;
   }
 
+  /**
+   * A client-side external options source when the field carries {@code @RestOptions} — the
+   * renderer fetches the endpoint directly and maps the JSON into the select's options. Null
+   * otherwise.
+   */
+  static io.mateu.uidl.data.RestDataSource getOptionsSource(Field field) {
+    if (!MetaAnnotations.isPresent(field, RestOptions.class)) {
+      return null;
+    }
+    RestOptions a = MetaAnnotations.find(field, RestOptions.class);
+    Map<String, String> headers = new java.util.LinkedHashMap<>();
+    for (String h : a.headers()) {
+      int i = h.indexOf(':');
+      if (i > 0) {
+        headers.put(h.substring(0, i).trim(), h.substring(i + 1).trim());
+      }
+    }
+    return io.mateu.uidl.data.RestDataSource.builder()
+        .url(a.url())
+        .method(a.method())
+        .headers(headers)
+        .body(a.body())
+        .itemsPath(a.itemsPath())
+        .valuePath(a.valuePath())
+        .labelPath(a.labelPath())
+        .build();
+  }
+
   static List<Option> getOptions(Field field, Object instance, HttpRequest httpRequest) {
     if (instance instanceof OptionsSupplier optionsSupplier) {
       return optionsSupplier.options(field.getName(), httpRequest);
