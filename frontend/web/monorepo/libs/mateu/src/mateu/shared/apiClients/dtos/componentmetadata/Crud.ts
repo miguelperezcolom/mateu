@@ -1,6 +1,7 @@
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import RestDataSource from "@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts";
 
 export default interface Crud extends Table {
 
@@ -21,5 +22,8 @@ export default interface Crud extends Table {
     groupBy?: string
     /** @GroupAction buttons rendered on every group header row (actionId = listing method name). */
     groupActions?: Button[]
+    /** @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the
+     *  server `search` action. Each JSON item maps to a row keyed by column id. */
+    rowsSource?: RestDataSource
 
 }

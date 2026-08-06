@@ -49,7 +49,8 @@ public record Listing(
     FiltersLayout filtersLayout,
     GridLayout gridLayout,
     String groupBy,
-    @Singular("groupAction") List<UserTrigger> groupActions)
+    @Singular("groupAction") List<UserTrigger> groupActions,
+    io.mateu.uidl.data.RestDataSource rowsSource)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

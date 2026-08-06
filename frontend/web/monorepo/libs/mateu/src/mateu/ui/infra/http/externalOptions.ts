@@ -46,6 +46,44 @@ export function mapItemsToOptions(
 }
 
 /**
+ * Shape a JSON response into listing rows: navigate `itemsPath` to the array, then read each column
+ * by its id as a dot path from each item (so a `Row(code, name)` reads `code`/`name`). Each row is a
+ * plain object keyed by column id — the shape the listing renderer expects.
+ */
+export function mapItemsToRows(
+    json: unknown,
+    itemsPath: string | undefined,
+    columnIds: string[],
+): Record<string, unknown>[] {
+    const arr = getByPath(json, itemsPath)
+    if (!Array.isArray(arr)) return []
+    return arr.map((item) => {
+        const row: Record<string, unknown> = {}
+        for (const id of columnIds) row[id] = getByPath(item, id)
+        return row
+    })
+}
+
+/** Interpolate the url/headers/body of a {@link RestDataSource} and fetch it — the shared leg of the
+ * options and rows fetches. `resolve` interpolates `${state.x}` templates (pass the shared
+ * `interpolate`); defaults to identity for tests. Throws on a non-2xx response. */
+async function fetchJson(
+    source: RestDataSource,
+    resolve: (tpl: string | undefined) => string | undefined,
+    fetchImpl: typeof fetch,
+): Promise<unknown> {
+    const url = resolve(source.url) ?? source.url
+    const method = (source.method || 'GET').toUpperCase()
+    const headers: Record<string, string> = {}
+    for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
+    const init: RequestInit = { method, headers }
+    if (method !== 'GET' && method !== 'HEAD' && source.body) init.body = resolve(source.body) ?? source.body
+    const res = await fetchImpl(url, init)
+    if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`)
+    return res.json()
+}
+
+/**
  * Fetch a field's options from its {@link RestDataSource}. `resolve` interpolates `${state.x}`
  * templates in the url/headers/body against the current field context (pass the shared
  * `interpolate`); it defaults to identity for tests. Throws on a non-2xx response.
@@ -55,14 +93,21 @@ export async function fetchExternalOptions(
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<FetchedOption[]> {
-    const url = resolve(source.url) ?? source.url
-    const method = (source.method || 'GET').toUpperCase()
-    const headers: Record<string, string> = {}
-    for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
-    const init: RequestInit = { method, headers }
-    if (method !== 'GET' && method !== 'HEAD' && source.body) init.body = resolve(source.body) ?? source.body
-    const res = await fetchImpl(url, init)
-    if (!res.ok) throw new Error(`External options fetch failed: ${res.status}`)
-    const json = await res.json()
+    const json = await fetchJson(source, resolve, fetchImpl)
     return mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)
+}
+
+/**
+ * Fetch a listing's rows from its {@link RestDataSource}, mapping each JSON item into a row keyed by
+ * column id (see {@link mapItemsToRows}). `resolve` interpolates the url/headers/body — pass the
+ * shared `interpolate` so `${searchText}`/`${page}`/`${size}` reach a server-side endpoint.
+ */
+export async function fetchExternalRows(
+    source: RestDataSource,
+    columnIds: string[],
+    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    fetchImpl: typeof fetch = fetch,
+): Promise<Record<string, unknown>[]> {
+    const json = await fetchJson(source, resolve, fetchImpl)
+    return mapItemsToRows(json, source.itemsPath, columnIds)
 }

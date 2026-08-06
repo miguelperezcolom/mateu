@@ -8,6 +8,7 @@ import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
+import { fetchExternalRows } from '@infra/http/externalOptions.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -280,6 +281,12 @@ export class MateuTableCrud extends LitElement {
         this.state = { ...this.state, crud_selected_items: [] }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this._syncStateToUrl(metadata)
+        // @RestListing: fetch the rows CLIENT-SIDE from the external endpoint instead of dispatching
+        // the server `search` action — the listing surface of consuming non-Mateu endpoints.
+        if (metadata.rowsSource) {
+            this._fetchRowsFromRest(metadata, callback)
+            return
+        }
         if (!metadata.infiniteScrolling && this.data?.[this.id]?.page) {
             this.data[this.id].page.content = []
         }
@@ -292,6 +299,31 @@ export class MateuTableCrud extends LitElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    // Fetch the listing's rows from its external REST endpoint and shape them into the page the
+    // renderer expects (one object per row keyed by column id). Free-text search and pagination are
+    // applied IN MEMORY over the fetched rows (the interpolated url also carries ${searchText}/
+    // ${page}/${size}, so an endpoint that supports server-side search/paging gets them too).
+    private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
+        const columnIds = this.cols.map(c => c.id).filter(Boolean)
+        fetchExternalRows(metadata.rowsSource!, columnIds, (t) => interpolate(t, this.state, this.data))
+            .then((rows) => {
+                const q = String((this.state as any)?.searchText ?? '').trim().toLowerCase()
+                const filtered = q
+                    ? rows.filter(r => columnIds.some(id => String(r[id] ?? '').toLowerCase().includes(q)))
+                    : rows
+                const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
+                const page = Number((this.state as any)?.page ?? 0)
+                const content = filtered.slice(page * size, page * size + size)
+                this.data = {
+                    ...this.data,
+                    [this.id]: { page: { totalElements: filtered.length, pageSize: size, pageNumber: page, content } }
+                }
+                this.requestUpdate()
+                callback?.()
+            })
+            .catch((e) => { console.warn('mateu: external rows fetch failed', e); callback?.() })
     }
 
     fetchMoreElements = (e: CustomEvent) => {
@@ -331,7 +363,9 @@ export class MateuTableCrud extends LitElement {
                 const urlHasNonDefault = this.state.page !== defaultPage
                     || (this.state.sort?.length > 0)
                     || [...this._filterIds(metadata)].some(id => this.state[id] != null)
-                if (urlHasNonDefault) {
+                // An external-REST listing (@RestListing) fetches its rows CLIENT-SIDE on mount —
+                // there is no server OnLoad trigger for declarative listings.
+                if (urlHasNonDefault || metadata.rowsSource) {
                     this.handleSearchRequested(undefined)
                 }
             }

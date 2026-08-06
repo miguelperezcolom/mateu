@@ -141,6 +141,7 @@ public class CrudlMapper {
                 crudl.groupActions() != null
                     ? crudl.groupActions().stream().map(FormMapper::mapToButtonDto).toList()
                     : null)
+            .rowsSource(mapRestDataSource(crudl.rowsSource()))
             .build();
     return new ClientSideComponentDto(
         crudlDto,
@@ -149,5 +150,20 @@ public class CrudlMapper {
         crudl.style(),
         crudl.cssClasses(),
         null);
+  }
+
+  private static io.mateu.dtos.RestDataSourceDto mapRestDataSource(
+      io.mateu.uidl.data.RestDataSource source) {
+    if (source == null) {
+      return null;
+    }
+    return new io.mateu.dtos.RestDataSourceDto(
+        source.url(),
+        source.method(),
+        source.headers(),
+        source.body(),
+        source.itemsPath(),
+        source.valuePath(),
+        source.labelPath());
   }
 }
