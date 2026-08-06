@@ -38,4 +38,14 @@ class PaletteSnippetsTest {
     assertNull(PaletteDnD.typeOf("something-else"))
     assertNull(PaletteDnD.typeOf(null))
   }
+
+  @Test
+  fun dropTargetingPathOfFindsAWireNodeByIdentity() {
+    val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+    val root = mapper.readTree("""{"children":[{"id":"a"},{"children":[{"id":"b"}]}]}""")
+    val b = root.path("children").get(1).path("children").get(0)
+    assertEquals(listOf(1, 0), DropTargeting.pathOf(root, b))
+    assertEquals(emptyList<Int>(), DropTargeting.pathOf(root, root))
+    assertNull(DropTargeting.pathOf(root, mapper.readTree("{}")))
+  }
 }
