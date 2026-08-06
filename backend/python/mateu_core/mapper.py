@@ -581,6 +581,15 @@ class ReflectionMapper:
             if on_row is not None and all(a.id != camel_case(on_row.value) for a in actions):
                 actions.append(Action(id=camel_case(on_row.value), validation_required=False))
 
+        # @rest_data: fetch the screen's initial data client-side on load — a synthetic
+        # __restdata__ action carrying the REST descriptor (fired by the OnLoad trigger added
+        # below), reusing the @rest_action fetch+merge path.
+        rest_data_desc = self._rest_data(cls)
+        if rest_data_desc is not None:
+            actions.append(
+                Action(id="__restdata__", validation_required=False, rest_action=rest_data_desc)
+            )
+
         # A YAML page's layout (bound to this instance as its ModelView) renders as the page
         # content exactly like an archetype's fluent tree — its FormField ids bind to the
         # instance's state (seeded into initialData below), its Button actionIds (collected below)
@@ -635,6 +644,9 @@ class ReflectionMapper:
             style="--mateu-compact:1" if compact else None,
         )
         triggers, emits = self.events_of(cls)
+        # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
+        if rest_data_desc is not None:
+            triggers = list(triggers) + [Trigger(type="OnLoad", action_id="__restdata__")]
         initial_data: dict = {}
         if tree is not None:
             # Tree-supplier views (archetypes): scalar attributes are the view's state — seed
@@ -2623,6 +2635,26 @@ class ReflectionMapper:
             source=RestDataSource(url=url, method=method, headers=headers, body=body),
             success_message=success_message or None,
             result_path=result_path or None,
+        )
+
+    @staticmethod
+    def _rest_data(cls) -> "RestAction | None":
+        """The client-side REST descriptor for a ``@rest_data`` screen (silent load; blank
+        result_path merges the whole response — getByPath with an empty path is identity on the
+        frontend); None when the class carries no ``@rest_data``."""
+        spec = getattr(cls, "__mateu_rest_data__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, result_path = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestAction(
+            source=RestDataSource(url=url, method=method, headers=headers, body=body),
+            success_message=None,
+            result_path=result_path,
         )
 
     def link_of(self, f, instance) -> NavLinkRecord | None:

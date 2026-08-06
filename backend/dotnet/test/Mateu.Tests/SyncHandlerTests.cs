@@ -61,6 +61,16 @@ public class RestActionForm
     public void Lookup() { }
 }
 
+// A screen whose initial data is fetched client-side from a REST endpoint on entry.
+[UI("rest-data"), Title("Rest data"),
+ RestData("https://api.example.com/me?token=${state.token}",
+     Headers = ["Authorization: Bearer x"], ResultPath = "profile")]
+public class RestDataForm
+{
+    public string? Name { get; set; }
+    public string? Email { get; set; }
+}
+
 // A fully-static screen: the client caches its whole response and skips the round-trip on return.
 [UI("static-view"), Title("About"), StaticView]
 public class StaticViewForm
@@ -1852,6 +1862,20 @@ public class SyncHandlerTests
         Assert.Contains("\"resultPath\":\"address\"", json);
         Assert.Contains("\"url\":\"https://api.example.com/zip/${state.zip}\"", json);
         Assert.Contains("\"Authorization\":\"Bearer x\"", json);
+    }
+
+    [Fact]
+    public void RestData_advertises_an_onload_action_carrying_the_endpoint_descriptor()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-data", ConsumedRoute = "rest-data" });
+        var json = Render(inc);
+
+        Assert.Contains("\"id\":\"__restdata__\"", json);
+        Assert.Contains("\"restAction\":{", json);
+        Assert.Contains("\"resultPath\":\"profile\"", json);
+        Assert.Contains("\"url\":\"https://api.example.com/me?token=${state.token}\"", json);
+        // an OnLoad trigger fires it on entry
+        Assert.Contains("\"type\":\"OnLoad\",\"actionId\":\"__restdata__\"", json);
     }
 
     [Fact]

@@ -790,6 +790,27 @@ def rest_action(
     return deco
 
 
+def rest_data(
+    url: str,
+    method: str = "GET",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    result_path: str = "",
+) -> Callable[[type], type]:
+    """Class-level: loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint,
+    fetched CLIENT-SIDE on entry. When the view mounts the renderer calls ``url`` directly and
+    merges the object at ``result_path`` in the JSON response into the form state, so the fields
+    arrive populated. Reuses the @rest_action machinery (a synthetic ``__restdata__`` action + an
+    OnLoad trigger). ``url``/``headers``/``body`` support ``${state.x}`` interpolation. Python
+    analogue of Java's @RestData."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_rest_data__ = (url, method, headers, body, result_path)
+        return cls
+
+    return deco
+
+
 def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
@@ -1556,7 +1577,7 @@ __all__ = [
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action", "rest_data",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",

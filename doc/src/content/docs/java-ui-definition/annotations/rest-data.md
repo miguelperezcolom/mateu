@@ -50,3 +50,22 @@ reachable from the browser (CORS-friendly for cross-origin APIs).
 
 `url` interpolation lets the request depend on a route parameter seeded into the state (e.g.
 `url = "https://api.example.com/users/${state.id}"`).
+
+## Other backends
+
+Mateu.NET and the Python backend emit the same synthetic `__restdata__` action + OnLoad trigger:
+
+```csharp
+// .NET
+[UI("profile"), RestData("https://api.example.com/me", ResultPath = "profile")]
+public class Profile { public string? Name { get; set; } public string? Email { get; set; } }
+```
+
+```python
+# Python
+@ui("profile")
+@rest_data(url="https://api.example.com/me", result_path="profile")
+class Profile:
+    name: str = ""
+    email: str = ""
+```

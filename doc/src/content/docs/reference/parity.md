@@ -50,7 +50,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST options (`@RestOptions`/`[RestOptions]`/`RestOptions()` → select; options fetched client-side from an arbitrary endpoint via `FormField.optionsSource`) | ✅ | ✅ | ✅ |
 | External REST listing rows (`@RestListing`/`[RestListing]`/`@rest_listing` on a listing → rows fetched client-side from an arbitrary endpoint via `Crudl.rowsSource`; columns from the Row type) | ✅ | ✅ | ✅ |
 | External REST button action (`@RestAction`/`[RestAction]`/`@rest_action` on a button → calls an arbitrary endpoint client-side via `Action.restAction`; response toast + merge into form state) | ✅ | ✅ | ✅ |
-| External REST screen data (`@RestData` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | — | — |
+| External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |

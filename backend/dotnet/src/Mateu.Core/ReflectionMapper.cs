@@ -339,6 +339,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 }];
             }
         }
+        // [RestData]: fetch the screen's initial data client-side on load — a synthetic __restdata__
+        // action carrying the REST descriptor plus an OnLoad trigger that fires it (reuses the
+        // [RestAction] fetch+merge path; silent load, so no success message).
+        if (RestDataOf(type) is { } restData)
+        {
+            actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });
+            triggers = [.. triggers, new TriggerDto("OnLoad", "__restdata__")];
+        }
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,
             [page], initialData, actions, triggers, null, null, null)
@@ -1468,6 +1476,21 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return new RestActionDto(source,
             a.SuccessMessage.Length > 0 ? a.SuccessMessage : null,
             a.ResultPath.Length > 0 ? a.ResultPath : null);
+    }
+
+    /// <summary>The client-side REST descriptor for a [RestData] screen (silent load; blank
+    /// ResultPath merges the whole response — getByPath with an empty path is identity); null
+    /// when the class carries no [RestData].</summary>
+    private static RestActionDto? RestDataOf(Type type)
+    {
+        if (type.Find<RestDataAttribute>() is not { } a) return null;
+        var source = new RestDataSourceDto(a.Url)
+        {
+            Method = a.Method,
+            Headers = ParseHeaders(a.Headers),
+            Body = a.Body,
+        };
+        return new RestActionDto(source, null, a.ResultPath);
     }
 
     /// <summary>Parses "Name: Value" header strings into a map.</summary>

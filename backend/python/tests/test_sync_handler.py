@@ -100,6 +100,7 @@ from mateu_uidl import (  # noqa: E402
     disabled_unless,
     remote_menu,
     rest_action,
+    rest_data,
     rest_listing,
 )
 from mateu_uidl.components import MicroFrontend  # noqa: E402
@@ -1755,6 +1756,30 @@ def test_rest_action_button_advertises_the_endpoint_descriptor_on_its_action():
     assert '"resultPath": "address"' in j
     assert '"url": "https://api.example.com/zip/${state.zip}"' in j
     assert '"Authorization": "Bearer x"' in j
+
+
+@ui("rest-data")
+@title("Rest data")
+@rest_data(
+    url="https://api.example.com/me?token=${state.token}",
+    headers=("Authorization: Bearer x",),
+    result_path="profile",
+)
+class RestDataForm:
+    name: str = ""
+    email: str = ""
+
+
+def test_rest_data_advertises_an_onload_action_carrying_the_endpoint_descriptor():
+    inc = handler().handle(RunActionRq(route="rest-data", consumed_route="rest-data"))
+    j = render(inc)
+
+    assert '"id": "__restdata__"' in j
+    assert '"restAction": {' in j
+    assert '"resultPath": "profile"' in j
+    assert '"url": "https://api.example.com/me?token=${state.token}"' in j
+    # an OnLoad trigger fires it on entry
+    assert '"type": "OnLoad", "actionId": "__restdata__"' in j
 
 
 def test_lookup_search_filters_and_pages_the_suppliers_options():
