@@ -1029,6 +1029,21 @@ public record ButtonDto(string Label, string ActionId)
     public string? Shortcut { get; init; }
 }
 
+// ── ModelView bindable contract (mirrors io.mateu.dtos.ModelViewContractDto) ────
+// The bindable surface of a ModelView — its fields (a FormField id must name one) and actions (a
+// Button actionId must name one) — delivered over the wire via the reserved "__contract__" sync
+// action, on the response's appData under "_contract". The visual-builder tooling validates a
+// YAML/visual layout against it.
+public record ModelViewContractDto(
+    string ModelView,
+    IReadOnlyList<ModelViewContractDto.Field> Fields,
+    IReadOnlyList<ModelViewContractDto.Action> Actions)
+{
+    public record Field(string Id, string? DataType, string? Stereotype, string? Label, bool Required, bool ReadOnly);
+
+    public record Action(string Id);
+}
+
 // ── Inbound request (mirrors io.mateu.dtos.RunActionRqDto) ──────────────────────
 public record RunActionRqDto
 {

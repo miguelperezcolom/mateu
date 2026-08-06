@@ -823,6 +823,24 @@ def test_a_static_view_is_never_omitted_even_when_the_hash_matches():
     assert _component_of(inc).static_view is True
 
 
+def test_contract_action_returns_bindable_fields_and_actions_on_app_data():
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__contract__",
+            server_side_type=_name(SimpleForm),
+        )
+    )
+    assert inc.app_data is not None
+    contract = inc.app_data["_contract"]
+    by_id = {f["id"]: f for f in contract["fields"]}
+    assert "name" in by_id
+    assert by_id["name"]["dataType"] == "string"
+    assert by_id["name"]["required"] is True
+    assert "greet" in [a["id"] for a in contract["actions"]]
+
+
 def test_initial_load_form_with_required_field_and_button():
     inc = handler().handle(RunActionRq(route="", consumed_route="_empty"))
     j = render(inc)
