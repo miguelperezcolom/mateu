@@ -21,6 +21,7 @@ import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCo
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -382,25 +383,34 @@ export class MateuUx extends ConnectedElement {
                 // Skipped when re-loading the route already on screen, to preserve its live
                 // content (see lastAuthoritativeKey). See routeStructureCache.ts.
                 const cacheKey = this.structureCacheKey()
-                if (cacheKey !== this.lastAuthoritativeKey) {
-                    // Fresh navigation: seed from cache (if any) and adopt its ETag; a miss clears
-                    // the ETag so we don't echo the previous route's hash. When re-loading the SAME
-                    // route (key unchanged) we keep both the live content AND its hash, so the
-                    // request still carries knownStructureHash and the server can reply state-only.
-                    const cached = getCachedStructure(cacheKey)
-                    this.currentStructureHash = cached?.hash
-                    if (cached) {
-                        this.fragment = {
-                            targetComponentId: this.id,
-                            component: cached.component,
-                            state: {},
-                            data: {},
-                            action: UIFragmentAction.Replace,
-                            containerId: undefined,
+                // A @StaticView already loaded this session: its whole response never varies, so
+                // render the cached full fragment and SKIP the server round-trip entirely. Deferred
+                // to a microtask so it lands after this synchronous updated() sets pendingRouteFocus
+                // below — exactly as a real server response would, so focus still follows the route.
+                const staticFull =
+                    cacheKey !== this.lastAuthoritativeKey ? getStaticFragment(cacheKey) : undefined
+                if (staticFull) {
+                    queueMicrotask(() => this.applyFragment(staticFull))
+                } else {
+                    if (cacheKey !== this.lastAuthoritativeKey) {
+                        // Fresh navigation: seed from cache (if any) and adopt its ETag; a miss clears
+                        // the ETag so we don't echo the previous route's hash. When re-loading the SAME
+                        // route (key unchanged) we keep both the live content AND its hash, so the
+                        // request still carries knownStructureHash and the server can reply state-only.
+                        const cached = getCachedStructure(cacheKey)
+                        this.currentStructureHash = cached?.hash
+                        if (cached) {
+                            this.fragment = {
+                                targetComponentId: this.id,
+                                component: cached.component,
+                                state: {},
+                                data: {},
+                                action: UIFragmentAction.Replace,
+                                containerId: undefined,
+                            }
                         }
                     }
-                }
-                this.manageActionEvent(new CustomEvent('server-side-action-requested', {
+                    this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
                         route: this.route,
                         consumedRoute: this.consumedRoute,
@@ -418,6 +428,7 @@ export class MateuUx extends ConnectedElement {
                     bubbles: true,
                     composed: true
                 }))
+                }
             }
         }
         if (_changedProperties.has('route') && !!this.top) {
@@ -467,6 +478,11 @@ export class MateuUx extends ConnectedElement {
                 putCachedStructure(cacheKey, fragment.component, hash)
                 this.lastAuthoritativeKey = cacheKey
                 this.currentStructureHash = hash
+                // A @StaticView: cache the WHOLE fragment (structure + state + data) for the session
+                // so the next visit renders from cache and skips the round-trip entirely.
+                if ((fragment.component as ServerSideComponent).staticView) {
+                    putStaticFragment(cacheKey, fragment)
+                }
             }
             if (this.pendingRouteFocus && this.hasRenderedContent) {
                 this.focusNewContent()

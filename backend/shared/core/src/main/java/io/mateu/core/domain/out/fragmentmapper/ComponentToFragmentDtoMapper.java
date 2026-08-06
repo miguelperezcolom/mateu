@@ -11,6 +11,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPage
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
+import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper;
@@ -160,6 +161,7 @@ public final class ComponentToFragmentDtoMapper {
           EmitsMapper.emitsName(view),
           PageWidthResolver.wirePageWidth(view),
           PageTypeResolver.wirePageType(view),
+          StaticViewResolver.isStatic(view),
           null);
     }
     if (component instanceof FutureComponent futureComponent) {

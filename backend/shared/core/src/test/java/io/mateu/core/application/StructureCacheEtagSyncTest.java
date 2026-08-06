@@ -7,6 +7,7 @@ import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
+import io.mateu.uidl.annotations.StaticView;
 import io.mateu.uidl.annotations.UI;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,11 +29,17 @@ class StructureCacheEtagSyncTest {
     private int age = 42;
   }
 
+  @StaticView
+  @UI("/static-form")
+  public static class StaticForm {
+    private String heading = "About";
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(EtagForm.class);
+    mateu = TestMateu.withUis(EtagForm.class, StaticForm.class);
   }
 
   @AfterAll
@@ -95,5 +102,23 @@ class StructureCacheEtagSyncTest {
   void aNullHashSendsTheFullStructure() {
     // the old-client / cold-cache path
     assertThat(componentOf(load("/etag-form", null))).isNotNull();
+  }
+
+  @Test
+  void staticViewIsFlaggedOnlyWhenDeclared() {
+    // @StaticView → the client may cache the full response and skip revalidation for the session
+    assertThat(componentOf(load("/static-form", null)).staticView()).isTrue();
+    // a plain view is not static
+    assertThat(componentOf(load("/etag-form", null)).staticView()).isFalse();
+  }
+
+  @Test
+  void aStaticViewIsNeverOmittedEvenWhenTheHashMatches() {
+    // so the client always learns staticView (and caches the full response) the first time it sees
+    // the view in a session, then skips the round-trip entirely on return visits
+    var hash = componentOf(load("/static-form", null)).structureHash();
+    var component = componentOf(load("/static-form", hash));
+    assertThat(component).isNotNull();
+    assertThat(component.staticView()).isTrue();
   }
 }

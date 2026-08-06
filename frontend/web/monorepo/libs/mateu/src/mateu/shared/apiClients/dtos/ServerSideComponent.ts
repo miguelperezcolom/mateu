@@ -38,4 +38,11 @@ export default interface ServerSideComponent extends Component {
      */
     structureHash?: string | undefined
 
+    /**
+     * The view is declared @StaticView: its full response never varies, so the client caches the
+     * whole fragment for the session and skips the round-trip on return visits (phase b, static
+     * skip). A developer promise; false/undefined unless declared.
+     */
+    staticView?: boolean | undefined
+
 }

@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -47,6 +48,7 @@ public class ComponentTreeSupplierMapper {
         EmitsMapper.emitsName(componentTreeSupplier),
         PageWidthResolver.wirePageWidth(componentTreeSupplier),
         PageTypeResolver.wirePageType(componentTreeSupplier),
+        StaticViewResolver.isStatic(componentTreeSupplier),
         null);
   }
 }
