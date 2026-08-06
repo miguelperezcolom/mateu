@@ -27,6 +27,21 @@ def build_from_yaml(text: str) -> fluent.Component | None:
     return _build(data)
 
 
+def parse_spec(text: str) -> tuple[str | None, fluent.Component | None]:
+    """Parse a page spec (a file under specs/ui): the declared ModelView class name (or ``None``
+    for a bare, unbound layout) plus the layout component. Envelope-aware — a ``layout:`` key holds
+    the tree and a ``modelView:`` key names the logic class the tooling binds it to."""
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return None, None
+    if not isinstance(data, dict):
+        return None, _build(data)
+    model_view = data.get("modelView")
+    layout_node = data["layout"] if "layout" in data else data
+    return model_view, _build(layout_node)
+
+
 def _build(node: Any) -> fluent.Component | None:
     if not isinstance(node, dict):
         return None

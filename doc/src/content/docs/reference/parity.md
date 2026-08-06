@@ -59,6 +59,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
+| Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
+| YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |

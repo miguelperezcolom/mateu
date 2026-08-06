@@ -76,7 +76,8 @@ from .mapper import (
 )
 from .naming import camel_case, humanize
 from .reflection import view_fields
-from .registry import MateuRegistry, normalize
+from .registry import MateuRegistry, normalize, type_name
+from .yaml_spec_loader import YamlSpecLoader
 
 
 def _sort_key(value):
@@ -128,6 +129,7 @@ class SyncHandler:
     def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None):
         self.registry = registry
         self.mapper = ReflectionMapper(translator, identity_provider)
+        self.yaml_specs = YamlSpecLoader()
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # 0. Audience projection: the appState value under "audience" (the @app_context selector
@@ -167,8 +169,26 @@ class SyncHandler:
             return self.handle_listing(*lst, rq)
 
         type_ = self.registry.resolve(rq.server_side_type, rq.route)
+        yaml_spec = self.yaml_specs.load_spec(rq.route)
+        if type_ is None and yaml_spec is not None:
+            # A route with no view class → a YAML page. A bare layout renders as a static, unbound
+            # page; a page that declares modelView: instantiates that logic class (state + actions)
+            # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
+            if not yaml_spec.model_view:
+                return self.fragment_response(
+                    rq.route or "", self.mapper.map_component(yaml_spec.layout), rq
+                )
+            type_ = self.registry.type_by_name(yaml_spec.model_view)
         if type_ is None:
             return self.error(f"Route not found: {rq.route}")
+        # A YAML page bound to this modelView re-applies its layout on every render (first load AND
+        # any in-place re-render) so the layout stays authoritative (mirrors Java's
+        # ReflectionObjectToComponentMapper.layout_for_route).
+        layout_override = (
+            yaml_spec.layout
+            if yaml_spec is not None and yaml_spec.model_view == type_name(type_)
+            else None
+        )
 
         # 2b. The notification inbox's app-level actions — dispatched with the app's
         # serverSideType (the same rail as the @app_context pickers' remote search), exempt
@@ -197,7 +217,7 @@ class SyncHandler:
         if rq.action_id and rq.action_id.startswith("codesearch-"):
             return self.field_code_search(type_, rq)
         if not rq.action_id:
-            return self.render(type_, instance, rq)
+            return self.render(type_, instance, rq, layout_override)
         # 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
         # filtering and record switching mutate the bound state and re-render the tree — no
         # navigation, no method dispatch.
@@ -1404,11 +1424,11 @@ class SyncHandler:
             ]
         )
 
-    def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
+    def render(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
         return self.fragment_response(
             self.title(type_),
-            self.mapper.map_view(type_, instance, route),
+            self.mapper.map_view(type_, instance, route, layout_override),
             rq,
             self.lookup_labels(type_, instance, instance),
         )
