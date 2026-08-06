@@ -4,8 +4,10 @@ import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.application.contract.ModelViewContractExtractor;
+import io.mateu.core.application.runaction.RunActionUseCase;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.ModelViewContractDto;
+import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.UI;
@@ -83,6 +85,31 @@ class ModelViewContractSyncTest {
   @Test
   void reportsTheBindableActionIds() {
     assertThat(contractOf("/contract-demo").actions())
+        .extracting(ModelViewContractDto.Action::id)
+        .contains("save", "reset");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void theContractIsDeliveredOverTheWireViaTheReservedContractAction() {
+    // How the tooling actually fetches it: a normal sync request naming the ModelView as
+    // serverSideType and the reserved __contract__ action; the contract rides back on appData.
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .serverSideType(CustomerView.class.getName())
+                .route("/contract-demo")
+                .actionId(RunActionUseCase.CONTRACT_ACTION)
+                .build());
+
+    var appData = (Map<String, Object>) increment.appData();
+    assertThat(appData).containsKey(RunActionUseCase.CONTRACT_KEY);
+    var contract = (ModelViewContractDto) appData.get(RunActionUseCase.CONTRACT_KEY);
+    assertThat(contract.modelView()).isEqualTo(CustomerView.class.getName());
+    assertThat(contract.fields())
+        .extracting(ModelViewContractDto.Field::id)
+        .contains("name", "age");
+    assertThat(contract.actions())
         .extracting(ModelViewContractDto.Action::id)
         .contains("save", "reset");
   }
