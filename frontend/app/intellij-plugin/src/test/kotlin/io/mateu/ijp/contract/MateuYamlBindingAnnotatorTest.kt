@@ -1,35 +1,55 @@
 package io.mateu.ijp.contract
 
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 /**
- * Verifies the visual-builder binding validation (phase 2): a YAML page's FormField ids and Button
- * actionIds are checked against the declared ModelView class via PSI — unknown ones are flagged,
- * real ones are not.
+ * Verifies the visual-builder binding validation: PSI catches ids/actionIds that do not exist at
+ * all (errors), and the backend contract — when present — refines that to what actually BINDS
+ * (weak warnings for a field/method that exists but is hidden/excluded/not an @Action, or a
+ * declared dataType that conflicts).
  */
 class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
-  private fun errorTexts(yaml: String): List<String> {
-    myFixture.addClass(
-      """
-      package demo;
-      public class CustomerView {
-        public String name;
-        public int age;
-        public Object save() { return null; }
-      }
-      """.trimIndent()
-    )
+  override fun setUp() {
+    super.setUp()
+    ContractCache.getInstance(project).networkEnabled = false // no real HTTP in tests
+  }
+
+  private val customerView = """
+    package demo;
+    public class CustomerView {
+      public String name;
+      public int age;
+      public String secret;
+      public Object save() { return null; }
+      public Object internalHelper() { return null; }
+    }
+  """.trimIndent()
+
+  private fun highlight(yaml: String): List<HighlightInfo> {
+    myFixture.addClass(customerView)
     myFixture.configureByText("page.yaml", yaml)
-    val text = myFixture.file.text
     return myFixture.doHighlighting()
-      .filter { it.severity == HighlightSeverity.ERROR }
+  }
+
+  private fun List<HighlightInfo>.errors(): List<String> = at(HighlightSeverity.ERROR) { true }
+
+  /** Our binding weak-warnings only (ignore any unrelated YAML inspections). */
+  private fun List<HighlightInfo>.bindingWarnings(): List<String> =
+    at(HighlightSeverity.WEAK_WARNING) {
+      it.contains("bindable field") || it.contains("Mateu action") || it.contains("not the declared")
+    }
+
+  private fun List<HighlightInfo>.at(severity: HighlightSeverity, keep: (String) -> Boolean): List<String> {
+    val text = myFixture.file.text
+    return filter { it.severity == severity && keep(it.description ?: "") }
       .map { text.substring(it.startOffset, it.endOffset) }
   }
 
   fun testKnownFieldsAndActionsAreNotFlagged() {
-    val errors = errorTexts(
+    val errors = highlight(
       """
       modelView: demo.CustomerView
       layout:
@@ -42,12 +62,66 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
           - type: Button
             actionId: save
       """.trimIndent()
-    )
+    ).errors()
     assertEmpty(errors)
   }
 
-  fun testUnknownFieldAndActionAreFlagged() {
-    val errors = errorTexts(
+  fun testUnknownFieldAndActionAreErrors() {
+    val errors = highlight(
+      """
+      modelView: demo.CustomerView
+      layout:
+        type: VerticalLayout
+        content:
+          - type: FormField
+            id: nope
+          - type: Button
+            actionId: doesNotExist
+      """.trimIndent()
+    ).errors()
+    assertContainsElements(errors, "nope", "doesNotExist")
+  }
+
+  fun testUnresolvedModelViewIsFlagged() {
+    val errors = highlight(
+      """
+      modelView: demo.NoSuchView
+      layout:
+        type: FormField
+        id: whatever
+      """.trimIndent()
+    ).errors()
+    assertContainsElements(errors, "demo.NoSuchView")
+  }
+
+  fun testPlainYamlWithoutModelViewIsIgnored() {
+    assertEmpty(
+      highlight(
+        """
+        type: VerticalLayout
+        content:
+          - type: FormField
+            id: name
+          - type: Button
+            actionId: whatever
+        """.trimIndent()
+      ).errors()
+    )
+  }
+
+  fun testContractFlagsExistingButNonBindableFieldAndAction() {
+    ContractCache.getInstance(project).seed(
+      "demo.CustomerView",
+      ModelViewContract(
+        "demo.CustomerView",
+        listOf(
+          ContractField("name", "string", "regular", required = true, readOnly = false),
+          ContractField("age", "integer", "regular", required = false, readOnly = false),
+        ),
+        listOf("save"),
+      ),
+    )
+    val infos = highlight(
       """
       modelView: demo.CustomerView
       layout:
@@ -56,38 +130,40 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
           - type: FormField
             id: name
           - type: FormField
-            id: nope
+            id: secret
           - type: Button
-            actionId: doesNotExist
+            actionId: save
+          - type: Button
+            actionId: internalHelper
       """.trimIndent()
     )
-    assertContainsElements(errors, "nope", "doesNotExist")
-    assertDoesntContain(errors, "name")
+    // everything exists via PSI → no errors …
+    assertEmpty(infos.errors())
+    // … but the contract flags what exists yet does not bind
+    val warnings = infos.bindingWarnings()
+    assertContainsElements(warnings, "secret", "internalHelper")
+    assertDoesntContain(warnings, "name", "save")
   }
 
-  fun testUnresolvedModelViewIsFlagged() {
-    val errors = errorTexts(
+  fun testContractFlagsDataTypeMismatch() {
+    ContractCache.getInstance(project).seed(
+      "demo.CustomerView",
+      ModelViewContract(
+        "demo.CustomerView",
+        listOf(ContractField("name", "string", "regular", required = true, readOnly = false)),
+        listOf("save"),
+      ),
+    )
+    val warnings = highlight(
       """
-      modelView: demo.NoSuchView
+      modelView: demo.CustomerView
       layout:
         type: FormField
-        id: whatever
+        id: name
+        dataType: number
       """.trimIndent()
-    )
-    assertContainsElements(errors, "demo.NoSuchView")
-  }
-
-  fun testAPlainYamlWithoutAModelViewIsIgnored() {
-    val errors = errorTexts(
-      """
-      type: VerticalLayout
-      content:
-        - type: FormField
-          id: name
-        - type: Button
-          actionId: whatever
-      """.trimIndent()
-    )
-    assertEmpty(errors)
+    ).bindingWarnings()
+    // the mismatch is flagged on the field id (an annotator may only mark its own element)
+    assertContainsElements(warnings, "name")
   }
 }

@@ -56,6 +56,13 @@ class MateuYamlBindingAnnotator : Annotator {
         val cls = resolveClass(project, fqn) ?: return // the modelView error is reported on its own
         if (!hasAction(cls, id)) {
           error(holder, value, "'$id' is not an action on ${cls.name} — no method named '$id'")
+          return
+        }
+        // The method exists — but is it a Mateu action? The backend contract knows (a plain method
+        // that is not an @Action won't dispatch). Only available once the contract has been fetched.
+        val contract = ContractCache.getInstance(project).get(fqn) ?: return
+        if (!contract.hasAction(id)) {
+          warn(holder, value, "'$id' exists on ${cls.name} but is not a Mateu action (missing @Action?)")
         }
       }
 
@@ -67,6 +74,21 @@ class MateuYamlBindingAnnotator : Annotator {
         val cls = resolveClass(project, fqn) ?: return
         if (!hasProperty(cls, id)) {
           error(holder, value, "'$id' is not a field on ${cls.name}")
+          return
+        }
+        // The property exists — refine against the backend contract (it lists only what actually
+        // binds, and carries the field's real dataType).
+        val contract = ContractCache.getInstance(project).get(fqn) ?: return
+        val field = contract.field(id)
+        if (field == null) {
+          warn(holder, value, "'$id' exists on ${cls.name} but is not a bindable field (hidden or excluded?)")
+          return
+        }
+        // An annotator may only mark the element it is given, so flag the id value itself (the
+        // message names the conflicting dataType declared on the sibling).
+        val declaredType = mapping.getKeyValueByKey("dataType")?.valueText?.trim()
+        if (declaredType != null && field.dataType != null && declaredType != field.dataType) {
+          warn(holder, value, "'$id' maps to dataType '${field.dataType}', not the declared '$declaredType'")
         }
       }
     }
@@ -102,5 +124,9 @@ class MateuYamlBindingAnnotator : Annotator {
 
   private fun error(holder: AnnotationHolder, range: PsiElement, message: String) {
     holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create()
+  }
+
+  private fun warn(holder: AnnotationHolder, range: PsiElement, message: String) {
+    holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message).range(range).create()
   }
 }
