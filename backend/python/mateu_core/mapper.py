@@ -120,6 +120,7 @@ from mateu_dtos import (
     ProgressStepsMetadata,
     StepRecord,
     RemoteCoordinates,
+    RestDataSource,
     RuleRecord,
     ScoreboardMetadata,
     ServerSideComponent,
@@ -164,6 +165,7 @@ from mateu_uidl import (
     LinkTo,
     Listing,
     Lookup,
+    RestOptions,
     Money,
     Multiline,
     NotificationsSupplier,
@@ -2543,6 +2545,8 @@ class ReflectionMapper:
             remote_coordinates=(
                 RemoteCoordinates(action=f"search-{field_id}") if f.has(Lookup) else None
             ),
+            # RestOptions(): options fetched client-side from an arbitrary REST endpoint.
+            options_source=self._rest_options(f),
             # FileUpload(accept=".csv"): the file input's accept filter travels in the field's
             # generic attributes list — no dedicated wire field (Java parity).
             attributes=(
@@ -2552,6 +2556,28 @@ class ReflectionMapper:
             ),
         )
         return self.client(meta, field_id, [])
+
+    @staticmethod
+    def _rest_options(f) -> "RestDataSource | None":
+        """The client-side external options descriptor when the field carries ``RestOptions()``
+        (headers parsed from "Name: Value" strings); None otherwise."""
+        if not f.has(RestOptions):
+            return None
+        a = f.marker(RestOptions)
+        headers: dict[str, str] = {}
+        for h in a.headers:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestDataSource(
+            url=a.url,
+            method=a.method,
+            headers=headers,
+            body=a.body,
+            items_path=a.items_path,
+            value_path=a.value_path,
+            label_path=a.label_path,
+        )
 
     def link_of(self, f, instance) -> NavLinkRecord | None:
         """The field's nav link: a :class:`LinkSupplier` on the view wins; when it returns ``None``
@@ -2612,6 +2638,9 @@ class ReflectionMapper:
             return "password"
         if f.has(Money):
             return "plainText" if plain else "money"
+        # RestOptions(): options fetched client-side from an arbitrary REST endpoint → a select.
+        if f.has(RestOptions):
+            return "select"
         if f.has(Lookup):
             return "combobox"
         if f.has(Searchable):

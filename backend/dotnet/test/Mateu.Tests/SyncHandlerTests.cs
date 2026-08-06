@@ -18,6 +18,16 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+// A select whose options come from an arbitrary REST endpoint, fetched client-side.
+[UI("rest-opts"), Title("Rest options")]
+public class RestOptsForm
+{
+    [RestOptions("https://api.example.com/countries",
+        Headers = ["Authorization: Bearer x"],
+        ItemsPath = "data.countries", ValuePath = "code", LabelPath = "name.common")]
+    public string Country { get; set; } = "";
+}
+
 // A fully-static screen: the client caches its whole response and skips the round-trip on return.
 [UI("static-view"), Title("About"), StaticView]
 public class StaticViewForm
@@ -1766,6 +1776,21 @@ public class SyncHandlerTests
 
         Assert.Contains("\"stereotype\":\"combobox\"", json);
         Assert.Contains("\"remoteCoordinates\":{\"action\":\"search-supplier\"", json);
+    }
+
+    [Fact]
+    public void RestOptions_field_is_a_select_carrying_the_endpoint_descriptor()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-opts", ConsumedRoute = "rest-opts" });
+        var json = Render(inc);
+
+        Assert.Contains("\"stereotype\":\"select\"", json);
+        Assert.Contains("\"optionsSource\":{", json);
+        Assert.Contains("\"url\":\"https://api.example.com/countries\"", json);
+        Assert.Contains("\"itemsPath\":\"data.countries\"", json);
+        Assert.Contains("\"valuePath\":\"code\"", json);
+        Assert.Contains("\"labelPath\":\"name.common\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json); // header parsed from "Name: Value"
     }
 
     [Fact]

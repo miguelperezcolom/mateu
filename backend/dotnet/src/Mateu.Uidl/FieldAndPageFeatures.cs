@@ -48,6 +48,27 @@ public sealed class UseRadioButtonsAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class LookupAttribute : Attribute;
 
+/// <summary>Fills a field's select options from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE: the renderer calls <see cref="Url"/> directly (no Mateu server mediating),
+/// navigates <see cref="ItemsPath"/> to the array in the JSON response and maps each item via
+/// <see cref="ValuePath"/>/<see cref="LabelPath"/>. The field renders as a select. Url/Headers/Body
+/// support <c>${state.x}</c> interpolation. (C# analogue of Java's @RestOptions.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class RestOptionsAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the array inside the response; blank means the root IS the array.</summary>
+    public string ItemsPath { get; init; } = "";
+    public string ValuePath { get; init; } = "value";
+    public string LabelPath { get; init; } = "label";
+}
+
 /// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking
 /// the field fires <c>codesearch-&lt;fieldId&gt;</c>, which opens the given selector — a Listing
 /// implementing ISelector — in a modal; selecting a row writes its (id, label) back into the

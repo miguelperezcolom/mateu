@@ -925,6 +925,11 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     /// non-lookup fields.</summary>
     public RemoteCoordinatesDto? RemoteCoordinates { get; init; }
 
+    /// <summary>Options fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint
+    /// ([RestOptions]); the renderer calls the URL directly and maps the JSON into the select's
+    /// options. Null on fields without an external source.</summary>
+    public RestDataSourceDto? OptionsSource { get; init; }
+
     /// <summary>Grid (list-of-rows) fields: one GridColumn per row-type property. Null on
     /// non-grid fields.</summary>
     public IReadOnlyList<GridColumnDto>? Columns { get; init; }
@@ -955,6 +960,20 @@ public record RemoteCoordinatesDto(string Action)
     public string? BaseUrl { get; init; }
     public string? Route { get; init; }
     public Dictionary<string, object?>? Params { get; init; }
+}
+
+/// <summary>Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
+/// io.mateu.dtos.RestDataSourceDto): the renderer fetches the URL directly, navigates ItemsPath to
+/// the response array and maps each item via ValuePath/LabelPath. Url/Headers/Body support
+/// ${state.x} interpolation.</summary>
+public record RestDataSourceDto(string Url)
+{
+    public string? Method { get; init; }
+    public Dictionary<string, string>? Headers { get; init; }
+    public string? Body { get; init; }
+    public string? ItemsPath { get; init; }
+    public string? ValuePath { get; init; }
+    public string? LabelPath { get; init; }
 }
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a
