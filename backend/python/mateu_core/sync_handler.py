@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import inspect
+import json
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -17,6 +19,7 @@ from mateu_dtos import (
     DrawerMetadata,
     HorizontalLayoutMetadata,
     Message as MessageDto,
+    ServerSideComponent,
     TextMetadata,
     UICommand,
     UIFragment,
@@ -108,6 +111,11 @@ class RunActionRq(BaseModel):
     route: str | None = None
     server_side_type: str | None = None
     server_side_component_route: str | None = None
+    #: The structure hash (ETag) the client already holds for this route (phase b of the client
+    #: structure cache). When it matches the hash of the structure the server would send, the
+    #: server omits the component and replies with only state/data. None = full structure
+    #: (mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash).
+    known_structure_hash: str | None = None
 
 
 # The event the edit_in_drawer drawer emits on save: the listing refreshes by re-running its
@@ -1507,10 +1515,39 @@ class SyncHandler:
 
     def fragment_response(self, title: str, component, rq: RunActionRq | None = None, data=None) -> UIIncrement:
         t = self.target(rq)
+        component = self._stamp_or_strip_structure(component, rq)
         return UIIncrement.of(
             commands=[UICommand(target_component_id=t, type="SetWindowTitle", data=title)],
             fragments=[UIFragment(target_component_id=t, component=component, data=data, action="Replace")],
         )
+
+    @staticmethod
+    def _stamp_or_strip_structure(component, rq: RunActionRq | None):
+        """Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
+        component with a stable hash of its structure and, when the client echoed a still-matching
+        hash, omit the component so only state/data travel (the frontend merges them onto its
+        cached structure). known_structure_hash is only ever sent on a route load, so an action
+        re-render can never accidentally strip. Mirrors io.mateu StructureHashPostProcessor."""
+        if not isinstance(component, ServerSideComponent):
+            return component
+        h = SyncHandler._structure_hash(component)
+        known = rq.known_structure_hash if rq else None
+        if known and known == h:
+            return None
+        return component.model_copy(update={"structure_hash": h})
+
+    @staticmethod
+    def _structure_hash(component: ServerSideComponent) -> str:
+        # Normalize away the two per-request fields before hashing so the SAME structure always
+        # hashes the same: the top-level id is a fresh value each request (an instance id, not
+        # structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
+        # client only ever echoes the server's hash, so blanking id here is symmetric. sort_keys
+        # gives a canonical order at every nesting level.
+        data = component.model_copy(update={"id": "", "structure_hash": None}).model_dump(
+            by_alias=True, mode="json"
+        )
+        canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def lookup_labels(self, cls, instance, supplier_host) -> dict | None:
         """Display labels for reference fields whose value is already set when the form renders:

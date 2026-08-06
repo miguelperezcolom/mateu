@@ -30,4 +30,12 @@ export default interface ServerSideComponent extends Component {
      */
     pageType?: string | undefined
 
+    /**
+     * Stable content hash (ETag) of this component's structure (phase b of the client structure
+     * cache). Stored next to the cached structure and echoed back as the request's
+     * knownStructureHash; when it still matches, the server omits the component and the client
+     * reuses its cache. undefined only from old backends.
+     */
+    structureHash?: string | undefined
+
 }

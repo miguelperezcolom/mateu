@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 using Mateu.Dtos;
 using Mateu.Uidl;
@@ -1375,7 +1376,31 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto FragmentResponse(string title, ComponentDto component, RunActionRqDto rq, object? data = null) =>
         UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto(Target(rq), component, null, data, "Replace", null)]);
+            fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), null, data, "Replace", null)]);
+
+    // Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
+    // component with a stable hash of its structure and, when the client echoed a still-matching
+    // hash, omit the component so only state/data travel (the frontend merges them onto its cached
+    // structure). knownStructureHash is only ever sent on a route load, so an action re-render can
+    // never accidentally strip. Mirrors io.mateu StructureHashPostProcessor.
+    private static ComponentDto? StampOrStripStructure(ComponentDto component, RunActionRqDto rq)
+    {
+        if (component is not ServerSideComponentDto ss) return component;
+        var hash = StructureHashOf(ss);
+        if (rq.KnownStructureHash is { Length: > 0 } known && known == hash) return null;
+        return ss with { StructureHash = hash };
+    }
+
+    private static string StructureHashOf(ServerSideComponentDto component)
+    {
+        // Normalize away the two per-request fields before hashing so the SAME structure always
+        // hashes the same: the top-level id is a fresh Guid every request (an instance id, not
+        // structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
+        // client only ever echoes the server's hash, so nulling id here is symmetric.
+        var normalized = component with { Id = "", StructureHash = null };
+        var json = JsonSerializer.SerializeToUtf8Bytes<ComponentDto>(normalized, WebJson);
+        return Convert.ToHexString(SHA256.HashData(json)).ToLowerInvariant();
+    }
 
     /// <summary>Fragments and commands address the component that initiated the request (the
     /// web frontend's top ux id is "_ux" — Java echoes the initiator the same way).</summary>

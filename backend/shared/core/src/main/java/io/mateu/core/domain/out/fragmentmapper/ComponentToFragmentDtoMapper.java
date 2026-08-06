@@ -159,7 +159,8 @@ public final class ComponentToFragmentDtoMapper {
           MetaAnnotations.isPresent(view.getClass(), ConfirmOnNavigationIfDirty.class),
           EmitsMapper.emitsName(view),
           PageWidthResolver.wirePageWidth(view),
-          PageTypeResolver.wirePageType(view));
+          PageTypeResolver.wirePageType(view),
+          null);
     }
     if (component instanceof FutureComponent futureComponent) {
       return mapFutureComponentToDto(

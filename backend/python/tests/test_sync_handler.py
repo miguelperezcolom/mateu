@@ -763,6 +763,44 @@ def test_action_options_travel_on_the_action_dto():
     assert actions["save"].idempotent is False
 
 
+# ── Structure ETag / template-ref (phase b of the client structure cache) ──────
+
+
+def _component_of(inc):
+    return inc.fragments[0].component
+
+
+def test_route_load_carries_a_structure_hash():
+    c = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty")))
+    assert c.structure_hash
+
+
+def test_structure_hash_is_stable_across_identical_loads():
+    h1 = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    h2 = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    assert h1 == h2
+
+
+def test_echoing_the_matching_hash_omits_the_component():
+    h = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    inc = handler().handle(
+        RunActionRq(route="", consumed_route="_empty", known_structure_hash=h)
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].component is None
+
+
+def test_a_stale_or_missing_hash_still_sends_the_full_structure():
+    stale = handler().handle(
+        RunActionRq(route="", consumed_route="_empty", known_structure_hash="not-the-hash")
+    )
+    assert stale.fragments[0].component is not None
+    assert _component_of(stale).structure_hash
+
+    cold = handler().handle(RunActionRq(route="", consumed_route="_empty"))
+    assert cold.fragments[0].component is not None
+
+
 def test_initial_load_form_with_required_field_and_button():
     inc = handler().handle(RunActionRq(route="", consumed_route="_empty"))
     j = render(inc)

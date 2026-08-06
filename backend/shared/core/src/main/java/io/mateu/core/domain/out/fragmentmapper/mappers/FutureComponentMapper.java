@@ -62,7 +62,8 @@ public class FutureComponentMapper {
             futureComponent.instance().getClass(), ConfirmOnNavigationIfDirty.class),
         EmitsMapper.emitsName(futureComponent.instance()),
         PageWidthResolver.wirePageWidth(futureComponent.instance()),
-        PageTypeResolver.wirePageType(futureComponent.instance()));
+        PageTypeResolver.wirePageType(futureComponent.instance()),
+        null);
   }
 
   public static Component createComponent(

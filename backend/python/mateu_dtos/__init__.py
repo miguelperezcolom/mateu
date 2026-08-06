@@ -1211,6 +1211,11 @@ class ServerSideComponent(Wire):
     #: the family of Redwood page templates the view belongs to; never None on the wire
     #: (mirrors ServerSideComponentDto.pageType).
     page_type: str | None = None
+    #: Stable content hash (ETag) of this component's structure (phase b of the client structure
+    #: cache). The client stores it next to the cached structure and echoes it back as
+    #: RunActionRq.known_structure_hash; when it still matches, the server omits the component and
+    #: the client reuses its cache (mirrors ServerSideComponentDto.structureHash).
+    structure_hash: str | None = None
 
 
 class RuleRecord(Wire):
