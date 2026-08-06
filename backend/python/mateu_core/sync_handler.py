@@ -1532,7 +1532,10 @@ class SyncHandler:
             return component
         h = SyncHandler._structure_hash(component)
         known = rq.known_structure_hash if rq else None
-        if known and known == h:
+        # A @static_view is never omitted: the client caches its FULL response the first time it
+        # sees it each session and then skips the round-trip entirely, so it must always receive
+        # the component (carrying static_view=True) to learn that.
+        if known and known == h and not component.static_view:
             return None
         return component.model_copy(update={"structure_hash": h})
 

@@ -662,6 +662,7 @@ class ReflectionMapper:
             rules=self.map_rules(cls, instance),
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type,
+            static_view=bool(class_flag(cls, "__mateu_static_view__", False)),
         )
 
     # ── Fluent component trees & declarative archetypes ───────────────────────

@@ -71,7 +71,10 @@ public final class StructureHashPostProcessor {
       return fragment;
     }
     String hash = hashOf(component);
-    if (knownStructureHash != null && knownStructureHash.equals(hash)) {
+    // A @StaticView is never omitted: the client caches its FULL response the first time it sees it
+    // each session and then skips the round-trip entirely, so it must always receive the component
+    // (carrying staticView=true) to learn that — even when it already holds the structure.
+    if (knownStructureHash != null && knownStructureHash.equals(hash) && !component.staticView()) {
       // The client already holds this exact structure — drop it, keep only state/data.
       return fragment.withComponent(null);
     }

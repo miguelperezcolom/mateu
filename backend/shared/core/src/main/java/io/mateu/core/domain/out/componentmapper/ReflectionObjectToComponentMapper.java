@@ -116,6 +116,7 @@ public class ReflectionObjectToComponentMapper {
             emitsName(instance),
             PageWidthResolver.wirePageWidth(instance),
             PageTypeResolver.wirePageType(instance),
+            StaticViewResolver.isStatic(instance),
             null),
         instance,
         getData(httpRequest, instance),

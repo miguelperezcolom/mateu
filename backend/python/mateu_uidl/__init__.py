@@ -825,6 +825,16 @@ def compact(cls: type) -> type:
     return cls
 
 
+def static_view(cls: type) -> type:
+    """Class-level: the view's FULL response — structure and data — never varies per request, user
+    or time. The client caches the whole response for the session and skips the server round-trip
+    on return visits (the last step of the client structure cache). A developer promise, like
+    ``@action_options(idempotent=…)``; do NOT use it where content depends on data, the user,
+    permissions, time or live-state interpolation. Mirrors io.mateu's ``@StaticView``."""
+    cls.__mateu_static_view__ = True
+    return cls
+
+
 def auto_layout(arg=True):
     """Class-level: let Mateu infer the UX patterns (folded optionals, tabs, radio enums…) from
     the amount and structure of the declared information. Explicit layout markers always win —
@@ -1483,6 +1493,7 @@ __all__ = [
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",

@@ -106,6 +106,11 @@ public record ServerSideComponentDto(
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
 
+    /// <summary>The view is declared [StaticView]: its full response never varies, so the client
+    /// caches it for the session and skips the round-trip on return visits (mirrors
+    /// io.mateu.dtos.ServerSideComponentDto.staticView). A developer promise; false unless declared.</summary>
+    public bool StaticView { get; init; }
+
     /// <summary>Stable content hash (ETag) of this component's structure (phase b of the client
     /// structure cache). The client stores it next to the cached structure and echoes it back as
     /// RunActionRqDto.KnownStructureHash; when it still matches, the server omits the component and

@@ -180,6 +180,14 @@ public sealed class TocAttribute(bool value = true) : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;
 
+/// <summary>Marks a view whose FULL response — structure and data — never varies per request, user
+/// or time. The client caches the whole response for the session and skips the server round-trip
+/// on return visits (the last step of the client structure cache). A developer promise, like
+/// <c>[ActionOptions(Idempotent=…)]</c>; do NOT use it where content depends on data, the user,
+/// permissions, time or live-state interpolation. Mirrors io.mateu's <c>@StaticView</c>.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class StaticViewAttribute : Attribute;
+
 /// <summary>How a page's content column is sized within the viewport (the first parameter of the
 /// Oracle Redwood page templates; the names follow them). Selected with [PageWidth] or the
 /// <see cref="IPageWidthSupplier"/> hook; when neither is present the renderer infers the width

@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.m
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -63,6 +64,7 @@ public class FutureComponentMapper {
         EmitsMapper.emitsName(futureComponent.instance()),
         PageWidthResolver.wirePageWidth(futureComponent.instance()),
         PageTypeResolver.wirePageType(futureComponent.instance()),
+        StaticViewResolver.isStatic(futureComponent.instance()),
         null);
   }
 

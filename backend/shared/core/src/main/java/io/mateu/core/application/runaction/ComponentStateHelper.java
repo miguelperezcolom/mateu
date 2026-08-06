@@ -12,6 +12,7 @@ import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRow
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
@@ -82,6 +83,7 @@ public class ComponentStateHelper {
         emitsName(modelView),
         PageWidthResolver.wirePageWidth(modelView),
         PageTypeResolver.wirePageType(modelView),
+        StaticViewResolver.isStatic(modelView),
         null);
   }
 

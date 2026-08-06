@@ -18,6 +18,13 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+// A fully-static screen: the client caches its whole response and skips the round-trip on return.
+[UI("static-view"), Title("About"), StaticView]
+public class StaticViewForm
+{
+    public string? Heading { get; set; } = "About";
+}
+
 // Per-action transport knobs: two buttons that differ only in how the CLIENT should call them.
 [UI("action-options"), Title("Action options")]
 public class ActionOptionsForm
@@ -804,6 +811,23 @@ public class SyncHandlerTests
 
         var cold = Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" });
         Assert.NotNull(cold.Fragments[0].Component);
+    }
+
+    [Fact]
+    public void StaticView_is_flagged_only_when_declared()
+    {
+        Assert.True(ComponentOf(Handler().Handle(new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty" })).StaticView);
+        Assert.False(ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StaticView);
+    }
+
+    [Fact]
+    public void A_static_view_is_never_omitted_even_when_the_hash_matches()
+    {
+        var hash = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty" })).StructureHash;
+        var inc = Handler().Handle(
+            new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty", KnownStructureHash = hash });
+        Assert.NotNull(inc.Fragments[0].Component);
+        Assert.True(ComponentOf(inc).StaticView);
     }
 
     [Fact]
