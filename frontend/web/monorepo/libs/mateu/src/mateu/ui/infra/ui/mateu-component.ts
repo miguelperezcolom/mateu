@@ -37,7 +37,9 @@ import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAc
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
-import {evaluateExpression, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {evaluateExpression, interpolate, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
+import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
@@ -505,6 +507,28 @@ export class MateuComponent extends ComponentElement {
         showToast({ text: message, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
     }
 
+    // Runs a @RestAction: fetches the external endpoint CLIENT-SIDE (url/headers/body interpolated
+    // from the live state), then merges the object at resultPath into the form state (so bound
+    // fields refresh) and shows a success toast; an error shows a failure toast. No Mateu round-trip.
+    handleRestAction = (rest: RestActionDto) => {
+        const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
+        fetchExternalJson(rest.source, resolve)
+            .then((json) => {
+                if (rest.resultPath != null) {
+                    const merged = getByPath(json, rest.resultPath)
+                    if (merged && typeof merged === 'object') {
+                        this.state = { ...this.state, ...(merged as Record<string, unknown>) }
+                    }
+                }
+                const msg = interpolate(rest.successMessage, this.state, this.data)
+                if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
+            })
+            .catch((e) => {
+                console.warn('mateu: rest action failed', e)
+                showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+            })
+    }
+
     callAfterConfirmation = (action: Action, callback: Function) => {
         let header = "One moment, please"
         let message = 'Are you sure?'
@@ -605,6 +629,13 @@ export class MateuComponent extends ComponentElement {
         }
 
         if (action && (action.js || action.customEvent)) {
+            return
+        }
+
+        // @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
+        // Mateu server — fetch + toast + optional merge of the response into the form state.
+        if (action && action.restAction) {
+            this.handleRestAction(action.restAction)
             return
         }
 
