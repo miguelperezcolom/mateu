@@ -120,6 +120,7 @@ from mateu_dtos import (
     ProgressStepsMetadata,
     StepRecord,
     RemoteCoordinates,
+    RestAction,
     RestDataSource,
     RuleRecord,
     ScoreboardMetadata,
@@ -560,14 +561,19 @@ class ReflectionMapper:
             return self.map_listing(cls, route)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
-        buttons = [
-            self.map_button(n, f)
+        button_methods = [
+            (n, f)
             for n, f in methods_with(cls, "__mateu_button__")
             if for_current_audience(getattr(f, "__mateu_audience__", None))
         ]
+        buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)
+        # A @rest_action button carries the client-side REST descriptor on its action.
         actions = [
-            with_action_options(Action(id=b.action_id), cls, b.action_id) for b in buttons
+            with_action_options(
+                Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
+            )
+            for (n, f), b in zip(button_methods, buttons)
         ] + [with_action_options(Action(id=f.action_id), cls, f.action_id) for f in fabs]
         # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
         for f in view_fields(cls):
@@ -2597,6 +2603,26 @@ class ReflectionMapper:
                 headers[name.strip()] = value.strip()
         return RestDataSource(
             url=url, method=method, headers=headers, body=body, items_path=items_path
+        )
+
+    @staticmethod
+    def _rest_action(fn) -> "RestAction | None":
+        """The client-side REST descriptor when a button method carries ``@rest_action`` (headers
+        parsed from "Name: Value" strings); None otherwise — the button then dispatches to the Mateu
+        server as usual."""
+        spec = getattr(fn, "__mateu_rest_action__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, success_message, result_path = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestAction(
+            source=RestDataSource(url=url, method=method, headers=headers, body=body),
+            success_message=success_message or None,
+            result_path=result_path or None,
         )
 
     def link_of(self, f, instance) -> NavLinkRecord | None:

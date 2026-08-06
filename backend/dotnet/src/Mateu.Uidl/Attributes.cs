@@ -131,6 +131,31 @@ public sealed class ActionOptionsAttribute : Attribute
     public bool Idempotent { get; init; }
 }
 
+/// <summary>Makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+/// dispatching to the Mateu server: the renderer calls <see cref="Url"/> directly with the
+/// interpolated <see cref="Body"/>, then applies the response — shows <see cref="SuccessMessage"/>
+/// as a toast and, when <see cref="ResultPath"/> is set, merges the object at that path in the JSON
+/// response into the form state (so bound fields refresh). Put it on a method that is ALSO a
+/// [Button]/[Toolbar]. Url/Headers/Body support <c>${state.x}</c> interpolation. (C# analogue of
+/// Java's @RestAction.)</summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class RestActionAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "POST";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A toast shown on a 2xx response (interpolated); blank shows none.</summary>
+    public string SuccessMessage { get; init; } = "";
+
+    /// <summary>A dot path to the object in the response to merge into the form state; blank merges
+    /// nothing (fire-and-toast).</summary>
+    public string ResultPath { get; init; } = "";
+}
+
 /// <summary>An overridden display label for a field or method.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class LabelAttribute(string value) : Attribute

@@ -61,5 +61,22 @@ endpoint must be reachable from the browser (CORS-friendly for cross-origin APIs
 
 ## Other backends
 
-Mateu.NET and the Python backend emit the same `restAction` descriptor. *(Port pending — see the
-parity table.)*
+Mateu.NET and the Python backend emit the same `restAction` descriptor:
+
+```csharp
+// .NET
+[Button, Label("Look up address")]
+[RestAction("https://api.example.com/zip/${state.zip}", Method = "GET",
+    ResultPath = "address", SuccessMessage = "Address found")]
+public void Lookup() { }
+```
+
+```python
+# Python
+@button()
+@rest_action(
+    url="https://api.example.com/zip/${state.zip}", method="GET",
+    result_path="address", success_message="Address found")
+def lookup(self):
+    ...
+```

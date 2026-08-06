@@ -47,6 +47,20 @@ public class RestList : Listing<RestList.Filters, RestList.Row>
     public override ListingData<Row> Search(SearchRequest request) => ListingData.From<Row>([]);
 }
 
+// A button that calls a REST endpoint client-side (fetch + toast + merge into the form state).
+[UI("rest-action"), Title("Rest action")]
+public class RestActionForm
+{
+    public string? Zip { get; set; } = "28001";
+    public string? Street { get; set; }
+    public string? City { get; set; }
+
+    [Button, Label("Look up address")]
+    [RestAction("https://api.example.com/zip/${state.zip}", Method = "GET",
+        Headers = ["Authorization: Bearer x"], ResultPath = "address", SuccessMessage = "Address found")]
+    public void Lookup() { }
+}
+
 // A fully-static screen: the client caches its whole response and skips the round-trip on return.
 [UI("static-view"), Title("About"), StaticView]
 public class StaticViewForm
@@ -795,18 +809,18 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"quickLookup\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":5000,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":5000,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"recalculateTotals\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":120000,\"idempotent\":true}", json);
+            + "\"timeoutMillis\":120000,\"idempotent\":true,\"restAction\":null}", json);
         // Safe defaults when nothing is declared: the client's own timeout applies, and the action
         // is never re-sent on its own — after a timeout the client cannot know whether the server
         // already applied it.
         Assert.Contains(
             "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
     }
 
     // ── Structure ETag / template-ref (phase b of the client structure cache) ──────
@@ -1828,6 +1842,19 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void RestAction_button_advertises_the_endpoint_descriptor_on_its_action()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-action", ConsumedRoute = "rest-action" });
+        var json = Render(inc);
+
+        Assert.Contains("\"restAction\":{", json);
+        Assert.Contains("\"successMessage\":\"Address found\"", json);
+        Assert.Contains("\"resultPath\":\"address\"", json);
+        Assert.Contains("\"url\":\"https://api.example.com/zip/${state.zip}\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json);
+    }
+
+    [Fact]
     public void Lookup_search_filters_and_pages_the_suppliers_options()
     {
         var rq = new RunActionRqDto
@@ -1890,11 +1917,11 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
             + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
             + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
     }
 
     [Fact]

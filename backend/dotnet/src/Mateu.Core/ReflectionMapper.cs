@@ -238,12 +238,16 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
         var title = T(type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
-        var buttons = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+        var buttonMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m))
-            .Select(MapButton).ToList();
+            .ToList();
+        var buttons = buttonMethods.Select(MapButton).ToList();
         var fabs = Fabs(type);
-        // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.
-        var actions = buttons.Select(b => WithActionOptions(new ActionDto(b.ActionId), type, b.ActionId))
+        // Both [Button] and [Fab] methods are server-side actions the renderer can invoke; a
+        // [RestAction] button carries the client-side REST descriptor on its action.
+        var actions = buttonMethods.Select(m =>
+                WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
+                    type, Naming.CamelCase(m.Name)))
             .Concat(fabs.Select(f => WithActionOptions(new ActionDto(f.ActionId), type, f.ActionId))).ToList();
         // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
         actions.AddRange(EditableProperties(type)
@@ -1448,6 +1452,22 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Body = a.Body,
             ItemsPath = a.ItemsPath,
         };
+    }
+
+    /// <summary>The client-side REST descriptor when a button method carries [RestAction]; null
+    /// otherwise — the button then dispatches to the Mateu server as usual.</summary>
+    private static RestActionDto? RestActionOf(MethodInfo m)
+    {
+        if (m.Find<RestActionAttribute>() is not { } a) return null;
+        var source = new RestDataSourceDto(a.Url)
+        {
+            Method = a.Method,
+            Headers = ParseHeaders(a.Headers),
+            Body = a.Body,
+        };
+        return new RestActionDto(source,
+            a.SuccessMessage.Length > 0 ? a.SuccessMessage : null,
+            a.ResultPath.Length > 0 ? a.ResultPath : null);
     }
 
     /// <summary>Parses "Name: Value" header strings into a map.</summary>

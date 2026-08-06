@@ -99,6 +99,7 @@ from mateu_uidl import (  # noqa: E402
     audience,
     disabled_unless,
     remote_menu,
+    rest_action,
     rest_listing,
 )
 from mateu_uidl.components import MicroFrontend  # noqa: E402
@@ -1726,6 +1727,36 @@ def test_rest_listing_carries_the_endpoint_descriptor_and_columns_from_the_row_t
     assert '"id": "population"' in j
 
 
+@ui("rest-action")
+@title("Rest action")
+class RestActionForm:
+    zip: str = "28001"
+    street: str = ""
+    city: str = ""
+
+    @button()
+    @rest_action(
+        url="https://api.example.com/zip/${state.zip}",
+        method="GET",
+        headers=("Authorization: Bearer x",),
+        result_path="address",
+        success_message="Address found",
+    )
+    def lookup(self):
+        pass
+
+
+def test_rest_action_button_advertises_the_endpoint_descriptor_on_its_action():
+    inc = handler().handle(RunActionRq(route="rest-action", consumed_route="rest-action"))
+    j = render(inc)
+
+    assert '"restAction": {' in j
+    assert '"successMessage": "Address found"' in j
+    assert '"resultPath": "address"' in j
+    assert '"url": "https://api.example.com/zip/${state.zip}"' in j
+    assert '"Authorization": "Bearer x"' in j
+
+
 def test_lookup_search_filters_and_pages_the_suppliers_options():
     inc = handler().handle(
         RunActionRq(
@@ -1781,12 +1812,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false}'
+        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false}'
+        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
 
 
