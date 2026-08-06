@@ -5,8 +5,14 @@
     <description>Renders Mateu model-driven Java UIs inside IntelliJ — a dockable tool window, IDE menus, and native platform components (date pickers, popups, tabs).</description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.plugins.yaml</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Visual-builder binding validation: squiggles when a YAML page's FormField id / Button
+             actionId does not exist on the ModelView the page declares. -->
+        <annotator language="yaml"
+                   implementationClass="io.mateu.ijp.contract.MateuYamlBindingAnnotator"/>
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
