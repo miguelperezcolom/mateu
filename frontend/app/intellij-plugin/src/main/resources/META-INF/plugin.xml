@@ -20,6 +20,9 @@
              required by the new UI — an iconless tool window shows no stripe button. -->
         <toolWindow id="Mateu Components" anchor="left" icon="/icons/mateu.svg"
                     factoryClass="io.mateu.ijp.contract.MateuPaletteToolWindowFactory"/>
+        <!-- Visual-builder property panel (edit the component under the caret). -->
+        <toolWindow id="Mateu Properties" anchor="bottom" icon="/icons/mateu.svg"
+                    factoryClass="io.mateu.ijp.contract.MateuPropertiesToolWindowFactory"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <!-- Visual-builder live preview: a split editor for specs/ui/*.yaml pages. -->
         <fileEditorProvider implementation="io.mateu.ijp.contract.YamlPagePreviewProvider"/>
