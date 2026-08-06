@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getByPath, mapItemsToOptions, fetchExternalOptions } from './externalOptions'
+import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows } from './externalOptions'
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 
 describe('getByPath', () => {
@@ -39,6 +39,38 @@ describe('mapItemsToOptions', () => {
     })
     it('returns [] when the path is not an array', () => {
         expect(mapItemsToOptions({ nope: true }, 'data.items')).toEqual([])
+    })
+})
+
+describe('mapItemsToRows', () => {
+    it('maps each item into a row keyed by column id (dot paths)', () => {
+        const json = { data: { countries: [{ code: 'ES', name: 'Spain', pop: 47 }] } }
+        expect(mapItemsToRows(json, 'data.countries', ['code', 'name', 'pop'])).toEqual([
+            { code: 'ES', name: 'Spain', pop: 47 },
+        ])
+    })
+    it('treats the root as the array when itemsPath is blank and fills missing columns with undefined', () => {
+        expect(mapItemsToRows([{ a: 1 }], '', ['a', 'b'])).toEqual([{ a: 1, b: undefined }])
+    })
+    it('returns [] when the path is not an array', () => {
+        expect(mapItemsToRows({ nope: 1 }, 'x', ['a'])).toEqual([])
+    })
+})
+
+describe('fetchExternalRows', () => {
+    it('fetches and maps rows by column id', async () => {
+        const fetchImpl = (async () => ({
+            ok: true,
+            status: 200,
+            json: async () => ({ items: [{ code: 'FR', name: 'France' }] }),
+        })) as unknown as typeof fetch
+        const rows = await fetchExternalRows(
+            { url: 'https://x', itemsPath: 'items' } as RestDataSource,
+            ['code', 'name'],
+            (t) => t,
+            fetchImpl,
+        )
+        expect(rows).toEqual([{ code: 'FR', name: 'France' }])
     })
 })
 
