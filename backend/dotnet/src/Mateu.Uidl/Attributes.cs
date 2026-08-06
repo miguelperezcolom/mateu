@@ -156,6 +156,27 @@ public sealed class RestActionAttribute(string url) : Attribute
     public string ResultPath { get; init; } = "";
 }
 
+/// <summary>Loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE on entry: when the view mounts the renderer calls <see cref="Url"/> directly and
+/// merges the object at <see cref="ResultPath"/> in the JSON response into the form state, so the
+/// fields arrive populated. Reuses the [RestAction] machinery (a synthetic __restdata__ action +
+/// an OnLoad trigger). Url/Headers/Body support <c>${state.x}</c> interpolation. (C# analogue of
+/// Java's @RestData.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class RestDataAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the object in the response to merge into the form state; blank merges
+    /// the whole response object.</summary>
+    public string ResultPath { get; init; } = "";
+}
+
 /// <summary>An overridden display label for a field or method.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class LabelAttribute(string value) : Attribute
