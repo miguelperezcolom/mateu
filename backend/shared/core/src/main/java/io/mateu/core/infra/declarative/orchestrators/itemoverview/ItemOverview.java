@@ -16,7 +16,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * Item overview page (Redwood item-overview template): the item's key information stays pinned in a
@@ -45,7 +44,6 @@ public abstract class ItemOverview implements ComponentTreeSupplier {
   }
 
   @Override
-  @SneakyThrows
   public Component component(HttpRequest httpRequest) {
     Component keyInfo = null;
     List<Tab> tabs = new ArrayList<>();
@@ -54,7 +52,13 @@ public abstract class ItemOverview implements ComponentTreeSupplier {
         continue;
       }
       field.setAccessible(true);
-      Object value = field.get(this);
+      Object value;
+      try {
+        value = field.get(this);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(
+            e); // field was just setAccessible(true) → effectively unreachable
+      }
       if (!(value instanceof Component component)) {
         continue;
       }

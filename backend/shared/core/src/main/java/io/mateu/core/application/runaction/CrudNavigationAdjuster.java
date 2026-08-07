@@ -22,12 +22,9 @@ public class CrudNavigationAdjuster {
     if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
       return new AdjustedCommand(command, false);
     }
-    Class<?> type;
-    try {
-      type = forName(command.serverSideType());
-    } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Unknown serverSideType " + command.serverSideType(), e);
-    }
+    // forName throws an unchecked IllegalStateException naming the class if it is genuinely
+    // missing.
+    var type = forName(command.serverSideType());
     if (!Crud.class.isAssignableFrom(type)) {
       return new AdjustedCommand(command, false);
     }

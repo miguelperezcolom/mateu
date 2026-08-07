@@ -11,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.WidgetSupplier;
 import java.util.Collection;
 import java.util.Objects;
-import lombok.SneakyThrows;
 
 final class AppWidgetExtractor {
 
@@ -31,7 +30,6 @@ final class AppWidgetExtractor {
         .toList();
   }
 
-  @SneakyThrows
   private static Component mapWidget(
       java.lang.reflect.Field field,
       Object instance,

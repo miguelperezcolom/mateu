@@ -9,7 +9,6 @@ import io.mateu.uidl.interfaces.NotificationsSupplier;
 import jakarta.inject.Named;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 /**
@@ -40,7 +39,6 @@ public class NotificationsActionRunner implements ActionRunner {
     return actionId != null && actionId.startsWith(ACTION_PREFIX);
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var httpRequest = command.httpRequest();
@@ -81,7 +79,6 @@ public class NotificationsActionRunner implements ActionRunner {
    * The resolved instance may be the app shell wrapper or the home content — walk to the app class
    * exactly like the app-context search does: the widget sends the app's serverSideType.
    */
-  @SneakyThrows
   private NotificationsSupplier findSupplier(Object instance, HttpRequest httpRequest) {
     if (instance instanceof NotificationsSupplier supplier) {
       return supplier;

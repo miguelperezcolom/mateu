@@ -9,7 +9,6 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     extends Crud<T, T, T, Filters, T, String> {
@@ -95,7 +94,6 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   /** The entity backing the creation form. Override to return a pre-populated instance. */
-  @SneakyThrows
   @SuppressWarnings("unchecked")
   public T buildCreationForm(HttpRequest httpRequest) {
     Map<String, Object> data = Map.of();
@@ -110,7 +108,6 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
             .newInstance(entityClass(), data, httpRequest);
   }
 
-  @SneakyThrows
   @SuppressWarnings("unchecked")
   T toEntity(HttpRequest httpRequest) {
     // parameters is nullable on the wire — without the guard a save with no parameters NPEd

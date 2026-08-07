@@ -13,11 +13,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 final class ReflectionTypeCoercer {
 
-  @SneakyThrows
   static Object coerce(
       Class type,
       Object data,

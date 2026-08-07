@@ -10,11 +10,9 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 
 final class AppHomeRouteResolver {
 
-  @SneakyThrows
   static String getHomeRoute(
       AppShell app,
       String route,

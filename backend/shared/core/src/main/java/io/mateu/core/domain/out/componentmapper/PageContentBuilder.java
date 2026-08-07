@@ -24,11 +24,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import lombok.SneakyThrows;
 
 final class PageContentBuilder {
 
-  @SneakyThrows
   static Collection<? extends Component> getContent(
       Object instanceOrType,
       String baseUrl,
@@ -38,7 +36,21 @@ final class PageContentBuilder {
       HttpRequest httpRequest) {
     Object instance;
     if (instanceOrType instanceof Class<?> type) {
-      instance = MateuBeanProvider.getBean(InstanceFactory.class).newInstance(type, httpRequest);
+      try {
+        instance = MateuBeanProvider.getBean(InstanceFactory.class).newInstance(type, httpRequest);
+      } catch (java.lang.reflect.InvocationTargetException e) {
+        // surface the constructor's real failure, not the reflective wrapper / lombok mask
+        var cause = e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof RuntimeException re) {
+          throw re;
+        }
+        if (cause instanceof Error err) {
+          throw err;
+        }
+        throw new RuntimeException(cause);
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException("Cannot instantiate " + type.getName(), e);
+      }
     } else {
       instance = instanceOrType;
     }

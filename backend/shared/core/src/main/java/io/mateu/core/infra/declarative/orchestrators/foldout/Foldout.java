@@ -22,7 +22,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * Declarative Redwood-style foldout page: a fixed overview panel on the left plus lateral fold-out
@@ -107,7 +106,6 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
    * Chips shown under the header title (RDS "Label Value" pills). Defaults to the first {@code
    * List<Badge>} field found; override to compute them.
    */
-  @SneakyThrows
   public List<Badge> headerBadges() {
     for (Field field : getClass().getDeclaredFields()) {
       if (Modifier.isStatic(field.getModifiers())) {
@@ -118,7 +116,12 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
           && pt.getActualTypeArguments().length == 1
           && pt.getActualTypeArguments()[0] == Badge.class) {
         field.setAccessible(true);
-        Object value = field.get(this);
+        Object value;
+        try {
+          value = field.get(this);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e); // just setAccessible(true) → effectively unreachable
+        }
         if (value instanceof List<?> list) {
           List<Badge> badges = new ArrayList<>();
           for (Object item : list) {
@@ -143,7 +146,6 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
   }
 
   @Override
-  @SneakyThrows
   public Component component(HttpRequest httpRequest) {
     Component overview = null;
     List<FoldoutPanel> panels = new ArrayList<>();
@@ -152,7 +154,12 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
         continue;
       }
       field.setAccessible(true);
-      Object value = field.get(this);
+      Object value;
+      try {
+        value = field.get(this);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e); // just setAccessible(true) → effectively unreachable
+      }
       if (!(value instanceof Component component)) {
         continue;
       }

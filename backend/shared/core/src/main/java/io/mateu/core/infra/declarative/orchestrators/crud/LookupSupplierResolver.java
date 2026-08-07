@@ -8,11 +8,28 @@ import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.Selector;
 import java.lang.reflect.Field;
-import lombok.SneakyThrows;
+import java.lang.reflect.InvocationTargetException;
 
 final class LookupSupplierResolver {
 
-  @SneakyThrows
+  /** Instantiate a supplier via its no-arg constructor, surfacing the constructor's REAL cause. */
+  private static <S> S instantiate(Class<S> type) {
+    try {
+      return type.getConstructor().newInstance();
+    } catch (InvocationTargetException e) {
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("Cannot instantiate " + type.getName(), e);
+    }
+  }
+
   static Selector getSelector(Object instance, Field field) {
     Class<? extends Selector> supplierType = null;
     if (MetaAnnotations.isPresent(field, Searchable.class)) {
@@ -27,12 +44,11 @@ final class LookupSupplierResolver {
     }
     var supplier = MateuBeanProvider.getBean(supplierType);
     if (supplier == null) {
-      return supplierType.getConstructor().newInstance();
+      return instantiate(supplierType);
     }
     return supplier;
   }
 
-  @SneakyThrows
   static LookupLabelSupplier getLookupLabelSupplier(Object instance, Field field) {
     Class<? extends LookupLabelSupplier> supplierType = null;
     if (MetaAnnotations.isPresent(field, Lookup.class)) {
@@ -51,12 +67,11 @@ final class LookupSupplierResolver {
     }
     var supplier = MateuBeanProvider.getBean(supplierType);
     if (supplier == null) {
-      return supplierType.getConstructor().newInstance();
+      return instantiate(supplierType);
     }
     return supplier;
   }
 
-  @SneakyThrows
   static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
     if (field != null) {
       var lookup = MetaAnnotations.find(field, Lookup.class);
@@ -70,7 +85,7 @@ final class LookupSupplierResolver {
         var supplier =
             MateuBeanProvider.getBean(MetaAnnotations.find(field, Lookup.class).search());
         if (supplier == null) {
-          return MetaAnnotations.find(field, Lookup.class).search().getConstructor().newInstance();
+          return instantiate(MetaAnnotations.find(field, Lookup.class).search());
         }
         return supplier;
       }

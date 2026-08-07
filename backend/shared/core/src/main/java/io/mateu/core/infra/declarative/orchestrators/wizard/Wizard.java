@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -57,7 +56,6 @@ public abstract class Wizard
     }
   }
 
-  @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     return WizardActionDispatcher.dispatch(actionId, this, httpRequest);

@@ -10,7 +10,6 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -36,7 +35,6 @@ public class ComponentTreeActionRunner implements ActionRunner {
     return 100;
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     Button button =
@@ -47,7 +45,12 @@ public class ComponentTreeActionRunner implements ActionRunner {
         button.runnable().run();
       }
       if (button.callable() != null) {
-        result = button.callable().call();
+        try {
+          result = button.callable().call();
+        } catch (Exception e) {
+          // the button's Callable (user code) threw — surface its real failure, not a lombok mask
+          throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+        }
       }
     }
     return asFlux(result, instance);
