@@ -144,7 +144,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // `search` action. Declarative listings get no server OnLoad trigger, so self-fetch on mount (and
   // when the interpolated url changes); free-text search filters the fetched rows in memory.
   const rowsSource = metadata['rowsSource'] as
-    | { url: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string }
+    | { url: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string; proxy?: boolean }
     | undefined;
   const columnIds = columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId).filter(Boolean) as string[];
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
@@ -153,7 +153,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   useEffect(() => {
     if (!rowsSource) return;
     let cancelled = false;
-    fetchExternalJson(rowsSource, restResolve)
+    // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
+    // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
+    const jsonPromise = rowsSource.proxy
+      ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
+      : fetchExternalJson(rowsSource, restResolve);
+    jsonPromise
       .then((json) => {
         if (cancelled) return;
         const rows = mapItemsToRows(json, rowsSource.itemsPath, columnIds) as Record<string, unknown>[];

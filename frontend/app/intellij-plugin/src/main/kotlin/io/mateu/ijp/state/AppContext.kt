@@ -468,7 +468,7 @@ class AppContext(val session: AppSession) {
         // to the Mateu server — fetch + merge the response into the state + notify (fires on click
         // for a @RestAction button, and on mount for @RestData via its OnLoad __restdata__ action).
         currentActionRestData[actionId]?.let { rest ->
-            handleRestAction(rest)
+            handleRestAction(rest, actionId)
             return
         }
 
@@ -497,21 +497,30 @@ class AppContext(val session: AppSession) {
      * state (so bound fields refresh) and show a success notification; an error shows a failure one.
      * No server round-trip — the plugin analogue of the web's mateu-component.handleRestAction.
      */
-    private fun handleRestAction(rest: JsonNode) {
+    private fun handleRestAction(rest: JsonNode, actionId: String? = null) {
         val source = rest.path("source")
         val ctx = mapOf<String, Any?>("state" to currentComponentState, "appState" to appState)
         background(
             work = {
-                val url = Expressions.interpolate(source.text("url"), ctx)
-                val method = source.text("method").ifBlank { "GET" }.uppercase()
-                val headers = LinkedHashMap<String, String>()
-                source.path("headers").fields().forEach { (k, v) ->
-                    headers[k] = Expressions.interpolate(v.asText(""), ctx)
+                if (source.path("proxy").asBoolean(false)) {
+                    // Proxy mode: route through the Mateu server (no CORS, secrets injected
+                    // server-side) via the reserved __restfetch__ action. The __restdata__
+                    // (screen-load) id resolves the class @RestData source; any other id is a
+                    // @RestAction method — hence the source kind.
+                    val kind = if (actionId == "__restdata__") "data" else "action"
+                    fetchViaProxy(kind, actionId.orEmpty())
+                } else {
+                    val url = Expressions.interpolate(source.text("url"), ctx)
+                    val method = source.text("method").ifBlank { "GET" }.uppercase()
+                    val headers = LinkedHashMap<String, String>()
+                    source.path("headers").fields().forEach { (k, v) ->
+                        headers[k] = Expressions.interpolate(v.asText(""), ctx)
+                    }
+                    val body = source.get("body")?.asText("").orEmpty().let {
+                        if (it.isBlank()) null else Expressions.interpolate(it, ctx)
+                    }
+                    apiClient.fetchExternal(url, method, headers, body)
                 }
-                val body = source.get("body")?.asText("").orEmpty().let {
-                    if (it.isBlank()) null else Expressions.interpolate(it, ctx)
-                }
-                apiClient.fetchExternal(url, method, headers, body)
             },
             onOk = { json ->
                 // resultPath: a string (possibly empty = whole response) merges into the state;
@@ -532,6 +541,22 @@ class AppContext(val session: AppSession) {
                 else showMessage("Request failed", "error")
             },
         )
+    }
+
+    /**
+     * Proxy-mode external fetch: route a DECLARED REST source through the Mateu server via the
+     * reserved __restfetch__ action (the server resolves the source, injects `${'$'}{secret.X}` and
+     * fetches server-side — no CORS, secrets off the client). Returns the raw JSON the server
+     * fetched (appData._restfetch). Runs on the CALLER's thread (options/rows/action already fetch
+     * on a background worker), so no extra threading here.
+     */
+    fun fetchViaProxy(sourceKind: String, sourceId: String): JsonNode {
+        val increment = apiClient.runAction(
+            currentRoute, currentConsumedRoute, "__restfetch__", currentServerSideType,
+            currentComponentId, currentComponentState, appState,
+            mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
+        )
+        return increment.path("appData").path("_restfetch")
     }
 
     /** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
