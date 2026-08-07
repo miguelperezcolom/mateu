@@ -214,6 +214,7 @@ public class FieldMetadataExtractor {
         .itemsPath(a.itemsPath())
         .valuePath(a.valuePath())
         .labelPath(a.labelPath())
+        .proxy(a.proxy())
         .build();
   }
 

@@ -58,4 +58,10 @@ public @interface RestListing {
    * response root IS the array.
    */
   String itemsPath() default "";
+
+  /**
+   * Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser: no CORS, and
+   * {@code ${secret.X}} auth is injected server-side from a {@code SecretsProvider}. Default false.
+   */
+  boolean proxy() default false;
 }

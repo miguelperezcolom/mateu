@@ -56,4 +56,12 @@ public @interface RestOptions {
 
   /** A dot path within each item to the option label. */
   String labelPath() default "label";
+
+  /**
+   * Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser: the server
+   * calls the endpoint (server-to-server, so no CORS) and can inject {@code ${secret.X}} auth into
+   * headers/url from a {@code SecretsProvider}, keeping secrets off the client. Default false
+   * (client-direct).
+   */
+  boolean proxy() default false;
 }

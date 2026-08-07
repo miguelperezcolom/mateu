@@ -4,6 +4,7 @@ import io.mateu.core.application.contract.ModelViewContractExtractor;
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.infra.StructureHashPostProcessor;
+import io.mateu.core.infra.TemplateInterpolator;
 import io.mateu.dtos.ModelViewContractDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -90,6 +91,9 @@ public class RunActionUseCase {
     }
     if (PREVIEW_ACTION.equals(command.actionId())) {
       return handlePreview(command);
+    }
+    if (RESTFETCH_ACTION.equals(command.actionId())) {
+      return handleRestFetch(command);
     }
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
@@ -190,6 +194,113 @@ public class RunActionUseCase {
           .flux();
     }
     return mapToUiIncrement(component, command).flux();
+  }
+
+  // ── Server-side proxy fetch ────────────────────────────────────────────────
+  // PROXY mode of the external-REST features (@RestOptions/@RestListing/@RestAction/@RestData): the
+  // browser posts this reserved action with the source's id/kind instead of fetching the endpoint
+  // itself, and the SERVER does the fetch — resolving CORS (browser↔Mateu is same-origin) and
+  // injecting ${secret.X} auth server-side (never on the client). The declared RestDataSource is
+  // resolved from the annotation (RestSourceResolver), never from a client-supplied url. The raw
+  // JSON body rides back on appData._restfetch; the renderer maps it exactly as in direct mode.
+  public static final String RESTFETCH_ACTION = "__restfetch__";
+  public static final String RESTFETCH_KEY = "_restfetch";
+
+  private static final java.net.http.HttpClient REST_HTTP =
+      java.net.http.HttpClient.newBuilder()
+          .connectTimeout(java.time.Duration.ofSeconds(10))
+          .build();
+  private static final com.fasterxml.jackson.databind.ObjectMapper REST_MAPPER =
+      new com.fasterxml.jackson.databind.ObjectMapper();
+
+  private Flux<UIIncrementDto> handleRestFetch(RunActionCommand command) {
+    return Mono.just(command)
+        .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+        .map(
+            instance ->
+                io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
+                    instance))
+        .flatMap(instance -> routeIfNeeded(command, instance))
+        .map(instance -> toRestFetchResponse(instance, command))
+        .flux();
+  }
+
+  private UIIncrementDto toRestFetchResponse(Object instance, RunActionCommand command) {
+    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
+    var params =
+        rq != null && rq.parameters() != null
+            ? rq.parameters()
+            : java.util.Map.<String, Object>of();
+    var kind = String.valueOf(params.getOrDefault("_sourceKind", ""));
+    var id = String.valueOf(params.getOrDefault("_sourceId", ""));
+    var source = RestSourceResolver.resolve(instance, kind, id);
+    if (source == null) {
+      return UIIncrementDto.builder()
+          .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))
+          .build();
+    }
+    var state =
+        command.componentState() != null
+            ? command.componentState()
+            : java.util.Map.<String, Object>of();
+    java.util.function.Function<String, String> secrets = this::resolveSecret;
+    var url = TemplateInterpolator.interpolate(source.url(), state, secrets);
+    var method =
+        source.method() == null || source.method().isBlank()
+            ? "GET"
+            : source.method().toUpperCase();
+    Object json;
+    try {
+      var builder =
+          java.net.http.HttpRequest.newBuilder()
+              .uri(java.net.URI.create(url))
+              .timeout(java.time.Duration.ofSeconds(60))
+              .header("Accept", "application/json");
+      if (source.headers() != null) {
+        for (var e : source.headers().entrySet()) {
+          builder.header(
+              e.getKey(), TemplateInterpolator.interpolate(e.getValue(), state, secrets));
+        }
+      }
+      if (!"GET".equals(method)
+          && !"HEAD".equals(method)
+          && source.body() != null
+          && !source.body().isBlank()) {
+        builder.method(
+            method,
+            java.net.http.HttpRequest.BodyPublishers.ofString(
+                TemplateInterpolator.interpolate(source.body(), state, secrets)));
+      } else {
+        builder.method(method, java.net.http.HttpRequest.BodyPublishers.noBody());
+      }
+      var response =
+          REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() >= 400) {
+        throw new RuntimeException("HTTP " + response.statusCode());
+      }
+      json = REST_MAPPER.readValue(response.body(), Object.class);
+    } catch (Exception e) {
+      log.warn("proxy rest fetch failed: {}", e.getMessage());
+      json = java.util.Map.of();
+    }
+    return UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, json)).build();
+  }
+
+  /** A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment. */
+  private String resolveSecret(String key) {
+    try {
+      for (var p :
+          io.mateu.uidl.di.MateuBeanProvider.getBeans(
+              io.mateu.uidl.interfaces.SecretsProvider.class)) {
+        var v = p.getSecret(key);
+        if (v != null) {
+          return v;
+        }
+      }
+    } catch (Exception ignored) {
+      // no provider registered (e.g. tests) — fall through to the environment
+    }
+    return System.getenv(key);
   }
 
   private String extractTitle(Throwable e) {

@@ -177,6 +177,7 @@ public class PageListingBuilder {
         .headers(headers)
         .body(a.body())
         .itemsPath(a.itemsPath())
+        .proxy(a.proxy())
         .build();
   }
 

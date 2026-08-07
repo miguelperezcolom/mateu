@@ -164,6 +164,7 @@ public class CrudlMapper {
         source.body(),
         source.itemsPath(),
         source.valuePath(),
-        source.labelPath());
+        source.labelPath(),
+        source.proxy());
   }
 }

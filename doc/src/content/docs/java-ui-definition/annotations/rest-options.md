@@ -65,6 +65,46 @@ This is the **options** surface. Consuming external endpoints for listing rows, 
 button actions reuses the same `RestDataSource` descriptor and is on the roadmap.
 :::
 
+## Server-proxy mode (`proxy = true`) — CORS & auth hardening
+
+By default the **browser** fetches the endpoint directly, so the endpoint must be CORS-friendly and
+any auth token would have to live in the client. Set `proxy = true` (available on all four
+annotations — `@RestOptions`, `@RestListing`, `@RestAction`, `@RestData`) to route the fetch through
+the **Mateu server** instead:
+
+```java
+@RestOptions(
+    proxy = true,
+    url = "https://api.example.com/countries",
+    headers = "Authorization: Bearer ${secret.COUNTRIES_TOKEN}",
+    valuePath = "cca2", labelPath = "name.common")
+String country;
+```
+
+- **CORS is solved** — the browser only talks to Mateu (same-origin); the server talks to the
+  external API server-to-server, where CORS does not apply.
+- **Secrets stay server-side** — `${secret.KEY}` placeholders in the url/headers/body are resolved
+  on the server by a `SecretsProvider` (see below), so the token **never reaches the browser**. Only
+  the placeholder (`${secret.COUNTRIES_TOKEN}`) travels on the wire, never its value.
+
+The server resolves the endpoint from the **declared** annotation (by field/action/class), never
+from a url supplied by the client, so the proxy can't be turned into an open relay. `${state.x}`
+interpolation works the same as in direct mode (resolved from the component state).
+
+### Supplying secrets — `SecretsProvider`
+
+Implement `io.mateu.uidl.interfaces.SecretsProvider` and register it as a bean:
+
+```java
+@Service
+public class VaultSecrets implements SecretsProvider {
+  public String getSecret(String key) { return vault.read(key); }  // null if unknown
+}
+```
+
+With no `SecretsProvider` registered, Mateu falls back to reading an **environment variable** of the
+same name (`${secret.COUNTRIES_TOKEN}` → `System.getenv("COUNTRIES_TOKEN")`).
+
 ## Other backends
 
 Mateu.NET and the Python backend emit the same `optionsSource` descriptor, so any renderer fetches
