@@ -18,7 +18,6 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,7 +39,6 @@ public class RouteInstanceCreator {
    * (shortest-first so the broadest enclosing app wins), then fall back to direct class matches
    * (longest-first so the most-specific route wins).
    */
-  @SneakyThrows
   public Mono<?> findRouteResolver(RunActionCommand command) {
     List<String> segments = createRoutes(command);
     log.info("findRouteResolver segments={}", segments);
@@ -68,8 +66,19 @@ public class RouteInstanceCreator {
    * #findRouteResolver}). Returns the instantiated app after remote-menu resolution so the UI can
    * use it as the next serverSideType.
    */
-  @SneakyThrows
   private Mono<?> resolveAsApp(String rawRoute, RunActionCommand command) {
+    // A missing class (forName → ClassNotFoundException) becomes a reactive error signal, so it
+    // surfaces as itself instead of the NoClassDefFoundError: lombok/Lombok that @SneakyThrows
+    // produced when lombok is off the runtime classpath.
+    try {
+      return resolveAsAppInner(rawRoute, command);
+    } catch (Exception e) {
+      return Mono.error(e);
+    }
+  }
+
+  private Mono<?> resolveAsAppInner(String rawRoute, RunActionCommand command)
+      throws ClassNotFoundException {
     var route = removeQueryParamsFromRoute(rawRoute);
     var routedClass = routedClassResolver.resolve(route, command);
     if (routedClass.isPresent()) {
