@@ -2,7 +2,6 @@ package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
-import static java.lang.Thread.currentThread;
 
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactory;
@@ -16,7 +15,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 @Singleton
@@ -31,7 +29,6 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return true;
   }
 
-  @SneakyThrows
   @Override
   public Mono<? extends Object> createInstance(
       String className, Map<String, Object> data, HttpRequest httpRequest) {
@@ -57,12 +54,10 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }
 
-  private Class<?> loadClass(String className) throws ClassNotFoundException {
-    try {
-      return forName(className);
-    } catch (ClassNotFoundException e) {
-      return currentThread().getContextClassLoader().loadClass(className);
-    }
+  private Class<?> loadClass(String className) {
+    // forName already falls back to the thread context classloader and throws an unchecked
+    // IllegalStateException naming the class if it is genuinely missing.
+    return forName(className);
   }
 
   private Object hydrateIfNeeded(Object uiInstance, HttpRequest httpRequest) {
@@ -87,8 +82,28 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return (T) newInstance(c, Map.of(), httpRequest);
   }
 
-  @SneakyThrows
   public <T> T newInstance(Class<T> c, Map<String, Object> data, HttpRequest httpRequest) {
+    try {
+      return newInstanceInner(c, data, httpRequest);
+    } catch (InvocationTargetException e) {
+      // a constructor (user code) threw — surface its real cause, not the reflective wrapper
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("Cannot instantiate " + c.getName(), e);
+    } catch (Exception e) {
+      throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+    }
+  }
+
+  private <T> T newInstanceInner(Class<T> c, Map<String, Object> data, HttpRequest httpRequest)
+      throws Exception {
     var o = beanProvider.getBean(c);
     if (o == null) { // not from spring
       if (c.getDeclaringClass() != null && !java.lang.reflect.Modifier.isStatic(c.getModifiers())) {

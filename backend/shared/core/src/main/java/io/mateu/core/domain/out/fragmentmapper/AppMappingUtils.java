@@ -10,7 +10,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
 import java.util.regex.Pattern;
-import lombok.SneakyThrows;
 
 public class AppMappingUtils {
 
@@ -26,7 +25,6 @@ public class AppMappingUtils {
     return total;
   }
 
-  @SneakyThrows
   public static String getRoute(
       Object componentSupplier,
       Object instance,

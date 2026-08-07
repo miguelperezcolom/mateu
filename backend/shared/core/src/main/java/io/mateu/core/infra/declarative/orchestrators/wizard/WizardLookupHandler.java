@@ -10,11 +10,9 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 final class WizardLookupHandler {
 
-  @SneakyThrows
   static Data handleSearch(String actionId, Wizard orchestrator, HttpRequest httpRequest) {
     String fieldName = actionId.substring(actionId.indexOf('-') + 1);
     LookupOptionsSupplier optionsSupplier;

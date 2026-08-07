@@ -12,41 +12,53 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ValueProvider {
 
-  @SneakyThrows
   public static Object getValueOrNewInstance(BeanProvider beanProvider, Field f, Object o) {
     var value = getValue(f, o);
     if (value == null) {
       value = beanProvider.getBean(f.getType());
     }
     if (value == null) {
-      var constructor = f.getType().getDeclaredConstructor();
-      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
-      return constructor.newInstance();
+      return newInstanceOf(f.getType());
     }
     return value;
   }
 
-  @SneakyThrows
   public static Object getValueOrNewInstance(Field f, Object o, HttpRequest httpRequest) {
     var value = getValue(f, o);
     if (value == null) {
       value = MateuInstanceFactory.newInstance(f.getType(), Map.of(), httpRequest);
     }
     if (value == null) {
-      var constructor = f.getType().getDeclaredConstructor();
-      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
-      return constructor.newInstance();
+      return newInstanceOf(f.getType());
     }
     return value;
   }
 
-  @SneakyThrows
+  /** Instantiate via the no-arg constructor; a failing constructor surfaces its REAL cause. */
+  private static Object newInstanceOf(Class<?> type) {
+    try {
+      var constructor = type.getDeclaredConstructor();
+      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
+      return constructor.newInstance();
+    } catch (InvocationTargetException e) {
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException("Cannot instantiate " + type.getName(), e);
+    }
+  }
+
   public static Object getValue(Field f, Object o) {
     if (o == null) return null;
     if (f == null) {
@@ -83,7 +95,12 @@ public class ValueProvider {
       log.error("when getting initialValue for field " + f.getName(), e);
     }
     if (v instanceof Callable callable) {
-      v = callable.call();
+      try {
+        v = callable.call();
+      } catch (Exception e) {
+        // a field-holder Callable (user lambda) — surface its real failure, not a lombok mask
+        throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+      }
     }
     return v;
   }

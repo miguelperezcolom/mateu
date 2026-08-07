@@ -16,11 +16,9 @@ import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
-import lombok.SneakyThrows;
 
 public class SelectActionHandler {
 
-  @SneakyThrows
   public static Object handleSelect(
       Object instance,
       String actionId,

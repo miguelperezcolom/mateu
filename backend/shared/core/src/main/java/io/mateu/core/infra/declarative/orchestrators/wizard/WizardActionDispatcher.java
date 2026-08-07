@@ -8,13 +8,32 @@ import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import lombok.SneakyThrows;
 
 final class WizardActionDispatcher {
 
-  @SneakyThrows
   static Object dispatch(String actionId, Wizard wizard, HttpRequest httpRequest) {
+    try {
+      return dispatchInner(actionId, wizard, httpRequest);
+    } catch (InvocationTargetException e) {
+      // the @WizardCompletionAction method (user code) threw — surface its REAL cause, not the
+      // reflective wrapper / the NoClassDefFoundError: lombok/Lombok that @SneakyThrows produced.
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (Exception e) {
+      throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+    }
+  }
+
+  private static Object dispatchInner(String actionId, Wizard wizard, HttpRequest httpRequest)
+      throws Exception {
     if (actionId.startsWith("search-")) {
       return WizardLookupHandler.handleSearch(actionId, wizard, httpRequest);
     }

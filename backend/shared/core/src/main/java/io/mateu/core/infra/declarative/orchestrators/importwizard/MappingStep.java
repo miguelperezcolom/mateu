@@ -48,7 +48,8 @@ public class MappingStep implements WizardStep, OptionsSupplier {
       ImportRowAssembler.assignableFields(rowClass)
           .forEach(field -> options.add(new Option(field.getName(), field.getName())));
       return options;
-    } catch (ClassNotFoundException e) {
+    } catch (RuntimeException e) {
+      // forName throws an unchecked IllegalStateException when the row class is missing
       return List.of();
     }
   }

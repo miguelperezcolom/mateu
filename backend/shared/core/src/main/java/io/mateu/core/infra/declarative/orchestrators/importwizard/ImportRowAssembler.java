@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * Builds typed rows from parsed CSV records per the {@link ColumnMapping}s: coerces each cell into
@@ -59,7 +59,6 @@ final class ImportRowAssembler {
         || type.isEnum();
   }
 
-  @SneakyThrows
   static <Row> Preview<Row> assemble(
       Class<Row> rowClass, List<List<String>> records, List<ColumnMapping> mappings) {
     var validRows = new ArrayList<Row>();
@@ -73,7 +72,21 @@ final class ImportRowAssembler {
       int line = r + 1; // 1-based, counting the header line
       var record = records.get(r);
       var rowIssues = new ArrayList<RowIssue>();
-      Row row = rowClass.getDeclaredConstructor().newInstance();
+      Row row;
+      try {
+        row = rowClass.getDeclaredConstructor().newInstance();
+      } catch (InvocationTargetException e) {
+        var cause = e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof RuntimeException re) {
+          throw re;
+        }
+        if (cause instanceof Error err) {
+          throw err;
+        }
+        throw new RuntimeException(cause);
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException("Cannot instantiate " + rowClass.getName(), e);
+      }
       for (var mapping : mappings) {
         if (mapping.targetField == null || mapping.targetField.isBlank()) {
           continue;

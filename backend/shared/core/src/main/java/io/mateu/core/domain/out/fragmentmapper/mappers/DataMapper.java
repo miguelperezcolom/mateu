@@ -15,7 +15,6 @@ import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import lombok.SneakyThrows;
 
 public class DataMapper {
 
@@ -69,7 +68,6 @@ public class DataMapper {
     return map;
   }
 
-  @SneakyThrows
   public static Map<String, Object> mapPojo(Object item) {
     Map<String, Object> map = new HashMap<>();
     for (Field field : getAllFields(item.getClass())) {

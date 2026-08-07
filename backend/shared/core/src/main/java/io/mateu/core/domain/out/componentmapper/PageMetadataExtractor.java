@@ -13,7 +13,6 @@ import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.data.PeerNav;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
-import lombok.SneakyThrows;
 
 final class PageMetadataExtractor {
 
@@ -170,7 +169,6 @@ final class PageMetadataExtractor {
         .toList();
   }
 
-  @SneakyThrows
   static List<PageBanner> getBanners(Object instance, HttpRequest httpRequest) {
     if (instance instanceof BannerSupplier bannerSupplier) {
       return bannerSupplier.banners();
@@ -213,14 +211,19 @@ final class PageMetadataExtractor {
    * optional label prefix + the value's {@code toString()}). {@code null} when there is no such
    * field or its value is null.
    */
-  @SneakyThrows
   static String getTimestamp(Object instance) {
     for (var field : getAllFields(instance.getClass())) {
       if (!MetaAnnotations.isPresent(field, Timestamp.class)) {
         continue;
       }
       field.setAccessible(true);
-      Object value = field.get(instance);
+      Object value;
+      try {
+        value = field.get(instance);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(
+            e); // field was just setAccessible(true) → effectively unreachable
+      }
       if (value == null) {
         return null;
       }

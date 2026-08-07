@@ -15,7 +15,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -31,7 +30,6 @@ public class AuditActionRunner implements ActionRunner {
     return 50;
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var listing = new AuditHistoryListing((Auditable) instance);

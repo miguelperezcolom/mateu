@@ -160,7 +160,7 @@ public class ActionInstanceCreator {
                           : java.util.stream.Stream.concat(
                               java.util.stream.Stream.of(a), a.children().stream()))
               .anyMatch(a -> actionId.equals(a.actionId()));
-    } catch (ReflectiveOperationException | RuntimeException e) {
+    } catch (Exception e) {
       return false;
     }
   }

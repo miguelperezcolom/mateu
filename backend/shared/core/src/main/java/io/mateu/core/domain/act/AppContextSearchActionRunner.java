@@ -16,7 +16,6 @@ import jakarta.inject.Named;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 /**
@@ -42,7 +41,6 @@ public class AppContextSearchActionRunner implements ActionRunner {
     return actionId != null && actionId.startsWith(ACTION_PREFIX);
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var httpRequest = command.httpRequest();
@@ -63,7 +61,7 @@ public class AppContextSearchActionRunner implements ActionRunner {
   }
 
   private java.lang.reflect.Field findAppContextField(
-      Object instance, HttpRequest httpRequest, String fieldName) throws Exception {
+      Object instance, HttpRequest httpRequest, String fieldName) {
     for (Class<?> c = instance.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
       try {
         return c.getDeclaredField(fieldName);
@@ -73,12 +71,15 @@ public class AppContextSearchActionRunner implements ActionRunner {
     }
     var serverSideType = httpRequest.runActionRq().serverSideType();
     if (serverSideType != null && !serverSideType.isBlank()) {
-      return forName(serverSideType).getDeclaredField(fieldName);
+      try {
+        return forName(serverSideType).getDeclaredField(fieldName);
+      } catch (NoSuchFieldException ignored) {
+        // not on the declared app type either → run() reports it as a non-@AppContext field
+      }
     }
     return null;
   }
 
-  @SneakyThrows
   private Object searchOptions(
       java.lang.reflect.Field field, String searchText, HttpRequest httpRequest) {
     if (field.getType().isEnum()) {

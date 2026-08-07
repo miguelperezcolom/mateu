@@ -2,16 +2,17 @@ package io.mateu.core.infra;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 public final class JsonSerializer {
 
@@ -46,9 +47,16 @@ public final class JsonSerializer {
 
   private JsonSerializer() {}
 
-  @SneakyThrows
+  // Jackson's checked JsonProcessingException (an IOException) is wrapped in UncheckedIOException
+  // so
+  // callers don't need @SneakyThrows — a malformed payload surfaces as itself, not as the
+  // NoClassDefFoundError: lombok/Lombok that @SneakyThrows produced when lombok is off runtime.
   public static String toJson(Object object) {
-    return mapper.writeValueAsString(object);
+    try {
+      return mapper.writeValueAsString(object);
+    } catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   public static <T> T fromMap(Map<String, Object> map, Class<T> c) throws Exception {
@@ -59,21 +67,30 @@ public final class JsonSerializer {
     return pojoFromJson(json, c);
   }
 
-  @SneakyThrows
   public static <T> T pojoFromJson(String json, Class<T> c) {
     if (json == null || json.isEmpty()) json = "{}";
-    return mapper.readValue(json, c);
+    try {
+      return mapper.readValue(json, c);
+    } catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
-  @SneakyThrows
   public static <T> List<T> listFromJson(String json, Class<T> c) {
     if (json == null || json.isEmpty()) json = "[]";
-    return mapper.readerForListOf(c).readValue(json);
+    try {
+      return mapper.readerForListOf(c).readValue(json);
+    } catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
-  @SneakyThrows
   public static Map<String, Object> fromJson(String json) {
     if (json == null || "".equals(json)) json = "{}";
-    return mapper.readValue(json, Map.class);
+    try {
+      return mapper.readValue(json, Map.class);
+    } catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

@@ -7,11 +7,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import lombok.SneakyThrows;
 
 final class FallbackFieldSetter {
 
-  @SneakyThrows
   static void set(Field field, Object target, Object value) {
     if (!java.lang.reflect.Modifier.isPublic(field.getModifiers())) {
       field.setAccessible(true);
@@ -20,7 +18,11 @@ final class FallbackFieldSetter {
       value = coerce(field, value);
       field.set(target, value);
     } catch (Exception ignored) {
-      field.set(target, null);
+      try {
+        field.set(target, null);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e); // field was setAccessible(true) → effectively unreachable
+      }
     }
   }
 

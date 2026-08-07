@@ -1,5 +1,6 @@
 package io.mateu.core.infra;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -8,10 +9,10 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * Template-ref / ETag for screen structure (phase b of the client structure cache).
@@ -81,15 +82,18 @@ public final class StructureHashPostProcessor {
     return fragment.withComponent(component.withStructureHash(hash));
   }
 
-  @SneakyThrows
   private static String hashOf(ServerSideComponentDto component) {
     // Normalize away the two per-request fields before hashing so the SAME structure always hashes
     // the same: the top-level component id is a fresh UUID on every request (an instance id, not
     // structure), and the hash slot itself must not feed back into the hash. Nested/structural ids
     // (field ids, etc.) are kept — they ARE part of the structure. The client never computes this
     // hash, only echoes the server's, so nulling id here is symmetric across request and response.
-    byte[] json = CANONICAL.writeValueAsBytes(component.withId(null).withStructureHash(null));
-    byte[] digest = MessageDigest.getInstance("SHA-256").digest(json);
-    return HexFormat.of().formatHex(digest);
+    try {
+      byte[] json = CANONICAL.writeValueAsBytes(component.withId(null).withStructureHash(null));
+      byte[] digest = MessageDigest.getInstance("SHA-256").digest(json);
+      return HexFormat.of().formatHex(digest);
+    } catch (JsonProcessingException | NoSuchAlgorithmException e) {
+      throw new IllegalStateException("Cannot compute structure hash", e);
+    }
   }
 }
