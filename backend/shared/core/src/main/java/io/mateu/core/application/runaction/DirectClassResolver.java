@@ -13,20 +13,36 @@ import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
 import java.util.Optional;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 final class DirectClassResolver {
 
-  @SneakyThrows
   static Mono<?> resolve(
       String rawRoute,
       RunActionCommand command,
       RoutedClassResolver routedClassResolver,
       InstanceFactoryProvider instanceFactoryProvider,
       List<RouteResolver> routeResolvers) {
+    // A missing class (forName → ClassNotFoundException) or a failing RouteResolver becomes a
+    // reactive error signal, so it surfaces as itself instead of the NoClassDefFoundError:
+    // lombok/Lombok that @SneakyThrows produced when lombok is off the runtime classpath.
+    try {
+      return resolveInner(
+          rawRoute, command, routedClassResolver, instanceFactoryProvider, routeResolvers);
+    } catch (Exception e) {
+      return Mono.error(e);
+    }
+  }
+
+  private static Mono<?> resolveInner(
+      String rawRoute,
+      RunActionCommand command,
+      RoutedClassResolver routedClassResolver,
+      InstanceFactoryProvider instanceFactoryProvider,
+      List<RouteResolver> routeResolvers)
+      throws ClassNotFoundException {
     if ("".equals(rawRoute)) {
       rawRoute = command.baseUrl();
     }

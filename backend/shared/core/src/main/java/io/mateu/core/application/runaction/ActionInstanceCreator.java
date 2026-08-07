@@ -11,7 +11,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -27,7 +26,6 @@ public class ActionInstanceCreator {
   private final AppMenuResolver appMenuResolver;
   private final YamlUidlLoader yamlUidlLoader;
 
-  @SneakyThrows
   Mono<?> createInstance(RunActionCommand command) {
     log.info("createInstance {}", command);
 

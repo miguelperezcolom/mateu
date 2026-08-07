@@ -19,9 +19,9 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.StateSupplier;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import lombok.SneakyThrows;
 
 /** Static helpers for building ServerSideComponentDto and extracting component/state metadata. */
 public class ComponentStateHelper {
@@ -115,8 +115,22 @@ public class ComponentStateHelper {
     return "";
   }
 
-  @SneakyThrows
   public static Object invoke(Method method, Object instance) {
-    return method.invoke(instance);
+    try {
+      return method.invoke(instance);
+    } catch (InvocationTargetException e) {
+      // Surface the real exception the method threw, not the reflective wrapper (this is exactly
+      // what @SneakyThrows hid behind NoClassDefFoundError: lombok/Lombok when it rethrew).
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Cannot invoke " + method, e);
+    }
   }
 }
