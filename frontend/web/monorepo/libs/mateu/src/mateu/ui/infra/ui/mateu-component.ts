@@ -510,19 +510,39 @@ export class MateuComponent extends ComponentElement {
     // Runs a @RestAction: fetches the external endpoint CLIENT-SIDE (url/headers/body interpolated
     // from the live state), then merges the object at resultPath into the form state (so bound
     // fields refresh) and shows a success toast; an error shows a failure toast. No Mateu round-trip.
-    handleRestAction = (rest: RestActionDto) => {
+    handleRestAction = (rest: RestActionDto, actionId?: string) => {
+        // Merge the fetched object (at resultPath) into the form state and toast — shared by the
+        // direct and proxy paths, so a @RestAction/@RestData behaves the same either way.
+        const applyResult = (json: unknown) => {
+            if (rest.resultPath != null) {
+                const merged = getByPath(json, rest.resultPath)
+                if (merged && typeof merged === 'object') {
+                    this.state = { ...this.state, ...(merged as Record<string, unknown>) }
+                }
+            }
+            const msg = interpolate(rest.successMessage, this.state, this.data)
+            if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
+        }
+        // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via the
+        // reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
+        // @RestData source; any other id is a @RestAction method — hence the source kind.
+        if (rest.source?.proxy) {
+            const kind = actionId === '__restdata__' ? 'data' : 'action'
+            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: '__restfetch__',
+                    parameters: { _sourceKind: kind, _sourceId: actionId },
+                    callback: (uiIncrement: any) => applyResult(uiIncrement?.appData?.['_restfetch']),
+                    callbackonly: true
+                },
+                bubbles: true,
+                composed: true
+            }))
+            return
+        }
         const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
         fetchExternalJson(rest.source, resolve)
-            .then((json) => {
-                if (rest.resultPath != null) {
-                    const merged = getByPath(json, rest.resultPath)
-                    if (merged && typeof merged === 'object') {
-                        this.state = { ...this.state, ...(merged as Record<string, unknown>) }
-                    }
-                }
-                const msg = interpolate(rest.successMessage, this.state, this.data)
-                if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
-            })
+            .then(applyResult)
             .catch((e) => {
                 console.warn('mateu: rest action failed', e)
                 showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
@@ -635,7 +655,7 @@ export class MateuComponent extends ComponentElement {
         // @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
         // Mateu server — fetch + toast + optional merge of the response into the form state.
         if (action && action.restAction) {
-            this.handleRestAction(action.restAction)
+            this.handleRestAction(action.restAction, action.id)
             return
         }
 
