@@ -1,4 +1,4 @@
-import { evaluateExpression } from './expressions';
+import { evaluateExpression, interpolate } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { announce } from '../a11y/a11y';
 
@@ -57,6 +57,9 @@ export class MateuViewController {
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
+  /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
+   *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
+  private actionRestData: Record<string, Json> = {};
   private currentValidations: Json[] = [];
   /** Client-side rules of the current component (RuleMapper wire shape). */
   private currentRules: Json[] = [];
@@ -183,6 +186,15 @@ export class MateuViewController {
       }
     }
 
+    // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
+    // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
+    // @RestAction button, and on mount for @RestData via its OnLoad trigger's __restdata__ action).
+    const rest = this.actionRestData[actionId];
+    if (rest) {
+      await this.handleRestAction(rest);
+      return;
+    }
+
     try {
       const increment = await this.session.api.runAction({
         route: this.currentRoute,
@@ -203,6 +215,55 @@ export class MateuViewController {
 
   /** Host hook: asked before a discarding action throws away unsaved changes. */
   confirmDiscard: () => Promise<boolean> = async () => true;
+
+  /**
+   * Runs a @RestAction/@RestData descriptor: fetch the external endpoint CLIENT-SIDE (url/headers/
+   * body interpolated from the live state), then merge the object at resultPath into the form state
+   * (so bound fields refresh) and show a success toast; an error shows a failure toast. No server
+   * round-trip — the RN analogue of the web's mateu-component.handleRestAction.
+   */
+  private async handleRestAction(rest: Json): Promise<void> {
+    const ctx = {
+      state: this.currentComponentState,
+      data: this.view.data,
+      appState: this.session.appState,
+      appData: {},
+      component: this.view.component,
+    };
+    const source = (rest['source'] as Json) ?? {};
+    const resolve = (t: unknown): string => interpolate(str(t), ctx);
+    try {
+      const url = resolve(source['url']);
+      const method = (str(source['method']) || 'GET').toUpperCase();
+      const headers: Record<string, string> = {};
+      for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
+      const init: RequestInit = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
+      const res = await fetch(url, init);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      // resultPath: a string (possibly empty = whole response) merges into the state; null/absent
+      // (a @RestAction fire-and-toast) merges nothing.
+      const resultPath = rest['resultPath'];
+      if (typeof resultPath === 'string') {
+        const merged = getByPath(json, resultPath);
+        if (merged && typeof merged === 'object') {
+          Object.assign(this.currentComponentState, merged as Json);
+          this.publish({
+            ...this.view,
+            state: { ...this.currentComponentState },
+            loading: false,
+            version: this.view.version + 1,
+          });
+        }
+      }
+      const message = interpolate(str(rest['successMessage']), ctx);
+      if (message) this.session.notify(null, message, 'info', { duration: 3000 });
+    } catch (e) {
+      if (this.silentErrors) console.log('[Mateu] rest action failed:', errorText(e));
+      else this.session.notify(null, 'Request failed', 'error');
+    }
+  }
 
   // ── field state ─────────────────────────────────────────────────────────────────────
 
@@ -235,6 +296,7 @@ export class MateuViewController {
     const validationFlags: Record<string, boolean> = {};
     const rowsSelectedFlags: Record<string, boolean> = {};
     const bubbleFlags: Record<string, boolean> = {};
+    const restData: Record<string, Json> = {};
     for (const a of asArray(sscNode['actions'])) {
       const id = str(a['id']);
       if (!id) continue;
@@ -242,11 +304,13 @@ export class MateuViewController {
       validationFlags[id] = a['validationRequired'] === true;
       rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
       bubbleFlags[id] = a['bubble'] === true;
+      if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
     }
     this.currentComponentActions = actions;
     this.actionValidationRequired = validationFlags;
     this.actionRowsSelectedRequired = rowsSelectedFlags;
     this.actionBubble = bubbleFlags;
+    this.actionRestData = restData;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -745,6 +809,15 @@ function asArray(value: unknown): Json[] {
 
 function str(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
+}
+
+/** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
+function getByPath(obj: unknown, path: string): unknown {
+  if (!path) return obj;
+  return path.split('.').reduce<unknown>(
+    (acc, key) => (acc != null && typeof acc === 'object' ? (acc as Json)[key] : undefined),
+    obj,
+  );
 }
 
 function trimSlashes(s: string): string {
