@@ -4,7 +4,6 @@ import io.mateu.core.domain.model.outbound.modelToDtoMappers.UIMapper;
 import io.mateu.core.domain.model.reflection.ReflectionService;
 import io.mateu.core.domain.model.util.SerializerService;
 import io.mateu.uidl.interfaces.ReflectionHelper;
-import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,7 +125,6 @@ public class ${simpleClassName}Controller {
         return html;
     }
 
-    @SneakyThrows
     private String getContextData(ServerHttpRequest request) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.putAll(request.getQueryParams());
