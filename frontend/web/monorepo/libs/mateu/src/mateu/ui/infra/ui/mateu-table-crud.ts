@@ -8,7 +8,7 @@ import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
-import { fetchExternalRows } from '@infra/http/externalOptions.ts'
+import { fetchExternalRows, mapItemsToRows } from '@infra/http/externalOptions.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -307,7 +307,25 @@ export class MateuTableCrud extends LitElement {
     // ${page}/${size}, so an endpoint that supports server-side search/paging gets them too).
     private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
         const columnIds = this.cols.map(c => c.id).filter(Boolean)
-        fetchExternalRows(metadata.rowsSource!, columnIds, (t) => interpolate(t, this.state, this.data))
+        const src = metadata.rowsSource!
+        // Proxy mode: route the fetch through the Mateu server (no CORS, secrets injected
+        // server-side) via the reserved __restfetch__ action; direct otherwise. Both resolve to the
+        // same rows array, then in-memory search/paginate below.
+        const rowsPromise: Promise<Record<string, unknown>[]> = src.proxy
+            ? new Promise((resolve) => {
+                this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: '__restfetch__',
+                        parameters: { _sourceKind: 'rows', _sourceId: this.id },
+                        callback: (uiIncrement: any) => resolve(mapItemsToRows(uiIncrement?.appData?.['_restfetch'], src.itemsPath, columnIds)),
+                        callbackonly: true
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            })
+            : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
+        rowsPromise
             .then((rows) => {
                 const q = String((this.state as any)?.searchText ?? '').trim().toLowerCase()
                 const filtered = q

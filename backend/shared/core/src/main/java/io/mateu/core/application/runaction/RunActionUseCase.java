@@ -280,7 +280,7 @@ public class RunActionUseCase {
       }
       json = REST_MAPPER.readValue(response.body(), Object.class);
     } catch (Exception e) {
-      log.warn("proxy rest fetch failed: {}", e.getMessage());
+      log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
       json = java.util.Map.of();
     }
     return UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, json)).build();
