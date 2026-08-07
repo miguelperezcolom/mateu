@@ -154,6 +154,10 @@ public sealed class RestActionAttribute(string url) : Attribute
     /// <summary>A dot path to the object in the response to merge into the form state; blank merges
     /// nothing (fire-and-toast).</summary>
     public string ResultPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>Loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint, fetched
@@ -175,6 +179,10 @@ public sealed class RestDataAttribute(string url) : Attribute
     /// <summary>A dot path to the object in the response to merge into the form state; blank merges
     /// the whole response object.</summary>
     public string ResultPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>An overridden display label for a field or method.</summary>

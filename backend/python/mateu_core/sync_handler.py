@@ -5,6 +5,10 @@ from __future__ import annotations
 import hashlib
 import inspect
 import json
+import os
+import re
+import urllib.error
+import urllib.request
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -126,9 +130,11 @@ SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer"
 
 
 class SyncHandler:
-    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None):
+    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None, secrets_provider=None):
         self.registry = registry
         self.mapper = ReflectionMapper(translator, identity_provider)
+        #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
+        self._secrets = secrets_provider
         self.yaml_specs = YamlSpecLoader()
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
@@ -149,6 +155,13 @@ class SyncHandler:
         # Java's __preview__ reserved action / YamlUidlLoader.parseText).
         if rq.action_id == "__preview__" and rq.parameters.get("_yaml"):
             return self._preview_response(rq.parameters["_yaml"], rq)
+
+        # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
+        # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
+        # inject ${secret.X} and fetch server-side, returning the raw JSON on app_data._restfetch
+        # (mirrors Java's __restfetch__ reserved action).
+        if rq.action_id == "__restfetch__":
+            return self._rest_fetch_response(rq)
 
         # 1. App shell at the root route.
         if not rq.action_id:
@@ -1440,6 +1453,65 @@ class SyncHandler:
 
         tree = build_from_yaml(yaml_text) or fluent.Text(text="Invalid YAML")
         return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
+
+    # ── Proxy-mode external fetch (__restfetch__) ───────────────────────────────
+    def _rest_fetch_response(self, rq: RunActionRq) -> UIIncrement:
+        """Resolve the DECLARED source of the routed view by _sourceKind/_sourceId, interpolate
+        ${state.x}/${secret.X}, fetch server-side and return the raw JSON on app_data._restfetch
+        (an empty object on any failure — the renderer maps it as in direct mode)."""
+        json_obj: Any = {}
+        cls = self.registry.resolve(rq.server_side_type, rq.route)
+        if cls is not None:
+            kind = rq.parameters.get("_sourceKind")
+            source_id = rq.parameters.get("_sourceId")
+            source = self.mapper.resolve_rest_source(cls, kind, source_id)
+            if source is not None:
+                json_obj = self._fetch_proxy(source, rq.component_state)
+        return UIIncrement(app_data={"_restfetch": json_obj})
+
+    def _fetch_proxy(self, source, state: dict) -> Any:
+        """Fetch a resolved source server-side (url/headers/body interpolated); an empty object on
+        any non-2xx or transport error."""
+        try:
+            url = self._interpolate(source.url, state)
+            method = (source.method or "GET").upper()
+            data = None
+            if method not in ("GET", "HEAD") and source.body:
+                data = self._interpolate(source.body, state).encode()
+            req = urllib.request.Request(url, data=data, method=method)
+            req.add_header("Accept", "application/json")
+            for name, value in (source.headers or {}).items():
+                req.add_header(name, self._interpolate(value, state))
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                if resp.status >= 400:
+                    return {}
+                return json.loads(resp.read().decode())
+        except (urllib.error.URLError, ValueError, OSError):
+            return {}
+
+    def _resolve_secret(self, key: str) -> str | None:
+        """Resolve a secret: the injected provider first, then the same-named env var."""
+        if self._secrets is not None:
+            value = self._secrets(key)
+            if value is not None:
+                return value
+        return os.environ.get(key)
+
+    def _interpolate(self, template: str | None, state: dict) -> str:
+        """Interpolate ${state.x}/${secret.X} placeholders (unknown → empty)."""
+        if not template:
+            return template or ""
+
+        def repl(m: re.Match) -> str:
+            expr = m.group(1).strip()
+            if expr.startswith("state."):
+                v = state.get(expr[6:])
+                return "" if v is None else str(v)
+            if expr.startswith("secret."):
+                return self._resolve_secret(expr[7:]) or ""
+            return ""
+
+        return re.sub(r"\$\{([^}]+)\}", repl, template)
 
     # ── ModelView contract ─────────────────────────────────────────────────────
     def _contract_response(self, cls, rq: RunActionRq) -> UIIncrement:

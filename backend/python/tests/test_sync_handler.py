@@ -1782,6 +1782,39 @@ def test_rest_data_advertises_an_onload_action_carrying_the_endpoint_descriptor(
     assert '"type": "OnLoad", "actionId": "__restdata__"' in j
 
 
+# Proxy mode: a RestOptions(proxy=True) field routes the fetch through the Mateu server (the
+# __restfetch__ action) instead of fetching directly — the CORS/auth-hardening flag.
+@ui("rest-proxy")
+@title("Rest proxy")
+class RestProxyForm:
+    via_server: Annotated[
+        str, RestOptions(url="https://api.example.com/x?t=${secret.TOKEN}", proxy=True)
+    ] = ""
+    direct: Annotated[str, RestOptions(url="https://public.example.com/x")] = ""
+
+
+@ui("rest-direct")
+@title("Rest direct")
+class RestDirectForm:
+    direct: Annotated[str, RestOptions(url="https://public.example.com/x")] = ""
+
+
+def test_proxy_flag_travels_on_the_options_source_and_the_view_advertises_restfetch():
+    j = render(handler().handle(RunActionRq(route="rest-proxy", consumed_route="rest-proxy")))
+
+    # the ${secret.X} template rides on the wire, proxy=true on the proxied field...
+    assert '"url": "https://api.example.com/x?t=${secret.TOKEN}"' in j
+    assert '"proxy": true' in j
+    assert '"proxy": false' in j  # ...and the plain field stays direct
+    # a proxy source makes the view advertise the reserved __restfetch__ action
+    assert '"id": "__restfetch__"' in j
+
+
+def test_direct_only_view_does_not_advertise_restfetch():
+    j = render(handler().handle(RunActionRq(route="rest-direct", consumed_route="rest-direct")))
+    assert "__restfetch__" not in j
+
+
 def test_lookup_search_filters_and_pages_the_suppliers_options():
     inc = handler().handle(
         RunActionRq(

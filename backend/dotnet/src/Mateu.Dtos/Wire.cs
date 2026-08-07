@@ -990,6 +990,11 @@ public record RestDataSourceDto(string Url)
     public string? ItemsPath { get; init; }
     public string? ValuePath { get; init; }
     public string? LabelPath { get; init; }
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser:
+    /// no CORS, and ${secret.X} auth is injected server-side. The renderer dispatches the reserved
+    /// __restfetch__ action instead of a direct fetch. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a

@@ -673,6 +673,11 @@ class ReflectionMapper:
                         "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
                     }
                 ]
+        # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
+        # reserved __restfetch__ action so the renderer can route the fetch through the server (which
+        # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
+        if self._has_proxy_source(cls):
+            actions = list(actions) + [Action(id="__restfetch__")]
         return ServerSideComponent(
             id=_id(),
             server_side_type=type_name(cls),
@@ -2597,6 +2602,7 @@ class ReflectionMapper:
             items_path=a.items_path,
             value_path=a.value_path,
             label_path=a.label_path,
+            proxy=a.proxy,
         )
 
     @staticmethod
@@ -2607,14 +2613,14 @@ class ReflectionMapper:
         spec = getattr(cls, "__mateu_rest_listing__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, items_path = spec
+        url, method, header_strings, body, items_path, proxy = spec
         headers: dict[str, str] = {}
         for h in header_strings:
             name, sep, value = h.partition(":")
             if sep:
                 headers[name.strip()] = value.strip()
         return RestDataSource(
-            url=url, method=method, headers=headers, body=body, items_path=items_path
+            url=url, method=method, headers=headers, body=body, items_path=items_path, proxy=proxy
         )
 
     @staticmethod
@@ -2625,14 +2631,14 @@ class ReflectionMapper:
         spec = getattr(fn, "__mateu_rest_action__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, success_message, result_path = spec
+        url, method, header_strings, body, success_message, result_path, proxy = spec
         headers: dict[str, str] = {}
         for h in header_strings:
             name, sep, value = h.partition(":")
             if sep:
                 headers[name.strip()] = value.strip()
         return RestAction(
-            source=RestDataSource(url=url, method=method, headers=headers, body=body),
+            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
             success_message=success_message or None,
             result_path=result_path or None,
         )
@@ -2645,17 +2651,64 @@ class ReflectionMapper:
         spec = getattr(cls, "__mateu_rest_data__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, result_path = spec
+        url, method, header_strings, body, result_path, proxy = spec
         headers: dict[str, str] = {}
         for h in header_strings:
             name, sep, value = h.partition(":")
             if sep:
                 headers[name.strip()] = value.strip()
         return RestAction(
-            source=RestDataSource(url=url, method=method, headers=headers, body=body),
+            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
             success_message=None,
             result_path=result_path,
         )
+
+    @staticmethod
+    def _has_proxy_source(cls) -> bool:
+        """True when the view declares at least one proxy-mode REST source (proxy=True on a field
+        ``RestOptions()``, a method ``@rest_action``, or the class ``@rest_listing``/``@rest_data``).
+        Gates advertising the ``__restfetch__`` action so only proxy views carry it."""
+        listing = getattr(cls, "__mateu_rest_listing__", None)
+        if listing is not None and listing[5]:
+            return True
+        data = getattr(cls, "__mateu_rest_data__", None)
+        if data is not None and data[5]:
+            return True
+        for f in view_fields(cls):
+            if f.has(RestOptions) and f.marker(RestOptions).proxy:
+                return True
+        for klass in cls.__mro__:
+            for m in vars(klass).values():
+                spec = getattr(m, "__mateu_rest_action__", None)
+                if spec is not None and spec[6]:
+                    return True
+        return False
+
+    def resolve_rest_source(self, cls, kind, id) -> "RestDataSource | None":
+        """Resolve the DECLARED source of a view for a proxy fetch — from the field
+        (``RestOptions``), the class (``@rest_listing``/``@rest_data``) or the method
+        (``@rest_action``), never from a client-supplied url (so the proxy can't be turned into an
+        open relay). Used by the ``__restfetch__`` reserved action."""
+        if kind == "options":
+            for f in view_fields(cls):
+                if camel_case(f.name) == id and f.has(RestOptions):
+                    return self._rest_options(f)
+            return None
+        if kind == "rows":
+            return self._rest_listing(cls)
+        if kind == "action":
+            for klass in cls.__mro__:
+                for name, m in vars(klass).items():
+                    if (name == id or camel_case(name) == id) and getattr(
+                        m, "__mateu_rest_action__", None
+                    ) is not None:
+                        r = self._rest_action(m)
+                        return r.source if r else None
+            return None
+        if kind == "data":
+            r = self._rest_data(cls)
+            return r.source if r is not None else None
+        return None
 
     def link_of(self, f, instance) -> NavLinkRecord | None:
         """The field's nav link: a :class:`LinkSupplier` on the view wins; when it returns ``None``
