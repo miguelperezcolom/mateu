@@ -105,6 +105,30 @@ public class VaultSecrets implements SecretsProvider {
 With no `SecretsProvider` registered, Mateu falls back to reading an **environment variable** of the
 same name (`${secret.COUNTRIES_TOKEN}` → `System.getenv("COUNTRIES_TOKEN")`).
 
+## Client-side auth for the direct path (`registerExternalAuthProvider`)
+
+Proxy mode keeps secrets on the **server**. If instead you keep the **direct** (client-side) fetch —
+the default — but still need to authenticate it (e.g. an OAuth token the SPA already holds), register
+a client-side auth provider. The renderer calls it right before every direct external fetch and
+merges the returned headers, so the token is added **at fetch time on the client** and never travels
+in the annotation or the Mateu wire:
+
+```ts
+// web (import from the `mateu` package, alongside registerNeutralNotifier)
+import { registerExternalAuthProvider } from 'mateu'
+
+registerExternalAuthProvider(({ url }) =>
+  url.startsWith('https://api.example.com')
+    ? { Authorization: `Bearer ${tokenStore.current()}` }
+    : {})
+```
+
+The provider may be async (e.g. refresh the token first), its headers win over any statically
+declared header of the same name, and a throwing provider is swallowed (it never breaks the fetch).
+It is **ignored on the proxy path** (there, secrets are injected server-side). The native renderers
+expose the same hook: React Native `registerExternalAuthProvider` (from `src/core/restFetch`) and the
+IntelliJ plugin `RestFetch.externalAuthProvider = { url, method -> … }`.
+
 ## Other backends
 
 Mateu.NET and the Python backend emit the same `optionsSource` descriptor, so any renderer fetches

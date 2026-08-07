@@ -1,5 +1,6 @@
 import { evaluateExpression, interpolate } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
+import { externalAuthHeaders } from './restFetch';
 import { announce } from '../a11y/a11y';
 
 type Json = Record<string, any>;
@@ -245,6 +246,8 @@ export class MateuViewController {
         const method = (str(source['method']) || 'GET').toUpperCase();
         const headers: Record<string, string> = {};
         for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
+        // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
+        Object.assign(headers, await externalAuthHeaders({ url, method }));
         const init: RequestInit = { method, headers };
         if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
         const res = await fetch(url, init);

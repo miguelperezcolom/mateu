@@ -519,6 +519,8 @@ class AppContext(val session: AppSession) {
                     val body = source.get("body")?.asText("").orEmpty().let {
                         if (it.isBlank()) null else Expressions.interpolate(it, ctx)
                     }
+                    // A registered client-side auth provider supplies dynamic headers (merged last).
+                    headers.putAll(io.mateu.ijp.ui.RestFetch.authHeaders(url, method))
                     apiClient.fetchExternal(url, method, headers, body)
                 }
             },
