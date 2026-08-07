@@ -165,6 +165,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         stereotype in setOf("markdown", "html", "richText") && !enabled -> richTextField(value, stereotype)
         stereotype == "textarea" || (stereotype in setOf("markdown", "html", "richText") && enabled) ->
             textArea(ctx, fieldId, value, enabled)
+        metadata.path("optionsSource").isObject -> restOptionsCombo(ctx, fieldId, metadata.path("optionsSource"), value, enabled)
         options.isNotEmpty() -> optionsCombo(ctx, fieldId, options, value, enabled)
         dataType == "reference" -> referenceCombo(ctx, fieldId, data, enabled)
         stereotype == "password" -> passwordField(ctx, fieldId, value, enabled)
@@ -691,6 +692,44 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
     combo.addActionListener {
         val i = combo.selectedIndex
         if (i in values.indices) ctx.putState(fieldId, values[i])
+    }
+    return combo
+}
+
+/** @RestOptions: a combo whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
+ *  the background executor; the model + selection are set on the EDT once the fetch resolves. */
+private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode, value: String, enabled: Boolean): JComponent {
+    val combo = ComboBox(DefaultComboBoxModel(arrayOf<String>()))
+    combo.isEnabled = enabled
+    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+    ctx.session.executor.submit {
+        val opts = try {
+            val json = RestFetch.fetch(ctx.apiClient, source, exprCtx)
+            val arr = RestFetch.valueAtPath(json, source.text("itemsPath"))
+            val valuePath = source.text("valuePath").ifBlank { "value" }
+            val labelPath = source.text("labelPath").ifBlank { "label" }
+            val list = ArrayList<Pair<String, String>>()
+            if (arr != null && arr.isArray) for (item in arr) {
+                val v = RestFetch.valueAtPath(item, valuePath)?.asText() ?: item.asText("")
+                val l = RestFetch.valueAtPath(item, labelPath)?.asText() ?: v
+                list.add(v to l)
+            }
+            list
+        } catch (t: Throwable) {
+            println("[Mateu] external options fetch failed: ${t.message}")
+            emptyList()
+        }
+        javax.swing.SwingUtilities.invokeLater {
+            val values = opts.map { it.first }
+            combo.model = DefaultComboBoxModel(opts.map { it.second }.toTypedArray())
+            val idx = values.indexOf(value)
+            combo.selectedIndex = if (idx >= 0) idx else -1
+            // attach AFTER the programmatic selection so it doesn't spuriously write state
+            combo.addActionListener {
+                val i = combo.selectedIndex
+                if (i in values.indices) ctx.putState(fieldId, values[i])
+            }
+        }
     }
     return combo
 }
