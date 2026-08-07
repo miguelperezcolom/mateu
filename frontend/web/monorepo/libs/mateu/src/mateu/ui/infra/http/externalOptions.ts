@@ -1,4 +1,5 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
+import { externalAuthHeaders } from './externalAuth.ts'
 
 /**
  * Client-side consumption of an arbitrary (non-Mateu) REST endpoint for a field's select options —
@@ -76,6 +77,9 @@ export async function fetchExternalJson(
     const method = (source.method || 'GET').toUpperCase()
     const headers: Record<string, string> = {}
     for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
+    // A registered client-side auth provider supplies dynamic headers (e.g. a bearer token from a
+    // secure store) for this DIRECT fetch — merged last so it wins over any declared header.
+    Object.assign(headers, await externalAuthHeaders({ url, method }))
     const init: RequestInit = { method, headers }
     if (method !== 'GET' && method !== 'HEAD' && source.body) init.body = resolve(source.body) ?? source.body
     const res = await fetchImpl(url, init)

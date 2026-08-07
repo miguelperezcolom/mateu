@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson } from './externalOptions'
+import { registerExternalAuthProvider } from './externalAuth'
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 
 describe('getByPath', () => {
@@ -90,6 +91,44 @@ describe('fetchExternalJson', () => {
         expect((seen.init?.headers as Record<string, string>).Authorization).toBe('Bearer abc')
         expect(seen.init?.body).toBe('{"z":"28001"}')
         expect(getByPath(json, 'address.city')).toBe('Madrid')
+    })
+})
+
+describe('client-side auth provider (direct path)', () => {
+    afterEach(() => registerExternalAuthProvider(undefined))
+
+    const capture = (): [typeof fetch, () => Record<string, string>] => {
+        let headers: Record<string, string> = {}
+        const fetchImpl = (async (_u: string, init: RequestInit) => {
+            headers = init.headers as Record<string, string>
+            return { ok: true, status: 200, json: async () => ({}) }
+        }) as unknown as typeof fetch
+        return [fetchImpl, () => headers]
+    }
+
+    it('merges provider headers into a direct fetch, winning over a declared header', async () => {
+        registerExternalAuthProvider(({ url, method }) => ({ Authorization: `Bearer secret-${method}`, 'X-Url': url }))
+        const [fetchImpl, headers] = capture()
+        await fetchExternalJson(
+            { url: 'https://api/x', headers: { Authorization: 'Bearer declared' } } as RestDataSource,
+            (t) => t,
+            fetchImpl,
+        )
+        expect(headers().Authorization).toBe('Bearer secret-GET') // provider wins over the declared header
+        expect(headers()['X-Url']).toBe('https://api/x')
+    })
+
+    it('adds nothing when no provider is registered', async () => {
+        const [fetchImpl, headers] = capture()
+        await fetchExternalJson({ url: 'https://api/x' } as RestDataSource, (t) => t, fetchImpl)
+        expect(headers().Authorization).toBeUndefined()
+    })
+
+    it('a throwing provider does not break the fetch', async () => {
+        registerExternalAuthProvider(() => { throw new Error('token store down') })
+        const [fetchImpl, headers] = capture()
+        await fetchExternalJson({ url: 'https://api/x' } as RestDataSource, (t) => t, fetchImpl)
+        expect(headers().Authorization).toBeUndefined()
     })
 })
 
