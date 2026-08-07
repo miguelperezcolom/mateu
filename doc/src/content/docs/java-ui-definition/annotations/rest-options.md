@@ -123,3 +123,5 @@ country: Annotated[str, RestOptions(
     url="https://api.example.com/countries",
     items_path="data.countries", value_path="code", label_path="name.common")] = ""
 ```
+
+**Proxy mode ports.** `proxy` is available on all four annotations in every backend — `[RestOptions(Proxy = true)]` / `RestOptions(proxy=True)`, likewise for listing/action/data. The server resolves the declared source, injects `${secret.X}` and fetches server-side (`__restfetch__`). Supply secrets in .NET via the `SyncHandler`'s `secrets` delegate (`Func<string, string?>`) and in Python via the `SyncHandler(secrets_provider=…)` argument; both fall back to a same-named environment variable when no provider is registered.

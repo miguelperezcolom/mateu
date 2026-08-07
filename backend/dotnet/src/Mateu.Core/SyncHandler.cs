@@ -2,14 +2,18 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Mateu.Dtos;
 using Mateu.Uidl;
 
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null)
+public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
+    Func<string, string?>? secrets = null)
 {
+    private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+
     private readonly ReflectionMapper _mapper = new(translator, identity);
     private readonly YamlSpecLoader _yaml = new();
 
@@ -36,6 +40,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                               ?? new Text("Invalid YAML");
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
+
+        // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
+        // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
+        // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
+        // (mirrors Java's __restfetch__ reserved action).
+        if (rq.ActionId == "__restfetch__")
+            return RestFetchResponse(rq);
 
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
@@ -1178,6 +1189,65 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static object? GetState(Dictionary<string, object?>? state, string key)
         => state is not null && state.TryGetValue(key, out var v) ? v : null;
+
+    /// <summary>The __restfetch__ reserved action: resolve the DECLARED source of the routed view by
+    /// _sourceKind/_sourceId, interpolate ${state.x}/${secret.X}, fetch server-side and return the
+    /// raw JSON on appData._restfetch (an empty object on any failure — the renderer maps it as in
+    /// direct mode).</summary>
+    private UIIncrementDto RestFetchResponse(RunActionRqDto rq)
+    {
+        object? json = new Dictionary<string, object?>();
+        if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
+        {
+            var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
+            var id = StateString(GetState(rq.Parameters, "_sourceId"));
+            if (ReflectionMapper.ResolveRestSource(type, kind, id) is { } source)
+                json = FetchProxy(source, rq.ComponentState) ?? new Dictionary<string, object?>();
+        }
+        return new UIIncrementDto([], [], [], [], false,
+            new Dictionary<string, object?> { ["_restfetch"] = json }, null);
+    }
+
+    /// <summary>Fetch a resolved source server-side (url/headers/body interpolated); null on any
+    /// non-2xx or transport error.</summary>
+    private object? FetchProxy(RestDataSourceDto source, Dictionary<string, object?> state)
+    {
+        try
+        {
+            var url = Interpolate(source.Url, state, ResolveSecret);
+            var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
+            using var req = new HttpRequestMessage(new HttpMethod(method), url);
+            if (source.Headers is not null)
+                foreach (var (k, v) in source.Headers)
+                    req.Headers.TryAddWithoutValidation(k, Interpolate(v, state, ResolveSecret));
+            if (method is not "GET" and not "HEAD" && !string.IsNullOrWhiteSpace(source.Body))
+                req.Content = new StringContent(Interpolate(source.Body, state, ResolveSecret) ?? "");
+            using var resp = RestHttp.Send(req);
+            if ((int)resp.StatusCode >= 400) return null;
+            using var reader = new StreamReader(resp.Content.ReadAsStream());
+            return JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd());
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Resolve a secret: the injected provider first, then the same-named env var.</summary>
+    private string? ResolveSecret(string key) => secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(key);
+
+    /// <summary>Interpolate ${state.x}/${secret.X} placeholders (unknown → empty).</summary>
+    private static string Interpolate(string? template, Dictionary<string, object?> state, Func<string, string?> secrets)
+    {
+        if (string.IsNullOrEmpty(template)) return template ?? "";
+        return Regex.Replace(template, @"\$\{([^}]+)\}", m =>
+        {
+            var expr = m.Groups[1].Value.Trim();
+            if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
+            if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
+            return "";
+        });
+    }
 
     /// <summary>The id inside the calendar's <c>_clickedEvent</c> action parameter — a map
     /// {id, title, date, color} the frontend sends with every "openCalendarEvent" dispatch

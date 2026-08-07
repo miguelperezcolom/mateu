@@ -67,6 +67,10 @@ public sealed class RestOptionsAttribute(string url) : Attribute
     public string ItemsPath { get; init; } = "";
     public string ValuePath { get; init; } = "value";
     public string LabelPath { get; init; } = "label";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>Fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
@@ -87,6 +91,10 @@ public sealed class RestListingAttribute(string url) : Attribute
 
     /// <summary>A dot path to the array inside the response; blank means the root IS the array.</summary>
     public string ItemsPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking

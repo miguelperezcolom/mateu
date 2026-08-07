@@ -71,6 +71,26 @@ public class RestDataForm
     public string? Email { get; set; }
 }
 
+// Proxy mode: a [RestOptions(Proxy=true)] field routes the fetch through the Mateu server (the
+// __restfetch__ action) instead of fetching the endpoint directly — the CORS/auth-hardening flag.
+[UI("rest-proxy"), Title("Rest proxy")]
+public class RestProxyForm
+{
+    [RestOptions("https://api.example.com/x?t=${secret.TOKEN}", Proxy = true)]
+    public string ViaServer { get; set; } = "";
+
+    [RestOptions("https://public.example.com/x")]
+    public string Direct { get; set; } = "";
+}
+
+// A view with only a plain [RestOptions] (no proxy) — must NOT advertise __restfetch__.
+[UI("rest-direct"), Title("Rest direct")]
+public class RestDirectForm
+{
+    [RestOptions("https://public.example.com/x")]
+    public string Direct { get; set; } = "";
+}
+
 // A fully-static screen: the client caches its whole response and skips the round-trip on return.
 [UI("static-view"), Title("About"), StaticView]
 public class StaticViewForm
@@ -1876,6 +1896,26 @@ public class SyncHandlerTests
         Assert.Contains("\"url\":\"https://api.example.com/me?token=${state.token}\"", json);
         // an OnLoad trigger fires it on entry
         Assert.Contains("\"type\":\"OnLoad\",\"actionId\":\"__restdata__\"", json);
+    }
+
+    [Fact]
+    public void Proxy_flag_travels_on_the_options_source_and_the_view_advertises_restfetch()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "rest-proxy", ConsumedRoute = "rest-proxy" }));
+
+        // proxy=true on the proxied field's source; the ${secret.X} template rides on the wire...
+        Assert.Contains("\"url\":\"https://api.example.com/x?t=${secret.TOKEN}\",\"method\":\"GET\"", json);
+        Assert.Contains("\"proxy\":true", json);
+        Assert.Contains("\"proxy\":false", json); // ...and the plain field stays direct
+        // a proxy source makes the view advertise the reserved __restfetch__ action
+        Assert.Contains("\"id\":\"__restfetch__\"", json);
+    }
+
+    [Fact]
+    public void Direct_only_view_does_not_advertise_restfetch()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "rest-direct", ConsumedRoute = "rest-direct" }));
+        Assert.DoesNotContain("__restfetch__", json);
     }
 
     [Fact]

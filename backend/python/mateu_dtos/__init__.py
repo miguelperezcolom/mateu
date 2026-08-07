@@ -214,6 +214,8 @@ class RestDataSource(Wire):
     items_path: str | None = None
     value_path: str | None = None
     label_path: str | None = None
+    #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side); default False
+    proxy: bool = False
 
 
 class NavLinkRecord(Wire):

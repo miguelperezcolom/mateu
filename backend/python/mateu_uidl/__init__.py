@@ -191,6 +191,7 @@ class RestOptions:
     items_path: str = ""  #: dot path to the response array; blank means the root IS the array
     value_path: str = "value"
     label_path: str = "label"
+    proxy: bool = False  #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side)
 
 
 @dataclass(frozen=True)
@@ -752,6 +753,7 @@ def rest_listing(
     headers: tuple[str, ...] = (),
     body: str = "",
     items_path: str = "",
+    proxy: bool = False,
 ) -> Callable[[type], type]:
     """Class-level: fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
     CLIENT-SIDE. The renderer calls ``url`` directly, navigates ``items_path`` to the array in the
@@ -761,7 +763,7 @@ def rest_listing(
     (including ``${searchText}``/``${page}``/``${size}``). Python analogue of Java's @RestListing."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path)
+        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path, proxy)
         return cls
 
     return deco
@@ -774,6 +776,7 @@ def rest_action(
     body: str = "",
     success_message: str = "",
     result_path: str = "",
+    proxy: bool = False,
 ) -> Callable[[Callable], Callable]:
     """Method-level: makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead
     of dispatching to the Mateu server. On click the renderer calls ``url`` directly with the
@@ -784,7 +787,7 @@ def rest_action(
     @RestAction."""
 
     def deco(fn: Callable) -> Callable:
-        fn.__mateu_rest_action__ = (url, method, headers, body, success_message, result_path)
+        fn.__mateu_rest_action__ = (url, method, headers, body, success_message, result_path, proxy)
         return fn
 
     return deco
@@ -796,6 +799,7 @@ def rest_data(
     headers: tuple[str, ...] = (),
     body: str = "",
     result_path: str = "",
+    proxy: bool = False,
 ) -> Callable[[type], type]:
     """Class-level: loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint,
     fetched CLIENT-SIDE on entry. When the view mounts the renderer calls ``url`` directly and
@@ -805,7 +809,7 @@ def rest_data(
     analogue of Java's @RestData."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_data__ = (url, method, headers, body, result_path)
+        cls.__mateu_rest_data__ = (url, method, headers, body, result_path, proxy)
         return cls
 
     return deco

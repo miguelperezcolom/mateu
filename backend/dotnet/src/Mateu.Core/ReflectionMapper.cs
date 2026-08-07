@@ -347,6 +347,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });
             triggers = [.. triggers, new TriggerDto("OnLoad", "__restdata__")];
         }
+        // Proxy mode ([RestOptions]/[RestListing]/[RestAction]/[RestData] with Proxy=true): advertise
+        // the reserved __restfetch__ action so the renderer can route the fetch through the server
+        // (which resolves the DECLARED source, injects ${secret.X} and fetches server-side).
+        if (HasProxySource(type))
+            actions.Add(new ActionDto("__restfetch__"));
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,
             [page], initialData, actions, triggers, null, null, null)
@@ -1444,6 +1449,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             ItemsPath = a.ItemsPath,
             ValuePath = a.ValuePath,
             LabelPath = a.LabelPath,
+            Proxy = a.Proxy,
         };
     }
 
@@ -1459,6 +1465,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Headers = ParseHeaders(a.Headers),
             Body = a.Body,
             ItemsPath = a.ItemsPath,
+            Proxy = a.Proxy,
         };
     }
 
@@ -1472,6 +1479,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Method = a.Method,
             Headers = ParseHeaders(a.Headers),
             Body = a.Body,
+            Proxy = a.Proxy,
         };
         return new RestActionDto(source,
             a.SuccessMessage.Length > 0 ? a.SuccessMessage : null,
@@ -1489,9 +1497,36 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Method = a.Method,
             Headers = ParseHeaders(a.Headers),
             Body = a.Body,
+            Proxy = a.Proxy,
         };
         return new RestActionDto(source, null, a.ResultPath);
     }
+
+    /// <summary>True when the view declares at least one proxy-mode REST source (Proxy=true on a
+    /// property [RestOptions], a method [RestAction], or the class [RestListing]/[RestData]). Gates
+    /// advertising the __restfetch__ action so only proxy views carry it.</summary>
+    internal static bool HasProxySource(Type type)
+    {
+        if (type.Find<RestListingAttribute>() is { Proxy: true }) return true;
+        if (type.Find<RestDataAttribute>() is { Proxy: true }) return true;
+        if (type.GetProperties().Any(p => p.Find<RestOptionsAttribute>() is { Proxy: true })) return true;
+        return type.GetMethods().Any(m => m.Find<RestActionAttribute>() is { Proxy: true });
+    }
+
+    /// <summary>Resolves the DECLARED source of a view for a proxy fetch — from the property
+    /// ([RestOptions]), the class ([RestListing]/[RestData]) or the method ([RestAction]), never
+    /// from a client-supplied url (so the proxy can't be turned into an open relay). Used by the
+    /// __restfetch__ reserved action.</summary>
+    internal static RestDataSourceDto? ResolveRestSource(Type type, string? kind, string? id) => kind switch
+    {
+        "options" => type.GetProperties().FirstOrDefault(p => p.Name == id || Naming.CamelCase(p.Name) == id) is { } p
+            ? RestOptionsOf(p) : null,
+        "rows" => RestListingOf(type),
+        "action" => type.GetMethods().FirstOrDefault(m => m.Name == id || Naming.CamelCase(m.Name) == id) is { } m
+            ? RestActionOf(m)?.Source : null,
+        "data" => RestDataOf(type)?.Source,
+        _ => null,
+    };
 
     /// <summary>Parses "Name: Value" header strings into a map.</summary>
     private static Dictionary<string, string> ParseHeaders(string[] headers)
