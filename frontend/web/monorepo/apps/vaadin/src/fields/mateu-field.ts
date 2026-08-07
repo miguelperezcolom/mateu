@@ -7,7 +7,7 @@ import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
-import { fetchExternalOptions } from '@mateu/ui/infra/http/externalOptions'
+import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -973,12 +973,34 @@ export class MateuField extends LitElement {
                     const signature = interpolate(src.url, this.state, this.data) ?? src.url
                     if (this.data[this.id]?.sourceSignature !== signature) {
                         this.data[this.id] = { content: this.data[this.id]?.content ?? [], sourceSignature: signature }
-                        fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
-                            .then((opts) => {
-                                this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
-                                this.requestUpdate()
-                            })
-                            .catch((e) => console.warn('mateu: external options fetch failed', e))
+                        if (src.proxy) {
+                            // Proxy mode: route the fetch through the Mateu server (no CORS, secrets
+                            // injected server-side). Dispatch the reserved __restfetch__ action; the
+                            // app fills route/serverSideType/componentState and the server resolves the
+                            // DECLARED source, so nothing but _sourceKind/_sourceId leaves the browser.
+                            this.dispatchEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: '__restfetch__',
+                                    parameters: { _sourceKind: 'options', _sourceId: this.field.fieldId },
+                                    callback: (uiIncrement: UIIncrement) => {
+                                        const json = uiIncrement?.appData?.['_restfetch']
+                                        const opts = mapItemsToOptions(json, src.itemsPath, src.valuePath, src.labelPath)
+                                        this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
+                                        this.requestUpdate()
+                                    },
+                                    callbackonly: true
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        } else {
+                            fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
+                                .then((opts) => {
+                                    this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
+                                    this.requestUpdate()
+                                })
+                                .catch((e) => console.warn('mateu: external options fetch failed', e))
+                        }
                     }
                     let realValue = value
                     if (value && value.value) {

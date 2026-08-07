@@ -103,6 +103,13 @@ public class ActionMapper {
               .build());
     }
 
+    // Proxy mode (@RestOptions/@RestListing/@RestAction/@RestData with proxy=true): advertise the
+    // reserved __restfetch__ action so the renderer can route the fetch through the Mateu server
+    // (the server resolves the declared source, injects ${secret.X} and fetches server-side).
+    if (RestDataSupport.hasProxySource(serverSideObject)) {
+      actions.add(Action.builder().id(RestDataSupport.RESTFETCH_ACTION_ID).build());
+    }
+
     return actions;
   }
 

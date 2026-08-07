@@ -12,4 +12,8 @@ export default interface RestDataSource {
     itemsPath?: string | undefined
     valuePath?: string | undefined
     labelPath?: string | undefined
+    /** Route the fetch through the Mateu server (no CORS, secrets injected server-side) instead of
+     * fetching directly from the browser. The renderer dispatches the reserved `__restfetch__`
+     * action instead of a direct `fetch`. */
+    proxy?: boolean | undefined
 }
