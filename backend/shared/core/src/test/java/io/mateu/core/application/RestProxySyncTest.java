@@ -28,11 +28,19 @@ class RestProxySyncTest {
     String direct;
   }
 
+  @SuppressWarnings("unused")
+  @UI("/restdirect")
+  @Title("Rest direct")
+  public static class DirectForm {
+    @RestOptions(url = "https://public.example.com/x")
+    String direct;
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ProxyForm.class);
+    mateu = TestMateu.withUis(ProxyForm.class, DirectForm.class);
   }
 
   @AfterAll
@@ -57,5 +65,22 @@ class RestProxySyncTest {
     var direct =
         fields.stream().filter(f -> "direct".equals(f.fieldId())).findFirst().orElseThrow();
     assertThat(direct.optionsSource().proxy()).isFalse();
+  }
+
+  @Test
+  void proxyViewAdvertisesTheRestfetchAction() {
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/restproxy").fragments().get(0).component();
+    assertThat(component.actions().stream().anyMatch(a -> "__restfetch__".equals(a.id()))).isTrue();
+  }
+
+  @Test
+  void directOnlyViewDoesNotAdvertiseTheRestfetchAction() {
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/restdirect").fragments().get(0).component();
+    assertThat(component.actions().stream().anyMatch(a -> "__restfetch__".equals(a.id())))
+        .isFalse();
   }
 }

@@ -1,6 +1,9 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.RestData;
+import io.mateu.uidl.annotations.RestListing;
+import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.RestAction;
 import io.mateu.uidl.data.RestDataSource;
 import java.util.LinkedHashMap;
@@ -15,7 +18,48 @@ final class RestDataSupport {
 
   static final String RESTDATA_ACTION_ID = "__restdata__";
 
+  /**
+   * The reserved action a proxy-mode source dispatches: the renderer POSTs it with {@code
+   * _sourceKind}/{@code _sourceId} + the component state, and {@link
+   * io.mateu.core.application.runaction.RunActionUseCase} resolves the DECLARED source, injects
+   * {@code ${secret.X}} and fetches server-side. Value must match {@code RunActionUseCase}'s.
+   */
+  static final String RESTFETCH_ACTION_ID = "__restfetch__";
+
   private RestDataSupport() {}
+
+  /**
+   * True when the view declares at least one proxy-mode REST source ({@code proxy = true} on a
+   * field {@code @RestOptions}, a method {@code @RestAction}, or the class
+   * {@code @RestListing}/{@code @RestData}). Gates advertising the {@code __restfetch__} action so
+   * only proxy views carry it.
+   */
+  static boolean hasProxySource(Object instance) {
+    var cls = instance.getClass();
+    var listing = MetaAnnotations.find(cls, RestListing.class);
+    if (listing != null && listing.proxy()) {
+      return true;
+    }
+    var data = MetaAnnotations.find(cls, RestData.class);
+    if (data != null && data.proxy()) {
+      return true;
+    }
+    for (var c = cls; c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var f : c.getDeclaredFields()) {
+        var a = MetaAnnotations.find(f, RestOptions.class);
+        if (a != null && a.proxy()) {
+          return true;
+        }
+      }
+    }
+    for (var m : cls.getMethods()) {
+      var a = MetaAnnotations.find(m, io.mateu.uidl.annotations.RestAction.class);
+      if (a != null && a.proxy()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * The client-side REST descriptor for a {@code @RestData} screen (silent load, so no message).
