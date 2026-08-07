@@ -9,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { interpolate } from '../core/expressions';
+import { fetchExternalJson, mapItemsToRows } from '../core/restFetch';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
 import { theme } from '../theme';
@@ -138,6 +140,31 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     controller.registerDataHandler('crud', onData);
   }, [component, controller]);
 
+  // @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the server
+  // `search` action. Declarative listings get no server OnLoad trigger, so self-fetch on mount (and
+  // when the interpolated url changes); free-text search filters the fetched rows in memory.
+  const rowsSource = metadata['rowsSource'] as
+    | { url: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string }
+    | undefined;
+  const columnIds = columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId).filter(Boolean) as string[];
+  const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
+  const rowsUrl = rowsSource ? restResolve(rowsSource.url) : '';
+  const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
+  useEffect(() => {
+    if (!rowsSource) return;
+    let cancelled = false;
+    fetchExternalJson(rowsSource, restResolve)
+      .then((json) => {
+        if (cancelled) return;
+        const rows = mapItemsToRows(json, rowsSource.itemsPath, columnIds) as Record<string, unknown>[];
+        setRestRows(rows);
+        setLiveData({ page: { content: rows, totalElements: rows.length, pageSize: rows.length, pageNumber: 0 } });
+      })
+      .catch((e) => console.warn('mateu: external rows fetch failed', e));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowsUrl]);
+
   const listing = extractListing(liveData);
   const rawRows = extractRows(extractPage(liveData));
   const d = extractPage(liveData);
@@ -161,6 +188,15 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   ).length;
 
   const doSearch = (values?: Record<string, unknown>) => {
+    // @RestListing: filter the client-fetched rows in memory — no server round-trip.
+    if (rowsSource) {
+      const q = searchText.trim().toLowerCase();
+      const filtered = q
+        ? restRows.filter((r) => columnIds.some((id) => String(r[id] ?? '').toLowerCase().includes(q)))
+        : restRows;
+      setLiveData({ page: { content: filtered, totalElements: filtered.length, pageSize: filtered.length, pageNumber: 0 } });
+      return;
+    }
     controller.seedSearchState();
     controller.currentComponentState['searchText'] = searchText;
     controller.currentComponentState['page'] = 0;

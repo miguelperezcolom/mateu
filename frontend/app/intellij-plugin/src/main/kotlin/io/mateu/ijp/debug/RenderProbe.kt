@@ -102,6 +102,8 @@ private fun dump(c: JComponent, depth: Int) {
             (0 until c.rowCount).joinToString(" | ") { r ->
                 (0 until c.columnCount).joinToString(",") { col -> "${c.getValueAt(r, col)}" }
             }
+        is javax.swing.JComboBox<*> -> " combo items=${c.itemCount} selected='${c.selectedItem}'" +
+            (0 until c.itemCount).joinToString(",", " [", "]") { "${c.getItemAt(it)}" }
         is javax.swing.JLabel -> " text='${c.text}'"
         is javax.swing.AbstractButton -> " text='${c.text}'"
         is javax.swing.text.JTextComponent -> " text='${c.text.take(40)}'"
