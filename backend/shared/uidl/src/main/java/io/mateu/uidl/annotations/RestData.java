@@ -55,4 +55,10 @@ public @interface RestData {
    * whole response object.
    */
   String resultPath() default "";
+
+  /**
+   * Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser: no CORS, and
+   * {@code ${secret.X}} auth is injected server-side from a {@code SecretsProvider}. Default false.
+   */
+  boolean proxy() default false;
 }

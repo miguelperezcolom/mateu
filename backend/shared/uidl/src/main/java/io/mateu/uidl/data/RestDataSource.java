@@ -19,4 +19,9 @@ public record RestDataSource(
     String body,
     String itemsPath,
     String valuePath,
-    String labelPath) {}
+    String labelPath,
+    /**
+     * When true the fetch goes through the Mateu server (proxy mode) — it resolves CORS and keeps
+     * auth secrets server-side; false (default) = the renderer fetches the endpoint directly.
+     */
+    boolean proxy) {}

@@ -173,6 +173,7 @@ final class FieldActionCollector {
             .method(a.method())
             .headers(headers)
             .body(a.body())
+            .proxy(a.proxy())
             .build();
     return new io.mateu.uidl.data.RestAction(
         source,

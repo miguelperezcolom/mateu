@@ -86,7 +86,8 @@ final class ActionDtoMapper {
                 s.body(),
                 s.itemsPath(),
                 s.valuePath(),
-                s.labelPath());
+                s.labelPath(),
+                s.proxy());
     return new io.mateu.dtos.RestActionDto(
         sourceDto, restAction.successMessage(), restAction.resultPath());
   }

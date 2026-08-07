@@ -34,6 +34,7 @@ final class RestDataSupport {
             .method(a.method())
             .headers(headers)
             .body(a.body())
+            .proxy(a.proxy())
             .build();
     // resultPath stays as declared: blank means "merge the whole response object" (getByPath with
     // an empty path is identity on the frontend), a path narrows to that sub-object.

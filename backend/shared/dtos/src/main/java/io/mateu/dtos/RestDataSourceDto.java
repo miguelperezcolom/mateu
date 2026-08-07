@@ -27,4 +27,5 @@ public record RestDataSourceDto(
     String body,
     String itemsPath,
     String valuePath,
-    String labelPath) {}
+    String labelPath,
+    boolean proxy) {}
