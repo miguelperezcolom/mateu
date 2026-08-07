@@ -68,6 +68,8 @@ interface FieldMeta {
     itemsPath?: string;
     valuePath?: string;
     labelPath?: string;
+    /** Fetch through the Mateu server (no CORS, secrets server-side) instead of directly. */
+    proxy?: boolean;
   };
   /** Grid fields: ClientSide GridColumn nodes. */
   columns?: { metadata?: GridColumnMeta }[];
@@ -326,6 +328,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       return (
         <RestOptionsField
           source={metadata.optionsSource}
+          fieldId={fieldId}
           state={state}
           appState={controller.session.appState}
           value={stringValue}
@@ -619,20 +622,27 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
 
 // @RestOptions: a select whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
 // mount (and refetched when the interpolated url changes — a state-dependent source).
-function RestOptionsField({ source, state, appState, value, editable, onChange }: {
+function RestOptionsField({ source, fieldId, state, appState, value, editable, onChange }: {
   source: NonNullable<FieldMeta['optionsSource']>;
+  fieldId: string;
   state: Record<string, unknown>;
   appState: Record<string, unknown>;
   value: string;
   editable: boolean;
   onChange: (v: string) => void;
 }) {
+  const controller = useViewController();
   const [options, setOptions] = useState<FetchedOption[]>([]);
   const resolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState });
   const url = resolve(source.url);
   useEffect(() => {
     let cancelled = false;
-    fetchExternalJson(source, resolve)
+    // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
+    // direct fetch otherwise. Both resolve to the same JSON → mapItemsToOptions.
+    const jsonPromise = source.proxy
+      ? controller.fetchViaProxy('options', fieldId)
+      : fetchExternalJson(source, resolve);
+    jsonPromise
       .then((json) => { if (!cancelled) setOptions(mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)); })
       .catch((e) => console.warn('mateu: external options fetch failed', e));
     return () => { cancelled = true; };

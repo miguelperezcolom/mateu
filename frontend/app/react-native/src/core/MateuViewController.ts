@@ -191,7 +191,7 @@ export class MateuViewController {
     // @RestAction button, and on mount for @RestData via its OnLoad trigger's __restdata__ action).
     const rest = this.actionRestData[actionId];
     if (rest) {
-      await this.handleRestAction(rest);
+      await this.handleRestAction(rest, actionId);
       return;
     }
 
@@ -222,7 +222,7 @@ export class MateuViewController {
    * (so bound fields refresh) and show a success toast; an error shows a failure toast. No server
    * round-trip — the RN analogue of the web's mateu-component.handleRestAction.
    */
-  private async handleRestAction(rest: Json): Promise<void> {
+  private async handleRestAction(rest: Json, actionId?: string): Promise<void> {
     const ctx = {
       state: this.currentComponentState,
       data: this.view.data,
@@ -233,15 +233,24 @@ export class MateuViewController {
     const source = (rest['source'] as Json) ?? {};
     const resolve = (t: unknown): string => interpolate(str(t), ctx);
     try {
-      const url = resolve(source['url']);
-      const method = (str(source['method']) || 'GET').toUpperCase();
-      const headers: Record<string, string> = {};
-      for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
-      const init: RequestInit = { method, headers };
-      if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
-      const res = await fetch(url, init);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      let json: unknown;
+      if (source['proxy']) {
+        // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via
+        // the reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
+        // @RestData source; any other id is a @RestAction method — hence the source kind.
+        const kind = actionId === '__restdata__' ? 'data' : 'action';
+        json = await this.fetchViaProxy(kind, actionId ?? '');
+      } else {
+        const url = resolve(source['url']);
+        const method = (str(source['method']) || 'GET').toUpperCase();
+        const headers: Record<string, string> = {};
+        for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
+        const init: RequestInit = { method, headers };
+        if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
+        const res = await fetch(url, init);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        json = await res.json();
+      }
       // resultPath: a string (possibly empty = whole response) merges into the state; null/absent
       // (a @RestAction fire-and-toast) merges nothing.
       const resultPath = rest['resultPath'];
@@ -262,6 +271,31 @@ export class MateuViewController {
     } catch (e) {
       if (this.silentErrors) console.log('[Mateu] rest action failed:', errorText(e));
       else this.session.notify(null, 'Request failed', 'error');
+    }
+  }
+
+  /**
+   * Proxy-mode external fetch: route a DECLARED REST source through the Mateu server via the
+   * reserved __restfetch__ action (the server resolves the source, injects ${secret.X} and fetches
+   * server-side — no CORS, secrets off the client). Returns the raw JSON the server fetched
+   * (appData._restfetch), or {} on failure. Shared by the options/rows/action/data proxy paths.
+   */
+  async fetchViaProxy(sourceKind: string, sourceId: string): Promise<unknown> {
+    try {
+      const increment = (await this.session.api.runAction({
+        route: this.currentRoute,
+        consumedRoute: this.currentConsumedRoute,
+        actionId: '__restfetch__',
+        serverSideType: this.currentServerSideType || null,
+        initiatorComponentId: this.currentComponentId,
+        componentState: this.currentComponentState,
+        appState: this.session.appState,
+        parameters: { _sourceKind: sourceKind, _sourceId: sourceId },
+      })) as Json;
+      return (increment?.['appData'] as Json)?.['_restfetch'] ?? {};
+    } catch (e) {
+      console.log('[Mateu] proxy rest fetch failed:', errorText(e));
+      return {};
     }
   }
 

@@ -346,9 +346,13 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             .filter { it.isNotBlank() }
         val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
         val mapper = ctx.session.mapper
+        val crudId = component.text("id", "crud")
         ctx.session.executor.submit {
             try {
-                val json = RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
+                // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
+                // server-side); direct fetch otherwise. Both resolve to the same JSON.
+                val json = if (rowsSource.path("proxy").asBoolean(false)) ctx.fetchViaProxy("rows", crudId)
+                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
                 val arr = RestFetch.valueAtPath(json, rowsSource.text("itemsPath"))
                 val content = mapper.createArrayNode()
                 if (arr != null && arr.isArray) for (item in arr) {
