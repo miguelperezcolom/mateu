@@ -7,6 +7,7 @@ import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
+import {awaitBundle, getBundledIncrement, hasBundle, toSyncPath} from "@infra/http/bundleStore.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -210,6 +211,31 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     options: RunActionOptions = {}): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
+        }
+        // Static-bundle mode: a route LOAD (actionId="") is answered from the pre-rendered bundle
+        // instead of the backend, so the UI runs from static assets with no server. Await the
+        // in-flight manifest first (the first load can fire before the fetch resolves; a no-op when
+        // no bundle is loading). Actions (actionId≠"") always fall through to the backend (they need
+        // server logic), and a route absent from the bundle falls through too — so a hybrid deploy
+        // (bundle + backend) still works.
+        if (actionId === '') {
+            await awaitBundle()
+            if (hasBundle()) {
+                const bundled = getBundledIncrement(toSyncPath(route))
+                if (bundled) {
+                    // The exporter had no initiatorComponentId, so the pre-rendered fragments carry
+                    // a null target. The client only applies fragments whose targetComponentId is a
+                    // live component (the top ux), so re-target the untargeted ones to this request's
+                    // initiator — exactly what the server echoes on a live load.
+                    const retargeted: UIIncrement = {
+                        ...bundled,
+                        fragments: (bundled.fragments ?? []).map(f =>
+                            f.targetComponentId ? f : { ...f, targetComponentId: initiatorComponentId }),
+                    }
+                    return await this.wrap<UIIncrement>(
+                        () => Promise.resolve(retargeted), initiator, background, actionId, options.retry)
+                }
+            }
         }
         // Circuit breaker: a self-remounting federated mount can fire the SAME request in a tight
         // loop, hammering the server and freezing the UI. When an identical request repeats past
