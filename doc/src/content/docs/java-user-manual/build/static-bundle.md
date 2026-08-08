@@ -72,6 +72,27 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
 
+## Serving the bundle at runtime (no build step)
+
+You don't have to run the Maven goal: a running Mateu app exposes the same bundle live at
+
+```
+GET /mateu/v3/bundle
+```
+
+which returns the identical `manifest.json`, rendered from the app's real bean graph — so it has
+**full fidelity** (services/DB available, no skipped service-backed loads) and needs no build. Two uses:
+
+- **Point a static shell at it** — host a small `index.html` + the renderer assets on a CDN and set
+  `<mateu-ui bundleUrl="https://your-app/mateu/v3/bundle">`. The shell fetches the bundle over CORS
+  (the endpoint sends the header) and answers loads from it — instant first paint, backend still there
+  for actions. (Same-origin `bundleUrl="/mateu/v3/bundle"` works too.)
+- **Snapshot it** — `curl https://your-app/mateu/v3/bundle > manifest.json` to produce the bundle in
+  CI without the Maven goal.
+
+The result is computed once and cached (structure is stable within a deployment). The endpoint is
+provided by the MVC adapter today.
+
 ## What works without a backend
 
 - **Presentational and form screens** — any declared `@UI`/`@Route` whose initial render is

@@ -50,6 +50,21 @@ public final class MateuBundleExporter {
     this.requestFactory = requestFactory;
   }
 
+  /**
+   * Render every declared route discovered from the classloader's route index (skipping {@code
+   * :param} routes when {@code staticOnly}). The one-call entry point shared by the build-time
+   * Maven goal and the runtime bundle endpoint.
+   */
+  public BundleManifest exportAll(String baseUrl, ClassLoader cl, boolean staticOnly) {
+    var routes =
+        RouteRegistrations.read(cl).stream()
+            .map(RouteRegistrations.RouteRef::route)
+            .filter(r -> !staticOnly || RouteRegistrations.isStatic(r))
+            .distinct()
+            .toList();
+    return export(baseUrl, routes);
+  }
+
   /** Render every route; per-route failure is captured, never thrown. */
   public BundleManifest export(String baseUrl, List<String> routes) {
     var entries = new ArrayList<BundleEntry>();
