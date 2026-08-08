@@ -61,8 +61,9 @@ String city;
 ```
 
 :::note
-This is the **options** surface. Consuming external endpoints for listing rows, form data and
-button actions reuses the same `RestDataSource` descriptor and is on the roadmap.
+This is the **options** surface. The same `RestDataSource` descriptor also powers
+[listing rows](./rest-listing), [screen data](./rest-data) and [button actions](./rest-action) —
+all four are shipped.
 :::
 
 ## Server-proxy mode (`proxy = true`) — CORS & auth hardening

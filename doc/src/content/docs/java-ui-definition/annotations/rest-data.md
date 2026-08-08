@@ -48,6 +48,13 @@ the trigger runs the action client-side — interpolating the url/headers/body a
 renderer that already runs OnLoad triggers and `@RestAction` gets it for free. The endpoint must be
 reachable from the browser (CORS-friendly for cross-origin APIs).
 
+:::note[CORS & auth]
+`proxy = true` also works on `@RestData`: the load goes through the Mateu server (no CORS) with
+`${secret.X}` auth injected server-side. To authenticate the direct load instead, register a
+client-side auth provider. Both are described under
+[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+:::
+
 `url` interpolation lets the request depend on a route parameter seeded into the state (e.g.
 `url = "https://api.example.com/users/${state.id}"`).
 

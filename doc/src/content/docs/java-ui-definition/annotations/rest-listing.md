@@ -59,10 +59,17 @@ column id.
 The endpoint must be reachable from the browser (CORS-friendly for cross-origin APIs; same-origin
 needs nothing). The listing is read-only.
 
+:::note[CORS & auth]
+`proxy = true` also works on `@RestListing`: the rows are fetched through the Mateu server (no CORS)
+with `${secret.X}` auth injected server-side. To authenticate the direct fetch instead, register a
+client-side auth provider. Both are described under
+[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+:::
+
 :::note
-Rows and [options](./rest-options) are the shipped surfaces of consuming external endpoints. Form/
-screen data load and endpoint button actions reuse the same `RestDataSource` descriptor and are on
-the roadmap.
+All four surfaces are shipped: [options](./rest-options), [listing rows](./rest-listing),
+[screen data](./rest-data) and [button actions](./rest-action) — each reusing the same
+`RestDataSource` descriptor.
 :::
 
 ## Other backends

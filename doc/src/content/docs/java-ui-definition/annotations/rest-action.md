@@ -59,6 +59,13 @@ interpolates the url/headers/body against the live state, `fetch`es the endpoint
 `resultPath` into the form state and shows the toast. A non-2xx response shows a failure toast. The
 endpoint must be reachable from the browser (CORS-friendly for cross-origin APIs).
 
+:::note[CORS & auth]
+`proxy = true` also works on `@RestAction`: the call goes through the Mateu server (no CORS) with
+`${secret.X}` auth injected server-side. To authenticate the direct call instead, register a
+client-side auth provider. Both are described under
+[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+:::
+
 ## Other backends
 
 Mateu.NET and the Python backend emit the same `restAction` descriptor:
