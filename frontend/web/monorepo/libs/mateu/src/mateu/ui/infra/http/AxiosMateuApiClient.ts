@@ -7,6 +7,7 @@ import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
+import {getBundledIncrement, hasBundle, toSyncPath} from "@infra/http/bundleStore.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -210,6 +211,17 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     options: RunActionOptions = {}): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
+        }
+        // Static-bundle mode: a route LOAD (actionId="") is answered from the pre-rendered bundle
+        // instead of the backend, so the UI runs from static assets with no server. Actions
+        // (actionId≠"") always fall through to the backend (they need server logic). A route absent
+        // from the bundle also falls through — so a hybrid deploy (bundle + backend) still works.
+        if (actionId === '' && hasBundle()) {
+            const bundled = getBundledIncrement(toSyncPath(route))
+            if (bundled) {
+                return await this.wrap<UIIncrement>(
+                    () => Promise.resolve(bundled), initiator, background, actionId, options.retry)
+            }
         }
         // Circuit breaker: a self-remounting federated mount can fire the SAME request in a tight
         // loop, hammering the server and freezing the UI. When an identical request repeats past

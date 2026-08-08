@@ -11,6 +11,7 @@ import {registerNeutralNotifier} from "@infra/notify/neutralNotifier.ts";
 import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {installAnnouncer} from "@infra/a11y/announcer.ts";
 import {mountSkipLink} from "@infra/ui/mateu-skip-link.ts";
+import {loadBundleManifest} from "@infra/http/bundleStore.ts";
 import {nanoid} from "nanoid";
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
@@ -55,6 +56,12 @@ export class MateuUi extends LitElement {
 
     @property()
     pathPrefix: string | undefined = undefined
+
+    // Static-bundle mode: URL of a manifest.json (produced by the mateu:bundle Maven goal). When set,
+    // route loads are answered from the bundle instead of the backend, so the UI runs from static
+    // assets with no server (see infra/http/bundleStore.ts).
+    @property()
+    bundleUrl: string | undefined = undefined
 
     // state
 
@@ -152,7 +159,13 @@ export class MateuUi extends LitElement {
         };
 
         if (this.top == 'true') {
-            this.loadUrl(window)
+            // In bundle mode, load the manifest BEFORE the first route load so the load is answered
+            // from the bundle (no backend). A failed manifest fetch just falls back to the backend.
+            if (this.bundleUrl) {
+                loadBundleManifest(this.bundleUrl).finally(() => this.loadUrl(window))
+            } else {
+                this.loadUrl(window)
+            }
         } else {
             if (this.route) {
                 this.consumedRoute = ''
