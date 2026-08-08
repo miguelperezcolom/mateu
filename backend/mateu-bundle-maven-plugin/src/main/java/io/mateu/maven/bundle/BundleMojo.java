@@ -1,6 +1,7 @@
 package io.mateu.maven.bundle;
 
 import io.mateu.core.application.export.MateuBundleExporter;
+import io.mateu.core.application.export.RouteRegistrations;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -78,7 +79,7 @@ public class BundleMojo extends AbstractMojo {
     var previous = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(appLoader);
     try {
-      var discovered = RouteRegistrationReader.read(appLoader);
+      var discovered = RouteRegistrations.read(appLoader);
       getLog().info("mateu-bundle: discovered " + discovered.size() + " declared route(s)");
 
       var uiClasses = new ArrayList<Class<?>>();
@@ -92,7 +93,7 @@ public class BundleMojo extends AbstractMojo {
 
       var toExport =
           discovered.stream()
-              .map(RouteRegistrationReader.RouteEntry::route)
+              .map(RouteRegistrations.RouteRef::route)
               .filter(r -> !skipParamRoutes || !r.contains(":"))
               .filter(r -> routes == null || routes.isEmpty() || routes.contains(r))
               .distinct()
