@@ -159,13 +159,13 @@ export class MateuUi extends LitElement {
         };
 
         if (this.top == 'true') {
-            // In bundle mode, load the manifest BEFORE the first route load so the load is answered
-            // from the bundle (no backend). A failed manifest fetch just falls back to the backend.
+            // In bundle mode, kick off the manifest fetch; the route load awaits it in the api
+            // client (awaitBundle), so the first load is answered from the bundle (no backend). A
+            // failed manifest fetch just falls back to the backend.
             if (this.bundleUrl) {
-                loadBundleManifest(this.bundleUrl).finally(() => this.loadUrl(window))
-            } else {
-                this.loadUrl(window)
+                loadBundleManifest(this.bundleUrl)
             }
+            this.loadUrl(window)
         } else {
             if (this.route) {
                 this.consumedRoute = ''

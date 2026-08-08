@@ -23,6 +23,9 @@ interface BundleManifest {
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
 let increments: Map<string, UIIncrement> | undefined
+// The in-flight manifest load (if any), so a route load can await it before deciding to hit the
+// backend — the first load can fire before the fetch resolves.
+let pending: Promise<void> | undefined
 
 /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors the server exporter's toSyncPath
  *  and AxiosMateuApiClient's URL building: leading slash stripped, blank/root → `_no_route`. */
@@ -33,26 +36,33 @@ export const toSyncPath = (route: string | undefined): string => {
 
 /** Load the bundle manifest once. A miss/malformed manifest silently leaves bundle mode off (the
  *  app falls back to the backend at baseUrl). Idempotent-ish: last call wins. */
-export async function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch): Promise<void> {
-    try {
-        const res = await fetchImpl(url)
-        if (!res.ok) return
-        const manifest = (await res.json()) as BundleManifest
-        const map = new Map<string, UIIncrement>()
-        for (const e of manifest.entries ?? []) {
-            if (e.ok && e.json) {
-                try {
-                    map.set(e.syncPath, JSON.parse(e.json) as UIIncrement)
-                } catch (err) {
-                    console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
+export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch): Promise<void> {
+    pending = (async () => {
+        try {
+            const res = await fetchImpl(url)
+            if (!res.ok) return
+            const manifest = (await res.json()) as BundleManifest
+            const map = new Map<string, UIIncrement>()
+            for (const e of manifest.entries ?? []) {
+                if (e.ok && e.json) {
+                    try {
+                        map.set(e.syncPath, JSON.parse(e.json) as UIIncrement)
+                    } catch (err) {
+                        console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
+                    }
                 }
             }
+            increments = map
+        } catch (e) {
+            console.warn('mateu: bundle manifest load failed', e)
         }
-        increments = map
-    } catch (e) {
-        console.warn('mateu: bundle manifest load failed', e)
-    }
+    })()
+    return pending
 }
+
+/** Await the in-flight manifest load (if any) — so a route load doesn't race the fetch and hit the
+ *  backend before the bundle is ready. Resolves immediately when no bundle is being loaded. */
+export const awaitBundle = (): Promise<void> => pending ?? Promise.resolve()
 
 /** True once a non-empty bundle has been loaded. */
 export const hasBundle = (): boolean => increments !== undefined && increments.size > 0
@@ -63,4 +73,5 @@ export const getBundledIncrement = (syncPath: string): UIIncrement | undefined =
 /** Test hook: seed/clear the in-memory bundle directly. */
 export const __setBundleForTests = (m: Map<string, UIIncrement> | undefined): void => {
     increments = m
+    pending = undefined
 }
