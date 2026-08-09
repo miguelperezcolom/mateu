@@ -3,7 +3,7 @@ title: Static bundle — serve the UI from a CDN, backend-optional
 description: Export your declared screens to a static site the renderer boots from — served from any static host with no (or optional) Mateu backend.
 ---
 
-**Status:** ✅ Implemented (Vaadin renderer, static routes)
+**Status:** ✅ Implemented (Vaadin and Redwood/VB renderers)
 
 Mateu can export your declared screens to a **static bundle** — a folder of pre-rendered JSON plus
 the renderer assets — that any static host (Netlify, S3, GitHub Pages, a CDN) serves with **no Mateu
@@ -162,8 +162,17 @@ A **hybrid** deploy is the sweet spot: ship the bundle for instant, backend-free
 point `baseUrl` at a real backend so actions and unbundled/param routes still work — the client uses
 the bundle for the loads it has and falls through to the backend for everything else.
 
+## Renderers
+
+- **Vaadin** and every renderer built on the shared `libs/mateu` client get bundle mode for free —
+  set `<mateu-ui bundleUrl="…">` (the `mateu:bundle` goal stamps it into the generated `index.html`).
+- **Redwood/VB** has its own transport (it shares no code with the web renderers), so bundle mode is
+  ported there too: set the app constant **`mateuBundleUrl`** (empty = off) to a `manifest.json` URL
+  or the runtime `…/mateu/v3/bundle` endpoint. Route loads are answered from the bundle; in a hybrid
+  deploy the menu/shell still comes from the backend, and if the backend is absent the shell falls
+  back to the bundled root route. Contract-tested in `apps/redwood/poc/test.mjs`.
+
 ## Notes
 
-- First pass targets the **Vaadin** renderer.
 - The manifest carries only screen **structure** (never business data), so nothing stale is baked in;
   data is always fetched live.

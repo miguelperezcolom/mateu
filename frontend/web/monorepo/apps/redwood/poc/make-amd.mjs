@@ -18,7 +18,8 @@ const strip = (file) =>
     .map((l) => l.replace(/^export (async |const |function |class )/, '$1').replace(/^export /, ''))
     .join('\n')
 
-const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('transport.mjs')}`
+// bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
+const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -83,6 +84,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pendingActions,
     setTransportHooks,
     DEFAULT_TIMEOUT_MS,
+    // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
+    loadBundleManifest,
+    hasBundle,
+    awaitBundle,
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,

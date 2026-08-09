@@ -7,7 +7,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute } from './transport.mjs'
+import { composeInnerRoute, loadRoute, bootstrapShell } from './transport.mjs'
+import {
+  toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
+  bundledIncrementFor, __setBundleForTests,
+} from './bundle.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
@@ -792,6 +796,80 @@ atest('timeoutMillis negativo = sin ceiling, para un stream que dura lo que dure
   } finally {
     globalThis.fetch = original
     connectivity.reset()
+  }
+})
+
+// ── static bundle (modo sin backend) ──────────────────────────────────────────────────────
+test('bundle: toSyncPath refleja el transporte/web', () => {
+  assert.equal(toSyncPath(''), '_no_route')
+  assert.equal(toSyncPath('/'), '_no_route')
+  assert.equal(toSyncPath('/products'), 'products')
+  assert.equal(toSyncPath('orders/1'), 'orders/1')
+})
+
+test('bundle: matchBundledTemplate casa :param e inyecta el param en state y data', () => {
+  __setBundleForTests(new Map(), [
+    { regex: /^orders\/([^/]+)$/, paramNames: ['id'],
+      increment: { fragments: [{ targetComponentId: null, state: { id: '__mateu_param__' } }] } },
+  ])
+  assert.equal(getBundledIncrement('orders/42'), undefined) // una plantilla no es entrada exacta
+  const inc = matchBundledTemplate('orders/42')
+  assert.ok(inc)
+  assert.equal(inc.fragments[0].state.id, '42')  // el valor real gana al placeholder
+  assert.equal(inc.fragments[0].data.id, '42')
+  assert.equal(matchBundledTemplate('customers/7'), undefined)
+  __setBundleForTests(undefined)
+})
+
+test('bundle: bundledIncrementFor re-apunta el targetComponentId nulo al initiator', () => {
+  __setBundleForTests(new Map([['home', { fragments: [{ targetComponentId: null, component: {} }] }]]))
+  const inc = bundledIncrementFor('/home', 'isla1')
+  assert.equal(inc.fragments[0].targetComponentId, 'isla1')
+  __setBundleForTests(undefined)
+})
+
+atest('bundle: loadBundleManifest indexa las entradas ok y salta las rotas', async () => {
+  const manifest = { entries: [
+    { syncPath: 'home', ok: true, json: JSON.stringify({ fragments: [{ x: 1 }] }) },
+    { syncPath: 'broken', ok: false, json: null },
+    { syncPath: 'bad', ok: true, json: '{no json' },
+  ] }
+  await loadBundleManifest('x', async () => ({ ok: true, json: async () => manifest }))
+  assert.equal(hasBundle(), true)
+  assert.deepEqual(getBundledIncrement('home'), { fragments: [{ x: 1 }] })
+  assert.equal(getBundledIncrement('broken'), undefined)
+  assert.equal(getBundledIncrement('bad'), undefined)
+  __setBundleForTests(undefined)
+})
+
+atest('bundle: loadRoute responde desde el bundle SIN tocar la red', async () => {
+  __setBundleForTests(new Map([['home', { fragments: [{ targetComponentId: null }] }]]))
+  const original = globalThis.fetch
+  let hit = false
+  globalThis.fetch = async () => { hit = true; return { ok: true, json: async () => ({}) } }
+  try {
+    const inc = await loadRoute('http://x', '/home', 'shell')
+    assert.equal(hit, false, 'una carga bundleada no debe ir al backend')
+    assert.equal(inc.fragments[0].targetComponentId, 'shell')
+  } finally {
+    globalThis.fetch = original
+    __setBundleForTests(undefined)
+  }
+})
+
+atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO está', async () => {
+  __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
+  connectivity.reset()
+  const original = globalThis.fetch
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') } // backend caído
+  try {
+    const inc = await bootstrapShell('http://x', 'shell')
+    assert.ok(inc && inc.fragments, 'la shell debe arrancar desde el bundle sin backend')
+    assert.equal(inc.fragments[0].targetComponentId, 'shell')
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+    __setBundleForTests(undefined)
   }
 })
 
