@@ -7,14 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Serves the static bundle at RUNTIME (no build step): {@code GET /mateu/v3/bundle} returns the
  * same {@code manifest.json} the {@code mateu:bundle} Maven goal produces, rendered live from this
- * app's bean graph — so it has full fidelity (real services/DB available) and needs no build. Point
- * a static shell's {@code <mateu-ui bundleUrl="…/mateu/v3/bundle">} at it, or curl it to snapshot
- * the bundle. The result is computed once and cached (screen structure is stable within a
- * deployment).
+ * app's bean graph — full fidelity (real services/DB), no build. Point a static shell's {@code
+ * <mateu-ui bundleUrl="…/mateu/v3/bundle">} at it, or curl it to snapshot the bundle. Cached after
+ * first compute. The exporter blocks (it {@code blockFirst()}s each route), so it runs on a
+ * bounded-elastic scheduler, off the event loop. WebFlux counterpart of the MVC controller.
  */
 @RestController
 @CrossOrigin
@@ -28,13 +30,16 @@ public class MateuBundleController {
   }
 
   @GetMapping(value = "/mateu/v3/bundle", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<String> bundle() {
+  public Mono<ResponseEntity<String>> bundle() {
+    return Mono.fromCallable(this::render).subscribeOn(Schedulers.boundedElastic());
+  }
+
+  private ResponseEntity<String> render() {
     var out = cached;
     if (out == null) {
       var cl =
-          getClass()
-              .getClassLoader(); // app classloader (sees META-INF/mateu route index); TCCL is
-                                 // unreliable off the request thread
+          getClass().getClassLoader(); // app classloader (sees META-INF/mateu route index); TCCL is
+      // unreliable on the bounded-elastic worker thread
       var manifest = new MateuBundleExporter(service).exportAll("", cl, true);
       try {
         out = MateuBundleExporter.defaultWireMapper().writeValueAsString(manifest);

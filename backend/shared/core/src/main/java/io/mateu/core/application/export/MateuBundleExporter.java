@@ -6,8 +6,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -51,18 +54,52 @@ public final class MateuBundleExporter {
   }
 
   /**
-   * Render every declared route discovered from the classloader's route index (skipping {@code
-   * :param} routes when {@code staticOnly}). The one-call entry point shared by the build-time
-   * Maven goal and the runtime bundle endpoint.
+   * Render every declared route, discovered from BOTH sources so it works in any module layout:
+   *
+   * <ul>
+   *   <li>the live {@link RouteResolver} beans (via {@link MateuBeanProvider}) — the framework's
+   *       annotation processor always generates one per {@code @UI}, so this is the RUNTIME source
+   *       (the bundle endpoint) and covers single-module apps where {@code @UI} lives in the app;
+   *   <li>the classloader's compiled route index ({@code META-INF/mateu/*-registrations}) — written
+   *       only by the indexer AP (two-module setup), the BUILD-TIME source used by the Maven goal
+   *       from a fresh context with no live beans.
+   * </ul>
+   *
+   * {@code :param} routes are skipped when {@code staticOnly}. The one-call entry point shared by
+   * the build-time Maven goal and the runtime bundle endpoint.
    */
   public BundleManifest exportAll(String baseUrl, ClassLoader cl, boolean staticOnly) {
-    var routes =
-        RouteRegistrations.read(cl).stream()
-            .map(RouteRegistrations.RouteRef::route)
-            .filter(r -> !staticOnly || RouteRegistrations.isStatic(r))
-            .distinct()
-            .toList();
-    return export(baseUrl, routes);
+    var routes = new LinkedHashSet<>(routesFromBeans(staticOnly));
+    RouteRegistrations.read(cl).stream()
+        .map(RouteRegistrations.RouteRef::route)
+        .filter(r -> !staticOnly || RouteRegistrations.isStatic(r))
+        .forEach(routes::add);
+    return export(baseUrl, new ArrayList<>(routes));
+  }
+
+  /**
+   * Routes declared by the live {@link RouteResolver} beans. Empty (never throws) when no bean
+   * context is wired — e.g. the Maven goal's fresh context — so the caller falls back to the index.
+   */
+  private List<String> routesFromBeans(boolean staticOnly) {
+    var out = new ArrayList<String>();
+    try {
+      var resolvers = MateuBeanProvider.getBeans(RouteResolver.class);
+      if (resolvers == null) {
+        return out;
+      }
+      for (RouteResolver rr : resolvers) {
+        for (var pattern : rr.supportedRoutesPatterns()) {
+          var r = pattern.route();
+          if (r != null && !r.isBlank() && (!staticOnly || RouteRegistrations.isStatic(r))) {
+            out.add(r);
+          }
+        }
+      }
+    } catch (Throwable t) {
+      log.debug("route discovery from beans failed (falling back to the index): {}", t.toString());
+    }
+    return out;
   }
 
   /** Render every route; per-route failure is captured, never thrown. */
