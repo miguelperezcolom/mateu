@@ -8483,6 +8483,7 @@ ${i}
                </div>
             `},Fc=(e,t,n)=>T`
     <vaadin-menu-bar
+        theme="tertiary"
         .items=${e}
         class="${n??v}"
         @item-selected=${e=>t(e.detail.value)}>
