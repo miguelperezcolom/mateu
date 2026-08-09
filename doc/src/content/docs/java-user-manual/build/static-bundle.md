@@ -11,6 +11,17 @@ backend running**. The renderer boots, reads the bundle, and paints each screen 
 still flows from [external endpoints](../../java-ui-definition/annotations/rest-options), and screens
 that need server logic keep working when a backend is present.
 
+## Runnable demo
+
+`demo/demo-static-bundle` is a minimal, self-contained example (two static `@UI` screens, one with a
+live `@RestOptions` select). Two ways to see the bundle:
+
+```bash
+cd demo/demo-static-bundle
+mvn spring-boot:run            # then GET http://localhost:8097/mateu/v3/bundle  (runtime, no build)
+mvn -Pbundle package           # then serve target/mateu-bundle/ from any static host (no backend)
+```
+
 ## How it works
 
 Two halves, both shipped:

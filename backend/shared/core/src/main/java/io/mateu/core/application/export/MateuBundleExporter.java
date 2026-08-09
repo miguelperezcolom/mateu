@@ -6,9 +6,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.uidl.annotations.HomeRoute;
+import io.mateu.uidl.annotations.Route;
+import io.mateu.uidl.annotations.Routes;
+import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
+import io.mateu.uidl.interfaces.RoutedClassProvider;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,9 +62,12 @@ public final class MateuBundleExporter {
    * Render every declared route, discovered from BOTH sources so it works in any module layout:
    *
    * <ul>
-   *   <li>the live {@link RouteResolver} beans (via {@link MateuBeanProvider}) — the framework's
-   *       annotation processor always generates one per {@code @UI}, so this is the RUNTIME source
-   *       (the bundle endpoint) and covers single-module apps where {@code @UI} lives in the app;
+   *   <li>the live {@link RouteResolver} and {@link RoutedClassProvider} beans (via {@link
+   *       MateuBeanProvider}) — the framework's annotation processor generates a {@code
+   *       RouteResolver} for a pathed {@code @UI("/x")} (route in its patterns) and a {@code
+   *       RoutedClassProvider} for a root {@code @UI("")}/{@code @Route}/{@code @HomeRoute} (route
+   *       read off the class's routing annotations). This is the RUNTIME source (the bundle
+   *       endpoint) and covers single-module apps where {@code @UI} lives in the app;
    *   <li>the classloader's compiled route index ({@code META-INF/mateu/*-registrations}) — written
    *       only by the indexer AP (two-module setup), the BUILD-TIME source used by the Maven goal
    *       from a fresh context with no live beans.
@@ -78,21 +86,29 @@ public final class MateuBundleExporter {
   }
 
   /**
-   * Routes declared by the live {@link RouteResolver} beans. Empty (never throws) when no bean
-   * context is wired — e.g. the Maven goal's fresh context — so the caller falls back to the index.
+   * Routes declared by the live {@link RouteResolver} and {@link RoutedClassProvider} beans. Empty
+   * (never throws) when no bean context is wired — e.g. the Maven goal's fresh context — so the
+   * caller falls back to the index.
    */
   private List<String> routesFromBeans(boolean staticOnly) {
     var out = new ArrayList<String>();
     try {
+      // Pathed @UI("/x") → a RouteResolver carrying the route in its compiled patterns.
       var resolvers = MateuBeanProvider.getBeans(RouteResolver.class);
-      if (resolvers == null) {
-        return out;
+      if (resolvers != null) {
+        for (RouteResolver rr : resolvers) {
+          for (var pattern : rr.supportedRoutesPatterns()) {
+            addRoute(out, pattern.route(), staticOnly);
+          }
+        }
       }
-      for (RouteResolver rr : resolvers) {
-        for (var pattern : rr.supportedRoutesPatterns()) {
-          var r = pattern.route();
-          if (r != null && !r.isBlank() && (!staticOnly || RouteRegistrations.isStatic(r))) {
-            out.add(r);
+      // Root @UI("") / @Route / @HomeRoute → a RoutedClassProvider; the route lives on the class's
+      // routing annotations (a blank @UI("") is the valid root route).
+      var providers = MateuBeanProvider.getBeans(RoutedClassProvider.class);
+      if (providers != null) {
+        for (RoutedClassProvider p : providers) {
+          for (String r : routesOf(p.routedClass())) {
+            addRoute(out, r, staticOnly);
           }
         }
       }
@@ -100,6 +116,40 @@ public final class MateuBundleExporter {
       log.debug("route discovery from beans failed (falling back to the index): {}", t.toString());
     }
     return out;
+  }
+
+  private static void addRoute(List<String> out, String r, boolean staticOnly) {
+    // route "" (root) is valid and kept; a null route is not
+    if (r != null && (!staticOnly || RouteRegistrations.isStatic(r))) {
+      out.add(r);
+    }
+  }
+
+  /**
+   * The route(s) declared by a routed class's routing annotations ({@code @UI}, {@code @Route},
+   * {@code @Routes}, {@code @HomeRoute}). Read directly (routing annotations are NOT
+   * meta-annotation composable — the AP resolves them at compile time).
+   */
+  private static List<String> routesOf(Class<?> c) {
+    var routes = new ArrayList<String>();
+    var ui = c.getAnnotation(UI.class);
+    if (ui != null) {
+      routes.add(ui.value());
+    }
+    var route = c.getAnnotation(Route.class);
+    if (route != null) {
+      routes.add(route.value());
+    }
+    var routesAnn = c.getAnnotation(Routes.class);
+    if (routesAnn != null) {
+      for (Route r : routesAnn.value()) {
+        routes.add(r.value());
+      }
+    }
+    if (c.getAnnotation(HomeRoute.class) != null) {
+      routes.add("");
+    }
+    return routes;
   }
 
   /** Render every route; per-route failure is captured, never thrown. */

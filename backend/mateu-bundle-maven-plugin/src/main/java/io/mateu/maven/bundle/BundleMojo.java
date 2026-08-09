@@ -107,7 +107,13 @@ public class BundleMojo extends AbstractMojo {
 
       try (var boot = new BootContext(appLoader, uiClasses, packages)) {
         var exporter = new MateuBundleExporter(boot.service);
-        var manifest = exporter.export(baseUrl, toExport);
+        // With an explicit allowlist, export exactly those routes. Otherwise let the exporter
+        // discover every route from the booted bean graph (RouteResolver + RoutedClassProvider) AND
+        // the compiled index — so single-module apps (no index files) still bundle.
+        var manifest =
+            (routes != null && !routes.isEmpty())
+                ? exporter.export(baseUrl, toExport)
+                : exporter.exportAll(baseUrl, appLoader, skipParamRoutes);
 
         BundleWriter.write(
             outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle);
