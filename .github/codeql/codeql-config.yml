@@ -1,0 +1,10 @@
+name: "Mateu CodeQL config"
+
+# Don't scan generated/minified frontend bundles (built by `yarn copy` and committed as the served
+# static assets) or vendored static sites — analysing minified output only yields false positives.
+paths-ignore:
+  - '**/src/main/resources/**/assets/**'
+  - 'demo/sites/**'
+  - '**/*.min.js'
+  - 'doc/**'
+  - 'docs/**'

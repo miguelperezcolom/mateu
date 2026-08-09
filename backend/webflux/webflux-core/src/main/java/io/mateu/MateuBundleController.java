@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -24,29 +25,36 @@ public class MateuBundleController {
 
   private final MateuService service;
   private volatile String cached;
+  private volatile String cachedWithParams;
 
   public MateuBundleController(MateuService service) {
     this.service = service;
   }
 
   @GetMapping(value = "/mateu/v3/bundle", produces = MediaType.APPLICATION_JSON_VALUE)
-  public Mono<ResponseEntity<String>> bundle() {
-    return Mono.fromCallable(this::render).subscribeOn(Schedulers.boundedElastic());
+  public Mono<ResponseEntity<String>> bundle(
+      @RequestParam(name = "params", defaultValue = "false") boolean includeParamRoutes) {
+    return Mono.fromCallable(() -> render(includeParamRoutes))
+        .subscribeOn(Schedulers.boundedElastic());
   }
 
-  private ResponseEntity<String> render() {
-    var out = cached;
+  private ResponseEntity<String> render(boolean includeParamRoutes) {
+    var out = includeParamRoutes ? cachedWithParams : cached;
     if (out == null) {
       var cl =
           getClass().getClassLoader(); // app classloader (sees META-INF/mateu route index); TCCL is
       // unreliable on the bounded-elastic worker thread
-      var manifest = new MateuBundleExporter(service).exportAll("", cl, true);
+      var manifest = new MateuBundleExporter(service).exportAll("", cl, true, includeParamRoutes);
       try {
         out = MateuBundleExporter.defaultWireMapper().writeValueAsString(manifest);
       } catch (Exception e) {
         return ResponseEntity.internalServerError().body("{\"error\":\"" + e.getMessage() + "\"}");
       }
-      cached = out;
+      if (includeParamRoutes) {
+        cachedWithParams = out;
+      } else {
+        cached = out;
+      }
     }
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(out);
   }
