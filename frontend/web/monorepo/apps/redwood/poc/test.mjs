@@ -848,7 +848,7 @@ atest('bundle: loadRoute responde desde el bundle SIN tocar la red', async () =>
   let hit = false
   globalThis.fetch = async () => { hit = true; return { ok: true, json: async () => ({}) } }
   try {
-    const inc = await loadRoute('http://x', '/home', 'shell')
+    const inc = await loadRoute('https://x', '/home', 'shell')
     assert.equal(hit, false, 'una carga bundleada no debe ir al backend')
     assert.equal(inc.fragments[0].targetComponentId, 'shell')
   } finally {
@@ -863,7 +863,7 @@ atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO est
   const original = globalThis.fetch
   globalThis.fetch = async () => { throw new TypeError('Failed to fetch') } // backend caído
   try {
-    const inc = await bootstrapShell('http://x', 'shell')
+    const inc = await bootstrapShell('https://x', 'shell')
     assert.ok(inc && inc.fragments, 'la shell debe arrancar desde el bundle sin backend')
     assert.equal(inc.fragments[0].targetComponentId, 'shell')
   } finally {
