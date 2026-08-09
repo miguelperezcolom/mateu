@@ -4,6 +4,7 @@ import {
     loadBundleManifest,
     hasBundle,
     getBundledIncrement,
+    matchBundledTemplate,
     __setBundleForTests,
 } from './bundleStore'
 
@@ -60,5 +61,43 @@ describe('loadBundleManifest', () => {
         const boom = (async () => { throw new Error('offline') }) as unknown as typeof fetch
         await loadBundleManifest('x', boom)
         expect(hasBundle()).toBe(false)
+    })
+})
+
+describe('matchBundledTemplate (:param routes)', () => {
+    afterEach(() => __setBundleForTests(undefined))
+
+    const templateManifest = {
+        baseUrl: '',
+        staticOnly: false,
+        entries: [
+            {
+                route: '/orders/:id',
+                syncPath: 'orders/:id',
+                ok: true,
+                routePattern: '^orders/([^/]+)$',
+                paramNames: ['id'],
+                json: JSON.stringify({ fragments: [{ targetComponentId: null, state: { id: '__mateu_param__' } }] }),
+            },
+        ],
+    }
+    const okFetch = (body: unknown): typeof fetch =>
+        (async () => ({ ok: true, json: async () => body })) as unknown as typeof fetch
+
+    it('matches a concrete path and injects the extracted param into state and data', async () => {
+        await loadBundleManifest('x', okFetch(templateManifest))
+        expect(hasBundle()).toBe(true)
+        // a template is NOT an exact entry
+        expect(getBundledIncrement('orders/42')).toBeUndefined()
+        const inc = matchBundledTemplate('orders/42')
+        expect(inc).toBeDefined()
+        // the real param wins over the render-time placeholder
+        expect(inc!.fragments![0].state).toMatchObject({ id: '42' })
+        expect(inc!.fragments![0].data).toMatchObject({ id: '42' })
+    })
+
+    it('returns undefined when no template matches', async () => {
+        await loadBundleManifest('x', okFetch(templateManifest))
+        expect(matchBundledTemplate('customers/7')).toBeUndefined()
     })
 })

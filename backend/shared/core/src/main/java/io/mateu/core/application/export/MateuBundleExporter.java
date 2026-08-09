@@ -35,13 +35,40 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class MateuBundleExporter {
 
-  /** One route's export result. {@code json} is null when skipped ({@code ok=false}). */
+  /**
+   * One route's export result. {@code json} is null when skipped ({@code ok=false}). For a {@code
+   * :param} route bundled as a TEMPLATE, {@code routePattern} is a regex over the sync path with
+   * one capture group per param and {@code paramNames} lists the param names in order — the client
+   * matches a concrete path (e.g. {@code orders/42}) against the pattern, extracts the params and
+   * feeds them to the pre-rendered structure (client-side data fetch resolves {@code
+   * ${state.<p>}}). Both are null for a plain (non-template) entry.
+   */
   public record BundleEntry(
-      String route, String syncPath, String json, boolean ok, String skipReason) {}
+      String route,
+      String syncPath,
+      String json,
+      boolean ok,
+      String skipReason,
+      String routePattern,
+      List<String> paramNames) {
+    /** Plain (non-template) entry. */
+    public BundleEntry(String route, String syncPath, String json, boolean ok, String skipReason) {
+      this(route, syncPath, json, ok, skipReason, null, null);
+    }
+  }
 
   /** The whole bundle: metadata + one entry per requested route. */
   public record BundleManifest(
       String baseUrl, String generatedAt, boolean staticOnly, List<BundleEntry> entries) {}
+
+  /** A {@code :name} route segment (the param marker). */
+  private static final java.util.regex.Pattern PARAM_SEGMENT =
+      java.util.regex.Pattern.compile(":([^/]+)");
+
+  /**
+   * Placeholder substituted for each param when rendering a template's param-independent structure.
+   */
+  private static final String PARAM_PLACEHOLDER = "__mateu_param__";
 
   private final MateuService service;
   private final ObjectMapper wireMapper;
@@ -77,12 +104,32 @@ public final class MateuBundleExporter {
    * the build-time Maven goal and the runtime bundle endpoint.
    */
   public BundleManifest exportAll(String baseUrl, ClassLoader cl, boolean staticOnly) {
-    var routes = new LinkedHashSet<>(routesFromBeans(staticOnly));
+    return exportAll(baseUrl, cl, staticOnly, false);
+  }
+
+  /**
+   * As {@link #exportAll(String, ClassLoader, boolean)}, but when {@code includeParamRoutes} a
+   * {@code :param} route is bundled as a TEMPLATE (rendered once with a placeholder param) instead
+   * of being skipped — see {@link #exportTemplate}. The client matches a concrete path against the
+   * template's pattern and feeds the extracted params to the pre-rendered structure.
+   */
+  public BundleManifest exportAll(
+      String baseUrl, ClassLoader cl, boolean staticOnly, boolean includeParamRoutes) {
+    // collect param routes too when templating them; otherwise keep the static-only filter
+    boolean onlyStatic = staticOnly && !includeParamRoutes;
+    var routes = new LinkedHashSet<>(routesFromBeans(onlyStatic));
     RouteRegistrations.read(cl).stream()
         .map(RouteRegistrations.RouteRef::route)
-        .filter(r -> !staticOnly || RouteRegistrations.isStatic(r))
+        .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
         .forEach(routes::add);
-    return export(baseUrl, new ArrayList<>(routes));
+    var entries = new ArrayList<BundleEntry>();
+    for (String route : routes) {
+      entries.add(
+          RouteRegistrations.isStatic(route)
+              ? exportRoute(baseUrl, route)
+              : exportTemplate(baseUrl, route));
+    }
+    return new BundleManifest(baseUrl, java.time.Instant.now().toString(), onlyStatic, entries);
   }
 
   /**
@@ -196,6 +243,35 @@ public final class MateuBundleExporter {
       log.warn("skipping route {} (export failed): {}", route, t.toString());
       return new BundleEntry(route, syncPath, null, false, t.toString());
     }
+  }
+
+  /**
+   * Bundle a {@code :param} route as a TEMPLATE: render its structure ONCE with a placeholder for
+   * each param (so the increment is param-independent — a serverless detail screen whose data is
+   * fetched CLIENT-SIDE via {@code @RestOptions}/{@code @RestData} with {@code ${state.<param>}} in
+   * the URL). The entry keeps the template sync path (with {@code :name}) plus a regex + the param
+   * names so the client can match a concrete path and inject the extracted params into the
+   * structure. A view that hard-fails on the placeholder (e.g. parses it as a number and loads from
+   * a DB) is skipped, exactly like a static view that needs a live backend.
+   */
+  public BundleEntry exportTemplate(String baseUrl, String templateRoute) {
+    var paramNames = new ArrayList<String>();
+    var m = PARAM_SEGMENT.matcher(templateRoute);
+    while (m.find()) {
+      paramNames.add(m.group(1));
+    }
+    var renderRoute = PARAM_SEGMENT.matcher(templateRoute).replaceAll(PARAM_PLACEHOLDER);
+    var rendered = exportRoute(baseUrl, renderRoute);
+    var syncPath = toSyncPath(templateRoute);
+    var pattern = "^" + PARAM_SEGMENT.matcher(syncPath).replaceAll("([^/]+)") + "$";
+    return new BundleEntry(
+        templateRoute,
+        syncPath,
+        rendered.json(),
+        rendered.ok(),
+        rendered.skipReason(),
+        pattern,
+        paramNames);
   }
 
   /**

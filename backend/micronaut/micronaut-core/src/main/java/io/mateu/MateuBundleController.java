@@ -7,6 +7,7 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Produces;
+import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import jakarta.inject.Inject;
@@ -25,6 +26,7 @@ public class MateuBundleController {
 
   private final MateuService service;
   private volatile String cached;
+  private volatile String cachedWithParams;
 
   @Inject
   public MateuBundleController(MateuService service) {
@@ -34,19 +36,24 @@ public class MateuBundleController {
   @Get("/bundle")
   @Produces(MediaType.APPLICATION_JSON)
   @ExecuteOn(TaskExecutors.BLOCKING)
-  public HttpResponse<String> bundle() {
-    var out = cached;
+  public HttpResponse<String> bundle(
+      @QueryValue(value = "params", defaultValue = "false") boolean includeParamRoutes) {
+    var out = includeParamRoutes ? cachedWithParams : cached;
     if (out == null) {
       var cl =
           getClass().getClassLoader(); // app classloader (sees META-INF/mateu route index); TCCL is
       // unreliable off the request thread
-      var manifest = new MateuBundleExporter(service).exportAll("", cl, true);
+      var manifest = new MateuBundleExporter(service).exportAll("", cl, true, includeParamRoutes);
       try {
         out = MateuBundleExporter.defaultWireMapper().writeValueAsString(manifest);
       } catch (Exception e) {
         return HttpResponse.serverError("{\"error\":\"" + e.getMessage() + "\"}");
       }
-      cached = out;
+      if (includeParamRoutes) {
+        cachedWithParams = out;
+      } else {
+        cached = out;
+      }
     }
     return HttpResponse.ok(out).contentType(MediaType.APPLICATION_JSON);
   }

@@ -67,6 +67,29 @@ class MateuBundleExporterTest {
     }
   }
 
+  @UI("/thing/:id")
+  @Title("Thing")
+  @Getter
+  @Setter
+  public static class ThingFixture {
+    String id; // param-independent structure: renders with a placeholder id
+  }
+
+  @Test
+  void bundlesAParamRouteAsATemplateWithAPatternAndParamNames() {
+    try (var mateu = TestMateu.withUis(ThingFixture.class)) {
+      var exporter = new MateuBundleExporter(mateu.context().getBean(MateuService.class));
+
+      var entry = exporter.exportTemplate("", "/thing/:id");
+
+      assertThat(entry.ok()).isTrue();
+      assertThat(entry.syncPath()).isEqualTo("thing/:id"); // keeps the template form
+      assertThat(entry.routePattern()).isEqualTo("^thing/([^/]+)$");
+      assertThat(entry.paramNames()).containsExactly("id");
+      assertThat(entry.json()).contains("Thing");
+    }
+  }
+
   @Test
   void syncPathMirrorsTheFrontend() {
     assertThat(MateuBundleExporter.toSyncPath("")).isEqualTo("_no_route");

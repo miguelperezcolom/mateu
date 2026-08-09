@@ -78,7 +78,7 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `baseUrl` | `""` | stamped into `<mateu-ui baseUrl>` + the manifest URL |
 | `basePackages` | inferred from the `@UI` classes | app packages to component-scan for the `@Service`/`@Component` beans your ViewModels inject |
 | `routes` | all discovered static routes | optional allowlist |
-| `skipParamRoutes` | `true` | skip routes with a `:param` segment |
+| `skipParamRoutes` | `true` | `true` skips `:param` routes; `false` bundles them as [templates](#param-route-templates) |
 | `assetsFrom` | vaadin-lit resources | directory holding `_index.html` + `assets/` |
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
@@ -92,7 +92,8 @@ GET /mateu/v3/bundle
 ```
 
 which returns the identical `manifest.json`, rendered from the app's real bean graph — so it has
-**full fidelity** (services/DB available, no skipped service-backed loads) and needs no build. Two uses:
+**full fidelity** (services/DB available, no skipped service-backed loads) and needs no build. Add
+`?params=true` to also include [`:param` route templates](#param-route-templates). Two uses:
 
 - **Point a static shell at it** — host a small `index.html` + the renderer assets on a CDN and set
   `<mateu-ui bundleUrl="https://your-app/mateu/v3/bundle">`. The shell fetches the bundle over CORS
@@ -111,6 +112,34 @@ the app module or in a separate UI module.
 (`micronaut.server.cors`, `quarkus.http.cors`, Helidon's CORS feature) — the same requirement as the
 main `/mateu/v3/sync` endpoint. Same-origin serving needs no CORS at all.
 
+## `:param` route templates
+
+A parameterised route (`/orders/:id`) can't be pre-rendered for one specific id, but if its
+**structure is param-independent** (a detail screen whose data is fetched client-side), it can be
+bundled once as a **template**:
+
+- Enable it: `mvn -Pbundle package -Dmateu.bundle.skipParamRoutes=false`, or hit the runtime endpoint
+  with `GET /mateu/v3/bundle?params=true`.
+- The exporter renders the route once with a placeholder param and stores the entry with a regex
+  (`^orders/([^/]+)$`) and the param names.
+- At runtime the client matches a concrete path (`/orders/42`) against the template, extracts the
+  params and **injects them into the screen's state** (`state.id = "42"`). Any `${state.id}` in a
+  client-side data URL (`@RestOptions`/`@RestData`) then resolves to the real value — so a per-id
+  detail screen works served from a static host with **no backend**.
+
+```java
+@UI("/item/:id")
+@Title("Item ${state.id}")
+public class Item {
+  private String id;                 // receives the real id from the path at runtime
+  @RestOptions(url = "https://api.example.com/posts?userId=${state.id}", valuePath = "id", labelPath = "title")
+  private String relatedPost;        // options fetched client-side for id=42
+}
+```
+
+A view whose load *hard-fails* on the placeholder (e.g. parses it as a number and reads a DB) is
+skipped, exactly like a static view that needs a live backend. See `demo/demo-static-bundle` (`/item/:id`).
+
 ## What works without a backend
 
 - **Presentational and form screens** — any declared `@UI`/`@Route` whose initial render is
@@ -123,7 +152,9 @@ main `/mateu/v3/sync` endpoint. Same-origin serving needs no CORS at all.
 
 - **Actions** — a button/toolbar/save (`actionId ≠ ""`) posts to the server. Without one it degrades
   with a clear "request failed" message. Bundle mode is for *viewing*; mutations need a backend.
-- **Parameterised routes** (`/orders/:id`) — can't be pre-rendered for a specific id; skipped.
+- **Parameterised routes** (`/orders/:id`) — skipped by default; can be bundled as
+  [templates](#param-route-templates) when the structure is param-independent (data fetched
+  client-side). A view that loads its entity server-side by id still needs a backend.
 - **Service-backed loads** — a ViewModel whose initial load needs a live DB / a bean the build can't
   construct is skipped at export time (logged) and stays backend-served.
 
