@@ -2174,6 +2174,121 @@ define([], () => {
   }
 
 
+  // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
+  // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
+  // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
+  // `mateu:bundle` goal) OR the runtime endpoint (GET /mateu/v3/bundle) renders each declared route's
+  // initial load (actionId '') to wire JSON and writes a manifest.json; when a bundle is present we
+  // answer route LOADS from it instead of POSTing to the server, so the VB app runs from static
+  // assets with no backend. Live data still comes from external endpoints; ACTIONS still need a
+  // backend (they fall through to the normal transport).
+  //
+  // Pure except loadBundleManifest, so test.mjs can exercise it in Node with a fetch double.
+
+  // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
+  let increments
+  // :param route TEMPLATES: a compiled matcher + param names + the pre-rendered structure.
+  let templates = []
+  // The in-flight manifest load (if any), so a route load can await it before hitting the backend.
+  let pending
+
+  /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors transport.callMateu and the web:
+   *  leading slash stripped, blank/root → `_no_route`. */
+  function toSyncPath(route) {
+    const r = route && route.startsWith('/') ? route.substring(1) : (route || '')
+    return r === '' ? '_no_route' : r
+  }
+
+  /** Load the bundle manifest once. A miss/malformed manifest silently leaves bundle mode OFF (the
+   *  app falls back to the backend at baseUrl). */
+  function loadBundleManifest(url, fetchImpl) {
+    const f = fetchImpl || (typeof fetch !== 'undefined' ? fetch : null)
+    pending = (async () => {
+      try {
+        if (!f) return
+        const res = await f(url)
+        if (!res || !res.ok) return
+        const manifest = await res.json()
+        const map = new Map()
+        const tpls = []
+        for (const e of (manifest.entries || [])) {
+          if (!e.ok || !e.json) continue
+          try {
+            const inc = JSON.parse(e.json)
+            if (e.routePattern) {
+              tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames || [], increment: inc })
+            } else {
+              map.set(e.syncPath, inc)
+            }
+          } catch (err) {
+            // skip a malformed entry, keep the rest
+          }
+        }
+        increments = map
+        templates = tpls
+      } catch (e) {
+        // leave bundle mode off
+      }
+    })()
+    return pending
+  }
+
+  /** Await the in-flight manifest load (if any) — so a route load doesn't race the fetch and hit the
+   *  backend before the bundle is ready. Resolves immediately when nothing is loading. */
+  const awaitBundle = () => pending || Promise.resolve()
+
+  /** True once a non-empty bundle has been loaded (exact routes or :param templates). */
+  const hasBundle = () =>
+    (increments !== undefined && increments.size > 0) || templates.length > 0
+
+  /** The pre-rendered increment for a route's sync path, or undefined (→ fall back to the backend). */
+  const getBundledIncrement = (syncPath) => (increments ? increments.get(syncPath) : undefined)
+
+  /** Match a concrete sync path (e.g. `orders/42`) against the :param TEMPLATES; on a hit, return the
+   *  pre-rendered structure with the extracted params INJECTED into every fragment's state and data —
+   *  so a `${state.<param>}` in a client-side data URL resolves to the real value. undefined = no hit. */
+  function matchBundledTemplate(syncPath) {
+    for (const t of templates) {
+      const m = t.regex.exec(syncPath)
+      if (!m) continue
+      const params = {}
+      t.paramNames.forEach((name, i) => { params[name] = m[i + 1] })
+      return {
+        ...t.increment,
+        // params LAST so the real value wins over the render-time placeholder
+        fragments: (t.increment.fragments || []).map((f) => ({
+          ...f,
+          state: { ...(f.state || {}), ...params },
+          data: { ...(f.data || {}), ...params },
+        })),
+      }
+    }
+    return undefined
+  }
+
+  /** The bundled increment for a route (exact match then :param template), re-targeted so its
+   *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
+   *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
+   *  target that island, so stamp the initiator (matches the web intercept). undefined = not bundled. */
+  function bundledIncrementFor(route, initiator) {
+    const syncPath = toSyncPath(route)
+    const inc = getBundledIncrement(syncPath) || matchBundledTemplate(syncPath)
+    if (!inc) return undefined
+    return {
+      ...inc,
+      fragments: (inc.fragments || []).map((f) =>
+        f.targetComponentId ? f : { ...f, targetComponentId: initiator || '' }),
+    }
+  }
+
+  /** Test hook: seed/clear the in-memory bundle directly. */
+  function __setBundleForTests(m, t) {
+    increments = m
+    templates = t || []
+    pending = undefined
+  }
+
+
   // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
   // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
   // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
@@ -2200,14 +2315,27 @@ define([], () => {
     return res.json()
   }
 
-  /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico. */
+  /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
+   *  Static-bundle: la shell NO se exporta (el bundle guarda cargas de ruta, no el __load__ del App),
+   *  así que en modo híbrido (bundle + backend) el menú sale del backend como siempre; pero si el
+   *  backend NO está (despliegue estático puro) y el bundle trae la ruta raíz, se cae a ella para que
+   *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
   async function bootstrapShell(base, initiator = 'shell') {
-    const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-    }, { actionId: '__load__' })
-    return res.json()
+    await awaitBundle()
+    try {
+      const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+      }, { actionId: '__load__' })
+      return res.json()
+    } catch (e) {
+      if (hasBundle()) {
+        const bundled = bundledIncrementFor('', initiator)
+        if (bundled) return bundled
+      }
+      throw e
+    }
   }
 
   /** Ruta INTERNA de un mediador/isla tras un flip de state._route: base del outbound +
@@ -2220,9 +2348,18 @@ define([], () => {
     return base + flip + query
   }
 
-  /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…). */
-  const loadRoute = (base, route, initiator = '', extra = {}) =>
-    callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+  /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
+   *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
+   *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
+   *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
+  const loadRoute = async (base, route, initiator = '', extra = {}) => {
+    await awaitBundle()
+    if (hasBundle()) {
+      const bundled = bundledIncrementFor(route, initiator)
+      if (bundled) return bundled
+    }
+    return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+  }
 
   /** Acción saliente: arma la request desde el CONTEXTO — "manda el estado que ya tienes".
    *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
@@ -2413,6 +2550,10 @@ define([], () => {
     pendingActions,
     setTransportHooks,
     DEFAULT_TIMEOUT_MS,
+    // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
+    loadBundleManifest,
+    hasBundle,
+    awaitBundle,
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,

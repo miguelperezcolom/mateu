@@ -37,6 +37,13 @@ define([
 
       const base = $application.constants.mateuBaseUrl;
 
+      // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
+      // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
+      // (awaitBundle) y responden desde el bundle cuando la ruta está — así las cargas van sin
+      // backend y, si el backend no está, hasta la shell cae a la ruta raíz bundleada.
+      const bundleUrl = $application.constants.mateuBundleUrl;
+      if (bundleUrl) bridge.loadBundleManifest(bundleUrl);
+
       // Resiliencia del transporte (mismo contrato que los renderers web, ver poc/resilience.mjs).
       // Se cablea ANTES del primer bootstrapShell para que hasta la carga inicial cuente: si el
       // backend está caído al arrancar, el usuario ve un mensaje en vez de una pantalla muerta.
