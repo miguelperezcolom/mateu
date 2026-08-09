@@ -90,8 +90,15 @@ which returns the identical `manifest.json`, rendered from the app's real bean g
 - **Snapshot it** — `curl https://your-app/mateu/v3/bundle > manifest.json` to produce the bundle in
   CI without the Maven goal.
 
-The result is computed once and cached (structure is stable within a deployment). The endpoint is
-provided by the MVC adapter today.
+The result is computed once and cached (structure is stable within a deployment). The endpoint ships
+in **every server adapter** — Spring MVC, Spring WebFlux, Micronaut, Quarkus and Helidon MP — and
+discovers routes from the live `RouteResolver` beans, so it works whether your `@UI` classes live in
+the app module or in a separate UI module.
+
+**Cross-origin note:** the Spring adapters (MVC/WebFlux) send `Access-Control-Allow-Origin` via
+`@CrossOrigin`. On the other adapters the endpoint relies on the app's own CORS configuration
+(`micronaut.server.cors`, `quarkus.http.cors`, Helidon's CORS feature) — the same requirement as the
+main `/mateu/v3/sync` endpoint. Same-origin serving needs no CORS at all.
 
 ## What works without a backend
 
