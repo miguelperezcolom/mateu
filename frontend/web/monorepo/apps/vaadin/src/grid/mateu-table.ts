@@ -182,19 +182,34 @@ export class MateuTable extends LitElement {
         if (!grid || this._resizeObserver) return
         this._resizeObserver = new ResizeObserver(() => {
             const h = grid.offsetHeight
-            // Only act on the 0 → visible transition: that is the stuck-empty case; steady-state
-            // resizes are already handled by the grid's own layout.
-            if (h > 0 && this._lastGridHeight === 0) {
-                requestAnimationFrame(() => {
-                    grid.recalculateColumnWidths()
-                    grid.requestContentUpdate()
-                    // notifyResize exists on older grid builds; harmless when absent.
-                    ;(grid as unknown as { notifyResize?: () => void }).notifyResize?.()
-                })
-            }
+            const changed = h !== this._lastGridHeight
             this._lastGridHeight = h
+            // A grid whose viewport settles to a real height AFTER the initial paint (which is what
+            // happens while the app shell/mediator re-mounts around it during SPA navigation) may
+            // have answered its dataProvider with 0 visible rows and be stuck in empty-state/loading
+            // even though the page data is present. Whenever the height changes to something > 0 and
+            // we DO have rows to show, force a fresh dataProvider round so the virtualizer refills.
+            if (h > 0 && changed && this._hasRowsToShow()) {
+                this._resyncGrid()
+            }
         })
         this._resizeObserver.observe(grid)
+    }
+
+    private _hasRowsToShow(): boolean {
+        return !!this.data?.[this.id]?.page?.content?.length
+    }
+
+    // Break the "0 height → 0 rows requested → stays loading → stays 0 height" deadlock: clear the
+    // dataProvider cache and re-measure once the layout has settled, so the grid re-requests its
+    // visible rows against a viewport that now has a real height.
+    private _resyncGrid = () => {
+        const grid = this.grid
+        if (!grid) return
+        grid.clearCache()
+        grid.recalculateColumnWidths()
+        grid.requestContentUpdate()
+        ;(grid as unknown as { notifyResize?: () => void }).notifyResize?.()
     }
 
     private _onActionRequested = (e: Event) => {
@@ -217,6 +232,16 @@ export class MateuTable extends LitElement {
         this.grid?.requestContentUpdate()
         this.grid?.recalculateColumnWidths()
         this.pagesRequested = []
+        // The clearCache above runs synchronously with this render — during an SPA shell re-mount
+        // the grid's viewport can still be 0-height at that instant, so it re-requests no rows and
+        // stays stuck in loading/empty-state. Re-run it once the layout has settled (two frames)
+        // when there is data to show, so it refills against the now-sized viewport.
+        if (this._hasRowsToShow()) {
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    if (this.grid && this._hasRowsToShow()) this._resyncGrid()
+                }))
+        }
     }
 
     @query("vaadin-grid")
