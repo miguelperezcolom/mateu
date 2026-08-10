@@ -96,3 +96,42 @@ describe('applyFragment', () => {
         expect(el.state).toEqual({ untouched: true })
     })
 })
+
+describe('willUpdate data preservation', () => {
+
+    // Reproduces the "listing goes blank on navigation" race: the row DATA arrives from the search
+    // straight into this component; a data-less route LOAD then re-renders the parent, which
+    // re-binds our .data with a fresh EMPTY object. That empty re-bind must not wipe the rows.
+    // A plain stand-in (like componentElement above): .data is a normal field, so assigning it does
+    // not run Lit's reactive setter. willUpdate keeps its super binding to LitElement's no-op.
+    const withProto = (over: Record<string, any>) => ({
+        data: {} as Record<string, any>,
+        _lastFragmentData: undefined as Record<string, any> | undefined,
+        willUpdate: ComponentElement.prototype.willUpdate,
+        ...over,
+    })
+
+    it('keeps the rows when a data-less parent re-render re-binds an empty data map', () => {
+        const rows = { crud: { page: { content: [1, 2] } } }
+        const el = withProto({ data: rows, _lastFragmentData: rows })
+        // Lit has already assigned the incoming empty object to .data before willUpdate runs;
+        // the previous value (the rows) travels in the changed map.
+        el.data = {}
+        el.willUpdate(new Map([['data', rows]]) as any)
+        expect(el.data).toBe(rows)
+    })
+
+    it('respects an authoritative empty data set by our own applyFragment (different view replaces this one)', () => {
+        const cleared = {}
+        const el = withProto({ data: cleared, _lastFragmentData: cleared })
+        el.willUpdate(new Map([['data', { old: 1 }]]) as any)
+        expect(el.data).toBe(cleared)
+    })
+
+    it('lets a non-empty parent re-render through unchanged', () => {
+        const fresh = { crud: { page: { content: [9] } } }
+        const el = withProto({ data: fresh, _lastFragmentData: { crud: { page: { content: [1] } } } })
+        el.willUpdate(new Map([['data', { crud: { page: { content: [1] } } }]]) as any)
+        expect(el.data).toBe(fresh)
+    })
+})
