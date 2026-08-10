@@ -31,6 +31,7 @@ import './mateu-workflow'
 import './mateu-form-editor'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'
+import { resolveComponentState } from './common'
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
@@ -688,11 +689,19 @@ export class MateuComponent extends ComponentElement {
             markPending(control)
         }
 
+        // A bubbled action (e.g. a @ViewToolbarButton on a crud's detail view, whose action is
+        // declared on the crud host rather than on the form) carries its originator's state in
+        // parameters.initiatorState — the form the button lives on, WITH its id. That is what the
+        // server's getComponentState(EntityType.class) must see, not this ancestor's own state (the
+        // crud list: filters/paging, no id). resolveComponentState prefers it when present; a direct
+        // action has no initiatorState and keeps its own state.
+        const componentState = resolveComponentState(this.state, detail.parameters)
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 route: this.route,
                 consumedRoute: this.consumedRoute,
-                componentState: {...this.state},
+                componentState,
                 parameters: detail.parameters ?? {},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
