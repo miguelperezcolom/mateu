@@ -1,6 +1,7 @@
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import {property} from "lit/decorators.js";
+import {PropertyValues} from "lit";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import {Page} from "@mateu/shared/apiClients/dtos/Page.ts";
 import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
@@ -39,6 +40,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     @property()
     data: Record<string, any> = {}
+
+    /** The exact `data` reference our own applyFragment last produced (see willUpdate). */
+    private _lastFragmentData?: Record<string, any>
 
     @property()
     appData: Record<string, any> = {}
@@ -200,6 +204,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 this.data = { ...this.data, ...fragment.data }
             }
 
+            // Remember the exact data reference our own applyFragment produced. willUpdate() uses
+            // it to tell an authoritative data change (this, from a fragment) apart from the parent
+            // re-render re-binding `.data` with a fresh object — see willUpdate().
+            this._lastFragmentData = this.data
+
             this.registerCustomEventListeners()
             const afterRenderHook = componentRenderer.getAfterRenderHook()
             if (afterRenderHook) {
@@ -207,6 +216,36 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             }
 
             this.requestUpdate()
+        }
+    }
+
+    /**
+     * Keep the rows a search delivered straight to THIS component when a data-less route LOAD
+     * re-renders the parent around it.
+     *
+     * A listing is fed by two independent round-trips: the route load (actionId "") answers the
+     * component STRUCTURE with an empty data map, and the search answers the ROW DATA as a
+     * data-only fragment targeting this component. The parent (`mateu-ux`) re-renders on the load
+     * and re-binds our `.data` property from its own (empty) fragment data — see
+     * renderComponent.ts `.data="${{...data}}"`. If that load response lands AFTER the search
+     * (network reordering during an SPA shell re-mount), the empty re-bind wipes the rows and the
+     * list goes blank.
+     *
+     * We distinguish the two data sources by object identity: a change to the exact reference our
+     * applyFragment last set is authoritative (rows, or an intentional clear when a DIFFERENT
+     * component replaces this one) and is respected as-is; a change to any other reference came
+     * from the parent re-render, and an EMPTY map from there must not clear data the search owns.
+     * This never grows unbounded — the search replaces its own key on every run — and never leaks
+     * across views, because a different route is a different element (route-derived ids).
+     */
+    protected willUpdate(changed: PropertyValues) {
+        super.willUpdate(changed)
+        if (!changed.has('data') || this.data === this._lastFragmentData) return
+        const incoming = this.data
+        const previous = changed.get('data') as Record<string, any> | undefined
+        if (incoming && Object.keys(incoming).length === 0
+            && previous && Object.keys(previous).length > 0) {
+            this.data = previous
         }
     }
 
