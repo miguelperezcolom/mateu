@@ -9,6 +9,7 @@ export const renderFormSection = (container: LitElement, component: ClientSideCo
     // Sections are plain divs in this renderer (no card chrome at all) — the DS renderers style
     // sections their own way (redwood-oj borders them, per the RDS section convention).
     return html`<div
+                id="${component.id ?? nothing}"
                 slot="${component.slot??nothing}"
                 style="width: 100%; margin-bottom: var(--lumo-space-m); ${component.style}"
                 class="${component.cssClasses}"
