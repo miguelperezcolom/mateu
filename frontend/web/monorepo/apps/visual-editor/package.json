@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "copy": "vite build && rm -rf ../../../../app/intellij-plugin/src/main/resources/visual-editor && mkdir -p ../../../../app/intellij-plugin/src/main/resources/visual-editor && cp -rf dist/* ../../../../app/intellij-plugin/src/main/resources/visual-editor/"
   },
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "typescript": "~7.0.2",
-    "vite": "^8.1.5"
+    "vite": "^8.1.5",
+    "vitest": "^3.2.4"
   }
 }

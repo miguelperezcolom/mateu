@@ -129,8 +129,10 @@ export function insertAt(doc: PageDoc, parentPath: NodePath, index: number, node
 
 /**
  * Move the node at `from` to child `index` of `toParentPath`. Guards against dropping a node into
- * itself/its own subtree, and adjusts the target index when the removal shifts it (same parent,
- * source before target). Returns the node's new path, or null when the move is illegal.
+ * itself/its own subtree. Removing the source shifts the siblings after it down by one, so the
+ * target path is adjusted for that shift — both a step of `toParentPath` that passes through the
+ * source's parent AFTER it, and the final `index` when they share a parent. Returns the node's new
+ * path, or null when the move is illegal.
  */
 export function moveNode(doc: PageDoc, from: NodePath, toParentPath: NodePath, index: number): NodePath | null {
     if (from.length === 0) return null
@@ -139,11 +141,17 @@ export function moveNode(doc: PageDoc, from: NodePath, toParentPath: NodePath, i
     if (!node) return null
     const fromParent = from.slice(0, -1)
     const fromIndex = from[from.length - 1]
-    const sameParent = fromParent.length === toParentPath.length && fromParent.every((v, i) => toParentPath[i] === v)
     removeAt(doc, from)
+    // The source's removal shifts everything after it in fromParent down by one. If toParentPath
+    // descends through fromParent at a later position, that step is now off by one.
+    const toParent = [...toParentPath]
+    if (isPrefix(fromParent, toParent) && toParent.length > fromParent.length && toParent[fromParent.length] > fromIndex) {
+        toParent[fromParent.length] -= 1
+    }
+    const sameParent = fromParent.length === toParent.length && fromParent.every((v, i) => toParent[i] === v)
     let target = index
     if (sameParent && fromIndex < target) target -= 1
-    return insertAt(doc, toParentPath, target, node)
+    return insertAt(doc, toParent, target, node)
 }
 
 /** Move the child at `path` by `delta` (+1 down / -1 up) within its parent. */
