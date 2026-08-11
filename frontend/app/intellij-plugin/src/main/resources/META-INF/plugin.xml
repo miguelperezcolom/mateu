@@ -16,16 +16,10 @@
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
-        <!-- Visual-builder component palette (insert components into a page YAML). The icon is
-             required by the new UI — an iconless tool window shows no stripe button. -->
-        <toolWindow id="Mateu Components" anchor="left" icon="/icons/mateu.svg"
-                    factoryClass="io.mateu.ijp.contract.MateuPaletteToolWindowFactory"/>
-        <!-- Visual-builder property panel (edit the component under the caret). -->
-        <toolWindow id="Mateu Properties" anchor="bottom" icon="/icons/mateu.svg"
-                    factoryClass="io.mateu.ijp.contract.MateuPropertiesToolWindowFactory"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
-        <!-- Visual-builder live preview: a split editor for specs/ui/*.yaml pages. -->
-        <fileEditorProvider implementation="io.mateu.ijp.contract.YamlPagePreviewProvider"/>
+        <!-- Cross-IDE web visual editor (JCEF) for specs/ui/*.yaml pages: palette + WYSIWYG canvas
+             + properties in one view. Successor to the retired Swing split-preview. -->
+        <fileEditorProvider implementation="io.mateu.ijp.visualeditor.MateuVisualEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
         <frameTitleBuilder implementation="io.mateu.ijp.plugin.MateuFrameTitleBuilder"/>
         <applicationService serviceInterface="com.intellij.openapi.fileEditor.impl.EditorEmptyTextPainter"

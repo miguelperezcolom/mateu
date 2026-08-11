@@ -36,7 +36,7 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     if (metadata.fullWidth) style += ' width: 100%;'
     style += component.style ?? ''
     return html`
-        <div style="${style}" class="${component.cssClasses}" slot="${component.slot || nothing}">
+        <div id="${component.id ?? nothing}" style="${style}" class="${component.cssClasses}" slot="${component.slot || nothing}">
             ${component.children?.map(child => renderFormComponent(metadata, container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
@@ -97,7 +97,7 @@ const flexLayout = (direction: 'row' | 'column', container: LitElement, componen
     if (crossAlign) style += ` align-items: ${crossAlign};`
     style += component.style ?? ''
     return html`
-        <div style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
@@ -116,7 +116,7 @@ export const renderSplitLayout = (container: LitElement, component: Component, b
     if (metadata.fullWidth) style += ' width: 100%;'
     style += component.style ?? ''
     return html`
-        <div style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             <div style="flex: 1; min-width: 0; min-height: 0;">${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
             <div style="flex: 1; min-width: 0; min-height: 0;">${renderComponent(container, component.children![1], baseUrl, state, data, appState, appData)}</div>
         </div>
@@ -129,7 +129,7 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
     const hasDetail = !!(data?.hasDetail) || !!staticDetail
     const detailContent = dynamicDetail ?? staticDetail
     return html`
-        <div style="display: flex; gap: var(--lumo-space-m, 1rem); ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="display: flex; gap: var(--lumo-space-m, 1rem); ${component.style ?? ''}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             <div style="flex: 1; min-width: 0;">${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
             ${hasDetail && detailContent
                 ? html`<div style="flex: 1; min-width: 0;">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>`
@@ -144,7 +144,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
     if ((component.metadata as TabLayout).fullWidth) style += ' width: 100%;'
     const activeIndex = Math.max(0, (component.children ?? []).findIndex(child => ((child as ClientSideComponent).metadata as Tab).active))
     return html`
-        <div style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="${style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${component.children?.map((child, index) => {
                 const cs = child as ClientSideComponent
                 const rawLabel = (cs.metadata as Tab).label

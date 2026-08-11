@@ -1,0 +1,41 @@
+{
+  "name": "mateu-visual-editor",
+  "displayName": "Mateu Visual Editor",
+  "description": "Visual editor for Mateu YAML pages — palette + WYSIWYG canvas + properties, in one view. Shares the exact web bundle with the IntelliJ (JCEF) host.",
+  "version": "0.0.1",
+  "publisher": "mateu",
+  "license": "Apache-2.0",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "mateu.visualEditor",
+        "displayName": "Mateu Visual Editor",
+        "selector": [{ "filenamePattern": "**/specs/ui/*.yaml" }, { "filenamePattern": "**/specs/ui/*.yml" }],
+        "priority": "default"
+      }
+    ],
+    "configuration": {
+      "title": "Mateu Visual Editor",
+      "properties": {
+        "mateu.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:8594",
+          "description": "Mateu backend base URL (serves the reserved __preview__ / __contract__ sync actions)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}
