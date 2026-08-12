@@ -1237,6 +1237,8 @@
       }, {
         "$ref" : "#/$defs/FormSubSection"
       }, {
+        "$ref" : "#/$defs/Fragment"
+      }, {
         "$ref" : "#/$defs/FullWidth"
       }, {
         "$ref" : "#/$defs/Funnel"
@@ -2678,6 +2680,19 @@
           "type" : "string"
         },
         "cssClasses" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Fragment" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Fragment"
+        },
+        "ref" : {
           "type" : "string"
         }
       }

@@ -324,6 +324,7 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/client-side-logic' },
 						{ slug: 'java-ui-definition/yaml-ui-definition' },
 						{ slug: 'java-ui-definition/route-registry' },
+						{ slug: 'java-ui-definition/fragments' },
 						{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
 						{
 							label: 'Components',
