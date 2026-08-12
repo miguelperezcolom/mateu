@@ -66,6 +66,31 @@ This is the **options** surface. The same `RestDataSource` descriptor also power
 all four are shipped.
 :::
 
+## Serving with no Mateu server — what you are signing up for
+
+A [statically deployed](/java-user-manual/build/static-bundle/) mount has no Mateu server behind it,
+which is the point — and it has a consequence worth stating plainly rather than discovering:
+
+:::caution[The deal]
+With no Mateu server, **your endpoints are exposed directly to the browser**. They must accept CORS
+from your static host, and the only authentication available is one a browser can hold.
+
+And `proxy = true` — the mode that fixes exactly that — **is unavailable there**, because it works by
+routing the fetch through the Mateu server. It is missing precisely where you would most want it.
+:::
+
+So the choice is real, not a detail:
+
+| | direct (no server) | `proxy = true` (server) |
+|---|---|---|
+| Who fetches | the browser | the Mateu server |
+| CORS | your endpoint must allow the static host | not involved |
+| Secrets | whatever the browser can hold | `${secret.X}` injected server-side |
+| Works statically | yes | no |
+
+A public or read-only API is a fine fit for the direct mode. An API that needs a real credential is
+not — and a screen that talks to one should stay backend-served.
+
 ## Server-proxy mode (`proxy = true`) — CORS & auth hardening
 
 By default the **browser** fetches the endpoint directly, so the endpoint must be CORS-friendly and
