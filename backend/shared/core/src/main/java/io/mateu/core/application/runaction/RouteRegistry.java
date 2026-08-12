@@ -113,7 +113,7 @@ public class RouteRegistry {
   }
 
   /** The authored half. A missing or unparseable file yields an empty table, never a failure. */
-  RouteTable authoredFrom(ClassLoader classLoader) {
+  public RouteTable authoredFrom(ClassLoader classLoader) {
     try (InputStream is = classLoader.getResourceAsStream(ROUTES_YAML)) {
       if (is == null) {
         return RouteTable.empty();

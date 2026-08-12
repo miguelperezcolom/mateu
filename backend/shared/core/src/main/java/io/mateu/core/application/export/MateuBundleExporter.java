@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.RouteTable;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
@@ -57,9 +59,29 @@ public final class MateuBundleExporter {
     }
   }
 
-  /** The whole bundle: metadata + one entry per requested route. */
+  /**
+   * The whole bundle: metadata, one entry per requested route, and the mount's authored route
+   * registry.
+   *
+   * @param routes the entries from {@code specs/ui/routes.yaml}. They travel with the bundle
+   *     because in a statically deployed mount there is no server left to ask what a URL means —
+   *     the renderer has to resolve it from shipped data. Only the AUTHORED half is shipped: the
+   *     derived half is route→class, and a class is exactly what a bundle with no backend cannot
+   *     use.
+   */
   public record BundleManifest(
-      String baseUrl, String generatedAt, boolean staticOnly, List<BundleEntry> entries) {}
+      String baseUrl,
+      String generatedAt,
+      boolean staticOnly,
+      List<BundleEntry> entries,
+      RouteTable routes) {
+
+    /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
+    public BundleManifest(
+        String baseUrl, String generatedAt, boolean staticOnly, List<BundleEntry> entries) {
+      this(baseUrl, generatedAt, staticOnly, entries, RouteTable.empty());
+    }
+  }
 
   /** A {@code :name} route segment (the param marker). */
   private static final java.util.regex.Pattern PARAM_SEGMENT =
@@ -122,6 +144,16 @@ public final class MateuBundleExporter {
         .map(RouteRegistrations.RouteRef::route)
         .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
         .forEach(routes::add);
+    // Routes that exist ONLY in routes.yaml would otherwise never be exported: they have no
+    // annotation and therefore no index entry and no bean. A registry entry with no view model is
+    // skipped here on purpose — there is nothing on the server to pre-render for it, and the
+    // renderer builds it from the shipped table plus its definition.
+    var authored = new RouteRegistry().authoredFrom(cl);
+    authored.routes().stream()
+        .filter(entry -> entry.viewModel() != null && !entry.viewModel().isBlank())
+        .map(entry -> "/" + entry.route())
+        .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
+        .forEach(routes::add);
     var entries = new ArrayList<BundleEntry>();
     for (String route : routes) {
       entries.add(
@@ -129,7 +161,8 @@ public final class MateuBundleExporter {
               ? exportRoute(baseUrl, route)
               : exportTemplate(baseUrl, route));
     }
-    return new BundleManifest(baseUrl, java.time.Instant.now().toString(), onlyStatic, entries);
+    return new BundleManifest(
+        baseUrl, java.time.Instant.now().toString(), onlyStatic, entries, authored);
   }
 
   /**
