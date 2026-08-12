@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reads the routes an app declares from the framework's compiled indexes ({@code
@@ -17,6 +18,7 @@ import java.util.Map;
  * value|parentRoute|uis}, entries joined by {@code ;}). De-duped by route, first wins. Reused by
  * the static-bundle exporter (build-time Maven goal AND the runtime bundle endpoint).
  */
+@Slf4j
 public final class RouteRegistrations {
 
   /** A declared route and the class it resolves to. */
@@ -32,6 +34,34 @@ public final class RouteRegistrations {
   /** Whether a route can be pre-rendered without a runtime value (no {@code :param} segment). */
   public static boolean isStatic(String route) {
     return route != null && !route.contains(":");
+  }
+
+  /**
+   * Claims a route for a class, reporting a real COLLISION instead of resolving it silently.
+   *
+   * <p>First-wins is kept — changing it now would move which class answers a route in apps that
+   * already work — but "first" depends on classpath order, which is not stable between builds or
+   * between a dev machine and CI. So two jars claiming the same route is a bug that used to resolve
+   * differently on different days, with nothing said. Now it is named, with both classes, so it can
+   * be fixed rather than discovered.
+   *
+   * <p>Re-declaring the same route for the same class is not a collision: an app can end up reading
+   * the same index twice (a jar present in two classloaders), and that is harmless.
+   */
+  private static void claim(Map<String, RouteRef> out, String route, String className) {
+    var existing = out.get(route);
+    if (existing == null) {
+      out.put(route, new RouteRef(route, className));
+      return;
+    }
+    if (!existing.className().equals(className)) {
+      log.warn(
+          "route collision: '{}' is claimed by {} and by {}. Classpath order decides which one"
+              + " answers, and that order is not stable — give one of them a different route.",
+          route,
+          existing.className(),
+          className);
+    }
   }
 
   private static void readResource(
@@ -53,7 +83,7 @@ public final class RouteRegistrations {
           if (ui) {
             var p = kv.get("path");
             if (p != null && !p.isBlank()) {
-              out.putIfAbsent(p, new RouteRef(p, cls));
+              claim(out, p, cls);
             }
           } else {
             var routes = kv.get("routes");
@@ -61,7 +91,7 @@ public final class RouteRegistrations {
               for (String entry : routes.split(";")) {
                 var value = entry.split("\\|", -1)[0];
                 if (value != null && !value.isBlank()) {
-                  out.putIfAbsent(value, new RouteRef(value, cls));
+                  claim(out, value, cls);
                 }
               }
             }
