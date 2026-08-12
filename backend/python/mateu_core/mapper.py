@@ -637,6 +637,10 @@ class ReflectionMapper:
             page_type=page_type,
             peer_nav=self.peer_nav(instance),
             timestamp=self.timestamp_of(cls, instance),
+            overline=self._opt_t(class_flag(cls, "__mateu_overline__", None)),
+            title_placeholder=self._opt_t(
+                class_flag(cls, "__mateu_title_placeholder__", None)
+            ),
         )
         page = ClientSideComponent(
             metadata=page_meta,

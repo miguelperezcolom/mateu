@@ -61,6 +61,38 @@ final class PageMetadataExtractor {
     return null;
   }
 
+  /**
+   * The line of text shown above the page title (Redwood's {@code overlineText}), from {@link
+   * OverlineSupplier} or the {@code @Overline} annotation — supplier first, so a runtime value wins
+   * over a declared one. {@code null} when the page declares neither.
+   */
+  static String getOverline(Object instance) {
+    if (instance instanceof OverlineSupplier overlineSupplier) {
+      return TranslatorContext.translate(overlineSupplier.overline());
+    }
+    if (MetaAnnotations.isPresent(instance.getClass(), Overline.class)) {
+      return TranslatorContext.translate(
+          MetaAnnotations.find(instance.getClass(), Overline.class).value());
+    }
+    return null;
+  }
+
+  /**
+   * What the header shows while the title is still empty (Redwood's {@code pageTitlePlaceholder}),
+   * from {@link TitlePlaceholderSupplier} or the {@code @TitlePlaceholder} annotation — supplier
+   * first. {@code null} when the page declares neither.
+   */
+  static String getTitlePlaceholder(Object instance) {
+    if (instance instanceof TitlePlaceholderSupplier titlePlaceholderSupplier) {
+      return TranslatorContext.translate(titlePlaceholderSupplier.titlePlaceholder());
+    }
+    if (MetaAnnotations.isPresent(instance.getClass(), TitlePlaceholder.class)) {
+      return TranslatorContext.translate(
+          MetaAnnotations.find(instance.getClass(), TitlePlaceholder.class).value());
+    }
+    return null;
+  }
+
   static String getFavicon(Object instance) {
     if (MetaAnnotations.isPresent(instance.getClass(), FavIcon.class)) {
       return MetaAnnotations.find(instance.getClass(), FavIcon.class).value();

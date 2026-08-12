@@ -74,7 +74,7 @@ page-header elements shared by every template are documented once in
 |---|---|---|
 | `pageTitle` (hero title) | `heroTitle()`, or `@WelcomeBanner(title=…)` on any page | ✅ |
 | `descriptionText` | `heroSubtitle()` / `@WelcomeBanner(subtitle=…)` | ✅ |
-| `overlineText` (small text above the title) | — | — |
+| `overlineText` (small text above the title) | `@Overline("Reservations")`, or `OverlineSupplier` when it depends on runtime state | ✅ |
 | `primaryAction` / `secondaryAction` / `secondaryActions` | `Button` fields; the fluent `Button` carries `iconOnLeft`/`iconOnRight`, `disabled` and `actionId` | ✅ |
 | `backgroundColor`: 9 dark tones + `auto` | — the Redwood/VB bridge rotates tones on its own (`mateuWelcomeTheme`), but the archetype cannot declare one, so the other renderers do not follow | — |
 | `illustrationBackground` + `illustrationForeground` (two illustration layers) | `heroImage()` — a single background image with a dark overlay | 🟡 |

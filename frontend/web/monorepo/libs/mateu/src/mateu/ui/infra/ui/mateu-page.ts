@@ -392,7 +392,8 @@ export class MateuPage extends LitElement {
      *  the accent strip only shows on pages WITHOUT one. */
     private _showHeaderBand(): boolean {
         const metadata = this.component?.metadata as PageComponent
-        const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.toolbar?.length)
+        const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.overline
+            || (metadata as any)?.titlePlaceholder || (metadata as any)?.toolbar?.length)
         const hasCrud = !!this.component?.children?.some(child =>
             (child as ClientSideComponent).metadata?.type === ComponentMetadataType.Crud)
         return hasHeader && !hasCrud && !this._hasWelcomeBanner()

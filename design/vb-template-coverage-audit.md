@@ -78,7 +78,7 @@ Estado de los 14 deltas priorizados en §3 del análisis, **reverificado hoy sol
 | 6 | Calendar: vistas week/day/list + template slots de evento | — | ❌ abierto (doc ya lo declara no construido) |
 | 7 | Data management: paneles acoplados (`innerEnd`/`outerEnd`/…) | — | ❌ abierto |
 | 8 | Switcher de contexto/registro generalizado | `RecordSwitcher` | ❌ abierto |
-| 9 | Header: `overlineText` + `pageTitlePlaceholder` | ambos | ❌ abierto (dos strings) |
+| 9 | Header: `overlineText` + `pageTitlePlaceholder` | ambos | ✅ **cerrado 2026-08-12** — `@Overline`/`OverlineSupplier` y `@TitlePlaceholder`/`TitlePlaceholderSupplier` → `PageDto.overline`/`.titlePlaceholder`, pintados por el header compartido; paridad .NET/Python |
 | 10 | Eventos `before*` cancelables | `spBeforeNext` | ❌ abierto |
 | 11 | Affordances de sección (edit/add/viewMore) | — | ❌ abierto |
 | 12 | Welcome: paleta de tonos (`heroTone`) | `heroTone` | ❌ abierto |
@@ -158,9 +158,13 @@ típico, no a saber qué se puede configurar. Consecuencias concretas:
 En orden de coste creciente:
 
 1. ~~**Referencia de parámetros y slots por template**~~ — ✅ **hecho el 2026-08-12**, las 14 guías.
-2. **Cerrar el #9** *(dos strings)*: `overlineText` y `pageTitlePlaceholder` en el header canónico.
-   Ahora que las tablas existen, aparece marcado como — en `welcome-page` y en
-   `advanced-create-and-edit`, que son exactamente los dos sitios donde Redwood lo usa.
+2. ~~**Cerrar el #9**~~ — ✅ **hecho el 2026-08-12**. `@Overline` / `OverlineSupplier` y
+   `@TitlePlaceholder` / `TitlePlaceholderSupplier` (supplier primero, anotación como fallback: la
+   regla de autoría de la casa), viajando en `PageDto.overline` / `.titlePlaceholder` y pintados por
+   `mateu-content-header`. El placeholder es **placeholder, no default**: el wire lo emite tal como
+   se declara y es el renderer quien lo suprime en cuanto hay título, para que el wire siga siendo
+   descriptivo. Paridad .NET/Python. Tests: `PageOverlineSyncTest` (6), `test_page_overline.py` (4),
+   `PageOverlineTests.cs` (4, **sin verificar** — no hay SDK de .NET en esta máquina).
 3. **Decidir el #1** *(la gramática `displayOptions`)*, que es la pieza de la que cuelgan varios de
    los demás y la que más se nota al venir de Redwood. Es una decisión de API antes que una
    implementación.

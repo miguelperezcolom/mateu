@@ -20,6 +20,13 @@ public record PageView(
     String favicon,
     String title,
     String subtitle,
+    /** The small line of text shown above the title (Redwood's {@code overlineText}). */
+    String overline,
+    /**
+     * What the header shows while {@link #title()} is still empty (Redwood's {@code
+     * pageTitlePlaceholder}) — the create-mode affordance, e.g. "New booking…".
+     */
+    String titlePlaceholder,
     List<Breadcrumb> breadcrumbs,
     Component avatar,
     @Singular("contentItem") List<Component> content,

@@ -309,6 +309,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Fabs = fabs,
             PeerNav = PeerNavOf(instance),
             Timestamp = TimestampOf(type, instance),
+            Overline = OptT(type.Find<OverlineAttribute>()?.Value),
+            TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
         };
         var page = new ClientSideComponentDto(
             pageMeta, null, content, compact ? "--mateu-compact:1" : null, null, null);

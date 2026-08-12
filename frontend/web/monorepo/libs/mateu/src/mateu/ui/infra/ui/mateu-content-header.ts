@@ -210,7 +210,14 @@ export class MateuContentHeader extends LitElement {
         const divider = navButtons.length > 0 && actionButtons.length > 0
             ? html`<span class="toolbar-divider"></span>`
             : nothing
+        // Redwood header text elements. `titlePlaceholder` is a PLACEHOLDER, not a default: it only
+        // stands in while there is no title, and never overrides one.
+        const overline = (metadata as any).overline as string | undefined
+        const titlePlaceholder = metadata.title
+            ? undefined
+            : ((metadata as any).titlePlaceholder as string | undefined)
         const hasMainHeader = metadata.avatar || metadata.title || metadata.subtitle
+            || overline || titlePlaceholder
             || (metadata.kpis?.length > 0) || (metadata.header?.length > 0) || toolbar.length > 0
             || !!peerNav
         const level = metadata.level ?? 0
@@ -242,9 +249,12 @@ export class MateuContentHeader extends LitElement {
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center; flex-wrap: wrap;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
-                        ${metadata?.title && level == 0?html`
+                        ${overline ? html`<div class="page-overline">${unsafeHTML(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
+                        ${(metadata?.title || titlePlaceholder) && level == 0?html`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
-                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>
+                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${metadata?.title
+                                    ? unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
+                                    : html`<span class="page-title-placeholder">${unsafeHTML(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
                                     ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))
                                     : nothing}
@@ -301,6 +311,26 @@ export class MateuContentHeader extends LitElement {
            section/card already provides top spacing, so suppress this header's own padding-top. */
         :host([data-nested]) {
             padding-top: 0;
+        }
+
+        /* Redwood overline: the small line above the title — a category or parent context.
+           Quieter and smaller than the title, with the same ellipsis discipline. */
+        .page-overline {
+            color: var(--lumo-secondary-text-color, #6b7280);
+            font-size: var(--lumo-font-size-s, .875rem);
+            line-height: 1.2;
+            margin-block-end: .15rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Redwood pageTitlePlaceholder: stands in for a title that does not exist yet (create
+           mode). Rendered inside the title heading so it keeps its size, but muted so it never
+           reads as a real title. */
+        .page-title-placeholder {
+            color: var(--lumo-tertiary-text-color, #9ca3af);
+            font-weight: inherit;
         }
 
         .breadcrumb-link {

@@ -108,7 +108,7 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | `displayOptions.contextualInfoSticky` | `@Aside(sticky = …)` for the side panel; the header facts are not stickyable | 🟡 |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
 | `endOpened: inner \| none` | — the aside is always shown when declared | — |
-| `pageTitlePlaceholder` (title placeholder in create mode, e.g. "New booking…") | — | — |
+| `pageTitlePlaceholder` (title placeholder in create mode, e.g. "New booking…") | `@TitlePlaceholder("New booking…")`, or `TitlePlaceholderSupplier`; it stands in only while there is no title | ✅ |
 | `displayOptions {versionHistory, undo, redo}` + `spVersionHistory`/`spUndo`/`spRedo` | ⚪ page-level version history and undo/redo are Fusion Apps concerns, out of scope by decision (the [Undo](/ux-patterns/undo/) pattern covers action-level undo) | ⚪ |
 | `feedback {customFeedback[], acknowledgmentMessage, pageVersion}` + `openFeedback` | ⚪ the embedded survey is out of scope by decision | ⚪ |
 

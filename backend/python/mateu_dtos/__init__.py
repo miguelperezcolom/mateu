@@ -100,6 +100,12 @@ class PageMetadata(Wire):
     peer_nav: "PeerNav | None" = None
     #: The page's "last updated" timestamp shown in the header; None when the page declares none.
     timestamp: str | None = None
+    #: The small line of text shown ABOVE the title (the Redwood overlineText header element);
+    #: None when the page declares none.
+    overline: str | None = None
+    #: What the header shows while ``title`` is still empty (the Redwood pageTitlePlaceholder
+    #: header element). A placeholder, NOT a default: renderers must ignore it once a title exists.
+    title_placeholder: str | None = None
 
 
 class CardMetadata(Wire):

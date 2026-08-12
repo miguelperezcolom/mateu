@@ -835,6 +835,31 @@ def subtitle(value: str) -> Callable[[type], type]:
     return deco
 
 
+def overline(value: str) -> Callable[[type], type]:
+    """The small line of text shown ABOVE the page title (the Oracle Redwood ``overlineText``
+    header element) — a category, a parent context or a step marker. Mirrors Java's ``@Overline``.
+    """
+
+    def deco(cls: type) -> type:
+        cls.__mateu_overline__ = value
+        return cls
+
+    return deco
+
+
+def title_placeholder(value: str) -> Callable[[type], type]:
+    """What the header shows while the title is still empty (the Oracle Redwood
+    ``pageTitlePlaceholder`` header element) — the create-mode affordance, e.g. "New booking…".
+    A placeholder, not a default: it never overrides a title. Mirrors Java's ``@TitlePlaceholder``.
+    """
+
+    def deco(cls: type) -> type:
+        cls.__mateu_title_placeholder__ = value
+        return cls
+
+    return deco
+
+
 def app(
     title_: str,
     variant: str = "",
