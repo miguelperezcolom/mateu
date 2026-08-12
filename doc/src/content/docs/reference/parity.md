@@ -27,7 +27,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
-| [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the annotation-derived table) | ✅ | — | — |
+| [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the derived table). Python mirrors the model, the matching, the precedence and the definition lookup; it has no static-bundle exporter, so nothing ships the table to a browser there | ✅ | — | ✅ |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
 | Planning board (tape chart: resources × days, colored blocks, move/select actions) | ✅ | ✅ | ✅ |
