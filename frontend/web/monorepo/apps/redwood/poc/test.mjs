@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import { composeInnerRoute, loadRoute, bootstrapShell } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
-  bundledIncrementFor, __setBundleForTests,
+  bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
 } from './bundle.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
@@ -825,6 +825,94 @@ test('bundle: bundledIncrementFor re-apunta el targetComponentId nulo al initiat
   __setBundleForTests(new Map([['home', { fragments: [{ targetComponentId: null, component: {} }] }]]))
   const inc = bundledIncrementFor('/home', 'isla1')
   assert.equal(inc.fragments[0].targetComponentId, 'isla1')
+  __setBundleForTests(undefined)
+})
+
+// ── registro de rutas embarcado (el routes.yaml del mount, dentro del manifest) ───────────────
+// La precedencia tiene que ser IDÉNTICA a la del servidor y a la de libs/mateu; si no, la misma
+// ruta se comportaría distinto según el renderer o según haya backend:
+//   fixed > path > lo que ya trae el increment > defaults
+const inc1 = (state) => ({ fragments: [{ state, data: {} }] })
+const st = (inc) => (inc && inc.fragments && inc.fragments[0].state) || {}
+
+test('registro: un increment cuya ruta no está en el registro se devuelve INTACTO', () => {
+  __setBundleForTests(undefined, [], [{ route: 'orders' }])
+  const inc = inc1({ a: 1 })
+  assert.equal(applyRouteParams('customers', inc), inc, 'misma referencia: sin copia ni cambio')
+  __setBundleForTests(undefined)
+})
+
+test('registro: un parámetro fijado pisa lo que ya trae el increment', () => {
+  __setBundleForTests(undefined, [], [{ route: 'tickets/open', fixedParams: { status: 'open' } }])
+  assert.equal(st(applyRouteParams('tickets/open', inc1({ status: 'all' }))).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: un default cede ante lo que el increment ya trae, y rellena lo que falta', () => {
+  __setBundleForTests(undefined, [], [
+    { route: 'tickets', defaultParams: { status: 'open', page: 1 } },
+  ])
+  const state = st(applyRouteParams('tickets', inc1({ status: 'closed' })))
+  assert.equal(state.status, 'closed')
+  assert.equal(state.page, 1)
+  __setBundleForTests(undefined)
+})
+
+test('registro: un fijado gana también al parámetro del path con su mismo nombre', () => {
+  __setBundleForTests(undefined, [], [
+    { route: 'tickets/:status', fixedParams: { status: 'open' } },
+  ])
+  assert.equal(st(applyRouteParams('tickets/all', inc1({}))).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: una ruta parametrizada NO se traga a su hermana estática', () => {
+  // orders/:id se declara ANTES a propósito: el matching no puede depender del orden.
+  __setBundleForTests(undefined, [], [
+    { route: 'orders/:id', viewModel: 'Detail' },
+    { route: 'orders/new', viewModel: 'New' },
+  ])
+  assert.equal(getRouteEntry('orders/new').viewModel, 'New')
+  assert.equal(getRouteEntry('orders/42').viewModel, 'Detail')
+  __setBundleForTests(undefined)
+})
+
+test('registro: la raíz del mount es la entrada con ruta vacía', () => {
+  __setBundleForTests(undefined, [], [{ route: '', viewModel: 'Home' }])
+  assert.equal(getRouteEntry('_no_route').viewModel, 'Home')
+  __setBundleForTests(undefined)
+})
+
+test('registro: se aplica al responder una ruta bundleada', () => {
+  __setBundleForTests(
+    new Map([['tickets/open', inc1({ status: 'all' })]]), [],
+    [{ route: 'tickets/open', fixedParams: { status: 'open' } }])
+  assert.equal(st(getBundledIncrement('tickets/open')).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: se aplica ENCIMA de la plantilla, así el fijado sigue ganando al path', () => {
+  __setBundleForTests(undefined,
+    [{ regex: /^tickets\/([^/]+)$/, paramNames: ['status'], increment: inc1({}) }],
+    [{ route: 'tickets/:status', fixedParams: { status: 'open' } }])
+  assert.equal(st(bundledIncrementFor('/tickets/all', '')).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: expone la entrada para llegar a su definición', () => {
+  __setBundleForTests(undefined, [], [{ route: 'about', definition: 'about.yaml' }])
+  assert.equal(getRouteEntry('about').definition, 'about.yaml')
+  assert.equal(getRouteEntry('about').viewModel, undefined)
+  __setBundleForTests(undefined)
+})
+
+atest('registro: loadBundleManifest lee manifest.routes.routes', async () => {
+  const manifest = {
+    entries: [{ syncPath: 'tickets/open', ok: true, json: JSON.stringify(inc1({ status: 'all' })) }],
+    routes: { routes: [{ route: 'tickets/open', fixedParams: { status: 'open' } }] },
+  }
+  await loadBundleManifest('/manifest.json', async () => ({ ok: true, json: async () => manifest }))
+  assert.equal(st(getBundledIncrement('tickets/open')).status, 'open')
   __setBundleForTests(undefined)
 })
 
