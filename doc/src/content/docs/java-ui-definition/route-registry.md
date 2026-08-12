@@ -88,6 +88,35 @@ federated domains can therefore each have their own `orders` screen without coll
 only has to hold *within* a mount, and between mount base paths (two `@UI` classes claiming the same
 base path already fail at startup).
 
+## IntelliSense
+
+The registry ships its own JSON Schema, generated from the `RouteEntry` record so it cannot drift
+from what the loader accepts:
+
+```
+https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+```
+
+Point your editor at it for completion, field validation and tooltips while editing `routes.yaml`.
+In VS Code, add to `.vscode/settings.json`:
+
+```json
+{
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json": "**/specs/ui/routes.yaml"
+  }
+}
+```
+
+Or per file, as the first line:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+```
+
+The definitions themselves have their own schema — see
+[YAML UI Definition](/java-ui-definition/yaml-ui-definition/#intellisense-setup).
+
 ## Precedence
 
 Two producers feed one table: the annotation processors emit an entry for every `@UI`/`@Route` class

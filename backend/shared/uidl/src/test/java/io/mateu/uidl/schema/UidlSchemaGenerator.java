@@ -291,12 +291,53 @@ public final class UidlSchemaGenerator {
   }
 
   /**
+   * The schema of a mount's route registry ({@code specs/ui/routes.yaml}), derived from {@link
+   * io.mateu.uidl.data.RouteEntry} the same way — so the file that binds URLs to definitions gets
+   * the same editor validation and completion as the definitions themselves.
+   *
+   * <p>Both shapes the loader accepts are described: a {@code routes:} envelope and a bare list.
+   */
+  public static ObjectNode generateRoutes() {
+    var generator = new UidlSchemaGenerator();
+    generator.defineValueRecord(io.mateu.uidl.data.RouteEntry.class);
+
+    var entryRef = MAPPER.createObjectNode().put("$ref", "#/$defs/RouteEntry");
+    var list = MAPPER.createObjectNode().put("type", "array");
+    list.set("items", entryRef);
+
+    var envelope = MAPPER.createObjectNode();
+    envelope.put("type", "object");
+    envelope.putObject("properties").set("routes", list);
+    envelope.putArray("required").add("routes");
+
+    var root = MAPPER.createObjectNode();
+    root.put("$schema", "http://json-schema.org/draft-07/schema#");
+    root.put("$id", "https://mateu.io/uidl/routes-schema.json");
+    root.put("title", "Mateu route registry");
+    root.put(
+        "description",
+        "JSON Schema for a mount's routes.yaml — the registry binding each URL to a definition, a"
+            + " view model and its parameters. Routes are relative to the mount. GENERATED from"
+            + " RouteEntry by UidlSchemaGenerator — do not edit by hand.");
+    var oneOf = root.putArray("oneOf");
+    oneOf.add(envelope);
+    oneOf.add(list);
+    var defsNode = root.putObject("$defs");
+    generator.defs.forEach(defsNode::set);
+    return root;
+  }
+
+  /**
    * Writes the schema to disk. Used by the schema test when run with {@code -Duidl.schema.write}.
    */
   public static void write(Path target) {
+    write(target, generate());
+  }
+
+  static void write(Path target, ObjectNode schema) {
     try {
       Files.writeString(
-          target, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(generate()) + "\n");
+          target, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(schema) + "\n");
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

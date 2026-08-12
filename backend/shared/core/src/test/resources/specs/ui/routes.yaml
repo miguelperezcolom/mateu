@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
 # The mount's route registry, next to the definitions it routes to.
 #
 # Routes are RELATIVE to the mount's base path (the one declared by @UI): an entry `orders/:id`

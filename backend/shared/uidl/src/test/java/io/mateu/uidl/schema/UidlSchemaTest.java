@@ -30,6 +30,45 @@ class UidlSchemaTest {
     return Path.of(System.getProperty("user.dir")).resolve("uidl-schema.json");
   }
 
+  /** The route registry's schema, alongside it. */
+  private static Path routesSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("routes-schema.json");
+  }
+
+  @Test
+  void theCheckedInRoutesSchemaMatchesTheRouteEntryRecord() throws IOException {
+    var generated = UidlSchemaGenerator.generateRoutes();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(routesSchemaFile(), generated);
+      return;
+    }
+
+    assertThat(MAPPER.readTree(Files.readString(routesSchemaFile())))
+        .as("routes-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  @Test
+  void theRoutesSchemaDescribesBothShapesTheLoaderAccepts() {
+    // A routes.yaml may be a `routes:` envelope or a bare list; a schema that knew only one would
+    // flag valid files as errors in the editor.
+    var oneOf = UidlSchemaGenerator.generateRoutes().get("oneOf");
+    assertThat(oneOf).hasSize(2);
+    assertThat(oneOf.get(0).get("type").asText()).isEqualTo("object");
+    assertThat(oneOf.get(1).get("type").asText()).isEqualTo("array");
+  }
+
+  @Test
+  void theRoutesSchemaCoversEveryFieldOfARouteEntry() {
+    var properties =
+        UidlSchemaGenerator.generateRoutes().get("$defs").get("RouteEntry").get("properties");
+    assertThat(properties.fieldNames())
+        .toIterable()
+        .containsExactlyInAnyOrder(
+            "route", "definition", "viewModel", "fixedParams", "defaultParams");
+  }
+
   @Test
   void theCheckedInSchemaMatchesTheComponentCatalog() throws IOException {
     var generated = UidlSchemaGenerator.generate();
