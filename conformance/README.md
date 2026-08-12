@@ -60,6 +60,15 @@ Regenerating the goldens (Java only, and a reviewed act):
 cd backend/shared/core && mvn test -Dtest=WireConformanceTest -Dconformance.write=true
 ```
 
+## Known port differences
+
+Some cases cannot be mirrored member for member, and that is information, not an obstacle:
+
+- **.NET has no property-level KPI.** `[Kpi]` is valid on a class or a method; Java's `@KPI` is a
+  field marker. The `page-header` fixture therefore omits it on .NET rather than pretending.
+
+Recording these is the point: a difference nobody wrote down is a difference somebody rediscovers.
+
 ## Adding a case
 
 1. Add the fixture to all three servers, with the same semantics.

@@ -59,6 +59,16 @@ MODULE = sys.modules[__name__]
 VOLATILE = {"id", "structureHash", "generatedAt"}
 
 
+def _is_default(value) -> bool:
+    """Whether a value carries no information.
+
+    Servers legitimately differ on whether they SEND a member at its default or omit it — Java emits
+    ``false``/``0``/``""``, the ports omit them — and a renderer cannot tell the two apart. Comparing
+    them would make the corpus report dozens of differences that mean nothing.
+    """
+    return value is None or value == [] or value == {} or value is False or value == 0 or value == ""
+
+
 def normalise(node):
     """Mirrors the Java normaliser: drop volatile and empty members, sort keys."""
     if isinstance(node, dict):
@@ -67,8 +77,8 @@ def normalise(node):
             if key in VOLATILE:
                 continue
             value = normalise(node[key])
-            if value is None or value == [] or value == {}:
-                continue  # absent and empty mean the same thing to a renderer
+            if _is_default(value):
+                continue  # absent and default mean the same thing to a renderer
             out[key] = value
         return out
     if isinstance(node, list):

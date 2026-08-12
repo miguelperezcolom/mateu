@@ -1,5 +1,4 @@
 {
-  "appendBanners" : false,
   "commands" : [ {
     "data" : "Simple form",
     "type" : "SetWindowTitle"
@@ -17,65 +16,28 @@
                   "children" : [ {
                     "children" : [ {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "string",
-                        "description" : "",
                         "fieldId" : "name",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Name",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
-                        "stepButtonsVisible" : false,
                         "stereotype" : "regular",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     }, {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "integer",
-                        "description" : "",
                         "fieldId" : "age",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Age",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
                         "stepButtonsVisible" : true,
                         "stereotype" : "regular",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     } ],
                     "metadata" : {
@@ -85,65 +47,27 @@
                   }, {
                     "children" : [ {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "bool",
-                        "description" : "",
                         "fieldId" : "active",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Active",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
-                        "stepButtonsVisible" : false,
                         "stereotype" : "regular",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     }, {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "date",
-                        "description" : "",
                         "fieldId" : "birthDate",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Birth date",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
-                        "stepButtonsVisible" : false,
                         "stereotype" : "regular",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     } ],
                     "metadata" : {
@@ -153,18 +77,10 @@
                   }, {
                     "children" : [ {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "string",
-                        "description" : "",
                         "fieldId" : "colour",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Colour",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "options" : [ {
                           "label" : "red",
                           "value" : "red"
@@ -176,21 +92,10 @@
                           "value" : "blue"
                         } ],
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
-                        "stepButtonsVisible" : false,
                         "stereotype" : "select",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     } ],
                     "metadata" : {
@@ -201,21 +106,13 @@
                   "metadata" : {
                     "autoResponsive" : true,
                     "expandColumns" : true,
-                    "expandFields" : false,
-                    "labelsAside" : false,
                     "maxColumns" : 2,
                     "type" : "FormLayout"
                   },
-                  "style" : "",
                   "type" : "ClientSide"
                 } ],
                 "metadata" : {
-                  "fullWidth" : false,
-                  "margin" : false,
-                  "padding" : false,
-                  "spacing" : false,
-                  "type" : "VerticalLayout",
-                  "wrap" : false
+                  "type" : "VerticalLayout"
                 },
                 "style" : "width: 100%;",
                 "type" : "ClientSide"
@@ -229,22 +126,17 @@
             "type" : "Card",
             "variants" : [ "outlined" ]
           },
-          "style" : "",
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "level" : 0,
           "pageTitle" : "Simple form",
           "pageType" : "form",
-          "readOnly" : false,
           "subtitle" : "Every basic field kind",
           "title" : "Simple form",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
-      "confirmOnNavigationIfDirty" : false,
-      "cssClasses" : "",
       "initialData" : {
         "active" : true,
         "age" : 36,
@@ -255,8 +147,6 @@
       "pageType" : "form",
       "route" : "_empty",
       "serverSideType" : "io.mateu.core.application.WireConformanceTest$SimpleForm",
-      "staticView" : false,
-      "style" : "",
       "type" : "ServerSide"
     },
     "state" : {

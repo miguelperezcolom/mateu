@@ -1,5 +1,4 @@
 {
-  "appendBanners" : false,
   "commands" : [ {
     "data" : "Requisition 4471",
     "type" : "SetWindowTitle"
@@ -17,34 +16,15 @@
                   "children" : [ {
                     "children" : [ {
                       "metadata" : {
-                        "autofocus" : false,
-                        "bold" : false,
                         "colspan" : 1,
                         "dataType" : "string",
-                        "description" : "",
                         "fieldId" : "notes",
-                        "formColumns" : 0,
-                        "inlineEditing" : false,
                         "label" : "Notes",
-                        "mainFilter" : false,
-                        "multiline" : false,
-                        "observed" : false,
                         "optionsColumns" : 1,
-                        "propertyRow" : false,
-                        "readOnly" : false,
-                        "required" : false,
-                        "rightAligned" : false,
                         "sliderMax" : 100,
-                        "sliderMin" : 0,
-                        "step" : 0.0,
-                        "stepButtonsVisible" : false,
                         "stereotype" : "regular",
-                        "style" : "",
-                        "treeLeavesOnly" : false,
-                        "type" : "FormField",
-                        "useButtonForDetail" : false
+                        "type" : "FormField"
                       },
-                      "style" : "",
                       "type" : "ClientSide"
                     } ],
                     "metadata" : {
@@ -55,21 +35,13 @@
                   "metadata" : {
                     "autoResponsive" : true,
                     "expandColumns" : true,
-                    "expandFields" : false,
-                    "labelsAside" : false,
                     "maxColumns" : 2,
                     "type" : "FormLayout"
                   },
-                  "style" : "",
                   "type" : "ClientSide"
                 } ],
                 "metadata" : {
-                  "fullWidth" : false,
-                  "margin" : false,
-                  "padding" : false,
-                  "spacing" : false,
-                  "type" : "VerticalLayout",
-                  "wrap" : false
+                  "type" : "VerticalLayout"
                 },
                 "style" : "width: 100%;",
                 "type" : "ClientSide"
@@ -83,7 +55,6 @@
             "type" : "Card",
             "variants" : [ "outlined" ]
           },
-          "style" : "",
           "type" : "ClientSide"
         } ],
         "metadata" : {
@@ -92,11 +63,9 @@
             "title" : "Amount",
             "type" : "KPIDto"
           } ],
-          "level" : 0,
           "overline" : "Requisitions",
           "pageTitle" : "Page header",
           "pageType" : "form",
-          "readOnly" : false,
           "subtitle" : "Pending approval",
           "timestamp" : "Last updated 2026-07-20 12:00",
           "title" : "Requisition 4471",
@@ -104,23 +73,17 @@
         },
         "type" : "ClientSide"
       } ],
-      "confirmOnNavigationIfDirty" : false,
-      "cssClasses" : "",
       "initialData" : {
         "amount" : "1,240 €",
-        "notes" : "",
         "updatedAt" : "2026-07-20 12:00"
       },
       "pageType" : "form",
       "route" : "_empty",
       "serverSideType" : "io.mateu.core.application.WireConformanceTest$PageHeader",
-      "staticView" : false,
-      "style" : "",
       "type" : "ServerSide"
     },
     "state" : {
       "amount" : "1,240 €",
-      "notes" : "",
       "updatedAt" : "2026-07-20 12:00"
     }
   } ]

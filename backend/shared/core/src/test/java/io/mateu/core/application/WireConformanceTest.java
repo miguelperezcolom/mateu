@@ -120,10 +120,8 @@ class WireConformanceTest {
           continue;
         }
         var value = normalise(node.get(name));
-        if (value.isNull()
-            || (value.isArray() && value.isEmpty())
-            || (value.isObject() && value.isEmpty())) {
-          continue; // absent and empty mean the same thing to a renderer
+        if (isDefault(value)) {
+          continue; // absent and default mean the same thing to a renderer
         }
         out.set(name, value);
       }
@@ -135,6 +133,21 @@ class WireConformanceTest {
       return out;
     }
     return node;
+  }
+
+  /**
+   * Whether a value carries no information. Servers legitimately differ on whether they SEND a
+   * member at its default or omit it — Java emits {@code false}/{@code 0}/{@code ""}, the ports
+   * omit them — and a renderer cannot tell the two apart. Comparing them would make the corpus
+   * report dozens of differences that mean nothing, and a corpus that reports noise gets ignored.
+   */
+  private static boolean isDefault(JsonNode value) {
+    return value.isNull()
+        || (value.isArray() && value.isEmpty())
+        || (value.isObject() && value.isEmpty())
+        || (value.isBoolean() && !value.asBoolean())
+        || (value.isNumber() && value.asDouble() == 0d)
+        || (value.isTextual() && value.asText().isEmpty());
   }
 
   private static JsonNode actual(String route) {
