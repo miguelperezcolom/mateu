@@ -32,6 +32,26 @@
     </dependencyManagement>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!--
+              The Figma ⇄ Mateu contract, packaged into the published jar so consumers read ONE
+              artifact instead of keeping their own copy. It had already drifted: the mirrors in
+              modux were 15 components behind (the whole Page Templates category), so its Figma
+              importer could not handle those frames at all. The file stays where it is authored —
+              design/figma/contract.json — and is copied in at build time rather than duplicated
+              here, because a copy in the repo would just be a fourth mirror.
+            -->
+            <resource>
+                <directory>${project.basedir}/../../../design/figma</directory>
+                <targetPath>META-INF/mateu</targetPath>
+                <includes>
+                    <include>contract.json</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
