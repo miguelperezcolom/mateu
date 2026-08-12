@@ -24,6 +24,13 @@ Place YAML files under `src/main/resources/specs/ui/`, mirroring the route struc
 | `demo/hello` | `src/main/resources/specs/ui/demo/hello.yaml` |
 | `admin/users/list` | `src/main/resources/specs/ui/admin/users/list.yaml` |
 
+:::note
+This convention ties a page's layout to its URL, so one definition cannot serve two routes. To name
+the file explicitly — and to bind parameters or reuse one layout across several routes — declare the
+route in a [`routes.yaml` registry](/java-ui-definition/route-registry/) instead. The convention
+stays as the default when no entry mentions the route.
+:::
+
 ## File format
 
 Every YAML file must have a root `type` field that names the component to render. All nested components also need a `type`.

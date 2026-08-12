@@ -176,3 +176,9 @@ the bundle for the loads it has and falls through to the backend for everything 
 
 - The manifest carries only screen **structure** (never business data), so nothing stale is baked in;
   data is always fetched live.
+- The manifest also carries the mount's [route registry](/java-ui-definition/route-registry/) when
+  the app declares one — a statically deployed mount has no server left to ask what a URL means, so
+  the renderer resolves routes and their parameters from shipped data. Only the authored half
+  travels: the annotation-derived half is route→class, and a class is what a bundle with no backend
+  cannot use. Routes that exist only in `routes.yaml` are exported too; an entry with no view model
+  is skipped, since there is nothing on the server to pre-render for it.

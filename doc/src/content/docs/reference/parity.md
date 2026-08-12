@@ -27,6 +27,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
+| [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the annotation-derived table) | ✅ | — | — |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
 | Planning board (tape chart: resources × days, colored blocks, move/select actions) | ✅ | ✅ | ✅ |
