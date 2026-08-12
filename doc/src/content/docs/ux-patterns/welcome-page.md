@@ -62,6 +62,35 @@ accent color strip only shows on pages WITHOUT a welcome banner** — so on any 
 one (this annotation, or a `HeroSection` anywhere in the content, like `Welcome` and
 `HeroSearch`), the Redwood renderer suppresses the strip automatically.
 
+## Redwood parameter and slot reference
+
+What the Redwood `welcome-page` template exposes, and what Mateu gives you for it. The canonical
+page-header elements shared by every template are documented once in
+[Page templates](/ux-patterns/page-templates/); this table covers what is specific to this one.
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `pageTitle` (hero title) | `heroTitle()`, or `@WelcomeBanner(title=…)` on any page | ✅ |
+| `descriptionText` | `heroSubtitle()` / `@WelcomeBanner(subtitle=…)` | ✅ |
+| `overlineText` (small text above the title) | — | — |
+| `primaryAction` / `secondaryAction` / `secondaryActions` | `Button` fields; the fluent `Button` carries `iconOnLeft`/`iconOnRight`, `disabled` and `actionId` | ✅ |
+| `backgroundColor`: 9 dark tones + `auto` | — the Redwood/VB bridge rotates tones on its own (`mateuWelcomeTheme`), but the archetype cannot declare one, so the other renderers do not follow | — |
+| `illustrationBackground` + `illustrationForeground` (two illustration layers) | `heroImage()` — a single background image with a dark overlay | 🟡 |
+| `themedImage: pebbles \| none` | ⚪ an Oracle illustration asset; design-system-specific by nature | ⚪ |
+| `displayOptions.imageStretch: none \| full` | — | — |
+| `displayOptions.mobileImage` | — | — |
+| `displayOptions.responsivePadding` | — | — |
+| `displayOptions.inFlowBack` + `spInFlowBack` | back/cancel affordances approximate it; no explicit in-flow back | 🟡 |
+| **Slot** default (tiles under the hero) | component fields annotated `@Panel`, on a responsive grid | ✅ |
+| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
+| `spPrimaryAction` / `spSecondaryAction {actionId}` | the `@Action` method matching the button's `actionId`; return a `URI` to navigate | ✅ |
+
+One anatomy rule from Redwood that Mateu applies automatically: **the accent colour strip only
+shows on pages without a welcome banner**, so any page carrying one — this archetype,
+`@WelcomeBanner`, or a `HeroSection` anywhere in the content — suppresses the strip.
+
 ## When to use it
 
 Use a welcome page as the entry route of flows used by **occasional or first-time users** (self-service portals, guided processes, seasonal tasks). Power users working the same screen all day are better served by a [Dashboard](/ux-patterns/dashboard) or by the operational screen itself.
