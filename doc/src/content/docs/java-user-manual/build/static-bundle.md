@@ -82,6 +82,23 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `assetsFrom` | vaadin-lit resources | directory holding `_index.html` + `assets/` |
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
+| `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
+
+### Knowing which bundle you are looking at
+
+The manifest carries a `structureHash`: a stable identity of **what the bundle contains**,
+independent of when it was built. `generatedAt` cannot answer "is this the same bundle?" — it
+differs on every build, and a stale bundle looks as fresh as any other.
+
+That matters because a bundle is derivation frozen in time. Deployed to a CDN it can outlive the
+model it came from, and in a hybrid deploy a client can be answering loads from build N while posting
+actions to a backend at N+1, with nothing anywhere saying so. Comparing hashes is what makes the
+bundle a **cache** rather than a fork — same hash, same screens — and gives a deploy check something
+to assert.
+
+The hash ignores entry order (route discovery walks beans and indexes, so the order is not stable
+between builds) and changes when a route stops being bundled, which is exactly the regression that
+otherwise leaves only a line in a build log.
 
 ## Serving the bundle at runtime (no build step)
 
