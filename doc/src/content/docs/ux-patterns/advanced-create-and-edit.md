@@ -86,6 +86,35 @@ entity's fields with `@Section`/`@Toc`/`@KPI`/`@Timestamp` and you get the advan
 generated edit route. Use a plain `@UI` form (as above) when the transaction isn't a single-entity
 persist.
 
+## Redwood parameter and slot reference
+
+What the Redwood `advanced-create-edit` template and its reusable `header-create-edit` expose, and
+what Mateu gives you for them. The canonical page-header elements shared by every template are
+documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| **Slot** `main` | the form body: `@Section` groups, zones, the fluent `FormField` | ✅ |
+| **Slot** `detail` (contextual side panel) | `@Aside` on a component-holder field → `ContentLayout` (`position`/`width`/`sticky`) | ✅ |
+| **Slot** `innerEnd` | — a second docked region is not available | — |
+| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
+| Section index | `@Toc` — the sticky section index; a Mateu addition with no Redwood prop | ✅ |
+| `badge` | `@BadgeInHeader` | ✅ |
+| `timestamp` | `@Timestamp("Last updated")` | ✅ |
+| `contextualInfo` key/value facts | `@KPI` fields | ✅ |
+| `displayOptions {save, saveAndClose, next: on \| off \| unconfigured, bottomActions}` | `AutoCrud` gates and label overrides cover save/cancel; there is no single tri-state options bag, and `saveAndClose`/`next` are not built | 🟡 |
+| `displayOptions.contextualInfoSticky` | `@Aside(sticky = …)` for the side panel; the header facts are not stickyable | 🟡 |
+| `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
+| `endOpened: inner \| none` | — the aside is always shown when declared | — |
+| `pageTitlePlaceholder` (title placeholder in create mode, e.g. "New booking…") | — | — |
+| `displayOptions {versionHistory, undo, redo}` + `spVersionHistory`/`spUndo`/`spRedo` | ⚪ page-level version history and undo/redo are Fusion Apps concerns, out of scope by decision (the [Undo](/ux-patterns/undo/) pattern covers action-level undo) | ⚪ |
+| `feedback {customFeedback[], acknowledgmentMessage, pageVersion}` + `openFeedback` | ⚪ the embedded survey is out of scope by decision | ⚪ |
+
+Unsaved-changes handling — the dirty guard and, on `AutoCrud`, optimistic locking via `@Version` —
+is covered by the framework rather than by a template prop.
+
 ## Parity
 
 Everything here is composition of pieces that render on every renderer and have .NET/Python parity —
