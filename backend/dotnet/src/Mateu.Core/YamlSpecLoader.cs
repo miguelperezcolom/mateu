@@ -26,9 +26,17 @@ public sealed class YamlSpecLoader
     private readonly ConcurrentDictionary<string, Spec> _byRoute = new();
     private readonly string _dir;
 
-    public YamlSpecLoader(string? dir = null)
-        => _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
-                       ?? Path.Combine("specs", "ui");
+    /// <summary>When a route's registry entry names a <c>definition</c>, THAT file is the layout —
+    /// instead of the <c>&lt;route&gt;.yaml</c> convention, which ties a screen's layout to its URL
+    /// and so prevents one definition from serving several routes.</summary>
+    private readonly RouteRegistry _registry;
+
+    public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null)
+    {
+        _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
+                   ?? Path.Combine("specs", "ui");
+        _registry = registry ?? new RouteRegistry(_dir);
+    }
 
     /// <summary>The parsed spec for a route (<c>specs/ui/&lt;route&gt;.yaml</c>), or null when there is none.</summary>
     public Spec? LoadSpec(string? route)
@@ -39,12 +47,20 @@ public sealed class YamlSpecLoader
 
     private Spec Parse(string normalizedRoute)
     {
-        var path = Path.Combine(_dir, normalizedRoute + ".yaml");
+        var entry = _registry.Match(normalizedRoute)?.Entry;
+        var declared = string.IsNullOrWhiteSpace(entry?.Definition) ? null : entry!.Definition;
+        var path = Path.Combine(_dir, declared ?? normalizedRoute + ".yaml");
         if (!File.Exists(path)) return None;
         try
         {
             var (modelView, layout) = YamlComponentBuilder.ParseSpec(File.ReadAllText(path));
-            return layout is null ? None : new Spec(modelView, layout);
+            if (layout is null) return None;
+            // The definition is layout; the binding to a view model belongs to the route entry. A
+            // YAML that still declares modelView: keeps working and wins — but a definition shared
+            // by several routes must NOT name one, or it could only ever serve the class it names.
+            if (string.IsNullOrWhiteSpace(modelView) && !string.IsNullOrWhiteSpace(entry?.ViewModel))
+                modelView = entry!.ViewModel;
+            return new Spec(modelView, layout);
         }
         catch { return None; }
     }
