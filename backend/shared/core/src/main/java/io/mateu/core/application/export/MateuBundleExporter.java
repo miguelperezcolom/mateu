@@ -83,6 +83,40 @@ public final class MateuBundleExporter {
         String baseUrl, String generatedAt, boolean staticOnly, List<BundleEntry> entries) {
       this(baseUrl, generatedAt, staticOnly, entries, RouteTable.empty());
     }
+
+    /**
+     * A stable identity for what this bundle CONTAINS, independent of when it was built.
+     *
+     * <p>A bundle is derivation frozen in time: deployed to a CDN it can outlive the model it came
+     * from, and in a hybrid deploy a client can be answering loads from build N while posting
+     * actions to a backend at N+1 — with nothing anywhere saying so. {@code generatedAt} does not
+     * help: two builds of the same source differ, and a stale bundle looks as fresh as any other.
+     *
+     * <p>This makes the bundle a <em>cache</em> rather than a fork: two manifests with the same
+     * hash carry the same screens, and a mismatch against the backend's is something a client or a
+     * deploy check can act on.
+     */
+    public String structureHash() {
+      var material =
+          entries.stream()
+              .sorted(java.util.Comparator.comparing(e -> String.valueOf(e.route())))
+              .map(
+                  e ->
+                      e.route() + "\u0000" + e.ok() + "\u0000" + (e.json() == null ? "" : e.json()))
+              .collect(java.util.stream.Collectors.joining("\u0001"));
+      try {
+        var digest = java.security.MessageDigest.getInstance("SHA-256");
+        var bytes = digest.digest(material.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        var out = new StringBuilder(bytes.length * 2);
+        for (var b : bytes) {
+          out.append(Character.forDigit((b >> 4) & 0xF, 16))
+              .append(Character.forDigit(b & 0xF, 16));
+        }
+        return out.toString();
+      } catch (java.security.NoSuchAlgorithmException e) {
+        throw new IllegalStateException("SHA-256 is required by the JLS", e);
+      }
+    }
   }
 
   /** A {@code :name} route segment (the param marker). */
