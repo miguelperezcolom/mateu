@@ -39,6 +39,7 @@ public class RouteRegistry {
 
   private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
   private volatile RouteTable table;
+  private volatile RouteTable authored;
 
   /** The merged table, loaded once. */
   public RouteTable table() {
@@ -58,6 +59,31 @@ public class RouteRegistry {
   /** The entry answering a concrete path, with the path parameters read off it. */
   public Optional<RouteTable.Match> match(String path) {
     return table().match(path);
+  }
+
+  /**
+   * The authored half alone, cached. Route resolution consults only this one: the derived half is
+   * the same information the {@code RoutedClassProvider}s already carry, and they carry it better
+   * (they also serve the CRUD sub-routes). The merged {@link #table()} is what the static bundle
+   * ships, where there are no providers to ask.
+   */
+  public RouteTable authored() {
+    var loaded = authored;
+    if (loaded == null) {
+      synchronized (this) {
+        loaded = authored;
+        if (loaded == null) {
+          loaded = authoredFrom(classLoader());
+          authored = loaded;
+        }
+      }
+    }
+    return loaded;
+  }
+
+  private static ClassLoader classLoader() {
+    var contextClassLoader = Thread.currentThread().getContextClassLoader();
+    return contextClassLoader == null ? RouteRegistry.class.getClassLoader() : contextClassLoader;
   }
 
   RouteTable load(ClassLoader classLoader) {

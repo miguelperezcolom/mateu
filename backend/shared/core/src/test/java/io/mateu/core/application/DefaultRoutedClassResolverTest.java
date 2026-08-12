@@ -3,6 +3,7 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.RoutedClassProvider;
@@ -41,7 +42,8 @@ class DefaultRoutedClassResolverTest {
 
   @Test
   void aBrokenProviderIsSkippedInsteadOfFailingResolution() {
-    var resolver = new DefaultRoutedClassResolver(List.of(new BrokenProvider()));
+    var resolver =
+        new DefaultRoutedClassResolver(List.of(new BrokenProvider()), new RouteRegistry());
     // resolve() consults the (throwing) provider first, so command is never reached for it.
     assertThatCode(() -> resolver.resolve("/anything", null)).doesNotThrowAnyException();
     assertThat(resolver.resolve("/anything", null)).isEmpty();
@@ -51,7 +53,9 @@ class DefaultRoutedClassResolverTest {
 
   @Test
   void aValidProviderStillResolvesAlongsideABrokenOne() {
-    var resolver = new DefaultRoutedClassResolver(List.of(new BrokenProvider(), new OkProvider()));
+    var resolver =
+        new DefaultRoutedClassResolver(
+            List.of(new BrokenProvider(), new OkProvider()), new RouteRegistry());
     // matchesAbsolute matches command.baseUrl()+route() against the @UI value, so a minimal command
     // (baseUrl "" + route "/ok") is enough — the broken provider must not stop it being found.
     var command =

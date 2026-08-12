@@ -37,3 +37,19 @@ routes:
 
   - route: orders/new
     viewModel: com.acme.NewOrder
+
+  # ── Entries pointing at REAL classes, used by RoutedClassResolverRegistryTest ────────────────
+  # Two routes over one view model, told apart by a pinned parameter.
+  - route: tickets/open
+    viewModel: io.mateu.core.application.RegistryRoutedViews$Tickets
+    fixedParams:
+      status: open
+
+  - route: tickets/closed
+    viewModel: io.mateu.core.application.RegistryRoutedViews$Tickets
+    fixedParams:
+      status: closed
+
+  # Points at a class that is not on the classpath: must fall through, not blow up.
+  - route: broken
+    viewModel: com.acme.NotOnTheClasspath
