@@ -903,17 +903,52 @@ Mismo patrón que 9.1: hoy es una lista de casos descubiertos y debería ser una
 | 11.2 | Codegen de controladores (puerto generado / adaptador a mano) | alto | medio | solo después de 11.1 y 11.3; la regla de no mezclar es innegociable |
 | 8b | "La IA escribe la declaración" como dirección | medio | **alto** | lo más diferenciador y lo menos desarrollado; depende de 6.1–6.3 y 10.1 |
 
-Tres observaciones sobre el orden:
+**9.2 y 10.3 encabezan aunque no sean lo más barato**: son las dos únicas filas del documento que
+tocan una frontera de **seguridad** — estructura personalizada servida a quien no le corresponde, y
+credenciales expuestas al navegador — y no calidad o velocidad. El resto puede esperar; estas dos se
+pagan con un incidente.
 
-- **9.2 y 10.3 encabezan aunque no sean lo más barato**: son las dos únicas filas del documento que
-  tocan una frontera de **seguridad** — estructura personalizada servida a quien no le corresponde,
-  y credenciales expuestas al navegador — y no calidad o velocidad. El resto puede esperar; estas
-  dos se pagan con un incidente.
-- Las filas 6.1, 6.2, 3 y 8 son **texto, no código**, y suman probablemente un día de trabajo entre
-  todas. Buena parte de lo que este documento identifica como riesgo se mitiga escribiendo cosas
-  que ya sabes pero que solo están en tu cabeza — que es precisamente el problema cuando el
-  proyecto pasa de herramienta propia a producto (sección 0.2).
-- Las dos grandes (2 y 4) son la misma idea aplicada a los dos lados de la cintura: **convertir
-  "seguir a Java" en "cumplir la spec"**, para que la extensión la pueda hacer alguien que no seas
-  tú. Son la condición para que "cuanta más gente se beneficie, mejor" (sección 0.2) no dependa de
-  tu ancho de banda.
+---
+
+## Síntesis: cuatro ideas, no veinte tareas
+
+De capacidad, Mateu está completo y — lo más notable — **coherente**: no es una acumulación de
+features sino una derivación. Como el wire es la interfaz (0.1), la federación sale gratis (13.1),
+el bundle estático es posible (9), el OpenAPI es derivable (11.1) y el embedding funciona. Todo sale
+de una sola decisión arquitectónica.
+
+Lo que no está cerrado no es capacidad: es **la distancia entre lo que el producto puede hacer y lo
+que puede prometer de forma verificable**. Y esa distancia es casi toda de escribir y verificar, no
+de construir.
+
+Releída entera, la tabla de arriba aparenta más de veinte tareas, pero son **cuatro ideas
+repetidas**:
+
+| | Idea | Dónde aparece | Coste |
+|---|---|---|---|
+| **A** | Convertir una decisión implícita en algo que **falla en CI** | 2, 3, 9.3a, 11.3, 12.4, 13.3 | un proyecto, no seis |
+| **B** | **Escribir la regla** que hoy solo está en la cabeza del mantenedor | 6.1, 6.2, 9.2, 10.3, 13.4a, 13.4b | ~un día, sin tocar código |
+| **C** | Convertir un punto de extensión en **superficie de contribución** | 4, 7 | alto, y es el multiplicador de alcance |
+| **D** | Decidir **posicionamiento** | 12.3 (10.4 quedó disuelta) | una decisión, no una tarea |
+
+Dos observaciones que ordenan el trabajo:
+
+- **A es un solo proyecto.** Una espina dorsal de verificación con la misma forma que
+  `PageFingerprint` — que ya existe y ya funciona — aplicada al wire, a la matriz de capacidades, al
+  conjunto bundleable, al contrato de API y a la convergencia de las tres puertas. Seis filas de la
+  tabla son la misma pieza vista desde seis sitios.
+- **B es casi gratis y es lo que separa herramienta de producto.** Siete reglas sostienen hoy el
+  diseño y ninguna está escrita: la regla de autoría (6.1), el techo de la inferencia (6.2), la
+  política de bundle frente a identidad (9.2), el trato del modo sin servidor (10.3), la
+  compatibilidad entre jars federados (13.3), la colisión de rutas (13.4a) y el contrato de
+  embedding (13.4b). Para una herramienta propia basta con tenerlas en la cabeza; desde el momento
+  en que hay terceros (0.2), son exactamente lo que falta.
+
+Y las dos grandes de C son la misma idea aplicada a los dos lados de la cintura: **convertir "seguir
+a Java" en "cumplir la spec"**, para que la extensión la pueda hacer alguien que no sea el
+mantenedor. Son la condición para que *"cuanta más gente se beneficie, mejor"* (0.2) deje de
+depender de su ancho de banda.
+
+**Resumen en una línea:** la ingeniería va por delante del producto, y la brecha está en el lado
+barato — que es también el que es fácil posponer indefinidamente, porque nada se rompe hoy por no
+hacerlo.
