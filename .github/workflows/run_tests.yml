@@ -21,6 +21,11 @@ jobs:
       - name: Bundles are not older than their source
         run: scripts/check-bundle-freshness.sh
 
+      # The framework's own thesis, measured: a screen should need few annotations, and that number
+      # should not creep up. Each new annotation is always justifiable alone; the sum is what drifts.
+      - name: Annotations per screen have not crept up
+        run: python3 scripts/annotation-density.py --check
+
   e2e:
     runs-on: ubuntu-latest
 

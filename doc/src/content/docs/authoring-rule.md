@@ -65,6 +65,20 @@ screen work with no backend" is not a list of exceptions to memorise — it is
 **if you declared it with annotations, it can ship statically; if you used an interface, it needs a
 server.**
 
+## The surface is measured
+
+The rule above decides case by case. The risk it cannot catch is **accumulation**: every annotation
+is justifiable on its own, and the sum still drifts the framework away from the reason it exists.
+
+So it is counted. `scripts/annotation-density.py` measures how many Mateu annotations a screen needs
+across the demo and e2e corpus — **4.38 per screen over 444 screens** as of 2026-08-12 — and CI fails
+if the average creeps above a recorded ceiling.
+
+The ceiling carries deliberate headroom (~5%): pinned to the exact current value it would fail on the
+very next annotation added anywhere, and a check that fires on ordinary work gets raised by reflex
+until it means nothing. Raising it is allowed. Raising it *silently* is the thing the number exists
+to prevent.
+
 ## What Mateu will not infer
 
 Inference has a ceiling, and it is worth knowing where it is so you do not wait for a version that
