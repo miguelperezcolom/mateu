@@ -49,6 +49,10 @@ Y con el static bundle (sección 9) el diagrama se queda corto: **un CDN sirvien
 `manifest.json` también es un productor de wire**. El servidor Java está todavía menos en el centro
 de lo que sugiere el dibujo.
 
+> **Corregido en 15.3.** También **el wire es reemplazable**: es el interfaz de la implementación de
+> hoy (renderers + API), y mañana podría ser generación de código pura. Lo que perdura es la
+> declaración. La cintura real es la de la sección 12, no esta.
+
 ### 0.2 Decisión tomada: Mateu es un producto, y la meta es alcance
 
 Mateu nació como herramienta personal: *"me interesaba la lógica y el modelo de negocio, quería la
@@ -368,6 +372,11 @@ fundacional (sección 1) sobrevivida:
 > El código generado **deriva** del modelo y luego **diverge**. En Mateu la UI no se genera: se
 > deriva en runtime, así que no puede divergir. Cambias el modelo y la UI ya es correcta.
 
+> **Reformulado en 15.1.** La oposición útil no es *derivación vs generación* sino **fuente de
+> verdad vs artefacto**: generar está bien mientras nadie edite lo generado. Con esa formulación,
+> la generación de código pura deja de ser el enemigo y pasa a ser una posible forma de entrega
+> (15.2) — y el argumento se sostiene igual.
+
 **La versión no defensiva (mejor).** El argumento de arriba se defiende *de* la IA. Hay uno que la
 usa, y sale de la sección 6.3: si la intención tiene que entrar por algún canal y el mejor canal es
 el scaffold conversacional, entonces
@@ -628,6 +637,9 @@ Esto choca de frente con la tesis de las secciones 8 y 10, así que hay que reso
 explícita y no por omisión. La regla que lo salva es una sola:
 
 > **Nunca mezclar código generado y código escrito a mano en el mismo fichero.**
+
+*(Esta regla asciende a **invariante global** en 15.3b: si la generación puede acabar siendo el
+mecanismo de entrega principal, es lo único que separa un compilador de un scaffolder.)*
 
 En la práctica: generar el **controlador** y el **puerto** (la interfaz del caso de uso), y que el
 humano escriba el **adaptador** en un fichero que el plugin no toca jamás. Así regenerar es barato
@@ -1012,6 +1024,64 @@ tiene contrato; esto es su versión adulta — el mismo agujero, con API, tipos 
 del documento — estructura personalizada servida a quien no le corresponde, credenciales expuestas
 al navegador, y código de un dominio corriendo en la shell de todos — y no cuestiones de calidad o
 de velocidad. El resto puede esperar; estas se pagan con un incidente.
+
+---
+
+## 15. Nota de cierre: fuente de verdad vs artefacto
+
+Lo que perdura es **definir la UI de manera agnóstica**. El resto es implementación: hoy son
+renderers y una API; mañana puede ser generación de código pura. Esta nota corrige el marco de las
+secciones 8, 9 y 0.1 en consecuencia.
+
+### 15.1 La oposición correcta no es derivación vs generación
+
+La sección 8 planteó el posicionamiento como *derivación vs generación*. Con la nota de arriba, esa
+oposición es la equivocada. La buena es:
+
+> **Fuente de verdad vs artefacto.**
+
+Generar no es el problema; el problema es **qué se edita**:
+
+| | Qué pasa |
+|---|---|
+| **Generación como autoría** — un LLM escribe React que pasa a ser tuyo y lo mantienes | **diverge** |
+| **Generación como compilación** — la declaración es la fuente, el código generado es un artefacto de build que nadie toca y se regenera entero | **no puede divergir** |
+
+Es la misma relación que hay entre un compilador y su salida: nadie dice que un `.class` "diverja"
+de su `.java`.
+
+### 15.2 El espectro de la sección 9 se extiende hacia la izquierda
+
+Con eso, la generación pura de código deja de ser una amenaza a la tesis y pasa a ser **una estación
+más de la línea que ya describe la sección 9**:
+
+```
+compile time   →   build time    →   boot time    →   request time
+(codegen puro)   (static bundle)   (bundle en CDN)   (wire + renderers)
+     ↑ mañana        ↑ ya existe                          ↑ hoy
+```
+
+El static bundle ya demostró el principio: pre-renderizar a JSON en el build **es** mover la
+derivación a la izquierda. Codegen puro da un paso más en la misma dirección. No cambia nada
+filosófico; cambia **cuándo**.
+
+### 15.3 Dos consecuencias sobre lo ya escrito
+
+**a) El wire deja de ser el producto.** La sección 0.1 dice que el producto es la cintura, es decir
+el wire. Bajo esta nota, **también el wire es reemplazable**: es el interfaz de la implementación de
+hoy. Lo que perdura es la declaración. La sección 12 ya había llegado ahí ("una declaración en el
+centro, tres puertas de entrada"), así que **0.1 cede ante 12**: la cintura no es el wire, es la
+declaración, y el wire es su primera encarnación.
+
+**b) La regla de 11.2 asciende a invariante global.** Se escribió como precaución del generador de
+OpenAPI:
+
+> Nunca mezclar código generado y código escrito a mano en el mismo fichero.
+
+Si la generación puede acabar siendo el mecanismo de entrega principal, esa frase deja de ser una
+precaución local y pasa a ser **la condición que sostiene el edificio entero**: es lo único que
+separa un *compilador* de un *scaffolder*. Junto al invariante del editor visual (10.1) y al del
+código de cliente (14.3), forma el trío de líneas que no se pueden cruzar sin perder la tesis.
 
 ---
 
