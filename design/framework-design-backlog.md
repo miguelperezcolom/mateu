@@ -542,6 +542,9 @@ Antes el wire llevaba *la UI*. Ahora lleva además **un plan de fetch** (`option
 renderer debe implementar** — así que entra de lleno en el contrato de renderer de la sección 4 y
 en el corpus de conformidad de la sección 2.
 
+Y ese plan de fetch es, leído de otra manera, **una especificación de API**: es el material del que
+sale la sección 11.
+
 **El trato del modo sin servidor**, que debería estar escrito y no descubrirse:
 
 > Sin servidor Mateu, tus endpoints quedan **expuestos directamente al navegador**: CORS abierto, y
@@ -579,6 +582,119 @@ competidor de esa lista tiene, y en el modo puerta-principal se renuncia a él j
 El modo sin servidor rinde más como **on-ramp** ("pruébalo en 5 minutos sin instalar nada") que como
 propuesta principal.
 
+> **Revisado en 11.5.** Con la derivación de OpenAPI, el modo sin servidor deja de ser un destino y
+> pasa a ser la primera etapa de un flujo que aterriza en código Java real. Eso desactiva buena
+> parte del riesgo de la puerta principal; ver 11.5.
+
+---
+
+## 11. Del contrato de UI al contrato de API
+
+**Estado: NO construido.** Los hits de `openapi` en el repo son configuración propia de
+Micronaut/Helidon, no generación desde Mateu. Esto es territorio nuevo.
+
+**La idea.** Desde la definición de UI se pueden inferir los OpenAPI que el servidor tiene que
+implementar: definir la pantalla en el editor gráfico y, con un plugin Maven (o desde el propio
+editor), emitir el OpenAPI e incluso un servicio Spring Boot con los controladores, dejando el
+servicio, los casos de uso y las queries por implementar.
+
+### 11.1 No es una capacidad nueva: es un artefacto latente que se hace explícito
+
+Cada `@RestOptions(url, valuePath, labelPath)`, `@RestListing`, `@RestData` y `@RestAction` ya
+declara una URL, un método, unos parámetros y **la forma que espera recibir**. Eso *es* un contrato
+de endpoint. El OpenAPI no se inventa: **se lee del plan de fetch** que la sección 10.3 identificó
+como parte del wire.
+
+Y eso refuerza la columna vertebral del documento: la declaración deja de derivar un artefacto y
+pasa a derivar **dos**.
+
+```
+                 ┌──▶ UI (wire → renderers)
+   declaración ──┤
+                 └──▶ contrato de API (OpenAPI → servidor)
+```
+
+La declaración sigue siendo el producto (10.1). Solo que ahora lo es para los dos lados.
+
+### 11.2 Generar controladores ES generación, y la generación diverge
+
+Esto choca de frente con la tesis de las secciones 8 y 10, así que hay que resolverlo de forma
+explícita y no por omisión. La regla que lo salva es una sola:
+
+> **Nunca mezclar código generado y código escrito a mano en el mismo fichero.**
+
+En la práctica: generar el **controlador** y el **puerto** (la interfaz del caso de uso), y que el
+humano escriba el **adaptador** en un fichero que el plugin no toca jamás. Así regenerar es barato
+en vez de destructivo, y el generador se puede ejecutar siempre.
+
+**El modo de fallo a evitar**, que es el que mata a la mayoría de los generadores: si el plugin deja
+un `OrderService` con `// TODO` dentro y el humano lo rellena, la segunda ejecución o destruye
+trabajo o se salta el fichero para siempre — y a partir de ahí contrato y código divergen en
+silencio. Eso sería un scaffolder de un solo uso, no una derivación.
+
+### 11.3 La forma fuerte no es generar: es verificar
+
+> El OpenAPI derivado no es solo un fichero que se emite. Es un **test de contrato**: *"la UI
+> necesita estos endpoints con estas formas — aquí está la comprobación de que tu servidor los
+> ofrece"*.
+
+Ventajas sobre generar código: no hay nada que regenerar, no hay conflicto con el trabajo humano,
+funciona igual si el backend es Java, .NET, Python o de un tercero, y **detecta la deriva en las dos
+direcciones** (cambia la respuesta del servidor → falla; cambia lo que la UI espera → falla).
+
+Encaja además con el patrón que ya se usa en todo el repo — `PageFingerprint`, los goldens, el
+corpus de conformidad (sección 2), pinear el conjunto bundleable (9.3a): **convertir una decisión
+implícita en algo que falla en CI**.
+
+**Orden recomendado:** emitir el OpenAPI (barato, útil por sí solo) → el test de contrato (el valor
+real) → el codegen de controladores al final, si aparece demanda.
+
+### 11.4 Qué se puede inferir y qué no: es una cota inferior
+
+**Sí** — paths, métodos, parámetros, forma de la respuesta (los campos que la UI lee). Y más rico de
+lo que parece: las anotaciones de bean validation (`@NotNull`, `@Min`, `@Max`) son restricciones de
+schema directas, y la semántica de `AutoCrud` mapea casi uno a uno a REST
+(`find(searchText, filters, Pageable)` → query params + paginación; `Page<T>` → respuesta con
+`totalElements`; `Sort` → `sort=`).
+
+**No** — códigos de error, autenticación, idempotencia, efectos secundarios, versionado, reglas de
+negocio.
+
+Así que lo derivado es **una cota inferior del contrato**: *"esto es lo mínimo que tu API tiene que
+cumplir"*. Dicho así es exacto y sigue siendo muy valioso; dicho como "genera tu API" sería falso.
+
+### 11.5 Esto revisa la recomendación de 10.4
+
+En 10.4 se recomendaba **puerta lateral** porque el modo sin servidor renuncia al foso de la
+sección 8. Con la derivación de OpenAPI encima de la mesa, el modo sin servidor deja de ser un
+destino y pasa a ser **la primera etapa de un camino**:
+
+```
+editor visual → UI funcionando sin backend → OpenAPI derivado → esqueleto de servidor → lógica de negocio
+```
+
+Eso ya no es un tercer producto que compite con la tesis: es un **flujo de trabajo** que empieza
+donde es más fácil empezar y aterriza en código Java real, sin lock-in. Y responde a la objeción que
+hace desconfiar de las plataformas low-code — *"¿y cuando esto se me quede corto?"* — con *"te llevas
+el contrato y el esqueleto, y sigues en tu stack"*.
+
+**Revisión:** con esto, la puerta principal deja de ser peligrosa, porque el escaparate ya no es "UI
+sin backend" sino **"de la pantalla al contrato al servicio"**. La decisión de 10.4 sigue abierta,
+pero su cálculo ha cambiado.
+
+### 11.6 El dual, casi gratis
+
+Si el OpenAPI se puede derivar de la UI, la dirección contraria también es interesante: **apuntar
+Mateu a un OpenAPI existente y obtener un panel de administración**. Es el mismo mapeo leído al
+revés, y es lo único de todo el documento que competiría de frente con Retool en su propio terreno
+— con la diferencia de que el resultado es una declaración propia, no una app atrapada en una
+plataforma.
+
+**Pregunta abierta.** ¿Es una dirección de producto o una demo de que el mapeo es simétrico? El
+coste está en lo que 11.4 dice que *no* se puede inferir: un OpenAPI tampoco lleva la intención de
+UX, así que el panel derivado sería estructuralmente correcto y ergonómicamente plano — el mismo
+techo que la sección 6.2, en la otra dirección.
+
 ---
 
 ## Orden sugerido de ataque
@@ -592,14 +708,17 @@ propuesta principal.
 | 6.2 | Declarar el techo de la inferencia | muy bajo | alto | evita perseguir una fase 3 imposible por construcción |
 | 3 | Reconciliar la matriz de capacidades | muy bajo | **alto** | la matriz *es* la API; hoy promete un renderer retirado |
 | 8 | README: derivación vs generación | muy bajo | alto | la mitad no depende de nada; ordena el discurso |
+| 11.1 | Emitir el OpenAPI derivado del plan de fetch | bajo | alto | el artefacto ya está implícito; emitirlo es útil por sí solo |
 | 5 | `contract.json` único | bajo | medio | elimina una clase de bug silencioso |
 | 9.3b | Sellar un hash de estructura en el manifest | bajo | alto | convierte el bundle en caché en vez de fork; sostiene la tesis de 8 |
 | 6.3 | Métrica de anotaciones por pantalla | bajo | alto | disciplina la tesis con un número, no con un documento |
 | 9.3a | Pinear el conjunto bundleable en CI | bajo | medio | hoy una ruta se cae del bundle y solo lo dice el log |
+| 11.3 | OpenAPI derivado como **test de contrato** | medio | **alto** | detecta deriva en ambos sentidos y no tiene el problema del codegen |
 | 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3 y 4; sin esto la paridad escala con tu memoria |
 | 4 | Contrato + conformidad de renderer | alto | **alto** | el multiplicador real de alcance; 4 renderers retirados lo justifican |
 | 7 | Rampa de escape en dos altitudes | medio | alto | criterio: que duela menos que haberla escrito a mano |
 | 10.2 | YAML del editor como delta, no como snapshot | alto | **alto** | hoy tocar una pantalla en el editor la saca de la inferencia para siempre |
+| 11.2 | Codegen de controladores (puerto generado / adaptador a mano) | alto | medio | solo después de 11.1 y 11.3; la regla de no mezclar es innegociable |
 | 8b | "La IA escribe la declaración" como dirección | medio | **alto** | lo más diferenciador y lo menos desarrollado; depende de 6.1–6.3 y 10.1 |
 
 Tres observaciones sobre el orden:
