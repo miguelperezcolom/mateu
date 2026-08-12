@@ -7,6 +7,7 @@ import io.mateu.core.application.MateuService;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
@@ -19,6 +20,7 @@ import io.mateu.uidl.interfaces.RoutedClassProvider;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -158,8 +160,25 @@ public final class MateuBundleExporter {
         .map(entry -> "/" + entry.route())
         .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
         .forEach(routes::add);
+    // Which class answers each route, so an identity-dependent screen is recognised BEFORE it is
+    // rendered (see identityRestriction).
+    var classByRoute = new java.util.HashMap<String, String>(classesFromBeans());
+    for (var ref : RouteRegistrations.read(cl)) {
+      classByRoute.putIfAbsent(normalizedRoute(ref.route()), ref.className());
+    }
+    for (var entry : authored.routes()) {
+      if (entry.viewModel() != null && !entry.viewModel().isBlank()) {
+        classByRoute.put(normalizedRoute(entry.route()), entry.viewModel());
+      }
+    }
+
     var entries = new ArrayList<BundleEntry>();
     for (String route : routes) {
+      var restriction = identityRestriction(classByRoute.get(normalizedRoute(route)), cl);
+      if (restriction != null) {
+        entries.add(new BundleEntry(route, toSyncPath(route), null, false, restriction));
+        continue;
+      }
       entries.add(
           RouteRegistrations.isStatic(route)
               ? exportRoute(baseUrl, route)
@@ -174,6 +193,103 @@ public final class MateuBundleExporter {
    * (never throws) when no bean context is wired — e.g. the Maven goal's fresh context — so the
    * caller falls back to the index.
    */
+  private static String normalizedRoute(String route) {
+    return route == null ? "" : route.replaceAll("^/+", "").replaceAll("/+$", "");
+  }
+
+  /**
+   * Why a route must NOT be pre-rendered, or {@code null} when it is safe to bundle.
+   *
+   * <p><b>The policy.</b> A screen whose structure depends on WHO is asking cannot be baked into a
+   * static bundle, because a bundle is one file served to everyone. Export runs headless, with no
+   * Authorization header, and {@link io.mateu.core.domain.Authorizer} denies restricted content
+   * without a token — so the danger is NOT a leak (it fails closed) but a screen that is
+   * <em>permanently wrong</em>: the pre-rendered variant is the DENIED one, and an authorised user
+   * hitting a static host has no server left to re-render the version they are entitled to.
+   *
+   * <p>Skipping is the conservative half of that trade: the route stays backend-served, which is
+   * where a screen gated on identity belongs anyway. Baking it silently would be the kind of
+   * failure nobody notices until a privileged user reports "the button is missing".
+   *
+   * <p>{@code @Audience} is deliberately NOT treated this way: it is a UX projection, not access
+   * control (see {@code AudienceGate}), and with no audience selected the export renders the full,
+   * unprojected view — correct for everyone, merely not personalised.
+   */
+  private static String identityRestriction(String className, ClassLoader cl) {
+    if (className == null || className.isBlank()) {
+      return null;
+    }
+    try {
+      var loader = cl != null ? cl : MateuBundleExporter.class.getClassLoader();
+      var type = Class.forName(className, false, loader);
+      if (type.isAnnotationPresent(EyesOnly.class)) {
+        return "identity-dependent: the class declares @EyesOnly — kept backend-served";
+      }
+      for (var field : type.getDeclaredFields()) {
+        if (field.isAnnotationPresent(EyesOnly.class)) {
+          return "identity-dependent: field '"
+              + field.getName()
+              + "' declares @EyesOnly — kept backend-served";
+        }
+      }
+      for (var method : type.getDeclaredMethods()) {
+        if (method.isAnnotationPresent(EyesOnly.class)) {
+          return "identity-dependent: method '"
+              + method.getName()
+              + "' declares @EyesOnly — kept backend-served";
+        }
+      }
+      return null;
+    } catch (Throwable t) {
+      // Unloadable class: let the normal export path run and report its own reason.
+      return null;
+    }
+  }
+
+  /**
+   * Which class answers each route, as seen by the live beans. The index ( {@code *-registrations})
+   * covers the build-time path; this covers the runtime one, and is the only source in a
+   * single-module app or under the test harness — without it the identity policy would silently
+   * never fire where routes come from beans.
+   */
+  private Map<String, String> classesFromBeans() {
+    var byRoute = new java.util.HashMap<String, String>();
+    try {
+      var resolvers = MateuBeanProvider.getBeans(RouteResolver.class);
+      if (resolvers != null) {
+        for (RouteResolver rr : resolvers) {
+          for (var pattern : rr.supportedRoutesPatterns()) {
+            if (pattern.route() == null) continue;
+            // resolveRoute is the only way to get the class a pattern answers with; it is a pure
+            // lookup on the generated resolvers (it returns a Class, it does not instantiate), and
+            // any resolver that misbehaves is isolated by the surrounding catch.
+            try {
+              var owner = rr.resolveRoute(pattern.route(), "", null);
+              if (owner != null) {
+                byRoute.putIfAbsent(normalizedRoute(pattern.route()), owner.getName());
+              }
+            } catch (Throwable ignored) {
+              // this pattern simply contributes no class; the index may still supply one
+            }
+          }
+        }
+      }
+      var providers = MateuBeanProvider.getBeans(RoutedClassProvider.class);
+      if (providers != null) {
+        for (RoutedClassProvider p : providers) {
+          var owner = p.routedClass();
+          if (owner == null) continue;
+          for (String r : routesOf(owner)) {
+            if (r != null) byRoute.putIfAbsent(normalizedRoute(r), owner.getName());
+          }
+        }
+      }
+    } catch (Throwable t) {
+      log.debug("route→class discovery from beans failed: {}", t.toString());
+    }
+    return byRoute;
+  }
+
   private List<String> routesFromBeans(boolean staticOnly) {
     var out = new ArrayList<String>();
     try {
