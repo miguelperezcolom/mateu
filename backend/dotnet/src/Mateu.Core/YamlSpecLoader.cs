@@ -31,12 +31,20 @@ public sealed class YamlSpecLoader
     /// and so prevents one definition from serving several routes.</summary>
     private readonly RouteRegistry _registry;
 
-    public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null)
+    /// <summary>Resolves <c>type: Partial</c> nodes against <c>&lt;specs&gt;/partials/</c>, so a
+    /// definition can reuse a piece rather than repeat it.</summary>
+    private readonly PartialRegistry _partials;
+
+    public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null, PartialRegistry? partials = null)
     {
         _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
                    ?? Path.Combine("specs", "ui");
         _registry = registry ?? new RouteRegistry(_dir);
+        _partials = partials ?? new PartialRegistry(_dir);
     }
+
+    /// <summary>The partial registry this loader resolves refs against. Tests register in code.</summary>
+    public PartialRegistry Partials => _partials;
 
     /// <summary>The parsed spec for a route (<c>specs/ui/&lt;route&gt;.yaml</c>), or null when there is none.</summary>
     public Spec? LoadSpec(string? route)
@@ -53,7 +61,7 @@ public sealed class YamlSpecLoader
         if (!File.Exists(path)) return None;
         try
         {
-            var (modelView, layout) = YamlComponentBuilder.ParseSpec(File.ReadAllText(path));
+            var (modelView, layout) = YamlComponentBuilder.ParseSpec(File.ReadAllText(path), _partials);
             if (layout is null) return None;
             // The definition is layout; the binding to a view model belongs to the route entry. A
             // YAML that still declares modelView: keeps working and wins — but a definition shared

@@ -488,6 +488,39 @@ Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily a
 eagerly stored in `__dict__['__annotations__']`. Mateu reads them via `inspect.get_annotations(...)`,
 so the field markers work on Python 3.11 through 3.14+.
 
+## Partials
+
+A YAML file under `<specs>/partials/` is not a page but a **partial** — one component, or a
+`content:` list of them, usable anywhere a component is:
+
+```yaml
+# specs/ui/partials/address-block.yaml
+content:
+  - type: FormField
+    id: street
+    label: Street
+  - type: FormField
+    id: city
+    label: City
+```
+
+```yaml
+# any page
+- type: Partial
+  ref: address-block
+```
+
+A partial standing for several components is **spliced** into its parent's content, not wrapped, so
+one inside a form yields form fields. Partials are resolved while the tree is built and never reach
+the wire. A missing ref costs the partial, not the page; a cycle is broken rather than followed.
+
+```python
+loader.partials.register("legal-notice", [{"type": "Text", "text": "Prices include VAT."}])
+```
+
+Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
+[Partials](/java-ui-definition/partials/).
+
 ## Route registry (`routes.yaml`)
 
 Routes can also be declared as **data**, in a `routes.yaml` next to the definitions under your specs

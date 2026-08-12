@@ -2,5 +2,5 @@
 content:
   - type: Text
     text: "Contact"
-  - type: Fragment
+  - type: Partial
     ref: address-block

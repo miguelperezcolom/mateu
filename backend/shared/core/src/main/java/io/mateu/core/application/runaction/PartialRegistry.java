@@ -11,20 +11,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Resolves a {@link io.mateu.uidl.data.Fragment}'s {@code ref} into the components it stands for.
+ * Resolves a {@link io.mateu.uidl.data.Partial}'s {@code ref} into the components it stands for.
  *
- * <p>A fragment definition is authored the same way a page is, and this is where the two authoring
+ * <p>A partial definition is authored the same way a page is, and this is where the two authoring
  * paths meet:
  *
  * <ul>
- *   <li><b>YAML</b> — {@code specs/ui/fragments/<ref>.yaml}, holding either a bare component
- *       ({@code type: ...}) or a {@code content:} list of them. An explicit classpath path ending
- *       in {@code .yaml} is honoured as-is, so a fragment can live next to the pages that use it.
+ *   <li><b>YAML</b> — {@code specs/ui/partials/<ref>.yaml}, holding either a bare component ({@code
+ *       type: ...}) or a {@code content:} list of them. An explicit classpath path ending in {@code
+ *       .yaml} is honoured as-is, so a partial can live next to the pages that use it.
  *   <li><b>Java</b> — {@code ref} as a fully-qualified class name. A {@link ComponentTreeSupplier}
  *       contributes its tree; a plain {@link Component} contributes itself.
  * </ul>
  *
- * <p>A ref that resolves to nothing is <b>not</b> fatal. A missing fragment renders as no content
+ * <p>A ref that resolves to nothing is <b>not</b> fatal. A missing partial renders as no content
  * and logs; a page is not worth taking down over one piece of it, and the alternative — a 500 on
  * every request to every page that mentions the ref — turns a typo into an outage.
  *
@@ -32,11 +32,11 @@ import lombok.extern.slf4j.Slf4j;
  * reached from several entry points. Nothing about it is per-request: definitions are files.
  */
 @Slf4j
-public final class FragmentRegistry {
+public final class PartialRegistry {
 
-  private static final FragmentRegistry INSTANCE = new FragmentRegistry();
+  private static final PartialRegistry INSTANCE = new PartialRegistry();
 
-  public static FragmentRegistry instance() {
+  public static PartialRegistry instance() {
     return INSTANCE;
   }
 
@@ -50,10 +50,10 @@ public final class FragmentRegistry {
   private final ConcurrentHashMap<String, List<Component>> byRef = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, List<Component>> registered = new ConcurrentHashMap<>();
 
-  private FragmentRegistry() {}
+  private PartialRegistry() {}
 
   /**
-   * Contribute a fragment programmatically. For tests, and for apps that build their shared pieces
+   * Contribute a partial programmatically. For tests, and for apps that build their shared pieces
    * in code rather than in files. A registration wins over a file of the same name — the same
    * precedence a route registration has over the {@code specs/ui/<route>.yaml} convention.
    */
@@ -78,7 +78,7 @@ public final class FragmentRegistry {
       return fromCode;
     }
     // Class refs are resolved on every call: a ComponentTreeSupplier may legitimately return a
-    // different tree per request, which is the whole reason to author a fragment in Java.
+    // different tree per request, which is the whole reason to author a partial in Java.
     var fromClass = fromClass(ref, httpRequest);
     if (fromClass != null) {
       return fromClass;
@@ -88,11 +88,11 @@ public final class FragmentRegistry {
 
   private List<Component> fromYaml(String ref) {
     var path =
-        ref.endsWith(".yaml") || ref.endsWith(".yml") ? ref : "specs/ui/fragments/" + ref + ".yaml";
+        ref.endsWith(".yaml") || ref.endsWith(".yml") ? ref : "specs/ui/partials/" + ref + ".yaml";
     try (InputStream in =
         Thread.currentThread().getContextClassLoader().getResourceAsStream(path)) {
       if (in == null) {
-        log.warn("No fragment definition for ref '{}' (looked for classpath:{})", ref, path);
+        log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, path);
         return NONE;
       }
       var root = mapper.readTree(in);
@@ -112,7 +112,7 @@ public final class FragmentRegistry {
       var single = mapper.treeToValue(root, Component.class);
       return single == null ? NONE : List.of(single);
     } catch (Exception e) {
-      log.error("Could not read fragment '{}' from classpath:{}", ref, path, e);
+      log.error("Could not read partial '{}' from classpath:{}", ref, path, e);
       return NONE;
     }
   }
@@ -132,14 +132,14 @@ public final class FragmentRegistry {
         return List.of(component);
       }
       log.warn(
-          "Fragment ref '{}' names a class that is neither a Component nor a ComponentTreeSupplier",
+          "Partial ref '{}' names a class that is neither a Component nor a ComponentTreeSupplier",
           ref);
       return NONE;
     } catch (ClassNotFoundException e) {
       // Not a class ref at all — a dotted YAML name is perfectly legal. Fall through to the file.
       return null;
     } catch (Exception e) {
-      log.error("Could not build fragment from class '{}'", ref, e);
+      log.error("Could not build partial from class '{}'", ref, e);
       return NONE;
     }
   }

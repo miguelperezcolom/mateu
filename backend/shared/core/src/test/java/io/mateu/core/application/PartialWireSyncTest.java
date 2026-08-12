@@ -9,7 +9,7 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.Fragment;
+import io.mateu.uidl.data.Partial;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * The claim that costs nothing to state and everything to get wrong: <b>fragments do not exist on
+ * The claim that costs nothing to state and everything to get wrong: <b>partials do not exist on
  * the wire</b>.
  *
  * <p>If one ever leaked into a {@code UIIncrementDto}, every renderer would need to learn to
@@ -26,11 +26,11 @@ import org.junit.jupiter.api.Test;
  * reference it has no server to follow. Resolving server-side is what makes the feature arrive
  * everywhere at once; this test is what keeps that true.
  */
-class FragmentWireSyncTest {
+class PartialWireSyncTest {
 
   @SuppressWarnings("unused")
-  @UI("/fragment-host")
-  public static class FragmentHostForm {
+  @UI("/partial-host")
+  public static class PartialHostForm {
 
     String name = "n";
 
@@ -40,7 +40,7 @@ class FragmentWireSyncTest {
           .content(
               List.of(
                   FormField.builder().id("name").label("Name").build(),
-                  new Fragment("address-block")))
+                  new Partial("address-block")))
           .build();
     }
   }
@@ -49,7 +49,7 @@ class FragmentWireSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(FragmentHostForm.class);
+    mateu = TestMateu.withUis(PartialHostForm.class);
   }
 
   @AfterAll
@@ -61,9 +61,9 @@ class FragmentWireSyncTest {
     var increment =
         mateu.run(
             RunActionRqDto.builder()
-                .route("/fragment-host")
+                .route("/partial-host")
                 .actionId("showAddress")
-                .serverSideType(FragmentHostForm.class.getName())
+                .serverSideType(PartialHostForm.class.getName())
                 .initiatorComponentId("cmp-1")
                 .componentState(Map.of("name", "n"))
                 .build());

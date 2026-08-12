@@ -1237,8 +1237,6 @@
       }, {
         "$ref" : "#/$defs/FormSubSection"
       }, {
-        "$ref" : "#/$defs/Fragment"
-      }, {
         "$ref" : "#/$defs/FullWidth"
       }, {
         "$ref" : "#/$defs/Funnel"
@@ -1296,6 +1294,8 @@
         "$ref" : "#/$defs/OfferCard"
       }, {
         "$ref" : "#/$defs/OrgChart"
+      }, {
+        "$ref" : "#/$defs/Partial"
       }, {
         "$ref" : "#/$defs/PaymentPicker"
       }, {
@@ -2680,19 +2680,6 @@
           "type" : "string"
         },
         "cssClasses" : {
-          "type" : "string"
-        }
-      }
-    },
-    "Fragment" : {
-      "type" : "object",
-      "required" : [ "type" ],
-      "properties" : {
-        "type" : {
-          "type" : "string",
-          "const" : "Fragment"
-        },
-        "ref" : {
           "type" : "string"
         }
       }
@@ -4216,6 +4203,19 @@
         "content" : {
           "type" : "array",
           "items" : { }
+        }
+      }
+    },
+    "Partial" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Partial"
+        },
+        "ref" : {
+          "type" : "string"
         }
       }
     },

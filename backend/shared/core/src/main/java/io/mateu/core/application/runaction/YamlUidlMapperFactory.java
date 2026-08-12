@@ -59,7 +59,7 @@ final class YamlUidlMapperFactory {
         new NamedType(Div.class, "Div"),
         new NamedType(Element.class, "Element"),
         new NamedType(FormEditor.class, "FormEditor"),
-        new NamedType(Fragment.class, "Fragment"),
+        new NamedType(Partial.class, "Partial"),
         new NamedType(FormField.class, "FormField"),
         new NamedType(FormItem.class, "FormItem"),
         new NamedType(FormLayout.class, "FormLayout"),

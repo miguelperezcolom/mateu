@@ -147,17 +147,17 @@ IntelliJ will now provide autocompletion and validation for all YAML files under
 
 ---
 
-## Fragments
+## Partials
 
-A YAML file under `specs/ui/fragments/` is not a page but a **fragment** — one component, or a list
+A YAML file under `specs/ui/partials/` is not a page but a **partial** — one component, or a list
 of them, usable anywhere a component is:
 
 ```yaml
-- type: Fragment
+- type: Partial
   ref: address-block
 ```
 
-See [Fragments](/java-ui-definition/fragments/).
+See [Partials](/java-ui-definition/partials/).
 
 ## `layoutDelta:` — keep inference alive
 

@@ -67,7 +67,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
-| [Fragments](/java-ui-definition/fragments/) (`specs/ui/fragments/<ref>.yaml` or a class ref; spliced into the parent's content, resolved server-side so they never reach the wire). The ports parse the YAML but ignore `Fragment`, so a page that uses one renders without that piece there | ✅ | — | — |
+| [Partials](/java-ui-definition/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
 | YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
@@ -99,7 +99,7 @@ rather than Java's typed `FilterCriterion` objects; a contract difference, not a
 
 **Recent .NET/Python parity gains (2026-07-17)**: CRUD create/edit in a drawer
 (`Crud<T>.EditInDrawer` virtual / `@edit_in_drawer` decorator — new and row clicks answer the
-entity form inside a `Drawer` Add fragment over the listing; cancel closes it; save persists and
+entity form inside a `Drawer` Add partial over the listing; cancel closes it; save persists and
 answers `CloseModal` carrying the `mateu-crud:saved-in-drawer` event plus a `RunAction search`
 command, so the listing refreshes in place with no navigation), the wizard RAIL progress style
 (`[WizardProgress("rail")]` / `@wizard_progress("rail")` — the step form on the left, a sticky
@@ -115,7 +115,7 @@ page in place.
 (`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +
 the update-row action rebuilding and saving the row), lookup fields (`[Lookup]`/`Lookup()` →
 combobox + remoteCoordinates, the handler answers `search-<field>` from the options supplier,
-filtered and paged), Dialog/Drawer overlays returned from actions (Add fragments on the initiator,
+filtered and paged), Dialog/Drawer overlays returned from actions (Add partials on the initiator,
 with `CloseModal`/`DispatchEvent` command factories carrying `{eventName, detail}`), `[Toc]`/`@toc`,
 the full HeroSearch archetype (hero header + cards listing, starts empty), client-side rules
 (`[Hidden(expr)]`/`[Disabled]` + `IRuleSupplier`/`RuleSupplier` → `ServerSideComponent.rules`),
@@ -140,7 +140,7 @@ reflectively, so a thin wrapper view over the foreign object (fields exposing it
 writing back) replaces Java's `ComponentAdapter` SPI — see "Adapting foreign classes" in each
 manual. The four depth tails inside ✅ rows closed too: pre-existing `@Lookup`/`@Searchable`
 values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier` →
-`<fieldId>-label` fragment data), grid form fields edit in place (`@InlineEditing` on the
+`<fieldId>-label` partial data), grid form fields edit in place (`@InlineEditing` on the
 property, rows binding back into the typed list), permission-driven field states
 (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →

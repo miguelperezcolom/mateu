@@ -18,6 +18,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from mateu_core.partial_registry import PartialRegistry
 from mateu_core.route_registry import RouteRegistry
 from mateu_core.yaml_preview import parse_spec
 
@@ -31,9 +32,17 @@ class Spec:
 
 
 class YamlSpecLoader:
-    def __init__(self, directory: str | None = None, registry: RouteRegistry | None = None) -> None:
+    def __init__(
+        self,
+        directory: str | None = None,
+        registry: RouteRegistry | None = None,
+        partials: PartialRegistry | None = None,
+    ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._by_route: dict[str, Spec | None] = {}
+        #: Resolves ``type: Partial`` nodes against ``<specs>/partials/``, so a definition can reuse
+        #: a piece rather than repeat it.
+        self.partials = partials if partials is not None else PartialRegistry(str(self._dir))
         #: When a route's registry entry names a ``definition``, THAT file is the layout — instead
         #: of the ``<route>.yaml`` convention, which ties a screen's layout to its URL and so
         #: prevents one definition from serving several routes.
@@ -53,7 +62,7 @@ class YamlSpecLoader:
         if not path.is_file():
             return None
         try:
-            model_view, layout = parse_spec(path.read_text())
+            model_view, layout = parse_spec(path.read_text(), self.partials)
         except OSError:
             return None
         if layout is None:
