@@ -1,0 +1,11 @@
+layout:
+  type: FormLayout
+  content:
+    - type: FormField
+      id: name
+      label: Name
+      dataType: string
+    - type: Fragment
+      ref: address-block
+    - type: Fragment
+      ref: legal-notice

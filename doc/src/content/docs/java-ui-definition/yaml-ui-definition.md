@@ -147,6 +147,18 @@ IntelliJ will now provide autocompletion and validation for all YAML files under
 
 ---
 
+## Fragments
+
+A YAML file under `specs/ui/fragments/` is not a page but a **fragment** — one component, or a list
+of them, usable anywhere a component is:
+
+```yaml
+- type: Fragment
+  ref: address-block
+```
+
+See [Fragments](/java-ui-definition/fragments/).
+
 ## `layoutDelta:` — keep inference alive
 
 A page can carry a **`layoutDelta:`** instead of a `layout:`. The difference matters more than it

@@ -27,6 +27,9 @@ public final class UIFragmentAssembler {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    // Fragments are an authoring concept: they are inlined here, once, so that nothing downstream
+    // — no mapper, no DTO, no renderer — ever has to know they existed.
+    component = FragmentExpander.expand(component, httpRequest);
     if (component instanceof State state) {
       return mapStateToDto(state, initiatorComponentId);
     }
