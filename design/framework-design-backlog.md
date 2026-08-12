@@ -874,12 +874,116 @@ Mismo patrón que 9.1: hoy es una lista de casos descubiertos y debería ser una
 
 ---
 
+## 14. Código de cliente: el segundo contrato público
+
+**Estado: parcialmente construido, sin contrato.** No toda la conducta necesita ida y vuelta al
+servidor. Mateu ya cubre el caso declarativo con `@Rule` (evaluadas en el navegador: cambian
+atributos de campo, actualizan estado, corren acciones, aplican estilos — y **ejecutan
+JavaScript**). Lo que falta es poder **enviar un módulo de código al cliente**: un bundle JS
+compilado desde un proyecto TS, o un módulo Java transpilado con **TeaVM**. Y con él, una **API con
+la que ese código interactúe con los componentes y navegue**.
+
+### 14.1 Lo importante no es cargar el bundle: es la API
+
+Cargar un bundle es mecánica. Lo que se está creando es un **segundo contrato público** al lado del
+wire:
+
+| Contrato | Dirección | Quién lo consume |
+|---|---|---|
+| **wire** (`UIIncrementDto`) | servidor → cliente | los renderers |
+| **host API** (nueva) | código de cliente → renderer | el bundle TS / el módulo TeaVM |
+
+Visto así, casi todo el diseño se deduce de las dos secciones siguientes.
+
+### 14.2 La restricción dura: la API tiene que ser agnóstica del renderer
+
+Si el código de cliente puede tocar el DOM o llamar a algo de Vaadin, **se rompe la propiedad que
+sostiene el edificio entero**: una declaración, N renderers. Ese bundle funcionaría en vaadin-lit y
+se caería en Redwood/VB, React Native y los plugins de IDE.
+
+La API tiene que hablar el idioma del **modelo declarado**, nunca el de la implementación:
+
+```
+state.get(fieldId) / state.set(fieldId, value)
+component(id).setAttribute(…)      // visible, disabled, required, options…
+actions.run(actionId, params)      // el mismo verbo que ya usa el wire
+navigate(route)
+events.emit(name, payload) / on(name, fn)
+```
+
+Es el mismo principio que hizo funcionar el wire — **hablar del modelo, no del render**. Con esa
+disciplina, el mismo bundle corre en navegador y en React Native. Sin ella, se ha creado un renderer
+de facto.
+
+### 14.3 El invariante que salva la tesis
+
+Misma tensión que tuvo el editor visual, y se resuelve igual que en 10.1:
+
+> El código de cliente puede **leer y escribir estado, disparar acciones y navegar**. **No puede
+> construir UI.**
+
+Construir UI sigue siendo derivación. En cuanto el bundle pueda pintar, vuelve la divergencia y el
+argumento de la sección 8 deja de sostenerse. Los componentes custom ya tienen su propia puerta
+(`ComponentAdapter`), que es un punto de extensión *declarado*; esto es la puerta de la **conducta**,
+no la del render — la rampa de escape de la sección 7 en una **tercera altitud**: campo/componente,
+página, y ahora bucle de interacción.
+
+### 14.4 TeaVM no es "la otra opción": es la interesante
+
+El bundle TS es la vía pragmática (alcance, ecosistema, familiaridad). TeaVM es **la tesis
+fundacional aplicada a la lógica en vez de a la UI**:
+
+> Hoy una regla de negocio que debe correr en los dos lados se escribe dos veces —bean validation en
+> Java, y otra vez en el cliente— y diverge. Con TeaVM se escribe **una vez en Java** y corre en
+> servidor y en navegador.
+
+Es "una fuente de verdad, sin divergencia" bajado un nivel, y es mucho más defendible que "también
+puedes mandar JS".
+
+**Coste que hay que ver desde el principio:** con dos productores de código de cliente, la API hay
+que **definirla una vez y ligarla dos** (tipos TS + interfaz Java). Es el problema de la sección 2
+otra vez con otro disfraz, así que nace pidiendo un contrato con corpus de conformidad, no dos SDK
+mantenidos a mano en paralelo.
+
+### 14.5 La federación convierte el aislamiento en obligatorio
+
+No es teórico: en una shell agregada (sección 13), el bundle del dominio A corre **en la misma
+página** que el del dominio B. Si la API no está *scopeada* a la vista que la declara, A puede leer
+el estado de B y disparar sus acciones. Y como el bundle lo sirve el servidor, un dominio
+comprometido inyecta código en la shell de todos.
+
+Y encadena con 9.2 y 10.3: es la tercera frontera de seguridad del documento.
+
+### 14.6 La cautela honesta
+
+Esto puede comerse el framework. Todo framework server-driven que añade "ejecuta este JS en el
+cliente" descubre que los equipos acaban escribiendo ahí la mayor parte de la lógica, porque itera
+más rápido — y entonces el framework se convierte en un renderer de componentes con una piel de
+Java.
+
+Mitigación, la de siempre: **la vía de escape tiene que estar disponible pero nunca ser más cómoda
+que la declarativa**. Hoy `@Rule` ya puede ejecutar JavaScript, o sea que el agujero existe y no
+tiene contrato; esto es su versión adulta — el mismo agujero, con API, tipos y límites.
+
+### 14.7 Las cuatro decisiones que dan forma al resto
+
+1. **¿Aislado o en la página?** Worker es seguro y obliga a mensajes asíncronos; en página es cómodo
+   y peligroso (DOM, tokens, `localStorage`).
+2. **¿Ámbito de la API?** ¿Solo la vista que declara el módulo, o toda la página?
+3. **¿La API se define en TS y se liga a Java, al revés, o neutra (IDL) y se generan las dos?** La
+   tercera es la coherente con "el contrato es el producto" (0.1).
+4. **¿Cuál es el límite explícito?** Escribir el invariante de 14.3 **antes** que nada: es la línea
+   que decide si esto refuerza Mateu o lo diluye.
+
+---
+
 ## Orden sugerido de ataque
 
 | # | Tema | Coste | Impacto | Notas |
 |---|---|---|---|---|
 | 9.2 | Política de bundle vs identidad (audience/permisos/i18n) | bajo | **alto** | es una frontera de **seguridad**; hoy el exporter no distingue |
 | 10.3 | Documentar "el trato" del modo sin servidor | muy bajo | **alto** | evita que alguien publique sus claves; `proxy` no existe justo ahí |
+| 14.3 | Escribir el invariante del código de cliente | muy bajo | **alto** | "puede mover estado, no puede construir UI" — la línea antes de la primera implementación |
 | 10.4 | Decidir: puerta principal o lateral | — | **alto** | **disuelta en 12.3**: la puerta es la declaración, y hay tres formas de entrar |
 | 12.3 | README: "empieza por donde ya tengas algo" | muy bajo | **alto** | mejor pitch que "model-driven UI framework for Java"; sustituye a la fila 8 |
 | 6.1 | Escribir la regla de autoría (tres ejes + criterio) | muy bajo | **alto** | media página; explica autoría **y** despliegue (9.1) |
@@ -897,16 +1001,17 @@ Mismo patrón que 9.1: hoy es una lista de casos descubiertos y debería ser una
 | 13.4a | Política de colisión de rutas en la shell | bajo | alto | "el primero que responda" depende de un orden que cambia entre despliegues |
 | 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3, 4 y 13; el version skew de la federación lo hace **interno**, no solo una promesa externa |
 | 4 | Contrato + conformidad de renderer | alto | **alto** | el multiplicador real de alcance; 4 renderers retirados lo justifican |
+| 14.2 | Host API agnóstica del renderer (+ aislamiento y ámbito, 14.5/14.7) | alto | **alto** | segundo contrato público; si habla DOM, se pierde "una declaración, N renderers" |
 | 13.4b | Contrato de embedding (theming, URL, auth, tamaño, eventos) | medio | **alto** | la capacidad peor vendida; hoy cada anfitrión se descubre a mano |
 | 7 | Rampa de escape en dos altitudes | medio | alto | criterio: que duela menos que haberla escrito a mano |
 | 10.2 | YAML del editor como delta, no como snapshot | alto | **alto** | hoy tocar una pantalla en el editor la saca de la inferencia para siempre |
 | 11.2 | Codegen de controladores (puerto generado / adaptador a mano) | alto | medio | solo después de 11.1 y 11.3; la regla de no mezclar es innegociable |
 | 8b | "La IA escribe la declaración" como dirección | medio | **alto** | lo más diferenciador y lo menos desarrollado; depende de 6.1–6.3 y 10.1 |
 
-**9.2 y 10.3 encabezan aunque no sean lo más barato**: son las dos únicas filas del documento que
-tocan una frontera de **seguridad** — estructura personalizada servida a quien no le corresponde, y
-credenciales expuestas al navegador — y no calidad o velocidad. El resto puede esperar; estas dos se
-pagan con un incidente.
+**9.2, 10.3 y 14.5 encabezan aunque no sean lo más barato**: son las tres fronteras de **seguridad**
+del documento — estructura personalizada servida a quien no le corresponde, credenciales expuestas
+al navegador, y código de un dominio corriendo en la shell de todos — y no cuestiones de calidad o
+de velocidad. El resto puede esperar; estas se pagan con un incidente.
 
 ---
 
@@ -927,7 +1032,7 @@ repetidas**:
 | | Idea | Dónde aparece | Coste |
 |---|---|---|---|
 | **A** | Convertir una decisión implícita en algo que **falla en CI** | 2, 3, 9.3a, 11.3, 12.4, 13.3 | un proyecto, no seis |
-| **B** | **Escribir la regla** que hoy solo está en la cabeza del mantenedor | 6.1, 6.2, 9.2, 10.3, 13.4a, 13.4b | ~un día, sin tocar código |
+| **B** | **Escribir la regla** que hoy solo está en la cabeza del mantenedor | 6.1, 6.2, 9.2, 10.3, 13.4a, 13.4b, 14.3 | ~un día, sin tocar código |
 | **C** | Convertir un punto de extensión en **superficie de contribución** | 4, 7 | alto, y es el multiplicador de alcance |
 | **D** | Decidir **posicionamiento** | 12.3 (10.4 quedó disuelta) | una decisión, no una tarea |
 
