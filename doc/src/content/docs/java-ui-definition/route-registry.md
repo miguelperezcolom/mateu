@@ -170,8 +170,10 @@ The authored table travels in the [static bundle](/java-user-manual/build/static
 left to ask what a URL means. Only the authored half is shipped: the derived half is route→class,
 and a class is what a bundle with no backend cannot use.
 
-Routes that exist only in `routes.yaml` are exported too. An entry with no view model is skipped by
-the exporter on purpose: there is nothing on the server to pre-render for it.
+Routes that exist only in `routes.yaml` are exported too — **including entries with no view model**.
+There is no client-side YAML renderer and none is needed: a definition that declares no `modelView`
+renders as a bare layout through the ordinary sync path, so the exporter pre-renders it like any
+other route and a static host serves it with no backend.
 
 ## Failure behaviour
 

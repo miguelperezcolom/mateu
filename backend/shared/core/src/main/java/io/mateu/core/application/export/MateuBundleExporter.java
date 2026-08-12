@@ -145,12 +145,16 @@ public final class MateuBundleExporter {
         .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
         .forEach(routes::add);
     // Routes that exist ONLY in routes.yaml would otherwise never be exported: they have no
-    // annotation and therefore no index entry and no bean. A registry entry with no view model is
-    // skipped here on purpose — there is nothing on the server to pre-render for it, and the
-    // renderer builds it from the shipped table plus its definition.
+    // annotation and therefore no index entry and no bean.
+    //
+    // Entries with no VIEW MODEL are exported too. It looks as if there were nothing to pre-render
+    // for them, but there is: the YAML loader resolves the entry's definition, and a definition
+    // that declares no model view renders as a bare layout through the ordinary sync path. So the
+    // statically served screen is pre-rendered by the server like any other — no special
+    // client-side
+    // path is needed to show it with no backend.
     var authored = new RouteRegistry().authoredFrom(cl);
     authored.routes().stream()
-        .filter(entry -> entry.viewModel() != null && !entry.viewModel().isBlank())
         .map(entry -> "/" + entry.route())
         .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
         .forEach(routes::add);

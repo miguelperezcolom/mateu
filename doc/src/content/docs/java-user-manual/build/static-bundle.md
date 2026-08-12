@@ -180,5 +180,6 @@ the bundle for the loads it has and falls through to the backend for everything 
   the app declares one — a statically deployed mount has no server left to ask what a URL means, so
   the renderer resolves routes and their parameters from shipped data. Only the authored half
   travels: the annotation-derived half is route→class, and a class is what a bundle with no backend
-  cannot use. Routes that exist only in `routes.yaml` are exported too; an entry with no view model
-  is skipped, since there is nothing on the server to pre-render for it.
+  cannot use. Routes that exist only in `routes.yaml` are exported too, **including those with no
+  view model** — a definition that declares no `modelView` renders as a bare layout through the
+  ordinary sync path, so it is pre-rendered like any other route.
