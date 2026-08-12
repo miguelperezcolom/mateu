@@ -4,8 +4,7 @@ layout:
     - type: FormField
       id: name
       label: Name
-      dataType: string
-    - type: Fragment
+    - type: Partial
       ref: address-block
-    - type: Fragment
+    - type: Partial
       ref: legal-notice

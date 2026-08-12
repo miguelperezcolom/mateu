@@ -488,6 +488,40 @@ app.MapPost("/ai/chat", async (HttpContext ctx, ChatRq rq) =>
 public record ChatRq(string Message, string? SessionId, string? MenuContext);
 ```
 
+## Partials
+
+A YAML file under `<specs>/partials/` is not a page but a **partial** — one component, or a
+`content:` list of them, usable anywhere a component is:
+
+```yaml
+# specs/ui/partials/address-block.yaml
+content:
+  - type: FormField
+    id: street
+    label: Street
+  - type: FormField
+    id: city
+    label: City
+```
+
+```yaml
+# any page
+- type: Partial
+  ref: address-block
+```
+
+A partial standing for several components is **spliced** into its parent's content, not wrapped, so
+one inside a form yields form fields. Partials are resolved while the tree is built and never reach
+the wire. A missing ref costs the partial, not the page; a cycle is broken rather than followed.
+
+```csharp
+loader.Partials.Register("legal-notice",
+    [new Dictionary<object, object> { ["type"] = "Text", ["text"] = "Prices include VAT." }]);
+```
+
+Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
+[Partials](/java-ui-definition/partials/).
+
 ## Route registry (`routes.yaml`)
 
 Routes can also be declared as **data**, in a `routes.yaml` next to the definitions under your specs
