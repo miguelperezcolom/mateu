@@ -540,6 +540,22 @@ Y **esta es la divergencia que de verdad importa ahora**: no la de datos (resuel
 lleva datos de negocio), sino **layout que dejó de seguir al modelo**. Añades un campo al record y
 la pantalla no lo muestra; renombras uno y el layout apunta a un fantasma.
 
+> **Semántica decidida y probada (2026-08-12).** `LayoutDelta` (uidl.data) fija qué es un delta y por
+> qué sobrevive a un cambio de modelo: se ancla a **ids de campo estables**, no a posiciones en un
+> árbol. Los campos que el delta no menciona conservan su posición inferida, así que **un campo que el
+> modelo gane después aparece** — que es exactamente lo que un snapshot no puede hacer; uno que el
+> modelo pierda se ignora en vez de romper la página. Y `between(inferido, deseado)` registra solo lo
+> que difiere, de modo que **abrir una pantalla en el editor y no tocar nada no la congela** — la
+> trampa que convertiría el arreglo en el mismo fallo con pasos extra.
+>
+> Lo que el delta deliberadamente NO puede expresar es reestructuración arbitraria ("envuelve estos
+> dos en un card dentro de un tab"). Anclar a ids es justo lo que le da la supervivencia, y un delta
+> capaz de reconstruir el árbol sería un snapshot con otro nombre.
+>
+> **Pendiente:** que el editor escriba `layoutDelta:` en vez de `layout:`, que el mapper lo consulte
+> donde hoy consulta la inferencia, y migrar los YAML existentes. La semántica es la parte que había
+> que decidir; el cableado es trabajo, no diseño.
+
 **Dirección a explorar:** que el YAML guarde el **delta sobre el layout inferido, no una foto del
 layout completo**. Un parche en vez de un snapshot. Un cambio de modelo sigue re-derivando y el
 delta se reaplica encima — o falla ruidosamente, que también sirve. Es más caro de implementar,
