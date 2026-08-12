@@ -35,7 +35,21 @@ import lombok.extern.slf4j.Slf4j;
 public class YamlUidlLoader {
 
   /** A parsed page spec: the layout, plus the ModelView class name when the YAML declares one. */
-  public record YamlPageSpec(String modelView, Component layout) {}
+  /**
+   * A parsed page spec.
+   *
+   * @param layout an explicit layout — a SNAPSHOT, which takes the screen out of inference for good
+   * @param delta what a human changed about the INFERRED layout. The two are alternatives: a delta
+   *     lets the screen keep re-deriving, so a field the model grows later still appears. See
+   *     {@link io.mateu.uidl.data.LayoutDelta}.
+   */
+  public record YamlPageSpec(
+      String modelView, Component layout, io.mateu.uidl.data.LayoutDelta delta) {
+
+    public YamlPageSpec(String modelView, Component layout) {
+      this(modelView, layout, io.mateu.uidl.data.LayoutDelta.empty());
+    }
+  }
 
   // Specs are static files, so parse once and cache by (normalized) route. A miss is cached as
   // NONE so an unmatched route — checked on every request that has no Java class — doesn't hit the
@@ -150,8 +164,16 @@ public class YamlUidlLoader {
                 .orElse(null);
       }
       var layout = layoutOf(root);
-      log.info("Loaded YAML spec {} (modelView={})", yamlPath, modelView);
-      return new YamlPageSpec(modelView, layout);
+      var delta = deltaOf(root);
+      if (layout == null && delta.isEmpty()) {
+        return NONE; // neither a layout nor a delta: nothing this file can contribute
+      }
+      log.info(
+          "Loaded YAML spec {} (modelView={}, {})",
+          yamlPath,
+          modelView,
+          delta.isEmpty() ? "explicit layout" : "layout delta");
+      return new YamlPageSpec(modelView, layout, delta);
     } catch (Exception e) {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;
@@ -168,11 +190,56 @@ public class YamlUidlLoader {
   }
 
   /**
+   * The {@code layoutDelta:} of a page, or an empty one.
+   *
+   * <p>The alternative to {@code layout:}: instead of freezing what the screen looked like, it
+   * records what a human decided about it — anchored to field ids, so inference keeps running and a
+   * field the model grows later still appears.
+   */
+  private io.mateu.uidl.data.LayoutDelta deltaOf(JsonNode root) {
+    var node = root == null ? null : root.get("layoutDelta");
+    if (node == null || !node.isObject()) {
+      return io.mateu.uidl.data.LayoutDelta.empty();
+    }
+    var order = new java.util.ArrayList<String>();
+    if (node.has("order") && node.get("order").isArray()) {
+      node.get("order").forEach(n -> order.add(n.asText()));
+    }
+    var hidden = new java.util.ArrayList<String>();
+    if (node.has("hidden") && node.get("hidden").isArray()) {
+      node.get("hidden").forEach(n -> hidden.add(n.asText()));
+    }
+    var overrides =
+        new java.util.LinkedHashMap<String, io.mateu.uidl.data.LayoutDelta.FieldOverride>();
+    if (node.has("overrides") && node.get("overrides").isObject()) {
+      node.get("overrides")
+          .fields()
+          .forEachRemaining(
+              entry -> {
+                var value = entry.getValue();
+                overrides.put(
+                    entry.getKey(),
+                    new io.mateu.uidl.data.LayoutDelta.FieldOverride(
+                        value.hasNonNull("label") ? value.get("label").asText() : null,
+                        value.hasNonNull("colspan") ? value.get("colspan").asInt() : null,
+                        value.hasNonNull("section") ? value.get("section").asText() : null));
+              });
+    }
+    return new io.mateu.uidl.data.LayoutDelta(order, hidden, overrides);
+  }
+
+  /**
    * The component tree of a parsed doc: the {@code layout:} node in an envelope, else the whole
    * doc.
    */
   private Component layoutOf(JsonNode root) throws Exception {
     if (root == null) {
+      return null;
+    }
+    // A page that carries a `layoutDelta:` and no `layout:` has NO explicit layout on purpose —
+    // that is the whole point of a delta. Falling back to "the whole document is the tree" here
+    // would try to parse the delta itself as components and lose the page.
+    if (!root.has("layout") && root.has("layoutDelta")) {
       return null;
     }
     var node = root.has("layout") ? root.get("layout") : root;

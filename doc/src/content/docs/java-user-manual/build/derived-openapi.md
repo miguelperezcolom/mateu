@@ -3,7 +3,7 @@ title: "The OpenAPI your UI implies"
 description: Derive the API contract from the endpoints your screens already declare — and use it as a check, not just a file.
 ---
 
-**Status:** 🟡 Emitter and contract check implemented; not yet wired to a Maven goal or an endpoint.
+**Status:** ✅ Emitter, contract check and Maven goal implemented. Not yet exposed as a runtime endpoint.
 
 Every `@RestOptions`, `@RestListing`, `@RestData` and `@RestAction` already states a URL, a method,
 the parameters it interpolates and the shape it reads back. **That is an endpoint contract** — it was
@@ -18,6 +18,20 @@ So the declaration stops deriving one artifact and starts deriving two:
 ```
 
 ## Emitting it
+
+From the build:
+
+```bash
+mvn mateu:openapi     # → target/mateu-openapi.json
+```
+
+| Parameter (`-Dmateu.openapi.*`) | Default | Meaning |
+|---|---|---|
+| `outputFile` | `target/mateu-openapi.json` | where the document is written |
+| `title` | the project name | the document's `info.title` |
+| `failOnEmpty` | `false` | fail when no screen declares an endpoint (usually a misconfiguration) |
+
+Or in code:
 
 ```java
 String json = OpenApiEmitter.emitJson("My API", List.of(Orders.class, Dashboard.class));
