@@ -29,9 +29,9 @@ class RoutedClassResolverRegistryTest {
   @Test
   void twoRoutesOverOneViewModelCarryTheParameterEachOnePins() {
     // The case an annotation cannot express: same class, different pinned scope.
-    assertThat(resolver.resolve("tickets/open", null).orElseThrow().params())
+    assertThat(resolver.resolve("tickets/open", null).orElseThrow().entry().fixedParams())
         .containsEntry("status", "open");
-    assertThat(resolver.resolve("tickets/closed", null).orElseThrow().params())
+    assertThat(resolver.resolve("tickets/closed", null).orElseThrow().entry().fixedParams())
         .containsEntry("status", "closed");
   }
 
@@ -55,7 +55,7 @@ class RoutedClassResolverRegistryTest {
   }
 
   @Test
-  void annotationResolvedRoutesCarryNoParameters() {
-    assertThat(new ResolvedRoute("x", "x", String.class).params()).isEmpty();
+  void annotationResolvedRoutesCarryNoRegistryEntry() {
+    assertThat(new ResolvedRoute("x", "x", String.class).entry()).isNull();
   }
 }

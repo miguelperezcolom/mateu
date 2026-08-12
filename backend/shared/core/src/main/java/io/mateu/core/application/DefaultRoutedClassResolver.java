@@ -47,8 +47,7 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
               try {
                 var resolvedClass = Class.forName(viewModel);
                 return Optional.of(
-                    new ResolvedRoute(
-                        route, match.entry().route(), resolvedClass, match.params(null)));
+                    new ResolvedRoute(route, match.entry().route(), resolvedClass, match.entry()));
               } catch (Throwable t) {
                 // A route pointing at a class that is not on the classpath must not 500 every
                 // request: log it once per resolution and let the providers answer.
