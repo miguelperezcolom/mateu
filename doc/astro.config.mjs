@@ -265,6 +265,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/relationships-vs-embedded-cruds' },
 								{ slug: 'java-user-manual/build/master-detail' },
 								{ slug: 'java-user-manual/build/orders-customers-order-lines' },
+								{ slug: 'java-user-manual/build/derived-openapi' },
 							],
 						},
 						{
