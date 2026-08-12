@@ -273,6 +273,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/advanced/rules' },
 								{ slug: 'java-user-manual/advanced/breadcrumbs' },
 								{ slug: 'java-user-manual/advanced/layout-and-composition' },
+								{ slug: 'java-user-manual/advanced/escaping-the-framework' },
 								{ slug: 'java-user-manual/advanced/custom-web-components' },
 								{ slug: 'java-user-manual/advanced/extensibility' },
 								{ slug: 'java-user-manual/advanced/testing' },

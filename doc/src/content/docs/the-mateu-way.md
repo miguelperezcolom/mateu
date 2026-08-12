@@ -143,6 +143,10 @@ is hand-built on rung 3.
 | **3 — Fluent components** | a component tree (`ComponentTreeSupplier`) | the screen's structure is yours, not derivable from a model. |
 | **4 — `ComponentAdapter`** | a renderer for an arbitrary domain object | the object cannot carry Mateu annotations at all. |
 
+When even that is not enough — the whole screen is none of the six families — there is a page-level
+escape too, with its own guarantees: see
+[When a screen does not fit](/java-user-manual/advanced/escaping-the-framework/).
+
 Two properties make the ladder safe to rely on:
 
 - **Descending is local.** Overriding one section's layout does not eject you from the archetype;
