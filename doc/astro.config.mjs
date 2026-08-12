@@ -58,6 +58,7 @@ export default defineConfig({
 			],
 			sidebar: [
 				{ slug: 'the-mateu-way', label: 'The Mateu Way' },
+				{ slug: 'authoring-rule', label: 'The authoring rule' },
 				{
 					label: 'Use with AI',
 					items: [
