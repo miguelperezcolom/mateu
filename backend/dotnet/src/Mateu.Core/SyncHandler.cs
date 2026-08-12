@@ -15,6 +15,12 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
 
     private readonly ReflectionMapper _mapper = new(translator, identity);
+    /// <summary>The mount's authored route registry (specs/ui/routes.yaml).</summary>
+    private readonly RouteRegistry _routes = new();
+
+    /// <summary>The loader builds its OWN registry: a field initialiser cannot reference another
+    /// instance field, and routes.yaml is a small file each side parses once and caches, so sharing
+    /// the instance is not worth a constructor just for it.</summary>
     private readonly YamlSpecLoader _yaml = new();
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
@@ -65,7 +71,23 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (ResolveCapability(rq) is { } cap)
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
 
-        var type = registry.Resolve(rq.ServerSideType, rq.Route);
+        // The AUTHORED registry answers before the attribute-declared views — explicit beats
+        // derived, the same precedence the layout and page inference already use. Its parameters are
+        // folded into the component state here, at the single point every downstream step reads:
+        //
+        //   fixed > client state > path > defaults
+        //
+        // The fixed ones are re-applied on the SERVER rather than trusted from the client, because
+        // route resolution also runs in the browser (a statically deployed mount has no server to
+        // ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        Type? type = null;
+        if (_routes.Match(rq.Route) is { } routeMatch)
+        {
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState) };
+            if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
+                type = registry.TypeByName(routeMatch.Entry.ViewModel);
+        }
+        type ??= registry.Resolve(rq.ServerSideType, rq.Route);
         var yamlSpec = _yaml.LoadSpec(rq.Route);
         if (type is null && yamlSpec is not null)
         {
