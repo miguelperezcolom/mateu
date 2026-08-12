@@ -53,3 +53,14 @@ routes:
   # Points at a class that is not on the classpath: must fall through, not blow up.
   - route: broken
     viewModel: com.acme.NotOnTheClasspath
+
+  # ── ONE definition serving TWO routes, each binding its own view model ───────────────────────
+  # The definition names no modelView: it is layout only, and the binding lives in the entry. This
+  # is what the specs/ui/<route>.yaml convention cannot express — there, layout follows the URL.
+  - route: catalog/books
+    definition: shared-list.yaml
+    viewModel: com.acme.Books
+
+  - route: catalog/films
+    definition: shared-list.yaml
+    viewModel: com.acme.Films

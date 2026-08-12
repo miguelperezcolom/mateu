@@ -45,8 +45,22 @@ public class YamlUidlLoader {
   private final ObjectMapper mapper;
   private final ConcurrentHashMap<String, YamlPageSpec> byRoute = new ConcurrentHashMap<>();
 
+  /**
+   * The mount's route registry. When a route's entry names a {@code definition}, THAT file is the
+   * layout — instead of the {@code specs/ui/<route>.yaml} convention, which ties a screen's layout
+   * to its URL and so prevents one definition from serving several routes.
+   */
+  private final RouteRegistry routeRegistry;
+
+  @jakarta.inject.Inject
+  public YamlUidlLoader(RouteRegistry routeRegistry) {
+    this.mapper = YamlUidlMapperFactory.create();
+    this.routeRegistry = routeRegistry;
+  }
+
+  /** Without a registry: the convention alone, as before it existed. */
   public YamlUidlLoader() {
-    mapper = YamlUidlMapperFactory.create();
+    this(new RouteRegistry());
   }
 
   /**
@@ -106,7 +120,13 @@ public class YamlUidlLoader {
   }
 
   private YamlPageSpec parseSpec(String normalizedRoute) {
-    var yamlPath = "specs/ui/" + normalizedRoute + ".yaml";
+    var entry = routeRegistry.authored().match(normalizedRoute).map(match -> match.entry());
+    var declaredDefinition =
+        entry.map(io.mateu.uidl.data.RouteEntry::definition).filter(d -> !d.isBlank()).orElse(null);
+    var yamlPath =
+        declaredDefinition != null
+            ? definitionPath(declaredDefinition)
+            : "specs/ui/" + normalizedRoute + ".yaml";
     var resource = resolve(yamlPath);
     if (resource == null) {
       log.info("No YAML spec found at {}", yamlPath);
@@ -117,7 +137,18 @@ public class YamlUidlLoader {
       if (root == null) {
         return NONE;
       }
+      // The definition is layout; the binding to a view model belongs to the route entry. A YAML
+      // that still declares `modelView:` keeps working and wins, so nothing that exists today
+      // changes — but a definition shared by several routes must NOT name one, or it could only
+      // ever serve the class it names.
       var modelView = root.hasNonNull("modelView") ? root.get("modelView").asText() : null;
+      if (modelView == null) {
+        modelView =
+            entry
+                .map(io.mateu.uidl.data.RouteEntry::viewModel)
+                .filter(viewModel -> !viewModel.isBlank())
+                .orElse(null);
+      }
       var layout = layoutOf(root);
       log.info("Loaded YAML spec {} (modelView={})", yamlPath, modelView);
       return new YamlPageSpec(modelView, layout);
@@ -125,6 +156,15 @@ public class YamlUidlLoader {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;
     }
+  }
+
+  /**
+   * Where a declared {@code definition} lives. Relative to {@code specs/ui/} — where the
+   * definitions and the {@code routes.yaml} that routes to them sit together — unless it starts
+   * with a slash, which addresses the classpath root.
+   */
+  private static String definitionPath(String definition) {
+    return definition.startsWith("/") ? definition.substring(1) : "specs/ui/" + definition;
   }
 
   /**
