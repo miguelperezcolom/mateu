@@ -11,6 +11,12 @@
 
 ## 0. Dos hechos que ordenan todo lo demás
 
+> **Antes de leer: el marco está en la sección 12.** Este documento se escribió de fuera hacia
+> dentro, sección a sección, y solo al final quedó claro qué ha acabado siendo Mateu: **un hub, no
+> un framework de UI**. Una declaración en el centro, tres puertas de entrada (código, editor
+> gráfico, conversación) y varios artefactos derivados (UI, contrato de API, bundle estático). Si se
+> lee 12 primero, el resto del documento se entiende mejor.
+
 ### 0.1 El producto es la cintura, no el backend Java
 
 Mateu es un **server-driven UI framework con una cintura estrecha**: el modelo de wire
@@ -697,13 +703,96 @@ techo que la sección 6.2, en la otra dirección.
 
 ---
 
+## 12. Qué ha acabado siendo Mateu: un hub, no un framework de UI
+
+Sumando todo lo anterior, el producto admite **dos aproximaciones opuestas**: *outside-in* (definir
+las pantallas gráficamente, y que esa definición diga qué hay que implementar en el servidor) e
+*inside-out* (escribir clases en el servidor que se convierten en UI). Esta sección fija cómo
+enunciarlo sin prometer lo que no se puede dar.
+
+### 12.1 No es bidireccional: es un hub
+
+```
+   outside-in                                        inside-out
+  editor gráfico ──┐                            ┌── clases Java (@UI)
+                   │                            │
+  OpenAPI existente├──▶   DECLARACIÓN   ◀───────┤   conversación / LLM
+       (11.6)      │      (la verdad)           │      (6.3, 8)
+                   ┘                            ┘
+                            │
+            ┌───────────────┼───────────────┐
+            ▼               ▼               ▼
+           UI          contrato API      bundle/CDN
+      (renderers)       (OpenAPI, 11)     (sección 9)
+```
+
+**"Bidireccional" implica round-trip**: editas cualquiera de los dos extremos y se sincronizan
+solos. Ese es el cementerio histórico — MDA, la ingeniería round-trip de UML, la sincronización de
+esquemas de los ORM. Todos murieron en el mismo sitio: mantener dos artefactos editables a mano en
+sincronía es imposible.
+
+Lo que hay aquí es otra cosa: **muchas entradas, muchos artefactos derivados, una sola verdad en el
+centro que nadie edita por los lados**. Nada hace round-trip porque todo deriva en un solo sentido
+desde el centro. Es una arquitectura distinta, y conviene reclamar la correcta: si se dice
+"bidireccional", el usuario esperará lo que no se le va a dar.
+
+Es la misma idea de 10.1 (*la declaración es el producto; la UI nunca es autoría*) llevada a su
+conclusión: la declaración no solo es lo único que se autora, es también **lo único que se
+mantiene**.
+
+### 12.2 Las dos direcciones NO son simétricas
+
+| | inside-out | outside-in |
+|---|---|---|
+| **Deriva** | la UI **completa** | una **cota inferior** del contrato (11.4) |
+| **Qué queda por hacer** | nada | implementar servicio, casos de uso, queries |
+| **Fidelidad** | total, salvo la intención de UX (6.2) | estructural: sin errores, auth ni reglas de negocio |
+
+Inside-out deriva **un artefacto terminado**. Outside-in deriva **una restricción**. Las dos son
+valiosas, pero una da la pantalla y la otra da la lista de deberes. Enunciarlas como equivalentes
+sería sobrevender la segunda.
+
+### 12.3 La línea de posicionamiento
+
+Ningún competidor tiene esto, y es mejor mensaje que "model-driven UI framework for Java":
+
+> **Empieza por donde ya tengas algo.**
+> ¿Tienes un modelo de dominio? → inside-out.
+> ¿Tienes un diseño o un mockup? → outside-in.
+> ¿Tienes una API? → el dual de 11.6.
+> Los tres aterrizan en la misma declaración.
+
+Las herramientas code-first (JHipster, Spring Data REST) no pueden arrancar de un diseño. Las
+design-first (Retool, Appsmith, Visual Builder) no pueden arrancar de un modelo de dominio
+existente. Mateu arranca de cualquiera de los dos y llega al mismo sitio.
+
+**Y esto disuelve la pregunta de 10.4.** No es puerta principal ni puerta lateral: la puerta
+principal es **la declaración**, y hay tres formas de entrar por ella. Es mejor respuesta que
+cualquiera de las dos opciones que 10.4 planteaba, y hace innecesario elegir entre ellas.
+
+### 12.4 El coste: el impuesto de paridad sube a la capa de autoría
+
+Tres puertas de entrada multiplican lo que hay que documentar, enseñar, probar y mantener coherente.
+Es **exactamente el impuesto de las secciones 2 y 4, ahora en la autoría** — con el agravante de que
+aquí la incoherencia no la ve el CI: la ve el usuario, cuando dos caminos que deberían llegar al
+mismo sitio no llegan.
+
+**Primer paso concreto — el test de convergencia.** En el mismo espíritu que todo el resto del
+documento: una pantalla definida por código, por el editor y desde un OpenAPI debe producir **la
+misma declaración**, o una diferencia declarada y revisada. Sin ese test, "tres puertas" es una
+promesa que se degrada sola — y es la promesa sobre la que estaría construido el posicionamiento de
+12.3.
+
+---
+
 ## Orden sugerido de ataque
 
 | # | Tema | Coste | Impacto | Notas |
 |---|---|---|---|---|
 | 9.2 | Política de bundle vs identidad (audience/permisos/i18n) | bajo | **alto** | es una frontera de **seguridad**; hoy el exporter no distingue |
 | 10.3 | Documentar "el trato" del modo sin servidor | muy bajo | **alto** | evita que alguien publique sus claves; `proxy` no existe justo ahí |
-| 10.4 | Decidir: puerta principal o lateral | — | **alto** | decisión de producto que ordena README, doc y onboarding |
+| 10.4 | Decidir: puerta principal o lateral | — | **alto** | **disuelta en 12.3**: la puerta es la declaración, y hay tres formas de entrar |
+| 12.3 | README: "empieza por donde ya tengas algo" | muy bajo | **alto** | mejor pitch que "model-driven UI framework for Java"; sustituye a la fila 8 |
 | 6.1 | Escribir la regla de autoría (tres ejes + criterio) | muy bajo | **alto** | media página; explica autoría **y** despliegue (9.1) |
 | 6.2 | Declarar el techo de la inferencia | muy bajo | alto | evita perseguir una fase 3 imposible por construcción |
 | 3 | Reconciliar la matriz de capacidades | muy bajo | **alto** | la matriz *es* la API; hoy promete un renderer retirado |
@@ -714,6 +803,7 @@ techo que la sección 6.2, en la otra dirección.
 | 6.3 | Métrica de anotaciones por pantalla | bajo | alto | disciplina la tesis con un número, no con un documento |
 | 9.3a | Pinear el conjunto bundleable en CI | bajo | medio | hoy una ruta se cae del bundle y solo lo dice el log |
 | 11.3 | OpenAPI derivado como **test de contrato** | medio | **alto** | detecta deriva en ambos sentidos y no tiene el problema del codegen |
+| 12.4 | Test de convergencia de las tres puertas | medio | **alto** | sostiene el pitch de 12.3; sin él, "tres puertas" se degrada sola |
 | 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3 y 4; sin esto la paridad escala con tu memoria |
 | 4 | Contrato + conformidad de renderer | alto | **alto** | el multiplicador real de alcance; 4 renderers retirados lo justifican |
 | 7 | Rampa de escape en dos altitudes | medio | alto | criterio: que duela menos que haberla escrito a mano |
