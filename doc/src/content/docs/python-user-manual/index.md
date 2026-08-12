@@ -488,6 +488,36 @@ Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily a
 eagerly stored in `__dict__['__annotations__']`. Mateu reads them via `inspect.get_annotations(...)`,
 so the field markers work on Python 3.11 through 3.14+.
 
+## Route registry (`routes.yaml`)
+
+Routes can also be declared as **data**, in a `routes.yaml` next to the definitions under your specs
+directory (`specs/ui/` by default, or `MATEU_SPECS_DIR`). An entry binds a `definition` (the layout),
+a `viewModel` and its parameters independently, so one screen can answer several routes with
+different parameters pinned:
+
+```yaml
+routes:
+  - route: tickets/open
+    viewModel: myapp.views.Tickets
+    fixedParams:
+      status: open
+  - route: tickets/closed
+    viewModel: myapp.views.Tickets
+    fixedParams:
+      status: closed
+```
+
+Entries are merged **over** the decorator-declared views and win. Parameters resolve as
+`fixed > client state > path > defaults`: defaults only fill what nothing else supplied, while fixed
+ones are re-applied on the server over everything, including the state the client sends back.
+
+Both `viewModel` and `view_model` are accepted — the file is the same one a Java or C# app consumes,
+but snake_case reads more naturally here.
+
+See the full reference, including the JSON Schema for editor completion, in
+[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+exporter, so nothing ships the table to a browser.
+
 ## Status
 
 Forms + sections + field types + validation, `Crud[T]` (list / detail / edit / new / save / delete),

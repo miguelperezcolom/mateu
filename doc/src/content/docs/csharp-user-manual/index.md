@@ -488,6 +488,36 @@ app.MapPost("/ai/chat", async (HttpContext ctx, ChatRq rq) =>
 public record ChatRq(string Message, string? SessionId, string? MenuContext);
 ```
 
+## Route registry (`routes.yaml`)
+
+Routes can also be declared as **data**, in a `routes.yaml` next to the definitions under your specs
+directory (`specs/ui/` by default, or `MATEU_SPECS_DIR`). An entry binds a `definition` (the layout),
+a `viewModel` and its parameters independently, so one screen can answer several routes with
+different parameters pinned:
+
+```yaml
+routes:
+  - route: tickets/open
+    viewModel: MyApp.Views.Tickets
+    fixedParams:
+      status: open
+  - route: tickets/closed
+    viewModel: MyApp.Views.Tickets
+    fixedParams:
+      status: closed
+```
+
+Entries are merged **over** the attribute-declared views and win. Parameters resolve as
+`fixed > client state > path > defaults`: defaults only fill what nothing else supplied, while fixed
+ones are re-applied on the server over everything, including the state the client sends back.
+
+`viewModel` takes the type's full name. Both `viewModel` and `view_model` are accepted, since the
+file is the same one a Java or Python app consumes.
+
+See the full reference, including the JSON Schema for editor completion, in
+[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+exporter, so nothing ships the table to a browser.
+
 ## Status
 
 The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against
