@@ -756,15 +756,22 @@ sería sobrevender la segunda.
 
 Ningún competidor tiene esto, y es mejor mensaje que "model-driven UI framework for Java":
 
-> **Empieza por donde ya tengas algo.**
+> **Empieza por donde ya tengas algo. Y la UI viaja con el dominio.**
 > ¿Tienes un modelo de dominio? → inside-out.
 > ¿Tienes un diseño o un mockup? → outside-in.
 > ¿Tienes una API? → el dual de 11.6.
-> Los tres aterrizan en la misma declaración.
+> Los tres aterrizan en la misma declaración — y esa declaración puede venir troceada desde N
+> servicios y agregarse en una shell, o embeberse en cualquier anfitrión.
 
 Las herramientas code-first (JHipster, Spring Data REST) no pueden arrancar de un diseño. Las
 design-first (Retool, Appsmith, Visual Builder) no pueden arrancar de un modelo de dominio
 existente. Mateu arranca de cualquiera de los dos y llega al mismo sitio.
+
+Y la segunda frase pesa más que la primera en empresas grandes: en esas plataformas una app es
+monolítica y vive dentro de la plataforma, así que **ocho equipos no pueden poseer, versionar y
+desplegar cada uno su porción del mismo back-office**. En Mateu sí, porque el jar del dominio lleva
+su UI dentro (sección 13). Es un argumento organizativo, no técnico — y son los que deciden
+adopciones.
 
 **Y esto disuelve la pregunta de 10.4.** No es puerta principal ni puerta lateral: la puerta
 principal es **la declaración**, y hay tres formas de entrar por ella. Es mejor respuesta que
@@ -782,6 +789,88 @@ documento: una pantalla definida por código, por el editor y desde un OpenAPI d
 misma declaración**, o una diferencia declarada y revisada. Sin ese test, "tres puertas" es una
 promesa que se degrada sola — y es la promesa sobre la que estaría construido el posicionamiento de
 12.3.
+
+---
+
+## 13. Federación y embedding: micro-frontends sin el impuesto
+
+**Estado: construido.** `RemoteMenu` + `RemoteMenuHandler` + `AppMenuResolver` resuelven menús
+remotos y deep links contra apps remotas; hay un case study en la doc
+(`case-study-microservices.md`) donde cada servicio posee su dominio, expone sus rutas y define sus
+pantallas. Y el embedding ya es real fuera del navegador: EventConductor mete UI de Mateu en
+webviews de IDE.
+
+### 13.1 El mecanismo es de empaquetado, no de convención
+
+El módulo `uidl` es la **única** dependencia necesaria para escribir clases `@UI`, y el AP indexador
+escribe `META-INF/mateu/ui-registrations` dentro del jar. Es decir: **un jar de dominio lleva
+literalmente su propia UI dentro**, sin acoplarse a Spring, Quarkus ni a nada. La federación no es
+una feature añadida encima: es una consecuencia de la arquitectura de la sección 0.1 — *si el wire
+es la interfaz, cualquier número de productores puede aportar wire a un mismo renderer*.
+
+Comparado con el estado del arte:
+
+| | Micro-frontends clásicos | Mateu |
+|---|---|---|
+| Unidad federada | un bundle JS | una **declaración** |
+| Composición | en runtime, en el navegador | en el wire |
+| Versiones del framework en juego | N, una por equipo | **una** |
+| Colisiones de CSS | el problema central | no existen: un solo renderer |
+| Herramienta necesaria | Module Federation y su coste | ninguna |
+
+### 13.2 Es la mejor respuesta a "¿qué hace Mateu que no haga Retool?"
+
+Y la razón no es técnica, es organizativa — que es la clase de razón que decide adopciones en
+empresas grandes:
+
+> En Retool, Appsmith o Visual Builder, una app es **monolítica y vive en la plataforma**. No puedes
+> tener ocho equipos, cada uno dueño de su porción del mismo back-office, cada uno versionando y
+> desplegando su trozo junto a su propio servicio. En Mateu **la UI viaja con el dominio**.
+
+Encaja con el marco de la sección 12: la declaración no solo tiene tres puertas de entrada, es que
+además **puede venir troceada desde N sitios distintos** y agregarse en una shell — o embeberse en
+cualquier anfitrión.
+
+### 13.3 La federación sube la prioridad de la sección 2
+
+Hasta aquí, el corpus de conformidad del wire lo justificaba el multi-lenguaje: una promesa
+*externa*, hecha a terceros. La federación lo convierte en un requisito **interno**:
+
+> El jar del dominio A se compiló contra `3.0-alpha.280`, el del dominio B contra `.289`, y la shell
+> corre `.289`. Los tres emiten wire al mismo renderer, en el mismo despliegue.
+
+El *version skew* deja de estar entre productos y pasa a estar **dentro de un mismo despliegue**.
+Es un argumento más urgente y más concreto para la sección 2 que el de los ports.
+
+**Pregunta abierta que no aparece contestada en ningún sitio: ¿cuál es la política de
+compatibilidad?** ¿Un jar compilado contra la versión N funciona en una shell N+k? ¿Hasta qué k? Sin
+respuesta declarada, la federación funciona por coincidencia de fechas de build.
+
+### 13.4 Dos contratos que no están escritos
+
+**a) El contrato de la shell.** Agregar N dominios en una superficie compartida es el problema
+clásico del monolito modular, ahora en la capa de UI:
+
+- ¿Quién es dueño del orden y la estructura del menú agregado?
+- La resolución de deep links monta *"the first remote app that owns it"* — **¿primero según qué
+  orden?** Si dos servicios reclaman rutas solapadas, la resolución depende de un orden que puede
+  cambiar entre despliegues. Merece una política declarada (prefijos reservados por dominio,
+  detección de colisión al arrancar, precedencia explícita), no un "el primero que responda".
+- Los eventos (emit/subscribe, ✅ en la matriz) cruzando dominios dentro de una misma shell son un
+  canal de acoplamiento. Si A puede escuchar los eventos de B y navegar a sus rutas, se ha
+  reconstruido el monolito distribuido en la capa de UI.
+
+**b) El contrato de embedding.** Es la capacidad peor vendida y la que menos contrato declarado
+tiene: hoy cada anfitrión se descubre a mano. El mínimo tendría que fijar:
+
+- negociación de tamaño y layout con el anfitrión;
+- **theming** — no asumir los tokens del host (es exactamente la clase de bug ya encontrada con el
+  componente de grafo y `--lumo-*` en webviews de IDE);
+- propagación de autenticación;
+- **quién es dueño de la URL y del historial** cuando la UI va embebida;
+- qué eventos pueden escapar al anfitrión y cuáles no.
+
+Mismo patrón que 9.1: hoy es una lista de casos descubiertos y debería ser una regla derivable.
 
 ---
 
@@ -804,8 +893,11 @@ promesa que se degrada sola — y es la promesa sobre la que estaría construido
 | 9.3a | Pinear el conjunto bundleable en CI | bajo | medio | hoy una ruta se cae del bundle y solo lo dice el log |
 | 11.3 | OpenAPI derivado como **test de contrato** | medio | **alto** | detecta deriva en ambos sentidos y no tiene el problema del codegen |
 | 12.4 | Test de convergencia de las tres puertas | medio | **alto** | sostiene el pitch de 12.3; sin él, "tres puertas" se degrada sola |
-| 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3 y 4; sin esto la paridad escala con tu memoria |
+| 13.3 | Política de compatibilidad de versiones para jars federados | bajo | **alto** | hoy la federación funciona por coincidencia de fechas de build |
+| 13.4a | Política de colisión de rutas en la shell | bajo | alto | "el primero que responda" depende de un orden que cambia entre despliegues |
+| 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3, 4 y 13; el version skew de la federación lo hace **interno**, no solo una promesa externa |
 | 4 | Contrato + conformidad de renderer | alto | **alto** | el multiplicador real de alcance; 4 renderers retirados lo justifican |
+| 13.4b | Contrato de embedding (theming, URL, auth, tamaño, eventos) | medio | **alto** | la capacidad peor vendida; hoy cada anfitrión se descubre a mano |
 | 7 | Rampa de escape en dos altitudes | medio | alto | criterio: que duela menos que haberla escrito a mano |
 | 10.2 | YAML del editor como delta, no como snapshot | alto | **alto** | hoy tocar una pantalla en el editor la saca de la inferencia para siempre |
 | 11.2 | Codegen de controladores (puerto generado / adaptador a mano) | alto | medio | solo después de 11.1 y 11.3; la regla de no mezclar es innegociable |
