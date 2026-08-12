@@ -147,6 +147,37 @@ IntelliJ will now provide autocompletion and validation for all YAML files under
 
 ---
 
+## `layoutDelta:` — keep inference alive
+
+A page can carry a **`layoutDelta:`** instead of a `layout:`. The difference matters more than it
+looks:
+
+```yaml
+modelView: com.acme.Contact
+layoutDelta:
+  order: [email, name]
+  hidden: [internalNote]
+  overrides:
+    name: { label: "Full name", colspan: 2 }
+```
+
+A `layout:` is a **snapshot**: it takes the screen out of the inference regime for good, because
+explicit always wins. Add a field to the model afterwards and it does not appear; rename one and the
+layout points at a ghost.
+
+A `layoutDelta:` records **what a human decided**, anchored to field ids. Inference still runs on
+every request and the delta is re-applied on top, so a field the model grows later lands in its
+inferred place, and one it loses is an entry that simply matches nothing.
+
+What a delta deliberately cannot express is arbitrary restructuring — "wrap these two in a card
+inside a tab". Anchoring to ids is exactly what makes it survive a model change; a delta that could
+rebuild the tree freely would be a snapshot with a different name.
+
+:::note
+The server reads this today. The visual editor still writes `layout:` — teaching it to write deltas
+is the remaining step.
+:::
+
 ## Hybrid: YAML layout + Java logic with `@UISpec`
 
 A pure YAML file has no Java class, so it cannot run server-side logic. A pure Java `ComponentTreeSupplier` has no YAML file, so the layout is hard-coded.
