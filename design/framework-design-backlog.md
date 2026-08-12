@@ -65,9 +65,27 @@ Dos corolarios que se usan más abajo:
 - **Cada anotación nueva es deuda contra la tesis, no una feature.** Una anotación es la confesión
   de que la inferencia no llegó. Con esta lente, `page-level-inference-plan.md` no es una dirección
   nueva: es la idea original una altitud más arriba, y es el único trabajo en curso que *reduce* la
-  superficie declarativa en lugar de aumentarla.
+  superficie declarativa en lugar de aumentarla. (El criterio afinado, en la sección 6.)
 - **"Dolor mínimo" es sostenido, no puntual.** Un LLM también da UI con esfuerzo mínimo *hoy*; lo
   que no da es que la UI siga siendo correcta dentro de dos años sin tocarla. Ver sección 8.
+
+### 1.1 Las tres etapas del modelo de autoría
+
+La historia importa porque cada etapa añadió una forma de autoría distinta, y solo la primera
+tenía una regla escrita:
+
+1. **Todo desde Java (origen).** La UI se resuelve entera desde el backend, con una regla de
+   reparto muy limpia: **anotación** cuando es puramente declarativo (se conoce en compile time, no
+   hay decisión que tomar) e **interfaz o clase abstracta** cuando es dinámico (la decisión se toma
+   en runtime). Esta regla nunca se escribió como principio, pero es la que ha sostenido la
+   superficie declarativa todos estos años.
+2. **Páginas y templates.** Definición a más alto nivel: *todas las páginas son del tipo a, b o c*.
+   Se toma **Redwood como modelo** en lugar de reinventar la rueda — y lo que se importa no son los
+   píxeles de Oracle sino su modelo de decisión (`redwood-page-templates-plan.md`). Ver la sección
+   6.2 para lo que ese préstamo trae consigo.
+3. **Inferencia de página** (`page-level-inference-plan.md`). El framework deja de recibir la
+   elección y empieza a deducirla. Es la etapa que **la regla de la etapa 1 no cubre** — y por eso
+   hay que ampliarla (sección 6.1).
 
 ---
 
@@ -184,37 +202,94 @@ recursos) y que modux y el plugin Maven lo consuman en vez de copiarlo.
 
 ## 6. Gobierno de la superficie declarativa al subir de altitud
 
-**Observación.** El Mateu original hace **inferencia mecánica** (un `LocalDate` → date picker):
-determinista, deriva del modelo, sin ambigüedad. Los page templates y archetypes hacen **selección
-de patrón**, que requiere una *intención* que el modelo de datos no contiene: un `record Booking`
-no dice si quiere ser tabla, calendario o dashboard.
+**La tensión.** Inferencia y anotaciones crecen **a la vez** (`@Zones`, `@WizardProgress`,
+`@RangeFilter`, `@AppContext`, `@Audience`, `editInDrawer()`, `@PageTemplate`, `@RestOptions`,
+`@RestListing`...), y no hay regla escrita de a cuál va cada capacidad nueva. Sin ella, la
+superficie crece por acumulación y el riesgo clásico se materializa: **el DSL de anotaciones acaba
+costando más de aprender que escribir la UI a mano** — que es exactamente la derrota de la tesis de
+la sección 1.
 
-**Esto ya se está atacando bien.** La reacción por defecto sería meter la intención en anotaciones,
-y la superficie ya crece rápido (`@Zones`, `@WizardProgress`, `@RangeFilter`, `@AppContext`,
-`@Audience`, `editInDrawer()`, `@PageTemplate`, `@RestOptions`, `@RestListing`...). Pero
-`page-level-inference-plan.md` va por el camino contrario y mejor — inferir el arquetipo de la
-información declarada — con las tres salvaguardas correctas: reglas deterministas, *explicit always
-wins*, y estabilidad visible (avisos de proximidad + fingerprint en CI).
+### 6.1 La regla de autoría: ampliarla, no inventarla
 
-**La tensión que queda.** Inferencia y anotaciones crecen **a la vez**, y no hay regla escrita de a
-cuál va cada capacidad nueva. Sin ella, la superficie declarativa crece por acumulación y el riesgo
-clásico se materializa: **el DSL de anotaciones acaba costando más de aprender que escribir la UI a
-mano** — que es exactamente la derrota de la tesis de la sección 1.
+La regla de la etapa 1 (sección 1.1) reparte por **cuándo se conoce la respuesta**:
+
+> anotación = declarativo puro, compile time, sin decisión.
+> interfaz / clase abstracta = hay decisión, se toma en runtime.
+
+La inferencia no rompe esa regla: abre un eje que la regla no contemplaba, el de **quién decide**.
+
+|  | **decide el desarrollador** | **decide el framework** |
+|---|---|---|
+| **compile time** | anotación | inferencia estática desde la forma del modelo |
+| **runtime** | interfaz / clase abstracta | inferencia + composición (`PageInference`) |
+
+Esto explica por qué `@AutoPage` se siente distinta a las demás anotaciones: **su contenido no es
+información, es permiso** — "decide tú por mí". No es una declaración más, es un cambio de columna.
+
+De ahí sale el criterio que faltaba, y que es más útil que cualquier lista de casos:
+
+> **Una anotación es legítima cuando transporta información que SOLO el desarrollador tiene.
+> Es deuda cuando transporta una decisión que el framework podría tomar mirando el modelo.**
+
+**Primer paso concreto.** Escribir esta regla (las dos preguntas + la tabla + el criterio) en la
+doc pública, junto a `the-mateu-way.md`. Es media página y convierte una intuición de años en algo
+que un contribuidor externo puede aplicar — que es justo lo que hace falta ahora que Mateu es
+producto (sección 0.2).
+
+### 6.2 El techo de la inferencia es de información, no de implementación
+
+Redwood se tomó como modelo para no reinventar la rueda, y lo valioso que se importó es su modelo
+de decisión, no sus píxeles:
+
+```
+objetivo de usuario ──▶ categoría ──▶ densidad de datos ──▶ plantilla ──▶ anatomía fija
+```
+
+Pero fíjate dónde **empieza** esa cadena: en el *objetivo de usuario*. Y Mateu empieza en el
+**modelo de datos**. Son dos orígenes distintos, y esa distancia es el techo duro de la inferencia
+de página:
+
+- `MetricCard` → dashboard funciona porque la forma **correlaciona** casi perfectamente con la
+  intención.
+- Pero una lista de registros puede ser una tabla, un calendario, un kanban, un planning board o
+  una cola de triaje. **Misma forma de datos, cinco objetivos de usuario distintos.** Ninguna
+  cantidad de inferencia los distingue: la información no está en el modelo.
+
+`page-level-inference-plan.md` ya respeta este límite en la práctica (solo compone arquetipos
+*fully-derivable*; los que necesitan suppliers no declarados se quedan en advisory). **Falta
+escribirlo como límite conocido**, para que nadie persiga una fase 3 que es imposible por
+construcción, y para acotar de antemano hasta dónde llega la tesis de la sección 1.
+
+### 6.3 Entonces: ¿por dónde entra la intención con menos dolor?
+
+Si la intención no está en el modelo, tiene que entrar por algún canal. Hay tres, los tres ya
+existen en el repo en distinto grado de madurez:
+
+| Canal | Estado | Coste para el desarrollador |
+|---|---|---|
+| **Anotación** (`@PageTemplate`) | maduro | barato, pero mete una decisión de diseño en el código de negocio |
+| **Canal separado** (`.form`, Figma, `apps/visual-editor`) | en construcción | la intención vive donde viven los diseñadores; el modelo Java se queda puro |
+| **Scaffold conversacional** (`the-mateu-way.md` + skill `mateu-screen`) | embrión | se paga UNA vez, al crear la pantalla |
+
+El tercero es el más prometedor en 2026 y es donde converge el resto del documento: un LLM hace las
+tres preguntas de "The Mateu Way" una vez, y **su salida no es la UI — es la declaración mínima**.
+Pequeña, revisable, duradera; Mateu deriva el resto. Ver sección 8.
 
 **Primer paso concreto (métrica, no documento).** Publicar en cada release un número:
 
 > **anotaciones por pantalla típica** — medido sobre el corpus de demos/e2e, y su tendencia.
 
 Si sube, Mateu se aleja de por qué existe, aunque cada anotación individual esté justificada. Un
-número que se publica disciplina más que cualquier documento de principios, y el primitivo para
+número publicado disciplina más que cualquier documento de principios, y el primitivo para
 calcularlo es trivial sobre el corpus que ya existe.
 
 **Preguntas abiertas.**
 - Cuando la inferencia subsume una anotación, ¿se deprecia o se queda para siempre como escape?
 - ¿La fase 1 (`@AutoPage`, opt-in) llega a ser el default alguna vez? **Si nunca lo es, la
   inferencia no reduce la superficie declarativa: la aumenta en uno.**
-- ¿Cuándo una capacidad nueva es inferida, anotación, método overridable, código imperativo, u otro
-  canal (`.form` / Figma)?
+- Si el canal preferente acaba siendo el 3, ¿qué pasa con la pantalla que se edita dos años
+  después? La declaración generada tiene que seguir siendo legible y editable **a mano**, o el
+  scaffold conversacional se convierte en generación de código con otro nombre.
 
 ---
 
@@ -236,16 +311,30 @@ ahorro se evapora — y no para "un cliente", sino para el usuario original de l
 figura como 🟡 *wrapper idiom* en .NET/Python), pero está documentado como rincón técnico, no como
 promesa de producto.
 
-**Primer paso concreto.** Convertirlo en feature de primera clase: página de doc propia con el caso
-"una pantalla de las 40 es especial", demo en `demo/`, y decidir qué garantías se dan — qué
-sobrevive al bajar a custom (routing, estado, validación, i18n, menús) y si se puede volver a
-subir.
+### 7.1 El escape es ahora un problema de DOS altitudes
+
+`ComponentAdapter` resuelve la altitud de **campo/componente**. La etapa 2 (páginas y templates,
+sección 1.1) introdujo una altitud nueva con su propia forma de quedarse fuera: *"todas las páginas
+son del tipo a, b o c"* es una taxonomía excelente **hasta que llega la página que no es ninguna**.
+Y la taxonomía importada es la visión del mundo de Oracle para apps de empresa: buena, pero es
+*una* visión, no un universal.
+
+Así que hace falta la contrapartida a nivel de página: **"esta pantalla no es de ningún tipo —
+déjame componerla a mano y conserva shell, routing, estado, menús e i18n"**. Sin eso, cada
+pantalla que no encaja en el catálogo empuja a un usuario entero fuera de Mateu, no solo a una
+pantalla.
+
+**Primer paso concreto.** Convertir el escape en feature de primera clase **en las dos altitudes**:
+página de doc propia con el caso "una pantalla de las 40 es especial", demo en `demo/`, y decidir
+qué garantías se dan — qué sobrevive al bajar a custom y si se puede volver a subir.
 
 **Preguntas abiertas.**
 - ¿Cuál es el grano mínimo de escape soportado — campo, sección, página, app? Cuanto más fino, más
   fuerte el argumento y más caro el contrato.
 - ¿La paridad del escape en los ports (🟡 hoy) es aceptable, o es justo el sitio donde el 🟡 más
   duele?
+- ¿Qué pasa cuando la taxonomía se queda corta de forma repetida? ¿Se amplía el catálogo (y se
+  aleja de Redwood) o se asume que el escape es la respuesta permanente?
 
 ---
 
@@ -259,6 +348,21 @@ fundacional (sección 1) sobrevivida:
 
 > El código generado **deriva** del modelo y luego **diverge**. En Mateu la UI no se genera: se
 > deriva en runtime, así que no puede divergir. Cambias el modelo y la UI ya es correcta.
+
+**La versión no defensiva (mejor).** El argumento de arriba se defiende *de* la IA. Hay uno que la
+usa, y sale de la sección 6.3: si la intención tiene que entrar por algún canal y el mejor canal es
+el scaffold conversacional, entonces
+
+> **la IA escribe la declaración; Mateu deriva la UI.**
+
+La salida del LLM deja de ser una pantalla de React de 800 líneas que pasa a ser tuya y empieza a
+divergir el día 2, y pasa a ser una declaración de diez líneas: pequeña, revisable, duradera, y de
+la que Mateu deriva UI correcta para siempre — en web, móvil e IDE a la vez. La IA hace lo que hace
+bien (capturar la intención una vez) y el framework hace lo que hace bien (no divergir nunca).
+
+Esto encaja además con las piezas que ya existen: `the-mateu-way.md` enseña las tres preguntas y la
+skill `mateu-screen` ya las automatiza conversacionalmente. Es la dirección más diferenciadora del
+documento y hoy es la menos desarrollada.
 
 **El foso menos explotado.** El mismo modelo renderiza en navegador, en React Native y **dentro de
 un IDE** (plugin de IntelliJ, extensión de VSCode). Ya es real y ya se usa en producto propio:
@@ -282,13 +386,22 @@ EventConductor) que merezca ser producto/doc propio, en vez de un uso interno?
 
 | # | Tema | Coste | Impacto | Notas |
 |---|---|---|---|---|
+| 6.1 | Escribir la regla de autoría (dos ejes + criterio) | muy bajo | **alto** | media página; convierte una intuición de años en algo que un tercero puede aplicar |
+| 6.2 | Declarar el techo de la inferencia | muy bajo | alto | evita perseguir una fase 3 imposible por construcción |
 | 3 | Reconciliar la matriz de capacidades | muy bajo | **alto** | la matriz *es* la API; hoy promete un renderer retirado |
 | 8 | README: derivación vs generación | muy bajo | alto | la mitad no depende de nada; ordena el discurso |
 | 5 | `contract.json` único | bajo | medio | elimina una clase de bug silencioso |
-| 6 | Métrica de anotaciones por pantalla | bajo | alto | disciplina la tesis con un número, no con un documento |
+| 6.3 | Métrica de anotaciones por pantalla | bajo | alto | disciplina la tesis con un número, no con un documento |
 | 2 | Corpus de conformidad del wire | alto | **alto** | habilita 3 y 4; sin esto la paridad escala con tu memoria |
 | 4 | Contrato + conformidad de renderer | alto | **alto** | el multiplicador real de alcance; 4 renderers retirados lo justifican |
-| 7 | Rampa de escape como feature | medio | alto | criterio: que duela menos que haberla escrito a mano |
+| 7 | Rampa de escape en dos altitudes | medio | alto | criterio: que duela menos que haberla escrito a mano |
+| 8b | "La IA escribe la declaración" como dirección | medio | **alto** | lo más diferenciador y lo menos desarrollado; depende de 6.1–6.3 |
 
-Las dos grandes (2 y 4) son la misma idea aplicada a los dos lados de la cintura: **convertir
-"seguir a Java" en "cumplir la spec"**, para que la extensión la pueda hacer alguien que no seas tú.
+Dos observaciones sobre el orden:
+
+- Las cuatro primeras filas son **texto, no código**, y suman probablemente un día de trabajo. Casi
+  todo lo que este documento identifica como riesgo se mitiga escribiendo lo que ya sabes.
+- Las dos grandes (2 y 4) son la misma idea aplicada a los dos lados de la cintura: **convertir
+  "seguir a Java" en "cumplir la spec"**, para que la extensión la pueda hacer alguien que no seas
+  tú. Son la condición para que "cuanta más gente se beneficie, mejor" (sección 0.2) no dependa de
+  tu ancho de banda.
