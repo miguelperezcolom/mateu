@@ -2,8 +2,15 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.mateu.core.application.contract.ModelViewContractExtractor;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlUidlLoader;
+import io.mateu.core.testutil.TestMateu;
+import io.mateu.dtos.ModelViewContractDto;
+import io.mateu.dtos.ServerSideComponentDto;
+import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,5 +59,54 @@ class LayoutDeltaSpecTest {
   void aPageWithNoDeltaCarriesAnEmptyOneRatherThanNull() {
     // So every caller can ask without branching.
     assertThat(loader.loadSpec("by-convention").delta().isEmpty()).isTrue();
+  }
+
+  // ── end to end ────────────────────────────────────────────────────────────
+  // Parsing a delta was never the point. These render the page for real and check what a browser
+  // would receive — the delta re-applied to the tree inference produced this request.
+
+  static TestMateu mateu;
+
+  @BeforeAll
+  static void boot() {
+    // DeltaLogic carries no route, so /delta-page has no Java route → the YAML fallback fires.
+    mateu = TestMateu.withUis(DeltaLogic.class);
+  }
+
+  @AfterAll
+  static void shutdown() {
+    mateu.close();
+  }
+
+  /**
+   * The fields a browser would receive, in order.
+   *
+   * <p>Read through {@link ModelViewContractExtractor} rather than by walking children: form fields
+   * nest inside component METADATA records, so a plain children walk misses them — the same trap
+   * the extractor exists to avoid.
+   */
+  private static List<ModelViewContractDto.Field> renderedFields() {
+    var increment = mateu.sync("delta-page");
+    assertThat(increment.fragments()).isNotEmpty();
+    return ModelViewContractExtractor.extract(
+            (ServerSideComponentDto) increment.fragments().get(0).component())
+        .fields();
+  }
+
+  @Test
+  void theRenderedPageCarriesTheOrderAndOmissionTheHumanChose() {
+    assertThat(renderedFields())
+        .extracting(ModelViewContractDto.Field::id)
+        .containsExactly("email", "name");
+  }
+
+  @Test
+  void theRenderedPageCarriesTheOverridesTheHumanChose() {
+    // The label reaches the wire here; colspan is pinned at component level in
+    // LayoutDeltaApplierTest, since the contract does not carry it.
+    var name =
+        renderedFields().stream().filter(f -> "name".equals(f.id())).findFirst().orElseThrow();
+
+    assertThat(name.label()).isEqualTo("Full name");
   }
 }

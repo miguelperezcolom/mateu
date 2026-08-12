@@ -1,9 +1,10 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import {
-    PageDoc, NodePath, PageNode, parsePage, serializePage, nodeAt,
+    PageDoc, NodePath, PageNode, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp,
 } from './model/pageModel'
+import { fetchInferredFields } from './model/contract'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import './palette/editor-palette'
 import './canvas/editor-canvas'
@@ -26,6 +27,9 @@ export class MateuVisualEditor extends LitElement {
         .toolbar button { padding: 0.3rem 0.6rem; font: 12px system-ui; border: 1px solid #d7dade;
                           border-radius: 6px; background: #fff; cursor: pointer; }
         .toolbar .hint { color: #9ca3af; font-size: 12px; }
+        .toolbar .shape { padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 11px; }
+        .toolbar .shape.delta { background: #e8f5ec; color: #1e7a3c; }
+        .toolbar .shape.snapshot { background: #fdf0e3; color: #9a5b09; }
         .panes { display: grid; grid-template-columns: 200px 1fr 300px; min-height: 0; }
         .source { grid-column: 1 / -1; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
@@ -45,8 +49,8 @@ export class MateuVisualEditor extends LitElement {
         super.connectedCallback()
         this.host = resolveHost()
         if (!this.baseUrl) this.baseUrl = this.host.baseUrl()
-        this.host.initialYaml().then((yaml) => { this.doc = parsePage(yaml) })
-        this.host.onExternalChange?.((yaml) => { this.doc = parsePage(yaml); this.selectedPath = null })
+        this.host.initialYaml().then((yaml) => this.load(yaml))
+        this.host.onExternalChange?.((yaml) => { this.load(yaml); this.selectedPath = null })
     }
 
     render() {
@@ -63,6 +67,7 @@ export class MateuVisualEditor extends LitElement {
                 <div class="toolbar">
                     <span class="brand">Mateu Visual Editor</span>
                     <span class="hint">backend: ${this.baseUrl || 'same-origin'}</span>
+                    ${this.shapeBadge()}
                     <span class="spacer"></span>
                     <button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>
                 </div>
@@ -130,10 +135,43 @@ export class MateuVisualEditor extends LitElement {
 
     private onSourceEdit(e: Event) {
         try {
-            this.doc = parsePage((e.target as HTMLTextAreaElement).value)
+            this.load((e.target as HTMLTextAreaElement).value)
             this.selectedPath = null
             this.commit()
         } catch { /* invalid YAML mid-edit — ignore until it parses */ }
+    }
+
+    /**
+     * Load YAML into the editor, then ask the server what inference produces for its model view.
+     *
+     * The contract arrives asynchronously and the editor is fully usable before it does — it just
+     * cannot save a delta yet. A page written as `layoutDelta:` is a placeholder until then, which
+     * is why hydration re-renders rather than merging into a tree the user may already be editing.
+     */
+    private load(yaml: string) {
+        const doc = parsePage(yaml)
+        this.doc = doc
+        if (!doc.modelView) return
+        fetchInferredFields(this.baseUrl, doc.modelView, this).then((fields) => {
+            // Ignore a late response for a document that has since been replaced.
+            if (!fields || this.doc !== doc) return
+            this.doc = hydrate(doc, fields)
+        })
+    }
+
+    /**
+     * Says out loud what the next save will cost. Writing a full `layout:` for a page that HAS a
+     * model takes that screen out of inference for good — a field added to the model afterwards
+     * will silently never appear. That used to happen invisibly; now it is a badge.
+     */
+    private shapeBadge() {
+        if (!this.doc) return ''
+        const shape: SaveShape = saveShape(this.doc)
+        if (shape === 'static') return ''
+        if (shape === 'delta') {
+            return html`<span class="shape delta" title="Saved as a delta over the inferred layout — this screen keeps following its model.">delta</span>`
+        }
+        return html`<span class="shape snapshot" title="This arrangement cannot be expressed as a delta, so it is saved as a full layout. The screen stops re-deriving: fields added to the model later will not appear.">snapshot</span>`
     }
 
     /** Re-render (new doc reference) and debounce a save back to the host. */

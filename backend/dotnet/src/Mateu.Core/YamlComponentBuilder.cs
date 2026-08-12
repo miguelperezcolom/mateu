@@ -53,6 +53,14 @@ public static class YamlComponentBuilder
         var registry = partials ?? PartialRegistry.Default;
         if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []));
         var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString() : null;
+        if (!map.ContainsKey("layout") && map.ContainsKey("layoutDelta"))
+        {
+            // A `layoutDelta:` is not a layout: it is a diff to re-apply over the INFERRED one,
+            // which only the Java server does today. Returning null here is what stops the port
+            // from rendering the envelope itself as a component ("Unsupported component: ") — a
+            // visible wrong page is worse than no page.
+            return (modelView, null);
+        }
         var layoutNode = map.TryGetValue("layout", out var layout) ? layout : root;
         return (modelView, Single(layoutNode, registry, []));
     }

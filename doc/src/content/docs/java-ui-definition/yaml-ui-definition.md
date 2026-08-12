@@ -185,9 +185,40 @@ What a delta deliberately cannot express is arbitrary restructuring — "wrap th
 inside a tab". Anchoring to ids is exactly what makes it survive a model change; a delta that could
 rebuild the tree freely would be a snapshot with a different name.
 
+The delta is re-applied to the tree inference produced **on every request** — that is the whole
+difference from a `layout:`, which is computed once and then stands in for the model forever.
+
+### Three parts, three rules
+
+An inferred tree may spread the model's fields over sections, tabs or rows, so:
+
+| | |
+|---|---|
+| `hidden` | removes that field wherever it sits |
+| `overrides` | apply to that field wherever it sits |
+| `order` | reorders the fields **within each container that holds them**, leaving non-field siblings in their slots |
+
+A delta cannot move a field between containers, and cannot restructure the tree. That limit is not
+an omission — it is the reason a delta survives a model change at all.
+
+### The visual editor writes these
+
+Drag a field in the editor and it saves a `layoutDelta:`, not a snapshot. Two consequences worth
+knowing:
+
+- **Opening a screen and changing nothing writes `layoutDelta: {}`** — an empty delta, which costs
+  the screen nothing. Using the editor must not, by itself, end a page's inference.
+- **Some edits cannot be a delta.** Add a `Text`, wrap two fields in a card, set a stereotype by
+  hand — none of that is expressible as "these fields, in this order, with these tweaks". The
+  editor then falls back to writing a `layout:` and shows a **snapshot** badge instead of a
+  **delta** one, so the moment a screen leaves inference is visible rather than silent.
+
+An existing `layout:` page migrates by itself: open it in the editor, rearrange, and if the layout
+is a flat run of the model's own fields the next save comes back as a delta.
+
 :::note
-The server reads this today. The visual editor still writes `layout:` — teaching it to write deltas
-is the remaining step.
+`layoutDelta:` is served by the **Java** server. The .NET and Python ports parse the key and decline
+the page rather than rendering it wrongly.
 :::
 
 ## Hybrid: YAML layout + Java logic with `@UISpec`

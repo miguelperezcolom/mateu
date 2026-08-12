@@ -50,6 +50,12 @@ def parse_spec(
     if not isinstance(data, dict):
         return None, _single(data, registry, [])
     model_view = data.get("modelView")
+    if "layout" not in data and "layoutDelta" in data:
+        # A `layoutDelta:` is not a layout: it is a diff to re-apply over the INFERRED one, which
+        # only the Java server does today. Returning None here is what stops the port from
+        # rendering the envelope itself as a component ("Unsupported component: None") — a visible
+        # wrong page is worse than no page.
+        return model_view, None
     layout_node = data["layout"] if "layout" in data else data
     return model_view, _single(layout_node, registry, [])
 

@@ -133,6 +133,21 @@ public class YamlUidlLoader {
     return spec.modelView().equals(modelViewClass.getName()) ? spec.layout() : null;
   }
 
+  /**
+   * The layout DELTA for {@code route}, under the same "this instance IS the page's declared
+   * ModelView" rule as {@link #layoutForRoute}. Empty when the route has no spec, no delta, or
+   * belongs to another class — so the caller can apply it unconditionally.
+   */
+  public io.mateu.uidl.data.LayoutDelta deltaForRoute(String route, Class<?> modelViewClass) {
+    var spec = loadSpec(route);
+    if (spec == null || spec.modelView() == null || modelViewClass == null) {
+      return io.mateu.uidl.data.LayoutDelta.empty();
+    }
+    return spec.modelView().equals(modelViewClass.getName())
+        ? spec.delta()
+        : io.mateu.uidl.data.LayoutDelta.empty();
+  }
+
   private YamlPageSpec parseSpec(String normalizedRoute) {
     var entry = routeRegistry.authored().match(normalizedRoute).map(match -> match.entry());
     var declaredDefinition =

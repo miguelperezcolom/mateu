@@ -1,4 +1,7 @@
 import { parse, stringify } from 'yaml'
+import {
+    FieldOverride, InferredField, LayoutDelta, applyDelta, deltaBetween, readDelta, writeDelta,
+} from './layoutDelta'
 
 /**
  * A single node of a Mateu page layout: a `type` plus arbitrary scalar props and an
@@ -20,7 +23,28 @@ export interface PageDoc {
     modelView?: string
     layout: PageNode
     bare: boolean
+    /**
+     * The delta the file carried, when it was written as `layoutDelta:` rather than `layout:`.
+     * Until the contract arrives there is nothing to apply it to, so `layout` stays a placeholder
+     * and `hydrate` fills it in.
+     */
+    delta?: LayoutDelta
+    /**
+     * What inference produces for `modelView`, from the server's `__contract__`. Its presence is
+     * what lets the editor save a delta at all: without it there is nothing to diff against, and
+     * the only honest thing to write is a snapshot.
+     */
+    inferred?: InferredField[]
 }
+
+/** How this page will be written back — and, for a page with a model, what that costs. */
+export type SaveShape =
+    /** No model view: a `layout:` is the only truth there is, and nothing is being frozen. */
+    | 'static'
+    /** A delta over the inferred layout. Inference keeps running; the page keeps following its model. */
+    | 'delta'
+    /** A full snapshot of a page that HAS a model — this is what takes the screen out of inference. */
+    | 'snapshot'
 
 /** A path is a list of child indices into successive `content` arrays. `[]` = the root. */
 export type NodePath = number[]
@@ -31,6 +55,16 @@ const RESERVED = new Set(['type', 'content'])
 export function parsePage(yaml: string): PageDoc {
     let root: unknown
     try { root = parse(yaml) } catch { root = null }
+    if (root && typeof root === 'object' && 'layoutDelta' in (root as object)) {
+        // A delta is not a tree: there is nothing to render until inference says what it applies
+        // to. `hydrate` turns it into an editable layout once the contract arrives.
+        return {
+            modelView: (root as any).modelView ?? undefined,
+            layout: { type: 'FormLayout', content: [] },
+            bare: false,
+            delta: readDelta((root as any).layoutDelta),
+        }
+    }
     if (root && typeof root === 'object' && 'layout' in (root as object)) {
         return {
             modelView: (root as any).modelView ?? undefined,
@@ -46,15 +80,109 @@ export function parsePage(yaml: string): PageDoc {
     return { layout: normalize(root), bare: true }
 }
 
-/** Serialize a PageDoc back to YAML in the shape it was parsed from. */
+/**
+ * Serialize a PageDoc back to YAML — as a `layoutDelta:` whenever the edits are expressible as one,
+ * and as a `layout:` otherwise.
+ *
+ * This is the decision the whole feature turns on. Writing a `layout:` is not a formatting choice:
+ * explicit always wins on the server, so a snapshot takes the screen out of inference for good and
+ * a field added to the model afterwards silently never appears. A delta keeps the screen following
+ * its model. So: prefer the delta, fall back to the snapshot only when the human did something a
+ * delta cannot say, and let the caller tell them which happened (see {@link saveShape}).
+ */
 export function serializePage(doc: PageDoc): string {
     if (doc.bare && !doc.modelView) {
         return stringify(doc.layout)
     }
     const envelope: Record<string, unknown> = {}
     if (doc.modelView) envelope.modelView = doc.modelView
+    const delta = expressibleDelta(doc)
+    if (delta) {
+        // An empty delta still writes the key: `layoutDelta: {}` says "a human looked and changed
+        // nothing", which is different from a page that was never edited — and, unlike `layout:`,
+        // it costs the screen nothing.
+        envelope.layoutDelta = writeDelta(delta)
+        return stringify(envelope)
+    }
     envelope.layout = doc.layout
     return stringify(envelope)
+}
+
+/** What {@link serializePage} will write, and therefore what the edit costs. */
+export function saveShape(doc: PageDoc): SaveShape {
+    if (!doc.modelView) return 'static'
+    return expressibleDelta(doc) ? 'delta' : 'snapshot'
+}
+
+/**
+ * The delta equivalent to the current layout, or null when the layout says something a delta
+ * cannot.
+ *
+ * A delta speaks about FIELDS: which ones, in what order, with which per-field tweaks. It cannot
+ * say "wrap these two in a card inside a tab" — and that limit is not an omission, it is what makes
+ * a delta survive a model change at all. So the moment the tree holds anything but a flat run of
+ * known fields, the honest answer is a snapshot.
+ */
+function expressibleDelta(doc: PageDoc): LayoutDelta | null {
+    if (!doc.inferred || !doc.modelView) return null
+    const inferredIds = doc.inferred.map((f) => f.id)
+    const root = doc.layout
+    if (root.type !== 'FormLayout' && root.type !== 'VerticalLayout') return null
+    if (scalarProps(root).some((k) => k !== 'id')) return null
+    const children = root.content ?? []
+    const desired: string[] = []
+    const overrides: Record<string, FieldOverride> = {}
+    for (const child of children) {
+        if (child.type !== 'FormField') return null
+        const id = typeof child.id === 'string' ? child.id : ''
+        if (!inferredIds.includes(id) || desired.includes(id)) return null
+        if (Array.isArray(child.content) && child.content.length) return null
+        desired.push(id)
+        const inferred = doc.inferred.find((f) => f.id === id)!
+        const override: FieldOverride = {}
+        if (typeof child.label === 'string' && child.label !== (inferred.label ?? '')) {
+            override.label = child.label
+        }
+        if (typeof child.colspan === 'number') override.colspan = child.colspan
+        // Any other authored prop is something a delta cannot carry.
+        for (const key of scalarProps(child)) {
+            if (!DELTA_PROPS.has(key)) return null
+        }
+        if (Object.keys(override).length) overrides[id] = override
+    }
+    return deltaBetween(inferredIds, desired, overrides)
+}
+
+/** The only per-field props a delta can carry; anything else forces a snapshot. */
+const DELTA_PROPS = new Set(['id', 'label', 'colspan'])
+
+/**
+ * Fill in a doc's layout from the contract: apply the delta it carried, or — for a page that was
+ * saved as a snapshot — just record what inference would have produced, so the next save can go
+ * back to being a delta if the human's edits allow it.
+ *
+ * Called once the `__contract__` response arrives. A page whose model the server cannot resolve
+ * keeps working exactly as before; it simply never gains the delta option.
+ */
+export function hydrate(doc: PageDoc, inferred: InferredField[]): PageDoc {
+    const hydrated: PageDoc = { ...doc, inferred }
+    if (!doc.delta) return hydrated
+    const ids = applyDelta(inferred.map((f) => f.id), doc.delta)
+    hydrated.layout = {
+        type: 'FormLayout',
+        content: ids.map((id) => fieldNode(id, inferred, doc.delta!)),
+    }
+    return hydrated
+}
+
+function fieldNode(id: string, inferred: InferredField[], delta: LayoutDelta): PageNode {
+    const from = inferred.find((f) => f.id === id)
+    const override = delta.overrides[id] ?? {}
+    const node: PageNode = { type: 'FormField', id }
+    const label = override.label ?? from?.label
+    if (label) node.label = label
+    if (override.colspan) node.colspan = override.colspan
+    return node
 }
 
 function normalize(node: any): PageNode {

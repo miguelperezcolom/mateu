@@ -12,6 +12,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRule
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 
+import io.mateu.core.application.runaction.LayoutDeltaApplier;
 import io.mateu.core.application.runaction.YamlUidlLoader;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -77,8 +78,13 @@ public class ReflectionObjectToComponentMapper {
     if (isPage(instance, route)) {
       return buildPageUIFragment(
           instance,
-          mapToPageComponent(
-              instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+          // A `layoutDelta:` is re-applied to the FRESHLY inferred tree on every request — that is
+          // the whole difference from a `layout:`, which is a snapshot and stops the screen from
+          // re-deriving. Empty (the overwhelming case) returns the same instance.
+          LayoutDeltaApplier.apply(
+              mapToPageComponent(
+                  instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+              yamlUidlLoader.deltaForRoute(route, instance.getClass())),
           baseUrl,
           route,
           consumedRoute,
