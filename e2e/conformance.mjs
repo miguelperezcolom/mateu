@@ -135,11 +135,39 @@ const matrix = allTypes.map(type => ({
   placeholderObserved: placeholderTypes.has(type),
 }));
 
+// Conformance LEVELS. A renderer needs to know when it is done, and "paint the whole catalogue"
+// is not an answer a third party can act on — it is why writing a renderer has looked like an
+// open-ended commitment. A fixture passes its level when it rendered with no placeholder; a level
+// is reached when all of its fixtures pass AND every level below it does. See the renderer
+// contract (doc/.../design-systems/renderer-contract.md).
+const LEVELS = ['core', 'standard', 'full'];
+const byName = Object.fromEntries(fixtures.map(f => [f.name, f]));
+const passed = r => r.status === 'rendered' && (r.unsupported ?? []).length === 0;
+const levels = LEVELS.map(level => {
+  const of = results.filter(r => (byName[r.name]?.level ?? 'full') === level);
+  const ok = of.filter(passed);
+  return {
+    level,
+    total: of.length,
+    passed: ok.length,
+    complete: of.length > 0 && ok.length === of.length,
+    failing: of.filter(r => !passed(r)).map(r => r.name),
+  };
+});
+// The level reached: the highest one where it and everything below is complete.
+let reached = 'none';
+for (const l of levels) {
+  if (!l.complete) break;
+  reached = l.level;
+}
+
 const report = {
   renderer: rendererLabel,
   baseUrl,
   date: new Date().toISOString(),
   rendererInfo,
+  conformanceLevel: reached,
+  levels,
   matrix,
   results,
 };
@@ -151,6 +179,17 @@ md.push('');
 md.push(`- Base URL: ${baseUrl}`);
 md.push(`- Date: ${report.date}`);
 md.push(`- Renderer info: ${rendererInfo ? `name=\`${rendererInfo.name}\`, declared types: ${rendererInfo.supportedTypes ? rendererInfo.supportedTypes.length : 'ALL (reference renderer)'}` : 'NOT PUBLISHED (old build without __mateuRendererInfo?)'}`);
+md.push('');
+md.push(`## Conformance level: **${reached}**`);
+md.push('');
+md.push('A level is reached when every fixture at that level renders with no unsupported');
+md.push('placeholder, and every level below it does too.');
+md.push('');
+md.push('| Level | Fixtures | Passing | Complete | Failing |');
+md.push('|---|---|---|---|---|');
+for (const l of levels) {
+  md.push(`| ${l.level} | ${l.total} | ${l.passed} | ${l.complete ? 'yes' : 'NO'} | ${l.failing.join(', ') || '—'} |`);
+}
 md.push('');
 md.push('## Parity matrix (types exercised by the fixtures)');
 md.push('');
@@ -174,5 +213,9 @@ writeFileSync(join(outDir, 'report.md'), md.join('\n'));
 
 const total = results.length;
 const rendered = results.filter(r => r.status === 'rendered').length;
+console.log(`\nConformance level reached: ${reached.toUpperCase()}`);
+for (const l of levels) {
+  console.log(`  ${l.complete ? '✓' : '✗'} ${l.level}: ${l.passed}/${l.total}${l.failing.length ? ` — missing: ${l.failing.join(', ')}` : ''}`);
+}
 console.log(`\nDone: ${rendered}/${total} routes rendered, ${placeholderTypes.size} unsupported type(s) observed: ${[...placeholderTypes].join(', ') || '—'}`);
 console.log(`Report: ${join(outDir, 'report.md')}`);

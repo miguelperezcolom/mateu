@@ -346,6 +346,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'design-systems/vaadin' },
 						{ slug: 'design-systems/oracle-redwood' },
+						{ slug: 'design-systems/renderer-contract' },
 						{ slug: 'design-systems/bring-your-own-design-system' },
 					],
 				},
