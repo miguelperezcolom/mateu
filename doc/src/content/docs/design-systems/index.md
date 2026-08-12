@@ -23,6 +23,17 @@ You don't have to pick just one: the identical backend can serve a web UI, a nat
 | [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `vaadin-lit` |
 | [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood, on Visual Builder | `redwood` |
 
+## Writing your own
+
+The supported renderers are Vaadin and the Redwood/VB line — and that list is short for a reason:
+four first-party renderers were built and retired, because one renderer per design system,
+maintained in first person, does not survive a single maintainer.
+
+So the useful question is not "which of ours matches your design system" but **"how cheaply can you
+own yours"**. See the [renderer contract](/design-systems/renderer-contract/): what a renderer has to
+implement, and the three conformance levels that tell you when you are done. Reaching **Core** is a
+complete, legitimate answer.
+
 ## How to switch renderer
 
 Replace the renderer dependency in your `pom.xml`. For example, to switch from Vaadin to Redwood:
