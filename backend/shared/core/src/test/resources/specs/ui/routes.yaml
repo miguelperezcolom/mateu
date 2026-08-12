@@ -1,0 +1,39 @@
+# The mount's route registry, next to the definitions it routes to.
+#
+# Routes are RELATIVE to the mount's base path (the one declared by @UI): an entry `orders/:id`
+# under a mount at /back-office answers /back-office/orders/42.
+#
+# Entries merge OVER the ones the annotation processors derive from @UI/@Route, keyed by route:
+# an authored entry replaces the derived one outright.
+routes:
+
+  # Two routes over ONE screen, told apart by a pinned parameter. This is the case an annotation
+  # cannot express: it can only ever say "this class is at this path".
+  - route: orders/pending
+    viewModel: com.acme.Orders
+    fixedParams:
+      status: pending
+
+  - route: orders/archived
+    viewModel: com.acme.Orders
+    fixedParams:
+      status: archived
+
+  # Seeded, not pinned: the request may override these.
+  - route: orders
+    viewModel: com.acme.Orders
+    defaultParams:
+      status: open
+      page: 1
+
+  # A route with NO view model: a definition plus client-side data. This is what a fully static
+  # deployment looks like — there is no server to ask.
+  - route: about
+    definition: about.yaml
+
+  # A parameterised route, and a static sibling that must not be swallowed by it.
+  - route: orders/:id
+    viewModel: com.acme.OrderDetail
+
+  - route: orders/new
+    viewModel: com.acme.NewOrder
