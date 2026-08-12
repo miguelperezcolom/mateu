@@ -344,7 +344,6 @@ export default defineConfig({
 					label: 'Design Systems',
 					items: [
 						{ slug: 'design-systems/vaadin' },
-						{ slug: 'design-systems/sapui5' },
 						{ slug: 'design-systems/oracle-redwood' },
 						{ slug: 'design-systems/bring-your-own-design-system' },
 					],

@@ -165,40 +165,40 @@ each pinned by golden-JSON tests mirroring the Java sync suites.
 
 Every renderer speaks the same wire; the depth of widget support varies.
 
-| Feature | Vaadin (web) | Redwood (web) | SAP UI5 (web) | IntelliJ plugin | React Native |
-|---|---|---|---|---|---|
-| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
-| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
-| Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
-| Date picker | ✅ | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
-| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
-| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
-| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
-| App context selector | ✅ | ✅ | ✅ (shared) | ✅ (navigator combos) | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | ✅ | 🟡 loaded options only | ✅ |
-| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | ✅ mouse canvas | ✅ svg + view-shot |
-| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
-| Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ (JTree popup) | ✅ |
-| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| App header actions (buttons + dropdown groups) | ✅ | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
-| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (shared bar; redwood: own bar) | — | — |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ | — | — |
-| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
-| Undoable toasts (Undo button) | ✅ | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | — | ✅ sidebar search | ✅ drawer search |
-| Planning board (tape chart) | ✅ drag+select | ✅ | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
-| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (shared api client) | — | — |
-| Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
-| App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
+| Feature | Vaadin (web) | Redwood (web) | IntelliJ plugin | React Native |
+|---|---|---|---|---|
+| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ |
+| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
+| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
+| Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
+| Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
+| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
+| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
+| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
+| App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
+| — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
+| Signature capture | ✅ canvas | ✅ canvas | ✅ mouse canvas | ✅ svg + view-shot |
+| Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
+| Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
+| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
+| App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
+| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
+| Saved views (named filter sets, default view) | ✅ | ✅ | — | — |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | — | — |
+| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
+| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
+| Undoable toasts (Undo button) | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | ✅ sidebar search | ✅ drawer search |
+| Planning board (tape chart) | ✅ drag+select | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
+| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | — | — |
+| Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
+| App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
 
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
@@ -209,8 +209,15 @@ MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data mode
 (`List<MessageListItem>` / an `actionId` that fires on submit) — they were previously stubs that
 rendered hardcoded demo data.
 
-"Shared" = SAP UI5 reuses the shared web components (Lumo-variable theming), so it
-inherits those features automatically.
+**Retired renderers (2026-08-12 reconciliation).** SAP UI5, Redwood-OJ (OJET), Red Hat/PatternFly
+and SLDS were **retired**: `apps/sapui5`, `apps/redhat` and `apps/slds` hold only leftover `dist/`
+output, with no sources and no `package.json`. They had a column here long after they stopped
+existing — which is the worst failure mode for this page, since a matrix that promises a renderer
+nobody can use is worse than one that admits a gap. **The supported web renderers are Vaadin and the
+Redwood/VB line.**
+
+`frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
+bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

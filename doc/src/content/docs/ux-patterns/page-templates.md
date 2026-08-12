@@ -40,7 +40,7 @@ your call per screen (Mateu only composes it for you in two fully-derivable case
 Three notes on how to read the table:
 
 - **Templates are backend-side.** An archetype composes existing wire components, so it renders on
-  every web renderer (Vaadin, SAP UI5, Redwood) and on the native ones (React
+  every web renderer (Vaadin, Redwood) and on the native ones (React
   Native, IntelliJ) without renderer work. Styling follows each design system's tokens.
 - **Page width is a template parameter.** `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)` (or the
   `PageWidthSupplier` hook — `Foldout` declares edge-to-edge) decides how the content column is

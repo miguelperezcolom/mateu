@@ -14,7 +14,7 @@ You need a valid Helidon MicroProfile project. Create one from IntelliJ or from 
     <artifactId>helidon-mp-core</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
-<!-- serves the built-in frontend; choose one: vaadin-lit, sapui5-lit, redwood-oj-lit -->
+<!-- serves the built-in frontend; choose one: vaadin-lit, redwood -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>

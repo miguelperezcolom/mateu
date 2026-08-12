@@ -7,9 +7,12 @@ The fastest way to understand Mateu is to try the live demos.
 ## Live demos
 
 - https://vaadin.mateu.io
-- https://sapui5.mateu.io (WIP)
-- https://redwood-oj.mateu.io (OJET based. WIP)
-- https://redwood.mateu.io (Vaadin based. WIP)
+- https://redwood.mateu.io
+
+:::note
+The SAP UI5 and Redwood-OJ demos were removed along with those renderers (see the
+[parity matrix](/reference/parity/)).
+:::
 
 ## What to look for
 
