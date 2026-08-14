@@ -51,18 +51,39 @@ public class RemoteMenuHandler {
       AppShell app,
       HttpRequest httpRequest,
       RunActionCommand command) {
-    var routeWithinApp = routeWithinApp(remoteMenu, route);
     return fetchRemoteAppDto(remoteMenu, httpRequest, command)
         .flatMap(
-            appDto ->
-                ownsRoute(appDto, routeWithinApp)
-                    ? Mono.just(
-                        app.withHomeRoute(routeWithinApp)
-                            .withHomeBaseUrl(remoteMenu.baseUrl())
-                            .withHomeServerSideType(appDto.homeServerSideType())
-                            .withHomeConsumedRoute(appDto.homeConsumedRoute())
-                            .withHomeUriPrefix(""))
-                    : Mono.empty());
+            appDto -> {
+              var claimed = claimedRoute(appDto, remoteMenu, route);
+              return claimed == null
+                  ? Mono.empty()
+                  : Mono.just(
+                      app.withHomeRoute(claimed)
+                          .withHomeBaseUrl(remoteMenu.baseUrl())
+                          .withHomeServerSideType(appDto.homeServerSideType())
+                          .withHomeConsumedRoute(appDto.homeConsumedRoute())
+                          .withHomeUriPrefix(""));
+            });
+  }
+
+  /**
+   * Which of the two candidate routes the remote actually claims, or null if neither: the route
+   * with the shell's menu path stripped ({@code /forms/tasks} → {@code /tasks}, the convention) or
+   * the route VERBATIM — a remote may declare its own routes already prefixed with the same path
+   * ({@code /forms/tasks} is literally what its menu says, which is also what the frontend sends
+   * when the user clicks that menu entry). Stripping by convention alone mounts a route the remote
+   * does not have, and the page renders "Not found" — the deep-link half of a screen that works
+   * fine through the menu.
+   */
+  private String claimedRoute(AppDto appDto, RemoteMenu remoteMenu, String route) {
+    if (route == null) {
+      return null;
+    }
+    var routeWithinApp = routeWithinApp(remoteMenu, route);
+    if (ownsRoute(appDto, routeWithinApp)) {
+      return routeWithinApp;
+    }
+    return ownsRoute(appDto, route) ? route : null;
   }
 
   /**
@@ -145,8 +166,11 @@ public class RemoteMenuHandler {
                 mountRoute = routeWithinApp;
                 mountConsumedRoute = remoteMenu.consumedRoute();
               } else {
-                // Page route: resolves within the app with the AppDto's home consumed route.
-                mountRoute = routeWithinApp;
+                // Page route: resolves within the app with the AppDto's home consumed route. Which
+                // route the remote actually claims is asked, not assumed — see claimedRoute; when
+                // it claims neither, the stripped one keeps the previous behaviour.
+                var claimed = claimedRoute(app, remoteMenu, command.route());
+                mountRoute = claimed != null ? claimed : routeWithinApp;
                 mountConsumedRoute = app.homeConsumedRoute();
               }
               return MicroFrontend.builder()
