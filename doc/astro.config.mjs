@@ -162,9 +162,11 @@ export default defineConfig({
 						{ slug: 'mateu-about/what-is-mateu' },
 						{ slug: 'mateu-about/why-mateu', label: 'Why Mateu' },
 						{ slug: 'mateu-about/how-mateu-works', label: 'How Mateu Works' },
+						{ slug: 'mateu-about/the-model', label: 'The Model' },
 						{ slug: 'mateu-about/architecture', label: 'Technical Architecture' },
 						{ slug: 'mateu-about/system-architecture' },
 						{ slug: 'mateu-about/comparison' },
+						{ slug: 'mateu-about/comparison-low-code', label: 'Mateu vs Visual Builders' },
 						{ slug: 'mateu-about/mateu-and-ai', label: 'Mateu and AI' },
 						{ slug: 'mateu-about/disclaimer' },
 						{
@@ -324,6 +326,7 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/client-side-logic' },
 						{ slug: 'java-ui-definition/yaml-ui-definition' },
 						{ slug: 'java-ui-definition/route-registry' },
+						{ slug: 'java-ui-definition/yaml-app-shell', label: 'App Shell as Data' },
 						{ slug: 'java-ui-definition/partials' },
 						{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
 						{
