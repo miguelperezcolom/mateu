@@ -57,6 +57,32 @@ public class Orders extends AutoCrud<Order> {}
 
 Wondering how this differs from a React SPA, Vaadin, or a CRUD generator? See [Mateu vs the traditional stack →](/mateu-about/comparison/).
 
+## Or say the same thing as data
+
+The Java class is one authoring surface. The same screen can be written as YAML — a page definition,
+a route registry and an app shell — and a whole application authored that way needs no Mateu Java at
+all:
+
+```yaml
+# specs/ui/routes.yaml
+app:
+  title: Back office
+  menu:
+    - type: RouteLink
+      label: Orders
+      route: orders
+routes:
+  - route: orders
+    definition: orders.yaml
+```
+
+Both halves meet in the same component model, share the same published JSON Schema (so your editor
+autocompletes them), and can be mixed on one screen — layout from YAML, behaviour from Java. There
+is a [visual editor](/java-ui-definition/yaml-ui-definition/) that writes those files, and the files
+live in your repository, in your build, under review.
+
+[The model →](/mateu-about/the-model/) · [Mateu vs visual builders →](/mateu-about/comparison-low-code/)
+
 ## What you can build
 
 <CardGrid>
@@ -84,6 +110,7 @@ Mateu's UI travels as a wire protocol, not as framework code. That means:
 
 - **Polyglot servers** — write your UI in [Java](/java-user-manual/start-here/quickstart/), [Kotlin](/kotlin-user-manual/), [C#](/csharp-user-manual/) or [Python](/python-user-manual/) (C# and Python are early-stage); they all emit the same UI model.
 - **Multi-frontend** — the same backend renders on [two web design systems](/design-systems/) (Vaadin and Oracle Redwood) and on [native desktop and mobile](/native/) (the IntelliJ plugin on the desktop, React Native on iOS/Android), without touching your code.
+- **Several ways in, one model** — annotations, YAML, the visual editor and [Figma](/design-systems/figma/) all produce [the same model](/mateu-about/the-model/), with a generated schema and written-down precedence rules keeping them in step.
 
 ## Recommended path
 

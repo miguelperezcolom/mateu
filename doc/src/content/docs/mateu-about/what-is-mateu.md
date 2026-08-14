@@ -52,8 +52,12 @@ Mateu is not:
 
 - a frontend framework or a React alternative
 - a stateful server-side rendering framework (like JSF or Wicket)
-- a low-code platform detached from your codebase
 - a code generator you run once and abandon
+
+There is a visual editor and screens can be authored as YAML, so the comparison with a low-code
+platform comes up — the difference is that a Mateu UI is **files in your repository**, going through
+your pull requests, your build and your release, never a project in someone's cloud. See
+[Mateu vs visual builders](/mateu-about/comparison-low-code/).
 
 Mateu is closer to an **inbound adapter** for your backend — the same way a REST controller exposes your application logic over HTTP, Mateu exposes it as a browser UI.
 
@@ -71,6 +75,18 @@ public record Product(
 ```
 
 From this model, Mateu can infer fields, forms, list columns, validation, and navigation. You create explicit view models only when the defaults are not enough.
+
+### Java is one way to say it
+
+The Java class is an authoring surface, not the model itself. The same screen can be authored as
+data — a [YAML page definition](/java-ui-definition/yaml-ui-definition/), a
+[route registry](/java-ui-definition/route-registry/) and an
+[app shell](/java-ui-definition/yaml-app-shell/) — and a mount authored entirely that way needs no
+Mateu Java at all. Both halves meet in the same component model, share the same published schema,
+and can be mixed on the same screen: layout from YAML, behaviour from Java.
+
+See [The model](/mateu-about/the-model/) for what is being authored, what consumes it, and the rules
+that keep the two halves from drifting.
 
 ## Two levels of control
 
@@ -124,6 +140,7 @@ Mateu is especially useful for:
 ## Next
 
 - [The Mateu Way](/the-mateu-way) — the golden path: six families, one starting class each
+- [The model](/mateu-about/the-model) — one model, several ways to author it, several things that consume it
 - [Why Mateu](/mateu-about/why-mateu) — the problem it solves and what you gain
 - [How Mateu works](/mateu-about/how-mateu-works) — mental model, building blocks, and the stateless cycle
 - [Build a full backoffice in 10 minutes](/build-a-full-backoffice-in-10-minutes)

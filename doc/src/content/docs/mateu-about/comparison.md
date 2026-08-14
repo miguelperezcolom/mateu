@@ -30,7 +30,7 @@ One step. One file.
 
 | Concern | Traditional stack | Mateu |
 |---|---|---|
-| UI definition | frontend components (JSX / templates) | Java ViewModel class |
+| UI definition | frontend components (JSX / templates) | Java ViewModel class — or the same model [authored as YAML](/java-ui-definition/yaml-ui-definition/) |
 | Validation | frontend library (Zod, Yup, etc.) + backend | Bean Validation, once |
 | Routing | frontend router (React Router, etc.) | `@UI` + `@Route` annotations |
 | Navigation | frontend nav config | `@Menu` annotations |
@@ -47,6 +47,13 @@ One step. One file.
 Consumer-facing products with complex animations, highly custom interactions, and brand-specific visual design benefit from a dedicated frontend application. Frontend frameworks give experienced teams precise control over the user experience.
 
 Mateu does not try to compete with this. The target is the class of applications where the frontend split is cost without commensurate benefit.
+
+## The other comparison
+
+Screens can also be authored as data and edited visually, which puts Mateu next to a different set
+of tools — Oracle Visual Builder, OutSystems, Retool and friends. That comparison turns on where the
+model lives and what happens when you outgrow the tool: see
+[Mateu vs visual builders](/mateu-about/comparison-low-code/).
 
 ## When to choose Mateu
 
