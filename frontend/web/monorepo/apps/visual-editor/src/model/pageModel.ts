@@ -35,6 +35,16 @@ export interface PageDoc {
      * the only honest thing to write is a snapshot.
      */
     inferred?: InferredField[]
+    /**
+     * A PARTIAL authored as a top-level `content:` list of components (no single root) — a reusable
+     * fragment, inlined wherever a `Partial ref` names it. For editing it is wrapped in a synthetic
+     * `VerticalLayout` (a tree needs a root and the backend preview needs a `type`); {@link
+     * serializePage} unwraps it back to the bare `content:` list so the authored shape is preserved
+     * (a `VerticalLayout` would add a layout container the fragment never had). A partial authored as
+     * a single bare component is just a `bare` doc — indistinguishable from, and edited like, a page
+     * layout, which is exactly right.
+     */
+    fragment?: boolean
 }
 
 /** How this page will be written back — and, for a page with a model, what that costs. */
@@ -77,6 +87,15 @@ export function parsePage(yaml: string): PageDoc {
     if (root == null || (typeof root === 'object' && Object.keys(root as object).length === 0)) {
         return { layout: { type: 'VerticalLayout', content: [] }, bare: true }
     }
+    // A partial authored as a `content:` list (no top-level `type`): a rootless fragment. Wrap its
+    // children in a synthetic VerticalLayout so it has a tree root + previews, remembering the shape.
+    if (typeof root === 'object' && !('type' in (root as object)) && Array.isArray((root as any).content)) {
+        return {
+            layout: { type: 'VerticalLayout', content: (root as any).content.map(normalize) },
+            bare: true,
+            fragment: true,
+        }
+    }
     return { layout: normalize(root), bare: true }
 }
 
@@ -91,6 +110,11 @@ export function parsePage(yaml: string): PageDoc {
  * delta cannot say, and let the caller tell them which happened (see {@link saveShape}).
  */
 export function serializePage(doc: PageDoc): string {
+    if (doc.fragment) {
+        // Unwrap the synthetic editing container back to the authored `content:` list, so the partial
+        // stays a rootless fragment (inlined at the use site) rather than gaining a VerticalLayout.
+        return stringify({ content: doc.layout.content ?? [] })
+    }
     if (doc.bare && !doc.modelView) {
         return stringify(doc.layout)
     }

@@ -25,6 +25,7 @@ public class ActionInstanceCreator {
   private final RouteInstanceCreator routeInstanceCreator;
   private final AppMenuResolver appMenuResolver;
   private final YamlUidlLoader yamlUidlLoader;
+  private final YamlAppLoader yamlAppLoader;
 
   Mono<?> createInstance(RunActionCommand command) {
     log.info("createInstance {}", command);
@@ -65,12 +66,39 @@ public class ActionInstanceCreator {
   }
 
   /**
-   * Route with no Java class: fall back to a YAML page. A bare layout renders as-is (static); a
-   * page that declares a {@code modelView:} instantiates that class as the ModelView (state +
-   * actions), and the reflective mapper re-applies the YAML layout to it (by route). Empty when
-   * there is no spec.
+   * Route with no Java class. When the mount carries a data-authored app shell ({@code app:} block
+   * of {@code routes.yaml}), wrap the route in it — exactly as {@link #instantiateWithKnownType}
+   * does for an {@code @App} class: {@link AppMenuResolver#resolveMenuIfApp} resolves the in-app
+   * route (or the home) and produces the chrome + content. When there is no shell, or the in-app
+   * resolution finds nothing, fall through to a bare YAML page. At the app root ({@code ""}) the
+   * shell renders on its own — its {@code AppDto} carries the home route and the frontend navigates
+   * there.
    */
   private Mono<?> loadYaml(RunActionCommand command) {
+    var app = yamlAppLoader.app();
+    if (app == null || isTerminalRoute(command.route()) || isAppLevelAction(command)) {
+      return loadYamlPage(command);
+    }
+    RunActionCommand finalCommand = command;
+    return appMenuResolver
+        .resolveMenuIfApp(command, app, routeInstanceCreator::findRouteResolver)
+        .switchIfEmpty((Mono) Mono.defer(() -> loadYamlPage(finalCommand)))
+        .switchIfEmpty(
+            (Mono)
+                Mono.defer(
+                    () ->
+                        finalCommand.route() == null || finalCommand.route().isBlank()
+                            ? Mono.just(app)
+                            : Mono.empty()));
+  }
+
+  /**
+   * A YAML page for the route (no app shell involved). A bare layout renders as-is (static); a page
+   * that declares a {@code modelView:} instantiates that class as the ModelView (state + actions),
+   * and the reflective mapper re-applies the YAML layout to it (by route). Empty when there is no
+   * spec.
+   */
+  private Mono<?> loadYamlPage(RunActionCommand command) {
     var spec = yamlUidlLoader.loadSpec(command.route());
     if (spec == null) {
       return Mono.empty();

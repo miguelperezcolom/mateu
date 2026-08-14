@@ -1,0 +1,8 @@
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: Orders
+      size: xl
+    - type: Text
+      text: This page is defined entirely in YAML — no Java class behind it.

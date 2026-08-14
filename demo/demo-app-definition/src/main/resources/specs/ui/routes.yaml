@@ -1,0 +1,19 @@
+app:
+  title: Back office
+  subtitle: Authored entirely in YAML
+  variant: MENU_ON_TOP
+  menu:
+    - type: RouteLink
+      label: Orders
+      route: orders
+      icon: vaadin:cart
+    - type: RouteLink
+      label: Users
+      route: users
+      icon: vaadin:users
+
+routes:
+  - route: orders
+    definition: orders.yaml
+  - route: users
+    definition: users.yaml
