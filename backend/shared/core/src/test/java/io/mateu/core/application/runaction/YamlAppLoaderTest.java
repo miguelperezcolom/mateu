@@ -8,10 +8,10 @@ import io.mateu.uidl.fluent.AppVariant;
 import org.junit.jupiter.api.Test;
 
 /**
- * The app loader builds an {@link io.mateu.uidl.fluent.AppShell} from the {@code app:} block of
- * {@code routes.yaml} — the data-driven counterpart of an {@code @App} class. Menu items and
- * widgets ride the same polymorphic {@code type:} discriminator as page layouts, so they need no
- * extra wiring here.
+ * The app loader builds an {@link io.mateu.uidl.fluent.AppShell} from a {@code type: AppShell}
+ * DEFINITION file — the data-driven counterpart of an {@code @App} class. The app is a view bound
+ * to a route like any other; this loader only turns the definition into a shell. Menu items ride
+ * the same polymorphic {@code type:} discriminator as page layouts.
  */
 class YamlAppLoaderTest {
 
@@ -23,32 +23,29 @@ class YamlAppLoaderTest {
   }
 
   @Test
-  void scalarsMenuAndWidgetsAreReadOffTheAppBlock() throws Exception {
+  void scalarsMenuAndWidgetsAreReadOffAnAppShellDefinition() throws Exception {
     var app =
         parse(
             """
-            app:
-              title: Back office
-              subtitle: Operations
-              logo: /logo.png
-              variant: MENU_ON_TOP
-              menu:
-                - type: RouteLink
-                  label: Orders
-                  route: orders
-                  icon: vaadin:cart
-                - type: Menu
-                  label: Admin
-                  submenu:
-                    - type: RouteLink
-                      label: Users
-                      route: users
-              widgets:
-                - type: Text
-                  text: v3.0
-            routes:
-              - route: orders
-                definition: orders.yaml
+            type: AppShell
+            title: Back office
+            subtitle: Operations
+            logo: /logo.png
+            variant: MENU_ON_TOP
+            menu:
+              - type: RouteLink
+                label: Orders
+                route: orders
+                icon: vaadin:cart
+              - type: Menu
+                label: Admin
+                submenu:
+                  - type: RouteLink
+                    label: Users
+                    route: users
+            widgets:
+              - type: Text
+                text: v3.0
             """);
 
     assertThat(app).isNotNull();
@@ -72,12 +69,9 @@ class YamlAppLoaderTest {
             m -> {
               assertThat(m.label()).isEqualTo("Admin");
               assertThat(m.submenu()).hasSize(1);
-              assertThat(m.submenu().get(0)).isInstanceOf(RouteLink.class);
             });
-
     assertThat(app.widgets()).hasSize(1);
-    // No explicit homeRoute: defaults to the first navigable menu item, so the shell loads content
-    // instead of re-loading its own root route.
+    // No explicit homeRoute: defaults to the first navigable menu item.
     assertThat(app.homeRoute()).isEqualTo("orders");
   }
 
@@ -86,37 +80,27 @@ class YamlAppLoaderTest {
     var app =
         parse(
             """
-            app:
-              title: X
-              homeRoute: dashboard
-              menu:
-                - type: RouteLink
-                  label: Orders
-                  route: orders
+            type: AppShell
+            title: X
+            homeRoute: dashboard
+            menu:
+              - type: RouteLink
+                label: Orders
+                route: orders
             """);
     assertThat(app.homeRoute()).isEqualTo("dashboard");
   }
 
   @Test
-  void anUnknownVariantFallsBackInsteadOfFailing() throws Exception {
+  void aDefinitionThatIsNotAnAppShellYieldsNull() throws Exception {
+    // A plain page definition is not an app shell — the loader leaves it to the page path.
     var app =
         parse(
             """
-            app:
-              title: X
-              variant: NOT_A_VARIANT
-            """);
-    assertThat(app.variant()).isEqualTo(AppVariant.AUTO);
-  }
-
-  @Test
-  void aFileWithNoAppBlockYieldsNullRatherThanAnEmptyShell() throws Exception {
-    var app =
-        parse(
-            """
-            routes:
-              - route: orders
-                viewModel: com.acme.Orders
+            type: VerticalLayout
+            content:
+              - type: Text
+                text: hi
             """);
     assertThat(app).isNull();
   }

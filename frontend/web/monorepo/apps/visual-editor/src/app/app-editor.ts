@@ -38,7 +38,7 @@ export class AppEditor extends LitElement {
     `
 
     @property() yaml = ''
-    @state() private doc: AppDoc = { fields: {}, menu: [], widgets: [], appRest: {}, rest: {} }
+    @state() private doc: AppDoc = { fields: {}, menu: [], widgets: [], appRest: {} }
     private lastEmitted?: string
 
     updated(changed: PropertyValues) {

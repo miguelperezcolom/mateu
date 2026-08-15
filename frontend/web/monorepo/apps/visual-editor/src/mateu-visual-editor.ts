@@ -6,13 +6,15 @@ import {
 } from './model/pageModel'
 import { fetchInferredFields } from './model/contract'
 import { isRoutesYaml } from './model/routesModel'
-import { hasAppBlock } from './model/appModel'
+import { hasAppShell } from './model/appModel'
+import { isMountYaml } from './model/mountModel'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import './palette/editor-palette'
 import './canvas/editor-canvas'
 import './properties/editor-properties'
 import './routes/routes-editor'
 import './app/app-editor'
+import './mount/mount-editor'
 
 /**
  * Root of the Mateu visual editor: palette + WYSIWYG canvas + properties in ONE view. Host-agnostic
@@ -35,9 +37,9 @@ export class MateuVisualEditor extends LitElement {
         .toolbar .shape.delta { background: #e8f5ec; color: #1e7a3c; }
         .toolbar .shape.snapshot { background: #fdf0e3; color: #9a5b09; }
         .toolbar .shape.partial { background: #eaeefe; color: #3a4bb3; }
-        .toolbar .tabs { display: inline-flex; border: 1px solid #d7dade; border-radius: 7px; overflow: hidden; }
-        .toolbar .tabs button { border: none; border-radius: 0; padding: 0.25rem 0.7rem; background: #fff; color: #4b5563; }
-        .toolbar .tabs button.on { background: #2f6df6; color: #fff; }
+        .toolbar .shape.mount { background: #eef2ff; color: #4338ca; }
+        .toolbar .shape.app { background: #ecfeff; color: #0e7490; }
+        .toolbar .shape.routes { background: #e6f4f4; color: #0f766e; }
         .panes { display: grid; grid-template-columns: 200px 1fr 300px; min-height: 0; }
         .source { grid-column: 1 / -1; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
@@ -49,13 +51,15 @@ export class MateuVisualEditor extends LitElement {
     @state() private doc?: PageDoc
     @state() private selectedPath: NodePath | null = null
     @state() private showSource = false
-    /** `page` = the WYSIWYG canvas (page/partial); `mount` = the routes.yaml descriptor (App/Routes tabs). */
-    @state() private mode: 'page' | 'mount' = 'page'
-    @state() private mountTab: 'app' | 'routes' = 'app'
-    @state() private mountYaml = ''
+    /**
+     * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
+     * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
+     * `routes` = a pure route file. Each is its OWN file — no mixing.
+     */
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' = 'page'
+    @state() private structuredYaml = ''
 
     private host!: HostBridge
-    private saveTimer?: number
 
     connectedCallback() {
         super.connectedCallback()
@@ -77,24 +81,22 @@ export class MateuVisualEditor extends LitElement {
                  @node-delete=${this.onDelete}
                  @node-move=${(e: CustomEvent) => this.onMove(e.detail.delta)}
                  @routes-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
-                 @app-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
+                 @app-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
                 <div class="toolbar">
                     <span class="brand">Mateu Visual Editor</span>
                     <span class="hint">backend: ${this.baseUrl || 'same-origin'}</span>
-                    ${this.mode === 'mount' ? html`
-                        <span class="tabs">
-                            <button class=${this.mountTab === 'app' ? 'on' : ''} @click=${() => (this.mountTab = 'app')}>App</button>
-                            <button class=${this.mountTab === 'routes' ? 'on' : ''} @click=${() => (this.mountTab = 'routes')}>Routes</button>
-                        </span>` : ''}
-                    ${this.mode === 'page' && this.doc?.fragment ? html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it. Saved as-is (no page chrome, no model).">partial</span>` : ''}
+                    ${this.modeBadge()}
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
                 ${this.mode === 'mount'
-                    ? (this.mountTab === 'app'
-                        ? html`<app-editor .yaml=${this.mountYaml}></app-editor>`
-                        : html`<routes-editor .yaml=${this.mountYaml}></routes-editor>`)
+                    ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
+                    : this.mode === 'app'
+                    ? html`<app-editor .yaml=${this.structuredYaml}></app-editor>`
+                    : this.mode === 'routes'
+                    ? html`<routes-editor .yaml=${this.structuredYaml}></routes-editor>`
                     : html`
                 <div class="panes">
                     <editor-palette></editor-palette>
@@ -174,12 +176,22 @@ export class MateuVisualEditor extends LitElement {
      * is why hydration re-renders rather than merging into a tree the user may already be editing.
      */
     private load(yaml: string) {
-        // A mount descriptor (routes.yaml: an `app:` shell and/or a `routes:` table) is structured
-        // data, not a component tree — edit it with the App/Routes tabs, not the canvas.
-        if (hasAppBlock(yaml) || isRoutesYaml(yaml)) {
+        // Structured-data files (mount / app shell / route table) are not component trees — each
+        // opens in its own editor, chosen by the file's `type:` discriminator. A `type: UI` mount
+        // also has a `routes:` list, so check it BEFORE the routes table.
+        if (isMountYaml(yaml)) {
             this.mode = 'mount'
-            this.mountYaml = yaml
-            this.mountTab = hasAppBlock(yaml) ? 'app' : 'routes'
+            this.structuredYaml = yaml
+            return
+        }
+        if (hasAppShell(yaml)) {
+            this.mode = 'app'
+            this.structuredYaml = yaml
+            return
+        }
+        if (isRoutesYaml(yaml)) {
+            this.mode = 'routes'
+            this.structuredYaml = yaml
             return
         }
         this.mode = 'page'
@@ -208,22 +220,40 @@ export class MateuVisualEditor extends LitElement {
         return html`<span class="shape snapshot" title="This arrangement cannot be expressed as a delta, so it is saved as a full layout. The screen stops re-deriving: fields added to the model later will not appear.">snapshot</span>`
     }
 
-    /**
-     * Persist a mount tab's already-serialized YAML (App or Routes), debounced like the page. Keeps
-     * `mountYaml` current so the OTHER tab re-seeds from the latest when the user switches — each
-     * editor guards against re-parsing its own echoed save (no cursor jump).
-     */
-    private saveYaml(yaml: string) {
-        this.mountYaml = yaml
-        window.clearTimeout(this.saveTimer)
-        this.saveTimer = window.setTimeout(() => this.host.save(yaml), 400)
+    /** A chip naming the current file kind (mount / app / routes / partial). */
+    private modeBadge() {
+        if (this.mode === 'mount') return html`<span class="shape mount" title="A mount descriptor (type: UI) — the data-driven @UI: a base path and the route files it serves.">mount</span>`
+        if (this.mode === 'app') return html`<span class="shape app" title="An app shell definition (type: AppShell) — a view bound to a route like any other.">app</span>`
+        if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
+        if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
+        return ''
     }
 
-    /** Re-render (new doc reference) and debounce a save back to the host. */
+    /** A structured editor (mount / app / routes) changed — keep its YAML and notify the host. */
+    private saveYaml(yaml: string) {
+        this.structuredYaml = yaml
+        this.notifyChanged()
+    }
+
+    /** A page edit — re-render (new doc reference) and notify the host. */
     private commit() {
         this.doc = { ...this.doc! }
-        window.clearTimeout(this.saveTimer)
-        this.saveTimer = window.setTimeout(() => this.host.save(serializePage(this.doc!)), 400)
+        this.notifyChanged()
+    }
+
+    /** The YAML for the current mode. */
+    private currentYaml(): string {
+        return this.mode === 'page' ? (this.doc ? serializePage(this.doc) : '') : this.structuredYaml
+    }
+
+    /**
+     * A local edit happened: hand the new content to the host and let IT decide when to persist.
+     * In an IDE this marks the document dirty so the IDE's NATIVE save (Ctrl+S, save-all, close
+     * prompt) writes it — there is no save button here. Standalone in the browser, the host keeps a
+     * localStorage draft. Saving is NEVER triggered from inside this editor.
+     */
+    private notifyChanged() {
+        this.host.onContentChanged?.(this.currentYaml())
     }
 }
 

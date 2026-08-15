@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.uidl.data.*;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 
@@ -21,6 +22,11 @@ final class YamlUidlMapperFactory {
   static ObjectMapper create() {
     var mapper = new ObjectMapper(new YAMLFactory());
     mapper.registerModule(new JavaTimeModule());
+    // A definition may carry authoring-only keys the model does not model — a `$schema` reference
+    // (for editor IntelliSense) or a future field — so unknown properties are ignored rather than
+    // rejected. Without this a bare-component page with `$schema:` would fail to deserialize.
+    mapper.configure(
+        com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     mapper.addMixIn(Component.class, PolymorphicMixin.class);
     mapper.addMixIn(Actionable.class, PolymorphicMixin.class);
@@ -28,6 +34,7 @@ final class YamlUidlMapperFactory {
     mapper.addMixIn(FieldValidation.class, PolymorphicMixin.class);
 
     mapper.registerSubtypes(
+        new NamedType(AppShell.class, "AppShell"),
         new NamedType(AccordionLayout.class, "AccordionLayout"),
         new NamedType(AccordionPanel.class, "AccordionPanel"),
         new NamedType(Anchor.class, "Anchor"),

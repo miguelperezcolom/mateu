@@ -1,14 +1,13 @@
 import { parse, stringify } from 'yaml'
 
 /**
- * The editor's model of the `app:` block of a `routes.yaml` — the data-authored app shell (title,
- * chrome, menu, widgets). The sibling of {@link './routesModel'}: the app editor owns `app:` and
- * preserves everything else (`routes:`, any future key) verbatim, exactly as the routes editor owns
- * `routes:` and preserves `app:`. So the two modes edit the same file without clobbering each other.
+ * The editor's model of an app-shell DEFINITION file — a standalone `type: AppShell` view (title,
+ * chrome, menu, widgets), the data-driven counterpart of an `@App` class. The app is a view like any
+ * other: it lives in its own file and is bound to a route in a route file; the route table and the
+ * mount descriptor are edited separately (routesModel / mountModel).
  *
- * The menu is modelled as a small tagged tree (link / group / separator), with anything else — a
- * RemoteMenu, an unknown actionable — kept raw so it round-trips untouched. Widgets are components;
- * they are preserved raw (edit them as YAML for now).
+ * The menu is a small tagged tree (link / group / separator), with anything else — a RemoteMenu, an
+ * unknown actionable — kept raw so it round-trips untouched. Widgets are components, preserved raw.
  */
 
 export interface AppFields {
@@ -36,10 +35,8 @@ export interface AppDoc {
     fields: AppFields
     menu: AppMenuItem[]
     widgets: unknown[]
-    /** `app:` keys other than the known fields / menu / widgets — kept verbatim. */
+    /** Top-level keys other than the known fields / menu / widgets / type — kept verbatim. */
     appRest: Record<string, unknown>
-    /** Top-level keys other than `app` (e.g. `routes:`) — kept verbatim. */
-    rest: Record<string, unknown>
 }
 
 const SCALARS: (keyof AppFields)[] = [
@@ -47,44 +44,42 @@ const SCALARS: (keyof AppFields)[] = [
     'variant', 'layout', 'drawerClosed', 'style', 'cssClasses', 'route',
 ]
 
-/** Whether this YAML carries an `app:` block (the mount's data-authored shell). */
-export function hasAppBlock(yaml: string): boolean {
+/** Whether this YAML is an app-shell definition (`type: AppShell`). */
+export function hasAppShell(yaml: string): boolean {
     let root: unknown
     try { root = parse(yaml) } catch { return false }
-    return !!root && typeof root === 'object' && !!(root as any).app && typeof (root as any).app === 'object'
+    return !!root && typeof root === 'object' && (root as any).type === 'AppShell'
 }
 
 export function parseApp(yaml: string): AppDoc {
     let root: any
     try { root = parse(yaml) } catch { root = null }
     if (!root || typeof root !== 'object' || Array.isArray(root)) root = {}
-    const { app: rawApp, ...rest } = root
-    const app = rawApp && typeof rawApp === 'object' ? rawApp : {}
 
     const fields: AppFields = {}
-    for (const key of SCALARS) if (app[key] !== undefined) (fields as any)[key] = app[key]
+    for (const key of SCALARS) if (root[key] !== undefined) (fields as any)[key] = root[key]
 
-    const menu: AppMenuItem[] = Array.isArray(app.menu) ? app.menu.map(toMenuItem) : []
-    const widgets: unknown[] = Array.isArray(app.widgets) ? app.widgets : []
+    const menu: AppMenuItem[] = Array.isArray(root.menu) ? root.menu.map(toMenuItem) : []
+    const widgets: unknown[] = Array.isArray(root.widgets) ? root.widgets : []
 
     const appRest: Record<string, unknown> = {}
-    for (const key of Object.keys(app)) {
-        if (key === 'menu' || key === 'widgets' || (SCALARS as string[]).includes(key)) continue
-        appRest[key] = app[key]
+    for (const key of Object.keys(root)) {
+        if (key === 'type' || key === 'menu' || key === 'widgets' || (SCALARS as string[]).includes(key)) continue
+        appRest[key] = root[key]
     }
-    return { fields, menu, widgets, appRest, rest }
+    return { fields, menu, widgets, appRest }
 }
 
 export function serializeApp(doc: AppDoc): string {
-    const app: Record<string, unknown> = {}
+    const out: Record<string, unknown> = { type: 'AppShell' }
     for (const key of SCALARS) {
         const v = doc.fields[key]
-        if (v !== undefined && v !== '' && v !== false) app[key] = v
+        if (v !== undefined && v !== '' && v !== false) out[key] = v
     }
-    if (doc.menu.length) app.menu = doc.menu.map(menuItemToRaw)
-    if (doc.widgets.length) app.widgets = doc.widgets
-    Object.assign(app, doc.appRest)
-    return stringify({ app, ...doc.rest })
+    if (doc.menu.length) out.menu = doc.menu.map(menuItemToRaw)
+    if (doc.widgets.length) out.widgets = doc.widgets
+    Object.assign(out, doc.appRest)
+    return stringify(out)
 }
 
 function toMenuItem(raw: any): AppMenuItem {

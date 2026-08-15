@@ -26,8 +26,12 @@ import javax.swing.JLabel
  * The Mateu visual editor as a JCEF-hosted web view — the SAME web bundle (`apps/visual-editor`)
  * that runs in a browser and (next) in VSCode. It loads from the in-plugin [MateuVisualEditorServer]
  * (which serves the bundle and proxies `/mateu` to the backend), bridges the web app's HostBridge
- * over a JCEF query pipe (web→IDE) and `window.postMessage` (IDE→web): the web app posts `save`
- * with the edited YAML, and the IDE seeds the open file's text via `init`.
+ * over a JCEF query pipe (web→IDE) and `window.postMessage` (IDE→web): on every edit the web app
+ * posts `contentChanged` with the YAML, and the IDE seeds the open file's text via `init`.
+ *
+ * Saving is the IDE's NATIVE mechanism, not a button: an edit only updates the in-memory Document
+ * (which marks the tab modified); the file is written by the user's own Ctrl+S / save-all / the IDE's
+ * save policy — never by this editor.
  */
 class MateuVisualEditor(
     private val project: Project,
@@ -75,7 +79,9 @@ class MateuVisualEditor(
         val msg = runCatching { mapper.readTree(raw) }.getOrNull() ?: return
         when (msg.path("type").asText()) {
             "ready" -> sendInit()
-            "save" -> save(msg.path("yaml").asText())
+            // Every edit only updates the in-memory Document (marks the tab modified). The file is
+            // written by the IDE's OWN save — this editor never persists. `save` kept as an alias.
+            "contentChanged", "save" -> updateDocument(msg.path("yaml").asText())
         }
     }
 
@@ -86,7 +92,12 @@ class MateuVisualEditor(
         sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to ""))
     }
 
-    private fun save(yaml: String) {
+    /**
+     * Push the edited YAML into the IDE Document ONLY — this marks the file modified (the tab shows
+     * the unsaved-changes dot). It does NOT write to disk: that is the IDE's native save (Ctrl+S,
+     * Save All, the on-close prompt, or the user's own save policy). No save button, no auto-write.
+     */
+    private fun updateDocument(yaml: String) {
         ApplicationManager.getApplication().invokeLater {
             val doc = FileDocumentManager.getInstance().getDocument(file) ?: return@invokeLater
             if (doc.text == yaml) return@invokeLater

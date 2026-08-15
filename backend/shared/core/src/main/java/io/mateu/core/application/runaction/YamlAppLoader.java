@@ -10,133 +10,134 @@ import io.mateu.uidl.interfaces.Actionable;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Loads a mount's app shell (title, menu, widgets, chrome) from the {@code app:} block of {@code
- * specs/ui/routes.yaml} — the data-driven counterpart of an {@code @App}-annotated class.
+ * Loads an app shell from a {@code type: AppShell} DEFINITION file — the data-driven counterpart of
+ * an {@code @App} class.
  *
- * <p>The app chrome lives with the routes it wraps because both are properties of the same mount: a
- * UI application served at a base path. {@code routes.yaml} already carries an envelope ({@code
- * routes:}); {@code app:} is the sibling key that describes the shell around them. A mount authored
- * entirely in YAML — no {@code @App} class — is what a fully static deployment needs.
+ * <p>The app is a view like any other: its definition (a YAML file, discriminated by {@code type:
+ * AppShell}) is bound to a route in the mount's route registry (typically the root {@code ""}), and
+ * may also carry a {@code viewModel} on that route entry. This replaces the earlier {@code app:}
+ * block inside {@code routes.yaml}, which mixed the routing table with the app view.
  *
  * <p>What is parsed maps onto {@link AppShell} directly. {@code menu:} is a list of {@link
  * Actionable} ({@code RouteLink}, {@code Menu}, {@code RemoteMenu}…) and {@code widgets:} a list of
  * {@link Component}; both deserialize through the same polymorphic {@code type:} discriminator as
- * page layouts (see {@link YamlUidlMapperFactory}), so no new wiring is needed for them. Scalars
- * ({@code title}, {@code subtitle}, {@code logo}, {@code favicon}, {@code variant}, {@code layout},
- * {@code drawerClosed}, {@code style}, {@code cssClasses}) are read off the node.
+ * page layouts (see {@link YamlUidlMapperFactory}). Scalars ({@code title}, {@code subtitle},
+ * {@code logo}, {@code favicon}, {@code variant}, {@code layout}, {@code drawerClosed}, {@code
+ * homeRoute}…) are read off the node. {@code homeRoute} defaults to the first navigable menu item.
  *
  * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
  * (theme toggle, command center, chromeless, SSE/MCP/upload URLs, {@code @AppContext} selectors,
- * notifications, global search, FABs). They need a class to exist and are a follow-up that promotes
- * them onto {@link AppShell}.
+ * notifications, global search, FABs). They need a class and are a follow-up.
  */
 @Slf4j
 @Named
 @Singleton
 public class YamlAppLoader {
 
-  /** The mount descriptor: the same file the {@link RouteRegistry} reads. */
-  static final String ROUTES_YAML = "specs/ui/routes.yaml";
-
   private final ObjectMapper mapper = YamlUidlMapperFactory.create();
 
-  // The descriptor is a static file: parse once. `loaded` distinguishes "no app block" (a valid,
-  // cached null) from "not looked yet".
-  private volatile boolean loaded;
-  private volatile AppShell cached;
+  // Definitions are static files: parse once per path. A miss (absent, unparseable, or not an
+  // AppShell) is cached as NONE so a route pointing at a non-shell definition isn't re-read
+  // forever.
+  private static final AppShell NONE = AppShell.builder().clientSideComponentId("__none__").build();
+  private final ConcurrentHashMap<String, AppShell> byPath = new ConcurrentHashMap<>();
 
   /**
-   * The mount's app shell as authored in {@code specs/ui/routes.yaml}, or {@code null} when the
-   * file is absent, unparseable, or declares no {@code app:} block. Never throws: a broken
-   * descriptor must not take the app down, exactly like {@link RouteRegistry}.
+   * The {@link AppShell} declared by the definition file at {@code definitionPath}, or {@code null}
+   * when the file is absent, unparseable, or is not a {@code type: AppShell} definition (e.g. it is
+   * a plain page). Never throws: a broken definition must not take the app down.
    */
-  public AppShell app() {
-    if (!loaded) {
-      synchronized (this) {
-        if (!loaded) {
-          cached = load();
-          loaded = true;
-        }
-      }
+  public AppShell load(String definitionPath) {
+    if (definitionPath == null || definitionPath.isBlank()) {
+      return null;
     }
-    return cached;
+    var shell = byPath.computeIfAbsent(definitionPath, this::loadUncached);
+    return shell == NONE ? null : shell;
   }
 
-  private AppShell load() {
-    try (InputStream is = resolve(ROUTES_YAML)) {
+  /** Whether the definition at {@code definitionPath} is a {@code type: AppShell}. */
+  public boolean isAppShell(String definitionPath) {
+    return load(definitionPath) != null;
+  }
+
+  private AppShell loadUncached(String definitionPath) {
+    try (InputStream is = resolve(definitionPath(definitionPath))) {
       if (is == null) {
-        return null;
+        return NONE;
       }
       var root = mapper.readTree(is);
-      return parse(root);
+      var shell = parse(root);
+      return shell == null ? NONE : shell;
     } catch (Exception e) {
-      log.warn("Failed to read app block of {}: {}", ROUTES_YAML, e.getMessage());
-      return null;
+      log.warn("Failed to read app shell definition {}: {}", definitionPath, e.getMessage());
+      return NONE;
     }
   }
 
   /**
-   * Builds the {@link AppShell} from a parsed {@code routes.yaml} tree, or {@code null} when there
-   * is no {@code app:} block. Package-visible so a test can feed a tree without a classpath
-   * resource at the fixed {@link #ROUTES_YAML} path (which would collide with other fixtures).
+   * Builds the {@link AppShell} from a parsed definition tree, or {@code null} when it is not a
+   * {@code type: AppShell}. Package-visible so a test can feed a tree directly.
    */
   AppShell parse(JsonNode root) throws Exception {
-    if (root == null || !root.hasNonNull("app") || !root.get("app").isObject()) {
+    if (root == null || !root.isObject()) {
       return null;
     }
-    var app = root.get("app");
+    var type = root.hasNonNull("type") ? root.get("type").asText() : null;
+    if (!"AppShell".equals(type)) {
+      return null; // a page/partial definition, not an app shell
+    }
     var builder = AppShell.builder();
 
-    text(app, "title", builder::title);
-    text(app, "subtitle", builder::subtitle);
-    text(app, "pageTitle", builder::pageTitle);
-    text(app, "logo", builder::logo);
-    text(app, "favicon", builder::favicon);
-    text(app, "style", builder::style);
-    text(app, "cssClasses", builder::cssClasses);
-    text(app, "route", builder::route);
+    text(root, "title", builder::title);
+    text(root, "subtitle", builder::subtitle);
+    text(root, "pageTitle", builder::pageTitle);
+    text(root, "logo", builder::logo);
+    text(root, "favicon", builder::favicon);
+    text(root, "style", builder::style);
+    text(root, "cssClasses", builder::cssClasses);
+    text(root, "route", builder::route);
 
-    if (app.hasNonNull("variant")) {
-      builder.variant(enumValue(AppVariant.class, app.get("variant").asText(), AppVariant.AUTO));
+    if (root.hasNonNull("variant")) {
+      builder.variant(enumValue(AppVariant.class, root.get("variant").asText(), AppVariant.AUTO));
     }
-    if (app.hasNonNull("layout")) {
-      builder.layout(enumValue(AppLayout.class, app.get("layout").asText(), AppLayout.SINGLE_SLOT));
+    if (root.hasNonNull("layout")) {
+      builder.layout(
+          enumValue(AppLayout.class, root.get("layout").asText(), AppLayout.SINGLE_SLOT));
     }
-    if (app.hasNonNull("drawerClosed")) {
-      builder.drawerClosed(app.get("drawerClosed").asBoolean());
+    if (root.hasNonNull("drawerClosed")) {
+      builder.drawerClosed(root.get("drawerClosed").asBoolean());
     }
 
     var menuItems = new java.util.ArrayList<Actionable>();
-    if (app.has("menu") && app.get("menu").isArray()) {
-      for (var node : app.get("menu")) {
+    if (root.has("menu") && root.get("menu").isArray()) {
+      for (var node : root.get("menu")) {
         menuItems.add(mapper.treeToValue(node, Actionable.class));
       }
     }
     menuItems.forEach(builder::menuItem);
 
-    // A YAML mount has no class carrying @HomeRoute, so its home defaults to the first navigable
-    // menu item unless the block declares `homeRoute:`. Without it the shell would load its own
-    // root
-    // route "" (→ the shell again → a re-render loop the client's loop-guard has to stop).
-    if (app.hasNonNull("homeRoute")) {
-      builder.homeRoute(app.get("homeRoute").asText());
+    // A data-authored shell has no class carrying @HomeRoute, so its home defaults to the first
+    // navigable menu item unless it declares `homeRoute:`. Without it the shell would load its own
+    // root route "" (→ the shell again → a re-render loop the client's loop-guard has to stop).
+    if (root.hasNonNull("homeRoute")) {
+      builder.homeRoute(root.get("homeRoute").asText());
     } else {
       firstNavigableRoute(menuItems).ifPresent(builder::homeRoute);
     }
 
-    if (app.has("widgets") && app.get("widgets").isArray()) {
-      for (var node : app.get("widgets")) {
+    if (root.has("widgets") && root.get("widgets").isArray()) {
+      for (var node : root.get("widgets")) {
         builder.widget(mapper.treeToValue(node, Component.class));
       }
     }
 
     var shell = builder.build();
     log.info(
-        "Loaded YAML app shell from {} (title='{}', {} menu items, {} widgets)",
-        ROUTES_YAML,
+        "Loaded AppShell definition (title='{}', {} menu items, {} widgets)",
         shell.title(),
         shell.menu().size(),
         shell.widgets().size());
@@ -144,10 +145,13 @@ public class YamlAppLoader {
   }
 
   /**
-   * The route of the first menu entry that navigates somewhere — a {@code RouteLink} (its {@code
-   * route}, else its {@code path}) or any actionable with a {@code path}. Used as the shell's home
-   * when the block declares no explicit {@code homeRoute:}.
+   * Where a declared {@code definition} lives: relative to {@code specs/ui/}, or
+   * classpath-absolute.
    */
+  private static String definitionPath(String definition) {
+    return definition.startsWith("/") ? definition.substring(1) : "specs/ui/" + definition;
+  }
+
   private static java.util.Optional<String> firstNavigableRoute(java.util.List<Actionable> items) {
     for (var item : items) {
       if (item instanceof io.mateu.uidl.data.RouteLink link) {
@@ -173,7 +177,7 @@ public class YamlAppLoader {
     try {
       return Enum.valueOf(type, raw.trim());
     } catch (IllegalArgumentException e) {
-      log.warn("Unknown {} '{}' in {}; using {}", type.getSimpleName(), raw, ROUTES_YAML, fallback);
+      log.warn("Unknown {} '{}'; using {}", type.getSimpleName(), raw, fallback);
       return fallback;
     }
   }

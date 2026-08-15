@@ -2,6 +2,7 @@ package io.mateu.yamlmount;
 
 import io.mateu.SpringHttpRequest;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlAppLoader;
 import io.mateu.core.infra.InputStreamReader;
 import io.mateu.core.infra.MateuController;
@@ -13,26 +14,24 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 /**
- * Contributes the HTTP surface — the SPA shell at {@code /} and the sync endpoint at {@code /mateu}
- * — for a mount defined entirely in YAML, so it needs NO Java at all beyond the Spring Boot entry
- * point. The annotation processor generates these per {@code @UI} class; a class-less mount has
- * none, and this fills the gap.
+ * Contributes the HTTP surface — an SPA shell and a sync endpoint per mount — for a deployment
+ * whose UIs are defined entirely in YAML ({@code type: UI} files), so it needs NO Java beyond the
+ * Spring Boot entry point. The annotation processor generates these per {@code @UI} class; a
+ * class-less deployment has none, and this fills the gap for every discovered mount at its own
+ * {@code basePath}.
  *
- * <p>Gated two ways: {@link YamlMountCondition} (there is a {@code routes.yaml} with an {@code
- * app:} block to serve) and a class-level {@link ConditionalOnMissingBean} on {@link
- * MateuController} — so the moment ANY generated controller exists (a Java {@code @App} in the same
- * deployment), this stands down and the generated ones win. Being an auto-configuration (loaded
- * after user beans), the missing-bean check reliably sees the generated controllers.
+ * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount) and a
+ * class-level {@link ConditionalOnMissingBean} on {@link MateuController} — so the moment any
+ * generated controller exists (a Java {@code @UI} in the same deployment), this stands down.
  *
- * <p>The endpoints are registered as a {@link RouterFunction} rather than an annotated controller
- * on purpose: a functional route is picked up by its {@code @Bean} type regardless of package or
- * component scanning, and needs no {@code @Controller} stereotype (which would get the class
- * component-scanned AND registered here — a duplicate {@code /mateu/v3/**} mapping). {@code
- * uiId}/{@code baseUrl} are empty: route resolution drives everything from the request for a root
- * mount.
+ * <p>The endpoints are a {@link RouterFunction}, not annotated controllers: a functional route is
+ * picked up by its {@code @Bean} type regardless of package or component scanning, and needs no
+ * {@code @Controller} stereotype (which would get the class component-scanned AND registered here —
+ * a duplicate mapping).
  */
 @AutoConfiguration
 @Conditional(YamlMountCondition.class)
@@ -41,43 +40,55 @@ public class YamlMountAutoConfiguration {
 
   @Bean
   public RouterFunction<ServerResponse> mateuYamlMountRoutes(
-      MateuService service, YamlAppLoader yamlAppLoader) {
-    return RouterFunctions.route()
-        .GET(
-            "/",
-            request ->
-                ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(indexHtml(yamlAppLoader)))
-        // The SSE route must come before the catch-all so LongTask streaming is not swallowed by
-        // it.
-        .POST("/mateu/v3/sse/**", request -> sse(service, request))
-        .POST("/mateu/v3/**", request -> sync(service, request))
-        .build();
+      MateuService service, RouteRegistry routeRegistry, YamlAppLoader yamlAppLoader) {
+    var builder = RouterFunctions.route();
+    for (var mount : routeRegistry.mounts()) {
+      var basePath = mount.basePath(); // "" for a root mount, e.g. "back-office" otherwise
+      var spaPath = basePath.isEmpty() ? "/" : "/" + basePath;
+      var syncPrefix = basePath.isEmpty() ? "/mateu" : "/" + basePath + "/mateu";
+      var title = titleOf(routeRegistry, yamlAppLoader, basePath);
+      builder
+          .GET(
+              spaPath,
+              request ->
+                  ServerResponse.ok()
+                      .contentType(MediaType.TEXT_HTML)
+                      .body(indexHtml(basePath, title)))
+          .POST(syncPrefix + "/v3/sse/**", request -> sse(service, request, basePath))
+          .POST(syncPrefix + "/v3/**", request -> sync(service, request, basePath));
+    }
+    return builder.build();
   }
 
-  private static ServerResponse sync(
-      MateuService service, org.springframework.web.servlet.function.ServerRequest request)
+  private static String titleOf(
+      RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath) {
+    var definition = routeRegistry.rootDefinitionFor(basePath);
+    var shell = appLoader.load(definition);
+    return shell != null && shell.title() != null ? shell.title() : "Mateu";
+  }
+
+  private static ServerResponse sync(MateuService service, ServerRequest request, String baseUrl)
       throws Exception {
     var rq = request.body(RunActionRqDto.class);
-    var httpRequest = requestOf(request, rq);
+    var httpRequest = requestOf(request, rq, baseUrl);
     io.mateu.dtos.UIIncrementDto increment;
     try {
-      increment = service.runAction("", rq, "", httpRequest).next().block();
+      increment = service.runAction(baseUrl, rq, baseUrl, httpRequest).next().block();
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
     return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(increment);
   }
 
-  private static ServerResponse sse(
-      MateuService service, org.springframework.web.servlet.function.ServerRequest request)
+  private static ServerResponse sse(MateuService service, ServerRequest request, String baseUrl)
       throws Exception {
     var rq = request.body(RunActionRqDto.class);
-    var httpRequest = requestOf(request, rq);
+    var httpRequest = requestOf(request, rq, baseUrl);
     return ServerResponse.sse(
         sseBuilder -> {
           try {
             service
-                .runAction("", rq, "", httpRequest)
+                .runAction(baseUrl, rq, baseUrl, httpRequest)
                 .subscribe(
                     increment -> {
                       try {
@@ -95,28 +106,28 @@ public class YamlMountAutoConfiguration {
   }
 
   private static io.mateu.uidl.interfaces.HttpRequest requestOf(
-      org.springframework.web.servlet.function.ServerRequest request, RunActionRqDto rq) {
+      ServerRequest request, RunActionRqDto rq, String baseUrl) {
     var httpRequest = new SpringHttpRequest(request.servletRequest()).storeRunActionRqDto(rq);
     httpRequest.setAttribute("uiId", "");
-    httpRequest.setAttribute("baseUrl", "");
+    httpRequest.setAttribute("baseUrl", baseUrl);
     return httpRequest;
   }
 
   /**
-   * The SPA shell HTML with a root {@code <mateu-ui baseUrl="">} injected; the SPA then POSTs
-   * {@code /mateu/v3/**} with route {@code ""} and the YAML-defined app shell answers. The initial
-   * page title comes from the {@code app:} block (the SPA overrides it per route once loaded).
+   * The SPA shell HTML with a {@code <mateu-ui baseUrl="{basePath}">} injected; the SPA then POSTs
+   * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers. The initial page title
+   * comes from the mount's app shell definition (the SPA overrides it per route once loaded).
    */
-  private static String indexHtml(YamlAppLoader yamlAppLoader) {
-    var app = yamlAppLoader.app();
-    var title = app != null && app.title() != null ? app.title() : "Mateu";
+  private static String indexHtml(String basePath, String title) {
     String html =
         InputStreamReader.readFromClasspath(
             YamlMountAutoConfiguration.class, "/static/_index.html");
     html = html.replaceAll("<!-- AQUIFAVICON -->", "");
     html = html.replaceAll("AQUIELTITULODELAPAGINA", title);
     return html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-        + "<mateu-ui baseUrl=\"\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"
+        + "<mateu-ui baseUrl=\""
+        + basePath
+        + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"
         + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
   }
 }

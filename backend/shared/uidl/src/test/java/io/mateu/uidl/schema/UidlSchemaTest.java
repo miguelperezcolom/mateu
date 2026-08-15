@@ -35,6 +35,50 @@ class UidlSchemaTest {
     return Path.of(System.getProperty("user.dir")).resolve("routes-schema.json");
   }
 
+  /** The mount descriptor's schema ({@code type: UI}), alongside the others. */
+  private static Path mountSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("mount-schema.json");
+  }
+
+  @Test
+  void theCheckedInMountSchemaMatchesTheMountDescriptor() throws IOException {
+    var generated = UidlSchemaGenerator.generateMount();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(mountSchemaFile(), generated);
+      return;
+    }
+
+    assertThat(MAPPER.readTree(Files.readString(mountSchemaFile())))
+        .as("mount-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  /** The unified specs/ui authoring schema (one schema per specs/ui file, `type`-discriminated). */
+  private static Path specsSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("specs-schema.json");
+  }
+
+  @Test
+  void theCheckedInSpecsSchemaUnifiesEveryFileKind() throws IOException {
+    var generated = UidlSchemaGenerator.generateSpecs();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(specsSchemaFile(), generated);
+      return;
+    }
+
+    // The unified schema must offer all four branches (mount, routes envelope, bare list,
+    // component)
+    // and carry the defs it references (RouteEntry + the component catalog).
+    assertThat(generated.get("oneOf")).hasSize(4);
+    assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
+    assertThat(generated.get("$defs").has("Component")).isTrue();
+    assertThat(MAPPER.readTree(Files.readString(specsSchemaFile())))
+        .as("specs-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
   @Test
   void theCheckedInRoutesSchemaMatchesTheRouteEntryRecord() throws IOException {
     var generated = UidlSchemaGenerator.generateRoutes();

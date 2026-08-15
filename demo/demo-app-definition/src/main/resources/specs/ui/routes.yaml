@@ -1,19 +1,14 @@
-app:
-  title: Back office
-  subtitle: Authored entirely in YAML
-  variant: MENU_ON_TOP
-  menu:
-    - type: RouteLink
-      label: Orders
-      route: orders
-      icon: vaadin:cart
-    - type: RouteLink
-      label: Users
-      route: users
-      icon: vaadin:users
-
+# The route registry: ONLY routing — each URL bound to a definition (and optionally a viewModel).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
 routes:
+  - route: ""          # the mount root → the app shell view
+    definition: app.yaml
   - route: orders
     definition: orders.yaml
   - route: users
     definition: users.yaml
+  - route: tasks       # a CRUD mediator bound to a route by DATA (no @UI) — wrapped in the shell
+    viewModel: io.mateu.demo.appdefinition.TaskCrud
+  - route: dashboard   # a Dashboard TEMPLATE bound by data (no @UI)
+    viewModel: io.mateu.demo.appdefinition.SalesDashboard
