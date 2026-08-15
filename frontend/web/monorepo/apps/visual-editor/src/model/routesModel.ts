@@ -26,12 +26,15 @@ export interface RoutesDoc {
     preamble: Record<string, unknown>
 }
 
-/** Whether this YAML is a route registry (a `routes:` envelope or a bare list of entries). */
+/** Whether this YAML is a route file (`type: Routes`, a `routes:` envelope, or a bare list). */
 export function isRoutesYaml(yaml: string): boolean {
     let root: unknown
     try { root = parse(yaml) } catch { return false }
     if (Array.isArray(root)) return true
-    return !!root && typeof root === 'object' && Array.isArray((root as any).routes)
+    if (!root || typeof root !== 'object') return false
+    const type = (root as any).type
+    if (type === 'UI' || type === 'AppShell') return false // a mount / app shell, not a route table
+    return type === 'Routes' || Array.isArray((root as any).routes)
 }
 
 function toRow(entry: any): RouteRow {
@@ -50,7 +53,10 @@ export function parseRoutes(yaml: string): RoutesDoc {
         return { routes: root.map(toRow), enveloped: false, preamble: {} }
     }
     if (root && typeof root === 'object' && Array.isArray((root as any).routes)) {
-        const { routes, ...preamble } = root as any
+        // Drop the `type` discriminator from the preamble — it is re-emitted as `type: Routes` on
+        // serialize. Everything else (e.g. `$schema`) is preserved.
+        const { routes, type, ...preamble } = root as any
+        void type
         return { routes: routes.map(toRow), enveloped: true, preamble }
     }
     // Not a recognisable routes file (or empty): start an empty envelope.
@@ -67,10 +73,9 @@ export function serializeRoutes(doc: RoutesDoc): string {
         if (row.defaultParams && Object.keys(row.defaultParams).length) out.defaultParams = row.defaultParams
         return out
     })
-    if (doc.enveloped || Object.keys(doc.preamble).length) {
-        return stringify({ ...doc.preamble, routes: entries })
-    }
-    return stringify(entries)
+    // Always the `type: Routes` envelope so every route file is discriminated uniformly with the
+    // mount (UI) and app (AppShell) files.
+    return stringify({ type: 'Routes', ...doc.preamble, routes: entries })
 }
 
 /** Parse a `key=value, key2=value2` string into a param map, coercing obvious booleans/numbers. */

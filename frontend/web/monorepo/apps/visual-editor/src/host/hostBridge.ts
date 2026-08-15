@@ -11,8 +11,13 @@ export interface HostBridge {
     baseUrl(): string
     /** The initial YAML to edit. */
     initialYaml(): Promise<string>
-    /** Persist the edited YAML back to the host (the open file). */
-    save(yaml: string): void
+    /**
+     * A local edit happened (the content changed but is NOT yet saved). An IDE host uses it to mark
+     * its document dirty so the IDE's OWN save (Ctrl+S / save-all / close-prompt) writes the file —
+     * there is no save button and this never writes the file itself. A standalone browser keeps it
+     * as a localStorage draft.
+     */
+    onContentChanged?(yaml: string): void
     /** Subscribe to out-of-band file changes (the file edited elsewhere). Optional. */
     onExternalChange?(cb: (yaml: string) => void): void
 }
@@ -45,7 +50,7 @@ export function resolveHost(): HostBridge {
     return new BrowserHost()
 }
 
-/** IDE host over postMessage. init → {yaml, baseUrl}; the editor posts {type:'save', yaml}. */
+/** IDE host over postMessage. init → {yaml, baseUrl}; the editor posts {type:'contentChanged', yaml}. */
 class MessageHost implements HostBridge {
     private _baseUrl = window.__mateuBaseUrl ?? ''
     private _resolveInit!: (yaml: string) => void
@@ -71,7 +76,7 @@ class MessageHost implements HostBridge {
 
     baseUrl() { return this._baseUrl }
     initialYaml() { return this._init }
-    save(yaml: string) { this.channel.postMessage({ type: 'save', yaml }) }
+    onContentChanged(yaml: string) { this.channel.postMessage({ type: 'contentChanged', yaml }) }
     onExternalChange(cb: (yaml: string) => void) { this._external = cb }
 }
 
@@ -85,7 +90,8 @@ class BrowserHost implements HostBridge {
         return localStorage.getItem(this.key) ?? SAMPLE_YAML
     }
 
-    save(yaml: string) {
+    // Standalone has no IDE and no native save, so a local edit is kept as a localStorage draft.
+    onContentChanged(yaml: string) {
         localStorage.setItem(this.key, yaml)
     }
 }

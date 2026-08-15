@@ -1,0 +1,23 @@
+# The app shell is a view/definition of its own, discriminated by `type: AppShell`.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Back office
+subtitle: Authored entirely in YAML
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Orders
+    route: orders
+    icon: vaadin:cart
+  - type: RouteLink
+    label: Users
+    route: users
+    icon: vaadin:users
+  - type: RouteLink
+    label: Tasks
+    route: tasks
+    icon: vaadin:tasks
+  - type: RouteLink
+    label: Dashboard
+    route: dashboard
+    icon: vaadin:dashboard

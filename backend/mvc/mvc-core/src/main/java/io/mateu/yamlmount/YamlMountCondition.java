@@ -1,20 +1,17 @@
 package io.mateu.yamlmount;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.mateu.core.application.runaction.MountRegistry;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * True when the classpath carries a {@code specs/ui/routes.yaml} with an {@code app:} block — i.e.
- * this deployment IS a data-authored mount. Gates {@link YamlMountAutoConfiguration} so the default
- * controllers are contributed only when there is a YAML app to serve, never for an arbitrary app
- * that merely depends on {@code mvc-core}.
+ * True when the classpath declares at least one data-driven mount — a {@code type: UI} file under
+ * {@code specs/ui/**} (see {@link MountRegistry}). Gates {@link YamlMountAutoConfiguration} so the
+ * default controllers are contributed only when there is a YAML UI to serve, never for an arbitrary
+ * app that merely depends on {@code mvc-core}.
  */
 public class YamlMountCondition implements Condition {
-
-  static final String ROUTES_YAML = "specs/ui/routes.yaml";
 
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
@@ -22,14 +19,6 @@ public class YamlMountCondition implements Condition {
     if (classLoader == null) {
       classLoader = getClass().getClassLoader();
     }
-    try (var is = classLoader.getResourceAsStream(ROUTES_YAML)) {
-      if (is == null) {
-        return false;
-      }
-      var root = new ObjectMapper(new YAMLFactory()).readTree(is);
-      return root != null && root.hasNonNull("app") && root.get("app").isObject();
-    } catch (Exception e) {
-      return false;
-    }
+    return !new MountRegistry().mounts(classLoader).isEmpty();
   }
 }

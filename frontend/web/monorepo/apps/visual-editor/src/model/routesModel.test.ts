@@ -5,24 +5,22 @@ import {
 } from './routesModel'
 
 describe('isRoutesYaml', () => {
-    it('recognises a routes: envelope and a bare list', () => {
+    it('recognises type: Routes, a routes: envelope and a bare list', () => {
+        expect(isRoutesYaml('type: Routes\nroutes:\n  - route: a\n')).toBe(true)
         expect(isRoutesYaml('routes:\n  - route: a\n')).toBe(true)
         expect(isRoutesYaml('- route: a\n- route: b\n')).toBe(true)
     })
-    it('rejects pages and partials', () => {
+    it('rejects pages, partials, mounts and app shells', () => {
         expect(isRoutesYaml('type: VerticalLayout\ncontent: []\n')).toBe(false)
         expect(isRoutesYaml('content:\n  - type: Text\n')).toBe(false)
-        expect(isRoutesYaml('layout:\n  type: FormLayout\n')).toBe(false)
+        expect(isRoutesYaml('type: UI\nbasePath: /\nroutes:\n  - r.yaml\n')).toBe(false)
+        expect(isRoutesYaml('type: AppShell\ntitle: X\n')).toBe(false)
     })
 })
 
 describe('parse/serialize routes', () => {
-    const src = `app:
-  title: Back office
-  menu:
-    - type: RouteLink
-      label: Orders
-      route: orders
+    const src = `$schema: https://mateu.io/uidl/routes-schema.json
+type: Routes
 routes:
   - route: orders
     definition: orders.yaml
@@ -32,28 +30,27 @@ routes:
       status: open
 `
 
-    it('reads the entries and preserves the app: preamble', () => {
+    it('reads the entries and preserves the $schema preamble', () => {
         const doc = parseRoutes(src)
-        expect(doc.enveloped).toBe(true)
         expect(doc.routes.map((r) => r.route)).toEqual(['orders', 'orders/:id'])
         expect(doc.routes[0].definition).toBe('orders.yaml')
         expect(doc.routes[1].viewModel).toBe('com.acme.Order')
         expect(doc.routes[1].fixedParams).toEqual({ status: 'open' })
-        expect((doc.preamble as any).app.title).toBe('Back office')
+        expect((doc.preamble as any).$schema).toContain('routes-schema.json')
     })
 
-    it('round-trips, keeping the app: block untouched and omitting empty fields', () => {
+    it('round-trips as a type: Routes envelope, keeping $schema and omitting empty fields', () => {
         const out = parse(serializeRoutes(parseRoutes(src)))
-        expect(out.app.title).toBe('Back office')
-        expect(out.app.menu[0].route).toBe('orders')
+        expect(out.type).toBe('Routes')
+        expect(out.$schema).toContain('routes-schema.json')
         expect(out.routes[0]).toEqual({ route: 'orders', definition: 'orders.yaml' }) // no empty viewModel
         expect(out.routes[1].fixedParams).toEqual({ status: 'open' })
     })
 
-    it('keeps a bare list a bare list', () => {
+    it('a bare list is normalised to a type: Routes envelope', () => {
         const out = parse(serializeRoutes(parseRoutes('- route: a\n  viewModel: X\n')))
-        expect(Array.isArray(out)).toBe(true)
-        expect(out[0]).toEqual({ route: 'a', viewModel: 'X' })
+        expect(out.type).toBe('Routes')
+        expect(out.routes[0]).toEqual({ route: 'a', viewModel: 'X' })
     })
 
     it('parses and formats param maps', () => {
