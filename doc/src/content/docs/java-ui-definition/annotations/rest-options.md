@@ -113,9 +113,42 @@ String country;
   on the server by a `SecretsProvider` (see below), so the token **never reaches the browser**. Only
   the placeholder (`${secret.COUNTRIES_TOKEN}`) travels on the wire, never its value.
 
-The server resolves the endpoint from the **declared** annotation (by field/action/class), never
-from a url supplied by the client, so the proxy can't be turned into an open relay. `${state.x}`
-interpolation works the same as in direct mode (resolved from the component state).
+The server resolves the endpoint from what the view **declared**, never from a url supplied by the
+client, so the proxy can't be turned into an open relay. `${state.x}` interpolation works the same
+as in direct mode (resolved from the component state).
+
+#### Views with no annotation to read — `RestSourceSupplier`
+
+Reading the annotation is enough for a view written as a Java class. A view **assembled at
+runtime** — a form built from a stored definition, a screen composed from configuration — has no
+annotated field for that lookup to find, and proxy mode was closed to exactly the views that most
+need it. Such a view implements `io.mateu.uidl.interfaces.RestSourceSupplier` to say the same thing
+programmatically:
+
+```java
+public class TaskForm implements RestSourceSupplier {
+
+  @Override
+  public List<DeclaredRestSource> declaredRestSources() {
+    return definition.fields().stream()                       // ← server-side state
+        .filter(f -> f.optionsSource() != null)
+        .map(f -> new DeclaredRestSource(RestSourceKind.OPTIONS, f.id(), sourceOf(f)))
+        .toList();
+  }
+}
+```
+
+The declarations are read on the server and gate `__restfetch__` exactly as the annotations do:
+a view declaring at least one `proxy = true` source advertises the reserved action, and a fetch for
+`kind` + `id` resolves to the source declared under them (`OPTIONS` by field id, `ACTION` by action
+id; `ROWS` and `DATA` have one per view, so their id is ignored).
+
+:::danger[Build them from server-side state, never from the request]
+The invariant the proxy rests on is that the endpoint is the server's choice, not the client's. An
+implementation must derive its declarations from something the server holds — a stored definition,
+configuration, a catalogue — and never from the request or the component state. Supplying a url the
+client chose hands back the open relay the annotation lookup exists to prevent.
+:::
 
 ### Supplying secrets — `SecretsProvider`
 

@@ -54,6 +54,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST button action (`@RestAction`/`[RestAction]`/`@rest_action` on a button → calls an arbitrary endpoint client-side via `Action.restAction`; response toast + merge into form state) | ✅ | ✅ | ✅ |
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / env var; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
+| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ❌ | ❌ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
