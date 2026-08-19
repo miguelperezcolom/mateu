@@ -107,6 +107,8 @@ describe('willUpdate data preservation', () => {
     const withProto = (over: Record<string, any>) => ({
         data: {} as Record<string, any>,
         _lastFragmentData: undefined as Record<string, any> | undefined,
+        _lastViewKey: undefined as string | undefined,
+        component: undefined as ServerSideComponent | undefined,
         willUpdate: ComponentElement.prototype.willUpdate,
         ...over,
     })
@@ -126,6 +128,35 @@ describe('willUpdate data preservation', () => {
         const el = withProto({ data: cleared, _lastFragmentData: cleared })
         el.willUpdate(new Map([['data', { old: 1 }]]) as any)
         expect(el.data).toBe(cleared)
+    })
+
+    it('drops the rows when a DIFFERENT view arrives in this reused element', () => {
+        // Navigating from one listing to another: Lit reuses this element, so the new view's
+        // component and its still-empty data map are bound together. Preserving the previous
+        // rows there showed the outgoing listing's rows under the incoming listing's header.
+        const rows = { crud: { page: { content: [1, 2] } } }
+        const el = withProto({
+            data: rows,
+            _lastFragmentData: rows,
+            _lastViewKey: 'WorkflowDefinitions',
+            component: serverSide('Processes'),
+        })
+        el.data = {}
+        el.willUpdate(new Map<string, any>([['data', rows], ['component', serverSide('WorkflowDefinitions')]]) as any)
+        expect(el.data).toEqual({})
+    })
+
+    it('still keeps the rows when the SAME view re-renders', () => {
+        const rows = { crud: { page: { content: [1, 2] } } }
+        const el = withProto({
+            data: rows,
+            _lastFragmentData: rows,
+            _lastViewKey: 'Processes',
+            component: serverSide('Processes'),
+        })
+        el.data = {}
+        el.willUpdate(new Map([['data', rows]]) as any)
+        expect(el.data).toBe(rows)
     })
 
     it('lets a non-empty parent re-render through unchanged', () => {
