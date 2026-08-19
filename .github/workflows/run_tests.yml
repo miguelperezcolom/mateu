@@ -53,9 +53,12 @@ jobs:
 
       # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
       # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
-      # npm registry — an external host this job has no reason to depend on.
+      # npm registry — an external host this job has no reason to depend on. `--ignore-scripts`
+      # keeps the dependency tree's install hooks from running arbitrary code on the runner; the
+      # platform binaries this build needs (esbuild's) arrive as optional dependencies rather than
+      # from a postinstall, so the build and the suite were verified to pass without them.
       - name: Install the library's dependencies
-        run: cd frontend/web/monorepo && npm ci --workspace mateu --include-workspace-root
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --include-workspace-root --ignore-scripts
 
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build
