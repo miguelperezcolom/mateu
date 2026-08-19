@@ -6,6 +6,7 @@ import io.mateu.uidl.annotations.RestData;
 import io.mateu.uidl.annotations.RestListing;
 import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.RestDataSource;
+import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RestSourceKind;
 import io.mateu.uidl.interfaces.RestSourceSupplier;
 import java.lang.reflect.Field;
@@ -24,7 +25,35 @@ final class RestSourceResolver {
 
   private RestSourceResolver() {}
 
-  static RestDataSource resolve(Object instance, String kind, String id) {
+  /**
+   * The declared descriptor for a proxy fetch, with a catalogue reference already resolved.
+   *
+   * <p>Resolving HERE rather than at the call site is what keeps the proxy's guarantee intact: the
+   * endpoint it ends up calling comes from what the SERVER holds — an annotation, a supplier, or
+   * the catalogue — and never from the request. A reference the catalogue does not carry resolves
+   * to nothing rather than to a client-supplied url.
+   */
+  static RestDataSource resolve(
+      Object instance, String kind, String id, RestSourceCatalog catalog) {
+    return againstCatalog(declaredBy(instance, kind, id), catalog);
+  }
+
+  /**
+   * Fills a reference in from the catalogue. A descriptor that names no source is returned
+   * untouched, so inline declarations are unaffected.
+   */
+  private static RestDataSource againstCatalog(RestDataSource declared, RestSourceCatalog catalog) {
+    if (declared == null || !declared.hasRef()) {
+      return declared;
+    }
+    var entry =
+        catalog == null
+            ? java.util.Optional.<io.mateu.uidl.data.RestSourceEntry>empty()
+            : catalog.get(declared.ref());
+    return entry.map(declared::resolvedAgainst).orElse(declared);
+  }
+
+  private static RestDataSource declaredBy(Object instance, String kind, String id) {
     var declared = declaredBySupplier(instance, kind, id);
     if (declared != null) {
       return declared;
@@ -37,6 +66,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -52,6 +82,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -66,6 +97,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -78,6 +110,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))

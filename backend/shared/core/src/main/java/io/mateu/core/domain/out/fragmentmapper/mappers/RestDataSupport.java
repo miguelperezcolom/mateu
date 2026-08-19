@@ -83,6 +83,7 @@ final class RestDataSupport {
     }
     var source =
         RestDataSource.builder()
+            .ref(a.source())
             .url(a.url())
             .method(a.method())
             .headers(headers)

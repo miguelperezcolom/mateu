@@ -68,11 +68,13 @@ class UidlSchemaTest {
       return;
     }
 
-    // The unified schema must offer all four branches (mount, routes envelope, bare list,
-    // component)
-    // and carry the defs it references (RouteEntry + the component catalog).
-    assertThat(generated.get("oneOf")).hasSize(4);
+    // The unified schema must offer every branch (mount, routes envelope, bare route list, source
+    // catalogue, component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
+    // component catalog) — a specs/ui file kind missing from here is one the editor cannot
+    // validate.
+    assertThat(generated.get("oneOf")).hasSize(5);
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
+    assertThat(generated.get("$defs").has("RestSourceEntry")).isTrue();
     assertThat(generated.get("$defs").has("Component")).isTrue();
     assertThat(MAPPER.readTree(Files.readString(specsSchemaFile())))
         .as("specs-schema.json is stale — regenerate it (see this class's javadoc)")
@@ -111,6 +113,54 @@ class UidlSchemaTest {
         .toIterable()
         .containsExactlyInAnyOrder(
             "route", "definition", "viewModel", "fixedParams", "defaultParams");
+  }
+
+  private static Path sourcesSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("sources-schema.json");
+  }
+
+  @Test
+  void theCheckedInSourcesSchemaMatchesTheRestSourceEntryRecord() throws IOException {
+    var generated = UidlSchemaGenerator.generateSources();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(sourcesSchemaFile(), generated);
+      return;
+    }
+
+    assertThat(MAPPER.readTree(Files.readString(sourcesSchemaFile())))
+        .as("sources-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  @Test
+  void theSourcesSchemaDescribesBothShapesTheLoaderAccepts() {
+    // A sources.yaml may be a `sources:` envelope or a bare list, exactly like a routes file.
+    var oneOf = UidlSchemaGenerator.generateSources().get("oneOf");
+    assertThat(oneOf).hasSize(2);
+    assertThat(oneOf.get(0).get("type").asText()).isEqualTo("object");
+    assertThat(oneOf.get(1).get("type").asText()).isEqualTo("array");
+  }
+
+  @Test
+  void theSourcesSchemaCoversEveryFieldOfARestSourceEntry() {
+    // A catalogue entry that cannot be expressed in YAML would make the authored half of the
+    // catalogue weaker than the derived one, which is the failure the generated schemas exist to
+    // prevent.
+    var properties =
+        UidlSchemaGenerator.generateSources().get("$defs").get("RestSourceEntry").get("properties");
+    assertThat(properties.fieldNames())
+        .toIterable()
+        .containsExactlyInAnyOrder(
+            "name", "source", "provenance", "fields", "totalPath", "description");
+  }
+
+  @Test
+  void theSourcesSchemaLetsASurfaceReferenceACatalogueEntry() {
+    // The whole point of the catalogue: a descriptor may name an entry instead of carrying a url.
+    var properties =
+        UidlSchemaGenerator.generateSources().get("$defs").get("RestDataSource").get("properties");
+    assertThat(properties.has("ref")).isTrue();
   }
 
   @Test

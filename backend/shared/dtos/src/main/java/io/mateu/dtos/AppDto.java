@@ -43,7 +43,12 @@ public record AppDto(
     boolean notificationsEnabled,
     boolean globalSearchEnabled,
     boolean commandCenterEnabled,
-    boolean chromeless)
+    boolean chromeless,
+    /**
+     * The app's REST source catalogue: every named endpoint its screens reference, declared once.
+     * App-wide configuration, so it travels with the shell rather than on every response.
+     */
+    List<RestSourceEntryDto> restSources)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -55,6 +60,7 @@ public record AppDto(
         Collections.unmodifiableList(contextSelectors != null ? contextSelectors : List.of());
     contextActions =
         Collections.unmodifiableList(contextActions != null ? contextActions : List.of());
+    restSources = Collections.unmodifiableList(restSources != null ? restSources : List.of());
   }
 
   @Override
