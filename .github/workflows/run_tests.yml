@@ -97,6 +97,20 @@ jobs:
       - name: Install npm dependencies
         run: cd e2e && npm ci
 
+      # The browser download is the one step of this job that reaches outside GitHub and npm, and
+      # it has no timeout of its own: on 2026-08-19 it hung a release run and a PR run for ~50
+      # minutes each without ever failing, blocking the publish to Maven Central. The binaries
+      # only change when @playwright/test does, so key the cache on the lockfile that pins it.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      # Kept unconditional on purpose: --with-deps also installs SYSTEM packages, which live
+      # outside the cached directory and are needed on every run. On a cache hit this is the apt
+      # part only — the ~150 MB download is what the cache saves.
       - name: Install Playwright browsers
         run: cd e2e && npx playwright install --with-deps chromium
 
