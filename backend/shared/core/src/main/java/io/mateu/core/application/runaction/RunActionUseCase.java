@@ -35,6 +35,7 @@ public class RunActionUseCase {
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
   private final ActionInstanceCreator actionInstanceCreator;
   private final YamlUidlLoader yamlUidlLoader;
+  private final RestSourceRegistry restSourceRegistry;
 
   // ── Public static helpers (used by other classes in the framework) ────────
 
@@ -233,7 +234,7 @@ public class RunActionUseCase {
             : java.util.Map.<String, Object>of();
     var kind = String.valueOf(params.getOrDefault("_sourceKind", ""));
     var id = String.valueOf(params.getOrDefault("_sourceId", ""));
-    var source = RestSourceResolver.resolve(instance, kind, id);
+    var source = RestSourceResolver.resolve(instance, kind, id, restSourceRegistry.catalog());
     if (source == null) {
       return UIIncrementDto.builder()
           .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))

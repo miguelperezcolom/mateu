@@ -1,0 +1,87 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "https://mateu.io/uidl/sources-schema.json",
+  "title" : "Mateu REST source catalogue",
+  "description" : "JSON Schema for a mount's REST source catalogue — the endpoints the UI consumes, each named once so any surface can reference it instead of repeating its URL. `provenance` decides whether the derived API contract generates a server for it. GENERATED from RestSourceEntry by UidlSchemaGenerator — do not edit by hand.",
+  "oneOf" : [ {
+    "type" : "object",
+    "properties" : {
+      "type" : {
+        "const" : "Sources"
+      },
+      "sources" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/$defs/RestSourceEntry"
+        }
+      }
+    },
+    "required" : [ "sources" ]
+  }, {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/$defs/RestSourceEntry"
+    }
+  } ],
+  "$defs" : {
+    "RestDataSource" : {
+      "type" : "object",
+      "properties" : {
+        "ref" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        },
+        "method" : {
+          "type" : "string"
+        },
+        "headers" : {
+          "type" : "object"
+        },
+        "body" : {
+          "type" : "string"
+        },
+        "itemsPath" : {
+          "type" : "string"
+        },
+        "valuePath" : {
+          "type" : "string"
+        },
+        "labelPath" : {
+          "type" : "string"
+        },
+        "proxy" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "RestSourceEntry" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "provenance" : {
+          "$ref" : "#/$defs/RestSourceProvenance"
+        },
+        "fields" : {
+          "type" : "object"
+        },
+        "totalPath" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RestSourceProvenance" : {
+      "type" : "string",
+      "enum" : [ "auto", "generate", "existing" ]
+    }
+  }
+}

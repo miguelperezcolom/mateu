@@ -4738,6 +4738,9 @@
     "RestDataSource" : {
       "type" : "object",
       "properties" : {
+        "ref" : {
+          "type" : "string"
+        },
         "url" : {
           "type" : "string"
         },

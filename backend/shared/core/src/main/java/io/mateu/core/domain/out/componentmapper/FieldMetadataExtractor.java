@@ -207,6 +207,7 @@ public class FieldMetadataExtractor {
       }
     }
     return io.mateu.uidl.data.RestDataSource.builder()
+        .ref(a.source())
         .url(a.url())
         .method(a.method())
         .headers(headers)

@@ -77,6 +77,7 @@ public final class AppMapper {
             .serverSideType(
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
+            .restSources(RestSourceCatalogMapper.mapCatalogue())
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())

@@ -1,0 +1,27 @@
+# The AUTHORED half of the REST source catalogue, read by RestSourceRegistry.
+# Keys are RestSourceEntry's components, with the request nested under `source:` — the shape the
+# GENERATED sources-schema.json describes.
+sources:
+  - name: countries
+    description: ISO country codes
+    source:
+      url: https://restcountries.com/v3.1/all?fields=cca2,name
+      valuePath: cca2
+      labelPath: name.common
+
+  # Ours to build: a relative url, so the provenance is inferred as `generate`.
+  - name: orders
+    description: The orders a screen lists
+    source:
+      url: /api/orders?since=${state.since}
+      itemsPath: data
+    totalPath: meta.total
+    fields:
+      customerName: customer.name
+
+  # An absolute url would infer `existing`; declaring it says we own this one anyway.
+  - name: invoices
+    provenance: generate
+    source:
+      url: https://api.example.com/invoices
+      itemsPath: items

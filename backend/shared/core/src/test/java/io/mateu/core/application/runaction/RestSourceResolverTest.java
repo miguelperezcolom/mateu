@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.DeclaredRestSource;
 import io.mateu.uidl.data.RestDataSource;
+import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RestSourceKind;
 import io.mateu.uidl.interfaces.RestSourceSupplier;
 import java.util.List;
@@ -46,7 +47,8 @@ class RestSourceResolverTest {
 
   @Test
   void resolvesWhatTheViewDeclaredAtRuntime() {
-    var source = RestSourceResolver.resolve(new Supplied(), "options", "country");
+    var source =
+        RestSourceResolver.resolve(new Supplied(), "options", "country", RestSourceCatalog.empty());
 
     assertThat(source).isNotNull();
     assertThat(source.url()).isEqualTo("https://supplied.example.com/x");
@@ -54,7 +56,7 @@ class RestSourceResolverTest {
 
   @Test
   void aKindWithOneSourcePerViewNeedsNoId() {
-    var source = RestSourceResolver.resolve(new Supplied(), "data", "");
+    var source = RestSourceResolver.resolve(new Supplied(), "data", "", RestSourceCatalog.empty());
 
     assertThat(source).isNotNull();
     assertThat(source.url()).isEqualTo("https://supplied.example.com/me");
@@ -62,14 +64,23 @@ class RestSourceResolverTest {
 
   @Test
   void anUndeclaredFieldResolvesToNothing() {
-    assertThat(RestSourceResolver.resolve(new Supplied(), "options", "other")).isNull();
-    assertThat(RestSourceResolver.resolve(new Silent(), "options", "country")).isNull();
-    assertThat(RestSourceResolver.resolve(new Supplied(), "rows", "")).isNull();
+    assertThat(
+            RestSourceResolver.resolve(
+                new Supplied(), "options", "other", RestSourceCatalog.empty()))
+        .isNull();
+    assertThat(
+            RestSourceResolver.resolve(
+                new Silent(), "options", "country", RestSourceCatalog.empty()))
+        .isNull();
+    assertThat(RestSourceResolver.resolve(new Supplied(), "rows", "", RestSourceCatalog.empty()))
+        .isNull();
   }
 
   @Test
   void theAnnotationPathIsUntouched() {
-    var source = RestSourceResolver.resolve(new Annotated(), "options", "country");
+    var source =
+        RestSourceResolver.resolve(
+            new Annotated(), "options", "country", RestSourceCatalog.empty());
 
     assertThat(source).isNotNull();
     assertThat(source.url()).isEqualTo("https://annotated.example.com/x");
