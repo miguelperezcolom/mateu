@@ -23,4 +23,11 @@ describe('uxShared money formatting', () => {
         expect(formatWithUnit(1240, '€')).toBe('1.240,00 €')
         expect(formatWithUnit(1240)).toBe('1.240,00')
     })
+
+    it('renders a figure that is not a number as nothing, not as "NaN"', () => {
+        // Every caller guards its own input today; this is what the reader sees the day one stops.
+        expect(formatNumber(undefined as unknown as number)).toBe('')
+        expect(formatNumber(NaN)).toBe('')
+        expect(formatWithUnit(undefined as unknown as number, '€')).toBe(' €')
+    })
 })
