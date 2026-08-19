@@ -159,8 +159,105 @@ export class MateuTableCrud extends LitElement {
         return raw as ResolvedGridLayout
     }
 
+    /**
+     * The height the listing box is given so it fills the window, or undefined while it has not
+     * been worked out yet.
+     *
+     * The box declared `max-height: calc(100dvh - 12rem)` and nothing else, so it was CAPPED but
+     * never STRETCHED: with no definite height anywhere above it (every wrapper between the page
+     * and here is auto-height), the box was as tall as its content, and its content was a grid
+     * sitting at the 400px every vaadin-grid defaults to. The table stopped a third of the way
+     * down a 900px window with the space below it empty, and scrolled INSIDE those 400px as soon
+     * as a page of rows did not fit — which on most screens it did.
+     *
+     * It is MEASURED rather than guessed (the 12rem above is a guess) because what sits above and
+     * below a listing differs per screen: a page header, a welcome banner, a breadcrumb, the
+     * shell's own gap. And it is measured only while the fill is NOT applied — see
+     * {@link scheduleMeasure} — so a measurement can never be taken of a layout that the previous
+     * measurement produced. That is the whole discipline here: measure the natural layout, apply,
+     * and do not look again until something outside changes.
+     */
+    @state()
+    private fillHeightPx?: number
+
+    /** Cleared on anything that can move the box: a resize, a new component, a re-render of one. */
+    private pendingMeasure = true
+
+    private windowResizeListener = () => this.scheduleMeasure()
+
+    private scheduleMeasure() {
+        this.pendingMeasure = true
+        // Drop the fill first: the next render lays the box out naturally, and THAT is what gets
+        // measured. Measuring a filled box would feed its own height back into the calculation.
+        if (this.fillHeightPx != undefined) this.fillHeightPx = undefined
+        else this.requestUpdate()
+    }
+
+    private measureFill() {
+        if (!this.pendingMeasure || this.fillHeightPx != undefined) return
+        const box = (this.renderRoot as ParentNode)?.querySelector?.('[data-crud-box]') as HTMLElement | null
+        if (!box) return
+        // A listing inside an overlay is bounded by the overlay, not by the window.
+        if (this.closest?.('mateu-dialog, mateu-drawer')) { this.pendingMeasure = false; return }
+        const top = box.getBoundingClientRect().top
+        const available = Math.round(
+            window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
+        this.pendingMeasure = false
+        if (available >= MateuTableCrud.MIN_FILL_PX) this.fillHeightPx = available
+    }
+
+    /**
+     * Everything that has to fit UNDER the box: its ancestors' padding and border, plus the
+     * siblings that follow it and, in a flex or grid parent, the gap before each of them. In the
+     * vaadin page shell that gap is the whole story — the listing is followed by an empty box, and
+     * its 24px were exactly the sliver that made the window scroll for nothing.
+     */
+    private measureBottomInset(box: HTMLElement): number {
+        let node: HTMLElement | null = box
+        let inset = 0
+        for (let hops = 0; node && hops < 20; hops++) {
+            inset += parseFloat(getComputedStyle(node).marginBottom) || 0
+            const root = node.getRootNode() as ShadowRoot | Document
+            // The FLATTENED tree, not the DOM one: a listing can be slotted into its page, and
+            // everything the page wraps the slot in is skipped by `parentElement` alone.
+            const parent: HTMLElement | null = (node.assignedSlot as HTMLElement | null)
+                ?? node.parentElement
+                ?? ((root as ShadowRoot).host as HTMLElement | undefined)
+                ?? null
+            if (!parent || parent === document.documentElement || parent === document.body) break
+            const parentStyle = getComputedStyle(parent)
+            inset += (parseFloat(parentStyle.paddingBottom) || 0)
+                + (parseFloat(parentStyle.borderBottomWidth) || 0)
+            const rowGap = parseFloat(parentStyle.rowGap) || 0
+            for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+                const siblingStyle = getComputedStyle(sibling)
+                inset += sibling.getBoundingClientRect().height
+                    + (parseFloat(siblingStyle.marginTop) || 0)
+                    + (parseFloat(siblingStyle.marginBottom) || 0)
+                    + rowGap
+            }
+            node = parent
+        }
+        return Math.round(inset)
+    }
+
+    /** The gap kept under the listing so it does not sit flush against the window edge. */
+    private static readonly BOTTOM_GUTTER_PX = 16
+
+    /** Below this the fill is not worth having, and a bad measurement would make the listing tiny. */
+    private static readonly MIN_FILL_PX = 320
+
+    private boxStyle(): string {
+        const base = 'border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent);'
+            + ' overflow: hidden; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;'
+        return this.fillHeightPx != undefined
+            ? `${base} height: ${this.fillHeightPx}px;`
+            : `${base} max-height: calc(100dvh - 12rem);`
+    }
+
     connectedCallback() {
         super.connectedCallback()
+        window.addEventListener('resize', this.windowResizeListener)
         this.resizeObserver = new ResizeObserver(entries => {
             const w = entries[0]?.contentRect.width
             if (w && Math.abs(w - this.availableWidthPx) > 10) {
@@ -172,6 +269,7 @@ export class MateuTableCrud extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
+        window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
     }
 
@@ -366,6 +464,8 @@ export class MateuTableCrud extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        if (_changedProperties.has("component")) this.pendingMeasure = true
+        this.measureFill()
         if (_changedProperties.has("component")) {
             const componentId = this.component?.id
             if (componentId !== this._initializedForComponentId) {
@@ -845,7 +945,14 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+                <style>
+                    /* Scoped to the listing area: a grid field inside a FORM must keep sizing
+                       itself, so the fill is expressed here and never on the table component. */
+                    [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
+                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
+                </style>
+                <div data-crud-box style="${this.boxStyle()} width: 100%; box-sizing: border-box;">
                     <div style="flex-shrink: 0;">
                         <mateu-content-header
                             .metadata="${metadata}"
@@ -860,7 +967,7 @@ export class MateuTableCrud extends LitElement {
                         <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
                         ${this.renderColumnChooser()}
                     </div>
-                    <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                    <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                     <div style="flex-shrink: 0;">${paginationHtml}</div>
                 </div>
             `
@@ -883,12 +990,19 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </div>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+                <style>
+                    /* Scoped to the listing area: a grid field inside a FORM must keep sizing
+                       itself, so the fill is expressed here and never on the table component. */
+                    [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
+                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
+                </style>
+            <div data-crud-box style="${this.boxStyle()}">
                 <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
                 </div>
-                <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                 <div style="flex-shrink: 0;">${paginationHtml}</div>
             </div>
         `
