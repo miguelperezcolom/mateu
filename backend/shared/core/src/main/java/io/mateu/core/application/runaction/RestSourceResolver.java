@@ -43,7 +43,7 @@ final class RestSourceResolver {
    * untouched, so inline declarations are unaffected.
    */
   private static RestDataSource againstCatalog(RestDataSource declared, RestSourceCatalog catalog) {
-    if (declared == null || !declared.isReference()) {
+    if (declared == null || !declared.hasRef()) {
       return declared;
     }
     var entry =

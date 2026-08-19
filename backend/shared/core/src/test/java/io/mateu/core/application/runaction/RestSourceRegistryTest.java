@@ -110,7 +110,7 @@ class RestSourceRegistryTest {
   void noCatalogueFileIsNotAnError() {
     // An app that names no source is the normal case, not a misconfiguration.
     var emptyClassLoader = new ClassLoader(null) {};
-    assertThat(registry.authoredFrom(emptyClassLoader).isEmpty()).isTrue();
+    assertThat(registry.authoredFrom(emptyClassLoader).hasNoSources()).isTrue();
   }
 
   @Test
@@ -170,8 +170,27 @@ class RestSourceRegistryTest {
   }
 
   @Test
+  void theCatalogueSurvivesARoundTripThroughJson() throws Exception {
+    // It is serialised into the bundle manifest, so it has to come back. This broke once already: a
+    // helper named isEmpty() was read by Jackson as an extra property, which then failed to
+    // deserialise as an unknown field — so any accessor added to these records needs a name that is
+    // not a getter.
+    var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    var original = registry.authoredFrom(getClass().getClassLoader());
+
+    var restored = mapper.readValue(mapper.writeValueAsString(original), RestSourceCatalog.class);
+
+    assertThat(restored.sources())
+        .extracting(RestSourceEntry::name)
+        .containsExactlyElementsOf(original.sources().stream().map(RestSourceEntry::name).toList());
+    assertThat(restored.get("orders").orElseThrow().source().itemsPath()).isEqualTo("data");
+    assertThat(restored.get("orders").orElseThrow().fields())
+        .containsEntry("customerName", "customer.name");
+  }
+
+  @Test
   void anInlineDescriptorIsNotAReference() {
-    assertThat(RestDataSource.builder().url("/x").build().isReference()).isFalse();
-    assertThat(RestDataSource.builder().ref("countries").build().isReference()).isTrue();
+    assertThat(RestDataSource.builder().url("/x").build().hasRef()).isFalse();
+    assertThat(RestDataSource.builder().ref("countries").build().hasRef()).isTrue();
   }
 }

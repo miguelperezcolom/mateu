@@ -26,7 +26,13 @@ public record RestSourceCatalog(List<RestSourceEntry> sources) {
     return new RestSourceCatalog(List.of());
   }
 
-  public boolean isEmpty() {
+  /**
+   * Named {@code hasNoSources} rather than {@code isEmpty}: this record is SERIALISED into the
+   * bundle manifest, and Jackson reads an {@code isX()} accessor on a record as an extra property —
+   * which then fails to deserialise as an unknown field. Any helper added here needs a name that is
+   * not a getter.
+   */
+  public boolean hasNoSources() {
     return sources.isEmpty();
   }
 

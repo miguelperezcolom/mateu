@@ -47,8 +47,14 @@ public record RestDataSource(
     ref = ref == null ? "" : ref.trim();
   }
 
-  /** True when this descriptor points at a catalogue entry instead of carrying its own URL. */
-  public boolean isReference() {
+  /**
+   * True when this descriptor points at a catalogue entry instead of carrying its own URL.
+   *
+   * <p>Named {@code hasRef} rather than {@code isReference} because this record is SERIALISED into
+   * the bundle manifest, and Jackson reads an {@code isX()} accessor on a record as an extra
+   * property that then fails to deserialise as an unknown field.
+   */
+  public boolean hasRef() {
     return !ref.isEmpty();
   }
 

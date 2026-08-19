@@ -29,7 +29,7 @@ final class RestSourceCatalogMapper {
   }
 
   static List<RestSourceEntryDto> map(RestSourceCatalog catalogue) {
-    if (catalogue == null || catalogue.isEmpty()) {
+    if (catalogue == null || catalogue.hasNoSources()) {
       return List.of();
     }
     return catalogue.sources().stream().map(RestSourceCatalogMapper::map).toList();

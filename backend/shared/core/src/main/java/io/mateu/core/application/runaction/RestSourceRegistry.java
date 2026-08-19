@@ -76,7 +76,7 @@ public class RestSourceRegistry {
     var derived = derivedFrom(classLoader);
     var authored = authoredFrom(classLoader);
     var merged = authored.mergedOver(derived);
-    if (!merged.isEmpty()) {
+    if (!merged.hasNoSources()) {
       log.info(
           "REST source catalogue: {} source(s) ({} derived, {} authored) — {} to implement, {}"
               + " already served elsewhere",
