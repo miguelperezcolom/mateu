@@ -231,7 +231,8 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
             >
              ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
          </mateu-app>`,
-    [ComponentMetadataType.Element]: ({ container, component }) => renderElement(container, component.metadata as Element, component),
+    [ComponentMetadataType.Element]: ({ container, component, state, data, appState, appData }) =>
+        renderElement(container, component.metadata as Element, component, state, data, appState, appData),
     [ComponentMetadataType.FormField]: ({ component, state }) => renderNeutralField(component, state),
     [ComponentMetadataType.Text]: ({ component, state, data, appState, appData }) => renderText(component, state, data, appState, appData),
     [ComponentMetadataType.Avatar]: ({ component, state, data }) => renderAvatar(component, state, data),
