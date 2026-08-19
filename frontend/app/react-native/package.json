@@ -55,7 +55,7 @@
     "brace-expansion@1": "^1.1.16",
     "brace-expansion@2": "^2.1.2",
     "tar": "^7.5.16",
-    "undici": "^6.27.0",
+    "undici": "^6.28.0",
     "postcss": "^8.5.10",
     "@expo/cli": {
       "form-data": "^3.0.5"
