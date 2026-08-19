@@ -104,12 +104,20 @@ describe('willUpdate data preservation', () => {
     // re-binds our .data with a fresh EMPTY object. That empty re-bind must not wipe the rows.
     // A plain stand-in (like componentElement above): .data is a normal field, so assigning it does
     // not run Lit's reactive setter. willUpdate keeps its super binding to LitElement's no-op.
+    // `willUpdate` is Lit's protected lifecycle hook and stays protected on ComponentElement:
+    // widening a framework base class's public surface so a test can reach it is the wrong way
+    // round. This test-only subclass is the single place that reaches it, and it hands the method
+    // out with its REAL type (a structural cast here would keep compiling if the signature moved).
+    class WillUpdateProbe extends ComponentElement {
+        static readonly hook = WillUpdateProbe.prototype.willUpdate
+    }
+
     const withProto = (over: Record<string, any>) => ({
         data: {} as Record<string, any>,
         _lastFragmentData: undefined as Record<string, any> | undefined,
         _lastViewKey: undefined as string | undefined,
         component: undefined as ServerSideComponent | undefined,
-        willUpdate: ComponentElement.prototype.willUpdate,
+        willUpdate: WillUpdateProbe.hook,
         ...over,
     })
 
