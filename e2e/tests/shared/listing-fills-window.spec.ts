@@ -26,7 +26,7 @@ test.describe('listing layout', () => {
   });
 
   test('the table fills the window instead of stopping at a fixed height', async ({ page }) => {
-    await page.goto('/products');
+    await page.goto('/simple-listing');
     await expect(page.locator('vaadin-grid').first()).toBeAttached();
     await page.waitForTimeout(800);
 
@@ -40,7 +40,7 @@ test.describe('listing layout', () => {
   test('and does not make the window scroll for a sliver', async ({ page }) => {
     // Filling to the window's bottom edge is only right if what the shell keeps UNDER the listing
     // is counted — its gap, its padding. Otherwise the page grows a scrollbar for a few pixels.
-    await page.goto('/products');
+    await page.goto('/simple-listing');
     await expect(page.locator('vaadin-grid').first()).toBeAttached();
     await page.waitForTimeout(800);
 
@@ -52,7 +52,7 @@ test.describe('listing layout', () => {
     // under the table, and a table as tall as its rows pushes it past the fold on a full page —
     // you would have to scroll to find out how to reach page 2. Filling puts the SCROLLING inside
     // the table and leaves the pager where it is, at a place that does not move between pages.
-    await page.goto('/products');
+    await page.goto('/simple-listing');
     await expect(page.locator('vaadin-grid').first()).toBeAttached();
     await page.waitForTimeout(800);
 
@@ -81,7 +81,7 @@ test.describe('listing layout', () => {
   });
 
   test('and follows the window when it is resized', async ({ page }) => {
-    await page.goto('/products');
+    await page.goto('/simple-listing');
     await expect(page.locator('vaadin-grid').first()).toBeAttached();
     await page.waitForTimeout(800);
     const tall = await gridBox(page);
