@@ -183,10 +183,14 @@ export class MateuTableCrud extends LitElement {
     /** Cleared on anything that can move the box: a resize, a new component, a re-render of one. */
     private pendingMeasure = true
 
+    /** How many times the measured height has been trimmed since the last measurement. */
+    private corrections = 0
+
     private windowResizeListener = () => this.scheduleMeasure()
 
     private scheduleMeasure() {
         this.pendingMeasure = true
+        this.corrections = 0
         // Drop the fill first: the next render lays the box out naturally, and THAT is what gets
         // measured. Measuring a filled box would feed its own height back into the calculation.
         if (this.fillHeightPx != undefined) this.fillHeightPx = undefined
@@ -204,6 +208,25 @@ export class MateuTableCrud extends LitElement {
             window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
         this.pendingMeasure = false
         if (available >= MateuTableCrud.MIN_FILL_PX) this.fillHeightPx = available
+    }
+
+    /**
+     * The natural layout is not always the filled one. Growing the box can bring the window's own
+     * scrollbar in, which narrows the page, which can rewrap a heading above the listing and push
+     * the box a line further down — so a height measured before the fill can be a few pixels too
+     * generous once applied. One trim of exactly the overflow settles it.
+     *
+     * Only trims (never grows), only a SLIVER, and only a few times per measurement: a page that
+     * genuinely scrolls — a long form under the listing — is not this, and must not have the
+     * listing eaten away to hide it.
+     */
+    private trimOverflow() {
+        if (this.fillHeightPx == undefined || this.pendingMeasure) return
+        if (this.corrections >= MateuTableCrud.MAX_CORRECTIONS) return
+        const overflow = document.documentElement.scrollHeight - window.innerHeight
+        if (overflow <= 1 || overflow > MateuTableCrud.MAX_SLIVER_PX) return
+        this.corrections++
+        this.fillHeightPx = Math.max(MateuTableCrud.MIN_FILL_PX, this.fillHeightPx - overflow)
     }
 
     /**
@@ -243,6 +266,11 @@ export class MateuTableCrud extends LitElement {
 
     /** The gap kept under the listing so it does not sit flush against the window edge. */
     private static readonly BOTTOM_GUTTER_PX = 16
+
+    /** What still counts as "the fill overshot" rather than "this page has more content". */
+    private static readonly MAX_SLIVER_PX = 64
+
+    private static readonly MAX_CORRECTIONS = 3
 
     /** Below this the fill is not worth having, and a bad measurement would make the listing tiny. */
     private static readonly MIN_FILL_PX = 320
@@ -466,6 +494,7 @@ export class MateuTableCrud extends LitElement {
         super.updated(_changedProperties);
         if (_changedProperties.has("component")) this.pendingMeasure = true
         this.measureFill()
+        this.trimOverflow()
         if (_changedProperties.has("component")) {
             const componentId = this.component?.id
             if (componentId !== this._initializedForComponentId) {
