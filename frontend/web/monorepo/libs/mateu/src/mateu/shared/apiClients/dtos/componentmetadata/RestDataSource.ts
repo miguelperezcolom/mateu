@@ -3,9 +3,16 @@
  * the URL directly and shapes the JSON response into the surface's expected form (a select's options
  * today). `url`/`headers`/`body` support `${state.x}` interpolation; `itemsPath` navigates to the
  * response array; `valuePath`/`labelPath` map each item.
+ *
+ * A descriptor says where to go in one of two ways: by REFERENCE (`ref` names an entry of the app's
+ * catalogue, so the endpoint is declared once and a deployment can be re-pointed by editing the
+ * catalogue) or INLINE (`url` and the paths). Whatever a surface declares here wins over the entry,
+ * so it can point at a shared endpoint and still map the response its own way.
  */
 export default interface RestDataSource {
-    url: string
+    /** Name of a catalogue entry to take the endpoint from; absent/blank means this is inline. */
+    ref?: string | undefined
+    url?: string | undefined
     method?: string | undefined
     headers?: Record<string, string> | undefined
     body?: string | undefined

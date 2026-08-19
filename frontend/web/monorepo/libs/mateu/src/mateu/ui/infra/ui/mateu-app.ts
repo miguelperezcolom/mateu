@@ -1,6 +1,7 @@
 import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import ComponentElement from "@infra/ui/ComponentElement";
+import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
@@ -704,6 +705,9 @@ export class MateuApp extends ComponentElement {
             const metadata = clientSideComponent.metadata
             if (metadata) {
                 const app = metadata as App
+                // The app's REST source catalogue, published for the fetch layer: a surface carries
+                // only a source's name, so the lookup table has to be in place before it fetches.
+                setRestSourceCatalogue(app.restSources)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {

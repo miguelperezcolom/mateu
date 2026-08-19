@@ -4,6 +4,8 @@
 // instead of POSTing to the Mateu server — so the UI runs from static assets with no backend. Live
 // data still comes from external endpoints (@RestOptions/@RestListing …); ACTIONS still need a
 // backend and degrade with the normal "request failed" path when it is absent.
+import { setRestSourceCatalogue } from './restSourceCatalogue.ts'
+import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 
 interface BundleEntry {
@@ -37,6 +39,11 @@ interface BundleManifest {
     staticOnly?: boolean
     entries?: BundleEntry[]
     routes?: { routes?: RouteEntry[] }
+    // The REST source catalogue, shipped once for the whole bundle. In bundle mode there is no app
+    // metadata arriving from a server, so this is the only place a statically served screen can learn
+    // what the source names its surfaces reference actually point at — and, being one table in one
+    // file, it is what makes re-pointing a deployment an edit rather than a rebuild.
+    sources?: { sources?: RestSourceEntry[] }
 }
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
@@ -152,6 +159,7 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             increments = map
             templates = tpls
             routeEntries = manifest.routes?.routes ?? []
+            setRestSourceCatalogue(manifest.sources?.sources)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
         }

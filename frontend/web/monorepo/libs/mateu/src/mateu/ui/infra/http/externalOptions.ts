@@ -1,5 +1,6 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
+import { pathOfField, resolveRestSource } from './restSourceCatalogue.ts'
 
 /**
  * Client-side consumption of an arbitrary (non-Mateu) REST endpoint for a field's select options —
@@ -48,19 +49,21 @@ export function mapItemsToOptions(
 
 /**
  * Shape a JSON response into listing rows: navigate `itemsPath` to the array, then read each column
- * by its id as a dot path from each item (so a `Row(code, name)` reads `code`/`name`). Each row is a
- * plain object keyed by column id — the shape the listing renderer expects.
+ * from each item. By default a column's id IS its dot path (so a `Row(code, name)` reads
+ * `code`/`name`); `pathOf` overrides that per column, which is how a source's field map lets a nested
+ * response field (`customer.name`) fill a flat column (`customerName`).
  */
 export function mapItemsToRows(
     json: unknown,
     itemsPath: string | undefined,
     columnIds: string[],
+    pathOf: (columnId: string) => string = (id) => id,
 ): Record<string, unknown>[] {
     const arr = getByPath(json, itemsPath)
     if (!Array.isArray(arr)) return []
     return arr.map((item) => {
         const row: Record<string, unknown> = {}
-        for (const id of columnIds) row[id] = getByPath(item, id)
+        for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
         return row
     })
 }
@@ -69,10 +72,14 @@ export function mapItemsToRows(
  * options, rows and action fetches. `resolve` interpolates `${state.x}` templates (pass the shared
  * `interpolate`); defaults to identity for tests. Throws on a non-2xx response. */
 export async function fetchExternalJson(
-    source: RestDataSource,
+    declared: RestDataSource,
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<unknown> {
+    // A descriptor may name a catalogue entry instead of carrying a url. Resolving HERE covers every
+    // surface at once — options, rows and actions all come through this function.
+    const source = resolveRestSource(declared)
+    if (!source.url) throw new Error(`External REST fetch has no url${declared.ref ? ` (unknown source "${declared.ref}")` : ''}`)
     const url = resolve(source.url) ?? source.url
     const method = (source.method || 'GET').toUpperCase()
     const headers: Record<string, string> = {}
@@ -98,7 +105,8 @@ export async function fetchExternalOptions(
     fetchImpl: typeof fetch = fetch,
 ): Promise<FetchedOption[]> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
-    return mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)
+    const resolved = resolveRestSource(source)
+    return mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath)
 }
 
 /**
@@ -113,5 +121,8 @@ export async function fetchExternalRows(
     fetchImpl: typeof fetch = fetch,
 ): Promise<Record<string, unknown>[]> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
-    return mapItemsToRows(json, source.itemsPath, columnIds)
+    const resolved = resolveRestSource(source)
+    // Each column is read by the path the SOURCE maps its id to, which is how a nested response
+    // field reaches a flat column: a column id cannot itself be `customer.name`.
+    return mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
 }

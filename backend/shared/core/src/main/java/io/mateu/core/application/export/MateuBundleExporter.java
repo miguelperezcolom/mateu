@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.runaction.RestSourceRegistry;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
@@ -12,6 +13,7 @@ import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RouteTable;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -70,18 +72,33 @@ public final class MateuBundleExporter {
    *     the renderer has to resolve it from shipped data. Only the AUTHORED half is shipped: the
    *     derived half is route→class, and a class is exactly what a bundle with no backend cannot
    *     use.
+   * @param sources the REST source catalogue, shipped ONCE rather than repeated inside every
+   *     entry's wire JSON. A statically served screen resolves its own references from here, and —
+   *     because it is one list in one file — re-pointing a deployment at another environment is an
+   *     edit of this table rather than a rebuild of the bundle.
    */
   public record BundleManifest(
       String baseUrl,
       String generatedAt,
       boolean staticOnly,
       List<BundleEntry> entries,
-      RouteTable routes) {
+      RouteTable routes,
+      RestSourceCatalog sources) {
 
     /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
     public BundleManifest(
         String baseUrl, String generatedAt, boolean staticOnly, List<BundleEntry> entries) {
       this(baseUrl, generatedAt, staticOnly, entries, RouteTable.empty());
+    }
+
+    /** Pre-catalogue shape, kept for the same reason. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes) {
+      this(baseUrl, generatedAt, staticOnly, entries, routes, RestSourceCatalog.empty());
     }
 
     /**
@@ -95,6 +112,11 @@ public final class MateuBundleExporter {
      * <p>This makes the bundle a <em>cache</em> rather than a fork: two manifests with the same
      * hash carry the same screens, and a mismatch against the backend's is something a client or a
      * deploy check can act on.
+     *
+     * <p>The source catalogue is deliberately NOT part of it. Re-pointing a deployment at another
+     * environment is an edit of that table, and it leaves the screens identical — folding it in
+     * would make a re-pointed bundle look like a different build from the backend it talks to,
+     * which is precisely the workflow shipping the catalogue exists to enable.
      */
     public String structureHash() {
       var material =
@@ -219,7 +241,12 @@ public final class MateuBundleExporter {
               : exportTemplate(baseUrl, route));
     }
     return new BundleManifest(
-        baseUrl, java.time.Instant.now().toString(), onlyStatic, entries, authored);
+        baseUrl,
+        java.time.Instant.now().toString(),
+        onlyStatic,
+        entries,
+        authored,
+        restSourceCatalogue());
   }
 
   /**
@@ -227,6 +254,20 @@ public final class MateuBundleExporter {
    * (never throws) when no bean context is wired — e.g. the Maven goal's fresh context — so the
    * caller falls back to the index.
    */
+  /**
+   * The REST source catalogue to ship. Built directly rather than injected: this exporter runs at
+   * BUILD time from a Maven goal, where there is no bean context, and the registry needs nothing
+   * but a classloader for its annotated and authored halves.
+   */
+  private static RestSourceCatalog restSourceCatalogue() {
+    try {
+      return new RestSourceRegistry().catalog();
+    } catch (Throwable t) {
+      log.warn("Could not read the REST source catalogue for the bundle: {}", t.toString());
+      return RestSourceCatalog.empty();
+    }
+  }
+
   private static String normalizedRoute(String route) {
     return route == null ? "" : route.replaceAll("^/+", "").replaceAll("/+$", "");
   }
