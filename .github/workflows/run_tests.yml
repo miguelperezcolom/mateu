@@ -1,4 +1,7 @@
-name: E2E Tests
+# Named for what it does rather than for the one job it started as: it now also guards the
+# committed bundles, the annotation density and the shared frontend library. Renaming the WORKFLOW
+# is safe for branch protection, which names JOBS (`e2e`) and not workflows.
+name: Tests
 
 on:
   pull_request:
@@ -25,6 +28,40 @@ jobs:
       # should not creep up. Each new annotation is always justifiable alone; the sum is what drifts.
       - name: Annotations per screen have not crept up
         run: python3 scripts/annotation-density.py --check
+
+  # The shared frontend library is where the renderers' logic actually lives, and nothing in CI
+  # compiled or ran it: `run_tests.yml` builds the backend from the COMMITTED bundle, and the
+  # release workflow's `apps/vaadin && npm run copy` typechecks against the APP's tsconfig, which
+  # excludes the library's test files. So a `tsc` error in libs/mateu sat on master while every
+  # check stayed green, and its 304 unit tests only ran on whoever remembered to run them.
+  #
+  # The typecheck comes first in the same job on purpose: the tests run through vitest's own
+  # transform, which strips types without checking them, so they pass over exactly the errors
+  # this step exists to catch — running them first would report success from a tree that does
+  # not compile.
+  frontend-lib:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/web/monorepo/package-lock.json
+
+      # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
+      # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
+      # npm registry — an external host this job has no reason to depend on.
+      - name: Install the library's dependencies
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --include-workspace-root
+
+      - name: Typecheck and build the library
+        run: cd frontend/web/monorepo/libs/mateu && npm run build
+
+      - name: Unit tests
+        run: cd frontend/web/monorepo/libs/mateu && npm test
 
   e2e:
     runs-on: ubuntu-latest
