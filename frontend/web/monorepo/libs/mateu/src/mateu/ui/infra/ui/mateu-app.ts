@@ -721,7 +721,15 @@ export class MateuApp extends ComponentElement {
                     this.selectedRoute = app.homeRoute
                     this.selectedConsumedRoute = app.homeConsumedRoute
                     this.selectedServerSideType = app.homeServerSideType
-                    this.selectedBaseUrl = app.homeBaseUrl
+                    // `homeBaseUrl` is what the app calls itself FROM ITS OWN ORIGIN. For an app
+                    // aggregated by a shell that is not where the browser reached it, and taking it
+                    // verbatim sent this app's own content back to the SHELL — the "not found" you
+                    // get from pasting a link to a page inside a federated app. So the base the
+                    // browser actually used wins, unless the app names an absolute one (a
+                    // different host, which only it can know).
+                    this.selectedBaseUrl = (app.homeBaseUrl ?? '').includes('://')
+                        ? app.homeBaseUrl
+                        : (this.baseUrl || app.homeBaseUrl)
                     this.selectedUriPrefix = app.homeUriPrefix
                 }
             }
