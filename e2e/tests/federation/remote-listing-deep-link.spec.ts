@@ -23,10 +23,13 @@ test.describe('deep link into a remote listing', () => {
     });
 
     await page.goto('/remote/things/t3');
-    await page.waitForTimeout(3000);
+    // Waiting on the listing itself rather than on a clock: it can only appear once the remote has
+    // answered, which is the whole point of the assertions below.
+    // By role: the title is also announced in the live region, and matching text alone finds both.
+    await expect(page.getByRole('heading', { name: 'Remote Things' })).toBeVisible();
+    await expect(page.locator('vaadin-grid').first()).toBeAttached();
 
     const text = await page.evaluate(() => document.body.innerText);
-    expect(text).toContain('Remote Things');
     expect(text).not.toMatch(/Not found|error 40[45]|NullPointerException/i);
     expect(wrongHost).toEqual([]);
   });
