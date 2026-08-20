@@ -89,10 +89,26 @@ public class RemoteMenuHandler {
   /**
    * Does the remote app claim this route? Every remote answers ANY route with its app shell (a
    * fallback home with that route stamped), so "anything but the Not-found text" is too weak a test
-   * — the route must be one of the app's own menu routes.
+   * — the route must be one of the app's own menu routes, or live UNDER one.
+   *
+   * <p>Under one, because a menu route names a SCREEN and a link often names something inside it:
+   * {@code /workflow/processes/5f7b6ac6…} is one record of the {@code /workflow/processes} listing,
+   * and {@code /new} or {@code /{id}/edit} are the crud's own sub-routes. Asking for an exact match
+   * left every one of them unclaimed, so the stripped route was mounted by default and the remote —
+   * whose routes carry the prefix — answered "Not found." The {@code /} boundary is what keeps
+   * {@code /forms-archive} from being claimed by a remote that only owns {@code /forms}.
    */
   private boolean ownsRoute(AppDto app, String route) {
-    return menuRoutes(app.menu()).anyMatch(route::equals);
+    var path = withoutQuery(route);
+    return menuRoutes(app.menu())
+        .filter(menuRoute -> menuRoute != null && !menuRoute.isBlank())
+        .anyMatch(menuRoute -> path.equals(menuRoute) || path.startsWith(menuRoute + "/"));
+  }
+
+  /** The route alone: a deep link may carry query params, and no menu route ever does. */
+  private static String withoutQuery(String route) {
+    var query = route.indexOf('?');
+    return query < 0 ? route : route.substring(0, query);
   }
 
   private java.util.stream.Stream<String> menuRoutes(

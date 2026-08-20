@@ -139,6 +139,39 @@ class RemoteMenuPrefixedDeepLinkSyncTest {
   }
 
   @Test
+  void recordDeepLinkMountsTheRouteBelowTheListing() {
+    // A link to ONE record of a listing: the remote's menu names the screen ("/forms/tasks") and
+    // the link names something inside it. Asking the remote for an exact menu route left this
+    // unclaimed, so the stripped "/tasks/t-42" was mounted and the page said "Not found" — while
+    // the very same record opened fine by clicking the listing and then the row.
+    var app = shellApp(viaUrl("/forms/tasks/t-42"));
+    assertThat(app).isNotNull();
+    assertThat(app.homeBaseUrl()).isEqualTo("/_forms");
+    assertThat(app.homeRoute()).isEqualTo("/forms/tasks/t-42");
+    // The consumed route is the remote app's own — which is what the remote answers that route
+    // with, asked exactly like this.
+    assertThat(app.homeConsumedRoute()).isEqualTo("");
+  }
+
+  @Test
+  void deepLinkWithQueryParamsIsClaimedByTheScreenItBelongsTo() {
+    // Same rule with a query string attached (a listing opened on page 2): no menu route carries
+    // one, so the match has to look at the route alone.
+    var app = shellApp(viaUrl("/forms/tasks?page=2"));
+    assertThat(app).isNotNull();
+    assertThat(app.homeRoute()).startsWith("/forms/tasks");
+  }
+
+  @Test
+  void aSiblingPathIsNotClaimedByTheScreenItMerelyStartsWith() {
+    // "/forms/tasks-archive" is NOT inside "/forms/tasks": the boundary is a segment, not a prefix.
+    // It is still inside "/forms", which the remote also declares, so it is claimed verbatim there.
+    var app = shellApp(viaUrl("/forms/tasks-archive"));
+    assertThat(app).isNotNull();
+    assertThat(app.homeRoute()).isEqualTo("/forms/tasks-archive");
+  }
+
+  @Test
   void rootDeepLinkStillMountsTheMenuPathAsHomeContent() {
     var app = shellApp(viaUrl("/forms"));
     assertThat(app).isNotNull();
