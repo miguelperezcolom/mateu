@@ -181,7 +181,23 @@ public abstract class MultiView
 
   @Override
   public ComponentDto dto(HttpRequest httpRequest) {
-    return wrapRoute((String) httpRequest.getAttribute("resolvedPath"), httpRequest);
+    return wrapRoute(requestedRoute(httpRequest), httpRequest);
+  }
+
+  /**
+   * What the browser ASKED for, falling back to the consumed path when there is nothing else.
+   *
+   * <p>They differ exactly when a link points INSIDE the listing — at one record — and opening the
+   * mediator on the consumed part alone drops the id, so a pasted link to a record lands on the
+   * list of them all. {@code wrapRoute} already knows what to do with a remainder; until now it was
+   * never given one.
+   */
+  public static String requestedRoute(HttpRequest httpRequest) {
+    var resolved = (String) httpRequest.getAttribute("resolvedPath");
+    var requested = httpRequest.runActionRq().route();
+    return requested != null && resolved != null && requested.startsWith(resolved)
+        ? requested
+        : resolved;
   }
 
   public ServerSideComponentDto wrapRoute(String route, HttpRequest httpRequest) {

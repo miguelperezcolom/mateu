@@ -23,23 +23,26 @@ test.describe('deep link into a remote listing', () => {
     });
 
     await page.goto('/remote/things/t3');
-    // Waiting on the listing itself rather than on a clock: it can only appear once the remote has
-    // answered, which is the whole point of the assertions below.
-    // By role: the title is also announced in the live region, and matching text alone finds both.
-    await expect(page.getByRole('heading', { name: 'Remote Things' })).toBeVisible();
-    await expect(page.locator('vaadin-grid').first()).toBeAttached();
+    // Waiting on the page itself rather than on a clock: it can only appear once the remote has
+    // answered, which is what the assertions below are about. By ROLE, because the title is also
+    // announced in the live region and matching the text alone finds both.
+    await expect(page.getByRole('heading', { name: 'Remote Thing' })).toBeVisible();
 
     const text = await page.evaluate(() => document.body.innerText);
     expect(text).not.toMatch(/Not found|error 40[45]|NullPointerException/i);
     expect(wrongHost).toEqual([]);
   });
 
-  // KNOWN GAP, recorded here rather than in a message that gets lost: the link names a record and
-  // lands on the LIST. Route resolution consumes "/things" and the mediator opens on what was
-  // consumed, so the "/t3" that identifies the record never reaches the crud's own resolver.
-  test.fixme('opens the record the link names, not the list', async ({ page }) => {
+  test('opens the record the link names, not the list', async ({ page }) => {
+    // Route resolution consumes "/things" and hands the mediator what it consumed; the "/t3" that
+    // identifies the record has to survive that hand-off, or a link to one record shows all of them.
     await page.goto('/remote/things/t3');
-    await expect(page.getByText('Remote thing t3')).toBeVisible();
+
+    await expect(page.getByRole('heading', { name: 'Remote Thing' })).toBeVisible();
+    // The record's own values, which only the record's own view can produce — the list has none of
+    // them. They are rendered as fields, so this reads the inputs rather than the page text.
+    await expect(page.locator('vaadin-text-field input').first()).toHaveValue('t3');
+    await expect(page.locator('vaadin-text-field input').nth(1)).toHaveValue('Remote thing t3');
   });
 
 });
