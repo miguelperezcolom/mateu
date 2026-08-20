@@ -44,6 +44,21 @@ public class ComponentStateHelper {
         httpRequest);
   }
 
+  /**
+   * The type name the client will send back for this component.
+   *
+   * <p>Almost always the model view's own class, but an orchestrator that STANDS IN for another
+   * class says so: the capability bridge is built around a listing and cannot be rebuilt from its
+   * own name — doing that produced a bridge with nothing behind it, and the listing's first search
+   * died with a NullPointerException on the missing target. The name that travels has to be the one
+   * the server can turn back into a working instance.
+   */
+  private static String serverSideTypeOf(Object modelView) {
+    return modelView instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier supplier
+        ? supplier.serverSideType()
+        : modelView.getClass().getName();
+  }
+
   public static ServerSideComponentDto wrap(
       List<Component> components,
       Object modelView,
@@ -56,7 +71,7 @@ public class ComponentStateHelper {
         httpRequest.getAttribute("upstreamComponentId") != null
             ? httpRequest.getAttribute("upstreamComponentId").toString()
             : UUID.randomUUID().toString(),
-        modelView.getClass().getName(),
+        serverSideTypeOf(modelView),
         consumedRoute,
         components.stream()
             .map(

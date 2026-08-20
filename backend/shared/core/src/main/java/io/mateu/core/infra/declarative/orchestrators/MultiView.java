@@ -102,6 +102,21 @@ public abstract class MultiView
   }
 
   /**
+   * The name that travels on the wire for the orchestrator's OWN component, which has to be the
+   * same one {@link #serverSideTypeName()} advertises everywhere else.
+   *
+   * <p>The default from {@code ComponentTreeSupplier} answers "this class", and for the capability
+   * bridge that is a class the client must never name back: it stands in for a listing, it is built
+   * around one, and recreating it from a bare class name produces a bridge with nothing behind it —
+   * the listing page rendered, and its very first search died with a NullPointerException on the
+   * missing target.
+   */
+  @Override
+  public String serverSideType() {
+    return serverSideTypeName();
+  }
+
+  /**
    * Orchestrators own their whole action vocabulary (delete, bulk methods, action-on-row-*…).
    * {@code Listing} — which {@code Crud} also implements — narrows the claim to {@code search} for
    * plain listings; materializing the broad {@link ActionHandler} default as a class method makes
