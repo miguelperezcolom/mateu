@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
+import "@infra/ui/mateu-skeleton.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import './mateu-filter-bar'
@@ -297,11 +298,52 @@ export class MateuTableCrud extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
+        clearTimeout(this.loadingTimer)
         window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
     }
 
+    /**
+     * When the rows were last asked for, while the answer has not arrived.
+     *
+     * A listing that is still fetching used to say "nothing here" — and it says it in the same
+     * words it uses for a search that genuinely found nothing, so the reader cannot tell "wait" from
+     * "there is nothing". Worse, a re-search CLEARS the rows it is about to replace, so the empty
+     * state appears every time somebody types in the filter bar.
+     *
+     * It is a timestamp rather than a flag because the answer may never come: a failed request
+     * shows its error in a toast, which the reader dismisses, and a skeleton left shimmering
+     * underneath would be a second lie on top of the first. Past the valve the listing goes back to
+     * saying what it actually knows.
+     */
+    @state()
+    private loadingSince?: number
+
+    private static readonly LOADING_VALVE_MS = 15_000
+
+    private loadingTimer?: ReturnType<typeof setTimeout>
+
+    /** The listing has asked for rows and is still waiting for them. */
+    private get awaitingRows(): boolean {
+        return this.loadingSince != undefined
+            && Date.now() - this.loadingSince < MateuTableCrud.LOADING_VALVE_MS
+    }
+
+    private beginLoading() {
+        this.loadingSince = Date.now()
+        clearTimeout(this.loadingTimer)
+        // Nothing else would re-render at the deadline, and a stale skeleton is what this exists
+        // to avoid.
+        this.loadingTimer = setTimeout(() => this.requestUpdate(), MateuTableCrud.LOADING_VALVE_MS)
+    }
+
+    private endLoading() {
+        this.loadingSince = undefined
+        clearTimeout(this.loadingTimer)
+    }
+
     search = () => {
+        this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: metadata.pageSize, page: 0, crud_selected_items: [] }
         this._syncStateToUrl(metadata)
@@ -416,6 +458,7 @@ export class MateuTableCrud extends LitElement {
         if (!metadata.infiniteScrolling && this.data?.[this.id]?.page) {
             this.data[this.id].page.content = []
         }
+        this.beginLoading()
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
@@ -495,6 +538,12 @@ export class MateuTableCrud extends LitElement {
         if (_changedProperties.has("component")) this.pendingMeasure = true
         this.measureFill()
         this.trimOverflow()
+        // A routed listing renders before its rows exist: the search is dispatched by the trigger
+        // on the component around it, so the only thing this element sees is that nobody has
+        // answered for its id yet.
+        if (this.data?.[this.id] != undefined) this.endLoading()
+        else if (this.loadingSince == undefined && this._initializedForComponentId != undefined
+            && !this.awaitingRows) this.beginLoading()
         if (_changedProperties.has("component")) {
             const componentId = this.component?.id
             if (componentId !== this._initializedForComponentId) {
@@ -933,7 +982,18 @@ export class MateuTableCrud extends LitElement {
             return renderTree()
         }
 
-        const contentHtml = html`
+        // "Loading" and "empty" are different facts and must not share a screen. Waiting wins:
+        // the rows may still turn up, and until the server has said otherwise the listing does not
+        // know that there are none.
+        const contentHtml = rows.length === 0 && this.awaitingRows ? html`
+            <div role="status" aria-live="polite" aria-busy="true"
+                 style="padding: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box;">
+                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden;
+                             clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;"
+                >Loading…</span>
+                <mateu-skeleton variant="grid" count="6"></mateu-skeleton>
+            </div>
+        ` : html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
