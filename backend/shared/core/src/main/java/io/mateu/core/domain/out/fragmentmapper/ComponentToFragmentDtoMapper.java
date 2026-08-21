@@ -46,6 +46,9 @@ public final class ComponentToFragmentDtoMapper {
 
   private static final Set<String> warnedLongEmbeddedWizards = ConcurrentHashMap.newKeySet();
 
+  /** Component types already reported as unrenderable, so the warning is logged once each. */
+  private static final Set<String> warnedUnrenderableComponents = ConcurrentHashMap.newKeySet();
+
   private static void warnIfGuidedProcessDrawerTooLong(Object view) {
     if (!(view instanceof Wizard wizard)) {
       return;
@@ -239,8 +242,20 @@ public final class ComponentToFragmentDtoMapper {
             component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     if (result != null) return result;
 
+    // Nothing knows how to render this component. That is a bug in the component or in the mapper,
+    // so it is reported to the DEVELOPER — once per type, since it would otherwise repeat on every
+    // render — instead of dumping the object's Java toString on the user's screen, which is how a
+    // "Process not found" once reached a page as
+    // "Data[data={error=Process not found}, style=, cssClasses=, newState=null]".
+    if (warnedUnrenderableComponents.add(component.getClass().getName())) {
+      log.warn(
+          "No mapper renders {} — it is emitted as an empty element. If it is meant to appear on a"
+              + " page, it needs a mapper; if it is a wire fragment (Data, State), it must be"
+              + " returned from an action, not from a view.",
+          component.getClass().getName());
+    }
     return new ClientSideComponentDto(
-        new ElementDto("div", Map.of(), Map.of(), component.toString()),
+        new ElementDto("div", Map.of(), Map.of(), ""),
         UUID.randomUUID().toString(),
         List.of(),
         component.style(),

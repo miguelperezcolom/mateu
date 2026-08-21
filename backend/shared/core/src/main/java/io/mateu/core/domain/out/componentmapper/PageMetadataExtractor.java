@@ -11,6 +11,7 @@ import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.data.PeerNav;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 
@@ -39,6 +40,15 @@ final class PageMetadataExtractor {
       return TranslatorContext.translate(named.name());
     }
     if (instance != null) {
+      // A UI component's toString is never a page title. The rule below reads an overridden
+      // toString as the developer naming the record ("Booking 123"), which holds for a domain
+      // object and never for a component: every uidl component is a record, so its generated
+      // toString is a field dump — that is how a page once came back titled
+      // "Data[data={error=Process not found}, style=, cssClasses=, newState=null]", in the header
+      // AND in the browser tab.
+      if (instance instanceof Component) {
+        return getPageTitle(instance);
+      }
       try {
         if (instance.getClass().getMethod("toString").getDeclaringClass().equals(Object.class)) {
           return getPageTitle(instance);
