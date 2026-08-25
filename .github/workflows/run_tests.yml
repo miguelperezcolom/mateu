@@ -142,7 +142,7 @@ jobs:
       # minutes each without ever failing, blocking the publish to Maven Central. The binaries
       # only change when @playwright/test does, so key the cache on the lockfile that pins it.
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
