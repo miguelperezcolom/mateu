@@ -535,9 +535,24 @@ export class MateuTableCrud extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has("component")) this.pendingMeasure = true
-        this.measureFill()
-        this.trimOverflow()
+        // A new listing is measured afresh, and the OLD fill height has to go first.
+        //
+        // Setting pendingMeasure alone was not enough: measureFill returns immediately while
+        // fillHeightPx is set, so navigating from one listing to another kept the height the
+        // previous one had been given — a short listing's box stayed short on a page that had
+        // room for twice as much. scheduleMeasure is the one that drops the height, which is the
+        // whole discipline here: lay the box out naturally, THEN measure.
+        //
+        // And nothing is measured on this pass. Dropping the height only takes effect on the next
+        // render, so measuring now would read the layout the previous fill produced — exactly the
+        // feedback loop this component was written to avoid.
+        const componentChanged = _changedProperties.has("component")
+        if (componentChanged) {
+            this.scheduleMeasure()
+        } else {
+            this.measureFill()
+            this.trimOverflow()
+        }
         // A routed listing renders before its rows exist: the search is dispatched by the trigger
         // on the component around it, so the only thing this element sees is that nobody has
         // answered for its id yet.

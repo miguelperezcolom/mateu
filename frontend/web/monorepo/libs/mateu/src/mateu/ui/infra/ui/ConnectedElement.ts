@@ -12,7 +12,6 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
-import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 
@@ -78,23 +77,31 @@ export default abstract class ConnectedElement extends LitElement {
                             true
                         ))
                     Promise.all(requests).then(increments => {
-                        app.menu = this.updateMenu(app.menu, increments
+                        const menu = this.updateMenu(app.menu, increments
                             .map(increment => increment.fragments)
                             .filter(fragment => fragment)
                             .map(fragment => fragment!)
                             .flat())
-                        app.variant = AppVariant.MENU_ON_TOP
-                        upstream.next({
-                            fragment: {
-                                component: clientSideComponent,
-                                data: undefined,
-                                state: undefined,
-                                action: UIFragmentAction.Replace,
-                                targetComponentId: this.id,
-                                containerId: undefined
-                            } as UIFragment,
-                            callbackToken: this.callbackToken
-                        } as Message)
+                        // A NEW metadata object, and nothing else touched.
+                        //
+                        // This used to publish the app component back upstream as a Replace
+                        // targeting this element. applyFragment answers a ClientSide component by
+                        // setting `this.component.children = [component]` — so updating the MENU
+                        // threw away everything the router had mounted underneath and built it
+                        // again. Measured on a cold load of /workflow/definitions behind a shell
+                        // with six remote menus: the page's three-request chain (route → page →
+                        // listing search) ran three times over, the last two for nothing. That is
+                        // the flicker.
+                        //
+                        // The menu is read from this object at render time, so replacing the
+                        // reference is what makes Lit notice; mutating in place would leave the
+                        // child holding an unchanged reference and repaint nothing.
+                        clientSideComponent.metadata = {
+                            ...app,
+                            menu,
+                            variant: AppVariant.MENU_ON_TOP
+                        } as App
+                        this.requestUpdate()
                     })
                 }
             }
