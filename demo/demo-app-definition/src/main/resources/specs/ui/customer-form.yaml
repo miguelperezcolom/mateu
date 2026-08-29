@@ -1,0 +1,17 @@
+# A page definition whose route binds it to the CustomerForm view model. The visual editor resolves
+# that binding (customer route → CustomerForm) and offers its fields/actions in the property pickers.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: VerticalLayout
+content:
+  - type: Text
+    text: Customer
+    size: xl
+  - type: FormField
+    id: name
+    label: Name
+  - type: FormField
+    id: email
+    label: Email
+  - type: Button
+    label: Save
+    actionId: save

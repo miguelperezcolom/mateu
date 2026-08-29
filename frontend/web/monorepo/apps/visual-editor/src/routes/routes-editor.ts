@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import {
     RoutesDoc, RouteRow, parseRoutes, serializeRoutes, parseParams, formatParams,
 } from '../model/routesModel'
+import type { ProjectIndex } from '../model/projectIndex'
 
 /**
  * The route-registry editor: a table over `routes.yaml`, binding each URL to a definition, a view
@@ -34,8 +35,14 @@ export class RoutesEditor extends LitElement {
     `
 
     @property() yaml = ''
+    @property({ attribute: false }) project?: ProjectIndex
     @state() private doc: RoutesDoc = { routes: [], enveloped: true, preamble: {} }
     private lastEmitted?: string
+
+    /** Files a route's `definition` can name: page definitions plus the app shells. */
+    private get definitionOptions(): string[] {
+        return [...(this.project?.pages ?? []), ...(this.project?.appShells ?? [])]
+    }
 
     updated(changed: PropertyValues) {
         // Re-parse on a genuinely external change, but not on our own save echoed back (cursor jump).
@@ -49,6 +56,8 @@ export class RoutesEditor extends LitElement {
                 <h2>Routes</h2>
                 <span class="sub">${rows.length} route${rows.length === 1 ? '' : 's'} · relative to the mount${Object.keys(this.doc.preamble).length ? ' · app: preserved' : ''}</span>
             </div>
+            <datalist id="ve-definitions">${this.definitionOptions.map((d) => html`<option value=${d}></option>`)}</datalist>
+            <datalist id="ve-viewmodels">${(this.project?.viewModels ?? []).map((v) => html`<option value=${v}></option>`)}</datalist>
             <table>
                 <thead>
                     <tr>
@@ -74,9 +83,9 @@ export class RoutesEditor extends LitElement {
             <tr>
                 <td><input .value=${row.route ?? ''} placeholder="(root)"
                     @change=${(e: Event) => this.set(i, 'route', (e.target as HTMLInputElement).value)} /></td>
-                <td class="mono"><input .value=${row.definition ?? ''} placeholder="orders.yaml"
+                <td class="mono"><input list="ve-definitions" .value=${row.definition ?? ''} placeholder="orders.yaml"
                     @change=${(e: Event) => this.setOpt(i, 'definition', (e.target as HTMLInputElement).value)} /></td>
-                <td class="mono"><input .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
+                <td class="mono"><input list="ve-viewmodels" .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
                     @change=${(e: Event) => this.setOpt(i, 'viewModel', (e.target as HTMLInputElement).value)} /></td>
                 <td class="mono"><input .value=${formatParams(row.fixedParams)} placeholder="k=v, k2=v2"
                     @change=${(e: Event) => this.setParams(i, 'fixedParams', (e.target as HTMLInputElement).value)} /></td>
