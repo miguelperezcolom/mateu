@@ -66,10 +66,20 @@ public class ${simpleClassName}Controller {
             });
         }
         keycloak.init({
-            onLoad: 'login-required',
+            onLoad: 'check-sso',
+            silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
         }).then(function(authenticated) {
             console.log(authenticated ? 'authenticated' : 'not authenticated');
-            if (authenticated) {
+            if (!authenticated) {
+                // No SSO session yet: one redirect to the login page. With check-sso this is the
+                // only full-page navigation, and only for genuinely unauthenticated users. An
+                // existing session is resolved silently in a hidden iframe (auth.* and the app are
+                // same-site under the parent domain, so no third-party cookie is needed) — no
+                // top-level redirect, no reload, no double load of the whole SPA.
+                keycloak.login();
+                return;
+            }
+            {
                 localStorage.setItem('__mateu_auth_token', keycloak.token);
                 localStorage.setItem('__mateu_auth_subject', keycloak.subject);
                 const s = document.createElement('script');

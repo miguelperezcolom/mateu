@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<body>
+<!--
+  Keycloak silent SSO check. Loaded in a hidden iframe by keycloak-js when init is called with
+  onLoad: 'check-sso' and silentCheckSsoRedirectUri pointing here. Keycloak redirects the iframe
+  back to this page with the auth result in the URL; the script hands that URL to the parent
+  window so the token is established without a full-page redirect (no double load).
+-->
+<script>
+  parent.postMessage(location.href, location.origin);
+</script>
+</body>
+</html>
