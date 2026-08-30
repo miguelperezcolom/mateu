@@ -64,7 +64,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         pages: dedupe(pages),
         partials: dedupe(partials),
         appShells: dedupe(appShells),
-        viewModels: [...viewModels].sort(),
+        viewModels: [...viewModels].sort((a, b) => a.localeCompare(b)),
     }
 }
 
