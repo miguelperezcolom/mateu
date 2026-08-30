@@ -43,3 +43,36 @@ export async function fetchInferredFields(
         return null
     }
 }
+
+/** The bindable members of a data source: the ids a page field/action can bind to. */
+export interface ContractMembers {
+    fields: string[]
+    actions: string[]
+}
+
+/**
+ * The field and action ids a ModelView exposes, for the data-source binding pickers — a page
+ * `FormField.id` binds to a field, a `Button.actionId` to an action. Same `__contract__` action as
+ * {@link fetchInferredFields}; returns null when there is no model view or it can't be resolved.
+ */
+export async function fetchContractMembers(
+    baseUrl: string,
+    modelView: string | undefined,
+    initiator: HTMLElement,
+): Promise<ContractMembers | null> {
+    if (!modelView) return null
+    try {
+        const increment: any = await mateuApiClient.runAction(
+            baseUrl, '', '', '__contract__', 've-contract',
+            undefined, modelView, {}, {},
+            initiator, true,
+        )
+        const contract = increment?.appData?._contract
+        if (!contract) return null
+        const ids = (arr: any): string[] =>
+            Array.isArray(arr) ? arr.map((m: any) => m?.id).filter((id: any) => typeof id === 'string' && id) : []
+        return { fields: ids(contract.fields), actions: ids(contract.actions) }
+    } catch {
+        return null
+    }
+}

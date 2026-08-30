@@ -1,8 +1,10 @@
-import { LitElement, html, css } from 'lit'
+import { LitElement, html, css, nothing } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import { PageNode, scalarProps } from '../model/pageModel'
 import { PropSpec } from '../model/componentSchema'
 import { specFor } from '../model/schemaCatalog'
+import type { ProjectIndex } from '../model/projectIndex'
+import type { ContractMembers } from '../model/contract'
 
 /**
  * The properties pane (right). Driven by the generated component schema: for the selected node it
@@ -39,6 +41,8 @@ export class EditorProperties extends LitElement {
     `
 
     @property({ attribute: false }) node: PageNode | null = null
+    @property({ attribute: false }) project?: ProjectIndex
+    @property({ attribute: false }) contract?: ContractMembers
 
     render() {
         const node = this.node
@@ -53,6 +57,9 @@ export class EditorProperties extends LitElement {
         const extra = scalarProps(node).filter((k) => !knownNames.has(k))
 
         return html`
+            <datalist id="ve-partials">${(this.project?.partials ?? []).map((p) => html`<option value=${p}></option>`)}</datalist>
+            <datalist id="ve-fields">${(this.contract?.fields ?? []).map((f) => html`<option value=${f}></option>`)}</datalist>
+            <datalist id="ve-actions">${(this.contract?.actions ?? []).map((a) => html`<option value=${a}></option>`)}</datalist>
             <div class="title">Properties</div>
             <div class="type">${node.type}${spec ? '' : ' (unknown)'}</div>
 
@@ -76,9 +83,28 @@ export class EditorProperties extends LitElement {
         `
     }
 
+    /**
+     * The datalist a reference prop picks from, or null for a plain field: a `Partial.ref` picks a
+     * partial, a `FormField.id` picks a bound data-source field, any `actionId` picks a bound action.
+     */
+    private pickerListFor(prop: string): string | null {
+        if (this.node?.type === 'Partial' && prop === 'ref') return 've-partials'
+        if (this.node?.type === 'FormField' && prop === 'id') return 've-fields'
+        if (prop === 'actionId') return 've-actions'
+        return null
+    }
+
     /** A typed editor for a schema-declared prop. */
     private field(p: PropSpec, value: unknown) {
         const req = p.required ? html`<span class="req"> *</span>` : ''
+        // References that pick from another file / the data source: partial ref, field id, action id.
+        const list = this.pickerListFor(p.name)
+        if (list) {
+            return html`
+                <label>${p.name}${req}</label>
+                <input list=${list} .value=${value == null ? '' : String(value)}
+                    @change=${(e: Event) => this.emit(p.name, (e.target as HTMLInputElement).value)} />`
+        }
         if (p.kind === 'boolean') {
             return html`<div class="check">
                 <input type="checkbox" .checked=${value === true}
@@ -102,9 +128,10 @@ export class EditorProperties extends LitElement {
     }
 
     private textField(key: string, value: unknown) {
+        const list = this.pickerListFor(key)
         return html`
             <label>${key}</label>
-            <input .value=${value == null ? '' : String(value)}
+            <input list=${list ?? nothing} .value=${value == null ? '' : String(value)}
                 @change=${(e: Event) => this.emit(key, coerce((e.target as HTMLInputElement).value))} />`
     }
 

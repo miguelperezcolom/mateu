@@ -12,3 +12,6 @@ routes:
     viewModel: io.mateu.demo.appdefinition.TaskCrud
   - route: dashboard   # a Dashboard TEMPLATE bound by data (no @UI)
     viewModel: io.mateu.demo.appdefinition.SalesDashboard
+  - route: customer    # a page definition bound to a form view model (data-source binding demo)
+    definition: customer-form.yaml
+    viewModel: io.mateu.demo.appdefinition.CustomerForm

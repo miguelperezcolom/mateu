@@ -5,12 +5,26 @@
  * itself from `baseUrl`.
  */
 import { SAMPLE_YAML } from '../model/catalog'
+import type { ProjectFile } from '../model/projectIndex'
 
 export interface HostBridge {
     /** The Mateu backend base URL (`''` = same-origin; the dev server proxies `/mateu`). */
     baseUrl(): string
     /** The initial YAML to edit. */
     initialYaml(): Promise<string>
+    /**
+     * The path of the file being edited, relative to `specs/ui/` (e.g. `orders.yaml`), or undefined
+     * when the host cannot say. Used to resolve the page's data source through the route graph (which
+     * route serves this definition → its view model). Available after `initialYaml()` resolves.
+     */
+    currentPath?(): string | undefined
+    /**
+     * The mount's authored files (project awareness) — every `specs/ui/**` file with its content, so
+     * the editor can resolve cross-file references (a route's page, a menu's route, a partial). A
+     * host with no project view (or none wired yet) returns `[]`; the editor then falls back to
+     * typing the reference by hand.
+     */
+    listFiles?(): Promise<ProjectFile[]>
     /**
      * A local edit happened (the content changed but is NOT yet saved). An IDE host uses it to mark
      * its document dirty so the IDE's OWN save (Ctrl+S / save-all / close-prompt) writes the file —
@@ -56,6 +70,8 @@ class MessageHost implements HostBridge {
     private _resolveInit!: (yaml: string) => void
     private _init = new Promise<string>((r) => (this._resolveInit = r))
     private _external?: (yaml: string) => void
+    private _resolveFiles?: (files: ProjectFile[]) => void
+    private _path?: string
 
     constructor(private channel: HostChannel) {
         channel.addEventListener?.('message', (e) => this.onMessage(e))
@@ -68,21 +84,39 @@ class MessageHost implements HostBridge {
         if (!msg || typeof msg !== 'object') return
         if (msg.type === 'init') {
             if (typeof msg.baseUrl === 'string') this._baseUrl = msg.baseUrl
+            if (typeof msg.path === 'string') this._path = msg.path
             this._resolveInit(msg.yaml ?? '')
         } else if (msg.type === 'externalChange') {
             this._external?.(msg.yaml ?? '')
+        } else if (msg.type === 'files') {
+            this._resolveFiles?.(Array.isArray(msg.files) ? msg.files : [])
+            this._resolveFiles = undefined
         }
     }
 
     baseUrl() { return this._baseUrl }
     initialYaml() { return this._init }
+    currentPath() { return this._path }
     onContentChanged(yaml: string) { this.channel.postMessage({ type: 'contentChanged', yaml }) }
     onExternalChange(cb: (yaml: string) => void) { this._external = cb }
+
+    /** Ask the IDE host for the project's files; resolve empty if it does not answer (not yet wired). */
+    listFiles(): Promise<ProjectFile[]> {
+        this.channel.postMessage({ type: 'listFiles' })
+        return new Promise((resolve) => {
+            this._resolveFiles = resolve
+            setTimeout(() => {
+                if (this._resolveFiles) { this._resolveFiles = undefined; resolve([]) }
+            }, 1500)
+        })
+    }
 }
 
 /** Standalone browser bridge: persists to localStorage, seeds from the URL or a sample. */
 class BrowserHost implements HostBridge {
     private key = 'mateu-visual-editor-yaml'
+    /** A whole mount for standalone dev: a `{path: yaml}` JSON map. Enables the reference pickers. */
+    private projectKey = 'mateu-visual-editor-project'
 
     baseUrl() { return window.__mateuBaseUrl ?? '' }
 
@@ -90,8 +124,24 @@ class BrowserHost implements HostBridge {
         return localStorage.getItem(this.key) ?? SAMPLE_YAML
     }
 
+    /** The path of the edited file for standalone dev, if set (enables data-source binding pickers). */
+    currentPath() {
+        return localStorage.getItem('mateu-visual-editor-path') ?? undefined
+    }
+
     // Standalone has no IDE and no native save, so a local edit is kept as a localStorage draft.
     onContentChanged(yaml: string) {
         localStorage.setItem(this.key, yaml)
+    }
+
+    async listFiles(): Promise<ProjectFile[]> {
+        const raw = localStorage.getItem(this.projectKey)
+        if (!raw) return []
+        try {
+            const map = JSON.parse(raw) as Record<string, string>
+            return Object.entries(map).map(([path, content]) => ({ path, content }))
+        } catch {
+            return []
+        }
     }
 }
