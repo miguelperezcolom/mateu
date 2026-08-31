@@ -123,7 +123,7 @@ public class ReflectionObjectToComponentMapper {
             mapActions(instance, httpRequest),
             mapTriggers(instance, httpRequest),
             mapRules(instance, httpRequest),
-            mapValidations(instance, route),
+            mapValidations(instance, route, httpRequest),
             null,
             null,
             MetaAnnotations.isPresent(instance.getClass(), ConfirmOnNavigationIfDirty.class),

@@ -9,6 +9,21 @@ For single-field constraints, use standard Jakarta Bean Validation annotations �
 
 ![Bean validation in action — required fields and range constraints](/images/docs/annotations/validation.png)
 
+:::note[Constraints follow visibility]
+A constraint only travels to the client for a field the form actually renders. A field hidden from
+the form it is being validated in — `@HiddenInCreate` in the creation form, `@HiddenInEditor` in the
+edit form, `@Hidden`, `@EyesOnly` for a user without the permission — carries no validation there,
+because there would be no input to satisfy it with and the form could never be submitted. The
+canonical case is an id that is assigned at creation and immutable afterwards:
+
+```java
+@NotEmpty @ReadOnly @HiddenInCreate String id;   // required in the edit form, absent from the creation one
+```
+
+`@Hidden("expression")` is the exception, and stays: it hides conditionally in the browser, so its
+constraint is sent with the condition relaxed by that expression rather than dropped.
+:::
+
 ---
 
 ## @Validation

@@ -91,7 +91,7 @@ public class ComponentStateHelper {
         mapActions(modelView, httpRequest),
         mapTriggers(modelView, httpRequest),
         mapRules(modelView, httpRequest),
-        mapValidations(modelView, route),
+        mapValidations(modelView, route, httpRequest),
         null,
         null,
         false,

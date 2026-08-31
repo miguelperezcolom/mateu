@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
+import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.SplitCrud;
@@ -40,6 +41,9 @@ public class CrudFormComponentBuilder {
     Object viewModel = editor;
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
+    // The creation form and the edit form hide different fields, and the validations that travel
+    // with the page are built separately from its content — see ValidationMapper.FOR_CREATION_FORM.
+    httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);
     var buttons = buildToolbar(isCreation, orchestrator);
     var builder =
         PageView.builder()
