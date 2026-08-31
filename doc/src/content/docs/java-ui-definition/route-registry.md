@@ -16,6 +16,12 @@ src/main/resources/specs/ui/
 └── about.yaml
 ```
 
+A fully data-driven mount needs no `@UI` class at all: it is declared by a
+[`type: UI`](/java-ui-definition/yaml-app-shell/#the-mount-that-ties-it-together) file (base path +
+the route files it serves), and its chrome is a [`type: AppShell`](/java-ui-definition/yaml-app-shell/)
+definition bound to the root route. The route registry below is the same either way — it is what binds
+URLs to definitions and view models, whether the mount is a class or a file.
+
 ## Why a registry and not just annotations
 
 An annotation says "this class lives at this path". That is the one-to-one case, and it is all most
@@ -40,7 +46,12 @@ That unlocks the cases an annotation cannot express:
 ## The file
 
 ```yaml
+type: Routes
 routes:
+  # The root route binds the app shell (a type: AppShell definition).
+  - route: ""
+    definition: app.yaml
+
   # Two routes over ONE screen, told apart by a pinned parameter.
   - route: orders/pending
     viewModel: com.acme.Orders
@@ -75,7 +86,7 @@ routes:
 
 | Field | Meaning |
 |---|---|
-| `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view. |
+| `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view, which typically binds the [app shell](/java-ui-definition/yaml-app-shell/). |
 | `definition` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. |
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
