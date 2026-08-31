@@ -7,6 +7,8 @@ import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
+import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
+import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -218,7 +220,7 @@ export class MateuField extends LitElement {
 
     convert = (value: string): any => {
         if (this.field?.dataType == 'integer') {
-            return parseInt(value)
+            return numericCommitValue(value, true)
         }
         return value
     }
@@ -259,7 +261,10 @@ export class MateuField extends LitElement {
 
     valueChanged = (e: CustomEvent) => {
         if (this.rendered) {
-            if (e.detail.value !== undefined && e.detail.value != this.state[this.field!.fieldId]) {
+            // An empty control over a state that never held the field is announcing nothing. Taking
+            // it as an edit is what let an untouched form start writing to itself.
+            if (e.detail.value !== undefined
+                && !isNoOpCommit(e.detail.value, this.state[this.field!.fieldId])) {
                 this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
                         value: this.convert(e.detail.value),
@@ -964,6 +969,63 @@ export class MateuField extends LitElement {
                 `
             }
             if (this.field?.stereotype == 'select') {
+                if (this.field?.optionsSource) {
+                    // Options from an arbitrary REST endpoint, fetched CLIENT-SIDE (no Mateu server
+                    // mediating). Refetch only when the interpolated url changes (a state-dependent
+                    // source), keyed by a signature so re-renders don't loop.
+                    const src = this.field.optionsSource
+                    const signature = interpolate(src.url, this.state, this.data) ?? src.url
+                    if (this.data[this.id]?.sourceSignature !== signature) {
+                        this.data[this.id] = { content: this.data[this.id]?.content ?? [], sourceSignature: signature }
+                        if (src.proxy) {
+                            // Proxy mode: route the fetch through the Mateu server (no CORS, secrets
+                            // injected server-side). Dispatch the reserved __restfetch__ action; the
+                            // app fills route/serverSideType/componentState and the server resolves the
+                            // DECLARED source, so nothing but _sourceKind/_sourceId leaves the browser.
+                            this.dispatchEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: '__restfetch__',
+                                    parameters: { _sourceKind: 'options', _sourceId: this.field.fieldId },
+                                    callback: (uiIncrement: UIIncrement) => {
+                                        const json = uiIncrement?.appData?.['_restfetch']
+                                        const opts = mapItemsToOptions(json, src.itemsPath, src.valuePath, src.labelPath)
+                                        this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
+                                        this.requestUpdate()
+                                    },
+                                    callbackonly: true
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        } else {
+                            fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
+                                .then((opts) => {
+                                    this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
+                                    this.requestUpdate()
+                                })
+                                .catch((e) => console.warn('mateu: external options fetch failed', e))
+                        }
+                    }
+                    let realValue = value
+                    if (value && value.value) {
+                        realValue = value.value
+                    }
+                    return html`
+                    <vaadin-select
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            item-label-path="label"
+                            item-value-path="value"
+                            .items="${this.data[this.id]?.content ?? []}"
+                            .helperText="${this.helperText()}"
+                            @value-changed="${this.valueChanged}"
+                            .value="${realValue}"
+                            ?autofocus="${this.field.wantsFocus}"
+                            required="${this.field.required || nothing}"
+                            data-colspan="${this.field.colspan}"
+                    ></vaadin-select>
+                    `
+                }
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
                     const filter = ''

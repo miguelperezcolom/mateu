@@ -1,0 +1,10 @@
+layout:
+  type: FormLayout
+  content:
+    - type: FormField
+      id: name
+      label: Name
+    - type: Partial
+      ref: address-block
+    - type: Partial
+      ref: legal-notice

@@ -8,7 +8,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Listing;
 import jakarta.inject.Named;
 import java.lang.reflect.Method;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 /**
@@ -31,7 +30,6 @@ public class ListingRowActionRunner implements ActionRunner {
         && actionId.startsWith("action-on-row-");
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var httpRequest = command.httpRequest();

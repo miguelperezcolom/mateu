@@ -105,6 +105,17 @@ public record ServerSideComponentDto(
     /// <summary>Client-side rules ([Hidden]/[Disabled] fields, IRuleSupplier): the renderer's
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
+
+    /// <summary>The view is declared [StaticView]: its full response never varies, so the client
+    /// caches it for the session and skips the round-trip on return visits (mirrors
+    /// io.mateu.dtos.ServerSideComponentDto.staticView). A developer promise; false unless declared.</summary>
+    public bool StaticView { get; init; }
+
+    /// <summary>Stable content hash (ETag) of this component's structure (phase b of the client
+    /// structure cache). The client stores it next to the cached structure and echoes it back as
+    /// RunActionRqDto.KnownStructureHash; when it still matches, the server omits the component and
+    /// the client reuses its cache. (Mirrors io.mateu.dtos.ServerSideComponentDto.structureHash.)</summary>
+    public string? StructureHash { get; init; }
 }
 
 /// <summary>A client-side rule (mirrors io.mateu.dtos.RuleDto): when Filter evaluates truthy the
@@ -140,7 +151,18 @@ public record ActionDto(
     /// naturally idempotent writes: after a timeout the client cannot know whether the server
     /// processed the request.</summary>
     public bool Idempotent { get; init; }
+
+    /// <summary>Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+    /// dispatching to the Mateu server ([RestAction]); null for normal actions (mirrors
+    /// io.mateu.dtos.ActionDto.restAction).</summary>
+    public RestActionDto? RestAction { get; init; }
 }
+
+/// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
+/// (mirrors io.mateu.dtos.RestActionDto): the renderer fetches <c>Source</c> directly, shows
+/// <c>SuccessMessage</c> as a toast on a 2xx response and — when <c>ResultPath</c> is set — merges
+/// the object at that path in the JSON response into the form state.</summary>
+public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath);
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
 public record CustomTriggerDto(string Event, string ActionId)
@@ -700,6 +722,11 @@ public record CrudMetadataDto(
     /// <summary>Row selection checkboxes on the listing (a deletable/bulk-capable listing needs
     /// them; a bare listing shows none — mirrors CrudlDto.rowsSelectionEnabled).</summary>
     public bool RowsSelectionEnabled { get; init; }
+
+    /// <summary>Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint
+    /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
+    /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
+    public RestDataSourceDto? RowsSource { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);
@@ -835,6 +862,13 @@ public record PageMetadataDto(
     /// "process"|"dashboard"; never null — every page gets a type). (Mirrors
     /// io.mateu.dtos.PageDto.pageType.)</summary>
     public string? PageType { get; init; }
+    /// <summary>The small line of text shown ABOVE the title (the Redwood overlineText header
+    /// element); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.overline.)</summary>
+    public string? Overline { get; init; }
+    /// <summary>What the header shows while Title is still empty (the Redwood
+    /// pageTitlePlaceholder header element); a placeholder, NOT a default — renderers must ignore
+    /// it once a title exists. (Mirrors io.mateu.dtos.PageDto.titlePlaceholder.)</summary>
+    public string? TitlePlaceholder { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];
@@ -914,6 +948,11 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     /// non-lookup fields.</summary>
     public RemoteCoordinatesDto? RemoteCoordinates { get; init; }
 
+    /// <summary>Options fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint
+    /// ([RestOptions]); the renderer calls the URL directly and maps the JSON into the select's
+    /// options. Null on fields without an external source.</summary>
+    public RestDataSourceDto? OptionsSource { get; init; }
+
     /// <summary>Grid (list-of-rows) fields: one GridColumn per row-type property. Null on
     /// non-grid fields.</summary>
     public IReadOnlyList<GridColumnDto>? Columns { get; init; }
@@ -944,6 +983,25 @@ public record RemoteCoordinatesDto(string Action)
     public string? BaseUrl { get; init; }
     public string? Route { get; init; }
     public Dictionary<string, object?>? Params { get; init; }
+}
+
+/// <summary>Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
+/// io.mateu.dtos.RestDataSourceDto): the renderer fetches the URL directly, navigates ItemsPath to
+/// the response array and maps each item via ValuePath/LabelPath. Url/Headers/Body support
+/// ${state.x} interpolation.</summary>
+public record RestDataSourceDto(string Url)
+{
+    public string? Method { get; init; }
+    public Dictionary<string, string>? Headers { get; init; }
+    public string? Body { get; init; }
+    public string? ItemsPath { get; init; }
+    public string? ValuePath { get; init; }
+    public string? LabelPath { get; init; }
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser:
+    /// no CORS, and ${secret.X} auth is injected server-side. The renderer dispatches the reserved
+    /// __restfetch__ action instead of a direct fetch. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
 }
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a
@@ -1018,6 +1076,21 @@ public record ButtonDto(string Label, string ActionId)
     public string? Shortcut { get; init; }
 }
 
+// ── ModelView bindable contract (mirrors io.mateu.dtos.ModelViewContractDto) ────
+// The bindable surface of a ModelView — its fields (a FormField id must name one) and actions (a
+// Button actionId must name one) — delivered over the wire via the reserved "__contract__" sync
+// action, on the response's appData under "_contract". The visual-builder tooling validates a
+// YAML/visual layout against it.
+public record ModelViewContractDto(
+    string ModelView,
+    IReadOnlyList<ModelViewContractDto.Field> Fields,
+    IReadOnlyList<ModelViewContractDto.Action> Actions)
+{
+    public record Field(string Id, string? DataType, string? Stereotype, string? Label, bool Required, bool ReadOnly);
+
+    public record Action(string Id);
+}
+
 // ── Inbound request (mirrors io.mateu.dtos.RunActionRqDto) ──────────────────────
 public record RunActionRqDto
 {
@@ -1030,4 +1103,10 @@ public record RunActionRqDto
     public string? Route { get; init; }
     public string? ServerSideType { get; init; }
     public string? ServerSideComponentRoute { get; init; }
+
+    /// <summary>The structure hash (ETag) the client already holds for this route (phase b of the
+    /// client structure cache). When it matches the hash of the structure the server would send,
+    /// the server omits the component and replies with only state/data. Null = full structure.
+    /// (Mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash.)</summary>
+    public string? KnownStructureHash { get; init; }
 }

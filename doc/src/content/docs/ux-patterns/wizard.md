@@ -156,6 +156,38 @@ Account setup
                                          ← no navigation buttons
 ```
 
+## Redwood parameter and slot reference
+
+What the Redwood `guided-process` template exposes, and what Mateu gives you for it. The gaps here
+are **the transactional ones** — drafts, resuming and skipping — which is the largest coherent piece
+of Redwood surface Mateu does not cover. The canonical page-header elements shared by every template
+are documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `processTitle` / `processSubtitle` | `getTitle()` / `@Title` | ✅ |
+| `steps[]` / `currentStep` | step fields; `numberOfSteps()`, `currentStepNumber()`, `getStep()` | ✅ |
+| `displayOptions.checklistDisplay: current \| all` | `@WizardProgress(BAR \| STEPS \| RAIL)` picks the progress presentation | ✅ |
+| Conditional steps | `stepApplies(stepFieldName)` — branching | ✅ |
+| Completion step | **Slot** `completionStep` ↔ `@WizardCompletionAction` + the done state | ✅ |
+| Validation before advancing | `validations()` runs before the step advances | ✅ |
+| `avatar` + `displayOptions.avatar` | `PageDto.avatar/icon` on the canonical header | 🟡 |
+| `primaryAction.availableFromStep` (enable the finish action from step N on) | — | — |
+| `resumeStepId` (resume where the user left off) | — | — |
+| `displayOptions {save, saveAndClose}` + `spSave` / `spSaveAndClose` (drafts) | — there is no draft concept; the wizard state lives in the page state for the duration of the flow | — |
+| `spSkip {skippedStepId}` (user-initiated skip) | `stepApplies` skips a step by rule, but the user cannot skip one | 🟡 |
+| `spBeforeNext` / `spBeforeStepNavigate` (cancelable hooks) | validation runs, but there is no declarative cancelable hook — do it inside the action | 🟡 |
+| `completionStatus` / `continueWorkingStatus` | the done state is terminal | 🟡 |
+| `displayOptions.overviewAnimation` | — | — |
+| `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
+| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+
+The related `step-by-step-page` template (a full-screen linear process) adds `timer {startTime,
+timeInterval}` for timed processes and `spFinishLater`; neither is built. For a wizard inside a
+drawer, see [Guided Process Drawer](/ux-patterns/drawer/#guided-process-drawer-a-wizard-in-a-drawer-embeddedview).
+
 ## Principles served
 
 - **Progressive complexity** — each step shows only what is needed at that moment

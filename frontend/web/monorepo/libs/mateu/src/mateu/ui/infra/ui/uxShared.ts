@@ -41,8 +41,15 @@ export const chipStyles = css`
 
 const NUMBER_FORMAT = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-/** 1234.5 → "1.234,50" (money stereotype convention). */
-export const formatNumber = (value: number): string => NUMBER_FORMAT.format(value)
+/**
+ * 1234.5 → "1.234,50" (money stereotype convention).
+ *
+ * A value that is not a number renders as nothing rather than as the literal "NaN": every
+ * caller guards its own input today, and the day one stops, an empty figure is the honest
+ * reading of an absent one — "NaN" tells a user only that something inside broke.
+ */
+export const formatNumber = (value: number): string =>
+    Number.isFinite(value) ? NUMBER_FORMAT.format(value) : ''
 
 /** Currency symbol BEFORE the amount: (1540, '€') → "€ 1.540,00"; (-154, '€') → "-€ 154,00". */
 export const formatMoney = (value: number, currency?: string): string => {

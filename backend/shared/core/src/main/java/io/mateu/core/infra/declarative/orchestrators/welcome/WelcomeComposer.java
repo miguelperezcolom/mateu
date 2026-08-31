@@ -15,7 +15,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * The {@link Welcome} composition, extracted so it works over ANY instance declaring the same field
@@ -26,7 +25,6 @@ import lombok.SneakyThrows;
  */
 public final class WelcomeComposer {
 
-  @SneakyThrows
   public static Component compose(
       Object host, String id, String heroTitle, String heroSubtitle, String heroImage) {
     List<Component> ctas = new ArrayList<>();
@@ -36,7 +34,13 @@ public final class WelcomeComposer {
         continue;
       }
       field.setAccessible(true);
-      Object value = field.get(host);
+      Object value;
+      try {
+        value = field.get(host);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(
+            e); // field was just setAccessible(true) → effectively unreachable
+      }
       if (value instanceof Button button) {
         ctas.add(button);
         continue;

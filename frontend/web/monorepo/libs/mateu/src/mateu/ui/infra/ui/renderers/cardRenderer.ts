@@ -19,7 +19,7 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
     const r = (c: unknown) => c ? renderComponent(container, c as ClientSideComponent, baseUrl, state, data, appState, appData, false) : nothing
     const hasHead = metadata.header || metadata.headerPrefix || metadata.headerSuffix || metadata.title || metadata.subtitle
     return html`
-        <div style="${SURFACE}${component.style}" class="${component.cssClasses}" slot="${component.slot??nothing}">
+        <div id="${component.id ?? nothing}" style="${SURFACE}${component.style}" class="${component.cssClasses}" slot="${component.slot??nothing}">
             ${metadata.media ? r(metadata.media) : nothing}
             ${hasHead ? html`<div style="display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem ${metadata.content||metadata.footer ? '0' : '1rem'};">
                 ${metadata.headerPrefix ? r(metadata.headerPrefix) : nothing}

@@ -47,6 +47,7 @@ from mateu_uidl import (  # noqa: E402
     LinkTo,
     Lookup,
     Message,
+    RestOptions,
     Money,
     Multiline,
     NavLink,
@@ -64,6 +65,7 @@ from mateu_uidl import (  # noqa: E402
     banner,
     button,
     compact,
+    static_view,
     confirm_on_navigation_if_dirty,
     emits,
     fab,
@@ -97,6 +99,9 @@ from mateu_uidl import (  # noqa: E402
     audience,
     disabled_unless,
     remote_menu,
+    rest_action,
+    rest_data,
+    rest_listing,
 )
 from mateu_uidl.components import MicroFrontend  # noqa: E402
 
@@ -117,6 +122,13 @@ class SimpleForm:
     @button()
     def go_home(self):
         return "/things"
+
+
+@ui("static-view")
+@title("About")
+@static_view
+class StaticViewForm:
+    heading: str = "About"
 
 
 @ui("action-options")
@@ -736,6 +748,17 @@ class Featured:
         return Message(f"Saved {self.name}")
 
 
+class YamlBoundView:
+    """A plain logic class (no @ui): a YAML page under specs/ui declares it as its modelView, so
+    the YAML supplies the layout while this supplies the state (name) and the action (greet),
+    bound by convention (FormField id="name" → name, Button actionId="greet" → greet())."""
+
+    name: str | None = "seed"
+
+    def greet(self) -> Message:
+        return Message(f"Hello {self.name}!")
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -761,6 +784,164 @@ def test_action_options_travel_on_the_action_dto():
     # already applied it.
     assert actions["save"].timeout_millis == 0
     assert actions["save"].idempotent is False
+
+
+# ── Structure ETag / template-ref (phase b of the client structure cache) ──────
+
+
+def _component_of(inc):
+    return inc.fragments[0].component
+
+
+def test_route_load_carries_a_structure_hash():
+    c = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty")))
+    assert c.structure_hash
+
+
+def test_structure_hash_is_stable_across_identical_loads():
+    h1 = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    h2 = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    assert h1 == h2
+
+
+def test_echoing_the_matching_hash_omits_the_component():
+    h = _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).structure_hash
+    inc = handler().handle(
+        RunActionRq(route="", consumed_route="_empty", known_structure_hash=h)
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].component is None
+
+
+def test_a_stale_or_missing_hash_still_sends_the_full_structure():
+    stale = handler().handle(
+        RunActionRq(route="", consumed_route="_empty", known_structure_hash="not-the-hash")
+    )
+    assert stale.fragments[0].component is not None
+    assert _component_of(stale).structure_hash
+
+    cold = handler().handle(RunActionRq(route="", consumed_route="_empty"))
+    assert cold.fragments[0].component is not None
+
+
+def test_static_view_is_flagged_only_when_declared():
+    assert _component_of(handler().handle(RunActionRq(route="static-view", consumed_route="_empty"))).static_view is True
+    assert _component_of(handler().handle(RunActionRq(route="", consumed_route="_empty"))).static_view is False
+
+
+def test_a_static_view_is_never_omitted_even_when_the_hash_matches():
+    h = _component_of(handler().handle(RunActionRq(route="static-view", consumed_route="_empty"))).structure_hash
+    inc = handler().handle(
+        RunActionRq(route="static-view", consumed_route="_empty", known_structure_hash=h)
+    )
+    assert inc.fragments[0].component is not None
+    assert _component_of(inc).static_view is True
+
+
+def test_contract_action_returns_bindable_fields_and_actions_on_app_data():
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__contract__",
+            server_side_type=_name(SimpleForm),
+        )
+    )
+    assert inc.app_data is not None
+    contract = inc.app_data["_contract"]
+    by_id = {f["id"]: f for f in contract["fields"]}
+    assert "name" in by_id
+    assert by_id["name"]["dataType"] == "string"
+    assert by_id["name"]["required"] is True
+    assert "greet" in [a["id"] for a in contract["actions"]]
+
+
+def test_preview_action_renders_arbitrary_yaml_page_text():
+    yaml_text = """
+type: VerticalLayout
+spacing: true
+content:
+  - type: Text
+    text: "Hi"
+  - type: FormField
+    id: email
+    dataType: string
+    label: "Email"
+    required: true
+  - type: Button
+    label: "Save"
+    actionId: "save"
+    buttonStyle: primary
+"""
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__preview__",
+            parameters={"_yaml": yaml_text},
+        )
+    )
+    j = render(inc)
+    assert '"VerticalLayout"' in j
+    assert '"email"' in j  # YAML id → wire fieldId
+    assert '"save"' in j
+    assert '"required": true' in j or '"required":true' in j
+
+
+def test_preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing():
+    inc = handler().handle(
+        RunActionRq(
+            route="",
+            consumed_route="_empty",
+            action_id="__preview__",
+            parameters={"_yaml": ":\n  - broken: ["},
+        )
+    )
+    assert inc.fragments[0].component is not None
+
+
+def test_yaml_page_binds_its_layout_to_the_declared_modelView():
+    spec_dir = Path("specs") / "ui"
+    spec_dir.mkdir(parents=True, exist_ok=True)
+    spec_file = spec_dir / "yaml-bound-demo.yaml"
+    spec_file.write_text(
+        f"""
+modelView: {_name(YamlBoundView)}
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: Name
+    - type: Button
+      label: Greet
+      actionId: greet
+"""
+    )
+    try:
+        # First load: no view class resolves the route → the YAML page binds to its modelView.
+        inc = handler().handle(
+            RunActionRq(route="yaml-bound-demo", consumed_route="yaml-bound-demo")
+        )
+        j = render(inc)
+        assert _name(YamlBoundView) in j  # serverSideType is the modelView
+        assert '"fieldId": "name"' in j or '"fieldId":"name"' in j  # the YAML layout's field
+        assert '"greet"' in j  # the YAML button routes to the modelView method
+        assert '"seed"' in j  # the modelView's state seeded into initialData
+
+        # Action round-trip: the button dispatches greet on the modelView (resolved by
+        # serverSideType, which carries no @ui route — resolved by full name).
+        acted = handler().handle(
+            RunActionRq(
+                route="yaml-bound-demo",
+                action_id="greet",
+                server_side_type=_name(YamlBoundView),
+                component_state={"name": "Ann"},
+            )
+        )
+        assert acted.messages[0].text == "Hello Ann!"
+    finally:
+        spec_file.unlink()
 
 
 def test_initial_load_form_with_required_field_and_button():
@@ -1488,6 +1669,152 @@ def test_lookup_field_renders_a_remote_combobox_on_the_wire():
     assert '"remoteCoordinates": {"action": "search-supplier"' in j
 
 
+@ui("rest-opts")
+@title("Rest options")
+class RestOptsForm:
+    country: Annotated[
+        str,
+        RestOptions(
+            url="https://api.example.com/countries",
+            headers=("Authorization: Bearer x",),
+            items_path="data.countries",
+            value_path="code",
+            label_path="name.common",
+        ),
+    ] = ""
+
+
+def test_rest_options_field_is_a_select_carrying_the_endpoint_descriptor():
+    inc = handler().handle(RunActionRq(route="rest-opts", consumed_route="rest-opts"))
+    j = render(inc)
+
+    assert '"stereotype": "select"' in j
+    assert '"optionsSource": {' in j
+    assert '"url": "https://api.example.com/countries"' in j
+    assert '"itemsPath": "data.countries"' in j
+    assert '"valuePath": "code"' in j
+    assert '"labelPath": "name.common"' in j
+    assert '"Authorization": "Bearer x"' in j  # header parsed from "Name: Value"
+
+
+class RestCountryRow:
+    code: str = ""
+    name: str = ""
+    population: int = 0
+
+
+@ui("rest-list")
+@title("Rest listing")
+@rest_listing(
+    url="https://api.example.com/countries?q=${state.searchText}",
+    headers=("Authorization: Bearer x",),
+    items_path="data.countries",
+)
+class RestListingView(Listing[RestCountryRow]):
+    def search(self, request, http=None):
+        return []
+
+
+def test_rest_listing_carries_the_endpoint_descriptor_and_columns_from_the_row_type():
+    inc = handler().handle(RunActionRq(route="rest-list", consumed_route="rest-list"))
+    j = render(inc)
+
+    assert '"rowsSource": {' in j
+    assert '"url": "https://api.example.com/countries?q=${state.searchText}"' in j
+    assert '"itemsPath": "data.countries"' in j
+    assert '"Authorization": "Bearer x"' in j
+    # columns come from the Row type (the frontend keys each JSON item by column id)
+    assert '"id": "code"' in j
+    assert '"id": "population"' in j
+
+
+@ui("rest-action")
+@title("Rest action")
+class RestActionForm:
+    zip: str = "28001"
+    street: str = ""
+    city: str = ""
+
+    @button()
+    @rest_action(
+        url="https://api.example.com/zip/${state.zip}",
+        method="GET",
+        headers=("Authorization: Bearer x",),
+        result_path="address",
+        success_message="Address found",
+    )
+    def lookup(self):
+        pass
+
+
+def test_rest_action_button_advertises_the_endpoint_descriptor_on_its_action():
+    inc = handler().handle(RunActionRq(route="rest-action", consumed_route="rest-action"))
+    j = render(inc)
+
+    assert '"restAction": {' in j
+    assert '"successMessage": "Address found"' in j
+    assert '"resultPath": "address"' in j
+    assert '"url": "https://api.example.com/zip/${state.zip}"' in j
+    assert '"Authorization": "Bearer x"' in j
+
+
+@ui("rest-data")
+@title("Rest data")
+@rest_data(
+    url="https://api.example.com/me?token=${state.token}",
+    headers=("Authorization: Bearer x",),
+    result_path="profile",
+)
+class RestDataForm:
+    name: str = ""
+    email: str = ""
+
+
+def test_rest_data_advertises_an_onload_action_carrying_the_endpoint_descriptor():
+    inc = handler().handle(RunActionRq(route="rest-data", consumed_route="rest-data"))
+    j = render(inc)
+
+    assert '"id": "__restdata__"' in j
+    assert '"restAction": {' in j
+    assert '"resultPath": "profile"' in j
+    assert '"url": "https://api.example.com/me?token=${state.token}"' in j
+    # an OnLoad trigger fires it on entry
+    assert '"type": "OnLoad", "actionId": "__restdata__"' in j
+
+
+# Proxy mode: a RestOptions(proxy=True) field routes the fetch through the Mateu server (the
+# __restfetch__ action) instead of fetching directly — the CORS/auth-hardening flag.
+@ui("rest-proxy")
+@title("Rest proxy")
+class RestProxyForm:
+    via_server: Annotated[
+        str, RestOptions(url="https://api.example.com/x?t=${secret.TOKEN}", proxy=True)
+    ] = ""
+    direct: Annotated[str, RestOptions(url="https://public.example.com/x")] = ""
+
+
+@ui("rest-direct")
+@title("Rest direct")
+class RestDirectForm:
+    direct: Annotated[str, RestOptions(url="https://public.example.com/x")] = ""
+
+
+def test_proxy_flag_travels_on_the_options_source_and_the_view_advertises_restfetch():
+    j = render(handler().handle(RunActionRq(route="rest-proxy", consumed_route="rest-proxy")))
+
+    # the ${secret.X} template rides on the wire, proxy=true on the proxied field...
+    assert '"url": "https://api.example.com/x?t=${secret.TOKEN}"' in j
+    assert '"proxy": true' in j
+    assert '"proxy": false' in j  # ...and the plain field stays direct
+    # a proxy source makes the view advertise the reserved __restfetch__ action
+    assert '"id": "__restfetch__"' in j
+
+
+def test_direct_only_view_does_not_advertise_restfetch():
+    j = render(handler().handle(RunActionRq(route="rest-direct", consumed_route="rest-direct")))
+    assert "__restfetch__" not in j
+
+
 def test_lookup_search_filters_and_pages_the_suppliers_options():
     inc = handler().handle(
         RunActionRq(
@@ -1543,12 +1870,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false}'
+        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false}'
+        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
 
 

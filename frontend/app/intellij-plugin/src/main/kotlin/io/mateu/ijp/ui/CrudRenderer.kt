@@ -336,6 +336,44 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Seed with any data already present on this fragment.
     if (!data.isNull && !data.isMissingNode) applyData(data)
 
+    // @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the server
+    // `search` action. Declarative listings get no server OnLoad trigger, so self-fetch on mount:
+    // map each JSON item into a row object keyed by column id and feed it through applyData.
+    val rowsSource = metadata.path("rowsSource")
+    if (rowsSource.isObject) {
+        val columnIds = metadata.arr("columns")
+            .map { it.path("metadata").text("id", it.text("id")) }
+            .filter { it.isNotBlank() }
+        val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+        val mapper = ctx.session.mapper
+        val crudId = component.text("id", "crud")
+        ctx.session.executor.submit {
+            try {
+                // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
+                // server-side); direct fetch otherwise. Both resolve to the same JSON.
+                val json = if (rowsSource.path("proxy").asBoolean(false)) ctx.fetchViaProxy("rows", crudId)
+                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
+                val arr = RestFetch.valueAtPath(json, rowsSource.text("itemsPath"))
+                val content = mapper.createArrayNode()
+                if (arr != null && arr.isArray) for (item in arr) {
+                    val rowNode = mapper.createObjectNode()
+                    for (cid in columnIds) RestFetch.valueAtPath(item, cid)?.let { rowNode.replace(cid, it) }
+                    content.add(rowNode)
+                }
+                val page = mapper.createObjectNode()
+                page.replace("content", content)
+                page.put("totalElements", content.size())
+                page.put("pageSize", content.size().coerceAtLeast(1))
+                page.put("pageNumber", 0)
+                val envelope = mapper.createObjectNode()
+                envelope.replace("page", page)
+                javax.swing.SwingUtilities.invokeLater { applyData(envelope) }
+            } catch (t: Throwable) {
+                println("[Mateu] external rows fetch failed: ${t.message}")
+            }
+        }
+    }
+
     return panel
 }
 

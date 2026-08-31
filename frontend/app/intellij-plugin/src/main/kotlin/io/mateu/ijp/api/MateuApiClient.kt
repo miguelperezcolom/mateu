@@ -83,6 +83,26 @@ class MateuApiClient(
         return mapper.readTree(responseBody)
     }
 
+    /**
+     * Fetch an arbitrary (non-Mateu) REST endpoint — the client-side leg of @RestAction/@RestData.
+     * No Mateu session headers; returns the parsed JSON body. Throws on a non-2xx response.
+     */
+    fun fetchExternal(url: String, method: String, headers: Map<String, String>, body: String?): JsonNode {
+        val builder = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .timeout(Duration.ofSeconds(60))
+            .header("Accept", "application/json")
+        headers.forEach { (k, v) -> builder.header(k, v) }
+        val publisher =
+            if (method == "GET" || method == "HEAD") HttpRequest.BodyPublishers.noBody()
+            else HttpRequest.BodyPublishers.ofString(body ?: "")
+        if (method != "GET" && method != "HEAD" && !body.isNullOrBlank()) builder.header("Content-Type", "application/json")
+        val request = builder.method(method, publisher).build()
+        val response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")
+        return mapper.readTree(response.body())
+    }
+
     fun initialLoad(route: String?, appState: Map<String, Any?>): JsonNode =
         runAction(route, "_empty", "", null, "ux_main", emptyMap(), appState, emptyMap())
 

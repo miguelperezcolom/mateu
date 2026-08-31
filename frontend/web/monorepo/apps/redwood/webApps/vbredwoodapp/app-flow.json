@@ -253,6 +253,11 @@
       "type": "string",
       "defaultValue": "http://localhost:8595",
       "description": "Backend Mateu (demo-front-office-evolution :8595; front-office compartido :8594; demo-vb :9005 — punto único de cambio)"
+    },
+    "mateuBundleUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "Static bundle (modo sin backend): URL del manifest.json (build-time mateu:bundle o runtime GET /mateu/v3/bundle). Vacío = desactivado (todo va al backend). Si se pone, las cargas de ruta se responden desde el bundle."
     }
   },
   "variables": {

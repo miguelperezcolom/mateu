@@ -100,6 +100,12 @@ class PageMetadata(Wire):
     peer_nav: "PeerNav | None" = None
     #: The page's "last updated" timestamp shown in the header; None when the page declares none.
     timestamp: str | None = None
+    #: The small line of text shown ABOVE the title (the Redwood overlineText header element);
+    #: None when the page declares none.
+    overline: str | None = None
+    #: What the header shows while ``title`` is still empty (the Redwood pageTitlePlaceholder
+    #: header element). A placeholder, NOT a default: renderers must ignore it once a title exists.
+    title_placeholder: str | None = None
 
 
 class CardMetadata(Wire):
@@ -166,6 +172,10 @@ class FormFieldMetadata(Wire):
     #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
     #: with {searchText, page, size} and expects a page of options back. None on other fields.
     remote_coordinates: "RemoteCoordinates | None" = None
+    #: Options fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (``RestOptions()``):
+    #: the renderer calls the URL directly and maps the JSON into the select's options. None on
+    #: fields without an external source.
+    options_source: "RestDataSource | None" = None
     #: Grid (list-of-rows) fields: one GridColumn per row-type field. None on non-grid fields.
     columns: "list[GridColumn] | None" = None
     #: Grid fields: the row-identity path ("_rowNumber" — rows are identified by position).
@@ -195,6 +205,23 @@ class RemoteCoordinates(Wire):
     base_url: str | None = None
     route: str | None = None
     params: dict[str, Any] | None = None
+
+
+class RestDataSource(Wire):
+    """Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
+    ``io.mateu.dtos.RestDataSourceDto``): the renderer fetches ``url`` directly, navigates
+    ``items_path`` to the response array and maps each item via ``value_path``/``label_path``.
+    ``url``/``headers``/``body`` support ``${state.x}`` interpolation."""
+
+    url: str
+    method: str | None = None
+    headers: dict[str, str] | None = None
+    body: str | None = None
+    items_path: str | None = None
+    value_path: str | None = None
+    label_path: str | None = None
+    #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side); default False
+    proxy: bool = False
 
 
 class NavLinkRecord(Wire):
@@ -231,6 +258,10 @@ class CrudMetadata(Wire):
     #: Row selection checkboxes on (a Deletable listing / a full crud); mirrors
     #: CrudlDto.rowsSelectionEnabled.
     rows_selection_enabled: bool = False
+    #: Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (@rest_listing): the
+    #: renderer maps each JSON item into a row keyed by column id instead of dispatching the server
+    #: search. None on server-backed listings (mirrors CrudlDto.rowsSource).
+    rows_source: "RestDataSource | None" = None
 
 
 class ProgressBarMetadata(Wire):
@@ -1211,6 +1242,15 @@ class ServerSideComponent(Wire):
     #: the family of Redwood page templates the view belongs to; never None on the wire
     #: (mirrors ServerSideComponentDto.pageType).
     page_type: str | None = None
+    #: The view is declared @static_view: its full response never varies, so the client caches it
+    #: for the session and skips the round-trip on return visits (mirrors
+    #: ServerSideComponentDto.staticView). A developer promise; False unless declared.
+    static_view: bool = False
+    #: Stable content hash (ETag) of this component's structure (phase b of the client structure
+    #: cache). The client stores it next to the cached structure and echoes it back as
+    #: RunActionRq.known_structure_hash; when it still matches, the server omits the component and
+    #: the client reuses its cache (mirrors ServerSideComponentDto.structureHash).
+    structure_hash: str | None = None
 
 
 class RuleRecord(Wire):
@@ -1350,6 +1390,21 @@ class Action(Wire):
     # retry it by itself after a transient failure. Only for reads or naturally idempotent
     # writes: after a timeout the client cannot know whether the server processed the request.
     idempotent: bool = False
+    #: Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+    #: dispatching to the Mateu server (@rest_action); None for normal actions (mirrors
+    #: io.mateu.dtos.ActionDto.restAction).
+    rest_action: "RestAction | None" = None
+
+
+class RestAction(Wire):
+    """Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
+    (mirrors ``io.mateu.dtos.RestActionDto``): the renderer fetches ``source`` directly, shows
+    ``success_message`` as a toast on a 2xx response and — when ``result_path`` is set — merges the
+    object at that path in the JSON response into the form state."""
+
+    source: "RestDataSource"
+    success_message: str | None = None
+    result_path: str | None = None
 
 
 class Trigger(Wire):

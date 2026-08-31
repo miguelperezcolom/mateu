@@ -1,4 +1,5 @@
 import ConfirmationTexts from "./ConfirmationTexts";
+import RestActionDto from "./RestActionDto.ts";
 
 export default interface Action {
 
@@ -27,4 +28,7 @@ export default interface Action {
     timeoutMillis: number
     /** Declared safe to re-send: the client may retry it by itself on a transient failure. */
     idempotent: boolean
+    /** @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
+     *  Mateu server (fetch + toast + optional state merge). Absent for normal actions. */
+    restAction?: RestActionDto | undefined
 }

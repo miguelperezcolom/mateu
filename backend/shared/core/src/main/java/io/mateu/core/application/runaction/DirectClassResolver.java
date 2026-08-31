@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.RouteSegmentUtils.addParameterValues;
+import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
@@ -13,20 +14,36 @@ import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.interfaces.RouteResolver;
 import java.util.List;
 import java.util.Optional;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 final class DirectClassResolver {
 
-  @SneakyThrows
   static Mono<?> resolve(
       String rawRoute,
       RunActionCommand command,
       RoutedClassResolver routedClassResolver,
       InstanceFactoryProvider instanceFactoryProvider,
       List<RouteResolver> routeResolvers) {
+    // A missing class (forName → ClassNotFoundException) or a failing RouteResolver becomes a
+    // reactive error signal, so it surfaces as itself instead of the NoClassDefFoundError:
+    // lombok/Lombok that @SneakyThrows produced when lombok is off the runtime classpath.
+    try {
+      return resolveInner(
+          rawRoute, command, routedClassResolver, instanceFactoryProvider, routeResolvers);
+    } catch (Exception e) {
+      return Mono.error(e);
+    }
+  }
+
+  private static Mono<?> resolveInner(
+      String rawRoute,
+      RunActionCommand command,
+      RoutedClassResolver routedClassResolver,
+      InstanceFactoryProvider instanceFactoryProvider,
+      List<RouteResolver> routeResolvers)
+      throws ClassNotFoundException {
     if ("".equals(rawRoute)) {
       rawRoute = command.baseUrl();
     }
@@ -38,6 +55,7 @@ final class DirectClassResolver {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
+        setResolvedPath(command.httpRequest(), route);
         log.info("direct class (absolute) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);
@@ -50,6 +68,7 @@ final class DirectClassResolver {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
+        setResolvedPath(command.httpRequest(), route);
         log.info("direct class (resolve) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);

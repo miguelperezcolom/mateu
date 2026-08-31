@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# The mount's route registry, next to the definitions it routes to.
+#
+# Routes are RELATIVE to the mount's base path (the one declared by @UI): an entry `orders/:id`
+# under a mount at /back-office answers /back-office/orders/42.
+#
+# Entries merge OVER the ones the annotation processors derive from @UI/@Route, keyed by route:
+# an authored entry replaces the derived one outright.
+routes:
+
+  # Two routes over ONE screen, told apart by a pinned parameter. This is the case an annotation
+  # cannot express: it can only ever say "this class is at this path".
+  - route: orders/pending
+    viewModel: com.acme.Orders
+    fixedParams:
+      status: pending
+
+  - route: orders/archived
+    viewModel: com.acme.Orders
+    fixedParams:
+      status: archived
+
+  # Seeded, not pinned: the request may override these.
+  - route: orders
+    viewModel: com.acme.Orders
+    defaultParams:
+      status: open
+      page: 1
+
+  # A route with NO view model: a definition plus client-side data. This is what a fully static
+  # deployment looks like — there is no server to ask.
+  - route: about
+    definition: about.yaml
+
+  # A parameterised route, and a static sibling that must not be swallowed by it.
+  - route: orders/:id
+    viewModel: com.acme.OrderDetail
+
+  - route: orders/new
+    viewModel: com.acme.NewOrder
+
+  # ── Entries pointing at REAL classes, used by RoutedClassResolverRegistryTest ────────────────
+  # Two routes over one view model, told apart by a pinned parameter.
+  - route: tickets/open
+    viewModel: io.mateu.core.application.RegistryRoutedViews$Tickets
+    fixedParams:
+      status: open
+
+  - route: tickets/closed
+    viewModel: io.mateu.core.application.RegistryRoutedViews$Tickets
+    fixedParams:
+      status: closed
+
+  # Points at a class that is not on the classpath: must fall through, not blow up.
+  - route: broken
+    viewModel: com.acme.NotOnTheClasspath
+
+  # ── ONE definition serving TWO routes, each binding its own view model ───────────────────────
+  # The definition names no modelView: it is layout only, and the binding lives in the entry. This
+  # is what the specs/ui/<route>.yaml convention cannot express — there, layout follows the URL.
+  - route: catalog/books
+    definition: shared-list.yaml
+    viewModel: com.acme.Books
+
+  - route: catalog/films
+    definition: shared-list.yaml
+    viewModel: com.acme.Films

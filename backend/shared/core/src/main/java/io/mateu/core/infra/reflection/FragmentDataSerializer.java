@@ -12,7 +12,6 @@ import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import java.util.Collection;
 import java.util.Map;
-import lombok.SneakyThrows;
 
 final class FragmentDataSerializer {
 
@@ -35,7 +34,6 @@ final class FragmentDataSerializer {
             || ((ClientSideComponentDto) fragment.component()).metadata() instanceof DrawerDto);
   }
 
-  @SneakyThrows
   static Object toMap(Object data) {
     if (data == null) {
       return null;

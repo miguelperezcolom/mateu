@@ -9,7 +9,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -71,7 +70,6 @@ public class FieldCrudActionRunner implements ActionRunner {
     return instance.getClass();
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();

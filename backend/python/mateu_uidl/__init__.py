@@ -177,6 +177,24 @@ class FileUpload:
 
 
 @dataclass(frozen=True)
+class RestOptions:
+    """Fills a field's select options from an arbitrary (non-Mateu) REST endpoint, fetched
+    CLIENT-SIDE: the renderer calls ``url`` directly (no Mateu server mediating), navigates
+    ``items_path`` to the array in the JSON response and maps each item via
+    ``value_path``/``label_path``. The field renders as a select. ``url``/``headers``/``body``
+    support ``${state.x}`` interpolation. Python analogue of Java's @RestOptions."""
+
+    url: str = ""
+    method: str = "GET"
+    headers: tuple[str, ...] = ()  #: "Name: Value" strings (values interpolated)
+    body: str = ""
+    items_path: str = ""  #: dot path to the response array; blank means the root IS the array
+    value_path: str = "value"
+    label_path: str = "label"
+    proxy: bool = False  #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side)
+
+
+@dataclass(frozen=True)
 class RangeFilter:
     """On a numeric field of a Crud entity: the listing filter becomes a min-max RANGE widget
     (the bounds travel as <field>_from/<field>_to state keys) instead of an equality input.
@@ -729,6 +747,74 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
     return deco
 
 
+def rest_listing(
+    url: str,
+    method: str = "GET",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    items_path: str = "",
+    proxy: bool = False,
+) -> Callable[[type], type]:
+    """Class-level: fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
+    CLIENT-SIDE. The renderer calls ``url`` directly, navigates ``items_path`` to the array in the
+    JSON response and maps each item into a row by reading each COLUMN by its field name. Put it on
+    a class implementing ``Listing[Row]``; its columns come from the Row type as usual and its
+    ``search`` is never called. ``url``/``headers``/``body`` support ``${state.x}`` interpolation
+    (including ``${searchText}``/``${page}``/``${size}``). Python analogue of Java's @RestListing."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path, proxy)
+        return cls
+
+    return deco
+
+
+def rest_action(
+    url: str,
+    method: str = "POST",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    success_message: str = "",
+    result_path: str = "",
+    proxy: bool = False,
+) -> Callable[[Callable], Callable]:
+    """Method-level: makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead
+    of dispatching to the Mateu server. On click the renderer calls ``url`` directly with the
+    interpolated ``body``, then applies the response — shows ``success_message`` as a toast and,
+    when ``result_path`` is set, merges the object at that path in the JSON response into the form
+    state (so bound fields refresh). Put it on a method that is ALSO a ``@button``/``@toolbar``;
+    ``url``/``headers``/``body`` support ``${state.x}`` interpolation. Python analogue of Java's
+    @RestAction."""
+
+    def deco(fn: Callable) -> Callable:
+        fn.__mateu_rest_action__ = (url, method, headers, body, success_message, result_path, proxy)
+        return fn
+
+    return deco
+
+
+def rest_data(
+    url: str,
+    method: str = "GET",
+    headers: tuple[str, ...] = (),
+    body: str = "",
+    result_path: str = "",
+    proxy: bool = False,
+) -> Callable[[type], type]:
+    """Class-level: loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint,
+    fetched CLIENT-SIDE on entry. When the view mounts the renderer calls ``url`` directly and
+    merges the object at ``result_path`` in the JSON response into the form state, so the fields
+    arrive populated. Reuses the @rest_action machinery (a synthetic ``__restdata__`` action + an
+    OnLoad trigger). ``url``/``headers``/``body`` support ``${state.x}`` interpolation. Python
+    analogue of Java's @RestData."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_rest_data__ = (url, method, headers, body, result_path, proxy)
+        return cls
+
+    return deco
+
+
 def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
@@ -744,6 +830,31 @@ def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Call
 def subtitle(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
         cls.__mateu_subtitle__ = value
+        return cls
+
+    return deco
+
+
+def overline(value: str) -> Callable[[type], type]:
+    """The small line of text shown ABOVE the page title (the Oracle Redwood ``overlineText``
+    header element) — a category, a parent context or a step marker. Mirrors Java's ``@Overline``.
+    """
+
+    def deco(cls: type) -> type:
+        cls.__mateu_overline__ = value
+        return cls
+
+    return deco
+
+
+def title_placeholder(value: str) -> Callable[[type], type]:
+    """What the header shows while the title is still empty (the Oracle Redwood
+    ``pageTitlePlaceholder`` header element) — the create-mode affordance, e.g. "New booking…".
+    A placeholder, not a default: it never overrides a title. Mirrors Java's ``@TitlePlaceholder``.
+    """
+
+    def deco(cls: type) -> type:
+        cls.__mateu_title_placeholder__ = value
         return cls
 
     return deco
@@ -822,6 +933,16 @@ def app_context(label: str = "") -> Callable:
 
 def compact(cls: type) -> type:
     cls.__mateu_compact__ = True
+    return cls
+
+
+def static_view(cls: type) -> type:
+    """Class-level: the view's FULL response — structure and data — never varies per request, user
+    or time. The client caches the whole response for the session and skips the server round-trip
+    on return visits (the last step of the client structure cache). A developer promise, like
+    ``@action_options(idempotent=…)``; do NOT use it where content depends on data, the user,
+    permissions, time or live-state interpolation. Mirrors io.mateu's ``@StaticView``."""
+    cls.__mateu_static_view__ = True
     return cls
 
 
@@ -1481,10 +1602,11 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action", "rest_data",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",

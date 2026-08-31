@@ -1,6 +1,5 @@
 package ${pkgName};
 
-import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import io.mateu.core.infra.InputStreamReader;

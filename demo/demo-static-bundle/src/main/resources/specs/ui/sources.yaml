@@ -1,0 +1,36 @@
+# The app's REST source catalogue: every endpoint its screens consume, named ONCE.
+#
+# A surface then references a name instead of repeating a URL, so changing a host is one edit here,
+# and re-pointing this bundle at another environment after it is deployed to a CDN is an edit of the
+# `sources` table in manifest.json rather than a rebuild.
+#
+# `provenance` decides what the derived artifacts do with an entry. It defaults to being inferred from
+# the URL — a relative one is ours to serve, another origin is somebody else's — so most entries need
+# not declare it.
+sources:
+  # Somebody else's API: documented, verifiable, never generated.
+  - name: users
+    description: Public placeholder users, used to populate a select
+    source:
+      url: https://jsonplaceholder.typicode.com/users
+      valuePath: id
+      labelPath: name
+
+  # Ours to build: relative url, so provenance is inferred as `generate`.
+  - name: roomTypes
+    description: The room types that can be assigned
+    source:
+      url: /api/room-types
+      valuePath: code
+      labelPath: name
+
+  - name: reservations
+    description: Reservations arriving on a given date
+    source:
+      url: /api/reservations?on=${state.arrival}
+      itemsPath: data
+    totalPath: meta.total
+    fields:
+      reference: reference
+      guestName: guest.name
+      roomNumber: room.number

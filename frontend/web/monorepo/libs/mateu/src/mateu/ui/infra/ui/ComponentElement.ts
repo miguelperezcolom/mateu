@@ -1,6 +1,7 @@
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import {property} from "lit/decorators.js";
+import {PropertyValues} from "lit";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import {Page} from "@mateu/shared/apiClients/dtos/Page.ts";
 import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
@@ -39,6 +40,14 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     @property()
     data: Record<string, any> = {}
+
+    /** The exact `data` reference our own applyFragment last produced (see willUpdate). */
+    private _lastFragmentData?: Record<string, any>
+
+    /** `serverSideType` of the view this element last rendered — the stable identity of a view
+     *  across renders (ids are fresh uuids). Tells a re-render of the same view apart from a
+     *  different one arriving in this reused element (see willUpdate). */
+    private _lastViewKey?: string
 
     @property()
     appData: Record<string, any> = {}
@@ -117,6 +126,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     }
                 } else {
                     this.callbackToken = nanoid()
+                    // Whether this fragment re-renders the component that is already here or
+                    // replaces it with a different one. Decided inside the ServerSide branch and
+                    // read again below, where it decides whether state and data survive.
+                    let inPlace = false
                     if (fragment.component?.type == ComponentType.ServerSide) {
                         if (this.component) {
                             const c0 = this.component as ServerSideComponent
@@ -127,7 +140,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             // toggling an add-on refreshes the host without closing its drawer.
                             // NOTE: component ids are fresh uuids on every render, so the stable
                             // signal is the serverSideType
-                            const inPlace = c0.serverSideType == c1.serverSideType
+                            inPlace = c0.serverSideType == c1.serverSideType
                             const openOverlays = inPlace
                                 ? (c0.children ?? []).filter(child => this.isOverlayChild(child))
                                 : []
@@ -162,7 +175,14 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             this.component.children = children
                         }
                     }
-                    if (fragment.action !== UIFragmentAction.ReplaceKeepData) {
+                    // Wiping is for a component being REPLACED by a different one, where the
+                    // outgoing component's state must not leak into the incoming one. A view that
+                    // re-renders itself is not that: its fragment carries its own state, and
+                    // starting from an empty map throws away everything its surroundings had put
+                    // there. A polling detail view lost the CRUD chrome around it — "Back to
+                    // list", the overflow menu and the status badge — on its first refresh, two
+                    // seconds after it opened, and got it back only on a full page load.
+                    if (fragment.action !== UIFragmentAction.ReplaceKeepData && !inPlace) {
                         this.state = { }
                         this.data = { }
                     }
@@ -189,6 +209,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 this.data = { ...this.data, ...fragment.data }
             }
 
+            // Remember the exact data reference our own applyFragment produced. willUpdate() uses
+            // it to tell an authoritative data change (this, from a fragment) apart from the parent
+            // re-render re-binding `.data` with a fresh object — see willUpdate().
+            this._lastFragmentData = this.data
+
             this.registerCustomEventListeners()
             const afterRenderHook = componentRenderer.getAfterRenderHook()
             if (afterRenderHook) {
@@ -196,6 +221,47 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             }
 
             this.requestUpdate()
+        }
+    }
+
+    /**
+     * Keep the rows a search delivered straight to THIS component when a data-less route LOAD
+     * re-renders the parent around it.
+     *
+     * A listing is fed by two independent round-trips: the route load (actionId "") answers the
+     * component STRUCTURE with an empty data map, and the search answers the ROW DATA as a
+     * data-only fragment targeting this component. The parent (`mateu-ux`) re-renders on the load
+     * and re-binds our `.data` property from its own (empty) fragment data — see
+     * renderComponent.ts `.data="${{...data}}"`. If that load response lands AFTER the search
+     * (network reordering during an SPA shell re-mount), the empty re-bind wipes the rows and the
+     * list goes blank.
+     *
+     * We distinguish the two data sources by object identity: a change to the exact reference our
+     * applyFragment last set is authoritative (rows, or an intentional clear when a DIFFERENT
+     * component replaces this one) and is respected as-is; a change to any other reference came
+     * from the parent re-render, and an EMPTY map from there must not clear data the search owns.
+     * This never grows unbounded — the search replaces its own key on every run.
+     *
+     * It must NOT survive a change of VIEW, though. Lit reuses this element across a route change
+     * (same tag, same position), so navigating from one listing to another re-binds `.component`
+     * with the new view and `.data` with its still-empty map — and preserving the previous rows
+     * there paints the OUTGOING listing's rows under the incoming one's header and columns until
+     * its search answers (a second or two on a slow link). The view's identity is its
+     * `serverSideType` (component ids are fresh uuids on every render), so we remember the one we
+     * last rendered: when it changes, the empty map is the new view's own and is respected.
+     */
+    protected willUpdate(changed: PropertyValues) {
+        super.willUpdate(changed)
+        const viewKey = (this.component as ServerSideComponent | undefined)?.serverSideType
+        const viewChanged = viewKey != undefined && this._lastViewKey != undefined
+            && viewKey !== this._lastViewKey
+        if (viewKey != undefined) this._lastViewKey = viewKey
+        if (!changed.has('data') || this.data === this._lastFragmentData || viewChanged) return
+        const incoming = this.data
+        const previous = changed.get('data') as Record<string, any> | undefined
+        if (incoming && Object.keys(incoming).length === 0
+            && previous && Object.keys(previous).length > 0) {
+            this.data = previous
         }
     }
 

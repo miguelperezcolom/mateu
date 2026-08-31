@@ -89,6 +89,27 @@ public class ActionMapper {
 
     actions.addAll(fieldActions);
 
+    // @RestData: a synthetic action carrying the client-side REST descriptor, fired on load by the
+    // OnLoad trigger TriggerMapper adds — so the screen's initial data is fetched client-side and
+    // merged into the form state (reuses the @RestAction fetch+merge machinery).
+    var restData =
+        MetaAnnotations.find(serverSideObject.getClass(), io.mateu.uidl.annotations.RestData.class);
+    if (restData != null) {
+      actions.add(
+          Action.builder()
+              .id(RestDataSupport.RESTDATA_ACTION_ID)
+              .validationRequired(false)
+              .restAction(RestDataSupport.restActionOf(restData))
+              .build());
+    }
+
+    // Proxy mode (@RestOptions/@RestListing/@RestAction/@RestData with proxy=true): advertise the
+    // reserved __restfetch__ action so the renderer can route the fetch through the Mateu server
+    // (the server resolves the declared source, injects ${secret.X} and fetches server-side).
+    if (RestDataSupport.hasProxySource(serverSideObject)) {
+      actions.add(Action.builder().id(RestDataSupport.RESTFETCH_ACTION_ID).build());
+    }
+
     return actions;
   }
 

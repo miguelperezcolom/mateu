@@ -29,7 +29,20 @@ dependencies {
         } else {
             intellijIdeaCommunity(ideVersion)
         }
+        // Java PSI (to resolve a YAML page's ModelView class + its fields/methods) and YAML PSI (to
+        // read the page file) — both bundled in IDEA Community. Powers the visual-builder binding
+        // validation (a FormField id / Button actionId must exist on the ModelView).
+        bundledPlugin("com.intellij.java")
+        bundledPlugin("org.jetbrains.plugins.yaml")
+        // JSON Schema API (JsonSchemaProviderFactory) — to apply the Mateu authoring schema to
+        // specs/ui YAMLs in the text editor. The class lives in the bundled intellij.json module.
+        bundledModule("intellij.json.backend")
+        // Headless test fixtures for the annotator test: the Java one carries
+        // LightJavaCodeInsightFixtureTestCase (Java PSI in tests).
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Plugin.Java)
     }
+    testImplementation("junit:junit:4.13.2")
 }
 
 intellijPlatform {

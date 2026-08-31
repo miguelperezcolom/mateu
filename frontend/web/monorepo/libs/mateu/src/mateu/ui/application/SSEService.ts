@@ -58,13 +58,25 @@ export class SSEService implements Service {
                     }
                 }))
             }
+            // Same identity as every other call the client makes. This is a bare fetch rather
+            // than the axios instance, so it does not go through the interceptor that puts the
+            // token and the session id on an ordinary request — they have to be set here, the
+            // way mateu-chat's own SSE stream already does it. Without them an SSE action is
+            // the one anonymous request in the client, which a shell behind a gateway that
+            // checks the token rejects while everything else works.
+            const headers: Record<string, string> = {
+                'Accept': 'text/event-stream',
+                'Content-Type': 'application/json'
+            }
+            const token = localStorage.getItem('__mateu_auth_token')
+            if (token) headers['Authorization'] = 'Bearer ' + token
+            const sessionId = sessionStorage.getItem('__mateu_sesion_id')
+            if (sessionId) headers['X-Session-Id'] = sessionId
+
             fetch(baseUrl + '/mateu/v3/sse/' +
                 route, {
                 method: 'POST',
-                headers: {
-                    'Accept': 'text/event-stream',
-                    'Content-Type': 'application/json'
-                },
+                headers,
                 body: JSON.stringify(payload)
             }).then(async response => {
                 const reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()

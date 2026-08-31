@@ -31,6 +31,7 @@ public class FieldMapper {
             .options(formField.options().stream().map(FieldMapper::mapOption).toList())
             .treeLeavesOnly(formField.treeLeavesOnly())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
+            .optionsSource(mapRestDataSource(formField.optionsSource()))
             .initialValue(formField.initialValue())
             .readOnly(formField.readOnly())
             .required(formField.required())
@@ -94,6 +95,27 @@ public class FieldMapper {
       return null;
     }
     return new NavLinkDto(link.href(), link.icon(), link.title(), link.target());
+  }
+
+  /**
+   * The one mapping of a REST descriptor onto the wire, shared by every surface that carries one (a
+   * field's options, a listing's rows, an action's call) — they used to hold a copy each, which is
+   * how a new field gets added to two of the three.
+   */
+  static RestDataSourceDto mapRestDataSource(io.mateu.uidl.data.RestDataSource source) {
+    if (source == null) {
+      return null;
+    }
+    return new RestDataSourceDto(
+        source.ref(),
+        source.url(),
+        source.method(),
+        source.headers(),
+        source.body(),
+        source.itemsPath(),
+        source.valuePath(),
+        source.labelPath(),
+        source.proxy());
   }
 
   private static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {

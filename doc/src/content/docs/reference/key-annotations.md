@@ -295,6 +295,23 @@ Use it for layout constraints and small visual adjustments.
 
 ---
 
+## `@StaticView`
+
+Class-level. Declares a view whose **full response — structure and data — never varies** per request, user or time (a help page, an "about" screen, a fixed reference screen). The client caches the whole response for the browser session and, on a return visit, renders it from the cache and **skips the server round-trip entirely**.
+
+```java
+@Route("/about")
+@Title("About")
+@StaticView
+public class About { /* ... */ }
+```
+
+It is a promise, like `@Action(idempotent = true)`: only use it when the content genuinely does not change. Do **not** use it on a screen whose content depends on data, the logged-in user, permissions, time, or `${…}` interpolation of live state — the client would keep showing the first rendering for the rest of the session. The skip is session-scoped, so a full page reload always reloads (a new deployment is picked up on the next refresh).
+
+This is the opt-in top layer of Mateu's [client-side caching](/ux-patterns/client-side-caching/); the two layers beneath it (instant structure on return, and smaller data-only revalidation) are automatic and need no annotation. Also available as `[StaticView]` (C#) and `@static_view` (Python).
+
+---
+
 ## `@FormLayout`
 
 Controls form rendering.

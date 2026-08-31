@@ -24,4 +24,8 @@ public record Action(
     /** Client-side request ceiling in ms; 0 keeps the client default. */
     int timeoutMillis,
     /** Safe to re-send: the client may retry it on a transient failure. */
-    boolean idempotent) {}
+    boolean idempotent,
+    /**
+     * Client-side REST call instead of a server dispatch (@RestAction); null for normal actions.
+     */
+    io.mateu.uidl.data.RestAction restAction) {}

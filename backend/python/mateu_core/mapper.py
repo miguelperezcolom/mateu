@@ -120,6 +120,8 @@ from mateu_dtos import (
     ProgressStepsMetadata,
     StepRecord,
     RemoteCoordinates,
+    RestAction,
+    RestDataSource,
     RuleRecord,
     ScoreboardMetadata,
     ServerSideComponent,
@@ -164,6 +166,7 @@ from mateu_uidl import (
     LinkTo,
     Listing,
     Lookup,
+    RestOptions,
     Money,
     Multiline,
     NotificationsSupplier,
@@ -550,7 +553,7 @@ class ReflectionMapper:
         return MenuItem(label=self.T(label), route=route, server_side_type=ssn, consumed_route=route)
 
     # ── Plain view ─────────────────────────────────────────────────────────────
-    def map_view(self, cls, instance, route: str) -> ServerSideComponent:
+    def map_view(self, cls, instance, route: str, layout_override=None) -> ServerSideComponent:
         element = crud_element_type(cls)
         if element is not None:
             return self.map_crud(cls, element, route, instance)
@@ -558,14 +561,19 @@ class ReflectionMapper:
             return self.map_listing(cls, route)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
-        buttons = [
-            self.map_button(n, f)
+        button_methods = [
+            (n, f)
             for n, f in methods_with(cls, "__mateu_button__")
             if for_current_audience(getattr(f, "__mateu_audience__", None))
         ]
+        buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)
+        # A @rest_action button carries the client-side REST descriptor on its action.
         actions = [
-            with_action_options(Action(id=b.action_id), cls, b.action_id) for b in buttons
+            with_action_options(
+                Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
+            )
+            for (n, f), b in zip(button_methods, buttons)
         ] + [with_action_options(Action(id=f.action_id), cls, f.action_id) for f in fabs]
         # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
         for f in view_fields(cls):
@@ -573,7 +581,20 @@ class ReflectionMapper:
             if on_row is not None and all(a.id != camel_case(on_row.value) for a in actions):
                 actions.append(Action(id=camel_case(on_row.value), validation_required=False))
 
-        tree = self.component_tree(instance)
+        # @rest_data: fetch the screen's initial data client-side on load — a synthetic
+        # __restdata__ action carrying the REST descriptor (fired by the OnLoad trigger added
+        # below), reusing the @rest_action fetch+merge path.
+        rest_data_desc = self._rest_data(cls)
+        if rest_data_desc is not None:
+            actions.append(
+                Action(id="__restdata__", validation_required=False, rest_action=rest_data_desc)
+            )
+
+        # A YAML page's layout (bound to this instance as its ModelView) renders as the page
+        # content exactly like an archetype's fluent tree — its FormField ids bind to the
+        # instance's state (seeded into initialData below), its Button actionIds (collected below)
+        # route back to the instance's methods.
+        tree = layout_override if layout_override is not None else self.component_tree(instance)
         if tree is not None:
             children = [self.map_component(tree)]
             known = {a.id for a in actions}
@@ -616,6 +637,10 @@ class ReflectionMapper:
             page_type=page_type,
             peer_nav=self.peer_nav(instance),
             timestamp=self.timestamp_of(cls, instance),
+            overline=self._opt_t(class_flag(cls, "__mateu_overline__", None)),
+            title_placeholder=self._opt_t(
+                class_flag(cls, "__mateu_title_placeholder__", None)
+            ),
         )
         page = ClientSideComponent(
             metadata=page_meta,
@@ -623,6 +648,9 @@ class ReflectionMapper:
             style="--mateu-compact:1" if compact else None,
         )
         triggers, emits = self.events_of(cls)
+        # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
+        if rest_data_desc is not None:
+            triggers = list(triggers) + [Trigger(type="OnLoad", action_id="__restdata__")]
         initial_data: dict = {}
         if tree is not None:
             # Tree-supplier views (archetypes): scalar attributes are the view's state — seed
@@ -649,6 +677,11 @@ class ReflectionMapper:
                         "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
                     }
                 ]
+        # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
+        # reserved __restfetch__ action so the renderer can route the fetch through the server (which
+        # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
+        if self._has_proxy_source(cls):
+            actions = list(actions) + [Action(id="__restfetch__")]
         return ServerSideComponent(
             id=_id(),
             server_side_type=type_name(cls),
@@ -662,6 +695,7 @@ class ReflectionMapper:
             rules=self.map_rules(cls, instance),
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type,
+            static_view=bool(class_flag(cls, "__mateu_static_view__", False)),
         )
 
     # ── Fluent component trees & declarative archetypes ───────────────────────
@@ -1933,7 +1967,9 @@ class ReflectionMapper:
                          rows_selection_enabled=deletable,
                          filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
-                         group_by=self.group_by_of(row_type) if row_type is not None else None),
+                         group_by=self.group_by_of(row_type) if row_type is not None else None,
+                         # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
+                         rows_source=self._rest_listing(cls)),
             "crud",
             [],
         )
@@ -2538,6 +2574,8 @@ class ReflectionMapper:
             remote_coordinates=(
                 RemoteCoordinates(action=f"search-{field_id}") if f.has(Lookup) else None
             ),
+            # RestOptions(): options fetched client-side from an arbitrary REST endpoint.
+            options_source=self._rest_options(f),
             # FileUpload(accept=".csv"): the file input's accept filter travels in the field's
             # generic attributes list — no dedicated wire field (Java parity).
             attributes=(
@@ -2547,6 +2585,134 @@ class ReflectionMapper:
             ),
         )
         return self.client(meta, field_id, [])
+
+    @staticmethod
+    def _rest_options(f) -> "RestDataSource | None":
+        """The client-side external options descriptor when the field carries ``RestOptions()``
+        (headers parsed from "Name: Value" strings); None otherwise."""
+        if not f.has(RestOptions):
+            return None
+        a = f.marker(RestOptions)
+        headers: dict[str, str] = {}
+        for h in a.headers:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestDataSource(
+            url=a.url,
+            method=a.method,
+            headers=headers,
+            body=a.body,
+            items_path=a.items_path,
+            value_path=a.value_path,
+            label_path=a.label_path,
+            proxy=a.proxy,
+        )
+
+    @staticmethod
+    def _rest_listing(cls) -> "RestDataSource | None":
+        """The client-side external rows descriptor when the listing class carries
+        ``@rest_listing`` (columns come from the Row type; each item is keyed by column id); None
+        otherwise."""
+        spec = getattr(cls, "__mateu_rest_listing__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, items_path, proxy = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestDataSource(
+            url=url, method=method, headers=headers, body=body, items_path=items_path, proxy=proxy
+        )
+
+    @staticmethod
+    def _rest_action(fn) -> "RestAction | None":
+        """The client-side REST descriptor when a button method carries ``@rest_action`` (headers
+        parsed from "Name: Value" strings); None otherwise — the button then dispatches to the Mateu
+        server as usual."""
+        spec = getattr(fn, "__mateu_rest_action__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, success_message, result_path, proxy = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestAction(
+            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
+            success_message=success_message or None,
+            result_path=result_path or None,
+        )
+
+    @staticmethod
+    def _rest_data(cls) -> "RestAction | None":
+        """The client-side REST descriptor for a ``@rest_data`` screen (silent load; blank
+        result_path merges the whole response — getByPath with an empty path is identity on the
+        frontend); None when the class carries no ``@rest_data``."""
+        spec = getattr(cls, "__mateu_rest_data__", None)
+        if spec is None:
+            return None
+        url, method, header_strings, body, result_path, proxy = spec
+        headers: dict[str, str] = {}
+        for h in header_strings:
+            name, sep, value = h.partition(":")
+            if sep:
+                headers[name.strip()] = value.strip()
+        return RestAction(
+            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
+            success_message=None,
+            result_path=result_path,
+        )
+
+    @staticmethod
+    def _has_proxy_source(cls) -> bool:
+        """True when the view declares at least one proxy-mode REST source (proxy=True on a field
+        ``RestOptions()``, a method ``@rest_action``, or the class ``@rest_listing``/``@rest_data``).
+        Gates advertising the ``__restfetch__`` action so only proxy views carry it."""
+        listing = getattr(cls, "__mateu_rest_listing__", None)
+        if listing is not None and listing[5]:
+            return True
+        data = getattr(cls, "__mateu_rest_data__", None)
+        if data is not None and data[5]:
+            return True
+        for f in view_fields(cls):
+            if f.has(RestOptions) and f.marker(RestOptions).proxy:
+                return True
+        for klass in cls.__mro__:
+            for m in vars(klass).values():
+                spec = getattr(m, "__mateu_rest_action__", None)
+                if spec is not None and spec[6]:
+                    return True
+        return False
+
+    def resolve_rest_source(self, cls, kind, id) -> "RestDataSource | None":
+        """Resolve the DECLARED source of a view for a proxy fetch — from the field
+        (``RestOptions``), the class (``@rest_listing``/``@rest_data``) or the method
+        (``@rest_action``), never from a client-supplied url (so the proxy can't be turned into an
+        open relay). Used by the ``__restfetch__`` reserved action."""
+        if kind == "options":
+            for f in view_fields(cls):
+                if camel_case(f.name) == id and f.has(RestOptions):
+                    return self._rest_options(f)
+            return None
+        if kind == "rows":
+            return self._rest_listing(cls)
+        if kind == "action":
+            for klass in cls.__mro__:
+                for name, m in vars(klass).items():
+                    if (name == id or camel_case(name) == id) and getattr(
+                        m, "__mateu_rest_action__", None
+                    ) is not None:
+                        r = self._rest_action(m)
+                        return r.source if r else None
+            return None
+        if kind == "data":
+            r = self._rest_data(cls)
+            return r.source if r is not None else None
+        return None
 
     def link_of(self, f, instance) -> NavLinkRecord | None:
         """The field's nav link: a :class:`LinkSupplier` on the view wins; when it returns ``None``
@@ -2607,6 +2773,9 @@ class ReflectionMapper:
             return "password"
         if f.has(Money):
             return "plainText" if plain else "money"
+        # RestOptions(): options fetched client-side from an arbitrary REST endpoint → a select.
+        if f.has(RestOptions):
+            return "select"
         if f.has(Lookup):
             return "combobox"
         if f.has(Searchable):

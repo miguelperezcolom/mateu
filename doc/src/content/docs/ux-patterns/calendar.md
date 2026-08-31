@@ -60,6 +60,32 @@ public class HousekeepingCalendar extends CalendarPage {
 - The week/day/list views of the RDS template are **not built in yet** — the underlying component is a month grid.
 - Works on every renderer and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends — see the [parity matrix](/reference/parity/).
 
+## Redwood parameter and slot reference
+
+What the Redwood `calendar` template exposes, and what Mateu gives you for it. This is the template
+with the **largest open surface** of the set — the underlying component is a month grid. The
+canonical page-header elements shared by every template are documented once in
+[Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `calendarEvents` | `events(LocalDate month, HttpRequest)` — fetched per displayed month, server-side | ✅ |
+| Month navigation | ‹ / › / *Today* round-trip through the backend; `initialMonth()` sets the start | ✅ |
+| `displayOptions.createEvent` / `createEventLabel` | `showCreate()` + `createAction(HttpRequest)` | ✅ |
+| Event click | `actionOn(CalendarEvent, HttpRequest)` — return a `URI` to navigate | ✅ |
+| `selectedViewValue` + `displayOptions {monthView, weekView, dayView, listView}` | — month only; on narrow viewports (React Native, IntelliJ) the same events render as an agenda list | — |
+| `displayOptions.firstDayOfWeek` | — the grid is Monday-first | — |
+| `displayOptions {eventCounter, eventSortCriteria, eventDetailMode}` | — | — |
+| `calendarProviders[]` + `visibleCalendars[]` (multi-calendar) | — one event source per page | — |
+| `selectionMode: none \| single \| multiple` | events are actionable, not selectable | 🟡 |
+| `readonly` | the calendar is read-only by design; pair it with a form to create or move events | ⚪ |
+| `emptyState {primaryText}` | — | — |
+| `eventDetailActions[]` | a single `actionOn` per event | 🟡 |
+| **Slots** `eventTemplate` / `tooltipTemplate` / `eventDetailTemplate` | — events render as chips with an optional accent `color`; the chip shape is not overridable | — |
+| `spCalendarEventCreate` / `Update` / `DetailAction` | `createCalendarEvent` / `openCalendarEvent` cover create and open; there is no update event | 🟡 |
+
 ## When to use it
 
 Use a `Calendar` to show **dated events on a month** for scanning and light interaction (click an event to drill in). It is read-only by design; for scheduling/drag-to-create, pair it with a form that creates or moves events and re-renders. Demo: `/calendar-demo`.

@@ -143,10 +143,43 @@ final class FieldActionCollector {
                     .id(method.getName())
                     .validationRequired(true)
                     .sse(isFluxReturning(method))
+                    .restAction(restActionOf(method))
                     .build())
         .forEach(fieldActions::add);
 
     return fieldActions;
+  }
+
+  /**
+   * The client-side REST descriptor when the method carries {@code @RestAction} (headers parsed
+   * from "Name: Value" strings); null otherwise — the button then dispatches to the Mateu server as
+   * usual.
+   */
+  private static io.mateu.uidl.data.RestAction restActionOf(java.lang.reflect.Method method) {
+    var a = MetaAnnotations.find(method, io.mateu.uidl.annotations.RestAction.class);
+    if (a == null) {
+      return null;
+    }
+    var headers = new java.util.LinkedHashMap<String, String>();
+    for (String h : a.headers()) {
+      int i = h.indexOf(':');
+      if (i > 0) {
+        headers.put(h.substring(0, i).trim(), h.substring(i + 1).trim());
+      }
+    }
+    var source =
+        io.mateu.uidl.data.RestDataSource.builder()
+            .ref(a.source())
+            .url(a.url())
+            .method(a.method())
+            .headers(headers)
+            .body(a.body())
+            .proxy(a.proxy())
+            .build();
+    return new io.mateu.uidl.data.RestAction(
+        source,
+        a.successMessage().isEmpty() ? null : a.successMessage(),
+        a.resultPath().isEmpty() ? null : a.resultPath());
   }
 
   private static String getConstrainedFieldNames(Field listField) {

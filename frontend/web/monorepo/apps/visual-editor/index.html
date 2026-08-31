@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mateu Visual Editor</title>
+    <style>
+      html, body { margin: 0; height: 100%; }
+      body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+    <script type="module" src="/src/index.ts"></script>
+  </head>
+  <body>
+    <!-- baseUrl "" → same-origin; vite proxies /mateu to the backend. -->
+    <mateu-visual-editor baseUrl="" style="display:block; width:100%; height:100vh;"></mateu-visual-editor>
+  </body>
+</html>

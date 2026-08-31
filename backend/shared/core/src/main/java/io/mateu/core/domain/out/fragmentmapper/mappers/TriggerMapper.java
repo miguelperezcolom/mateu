@@ -79,6 +79,12 @@ public class TriggerMapper {
     if (autoSave != null) {
       triggers.add(new AutoSaveTrigger(autoSave.action(), autoSave.debounceMillis()));
     }
+    // @RestData: fire the synthetic __restdata__ action on load, so the screen's initial data is
+    // fetched client-side and merged into the form state (ActionMapper advertises the action).
+    if (MetaAnnotations.isPresent(
+        serverSideObject.getClass(), io.mateu.uidl.annotations.RestData.class)) {
+      triggers.add(new OnLoadTrigger(RestDataSupport.RESTDATA_ACTION_ID));
+    }
     triggers.addAll(supplied);
     return triggers;
   }

@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
+import "@infra/ui/mateu-skeleton.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import './mateu-filter-bar'
@@ -8,6 +9,7 @@ import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
+import { fetchExternalRows, mapItemsToRows } from '@infra/http/externalOptions.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -158,8 +160,133 @@ export class MateuTableCrud extends LitElement {
         return raw as ResolvedGridLayout
     }
 
+    /**
+     * The height the listing box is given so it fills the window, or undefined while it has not
+     * been worked out yet.
+     *
+     * The box declared `max-height: calc(100dvh - 12rem)` and nothing else, so it was CAPPED but
+     * never STRETCHED: with no definite height anywhere above it (every wrapper between the page
+     * and here is auto-height), the box was as tall as its content, and its content was a grid
+     * sitting at the 400px every vaadin-grid defaults to. The table stopped a third of the way
+     * down a 900px window with the space below it empty, and scrolled INSIDE those 400px as soon
+     * as a page of rows did not fit — which on most screens it did.
+     *
+     * It is MEASURED rather than guessed (the 12rem above is a guess) because what sits above and
+     * below a listing differs per screen: a page header, a welcome banner, a breadcrumb, the
+     * shell's own gap. And it is measured only while the fill is NOT applied — see
+     * {@link scheduleMeasure} — so a measurement can never be taken of a layout that the previous
+     * measurement produced. That is the whole discipline here: measure the natural layout, apply,
+     * and do not look again until something outside changes.
+     */
+    @state()
+    private fillHeightPx?: number
+
+    /** Cleared on anything that can move the box: a resize, a new component, a re-render of one. */
+    private pendingMeasure = true
+
+    /** How many times the measured height has been trimmed since the last measurement. */
+    private corrections = 0
+
+    private windowResizeListener = () => this.scheduleMeasure()
+
+    private scheduleMeasure() {
+        this.pendingMeasure = true
+        this.corrections = 0
+        // Drop the fill first: the next render lays the box out naturally, and THAT is what gets
+        // measured. Measuring a filled box would feed its own height back into the calculation.
+        if (this.fillHeightPx != undefined) this.fillHeightPx = undefined
+        else this.requestUpdate()
+    }
+
+    private measureFill() {
+        if (!this.pendingMeasure || this.fillHeightPx != undefined) return
+        const box = (this.renderRoot as ParentNode)?.querySelector?.('[data-crud-box]') as HTMLElement | null
+        if (!box) return
+        // A listing inside an overlay is bounded by the overlay, not by the window.
+        if (this.closest?.('mateu-dialog, mateu-drawer')) { this.pendingMeasure = false; return }
+        const top = box.getBoundingClientRect().top
+        const available = Math.round(
+            window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
+        this.pendingMeasure = false
+        if (available >= MateuTableCrud.MIN_FILL_PX) this.fillHeightPx = available
+    }
+
+    /**
+     * The natural layout is not always the filled one. Growing the box can bring the window's own
+     * scrollbar in, which narrows the page, which can rewrap a heading above the listing and push
+     * the box a line further down — so a height measured before the fill can be a few pixels too
+     * generous once applied. One trim of exactly the overflow settles it.
+     *
+     * Only trims (never grows), only a SLIVER, and only a few times per measurement: a page that
+     * genuinely scrolls — a long form under the listing — is not this, and must not have the
+     * listing eaten away to hide it.
+     */
+    private trimOverflow() {
+        if (this.fillHeightPx == undefined || this.pendingMeasure) return
+        if (this.corrections >= MateuTableCrud.MAX_CORRECTIONS) return
+        const overflow = document.documentElement.scrollHeight - window.innerHeight
+        if (overflow <= 1 || overflow > MateuTableCrud.MAX_SLIVER_PX) return
+        this.corrections++
+        this.fillHeightPx = Math.max(MateuTableCrud.MIN_FILL_PX, this.fillHeightPx - overflow)
+    }
+
+    /**
+     * Everything that has to fit UNDER the box: its ancestors' padding and border, plus the
+     * siblings that follow it and, in a flex or grid parent, the gap before each of them. In the
+     * vaadin page shell that gap is the whole story — the listing is followed by an empty box, and
+     * its 24px were exactly the sliver that made the window scroll for nothing.
+     */
+    private measureBottomInset(box: HTMLElement): number {
+        let node: HTMLElement | null = box
+        let inset = 0
+        for (let hops = 0; node && hops < 20; hops++) {
+            inset += parseFloat(getComputedStyle(node).marginBottom) || 0
+            const root = node.getRootNode() as ShadowRoot | Document
+            // The FLATTENED tree, not the DOM one: a listing can be slotted into its page, and
+            // everything the page wraps the slot in is skipped by `parentElement` alone.
+            const parent: HTMLElement | null = (node.assignedSlot as HTMLElement | null)
+                ?? node.parentElement
+                ?? ((root as ShadowRoot).host as HTMLElement | undefined)
+                ?? null
+            if (!parent || parent === document.documentElement || parent === document.body) break
+            const parentStyle = getComputedStyle(parent)
+            inset += (parseFloat(parentStyle.paddingBottom) || 0)
+                + (parseFloat(parentStyle.borderBottomWidth) || 0)
+            const rowGap = parseFloat(parentStyle.rowGap) || 0
+            for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+                const siblingStyle = getComputedStyle(sibling)
+                inset += sibling.getBoundingClientRect().height
+                    + (parseFloat(siblingStyle.marginTop) || 0)
+                    + (parseFloat(siblingStyle.marginBottom) || 0)
+                    + rowGap
+            }
+            node = parent
+        }
+        return Math.round(inset)
+    }
+
+    /** The gap kept under the listing so it does not sit flush against the window edge. */
+    private static readonly BOTTOM_GUTTER_PX = 16
+
+    /** What still counts as "the fill overshot" rather than "this page has more content". */
+    private static readonly MAX_SLIVER_PX = 64
+
+    private static readonly MAX_CORRECTIONS = 3
+
+    /** Below this the fill is not worth having, and a bad measurement would make the listing tiny. */
+    private static readonly MIN_FILL_PX = 320
+
+    private boxStyle(): string {
+        const base = 'border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent);'
+            + ' overflow: hidden; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;'
+        return this.fillHeightPx != undefined
+            ? `${base} height: ${this.fillHeightPx}px;`
+            : `${base} max-height: calc(100dvh - 12rem);`
+    }
+
     connectedCallback() {
         super.connectedCallback()
+        window.addEventListener('resize', this.windowResizeListener)
         this.resizeObserver = new ResizeObserver(entries => {
             const w = entries[0]?.contentRect.width
             if (w && Math.abs(w - this.availableWidthPx) > 10) {
@@ -171,10 +298,52 @@ export class MateuTableCrud extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback()
+        clearTimeout(this.loadingTimer)
+        window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
     }
 
+    /**
+     * When the rows were last asked for, while the answer has not arrived.
+     *
+     * A listing that is still fetching used to say "nothing here" — and it says it in the same
+     * words it uses for a search that genuinely found nothing, so the reader cannot tell "wait" from
+     * "there is nothing". Worse, a re-search CLEARS the rows it is about to replace, so the empty
+     * state appears every time somebody types in the filter bar.
+     *
+     * It is a timestamp rather than a flag because the answer may never come: a failed request
+     * shows its error in a toast, which the reader dismisses, and a skeleton left shimmering
+     * underneath would be a second lie on top of the first. Past the valve the listing goes back to
+     * saying what it actually knows.
+     */
+    @state()
+    private loadingSince?: number
+
+    private static readonly LOADING_VALVE_MS = 15_000
+
+    private loadingTimer?: ReturnType<typeof setTimeout>
+
+    /** The listing has asked for rows and is still waiting for them. */
+    private get awaitingRows(): boolean {
+        return this.loadingSince != undefined
+            && Date.now() - this.loadingSince < MateuTableCrud.LOADING_VALVE_MS
+    }
+
+    private beginLoading() {
+        this.loadingSince = Date.now()
+        clearTimeout(this.loadingTimer)
+        // Nothing else would re-render at the deadline, and a stale skeleton is what this exists
+        // to avoid.
+        this.loadingTimer = setTimeout(() => this.requestUpdate(), MateuTableCrud.LOADING_VALVE_MS)
+    }
+
+    private endLoading() {
+        this.loadingSince = undefined
+        clearTimeout(this.loadingTimer)
+    }
+
     search = () => {
+        this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: metadata.pageSize, page: 0, crud_selected_items: [] }
         this._syncStateToUrl(metadata)
@@ -280,9 +449,16 @@ export class MateuTableCrud extends LitElement {
         this.state = { ...this.state, crud_selected_items: [] }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this._syncStateToUrl(metadata)
+        // @RestListing: fetch the rows CLIENT-SIDE from the external endpoint instead of dispatching
+        // the server `search` action — the listing surface of consuming non-Mateu endpoints.
+        if (metadata.rowsSource) {
+            this._fetchRowsFromRest(metadata, callback)
+            return
+        }
         if (!metadata.infiniteScrolling && this.data?.[this.id]?.page) {
             this.data[this.id].page.content = []
         }
+        this.beginLoading()
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
@@ -292,6 +468,49 @@ export class MateuTableCrud extends LitElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    // Fetch the listing's rows from its external REST endpoint and shape them into the page the
+    // renderer expects (one object per row keyed by column id). Free-text search and pagination are
+    // applied IN MEMORY over the fetched rows (the interpolated url also carries ${searchText}/
+    // ${page}/${size}, so an endpoint that supports server-side search/paging gets them too).
+    private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
+        const columnIds = this.cols.map(c => c.id).filter(Boolean)
+        const src = metadata.rowsSource!
+        // Proxy mode: route the fetch through the Mateu server (no CORS, secrets injected
+        // server-side) via the reserved __restfetch__ action; direct otherwise. Both resolve to the
+        // same rows array, then in-memory search/paginate below.
+        const rowsPromise: Promise<Record<string, unknown>[]> = src.proxy
+            ? new Promise((resolve) => {
+                this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: '__restfetch__',
+                        parameters: { _sourceKind: 'rows', _sourceId: this.id },
+                        callback: (uiIncrement: any) => resolve(mapItemsToRows(uiIncrement?.appData?.['_restfetch'], src.itemsPath, columnIds)),
+                        callbackonly: true
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            })
+            : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
+        rowsPromise
+            .then((rows) => {
+                const q = String((this.state as any)?.searchText ?? '').trim().toLowerCase()
+                const filtered = q
+                    ? rows.filter(r => columnIds.some(id => String(r[id] ?? '').toLowerCase().includes(q)))
+                    : rows
+                const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
+                const page = Number((this.state as any)?.page ?? 0)
+                const content = filtered.slice(page * size, page * size + size)
+                this.data = {
+                    ...this.data,
+                    [this.id]: { page: { totalElements: filtered.length, pageSize: size, pageNumber: page, content } }
+                }
+                this.requestUpdate()
+                callback?.()
+            })
+            .catch((e) => { console.warn('mateu: external rows fetch failed', e); callback?.() })
     }
 
     fetchMoreElements = (e: CustomEvent) => {
@@ -316,6 +535,30 @@ export class MateuTableCrud extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        // A new listing is measured afresh, and the OLD fill height has to go first.
+        //
+        // Setting pendingMeasure alone was not enough: measureFill returns immediately while
+        // fillHeightPx is set, so navigating from one listing to another kept the height the
+        // previous one had been given — a short listing's box stayed short on a page that had
+        // room for twice as much. scheduleMeasure is the one that drops the height, which is the
+        // whole discipline here: lay the box out naturally, THEN measure.
+        //
+        // And nothing is measured on this pass. Dropping the height only takes effect on the next
+        // render, so measuring now would read the layout the previous fill produced — exactly the
+        // feedback loop this component was written to avoid.
+        const componentChanged = _changedProperties.has("component")
+        if (componentChanged) {
+            this.scheduleMeasure()
+        } else {
+            this.measureFill()
+            this.trimOverflow()
+        }
+        // A routed listing renders before its rows exist: the search is dispatched by the trigger
+        // on the component around it, so the only thing this element sees is that nobody has
+        // answered for its id yet.
+        if (this.data?.[this.id] != undefined) this.endLoading()
+        else if (this.loadingSince == undefined && this._initializedForComponentId != undefined
+            && !this.awaitingRows) this.beginLoading()
         if (_changedProperties.has("component")) {
             const componentId = this.component?.id
             if (componentId !== this._initializedForComponentId) {
@@ -331,7 +574,9 @@ export class MateuTableCrud extends LitElement {
                 const urlHasNonDefault = this.state.page !== defaultPage
                     || (this.state.sort?.length > 0)
                     || [...this._filterIds(metadata)].some(id => this.state[id] != null)
-                if (urlHasNonDefault) {
+                // An external-REST listing (@RestListing) fetches its rows CLIENT-SIDE on mount —
+                // there is no server OnLoad trigger for declarative listings.
+                if (urlHasNonDefault || metadata.rowsSource) {
                     this.handleSearchRequested(undefined)
                 }
             }
@@ -752,7 +997,18 @@ export class MateuTableCrud extends LitElement {
             return renderTree()
         }
 
-        const contentHtml = html`
+        // "Loading" and "empty" are different facts and must not share a screen. Waiting wins:
+        // the rows may still turn up, and until the server has said otherwise the listing does not
+        // know that there are none.
+        const contentHtml = rows.length === 0 && this.awaitingRows ? html`
+            <div role="status" aria-live="polite" aria-busy="true"
+                 style="padding: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box;">
+                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden;
+                             clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;"
+                >Loading…</span>
+                <mateu-skeleton variant="grid" count="6"></mateu-skeleton>
+            </div>
+        ` : html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
@@ -793,7 +1049,14 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+                <style>
+                    /* Scoped to the listing area: a grid field inside a FORM must keep sizing
+                       itself, so the fill is expressed here and never on the table component. */
+                    [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
+                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
+                </style>
+                <div data-crud-box style="${this.boxStyle()} width: 100%; box-sizing: border-box;">
                     <div style="flex-shrink: 0;">
                         <mateu-content-header
                             .metadata="${metadata}"
@@ -808,7 +1071,7 @@ export class MateuTableCrud extends LitElement {
                         <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
                         ${this.renderColumnChooser()}
                     </div>
-                    <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                    <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                     <div style="flex-shrink: 0;">${paginationHtml}</div>
                 </div>
             `
@@ -831,12 +1094,19 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </div>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+                <style>
+                    /* Scoped to the listing area: a grid field inside a FORM must keep sizing
+                       itself, so the fill is expressed here and never on the table component. */
+                    [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
+                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
+                </style>
+            <div data-crud-box style="${this.boxStyle()}">
                 <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
                 </div>
-                <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                 <div style="flex-shrink: 0;">${paginationHtml}</div>
             </div>
         `

@@ -39,6 +39,7 @@ public record FormFieldDto(
     boolean bold,
     List<OptionDto> options,
     RemoteCoordinatesDto remoteCoordinates,
+    RestDataSourceDto optionsSource,
     Object initialValue,
     boolean readOnly,
     boolean required,

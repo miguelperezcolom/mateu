@@ -6,7 +6,6 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
 import jakarta.inject.Named;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -22,7 +21,6 @@ public class ImportActionRunner implements ActionRunner {
     return 50;
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var uploadEnabled = (UploadEnabled) instance;

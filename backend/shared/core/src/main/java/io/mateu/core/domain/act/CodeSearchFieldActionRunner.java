@@ -22,7 +22,6 @@ import jakarta.inject.Named;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.UUID;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -38,7 +37,6 @@ public class CodeSearchFieldActionRunner implements ActionRunner {
     return actionId != null && actionId.startsWith("codesearch-");
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();

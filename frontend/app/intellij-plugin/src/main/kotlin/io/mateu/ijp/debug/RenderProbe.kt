@@ -102,6 +102,8 @@ private fun dump(c: JComponent, depth: Int) {
             (0 until c.rowCount).joinToString(" | ") { r ->
                 (0 until c.columnCount).joinToString(",") { col -> "${c.getValueAt(r, col)}" }
             }
+        is javax.swing.JComboBox<*> -> " combo items=${c.itemCount} selected='${c.selectedItem}'" +
+            (0 until c.itemCount).joinToString(",", " [", "]") { "${c.getItemAt(it)}" }
         is javax.swing.JLabel -> " text='${c.text}'"
         is javax.swing.AbstractButton -> " text='${c.text}'"
         is javax.swing.text.JTextComponent -> " text='${c.text.take(40)}'"
@@ -139,5 +141,11 @@ private fun bootstrap() {
         val laf = Class.forName("com.intellij.ide.ui.laf.darcula.DarculaLaf")
             .getDeclaredConstructor().newInstance() as javax.swing.LookAndFeel
         UIManager.setLookAndFeel(laf)
-    }.onFailure { System.err.println("[probe] Darcula failed (${it.message}), default L&F") }
+    }.onFailure {
+        // The system L&F (Aqua on macOS) is not module-accessible under newer JDKs, leaving no
+        // ComponentUI and a blank render — fall back to the cross-platform (Metal) L&F so the probe
+        // still paints on any environment.
+        System.err.println("[probe] Darcula failed (${it.message}), cross-platform L&F")
+        runCatching { UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()) }
+    }
 }

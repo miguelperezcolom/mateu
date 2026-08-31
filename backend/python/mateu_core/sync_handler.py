@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import inspect
+import json
+import os
+import re
+import urllib.error
+import urllib.request
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -13,10 +19,12 @@ from mateu_dtos import (
     ButtonMetadata,
     ClientSideComponent,
     CustomEventRecord,
+    FormFieldMetadata,
     DialogMetadata,
     DrawerMetadata,
     HorizontalLayoutMetadata,
     Message as MessageDto,
+    ServerSideComponent,
     TextMetadata,
     UICommand,
     UIFragment,
@@ -72,7 +80,9 @@ from .mapper import (
 )
 from .naming import camel_case, humanize
 from .reflection import view_fields
-from .registry import MateuRegistry, normalize
+from .registry import MateuRegistry, normalize, type_name
+from .route_registry import RouteRegistry
+from .yaml_spec_loader import YamlSpecLoader
 
 
 def _sort_key(value):
@@ -108,6 +118,11 @@ class RunActionRq(BaseModel):
     route: str | None = None
     server_side_type: str | None = None
     server_side_component_route: str | None = None
+    #: The structure hash (ETag) the client already holds for this route (phase b of the client
+    #: structure cache). When it matches the hash of the structure the server would send, the
+    #: server omits the component and replies with only state/data. None = full structure
+    #: (mirrors io.mateu.dtos.RunActionRqDto.knownStructureHash).
+    known_structure_hash: str | None = None
 
 
 # The event the edit_in_drawer drawer emits on save: the listing refreshes by re-running its
@@ -116,14 +131,41 @@ SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer"
 
 
 class SyncHandler:
-    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None):
+    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None, secrets_provider=None):
         self.registry = registry
         self.mapper = ReflectionMapper(translator, identity_provider)
+        #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
+        self._secrets = secrets_provider
+        #: The mount's authored route registry (specs/ui/routes.yaml). Shared with the spec loader
+        #: so both see one table.
+        self.routes = RouteRegistry()
+        self.yaml_specs = YamlSpecLoader(registry=self.routes)
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # 0. Audience projection: the appState value under "audience" (the @app_context selector
         # named audience) filters Audience()-marked members for the whole request.
         set_current_audience(rq.app_state.get("audience"))
+
+        # 0b. Visual-builder contract: the ModelView's bindable fields + actions instead of a render
+        # (the tooling POSTs a sync request with the ModelView as serverSideType and this action;
+        # mirrors Java's __contract__ reserved action).
+        if rq.action_id == "__contract__" and rq.server_side_type:
+            cls = self.registry.resolve(rq.server_side_type, rq.route)
+            if cls is not None:
+                return self._contract_response(cls, rq)
+
+        # 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview
+        # pane POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors
+        # Java's __preview__ reserved action / YamlUidlLoader.parseText).
+        if rq.action_id == "__preview__" and rq.parameters.get("_yaml"):
+            return self._preview_response(rq.parameters["_yaml"], rq)
+
+        # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
+        # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
+        # inject ${secret.X} and fetch server-side, returning the raw JSON on app_data._restfetch
+        # (mirrors Java's __restfetch__ reserved action).
+        if rq.action_id == "__restfetch__":
+            return self._rest_fetch_response(rq)
 
         # 1. App shell at the root route.
         if not rq.action_id:
@@ -143,9 +185,45 @@ class SyncHandler:
         if lst is not None:
             return self.handle_listing(*lst, rq)
 
-        type_ = self.registry.resolve(rq.server_side_type, rq.route)
+        # The AUTHORED registry answers before the decorator-declared views — explicit beats
+        # derived, the same precedence the layout and page inference already use. Its parameters are
+        # folded into the component state here, at the single point every downstream step reads:
+        #
+        #   fixed > client state > path > defaults
+        #
+        # The fixed ones are re-applied on the SERVER rather than trusted from the client, because
+        # route resolution also runs in the browser (a statically deployed mount has no server to
+        # ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        route_match = self.routes.match(rq.route)
+        type_ = None
+        if route_match is not None:
+            rq = rq.model_copy(
+                update={"component_state": route_match.params(rq.component_state or {})}
+            )
+            if route_match.entry.view_model:
+                type_ = self.registry.type_by_name(route_match.entry.view_model)
+        if type_ is None:
+            type_ = self.registry.resolve(rq.server_side_type, rq.route)
+        yaml_spec = self.yaml_specs.load_spec(rq.route)
+        if type_ is None and yaml_spec is not None:
+            # A route with no view class → a YAML page. A bare layout renders as a static, unbound
+            # page; a page that declares modelView: instantiates that logic class (state + actions)
+            # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
+            if not yaml_spec.model_view:
+                return self.fragment_response(
+                    rq.route or "", self.mapper.map_component(yaml_spec.layout), rq
+                )
+            type_ = self.registry.type_by_name(yaml_spec.model_view)
         if type_ is None:
             return self.error(f"Route not found: {rq.route}")
+        # A YAML page bound to this modelView re-applies its layout on every render (first load AND
+        # any in-place re-render) so the layout stays authoritative (mirrors Java's
+        # ReflectionObjectToComponentMapper.layout_for_route).
+        layout_override = (
+            yaml_spec.layout
+            if yaml_spec is not None and yaml_spec.model_view == type_name(type_)
+            else None
+        )
 
         # 2b. The notification inbox's app-level actions — dispatched with the app's
         # serverSideType (the same rail as the @app_context pickers' remote search), exempt
@@ -174,7 +252,7 @@ class SyncHandler:
         if rq.action_id and rq.action_id.startswith("codesearch-"):
             return self.field_code_search(type_, rq)
         if not rq.action_id:
-            return self.render(type_, instance, rq)
+            return self.render(type_, instance, rq, layout_override)
         # 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
         # filtering and record switching mutate the bound state and re-render the tree — no
         # navigation, no method dispatch.
@@ -1381,14 +1459,138 @@ class SyncHandler:
             ]
         )
 
-    def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
+    def render(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
         return self.fragment_response(
             self.title(type_),
-            self.mapper.map_view(type_, instance, route),
+            self.mapper.map_view(type_, instance, route, layout_override),
             rq,
             self.lookup_labels(type_, instance, instance),
         )
+
+    # ── Visual-builder live preview ────────────────────────────────────────────
+    def _preview_response(self, yaml_text: str, rq: RunActionRq) -> UIIncrement:
+        from mateu_core.yaml_preview import build_from_yaml
+        from mateu_uidl import components as fluent
+
+        tree = build_from_yaml(yaml_text) or fluent.Text(text="Invalid YAML")
+        return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
+
+    # ── Proxy-mode external fetch (__restfetch__) ───────────────────────────────
+    def _rest_fetch_response(self, rq: RunActionRq) -> UIIncrement:
+        """Resolve the DECLARED source of the routed view by _sourceKind/_sourceId, interpolate
+        ${state.x}/${secret.X}, fetch server-side and return the raw JSON on app_data._restfetch
+        (an empty object on any failure — the renderer maps it as in direct mode)."""
+        json_obj: Any = {}
+        cls = self.registry.resolve(rq.server_side_type, rq.route)
+        if cls is not None:
+            kind = rq.parameters.get("_sourceKind")
+            source_id = rq.parameters.get("_sourceId")
+            source = self.mapper.resolve_rest_source(cls, kind, source_id)
+            if source is not None:
+                json_obj = self._fetch_proxy(source, rq.component_state)
+        return UIIncrement(app_data={"_restfetch": json_obj})
+
+    def _fetch_proxy(self, source, state: dict) -> Any:
+        """Fetch a resolved source server-side (url/headers/body interpolated); an empty object on
+        any non-2xx or transport error."""
+        try:
+            url = self._interpolate(source.url, state)
+            method = (source.method or "GET").upper()
+            data = None
+            if method not in ("GET", "HEAD") and source.body:
+                data = self._interpolate(source.body, state).encode()
+            req = urllib.request.Request(url, data=data, method=method)
+            req.add_header("Accept", "application/json")
+            for name, value in (source.headers or {}).items():
+                req.add_header(name, self._interpolate(value, state))
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                if resp.status >= 400:
+                    return {}
+                return json.loads(resp.read().decode())
+        except (urllib.error.URLError, ValueError, OSError):
+            return {}
+
+    def _resolve_secret(self, key: str) -> str | None:
+        """Resolve a secret: the injected provider first, then the same-named env var."""
+        if self._secrets is not None:
+            value = self._secrets(key)
+            if value is not None:
+                return value
+        return os.environ.get(key)
+
+    def _interpolate(self, template: str | None, state: dict) -> str:
+        """Interpolate ${state.x}/${secret.X} placeholders (unknown → empty)."""
+        if not template:
+            return template or ""
+
+        def repl(m: re.Match) -> str:
+            expr = m.group(1).strip()
+            if expr.startswith("state."):
+                v = state.get(expr[6:])
+                return "" if v is None else str(v)
+            if expr.startswith("secret."):
+                return self._resolve_secret(expr[7:]) or ""
+            return ""
+
+        return re.sub(r"\$\{([^}]+)\}", repl, template)
+
+    # ── ModelView contract ─────────────────────────────────────────────────────
+    def _contract_response(self, cls, rq: RunActionRq) -> UIIncrement:
+        instance = cls()
+        self.bind_state(instance, rq.component_state)
+        component = self.mapper.map_view(cls, instance, rq.consumed_route or "_empty")
+        fields: list[dict] = []
+        seen: set[str] = set()
+        self._collect_fields(component, fields, seen)
+        action_ids: list[str] = []
+        for action in component.actions or []:
+            aid = getattr(action, "id", None)
+            if aid and aid not in action_ids:
+                action_ids.append(aid)
+        contract = {
+            "modelView": component.server_side_type,
+            "fields": fields,
+            "actions": [{"id": aid} for aid in action_ids],
+        }
+        return UIIncrement(app_data={"_contract": contract})
+
+    # A form field is the metadata of a ClientSideComponent — but components nest inside METADATA
+    # records too (a Page/Form/Card holds its content there), so descend into metadata as well.
+    def _collect_fields(self, component, fields: list[dict], seen: set[str]) -> None:
+        if isinstance(component, ClientSideComponent):
+            md = component.metadata
+            if isinstance(md, FormFieldMetadata) and md.field_id and md.field_id not in seen:
+                seen.add(md.field_id)
+                fields.append({
+                    "id": md.field_id,
+                    "dataType": md.data_type,
+                    "stereotype": md.stereotype,
+                    "label": md.label,
+                    "required": md.required,
+                    "readOnly": md.read_only,
+                })
+            self._walk_metadata(md, fields, seen)
+            for child in component.children:
+                self._collect_fields(child, fields, seen)
+        elif isinstance(component, ServerSideComponent):
+            for child in component.children:
+                self._collect_fields(child, fields, seen)
+
+    def _walk_metadata(self, md, fields: list[dict], seen: set[str]) -> None:
+        if md is None:
+            return
+        for name in getattr(type(md), "model_fields", {}):
+            try:
+                value = getattr(md, name)
+            except Exception:
+                continue
+            if isinstance(value, (ClientSideComponent, ServerSideComponent)):
+                self._collect_fields(value, fields, seen)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, (ClientSideComponent, ServerSideComponent)):
+                        self._collect_fields(item, fields, seen)
 
     def run_action(self, type_, instance, rq: RunActionRq) -> UIIncrement:
         name = self._resolve_action(type_, rq.action_id)
@@ -1507,10 +1709,42 @@ class SyncHandler:
 
     def fragment_response(self, title: str, component, rq: RunActionRq | None = None, data=None) -> UIIncrement:
         t = self.target(rq)
+        component = self._stamp_or_strip_structure(component, rq)
         return UIIncrement.of(
             commands=[UICommand(target_component_id=t, type="SetWindowTitle", data=title)],
             fragments=[UIFragment(target_component_id=t, component=component, data=data, action="Replace")],
         )
+
+    @staticmethod
+    def _stamp_or_strip_structure(component, rq: RunActionRq | None):
+        """Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
+        component with a stable hash of its structure and, when the client echoed a still-matching
+        hash, omit the component so only state/data travel (the frontend merges them onto its
+        cached structure). known_structure_hash is only ever sent on a route load, so an action
+        re-render can never accidentally strip. Mirrors io.mateu StructureHashPostProcessor."""
+        if not isinstance(component, ServerSideComponent):
+            return component
+        h = SyncHandler._structure_hash(component)
+        known = rq.known_structure_hash if rq else None
+        # A @static_view is never omitted: the client caches its FULL response the first time it
+        # sees it each session and then skips the round-trip entirely, so it must always receive
+        # the component (carrying static_view=True) to learn that.
+        if known and known == h and not component.static_view:
+            return None
+        return component.model_copy(update={"structure_hash": h})
+
+    @staticmethod
+    def _structure_hash(component: ServerSideComponent) -> str:
+        # Normalize away the two per-request fields before hashing so the SAME structure always
+        # hashes the same: the top-level id is a fresh value each request (an instance id, not
+        # structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
+        # client only ever echoes the server's hash, so blanking id here is symmetric. sort_keys
+        # gives a canonical order at every nesting level.
+        data = component.model_copy(update={"id": "", "structure_hash": None}).model_dump(
+            by_alias=True, mode="json"
+        )
+        canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def lookup_labels(self, cls, instance, supplier_host) -> dict | None:
         """Display labels for reference fields whose value is already set when the form renders:

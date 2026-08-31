@@ -155,4 +155,13 @@ class RemoteMenuRootDeepLinkSyncTest {
     assertThat(app).isNotNull();
     assertThat(app.homeRoute()).isEqualTo("/disponibilidad");
   }
+
+  @Test
+  void recordDeepLinkKeepsBeingStrippedWhenTheRemoteDeclaresItsRoutesUnprefixed() {
+    // The counterpart of the prefixed case: here the record lives under an UNPREFIXED menu route,
+    // so the one the remote claims is the stripped one — id included.
+    var app = shellApp(viaUrl("/distribucion/disponibilidad/2026-08-20"));
+    assertThat(app).isNotNull();
+    assertThat(app.homeRoute()).isEqualTo("/disponibilidad/2026-08-20");
+  }
 }

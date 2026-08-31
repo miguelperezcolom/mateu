@@ -85,7 +85,7 @@ user wants); numeric ranges are opt-in via `@RangeFilter` on the entity field; e
 multi-selects by default (picking a single value behaves exactly like equality). Because every
 condition lives in flat state keys, the URL keeps capturing the full listing state — bookmarks and
 shared links restore ranges and multi-selections too. There is nothing to configure on the
-frontend — every renderer that ships the shared filter bar (Vaadin, SAP UI5) gets this
+frontend — every renderer that ships the shared filter bar (Vaadin) gets this
 UX, and the Redwood renderer implements the same pattern with its own design system.
 
 ## Structure

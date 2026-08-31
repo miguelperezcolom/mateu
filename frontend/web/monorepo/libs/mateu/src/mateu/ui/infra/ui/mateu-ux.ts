@@ -17,8 +17,11 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -100,6 +103,33 @@ export class MateuUx extends ConnectedElement {
      */
     private pendingRouteFocus = false
     private hasRenderedContent = false
+
+    /**
+     * Key of the route whose AUTHORITATIVE structure this ux is currently showing (set when a
+     * real fragment lands). Guards the cache seed: we only paint a cached structure when moving
+     * to a DIFFERENT route — never when re-loading the one already on screen (e.g. an `instant`
+     * self-refresh), where blowing the live content away for a data-less skeleton would be a
+     * regression.
+     */
+    private lastAuthoritativeKey: string | undefined
+
+    /**
+     * The server's structure ETag for the structure this ux currently shows (seeded from cache or
+     * set when a real fragment lands). Echoed as knownStructureHash on the next load so the server
+     * can reply state-only when the structure is unchanged (phase b). Undefined = full structure.
+     */
+    private currentStructureHash: string | undefined
+
+    /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
+    private structureCacheKey(): string {
+        return structureCacheKey({
+            baseUrl: this.baseUrl,
+            consumedRoute: this.consumedRoute,
+            route: this.route,
+            serverSideType: this.serverSideType,
+            initialState: this.initialState,
+        })
+    }
 
     private focusNewContent() {
         requestAnimationFrame(() => {
@@ -227,6 +257,7 @@ export class MateuUx extends ConnectedElement {
         sse: boolean
         timeoutMillis?: number
         idempotent?: boolean
+        knownStructureHash?: string
         callback: ((result?: unknown) => void) | undefined
         callbackonly: boolean
         callbackToken: string
@@ -248,6 +279,7 @@ export class MateuUx extends ConnectedElement {
             sse: boolean
             timeoutMillis?: number
             idempotent?: boolean
+            knownStructureHash?: string
             callback: ((result?: unknown) => void) | undefined
             callbackonly: boolean
             callbackToken: string
@@ -272,8 +304,10 @@ export class MateuUx extends ConnectedElement {
                 detail.callback,
                     detail.callbackonly,
                     detail.callbackToken,
-                    // Per-action transport knobs declared on the wire (@Action).
-                    {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent});
+                    // Per-action transport knobs declared on the wire (@Action), plus the structure
+                    // ETag for a route load (phase b of the client structure cache).
+                    {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent,
+                        knownStructureHash: detail.knownStructureHash});
         }
     }
 
@@ -341,7 +375,42 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('instant')) {
             if (!this.preventNavigation) {
                 this.callbackToken = this.instant || nanoid()
-                this.manageActionEvent(new CustomEvent('server-side-action-requested', {
+                // Predict the screen's structure from the client cache so its real layout paints
+                // immediately instead of a generic skeleton. This is a PREDICTION: the server
+                // request below still fires and its authoritative fragment overwrites this seed
+                // in applyFragment (stale-while-revalidate). Structure only — state/data stay
+                // empty and arrive fresh from the server, so no stale business data is shown.
+                // Skipped when re-loading the route already on screen, to preserve its live
+                // content (see lastAuthoritativeKey). See routeStructureCache.ts.
+                const cacheKey = this.structureCacheKey()
+                // A @StaticView already loaded this session: its whole response never varies, so
+                // render the cached full fragment and SKIP the server round-trip entirely. Deferred
+                // to a microtask so it lands after this synchronous updated() sets pendingRouteFocus
+                // below — exactly as a real server response would, so focus still follows the route.
+                const staticFull =
+                    cacheKey !== this.lastAuthoritativeKey ? getStaticFragment(cacheKey) : undefined
+                if (staticFull) {
+                    queueMicrotask(() => this.applyFragment(staticFull))
+                } else {
+                    if (cacheKey !== this.lastAuthoritativeKey) {
+                        // Fresh navigation: seed from cache (if any) and adopt its ETag; a miss clears
+                        // the ETag so we don't echo the previous route's hash. When re-loading the SAME
+                        // route (key unchanged) we keep both the live content AND its hash, so the
+                        // request still carries knownStructureHash and the server can reply state-only.
+                        const cached = getCachedStructure(cacheKey)
+                        this.currentStructureHash = cached?.hash
+                        if (cached) {
+                            this.fragment = {
+                                targetComponentId: this.id,
+                                component: cached.component,
+                                state: {},
+                                data: {},
+                                action: UIFragmentAction.Replace,
+                                containerId: undefined,
+                            }
+                        }
+                    }
+                    this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
                         route: this.route,
                         consumedRoute: this.consumedRoute,
@@ -351,11 +420,15 @@ export class MateuUx extends ConnectedElement {
                         initiatorComponentId: this.id,
                         initiator: this,
                         componentState: this.initialState,
+                        // ETag the client already holds for this route → the server omits the
+                        // structure and replies state-only when it still matches (phase b).
+                        knownStructureHash: this.currentStructureHash,
                         callbackToken: this.callbackToken
                     },
                     bubbles: true,
                     composed: true
                 }))
+                }
             }
         }
         if (_changedProperties.has('route') && !!this.top) {
@@ -392,6 +465,25 @@ export class MateuUx extends ConnectedElement {
         }
         this.fragment = fragment
         if (fragment.component) {
+            // Cache the authoritative STRUCTURE so the next visit to this route can paint it
+            // instantly. Overlay pushes (Add) are not route content — skip them. Remember the
+            // key so an in-place re-load of this same route won't reseed a data-less structure
+            // over the live content.
+            if (fragment.action !== UIFragmentAction.Add) {
+                const cacheKey = this.structureCacheKey()
+                // Store the server's ETag next to the structure and remember it as the one now on
+                // screen, so the next load of this route echoes it and the server can reply
+                // state-only (phase b). Non-server components carry no hash → undefined.
+                const hash = (fragment.component as ServerSideComponent).structureHash
+                putCachedStructure(cacheKey, fragment.component, hash)
+                this.lastAuthoritativeKey = cacheKey
+                this.currentStructureHash = hash
+                // A @StaticView: cache the WHOLE fragment (structure + state + data) for the session
+                // so the next visit renders from cache and skips the round-trip entirely.
+                if ((fragment.component as ServerSideComponent).staticView) {
+                    putStaticFragment(cacheKey, fragment)
+                }
+            }
             if (this.pendingRouteFocus && this.hasRenderedContent) {
                 this.focusNewContent()
             }
@@ -452,13 +544,18 @@ export class MateuUx extends ConnectedElement {
 
         /* Anatomía de anchos RDS (data-page-width — el valor RESUELTO fixed|full|edge que
            applyFragment estampa en el host): fixed = columna de contenido con tope RDS
-           (1408px) centrada; full = fluido sin tope (el comportamiento por defecto del
-           host); edge = a sangre — los gutters del shell caen por el hook no-padding
-           (compact-changed) y el header de mateu-page conserva el suyo. Solo aplica al
-           mateu-ux de CONTENIDO: el ux raíz del app shell resuelve 'edge'. */
+           (1408px) centrada; full = fluido sin tope pero CON gutter de 24px siempre (el
+           contenido posee el gutter — así una página SUELTA sin app-shell no queda a sangre
+           por accidente; dentro de un app-shell el shell ya aporta su propio padding); edge =
+           a sangre — los gutters del shell caen por el hook no-padding (compact-changed) y el
+           header de mateu-page conserva el suyo. Solo aplica al mateu-ux de CONTENIDO. */
         :host([data-page-width='fixed']) {
             max-width: min(1408px, 100%);
             margin-inline: auto;
+        }
+        :host([data-page-width='full']) {
+            box-sizing: border-box;
+            padding-inline: 24px;
         }
 
         /* Loading placeholder for a route with nothing on screen yet. */

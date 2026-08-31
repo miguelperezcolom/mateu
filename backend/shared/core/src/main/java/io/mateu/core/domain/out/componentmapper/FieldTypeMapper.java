@@ -170,6 +170,10 @@ public class FieldTypeMapper {
       }
       return FieldStereotype.select;
     }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.RestOptions.class)) {
+      // options fetched client-side from an arbitrary REST endpoint → a select
+      return FieldStereotype.select;
+    }
     if (MetaAnnotations.isPresent(field, Lookup.class)) {
       return FieldStereotype.combobox;
     }

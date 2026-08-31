@@ -30,4 +30,19 @@ export default interface ServerSideComponent extends Component {
      */
     pageType?: string | undefined
 
+    /**
+     * Stable content hash (ETag) of this component's structure (phase b of the client structure
+     * cache). Stored next to the cached structure and echoed back as the request's
+     * knownStructureHash; when it still matches, the server omits the component and the client
+     * reuses its cache. undefined only from old backends.
+     */
+    structureHash?: string | undefined
+
+    /**
+     * The view is declared @StaticView: its full response never varies, so the client caches the
+     * whole fragment for the session and skips the round-trip on return visits (phase b, static
+     * skip). A developer promise; false/undefined unless declared.
+     */
+    staticView?: boolean | undefined
+
 }

@@ -1,15 +1,27 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Mateu.Dtos;
 using Mateu.Uidl;
 
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null)
+public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
+    Func<string, string?>? secrets = null)
 {
+    private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+
     private readonly ReflectionMapper _mapper = new(translator, identity);
+    /// <summary>The mount's authored route registry (specs/ui/routes.yaml).</summary>
+    private readonly RouteRegistry _routes = new();
+
+    /// <summary>The loader builds its OWN registry: a field initialiser cannot reference another
+    /// instance field, and routes.yaml is a small file each side parses once and caches, so sharing
+    /// the instance is not worth a constructor just for it.</summary>
+    private readonly YamlSpecLoader _yaml = new();
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
@@ -17,6 +29,30 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // named audience) filters [Audience]-marked members for the whole request.
         ReflectionMapper.SetCurrentAudience(
             rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
+
+        // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
+        // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
+        // action (mirrors Java's __contract__ reserved action).
+        if (rq.ActionId == "__contract__" && !string.IsNullOrEmpty(rq.ServerSideType)
+            && registry.Resolve(rq.ServerSideType, rq.Route) is { } contractType)
+            return ContractResponse(contractType, rq);
+
+        // 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview pane
+        // POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors Java's
+        // __preview__ reserved action / YamlUidlLoader.parseText).
+        if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
+        {
+            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "")
+                              ?? new Text("Invalid YAML");
+            return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
+        }
+
+        // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
+        // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
+        // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
+        // (mirrors Java's __restfetch__ reserved action).
+        if (rq.ActionId == "__restfetch__")
+            return RestFetchResponse(rq);
 
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
@@ -35,8 +71,40 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (ResolveCapability(rq) is { } cap)
             return HandleCapabilityListing(cap.Profile, cap.BaseRoute, rq);
 
-        var type = registry.Resolve(rq.ServerSideType, rq.Route);
+        // The AUTHORED registry answers before the attribute-declared views — explicit beats
+        // derived, the same precedence the layout and page inference already use. Its parameters are
+        // folded into the component state here, at the single point every downstream step reads:
+        //
+        //   fixed > client state > path > defaults
+        //
+        // The fixed ones are re-applied on the SERVER rather than trusted from the client, because
+        // route resolution also runs in the browser (a statically deployed mount has no server to
+        // ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        Type? type = null;
+        if (_routes.Match(rq.Route) is { } routeMatch)
+        {
+            rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState) };
+            if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
+                type = registry.TypeByName(routeMatch.Entry.ViewModel);
+        }
+        type ??= registry.Resolve(rq.ServerSideType, rq.Route);
+        var yamlSpec = _yaml.LoadSpec(rq.Route);
+        if (type is null && yamlSpec is not null)
+        {
+            // A route with no view class → a YAML page. A bare layout renders as a static, unbound
+            // page; a page that declares modelView: instantiates that logic class (state + actions)
+            // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
+            if (string.IsNullOrEmpty(yamlSpec.ModelView))
+                return yamlSpec.Layout is { } bare
+                    ? FragmentResponse(rq.Route ?? "", ComponentMapper.Map(bare), rq)
+                    : Error($"Route not found: {rq.Route}");
+            type = registry.TypeByName(yamlSpec.ModelView);
+        }
         if (type is null) return Error($"Route not found: {rq.Route}");
+        // A YAML page bound to this modelView re-applies its layout on every render (first load AND
+        // any in-place re-render) so the layout stays authoritative (mirrors Java's
+        // ReflectionObjectToComponentMapper.layoutForRoute).
+        var layoutOverride = yamlSpec?.ModelView == type.FullName ? yamlSpec!.Layout : null;
 
         // 2b. A declarative Listing — a read-only searchable listing with typed filters.
         if (ReflectionMapper.ListingTypes(type) is { } listing)
@@ -128,7 +196,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 return Render(type, instance, rq);
             }
         }
-        return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
+        return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq, layoutOverride) : RunAction(type, instance, rq);
     }
 
     private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
@@ -1144,6 +1212,65 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static object? GetState(Dictionary<string, object?>? state, string key)
         => state is not null && state.TryGetValue(key, out var v) ? v : null;
 
+    /// <summary>The __restfetch__ reserved action: resolve the DECLARED source of the routed view by
+    /// _sourceKind/_sourceId, interpolate ${state.x}/${secret.X}, fetch server-side and return the
+    /// raw JSON on appData._restfetch (an empty object on any failure — the renderer maps it as in
+    /// direct mode).</summary>
+    private UIIncrementDto RestFetchResponse(RunActionRqDto rq)
+    {
+        object? json = new Dictionary<string, object?>();
+        if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
+        {
+            var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
+            var id = StateString(GetState(rq.Parameters, "_sourceId"));
+            if (ReflectionMapper.ResolveRestSource(type, kind, id) is { } source)
+                json = FetchProxy(source, rq.ComponentState) ?? new Dictionary<string, object?>();
+        }
+        return new UIIncrementDto([], [], [], [], false,
+            new Dictionary<string, object?> { ["_restfetch"] = json }, null);
+    }
+
+    /// <summary>Fetch a resolved source server-side (url/headers/body interpolated); null on any
+    /// non-2xx or transport error.</summary>
+    private object? FetchProxy(RestDataSourceDto source, Dictionary<string, object?> state)
+    {
+        try
+        {
+            var url = Interpolate(source.Url, state, ResolveSecret);
+            var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
+            using var req = new HttpRequestMessage(new HttpMethod(method), url);
+            if (source.Headers is not null)
+                foreach (var (k, v) in source.Headers)
+                    req.Headers.TryAddWithoutValidation(k, Interpolate(v, state, ResolveSecret));
+            if (method is not "GET" and not "HEAD" && !string.IsNullOrWhiteSpace(source.Body))
+                req.Content = new StringContent(Interpolate(source.Body, state, ResolveSecret) ?? "");
+            using var resp = RestHttp.Send(req);
+            if ((int)resp.StatusCode >= 400) return null;
+            using var reader = new StreamReader(resp.Content.ReadAsStream());
+            return JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd());
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Resolve a secret: the injected provider first, then the same-named env var.</summary>
+    private string? ResolveSecret(string key) => secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(key);
+
+    /// <summary>Interpolate ${state.x}/${secret.X} placeholders (unknown → empty).</summary>
+    private static string Interpolate(string? template, Dictionary<string, object?> state, Func<string, string?> secrets)
+    {
+        if (string.IsNullOrEmpty(template)) return template ?? "";
+        return Regex.Replace(template, @"\$\{([^}]+)\}", m =>
+        {
+            var expr = m.Groups[1].Value.Trim();
+            if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
+            if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
+            return "";
+        });
+    }
+
     /// <summary>The id inside the calendar's <c>_clickedEvent</c> action parameter — a map
     /// {id, title, date, color} the frontend sends with every "openCalendarEvent" dispatch
     /// (mirrors Java reading httpRequest.runActionRq().parameters().get("_clickedEvent") as a Map).</summary>
@@ -1299,10 +1426,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), _mapper.MapApp(appType, requestBaseUrl), null, null, "Replace", null)]);
 
-    private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq)
+    private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route), rq,
+        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route, layoutOverride), rq,
             LookupLabels(type, instance, instance));
     }
 
@@ -1375,7 +1502,87 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto FragmentResponse(string title, ComponentDto component, RunActionRqDto rq, object? data = null) =>
         UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto(Target(rq), component, null, data, "Replace", null)]);
+            fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), null, data, "Replace", null)]);
+
+    // ── ModelView contract ─────────────────────────────────────────────────────
+    private UIIncrementDto ContractResponse(Type type, RunActionRqDto rq)
+    {
+        var instance = Activator.CreateInstance(type)!;
+        BindState(instance, rq.ComponentState);
+        var component = _mapper.MapView(type, instance, rq.ConsumedRoute ?? "_empty");
+        var fields = new List<ModelViewContractDto.Field>();
+        CollectFields(component, fields);
+        var actions = component.Actions
+            .Select(a => a.Id)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .Select(id => new ModelViewContractDto.Action(id))
+            .ToList();
+        var contract = new ModelViewContractDto(type.FullName ?? "", fields, actions);
+        return new UIIncrementDto([], [], [], [], false, new Dictionary<string, object?> { ["_contract"] = contract }, null);
+    }
+
+    // A form field is the metadata of a ClientSideComponentDto — but the components themselves nest
+    // inside METADATA records (a Page/Form/Card holds its content there), not always in Children, so
+    // descend into metadata reflectively too (mirrors Java's walk + walkMetadata).
+    private static void CollectFields(ComponentDto? component, List<ModelViewContractDto.Field> fields)
+    {
+        switch (component)
+        {
+            case ClientSideComponentDto client:
+                if (client.Metadata is FormFieldMetadataDto f && !string.IsNullOrEmpty(f.FieldId)
+                    && fields.All(x => x.Id != f.FieldId))
+                    fields.Add(new ModelViewContractDto.Field(f.FieldId, f.DataType, f.Stereotype, f.Label, f.Required, f.ReadOnly));
+                if (client.Metadata is { } md) WalkMetadata(md, fields);
+                foreach (var child in client.Children) CollectFields(child, fields);
+                break;
+            case ServerSideComponentDto server:
+                foreach (var child in server.Children) CollectFields(child, fields);
+                break;
+        }
+    }
+
+    private static void WalkMetadata(object metadata, List<ModelViewContractDto.Field> fields)
+    {
+        foreach (var prop in metadata.GetType().GetProperties())
+        {
+            object? value;
+            try { value = prop.GetValue(metadata); }
+            catch { continue; }
+            if (value is ComponentDto dto)
+                CollectFields(dto, fields);
+            else if (value is System.Collections.IEnumerable seq and not string)
+                foreach (var item in seq)
+                    if (item is ComponentDto d) CollectFields(d, fields);
+        }
+    }
+
+    // Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
+    // component with a stable hash of its structure and, when the client echoed a still-matching
+    // hash, omit the component so only state/data travel (the frontend merges them onto its cached
+    // structure). knownStructureHash is only ever sent on a route load, so an action re-render can
+    // never accidentally strip. Mirrors io.mateu StructureHashPostProcessor.
+    private static ComponentDto? StampOrStripStructure(ComponentDto component, RunActionRqDto rq)
+    {
+        if (component is not ServerSideComponentDto ss) return component;
+        var hash = StructureHashOf(ss);
+        // A [StaticView] is never omitted: the client caches its FULL response the first time it
+        // sees it each session and then skips the round-trip entirely, so it must always receive
+        // the component (carrying staticView=true) to learn that.
+        if (!ss.StaticView && rq.KnownStructureHash is { Length: > 0 } known && known == hash) return null;
+        return ss with { StructureHash = hash };
+    }
+
+    private static string StructureHashOf(ServerSideComponentDto component)
+    {
+        // Normalize away the two per-request fields before hashing so the SAME structure always
+        // hashes the same: the top-level id is a fresh Guid every request (an instance id, not
+        // structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
+        // client only ever echoes the server's hash, so nulling id here is symmetric.
+        var normalized = component with { Id = "", StructureHash = null };
+        var json = JsonSerializer.SerializeToUtf8Bytes<ComponentDto>(normalized, WebJson);
+        return Convert.ToHexString(SHA256.HashData(json)).ToLowerInvariant();
+    }
 
     /// <summary>Fragments and commands address the component that initiated the request (the
     /// web frontend's top ux id is "_ux" — Java echoes the initiator the same way).</summary>

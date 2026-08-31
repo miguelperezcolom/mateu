@@ -15,7 +15,6 @@ import jakarta.inject.Named;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
@@ -33,7 +32,6 @@ public class CodeFieldActionRunner implements ActionRunner {
     return actionId != null && actionId.startsWith("code-");
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();

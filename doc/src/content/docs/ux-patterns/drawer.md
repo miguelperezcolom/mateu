@@ -209,3 +209,62 @@ public class ContactsCrud extends AutoCrud<Contact> {
 The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
 
 Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
+
+## Redwood parameter and slot reference
+
+Redwood ships **five** drawer templates; one `Drawer` component covers them all in Mateu, so this
+table is grouped by template. The canonical page-header elements shared by every page template are
+documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+### `general-drawer-template`
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `drawerTitle` / `drawerSubtitle` | `headerTitle` / `subtitle` | ✅ |
+| `drawerSize: sm \| md \| lg \| xl` | `DrawerSize.s \| m \| l \| xl` (464 / 648 / 968 / 90vw); an explicit `width` overrides | ✅ |
+| `drawerState: auto \| closed \| maximized` | `maximizable` steps the drawer up the size ladder client-side | 🟡 |
+| `displayOptions.maximize` | `maximizable` | ✅ |
+| `nextItem` / `previousItem` + `spPrevious` / `spNext` | `peerNav` → `PeerNav` in the drawer header | ✅ |
+| **Slots** `header` + default | `header` / `content` (plus `footer`, a Mateu addition) | ✅ |
+| `closeAction` + `spClose` | ✕, Esc and the backdrop close it and emit **no** event by design (the "dismissed without saving" path) | 🟡 |
+| `displayOptions.header: auto \| tabsOnly` | — | — |
+| `displayOptions.goToParent` + `spGoToParent` | — | — |
+| — | `layout` (dock and **push** the content instead of overlaying) and `modeless` are Mateu additions | ✅ |
+
+### `create-edit-drawer-template`
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| Create/edit form in the drawer | `editInDrawer()` on any `AutoCrud`; the listing never unmounts | ✅ |
+| `primaryActionType: auto \| create` | derived from whether the row exists | ✅ |
+| `unsavedChanges` + `spUnsavedChangesDiscard` / `Cancel` | the framework's dirty guard covers it | ✅ |
+| `spPrimaryActionAndClose` | **Save** persists, closes the drawer and re-runs the listing's search | ✅ |
+| `spPrimaryActionAndNext` ("save and next" when editing a series over a listing) | — pairs naturally with the peer nav the drawer already has | — |
+| `displayErrorMessageBanner` + `errorMessage` (inline error banner on a failed save) | errors surface as toasts/alerts, not as a banner embedded in the drawer | 🟡 |
+
+### `bottom-drawer-template`
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| Bottom docking | `DrawerPosition.bottom` | ✅ |
+| `drawerState: … \| minimized` + `displayOptions.drawerMode: fixed \| closable` | `collapsible` | 🟡 |
+| `displayOptions {title, maximize}` | `headerTitle`, `maximizable` | ✅ |
+| `discoverability: on \| off` (peeks a tab so users find it) | — | — |
+| `spBeforeBottomDrawerStateChange` (cancelable) | — | — |
+
+### `guided-process-drawer-template`
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| A wizard inside a drawer | `EmbeddedView` + `Wizard` — see [Guided Process Drawer](#guided-process-drawer-a-wizard-in-a-drawer-embeddedview) | ✅ |
+| `processTitle`, `steps[]`, `currentStep`, `drawerSize` | from the embedded `Wizard` and the host `Drawer` | ✅ |
+| `introductionPanel {secondaryText, indexDisplay}` | — | — |
+| `spSkip`, `spBeforeStepNavigate`, `displayErrorMessageBanner` | same gaps as the page-level wizard — see [Wizard](/ux-patterns/wizard/#redwood-parameter-and-slot-reference) | — |
+
+### `configuration-drawer-template`
+
+The fifth drawer (a settings drawer: `drawerTitle/Subtitle`, `primaryAction`, `header` + default
+slots) has no dedicated Mateu piece, but its whole surface is a subset of the general drawer — build
+it with `Drawer` directly. ✅

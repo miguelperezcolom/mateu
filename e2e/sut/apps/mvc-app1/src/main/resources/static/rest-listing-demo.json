@@ -1,0 +1,11 @@
+{
+  "data": {
+    "countries": [
+      { "code": "ES", "name": "Spain", "population": 47 },
+      { "code": "FR", "name": "France", "population": 68 },
+      { "code": "DE", "name": "Germany", "population": 84 },
+      { "code": "IT", "name": "Italy", "population": 59 },
+      { "code": "PT", "name": "Portugal", "population": 10 }
+    ]
+  }
+}

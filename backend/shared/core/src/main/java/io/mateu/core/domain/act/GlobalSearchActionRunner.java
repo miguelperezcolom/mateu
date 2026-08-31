@@ -9,7 +9,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 /**
@@ -33,7 +32,6 @@ public class GlobalSearchActionRunner implements ActionRunner {
     return ACTION_ID.equals(actionId);
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var httpRequest = command.httpRequest();
@@ -54,7 +52,6 @@ public class GlobalSearchActionRunner implements ActionRunner {
   /**
    * The resolved instance may be the shell wrapper — the palette sends the app's serverSideType.
    */
-  @SneakyThrows
   private GlobalSearchSupplier findSupplier(Object instance, HttpRequest httpRequest) {
     if (instance instanceof GlobalSearchSupplier supplier) {
       return supplier;

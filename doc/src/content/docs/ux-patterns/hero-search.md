@@ -55,6 +55,29 @@ HeroSection.builder()
         .build()
 ```
 
+## Redwood parameter and slot reference
+
+What the Redwood `hero-search-page` template exposes, and what Mateu gives you for it. The canonical
+page-header elements shared by every template are documented once in
+[Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `pageTitle` | `heroTitle()` | ✅ |
+| `description` | `heroSubtitle()` | ✅ |
+| Hero background | `heroImage()` (dark overlay keeps the text readable) — a Mateu addition, the Redwood hero has no image prop | ✅ |
+| `collectionView: on \| off` | the listing always renders; it just starts empty until the user searches | 🟡 |
+| `selection` | row clicks dispatch the listing's own actions | 🟡 |
+| `avatar` | `PageDto.avatar/icon` on the canonical header | ✅ |
+| `suggestions[]` (suggestion chips under the search box) + `spSuggestionAction` | — | — |
+| `descriptionHotspot {label, data}` + `spDescriptionHotspotAction` (clickable text inside the description) | — the subtitle is plain text | — |
+| **Slot** default (results) | the listing; cards by default, `gridLayout()` to change it | ✅ |
+| **Slot** `searchTemplate` | the standard smart search bar, with the `Filters` fields as facets | ✅ |
+| **Slot** `detailTemplate` | — pair it with [collection detail](/ux-patterns/collection-detail/) when you need an in-place detail pane | — |
+| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+
 ## When to use it
 
 Use hero search when **searching is the task** and the page is an entry point (public catalogs, pickers, knowledge bases). Prefer a plain `AutoCrud`/`Listing` when the user works the collection (bulk edits, exports, dense scanning).

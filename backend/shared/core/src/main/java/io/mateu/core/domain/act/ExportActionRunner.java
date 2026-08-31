@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -38,7 +37,6 @@ public class ExportActionRunner implements ActionRunner {
     return 50;
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();
@@ -51,25 +49,31 @@ public class ExportActionRunner implements ActionRunner {
     String filename;
     String mimeType;
 
-    switch (actionId) {
-      case "export-excel" -> {
-        var exporter = beanProvider.getBean(ExcelExporter.class);
-        bytes = exporter.export(rows, columns, httpRequest);
-        filename = "export.xlsx";
-        mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    // the exporter interface declares `throws Exception` (IO/format failures) — surface it as
+    // itself
+    try {
+      switch (actionId) {
+        case "export-excel" -> {
+          var exporter = beanProvider.getBean(ExcelExporter.class);
+          bytes = exporter.export(rows, columns, httpRequest);
+          filename = "export.xlsx";
+          mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        case "export-pdf" -> {
+          var exporter = beanProvider.getBean(PdfExporter.class);
+          bytes = exporter.export(rows, columns, httpRequest);
+          filename = "export.pdf";
+          mimeType = "application/pdf";
+        }
+        default -> {
+          var exporter = beanProvider.getBean(CsvExporter.class);
+          bytes = exporter.export(rows, columns, httpRequest);
+          filename = "export.csv";
+          mimeType = "text/csv";
+        }
       }
-      case "export-pdf" -> {
-        var exporter = beanProvider.getBean(PdfExporter.class);
-        bytes = exporter.export(rows, columns, httpRequest);
-        filename = "export.pdf";
-        mimeType = "application/pdf";
-      }
-      default -> {
-        var exporter = beanProvider.getBean(CsvExporter.class);
-        bytes = exporter.export(rows, columns, httpRequest);
-        filename = "export.csv";
-        mimeType = "text/csv";
-      }
+    } catch (Exception e) {
+      throw e instanceof RuntimeException re ? re : new RuntimeException(e);
     }
 
     return Flux.just(

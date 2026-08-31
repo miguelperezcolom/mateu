@@ -10,17 +10,16 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 
 final class AppHomeRouteResolver {
 
-  @SneakyThrows
   static String getHomeRoute(
       AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
       Optional<Actionable> selectedOption) {
+
     // An embedded mediator (an orchestrator rendered as a form field) carries its own home route
     // and server-side type explicitly. Honour them verbatim so the host page's route context does
     // not leak in and the embedded <mateu-ux> loads the orchestrator's own route.
@@ -32,6 +31,17 @@ final class AppHomeRouteResolver {
       return embeddedRoute;
     }
     var effectiveRoute = route;
+    // A mediator asked for a record INSIDE its listing has already worked out its own home route:
+    // the whole path, id included. What arrives here as `route` is only the part route resolution
+    // consumed — the listing — so preferring it drops the record the link names and opens the list.
+    // Strictly more specific only: an equal route, or one that is not an extension of it, is left
+    // to the rules below.
+    if (app.homeRoute() != null
+        && !"".equals(route)
+        && app.homeRoute().startsWith(route)
+        && app.homeRoute().length() > route.length()) {
+      effectiveRoute = app.homeRoute();
+    }
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu) {
       effectiveRoute = app.homeRoute();
     } else {

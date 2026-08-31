@@ -30,6 +30,7 @@
     <module>demo-front-office-evolution</module>
     <module>demo-redwood-showcase</module>
     <module>demo-vb</module>
+    <module>demo-static-bundle</module>
     <module>explorer</module>
   </modules>
 

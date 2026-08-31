@@ -48,6 +48,55 @@ public sealed class UseRadioButtonsAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class LookupAttribute : Attribute;
 
+/// <summary>Fills a field's select options from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE: the renderer calls <see cref="Url"/> directly (no Mateu server mediating),
+/// navigates <see cref="ItemsPath"/> to the array in the JSON response and maps each item via
+/// <see cref="ValuePath"/>/<see cref="LabelPath"/>. The field renders as a select. Url/Headers/Body
+/// support <c>${state.x}</c> interpolation. (C# analogue of Java's @RestOptions.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class RestOptionsAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the array inside the response; blank means the root IS the array.</summary>
+    public string ItemsPath { get; init; } = "";
+    public string ValuePath { get; init; } = "value";
+    public string LabelPath { get; init; } = "label";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
+}
+
+/// <summary>Fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE: the renderer calls <see cref="Url"/> directly, navigates <see cref="ItemsPath"/>
+/// to the array in the JSON response and maps each item into a row by reading each COLUMN by its
+/// field name. Put it on a class implementing <c>IListing&lt;TRow&gt;</c>; its columns come from the
+/// TRow type as usual and its Fetch is never called. Url/Headers/Body support <c>${state.x}</c>
+/// interpolation. (C# analogue of Java's @RestListing.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class RestListingAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the array inside the response; blank means the root IS the array.</summary>
+    public string ItemsPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
+}
+
 /// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking
 /// the field fires <c>codesearch-&lt;fieldId&gt;</c>, which opens the given selector — a Listing
 /// implementing ISelector — in a modal; selecting a row writes its (id, label) back into the
@@ -179,6 +228,14 @@ public sealed class TocAttribute(bool value = true) : Attribute
 /// <summary>High-density rendering (condensed spacing) for information-dense screens.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;
+
+/// <summary>Marks a view whose FULL response — structure and data — never varies per request, user
+/// or time. The client caches the whole response for the session and skips the server round-trip
+/// on return visits (the last step of the client structure cache). A developer promise, like
+/// <c>[ActionOptions(Idempotent=…)]</c>; do NOT use it where content depends on data, the user,
+/// permissions, time or live-state interpolation. Mirrors io.mateu's <c>@StaticView</c>.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class StaticViewAttribute : Attribute;
 
 /// <summary>How a page's content column is sized within the viewport (the first parameter of the
 /// Oracle Redwood page templates; the names follow them). Selected with [PageWidth] or the

@@ -18,6 +18,95 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+// A select whose options come from an arbitrary REST endpoint, fetched client-side.
+[UI("rest-opts"), Title("Rest options")]
+public class RestOptsForm
+{
+    [RestOptions("https://api.example.com/countries",
+        Headers = ["Authorization: Bearer x"],
+        ItemsPath = "data.countries", ValuePath = "code", LabelPath = "name.common")]
+    public string Country { get; set; } = "";
+}
+
+// A listing whose rows come from an arbitrary REST endpoint, fetched client-side. Columns come
+// from the Row type; Search() is never called.
+[UI("rest-list"), Title("Rest listing"),
+ RestListing("https://api.example.com/countries?q=${state.searchText}",
+     Headers = ["Authorization: Bearer x"], ItemsPath = "data.countries")]
+public class RestList : Listing<RestList.Filters, RestList.Row>
+{
+    public class Filters { }
+
+    public class Row
+    {
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public long Population { get; set; }
+    }
+
+    public override ListingData<Row> Search(SearchRequest request) => ListingData.From<Row>([]);
+}
+
+// A button that calls a REST endpoint client-side (fetch + toast + merge into the form state).
+[UI("rest-action"), Title("Rest action")]
+public class RestActionForm
+{
+    public string? Zip { get; set; } = "28001";
+    public string? Street { get; set; }
+    public string? City { get; set; }
+
+    [Button, Label("Look up address")]
+    [RestAction("https://api.example.com/zip/${state.zip}", Method = "GET",
+        Headers = ["Authorization: Bearer x"], ResultPath = "address", SuccessMessage = "Address found")]
+    public void Lookup() { }
+}
+
+// A screen whose initial data is fetched client-side from a REST endpoint on entry.
+[UI("rest-data"), Title("Rest data"),
+ RestData("https://api.example.com/me?token=${state.token}",
+     Headers = ["Authorization: Bearer x"], ResultPath = "profile")]
+public class RestDataForm
+{
+    public string? Name { get; set; }
+    public string? Email { get; set; }
+}
+
+// Proxy mode: a [RestOptions(Proxy=true)] field routes the fetch through the Mateu server (the
+// __restfetch__ action) instead of fetching the endpoint directly — the CORS/auth-hardening flag.
+[UI("rest-proxy"), Title("Rest proxy")]
+public class RestProxyForm
+{
+    [RestOptions("https://api.example.com/x?t=${secret.TOKEN}", Proxy = true)]
+    public string ViaServer { get; set; } = "";
+
+    [RestOptions("https://public.example.com/x")]
+    public string Direct { get; set; } = "";
+}
+
+// A view with only a plain [RestOptions] (no proxy) — must NOT advertise __restfetch__.
+[UI("rest-direct"), Title("Rest direct")]
+public class RestDirectForm
+{
+    [RestOptions("https://public.example.com/x")]
+    public string Direct { get; set; } = "";
+}
+
+// A fully-static screen: the client caches its whole response and skips the round-trip on return.
+[UI("static-view"), Title("About"), StaticView]
+public class StaticViewForm
+{
+    public string? Heading { get; set; } = "About";
+}
+
+// A plain logic class (no [UI]): a YAML page under specs/ui declares it as its modelView, so the
+// YAML supplies the layout while this supplies the state (Name) and the action (Greet), bound by
+// convention (FormField id="name" → Name, Button actionId="greet" → Greet()).
+public class YamlBoundView
+{
+    public string? Name { get; set; } = "seed";
+    public Message Greet() => new($"Hello {Name}!");
+}
+
 // Per-action transport knobs: two buttons that differ only in how the CLIENT should call them.
 [UI("action-options"), Title("Action options")]
 public class ActionOptionsForm
@@ -750,18 +839,184 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"quickLookup\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":5000,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":5000,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"recalculateTotals\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":120000,\"idempotent\":true}", json);
+            + "\"timeoutMillis\":120000,\"idempotent\":true,\"restAction\":null}", json);
         // Safe defaults when nothing is declared: the client's own timeout applies, and the action
         // is never re-sent on its own — after a timeout the client cannot know whether the server
         // already applied it.
         Assert.Contains(
             "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+    }
+
+    // ── Structure ETag / template-ref (phase b of the client structure cache) ──────
+
+    private static ServerSideComponentDto ComponentOf(UIIncrementDto inc) =>
+        (ServerSideComponentDto)inc.Fragments[0].Component!;
+
+    [Fact]
+    public void RouteLoad_carries_a_structure_hash()
+    {
+        var c = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" }));
+        Assert.False(string.IsNullOrEmpty(c.StructureHash));
+    }
+
+    [Fact]
+    public void Structure_hash_is_stable_across_identical_loads()
+    {
+        var h1 = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        var h2 = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        Assert.Equal(h1, h2);
+    }
+
+    [Fact]
+    public void Echoing_the_matching_hash_omits_the_component_but_keeps_the_fragment()
+    {
+        var hash = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StructureHash;
+        var inc = Handler().Handle(
+            new RunActionRqDto { Route = "", ConsumedRoute = "_empty", KnownStructureHash = hash });
+        Assert.Single(inc.Fragments);
+        Assert.Null(inc.Fragments[0].Component);
+    }
+
+    [Fact]
+    public void A_stale_or_missing_hash_still_sends_the_full_structure()
+    {
+        var stale = Handler().Handle(
+            new RunActionRqDto { Route = "", ConsumedRoute = "_empty", KnownStructureHash = "not-the-hash" });
+        Assert.NotNull(stale.Fragments[0].Component);
+        Assert.False(string.IsNullOrEmpty(ComponentOf(stale).StructureHash));
+
+        var cold = Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" });
+        Assert.NotNull(cold.Fragments[0].Component);
+    }
+
+    [Fact]
+    public void StaticView_is_flagged_only_when_declared()
+    {
+        Assert.True(ComponentOf(Handler().Handle(new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty" })).StaticView);
+        Assert.False(ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" })).StaticView);
+    }
+
+    [Fact]
+    public void A_static_view_is_never_omitted_even_when_the_hash_matches()
+    {
+        var hash = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty" })).StructureHash;
+        var inc = Handler().Handle(
+            new RunActionRqDto { Route = "static-view", ConsumedRoute = "_empty", KnownStructureHash = hash });
+        Assert.NotNull(inc.Fragments[0].Component);
+        Assert.True(ComponentOf(inc).StaticView);
+    }
+
+    [Fact]
+    public void Contract_action_returns_the_bindable_fields_and_actions_on_appdata()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__contract__",
+            ServerSideType = typeof(SimpleForm).FullName,
+            Route = "",
+            ConsumedRoute = "_empty",
+        });
+        var json = Render(inc);
+        Assert.Contains("\"_contract\"", json);
+        Assert.Contains("\"modelView\":\"Mateu.Tests.SimpleForm\"", json);
+        Assert.Contains("\"id\":\"name\"", json); // a bindable field
+        Assert.Contains("\"dataType\":\"string\"", json);
+        Assert.Contains("\"id\":\"greet\"", json); // a bindable action
+    }
+
+    [Fact]
+    public void Preview_action_renders_arbitrary_yaml_page_text()
+    {
+        const string yaml = """
+            type: VerticalLayout
+            spacing: true
+            content:
+              - type: Text
+                text: "Hi"
+              - type: FormField
+                id: email
+                dataType: string
+                label: "Email"
+                required: true
+              - type: Button
+                label: "Save"
+                actionId: "save"
+                buttonStyle: primary
+            """;
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__preview__",
+            Route = "",
+            ConsumedRoute = "_empty",
+            Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(yaml) },
+        });
+        var json = Render(inc);
+        Assert.Contains("\"type\":\"VerticalLayout\"", json);
+        Assert.Contains("\"type\":\"Text\"", json);
+        Assert.Contains("\"fieldId\":\"email\"", json); // YAML id → wire fieldId
+        Assert.Contains("\"required\":true", json);
+        Assert.Contains("\"actionId\":\"save\"", json);
+    }
+
+    [Fact]
+    public void Preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "__preview__",
+            Route = "",
+            ConsumedRoute = "_empty",
+            Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(":\n  - broken: [") },
+        });
+        Assert.NotNull(inc.Fragments[0].Component); // a notice fragment, not an exception
+    }
+
+    [Fact]
+    public void Yaml_page_binds_its_layout_to_the_declared_modelView()
+    {
+        var dir = Path.Combine("specs", "ui");
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, "yaml-bound-demo.yaml");
+        File.WriteAllText(file, """
+            modelView: Mateu.Tests.YamlBoundView
+            layout:
+              type: VerticalLayout
+              content:
+                - type: FormField
+                  id: name
+                  label: Name
+                - type: Button
+                  label: Greet
+                  actionId: greet
+            """);
+        try
+        {
+            // First load: no view class resolves the route → the YAML page binds to its modelView.
+            var json = Render(Handler().Handle(
+                new RunActionRqDto { Route = "yaml-bound-demo", ConsumedRoute = "yaml-bound-demo" }));
+            Assert.Contains("\"serverSideType\":\"Mateu.Tests.YamlBoundView\"", json);
+            Assert.Contains("\"fieldId\":\"name\"", json);   // the YAML layout's field
+            Assert.Contains("\"actionId\":\"greet\"", json); // the YAML button routes to the modelView method
+            Assert.Contains("\"seed\"", json);               // the modelView's state seeded into initialData
+
+            // Action round-trip: the button dispatches greet on the modelView (resolved by serverSideType,
+            // which carries no [UI] route — resolved by full name against the scanned assemblies).
+            var acted = Handler().Handle(new RunActionRqDto
+            {
+                Route = "yaml-bound-demo",
+                ActionId = "greet",
+                ServerSideType = "Mateu.Tests.YamlBoundView",
+                ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+            });
+            Assert.Equal("Hello Ann!", Assert.Single(acted.Messages).Text);
+        }
+        finally { File.Delete(file); }
     }
 
     [Fact]
@@ -1587,6 +1842,83 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void RestOptions_field_is_a_select_carrying_the_endpoint_descriptor()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-opts", ConsumedRoute = "rest-opts" });
+        var json = Render(inc);
+
+        Assert.Contains("\"stereotype\":\"select\"", json);
+        Assert.Contains("\"optionsSource\":{", json);
+        Assert.Contains("\"url\":\"https://api.example.com/countries\"", json);
+        Assert.Contains("\"itemsPath\":\"data.countries\"", json);
+        Assert.Contains("\"valuePath\":\"code\"", json);
+        Assert.Contains("\"labelPath\":\"name.common\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json); // header parsed from "Name: Value"
+    }
+
+    [Fact]
+    public void RestListing_carries_the_endpoint_descriptor_and_columns_from_the_row_type()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-list", ConsumedRoute = "rest-list" });
+        var json = Render(inc);
+
+        Assert.Contains("\"rowsSource\":{", json);
+        Assert.Contains("\"url\":\"https://api.example.com/countries?q=${state.searchText}\"", json);
+        Assert.Contains("\"itemsPath\":\"data.countries\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json);
+        // columns come from the Row type (the frontend keys each JSON item by column id)
+        Assert.Contains("\"id\":\"code\"", json);
+        Assert.Contains("\"id\":\"population\"", json);
+    }
+
+    [Fact]
+    public void RestAction_button_advertises_the_endpoint_descriptor_on_its_action()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-action", ConsumedRoute = "rest-action" });
+        var json = Render(inc);
+
+        Assert.Contains("\"restAction\":{", json);
+        Assert.Contains("\"successMessage\":\"Address found\"", json);
+        Assert.Contains("\"resultPath\":\"address\"", json);
+        Assert.Contains("\"url\":\"https://api.example.com/zip/${state.zip}\"", json);
+        Assert.Contains("\"Authorization\":\"Bearer x\"", json);
+    }
+
+    [Fact]
+    public void RestData_advertises_an_onload_action_carrying_the_endpoint_descriptor()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "rest-data", ConsumedRoute = "rest-data" });
+        var json = Render(inc);
+
+        Assert.Contains("\"id\":\"__restdata__\"", json);
+        Assert.Contains("\"restAction\":{", json);
+        Assert.Contains("\"resultPath\":\"profile\"", json);
+        Assert.Contains("\"url\":\"https://api.example.com/me?token=${state.token}\"", json);
+        // an OnLoad trigger fires it on entry
+        Assert.Contains("\"type\":\"OnLoad\",\"actionId\":\"__restdata__\"", json);
+    }
+
+    [Fact]
+    public void Proxy_flag_travels_on_the_options_source_and_the_view_advertises_restfetch()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "rest-proxy", ConsumedRoute = "rest-proxy" }));
+
+        // proxy=true on the proxied field's source; the ${secret.X} template rides on the wire...
+        Assert.Contains("\"url\":\"https://api.example.com/x?t=${secret.TOKEN}\",\"method\":\"GET\"", json);
+        Assert.Contains("\"proxy\":true", json);
+        Assert.Contains("\"proxy\":false", json); // ...and the plain field stays direct
+        // a proxy source makes the view advertise the reserved __restfetch__ action
+        Assert.Contains("\"id\":\"__restfetch__\"", json);
+    }
+
+    [Fact]
+    public void Direct_only_view_does_not_advertise_restfetch()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "rest-direct", ConsumedRoute = "rest-direct" }));
+        Assert.DoesNotContain("__restfetch__", json);
+    }
+
+    [Fact]
     public void Lookup_search_filters_and_pages_the_suppliers_options()
     {
         var rq = new RunActionRqDto
@@ -1649,11 +1981,11 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
             + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
             + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false}", json);
+            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
     }
 
     [Fact]

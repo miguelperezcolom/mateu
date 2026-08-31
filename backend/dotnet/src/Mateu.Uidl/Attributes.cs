@@ -131,6 +131,60 @@ public sealed class ActionOptionsAttribute : Attribute
     public bool Idempotent { get; init; }
 }
 
+/// <summary>Makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
+/// dispatching to the Mateu server: the renderer calls <see cref="Url"/> directly with the
+/// interpolated <see cref="Body"/>, then applies the response — shows <see cref="SuccessMessage"/>
+/// as a toast and, when <see cref="ResultPath"/> is set, merges the object at that path in the JSON
+/// response into the form state (so bound fields refresh). Put it on a method that is ALSO a
+/// [Button]/[Toolbar]. Url/Headers/Body support <c>${state.x}</c> interpolation. (C# analogue of
+/// Java's @RestAction.)</summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class RestActionAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "POST";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A toast shown on a 2xx response (interpolated); blank shows none.</summary>
+    public string SuccessMessage { get; init; } = "";
+
+    /// <summary>A dot path to the object in the response to merge into the form state; blank merges
+    /// nothing (fire-and-toast).</summary>
+    public string ResultPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
+}
+
+/// <summary>Loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint, fetched
+/// CLIENT-SIDE on entry: when the view mounts the renderer calls <see cref="Url"/> directly and
+/// merges the object at <see cref="ResultPath"/> in the JSON response into the form state, so the
+/// fields arrive populated. Reuses the [RestAction] machinery (a synthetic __restdata__ action +
+/// an OnLoad trigger). Url/Headers/Body support <c>${state.x}</c> interpolation. (C# analogue of
+/// Java's @RestData.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class RestDataAttribute(string url) : Attribute
+{
+    public string Url { get; } = url;
+    public string Method { get; init; } = "GET";
+
+    /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
+    public string[] Headers { get; init; } = [];
+    public string Body { get; init; } = "";
+
+    /// <summary>A dot path to the object in the response to merge into the form state; blank merges
+    /// the whole response object.</summary>
+    public string ResultPath { get; init; } = "";
+
+    /// <summary>Fetch through the Mateu SERVER (proxy mode): no CORS, and ${secret.X} auth is
+    /// injected server-side from a secrets provider. Default false (client-direct).</summary>
+    public bool Proxy { get; init; }
+}
+
 /// <summary>An overridden display label for a field or method.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class LabelAttribute(string value) : Attribute
@@ -272,6 +326,25 @@ public sealed class FormLayoutAttribute : Attribute
 /// <summary>A subtitle shown under the page title.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class SubtitleAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>The small line of text shown ABOVE the page title (the Oracle Redwood overlineText
+/// header element) — a category, a parent context or a step marker. (Mirrors Java's
+/// <c>@Overline</c>.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class OverlineAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>What the header shows while the title is still empty (the Oracle Redwood
+/// pageTitlePlaceholder header element) — the create-mode affordance, e.g. "New booking…". A
+/// placeholder, not a default: it never overrides a title. (Mirrors Java's
+/// <c>@TitlePlaceholder</c>.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class TitlePlaceholderAttribute(string value) : Attribute
 {
     public string Value { get; } = value;
 }

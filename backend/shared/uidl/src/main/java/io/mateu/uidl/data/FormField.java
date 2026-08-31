@@ -18,6 +18,7 @@ public record FormField(
     String description,
     List<Option> options,
     RemoteCoordinates remoteCoordinates,
+    RestDataSource optionsSource,
     Object initialValue,
     String style,
     String cssClasses,

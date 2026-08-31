@@ -13,7 +13,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.SneakyThrows;
 
 /**
  * The {@link Dashboard} composition, extracted so it works over ANY instance declaring the same
@@ -24,7 +23,6 @@ import lombok.SneakyThrows;
  */
 public final class DashboardComposer {
 
-  @SneakyThrows
   public static Component compose(Object host, String id, int columns) {
     List<Component> items = new ArrayList<>();
     List<MetricCard> pendingMetrics = new ArrayList<>();
@@ -33,7 +31,13 @@ public final class DashboardComposer {
         continue;
       }
       field.setAccessible(true);
-      Object value = field.get(host);
+      Object value;
+      try {
+        value = field.get(host);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(
+            e); // field was just setAccessible(true) → effectively unreachable
+      }
       if (value instanceof MetricCard metricCard) {
         pendingMetrics.add(metricCard);
         continue;

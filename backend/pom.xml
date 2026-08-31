@@ -53,6 +53,7 @@
     <module>quarkus</module>
     <module>mvc</module>
     <module>helidon-mp</module>
+    <module>mateu-bundle-maven-plugin</module>
   </modules>
 
   <dependencyManagement>

@@ -12,15 +12,16 @@ import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRow
 
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.StateSupplier;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import lombok.SneakyThrows;
 
 /** Static helpers for building ServerSideComponentDto and extracting component/state metadata. */
 public class ComponentStateHelper {
@@ -43,6 +44,21 @@ public class ComponentStateHelper {
         httpRequest);
   }
 
+  /**
+   * The type name the client will send back for this component.
+   *
+   * <p>Almost always the model view's own class, but an orchestrator that STANDS IN for another
+   * class says so: the capability bridge is built around a listing and cannot be rebuilt from its
+   * own name — doing that produced a bridge with nothing behind it, and the listing's first search
+   * died with a NullPointerException on the missing target. The name that travels has to be the one
+   * the server can turn back into a working instance.
+   */
+  private static String serverSideTypeOf(Object modelView) {
+    return modelView instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier supplier
+        ? supplier.serverSideType()
+        : modelView.getClass().getName();
+  }
+
   public static ServerSideComponentDto wrap(
       List<Component> components,
       Object modelView,
@@ -55,7 +71,7 @@ public class ComponentStateHelper {
         httpRequest.getAttribute("upstreamComponentId") != null
             ? httpRequest.getAttribute("upstreamComponentId").toString()
             : UUID.randomUUID().toString(),
-        modelView.getClass().getName(),
+        serverSideTypeOf(modelView),
         consumedRoute,
         components.stream()
             .map(
@@ -81,7 +97,9 @@ public class ComponentStateHelper {
         false,
         emitsName(modelView),
         PageWidthResolver.wirePageWidth(modelView),
-        PageTypeResolver.wirePageType(modelView));
+        PageTypeResolver.wirePageType(modelView),
+        StaticViewResolver.isStatic(modelView),
+        null);
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {
@@ -112,8 +130,22 @@ public class ComponentStateHelper {
     return "";
   }
 
-  @SneakyThrows
   public static Object invoke(Method method, Object instance) {
-    return method.invoke(instance);
+    try {
+      return method.invoke(instance);
+    } catch (InvocationTargetException e) {
+      // Surface the real exception the method threw, not the reflective wrapper (this is exactly
+      // what @SneakyThrows hid behind NoClassDefFoundError: lombok/Lombok when it rethrew).
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Cannot invoke " + method, e);
+    }
   }
 }

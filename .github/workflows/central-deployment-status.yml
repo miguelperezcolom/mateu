@@ -1,0 +1,43 @@
+# Ask the Central Publisher API what happened to a deployment.
+#
+# The publish job uploads a signed bundle and returns as soon as Central reports it VALIDATED —
+# `waitUntil=published` is commented out in backend/pom.xml — so a green release run does not
+# prove the artifacts are downloadable. When they do not show up on repo1 (v3.0-alpha.293 sat
+# validated-but-not-published while every earlier release was live the second the run ended),
+# this is how to see the real state without guessing from the outside: the deployment is visible
+# only to the account that created it, which is the CI token, not a browser session.
+name: Central deployment status
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: 'deploymentId from the publish log ("Uploaded bundle successfully, deploymentId: …")'
+        required: true
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the Central Publisher API
+        env:
+          # Read through env, never interpolated into the shell command: a workflow input is
+          # untrusted text and `${{ }}` inside a run block is string substitution, not an argument.
+          ID: ${{ inputs.deployment_id }}
+          CENTRAL_USER: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_PASS: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # Only the response body is printed. It carries the deployment state and the validation
+          # errors — never the credentials, which travel in a header the log never sees.
+          auth=$(printf '%s:%s' "$CENTRAL_USER" "$CENTRAL_PASS" | base64 -w0)
+          code=$(curl -sS -o /tmp/status.json -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $auth" \
+            "https://central.sonatype.com/api/v1/publisher/status?id=$ID")
+          echo "HTTP $code"
+          if command -v jq >/dev/null && jq -e . /tmp/status.json >/dev/null 2>&1; then
+            jq . /tmp/status.json
+          else
+            head -c 4000 /tmp/status.json; echo
+          fi
+          test "$code" = "200"

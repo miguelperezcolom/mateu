@@ -295,23 +295,25 @@ export class MateuGrid extends MetadataDrivenElement {
             `
 
         } else {
-            const orientation = (this.field?.formPosition == 'left' || this.field?.formPosition == 'right')?'horizontal':'vertical'
-
+            // Master + inline detail editor. A plain flex layout instead of vaadin-master-detail-layout:
+            // that component renders the slotted detail as an off-screen overlay in the current Vaadin
+            // version (the detail form never became visible), so the row's "Edit" appeared to do nothing.
+            // Column by default (detail below the grid); row when @DetailPosition is left/right.
+            const side = this.field?.formPosition
+            const horizontal = side === 'left' || side === 'right'
+            // The detail container must stay in the DOM even when hidden (applyFragment targets it by
+            // id), so we toggle visibility rather than presence.
             return html`
-            <vaadin-master-detail-layout
-                    style="overflow: unset; width: 100%; ${showDetail && this.field?.minHeightWhenDetailVisible?'min-height: '+this.field?.minHeightWhenDetailVisible+';':''}"
-                    orientation="${orientation}"
-                    .forceOverlay="${true}"
-            >
-                ${this.renderMaster(items)}
-                <div slot="${showDetail?'detail':'detail-hidden'}" style="${this.field?.formStyle??'display: contents;'}">
-                    <div id="container" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
+            <div style="display: flex; flex-direction: ${horizontal ? 'row' : 'column'}; gap: var(--lumo-space-m, 1rem); width: 100%; ${showDetail && this.field?.minHeightWhenDetailVisible ? 'min-height: ' + this.field?.minHeightWhenDetailVisible + ';' : ''}">
+                <div style="${horizontal ? 'flex: 1; min-width: 0;' : 'width: 100%;'}${side === 'left' ? ' order: 2;' : ''}">
+                    ${this.renderMaster(items)}
+                </div>
+                <div style="${showDetail ? '' : 'display: none;'}${horizontal ? 'flex: 1; min-width: 0;' : 'width: 100%;'}${side === 'left' ? ' order: 1;' : ''}${this.field?.formStyle ?? ''}">
+                    <div id="container" style="padding: 0 2rem 2rem; background-color: var(--lumo-base-color);">
                         <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
                     </div>
                 </div>
-                
-                
-            </vaadin-master-detail-layout>`
+            </div>`
         }
 
     }
@@ -338,6 +340,14 @@ export class MateuGrid extends MetadataDrivenElement {
                     }}"
                     @item-toggle="${this.handleItemToggle}"
                     @click="${ifDefined(this.field?.onItemSelectionActionId ? (e: MouseEvent) => {
+            // A click on an in-row control (the "Edit" button, an action/link cell, a checkbox…)
+            // must NOT also fire row selection: clicking Edit dispatches `<field>_select` (opens the
+            // detail editor) AND, without this guard, `<field>_selected` — whose response rebuilds
+            // the state with the pre-click `_show_detail=false`, immediately closing the editor. So
+            // the row only appeared selected. Skip selection when the click originates from a control.
+            if (e.composedPath().some((el) => el instanceof HTMLElement &&
+                (el.localName === 'vaadin-button' || el.localName === 'button' || el.localName === 'a' ||
+                 el.localName === 'vaadin-checkbox' || el.getAttribute?.('role') === 'button'))) return
             // Row-click selection: Vaadin's active-item is not reliably set by a click on a
             // read-only grid, so resolve the clicked row from the grid event context instead.
             const grid = e.currentTarget as unknown as { getEventContext: (ev: Event) => { item?: unknown } }

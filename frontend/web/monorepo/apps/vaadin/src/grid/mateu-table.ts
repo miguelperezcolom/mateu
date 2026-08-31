@@ -72,6 +72,15 @@ export class MateuTable extends LitElement {
 
     pagesRequested: number[] = []
 
+    // Re-measure guard: a vaadin-grid attached while its container has 0 height (which happens
+    // while an app-shell/mediator re-mounts around it during SPA navigation) computes an item
+    // container height of 0 and stays in empty-state — the rows are in the DOM but not laid out,
+    // so the list looks blank until something forces a re-measure (e.g. running a search). We watch
+    // the grid's own box and, when it transitions from 0 to a real height, force the virtualizer to
+    // re-render. See the "grid shows no initial rows / edge-to-edge" report.
+    private _resizeObserver?: ResizeObserver
+    private _lastGridHeight = 0
+
     emptyArray = (array: any[]) => {
         if (!array) {
             return true
@@ -161,6 +170,31 @@ export class MateuTable extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         this.removeEventListener('action-requested', this._onActionRequested)
+        this._resizeObserver?.disconnect()
+        this._resizeObserver = undefined
+    }
+
+    firstUpdated() {
+        // Attach the re-measure guard once the grid exists. ResizeObserver fires an initial
+        // callback, so a grid that boots at height 0 and gains height later is caught even without
+        // a Lit property change (updated() would not run then).
+        const grid = this.grid
+        if (!grid || this._resizeObserver) return
+        this._resizeObserver = new ResizeObserver(() => {
+            const h = grid.offsetHeight
+            // Only act on the 0 → visible transition: that is the stuck-empty case; steady-state
+            // resizes are already handled by the grid's own layout.
+            if (h > 0 && this._lastGridHeight === 0) {
+                requestAnimationFrame(() => {
+                    grid.recalculateColumnWidths()
+                    grid.requestContentUpdate()
+                    // notifyResize exists on older grid builds; harmless when absent.
+                    ;(grid as unknown as { notifyResize?: () => void }).notifyResize?.()
+                })
+            }
+            this._lastGridHeight = h
+        })
+        this._resizeObserver.observe(grid)
     }
 
     private _onActionRequested = (e: Event) => {

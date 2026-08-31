@@ -1,0 +1,6 @@
+# The mount: a UI served at a base path (≡ @UI). Discovered by scanning for `type: UI`.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+routes:
+  - routes.yaml

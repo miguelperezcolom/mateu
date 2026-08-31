@@ -75,6 +75,7 @@ public class PageListingBuilder {
                         httpRequest)))
             .filtersLayout(filtersLayout)
             .gridLayout(getGridLayout(instance))
+            .rowsSource(getRestListingSource(instance))
             .style(getStyle(instance, httpRequest));
 
     // @GroupAction methods become buttons on the @GroupBy group header rows; the frontend
@@ -151,6 +152,34 @@ public class PageListingBuilder {
       return listing.gridLayout();
     }
     return GridLayout.auto;
+  }
+
+  /**
+   * A client-side external rows source when the listing class carries {@code @RestListing} — the
+   * renderer fetches the endpoint directly and maps each JSON item into a row by column name. Null
+   * otherwise.
+   */
+  private static io.mateu.uidl.data.RestDataSource getRestListingSource(Object instance) {
+    var a = MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RestListing.class);
+    if (a == null) {
+      return null;
+    }
+    var headers = new java.util.LinkedHashMap<String, String>();
+    for (String h : a.headers()) {
+      int i = h.indexOf(':');
+      if (i > 0) {
+        headers.put(h.substring(0, i).trim(), h.substring(i + 1).trim());
+      }
+    }
+    return io.mateu.uidl.data.RestDataSource.builder()
+        .ref(a.source())
+        .url(a.url())
+        .method(a.method())
+        .headers(headers)
+        .body(a.body())
+        .itemsPath(a.itemsPath())
+        .proxy(a.proxy())
+        .build();
   }
 
   private static String getStyle(Object instance, HttpRequest httpRequest) {
