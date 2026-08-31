@@ -58,7 +58,7 @@ public class AuditActionRunner implements ActionRunner {
             .actions(createActions(listing, httpRequest))
             .triggers(createTriggers(listing, httpRequest))
             .rules(createRules(listing, httpRequest))
-            .validations(createValidations(listing, command.route()))
+            .validations(createValidations(listing, command.route(), httpRequest))
             .children(List.of(clientSide))
             .build();
 

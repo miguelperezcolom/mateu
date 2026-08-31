@@ -56,7 +56,7 @@ public class FutureComponentMapper {
         mapActions(futureComponent.instance(), httpRequest),
         mapTriggers(futureComponent.instance(), httpRequest),
         mapRules(futureComponent.instance(), httpRequest),
-        mapValidations(futureComponent.instance(), route),
+        mapValidations(futureComponent.instance(), route, httpRequest),
         null,
         null,
         MetaAnnotations.isPresent(

@@ -42,7 +42,7 @@ public class ComponentTreeSupplierMapper {
         ActionMapper.mapActions(componentTreeSupplier, httpRequest),
         TriggerMapper.mapTriggers(componentTreeSupplier, httpRequest),
         RuleMapper.mapRules(componentTreeSupplier, httpRequest),
-        ValidationMapper.mapValidations(componentTreeSupplier, route),
+        ValidationMapper.mapValidations(componentTreeSupplier, route, httpRequest),
         null,
         null,
         false,

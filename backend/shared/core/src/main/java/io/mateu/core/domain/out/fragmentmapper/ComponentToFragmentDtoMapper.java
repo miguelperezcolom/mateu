@@ -157,7 +157,7 @@ public final class ComponentToFragmentDtoMapper {
           ActionMapper.mapActions(view, httpRequest),
           TriggerMapper.mapTriggers(view, httpRequest),
           RuleMapper.mapRules(view, httpRequest),
-          ValidationMapper.mapValidations(view, route),
+          ValidationMapper.mapValidations(view, route, httpRequest),
           null,
           null,
           MetaAnnotations.isPresent(view.getClass(), ConfirmOnNavigationIfDirty.class),
