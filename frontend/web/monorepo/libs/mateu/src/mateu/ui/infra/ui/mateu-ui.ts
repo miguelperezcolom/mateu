@@ -13,6 +13,7 @@ import {installAnnouncer} from "@infra/a11y/announcer.ts";
 import {mountSkipLink} from "@infra/ui/mateu-skip-link.ts";
 import {loadBundleManifest} from "@infra/http/bundleStore.ts";
 import {nanoid} from "nanoid";
+import { nextHistoryUrl } from './navigationUrl'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -103,15 +104,11 @@ export class MateuUi extends LitElement {
                     route = route.substring(1)
                 }
                 let targetUrl = new URL(baseUrl + route)
-                if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
-                    let pathname = targetUrl.pathname
-                    if (targetUrl.search) {
-                        pathname += targetUrl.search
-                    }
-                    if (pathname && !pathname.startsWith('/')) {
-                        pathname = '/' + pathname
-                    }
-                    window.history.pushState({},"", pathname);
+                // Path AND query: a listing's filters live in the query string, so the same path
+                // with different filters is a different destination. See nextHistoryUrl.
+                const next = nextHistoryUrl(window.location, targetUrl)
+                if (next) {
+                    window.history.pushState({},"", next);
                     this._lastUrl = window.location.href
                 }
             }
