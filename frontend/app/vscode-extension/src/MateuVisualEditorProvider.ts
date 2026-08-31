@@ -40,13 +40,16 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         const onMessage = webview.onDidReceiveMessage((msg) => {
             if (!msg || typeof msg !== 'object') return
             if (msg.type === 'ready') {
-                webview.postMessage({ type: 'init', yaml: document.getText(), baseUrl: `http://127.0.0.1:${port}` })
+                webview.postMessage({ type: 'init', yaml: document.getText(), baseUrl: `http://127.0.0.1:${port}`, path: relativeSpecsUiPath(document.uri) })
             } else if (msg.type === 'save' && typeof msg.yaml === 'string') {
                 if (document.getText() === msg.yaml) return
                 savingFromWebview = true
                 const edit = new vscode.WorkspaceEdit()
                 edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), msg.yaml)
                 vscode.workspace.applyEdit(edit).then(() => { savingFromWebview = false })
+            } else if (msg.type === 'listFiles') {
+                // Project awareness: hand the whole mount to the editor's reference pickers.
+                collectSpecsUiFiles(document.uri).then((files) => webview.postMessage({ type: 'files', files }))
             }
         })
 
@@ -101,4 +104,31 @@ function makeNonce(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     for (let i = 0; i < 32; i++) s += chars.charAt(Math.floor(Math.random() * chars.length))
     return s
+}
+
+/**
+ * Every `specs/ui/**` YAML file (path relative to `specs/ui`) so the editor can build its reference
+ * index. The edited document lives under `specs/ui`, so that directory is the mount root.
+ */
+/** The document's path relative to its `specs/ui` directory (for the data-source binding resolver). */
+function relativeSpecsUiPath(docUri: vscode.Uri): string | undefined {
+    const marker = '/specs/ui/'
+    const idx = docUri.path.lastIndexOf(marker)
+    return idx < 0 ? undefined : docUri.path.slice(idx + marker.length)
+}
+
+async function collectSpecsUiFiles(docUri: vscode.Uri): Promise<{ path: string; content: string }[]> {
+    const marker = '/specs/ui/'
+    const idx = docUri.path.lastIndexOf(marker)
+    if (idx < 0) return []
+    const rootPath = docUri.path.slice(0, idx + marker.length - 1)
+    const rootUri = docUri.with({ path: rootPath })
+    const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(rootUri, '**/*.{yaml,yml}'))
+    const out: { path: string; content: string }[] = []
+    for (const u of uris) {
+        const rel = u.path.slice(rootPath.length + 1)
+        const bytes = await vscode.workspace.fs.readFile(u)
+        out.push({ path: rel, content: Buffer.from(bytes).toString('utf8') })
+    }
+    return out
 }

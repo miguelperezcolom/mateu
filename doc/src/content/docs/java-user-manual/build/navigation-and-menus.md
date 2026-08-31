@@ -63,7 +63,7 @@ A `RemoteMenu` fetches navigation items from a remote Mateu service.
 RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 ```
 
-The remote service exposes its own `@Menu` structure. The shell fetches and merges it into the navigation at runtime.
+The remote service exposes its own `@Menu` structure. The shell fetches and merges it into the navigation at runtime. That fetch is cached briefly per remote and caller — see [descriptor caching](/mateu-about/shell-and-remote-menus/#descriptor-caching) for the TTL and how to tune it.
 
 This is the foundation of the [distributed backoffice](/java-user-manual/use-cases/distributed-backoffice/) pattern: each microservice owns its UI, and the shell composes everything.
 
