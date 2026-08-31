@@ -45,7 +45,25 @@ export class EditorCanvas extends LitElement {
         .host { min-height: 100%; position: relative; }
         .status { padding: 0.5rem 0.75rem; font: 12px system-ui; color: #b00; background: #fff3f3; }
         mateu-ux { display: block; }
-        .drop-line { position: absolute; background: #4f8cff; border-radius: 2px; pointer-events: none; z-index: 10; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
+        .drop-line { position: absolute; background: #4f8cff; border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
+        /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
+           style), positioned relative to the scrolling .host so it stays glued without per-scroll work. */
+        .overlay { position: absolute; pointer-events: none; z-index: 20; box-sizing: border-box; }
+        .overlay.hover { border: 1px solid #9ec1ff; }
+        .overlay.sel { border: 2px solid #4f8cff; }
+        .tag { position: absolute; top: -18px; left: -2px; font: 600 10px/1.4 system-ui; padding: 1px 5px;
+               border-radius: 4px 4px 0 0; white-space: nowrap; color: #fff; }
+        .overlay.hover .tag { background: #9ec1ff; }
+        .overlay.sel .tag { background: #4f8cff; }
+        .tag.below { top: auto; bottom: -18px; border-radius: 0 0 4px 4px; }
+        .toolbar { position: absolute; top: -30px; right: -2px; display: flex; gap: 1px; pointer-events: auto;
+                   background: #4f8cff; border-radius: 6px; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+        .toolbar.below { top: auto; bottom: -30px; }
+        .toolbar button { border: none; background: transparent; color: #fff; cursor: pointer; font-size: 12px;
+                          line-height: 1; padding: 3px 5px; border-radius: 4px; }
+        .toolbar button:hover { background: rgba(255,255,255,.25); }
+        .empty-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+                      pointer-events: none; color: #9aa2ad; font: 13px system-ui; text-align: center; padding: 2rem; }
     `
 
     @property({ attribute: false }) doc?: PageDoc
@@ -54,11 +72,17 @@ export class EditorCanvas extends LitElement {
 
     @state() private error?: string
     @state() private dropIndicator: IndicatorBox | null = null
+    @state() private selBox: IndicatorBox | null = null
+    @state() private selTag = ''
+    @state() private hoverBox: IndicatorBox | null = null
+    @state() private hoverTag = ''
 
     @query('mateu-ux') private ux?: HTMLElement & { applyFragment: (f: unknown) => void }
 
-    private highlighted?: HTMLElement
+    @state() private selBelow = false
+    @state() private hoverBelow = false
     private previewTimer?: number
+    private repositionRaf = 0
     private lastYaml?: string
     private drag: DragSession | null = null
     private pendingDrop: { parentPath: NodePath; index: number } | null = null
@@ -67,11 +91,15 @@ export class EditorCanvas extends LitElement {
     render() {
         return html`
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
-            <div class="host" @click=${this.onClick} @mousedown=${this.onMouseDown}>
+            <div class="host" @click=${this.onClick} @mousedown=${this.onMouseDown}
+                 @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
                 <!-- Intentionally NO baseUrl/route/id: mateu-ux only fires its own (unwanted) route-load
                      when one of those changes. The canvas is the sole driver via applyFragment, and it
                      passes baseUrl straight to runAction — the ux never needs it to render preview. -->
                 <mateu-ux></mateu-ux>
+                ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
+                ${this.hoverBox && !this.drag ? this.renderHoverOverlay() : ''}
+                ${this.selBox ? this.renderSelectionOverlay() : ''}
                 ${this.dropIndicator
                     ? html`<div class="drop-line" style=${styleMap({
                         left: this.dropIndicator.left + 'px', top: this.dropIndicator.top + 'px',
@@ -86,12 +114,27 @@ export class EditorCanvas extends LitElement {
         // A drag started in the palette (a NEW node) is announced document-wide; the canvas owns the
         // geometry, so it runs the session from here on.
         document.addEventListener('ve-drag-start', this.onPaletteDragStart as EventListener)
+        // The overlays are positioned relative to the scrolling content, so they stay glued on scroll,
+        // but the tag/toolbar flip above/below near the viewport top — recompute on scroll and resize.
+        this.addEventListener('scroll', this.reposition, { passive: true })
+        window.addEventListener('resize', this.reposition)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener('ve-drag-start', this.onPaletteDragStart as EventListener)
+        this.removeEventListener('scroll', this.reposition)
+        window.removeEventListener('resize', this.reposition)
         this.endDrag()
+    }
+
+    private reposition = () => {
+        if (this.repositionRaf) return
+        this.repositionRaf = requestAnimationFrame(() => {
+            this.repositionRaf = 0
+            this.applyHighlight()
+            this.clearHover()
+        })
     }
 
     firstUpdated() {
@@ -142,20 +185,87 @@ export class EditorCanvas extends LitElement {
         this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
     }
 
-    private applyHighlight() {
-        if (this.highlighted) {
-            this.highlighted.style.removeProperty('outline')
-            this.highlighted.style.removeProperty('outline-offset')
-            this.highlighted = undefined
-        }
-        if (!this.selectedPath) return
-        const el = deepQueryById(this.ux, pathToId(this.selectedPath))
-        if (el) {
-            el.style.outline = '2px solid #4f8cff'
-            el.style.outlineOffset = '-2px'
-            this.highlighted = el
-        }
+    /** True when the page's root container has no children — show the drop hint. */
+    private isEmptyPage(): boolean {
+        const root = this.doc?.layout
+        return !!root && (!Array.isArray(root.content) || root.content.length === 0)
     }
+
+    /** Recompute the selection overlay box + tag from the current selectedPath and rendered DOM. */
+    private applyHighlight() {
+        if (!this.selectedPath || !this.doc) { this.selBox = null; this.selTag = ''; return }
+        this.selBox = this.boxFor(this.selectedPath)
+        this.selTag = nodeAt(this.doc, this.selectedPath)?.type ?? ''
+        this.selBelow = this.wantsBelow(this.selectedPath)
+    }
+
+    /** A node's rectangle, relative to the scrolling `.host` content box (so overlays stay glued). */
+    private boxFor(path: NodePath): IndicatorBox | null {
+        const el = deepQueryById(this.ux, pathToId(path))
+        if (!el) return null
+        const host = this.renderRoot.querySelector('.host') as HTMLElement
+        const hr = host.getBoundingClientRect()
+        const r = el.getBoundingClientRect()
+        return { left: r.left - hr.left, top: r.top - hr.top, width: r.width, height: r.height }
+    }
+
+    /** True when there is no room for the tag/toolbar above the node within the scroller viewport. */
+    private wantsBelow(path: NodePath): boolean {
+        const el = deepQueryById(this.ux, pathToId(path))
+        if (!el) return false
+        return el.getBoundingClientRect().top - this.getBoundingClientRect().top < 34
+    }
+
+    private renderSelectionOverlay() {
+        const b = this.selBox!
+        const stop = (e: Event) => e.stopPropagation()
+        return html`<div class="overlay sel" @mousedown=${stop} style=${styleMap({
+            left: b.left + 'px', top: b.top + 'px', width: b.width + 'px', height: b.height + 'px' })}>
+            <span class="tag ${this.selBelow ? 'below' : ''}">${this.selTag}</span>
+            <div class="toolbar ${this.selBelow ? 'below' : ''}" @mousedown=${stop} @click=${stop}>
+                <button title="Select parent" @click=${this.selectParent}>⤴</button>
+                <button title="Move up" @click=${() => this.emitMove(-1)}>↑</button>
+                <button title="Move down" @click=${() => this.emitMove(1)}>↓</button>
+                <button title="Duplicate" @click=${this.emitDuplicate}>⧉</button>
+                <button title="Delete" @click=${this.emitDelete}>✕</button>
+            </div>
+        </div>`
+    }
+
+    private renderHoverOverlay() {
+        const b = this.hoverBox!
+        return html`<div class="overlay hover" style=${styleMap({
+            left: b.left + 'px', top: b.top + 'px', width: b.width + 'px', height: b.height + 'px' })}>
+            <span class="tag ${this.hoverBelow ? 'below' : ''}">${this.hoverTag}</span>
+        </div>`
+    }
+
+    private onHover = (e: MouseEvent) => {
+        if (this.drag) { this.clearHover(); return }
+        // Use the event's composed path (pierces open shadow roots) — the same reliable mechanism as
+        // onClick. document.elementsFromPoint retargets to the shadow host, so it can't see ve- nodes.
+        const el = firstTaggedElement(e.composedPath())
+        const path = el && idToPath(el.id)
+        if (!path || (this.selectedPath && samePath(path, this.selectedPath))) { this.clearHover(); return }
+        this.hoverBox = this.boxFor(path)
+        this.hoverTag = this.doc ? (nodeAt(this.doc, path)?.type ?? '') : ''
+        this.hoverBelow = this.wantsBelow(path)
+    }
+
+    private clearHover = () => { this.hoverBox = null; this.hoverTag = '' }
+
+    // --- selection toolbar actions (dispatch the events the shell already handles) ---
+    private selectParent = () => {
+        if (!this.selectedPath || this.selectedPath.length === 0) return
+        const path = this.selectedPath.slice(0, -1)
+        this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
+    }
+    private emitMove = (delta: number) =>
+        this.dispatchEvent(new CustomEvent('node-move', { detail: { delta }, bubbles: true, composed: true }))
+    private emitDuplicate = () =>
+        this.dispatchEvent(new CustomEvent('node-duplicate', { bubbles: true, composed: true }))
+    private emitDelete = () =>
+        this.dispatchEvent(new CustomEvent('node-delete', { bubbles: true, composed: true }))
 
     // --- pointer-based drag & drop ---
 
@@ -219,7 +329,7 @@ export class EditorCanvas extends LitElement {
     /** Resolve where a drop at (x,y) would land: a parent container path + child index. */
     private computeDrop(x: number, y: number): DropTarget | null {
         if (!this.doc) return null
-        const el = taggedElementAtPoint(x, y)
+        const el = this.taggedAtPoint(x, y)
         if (!el) {
             const host = this.renderRoot.querySelector('.host') as HTMLElement
             const r = host.getBoundingClientRect()
@@ -257,6 +367,27 @@ export class EditorCanvas extends LitElement {
         return { parentPath, index, indicator: this.lineFor(parentPath, orient, index) }
     }
 
+    /**
+     * The DEEPEST `ve-`-tagged element whose box contains (x,y). A geometric hit test over the tagged
+     * elements, because `document.elementsFromPoint` retargets to the shadow host and never reaches
+     * the nodes inside `mateu-ux`'s shadow tree — so drag positioning must not rely on it.
+     */
+    private taggedAtPoint(x: number, y: number): HTMLElement | null {
+        let best: HTMLElement | null = null
+        let bestDepth = -1
+        let bestArea = Infinity
+        for (const el of deepCollectTagged(this.ux)) {
+            const r = el.getBoundingClientRect()
+            if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue
+            const depth = (idToPath(el.id)?.length ?? 0)
+            const area = r.width * r.height
+            if (depth > bestDepth || (depth === bestDepth && area < bestArea)) {
+                best = el; bestDepth = depth; bestArea = area
+            }
+        }
+        return best
+    }
+
     private childRect(parentPath: NodePath, i: number): DOMRect | null {
         const el = deepQueryById(this.ux, pathToId([...parentPath, i]))
         return el ? el.getBoundingClientRect() : null
@@ -288,17 +419,29 @@ function firstTaggedElement(path: EventTarget[]): HTMLElement | null {
     return null
 }
 
-/** The nearest `ve-`-tagged element at a viewport point (elementsFromPoint pierces shadow roots). */
-function taggedElementAtPoint(x: number, y: number): HTMLElement | null {
-    for (const el of document.elementsFromPoint(x, y)) {
-        if (el instanceof HTMLElement && el.id?.startsWith('ve-')) return el
+/** Every `ve-`-tagged element under `root`, piercing open shadow roots. */
+function deepCollectTagged(root: Element | undefined): HTMLElement[] {
+    const out: HTMLElement[] = []
+    const visit = (node: Element) => {
+        if (node instanceof HTMLElement && node.id?.startsWith('ve-')) out.push(node)
+        const scope = node.shadowRoot ?? node
+        for (const c of Array.from(scope.querySelectorAll('*'))) {
+            if (c.shadowRoot) visit(c)
+            else if (c instanceof HTMLElement && c.id?.startsWith('ve-')) out.push(c)
+        }
     }
-    return null
+    if (root) visit(root)
+    return out
 }
 
 /** True when `prefix` is `path` or an ancestor of it. */
 function isPrefixPath(prefix: NodePath, path: NodePath): boolean {
     return prefix.length <= path.length && prefix.every((v, i) => path[i] === v)
+}
+
+/** True when two node paths are identical. */
+function samePath(a: NodePath, b: NodePath): boolean {
+    return a.length === b.length && a.every((v, i) => v === b[i])
 }
 
 /** Find an element by id anywhere under `root`, piercing shadow roots. */

@@ -10,6 +10,7 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
@@ -82,14 +83,50 @@ class MateuVisualEditor(
             // Every edit only updates the in-memory Document (marks the tab modified). The file is
             // written by the IDE's OWN save — this editor never persists. `save` kept as an alias.
             "contentChanged", "save" -> updateDocument(msg.path("yaml").asText())
+            // Project awareness: hand the whole mount to the editor so its reference pickers work.
+            "listFiles" -> sendFiles()
         }
+    }
+
+    /** Reply with every YAML file under the mount's `specs/ui` directory (path relative to it) so the
+     *  editor can build its reference index. The edited file lives under `specs/ui`, one of its ancestors. */
+    private fun sendFiles() {
+        val files = runReadAction {
+            val root = specsUiRoot(file) ?: return@runReadAction emptyList<Map<String, String>>()
+            val out = mutableListOf<Map<String, String>>()
+            VfsUtilCore.iterateChildrenRecursively(root, null) { vf ->
+                val ext = vf.extension
+                if (!vf.isDirectory && (ext == "yaml" || ext == "yml")) {
+                    val rel = VfsUtilCore.getRelativePath(vf, root) ?: vf.name
+                    val text = FileDocumentManager.getInstance().getDocument(vf)?.text
+                        ?: String(vf.contentsToByteArray())
+                    out.add(mapOf("path" to rel, "content" to text))
+                }
+                true
+            }
+            out
+        }
+        sendToWeb(mapOf("type" to "files", "files" to files))
+    }
+
+    /** The nearest ancestor `specs/ui` directory of a file, or null when it is not under one. */
+    private fun specsUiRoot(f: VirtualFile): VirtualFile? {
+        var dir = f.parent
+        while (dir != null) {
+            if (dir.name == "ui" && dir.parent?.name == "specs") return dir
+            dir = dir.parent
+        }
+        return null
     }
 
     private fun sendInit() {
         val text = runReadAction {
             FileDocumentManager.getInstance().getDocument(file)?.text ?: String(file.contentsToByteArray())
         }
-        sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to ""))
+        val path = runReadAction {
+            specsUiRoot(file)?.let { VfsUtilCore.getRelativePath(file, it) } ?: file.name
+        }
+        sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to "", "path" to path))
     }
 
     /**
