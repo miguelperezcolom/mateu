@@ -38,8 +38,19 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface RestData {
 
+  /**
+   * The name of a {@code @RestSource} catalogue entry to take the endpoint from, instead of
+   * declaring it here. Referencing a shared source keeps one endpoint from being repeated across
+   * screens and lets a deployment be re-pointed by editing the catalogue.
+   *
+   * <p>Give either this or {@link #url()} — declaring both is a contradiction and is rejected. The
+   * mapping paths declared here still win over the entry's, so a surface may point at a shared
+   * endpoint and still map the response its own way.
+   */
+  String source() default "";
+
   /** The endpoint URL; supports {@code ${state.x}} interpolation. */
-  String url();
+  String url() default "";
 
   /** The HTTP method (GET, POST, …). */
   String method() default "GET";

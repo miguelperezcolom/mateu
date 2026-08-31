@@ -58,6 +58,7 @@ export default defineConfig({
 			],
 			sidebar: [
 				{ slug: 'the-mateu-way', label: 'The Mateu Way' },
+				{ slug: 'authoring-rule', label: 'The authoring rule' },
 				{
 					label: 'Use with AI',
 					items: [
@@ -161,9 +162,11 @@ export default defineConfig({
 						{ slug: 'mateu-about/what-is-mateu' },
 						{ slug: 'mateu-about/why-mateu', label: 'Why Mateu' },
 						{ slug: 'mateu-about/how-mateu-works', label: 'How Mateu Works' },
+						{ slug: 'mateu-about/the-model', label: 'The Model' },
 						{ slug: 'mateu-about/architecture', label: 'Technical Architecture' },
 						{ slug: 'mateu-about/system-architecture' },
 						{ slug: 'mateu-about/comparison' },
+						{ slug: 'mateu-about/comparison-low-code', label: 'Mateu vs Visual Builders' },
 						{ slug: 'mateu-about/mateu-and-ai', label: 'Mateu and AI' },
 						{ slug: 'mateu-about/disclaimer' },
 						{
@@ -264,6 +267,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/relationships-vs-embedded-cruds' },
 								{ slug: 'java-user-manual/build/master-detail' },
 								{ slug: 'java-user-manual/build/orders-customers-order-lines' },
+								{ slug: 'java-user-manual/build/derived-openapi' },
 							],
 						},
 						{
@@ -272,6 +276,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/advanced/rules' },
 								{ slug: 'java-user-manual/advanced/breadcrumbs' },
 								{ slug: 'java-user-manual/advanced/layout-and-composition' },
+								{ slug: 'java-user-manual/advanced/escaping-the-framework' },
 								{ slug: 'java-user-manual/advanced/custom-web-components' },
 								{ slug: 'java-user-manual/advanced/extensibility' },
 								{ slug: 'java-user-manual/advanced/testing' },
@@ -320,6 +325,11 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/fluent-components' },
 						{ slug: 'java-ui-definition/client-side-logic' },
 						{ slug: 'java-ui-definition/yaml-ui-definition' },
+						{ slug: 'java-ui-definition/route-registry' },
+						{ slug: 'java-ui-definition/rest-source-catalogue' },
+						{ slug: 'java-ui-definition/yaml-app-shell', label: 'App Shell as Data' },
+						{ slug: 'java-ui-definition/partials' },
+						{ slug: 'java-ui-definition/visual-editor', label: 'Authoring with the Visual Editor' },
 						{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
 						{
 							label: 'Components',
@@ -343,8 +353,8 @@ export default defineConfig({
 					label: 'Design Systems',
 					items: [
 						{ slug: 'design-systems/vaadin' },
-						{ slug: 'design-systems/sapui5' },
 						{ slug: 'design-systems/oracle-redwood' },
+						{ slug: 'design-systems/renderer-contract' },
 						{ slug: 'design-systems/bring-your-own-design-system' },
 					],
 				},

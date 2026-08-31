@@ -29,12 +29,21 @@ final class RestDataSupport {
   private RestDataSupport() {}
 
   /**
-   * True when the view declares at least one proxy-mode REST source ({@code proxy = true} on a
-   * field {@code @RestOptions}, a method {@code @RestAction}, or the class
-   * {@code @RestListing}/{@code @RestData}). Gates advertising the {@code __restfetch__} action so
-   * only proxy views carry it.
+   * True when the view declares at least one proxy-mode REST source: {@code proxy = true} on a
+   * field {@code @RestOptions}, a method {@code @RestAction}, the class
+   * {@code @RestListing}/{@code @RestData}, or on anything a {@link
+   * io.mateu.uidl.interfaces.RestSourceSupplier} view declares at runtime. Gates advertising the
+   * {@code __restfetch__} action so only proxy views carry it.
    */
   static boolean hasProxySource(Object instance) {
+    if (instance instanceof io.mateu.uidl.interfaces.RestSourceSupplier supplier) {
+      var declarations = supplier.declaredRestSources();
+      if (declarations != null
+          && declarations.stream()
+              .anyMatch(d -> d != null && d.source() != null && d.source().proxy())) {
+        return true;
+      }
+    }
     var cls = instance.getClass();
     var listing = MetaAnnotations.find(cls, RestListing.class);
     if (listing != null && listing.proxy()) {
@@ -74,6 +83,7 @@ final class RestDataSupport {
     }
     var source =
         RestDataSource.builder()
+            .ref(a.source())
             .url(a.url())
             .method(a.method())
             .headers(headers)

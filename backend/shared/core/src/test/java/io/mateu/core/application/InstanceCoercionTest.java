@@ -103,14 +103,19 @@ class InstanceCoercionTest {
   }
 
   @Test
-  void emptyStringsKeepTheFieldInitializerForNonStringTypes() {
-    // "" coerces to null and null assignments are skipped — the initializer survives
+  void emptyStringsClearTheFieldForNonStringTypes() {
+    // BEHAVIOUR CHANGE (2026-08-19): this used to assert that the initializer SURVIVED an empty
+    // string, because "" could not be parsed into a date or a number and the failure was swallowed.
+    // That made the screen and the stored record disagree without saying so: the control shows
+    // nothing, the record keeps yesterday's date. An empty control means the value is not stated,
+    // and a state entry only carries "" for a field the user actually cleared — an untouched field
+    // with an initializer renders that initializer and sends it back.
     var data = new HashMap<String, Object>();
     data.put("emptyDate", "");
     data.put("emptyInt", "");
     var built = build(data);
-    assertThat(built.emptyDate).isEqualTo(LocalDate.EPOCH);
-    assertThat(built.emptyInt).isEqualTo(7);
+    assertThat(built.emptyDate).isNull();
+    assertThat(built.emptyInt).isNull();
   }
 
   @Test

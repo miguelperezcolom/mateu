@@ -1,0 +1,7 @@
+# A definition with no modelView: layout only. Its route is declared in routes.yaml with no
+# viewModel — the statically deployed case, with no server class behind it.
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "About this app"

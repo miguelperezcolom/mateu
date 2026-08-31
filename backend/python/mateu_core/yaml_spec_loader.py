@@ -18,6 +18,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from mateu_core.partial_registry import PartialRegistry
+from mateu_core.route_registry import RouteRegistry
 from mateu_core.yaml_preview import parse_spec
 
 
@@ -30,9 +32,21 @@ class Spec:
 
 
 class YamlSpecLoader:
-    def __init__(self, directory: str | None = None) -> None:
+    def __init__(
+        self,
+        directory: str | None = None,
+        registry: RouteRegistry | None = None,
+        partials: PartialRegistry | None = None,
+    ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._by_route: dict[str, Spec | None] = {}
+        #: Resolves ``type: Partial`` nodes against ``<specs>/partials/``, so a definition can reuse
+        #: a piece rather than repeat it.
+        self.partials = partials if partials is not None else PartialRegistry(str(self._dir))
+        #: When a route's registry entry names a ``definition``, THAT file is the layout — instead
+        #: of the ``<route>.yaml`` convention, which ties a screen's layout to its URL and so
+        #: prevents one definition from serving several routes.
+        self._registry = registry if registry is not None else RouteRegistry(str(self._dir))
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)
@@ -41,14 +55,24 @@ class YamlSpecLoader:
         return self._by_route[key]
 
     def _parse(self, normalized_route: str) -> Spec | None:
-        path = self._dir / f"{normalized_route}.yaml"
+        match = self._registry.match(normalized_route)
+        entry = match.entry if match is not None else None
+        declared = (entry.definition if entry is not None else None) or None
+        path = self._dir / (declared if declared else f"{normalized_route}.yaml")
         if not path.is_file():
             return None
         try:
-            model_view, layout = parse_spec(path.read_text())
+            model_view, layout = parse_spec(path.read_text(), self.partials)
         except OSError:
             return None
-        return Spec(model_view, layout) if layout is not None else None
+        if layout is None:
+            return None
+        # The definition is layout; the binding to a view model belongs to the route entry. A YAML
+        # that still declares modelView: keeps working and wins — but a definition shared by several
+        # routes must NOT name one, or it could only ever serve the class it names.
+        if not model_view and entry is not None:
+            model_view = entry.view_model or None
+        return Spec(model_view, layout)
 
 
 def _normalize(route: str | None) -> str:

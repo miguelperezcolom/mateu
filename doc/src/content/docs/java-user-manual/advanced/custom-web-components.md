@@ -151,6 +151,55 @@ Returning `this` from the action triggers a re-render, which will pass the updat
 
 ---
 
+## Step 4b — Feeding the element from a value that keeps changing
+
+Step 4 re-renders the whole view. That is the right thing when the user asked for something, and
+the wrong thing for a screen that refreshes itself — a monitoring page polling every couple of
+seconds, a gauge following a live figure. Those answer with a `State`, which carries **values** and
+deliberately does not resend the component tree, so nothing the surroundings put on the page is
+rebuilt underneath the user.
+
+An element's `attributes` and its `content` are part of that tree. Written as literals they are
+delivered once, on the render that built them, and never again — the element keeps drawing, with
+the data it had when the screen opened, which looks exactly like working.
+
+Write them as **expressions** instead, and they become values like any other:
+
+```java
+@UI("/process/:id")
+public class ProcessMonitor {
+
+    String overlay;                                   // a value: travels in every State update
+
+    Element diagram = Element.builder()
+        .name("workflow-graph")
+        .attributes(Map.of(
+            "import",  "/js/workflow-graph.js",
+            "value",   "${state.topology}",           // constant here, but still a value
+            "overlay", "${state.overlay}"))           // changes on every poll
+        .style("height: 68vh;")
+        .build();
+
+    @Action
+    public Object refresh(HttpRequest httpRequest) {
+        overlay = currentState(...);                  // just set the field
+        return new State(this);                       // no component tree, no chrome rebuilt
+    }
+}
+```
+
+`${...}` here is the same interpolation every label, title and column header accepts, evaluated
+against the component's `state` and `data` (`appState` and `appData` are in scope too). It is
+substituted **once**: a value that itself contains a `${` — JSON, a template meant for someone
+else's parser — is delivered as it arrived.
+
+The update is applied to the element **in place**, with `setAttribute` on the node that is already
+there. A custom element observing the attribute (a Lit `@property()`, say) sees a property change
+and repaints; it is not rebuilt, so whatever it holds that the server knows nothing about — a zoom,
+a selection, a computed layout — survives the refresh.
+
+---
+
 ## Step 5 — Interacting with Mateu's web components
 
 Your web component can fire events that Mateu's own web components (`<mateu-ui>`, `<mateu-form>`, etc.) listen to. This is useful for navigating, refreshing grids, or passing data from your component back into the Mateu component tree.

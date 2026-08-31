@@ -97,11 +97,17 @@ public class FieldMapper {
     return new NavLinkDto(link.href(), link.icon(), link.title(), link.target());
   }
 
-  private static RestDataSourceDto mapRestDataSource(io.mateu.uidl.data.RestDataSource source) {
+  /**
+   * The one mapping of a REST descriptor onto the wire, shared by every surface that carries one (a
+   * field's options, a listing's rows, an action's call) — they used to hold a copy each, which is
+   * how a new field gets added to two of the three.
+   */
+  static RestDataSourceDto mapRestDataSource(io.mateu.uidl.data.RestDataSource source) {
     if (source == null) {
       return null;
     }
     return new RestDataSourceDto(
+        source.ref(),
         source.url(),
         source.method(),
         source.headers(),

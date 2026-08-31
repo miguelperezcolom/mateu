@@ -71,6 +71,43 @@ Two Vaadin-carousel behaviours worth knowing:
   (say a 14rem profile strip) widens to match the first fold, so the page reads as balanced
   columns instead of trailing off into a sliver.
 
+## Redwood parameter and slot reference
+
+What the Redwood `foldout-layout` and `foldout-panel` components expose, and what Mateu gives you
+for them. The canonical page-header elements shared by every template are documented once in
+[Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+### Layout (`foldout-layout`)
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `orientation: horizontal \| vertical` | `orientation()` → `FoldoutOrientation.horizontal \| vertical` | ✅ |
+| `nextStep` / `previousStep` + `spPrevious` / `spNext` | `navigationHeader()` → `FoldoutNavigation.previousActionId` / `nextActionId` | ✅ |
+| `displayOptions.goToParent` + `spGoToParent` | `FoldoutNavigation.parentLabel` / `parentActionId` | ✅ |
+| **Slot** `overview` | the first component field (always visible) | ✅ |
+| **Slot** default (the panels) | component fields annotated `@Panel`, or `FoldoutLayout.panels` | ✅ |
+| **Slot** `drilldown` | — | — |
+| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
+| `selectedPanel` (controlled selection) | `@Panel(open = …)` / `FoldoutPanel.open` set the initial state; the open panel is not a controlled prop afterwards | 🟡 |
+| `animate` | the renderer animates folding; not configurable | 🟡 |
+| `displayOptions.bidirectionalNavigation` | — | — |
+| `displayOptions.background: default \| transparent` | — (`style`/`cssClasses` escape hatch) | — |
+| `displayOptions.inFlowBack` + `spInFlowBack` | — | — |
+
+### Panel (`foldout-panel`)
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `panelTitle` | `@Panel(title)` / `FoldoutPanel.title` (defaults to the field label) | ✅ |
+| — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent | ✅ |
+| **Slot** default | `@Panel` field value / `FoldoutPanel.content` | ✅ |
+| **Slot** `summary` (what shows on the **collapsed strip**) | — the strip only shows the rotated title | — |
+| **Slot** `recommendation` | — | — |
+| **Slot** `noData` | — compose an `EmptyState` as the panel content | 🟡 |
+| `secondaryActions` + `spAction {actionId}` | — panel-level actions must live inside the panel content | — |
+
 ## When to use it
 
 Use a foldout for **record workspaces** where the user works one object at a time and hops between its associated categories — reservations, contracts, patient records. Prefer `@Tabs` when categories are mutually exclusive and context loss is acceptable, or `MasterDetailView` when the "categories" are really alternative detail parts of a master form.

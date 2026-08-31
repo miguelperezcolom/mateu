@@ -44,6 +44,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     /** The exact `data` reference our own applyFragment last produced (see willUpdate). */
     private _lastFragmentData?: Record<string, any>
 
+    /** `serverSideType` of the view this element last rendered — the stable identity of a view
+     *  across renders (ids are fresh uuids). Tells a re-render of the same view apart from a
+     *  different one arriving in this reused element (see willUpdate). */
+    private _lastViewKey?: string
+
     @property()
     appData: Record<string, any> = {}
 
@@ -235,12 +240,23 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      * applyFragment last set is authoritative (rows, or an intentional clear when a DIFFERENT
      * component replaces this one) and is respected as-is; a change to any other reference came
      * from the parent re-render, and an EMPTY map from there must not clear data the search owns.
-     * This never grows unbounded — the search replaces its own key on every run — and never leaks
-     * across views, because a different route is a different element (route-derived ids).
+     * This never grows unbounded — the search replaces its own key on every run.
+     *
+     * It must NOT survive a change of VIEW, though. Lit reuses this element across a route change
+     * (same tag, same position), so navigating from one listing to another re-binds `.component`
+     * with the new view and `.data` with its still-empty map — and preserving the previous rows
+     * there paints the OUTGOING listing's rows under the incoming one's header and columns until
+     * its search answers (a second or two on a slow link). The view's identity is its
+     * `serverSideType` (component ids are fresh uuids on every render), so we remember the one we
+     * last rendered: when it changes, the empty map is the new view's own and is respected.
      */
     protected willUpdate(changed: PropertyValues) {
         super.willUpdate(changed)
-        if (!changed.has('data') || this.data === this._lastFragmentData) return
+        const viewKey = (this.component as ServerSideComponent | undefined)?.serverSideType
+        const viewChanged = viewKey != undefined && this._lastViewKey != undefined
+            && viewKey !== this._lastViewKey
+        if (viewKey != undefined) this._lastViewKey = viewKey
+        if (!changed.has('data') || this.data === this._lastFragmentData || viewChanged) return
         const incoming = this.data
         const previous = changed.get('data') as Record<string, any> | undefined
         if (incoming && Object.keys(incoming).length === 0

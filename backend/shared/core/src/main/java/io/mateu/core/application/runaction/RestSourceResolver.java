@@ -6,6 +6,9 @@ import io.mateu.uidl.annotations.RestData;
 import io.mateu.uidl.annotations.RestListing;
 import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.RestDataSource;
+import io.mateu.uidl.data.RestSourceCatalog;
+import io.mateu.uidl.data.RestSourceKind;
+import io.mateu.uidl.interfaces.RestSourceSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -14,14 +17,47 @@ import java.util.Map;
 /**
  * Resolves the DECLARED {@link RestDataSource} of a view for a proxy fetch — from the annotation on
  * the field ({@code @RestOptions}), the class ({@code @RestListing}/{@code @RestData}) or the
- * method ({@code @RestAction}), never from a client-supplied url (so the proxy can't be turned into
- * an open SSRF/secret-exfiltration relay). Used by {@code __restfetch__}.
+ * method ({@code @RestAction}), or from what a {@link RestSourceSupplier} view declares at runtime,
+ * never from a client-supplied url (so the proxy can't be turned into an open SSRF/secret-
+ * exfiltration relay). Used by {@code __restfetch__}.
  */
 final class RestSourceResolver {
 
   private RestSourceResolver() {}
 
-  static RestDataSource resolve(Object instance, String kind, String id) {
+  /**
+   * The declared descriptor for a proxy fetch, with a catalogue reference already resolved.
+   *
+   * <p>Resolving HERE rather than at the call site is what keeps the proxy's guarantee intact: the
+   * endpoint it ends up calling comes from what the SERVER holds — an annotation, a supplier, or
+   * the catalogue — and never from the request. A reference the catalogue does not carry resolves
+   * to nothing rather than to a client-supplied url.
+   */
+  static RestDataSource resolve(
+      Object instance, String kind, String id, RestSourceCatalog catalog) {
+    return againstCatalog(declaredBy(instance, kind, id), catalog);
+  }
+
+  /**
+   * Fills a reference in from the catalogue. A descriptor that names no source is returned
+   * untouched, so inline declarations are unaffected.
+   */
+  private static RestDataSource againstCatalog(RestDataSource declared, RestSourceCatalog catalog) {
+    if (declared == null || !declared.hasRef()) {
+      return declared;
+    }
+    var entry =
+        catalog == null
+            ? java.util.Optional.<io.mateu.uidl.data.RestSourceEntry>empty()
+            : catalog.get(declared.ref());
+    return entry.map(declared::resolvedAgainst).orElse(declared);
+  }
+
+  private static RestDataSource declaredBy(Object instance, String kind, String id) {
+    var declared = declaredBySupplier(instance, kind, id);
+    if (declared != null) {
+      return declared;
+    }
     var cls = instance.getClass();
     switch (kind == null ? "" : kind) {
       case "options" -> {
@@ -30,6 +66,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -45,6 +82,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -59,6 +97,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -71,6 +110,7 @@ final class RestSourceResolver {
         return a == null
             ? null
             : RestDataSource.builder()
+                .ref(a.source())
                 .url(a.url())
                 .method(a.method())
                 .headers(parseHeaders(a.headers()))
@@ -82,6 +122,37 @@ final class RestSourceResolver {
         return null;
       }
     }
+  }
+
+  /**
+   * What a {@link RestSourceSupplier} view says it declared for this kind and id, or null when the
+   * view is not one or declares nothing matching. Asked first: a view that builds its sources at
+   * runtime has no annotation for the reflective lookups below to find.
+   */
+  private static RestDataSource declaredBySupplier(Object instance, String kind, String id) {
+    if (!(instance instanceof RestSourceSupplier supplier)) {
+      return null;
+    }
+    var wanted = RestSourceKind.fromWire(kind);
+    if (wanted == null) {
+      return null;
+    }
+    var declarations = supplier.declaredRestSources();
+    if (declarations == null) {
+      return null;
+    }
+    var wantedId = id == null ? "" : id;
+    return declarations.stream()
+        .filter(d -> d != null && d.source() != null && wanted.equals(d.kind()))
+        // ROWS and DATA have one per view, so an id is not part of what identifies them.
+        .filter(
+            d ->
+                wanted == RestSourceKind.ROWS
+                    || wanted == RestSourceKind.DATA
+                    || wantedId.equals(d.id()))
+        .map(io.mateu.uidl.data.DeclaredRestSource::source)
+        .findFirst()
+        .orElse(null);
   }
 
   private static Map<String, String> parseHeaders(String[] headers) {

@@ -13,6 +13,18 @@ final class FieldValueConverter {
     if (value == null) {
       return null;
     }
+    // Same rule as the read side (TypeCoercionHelper): a blank string aimed at anything that
+    // is not a String is an absence, not a value, and parsing it would throw and be swallowed
+    // by hydration — leaving the field holding exactly what the user just cleared, with
+    // nothing on screen saying so. A primitive cannot hold an absence, so it gets its zero.
+    if (value instanceof String string && string.isBlank() && !String.class.equals(targetType)) {
+      if (int.class.equals(targetType)) return 0;
+      if (long.class.equals(targetType)) return 0L;
+      if (float.class.equals(targetType)) return 0f;
+      if (double.class.equals(targetType)) return 0.0;
+      if (boolean.class.equals(targetType)) return false;
+      return null;
+    }
     if (targetType.equals(value.getClass())) {
       return value;
     }

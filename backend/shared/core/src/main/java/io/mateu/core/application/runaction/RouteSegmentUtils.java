@@ -65,6 +65,22 @@ final class RouteSegmentUtils {
                 }
               });
     }
+
+    // The registry entry's parameters sit at the two ENDS of the precedence order, which is why
+    // the entry travels whole instead of as one merged map:
+    //
+    //   fixed  >  client state  >  path  >  query  >  defaults
+    //
+    // Defaults only fill what nobody else supplied. Fixed ones are re-applied here, on the server,
+    // over everything — including the state the client sent back. Resolution runs in the browser
+    // too (a statically deployed mount has no server to ask), so a "fixed" parameter enforced only
+    // there would be a suggestion: flipping one via the query string or a doctored component state
+    // would widen the scope the route was pinned to.
+    var entry = matchingRoute.entry();
+    if (entry != null) {
+      entry.defaultParams().forEach(newData::putIfAbsent);
+      newData.putAll(entry.fixedParams());
+    }
     return newData;
   }
 }

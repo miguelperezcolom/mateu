@@ -42,6 +42,35 @@ public class ProductOverview extends ItemOverview {
 
 Override `panelWidth()` (default `22rem`) to size the key-info panel.
 
+## Redwood parameter and slot reference
+
+What the Redwood `item-overview-page` template and its `item-overview` key-info pattern expose, and
+what Mateu gives you for them. The canonical page-header elements shared by every template are
+documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+### Page (`item-overview-page`)
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| **Slot** `overview` (key info) | the first component field, sticky; width via `panelWidth()` (default `22rem`) | ✅ |
+| **Slot** `main` | component fields annotated `@Panel`, rendered as tabs | ✅ |
+| `overviewExpanded` + `spOverviewCollapse` | — the key-info panel is always expanded | — |
+| `nextItem` / `previousItem` + `getPreviousNextItems` | `PeerNavigationSupplier` → `PeerNav` | ✅ |
+
+### Key-info pattern (`item-overview`)
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `itemTitle` / `itemSubtitle` | compose them in the key-info panel — typically an `EntityHeader`, which the renderer hoists into the page header | ✅ |
+| `photo {src}` | `EntityHeader` image / any component in the panel | ✅ |
+| `badge {text, style: strong \| subtle, position: leading \| trailing}` | `@BadgeInHeader` / `EntityHeader` badges; no `position` control | 🟡 |
+| `isFavorite` + `spExpand` | — | — |
+| `displayOptions {edit, share, favorite}` | — no built-in affordance bar; declare your own buttons | — |
+| **Slots** `body` / `footer` | the panel is a single component tree; compose a `VerticalLayout` | 🟡 |
+| `spEdit` / `spShare` | your own `@Action` methods behind declared buttons | 🟡 |
+
 ## When to use it
 
 Use item overview for **read-mostly detail pages** where identity context matters across categories. If the user must *edit* the item, prefer `AutoEditableView`; if the categories must be visible simultaneously rather than tabbed, use the [Foldout](/ux-patterns/foldout) pattern; for a long single-flow page with an index, use `@Toc` + sticky sections.

@@ -57,10 +57,16 @@ export class MateuContentHeader extends LitElement {
     @property()
     appData: ComponentData = {}
 
-    // "…" overflow for secondary actions (the VB/Redwood header grammar): primaries stay
-    // visible; two or more secondaries collapse into this menu.
+    // "…" overflow for secondary actions: primaries stay inline; secondaries stay inline as long
+    // as they FIT — only the ones that don't fit collapse into this menu (measured, not a count).
     @state()
     private _overflowOpen = false
+
+    // How many trailing secondary buttons are moved into the "…" menu (measured to fit the header).
+    @state()
+    private _overflowN = 0
+    private _secCount = 0
+    private _ro?: ResizeObserver
 
     private _onDocClick = (e: Event) => {
         if (!e.composedPath().includes(this)) {
@@ -71,11 +77,39 @@ export class MateuContentHeader extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         document.addEventListener('click', this._onDocClick)
+        // Re-fit the toolbar whenever the header (or window) is resized. The ResizeObserver catches
+        // container-driven size changes; the window listener is a robust fallback.
+        this._ro = new ResizeObserver(() => this._resetOverflow())
+        this._ro.observe(this)
+        window.addEventListener('resize', this._resetOverflow)
     }
 
     disconnectedCallback() {
         document.removeEventListener('click', this._onDocClick)
+        window.removeEventListener('resize', this._resetOverflow)
+        this._ro?.disconnect()
+        this._ro = undefined
         super.disconnectedCallback()
+    }
+
+    /** Show everything inline again, then let updated() shrink to fit — the expand path on resize. */
+    private _resetOverflow = () => {
+        if (this._overflowN !== 0) this._overflowN = 0
+        else this.requestUpdate()
+    }
+
+    /** After each render, move one more secondary into the "…" menu while the action cluster still
+     *  overflows the header (wrapped to a new line or past the right edge). Monotonic → converges. */
+    protected updated(changed: Map<PropertyKey, unknown>) {
+        if (changed.has('metadata') || changed.has('data')) { this._resetOverflow(); return }
+        const cluster = this.renderRoot.querySelector('.actions-cluster') as HTMLElement | null
+        if (!cluster || this._secCount === 0) return
+        const row = cluster.closest('.form-header, .no-header-row') as HTMLElement | null
+        if (!row) return
+        const cr = cluster.getBoundingClientRect()
+        const rr = row.getBoundingClientRect()
+        const overflowing = cr.top - rr.top > 8 || cr.right > rr.right + 1
+        if (overflowing && this._overflowN < this._secCount) this._overflowN += 1
     }
 
     handleButtonClick = (actionId: string) => {
@@ -110,28 +144,35 @@ export class MateuContentHeader extends LitElement {
     `
     }
 
-    // Action cluster with the "…" overflow: primaries always inline; a SINGLE secondary
-    // stays inline too, two or more collapse into the menu (the VB/Redwood header grammar).
+    // Action cluster with the "…" overflow: primaries always inline; secondaries stay inline while
+    // they FIT the header and only the trailing ones that don't fit collapse into the menu. The
+    // split (_overflowN) is measured in updated(); here we just render it.
     renderActions = (actionButtons: Button[]) => {
         const visible = actionButtons.filter(b => !(this.data ?? {})[b.actionId + '.hidden'])
         const primaries = visible.filter(b => b.buttonStyle === 'primary')
         const secondaries = visible.filter(b => b.buttonStyle !== 'primary')
-        if (secondaries.length < 2) {
-            return html`${visible.map(this.renderBtn)}`
-        }
+        this._secCount = secondaries.length
+        const n = Math.max(0, Math.min(this._overflowN, secondaries.length))
+        const inline = secondaries.slice(0, secondaries.length - n)
+        const menu = secondaries.slice(secondaries.length - n)
         return html`
-            ${primaries.map(this.renderBtn)}
-            <div class="overflow-wrap">
-                <button class="mtb overflow-btn" title="Más acciones" aria-haspopup="true"
-                        aria-expanded="${this._overflowOpen}"
-                        @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
-                ${this._overflowOpen ? html`
-                    <div class="overflow-menu">
-                        ${secondaries.map(b => html`
-                            <button class="overflow-item" ?disabled="${b.disabled}"
-                                    data-action-id="${b.actionId}"
-                                    @click="${() => this.handleButtonClick(b.actionId)}">${this.evalLabel(b.label)}</button>
-                        `)}
+            <div class="actions-cluster">
+                ${primaries.map(this.renderBtn)}
+                ${inline.map(this.renderBtn)}
+                ${menu.length ? html`
+                    <div class="overflow-wrap">
+                        <button class="mtb overflow-btn" title="Más acciones" aria-haspopup="true"
+                                aria-expanded="${this._overflowOpen}"
+                                @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
+                        ${this._overflowOpen ? html`
+                            <div class="overflow-menu">
+                                ${menu.map(b => html`
+                                    <button class="overflow-item" ?disabled="${b.disabled}"
+                                            data-action-id="${b.actionId}"
+                                            @click="${() => this.handleButtonClick(b.actionId)}">${this.evalLabel(b.label)}</button>
+                                `)}
+                            </div>
+                        ` : nothing}
                     </div>
                 ` : nothing}
             </div>
@@ -169,7 +210,14 @@ export class MateuContentHeader extends LitElement {
         const divider = navButtons.length > 0 && actionButtons.length > 0
             ? html`<span class="toolbar-divider"></span>`
             : nothing
+        // Redwood header text elements. `titlePlaceholder` is a PLACEHOLDER, not a default: it only
+        // stands in while there is no title, and never overrides one.
+        const overline = (metadata as any).overline as string | undefined
+        const titlePlaceholder = metadata.title
+            ? undefined
+            : ((metadata as any).titlePlaceholder as string | undefined)
         const hasMainHeader = metadata.avatar || metadata.title || metadata.subtitle
+            || overline || titlePlaceholder
             || (metadata.kpis?.length > 0) || (metadata.header?.length > 0) || toolbar.length > 0
             || !!peerNav
         const level = metadata.level ?? 0
@@ -190,7 +238,7 @@ export class MateuContentHeader extends LitElement {
                 </div>
             ` : nothing}
             ${metadata.noHeader ? html`
-                <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
+                <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;" class="no-header-row">
                     ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                     ${peerNav ? this.renderPeerNav(peerNav) : nothing}
                     ${navButtons.map(this.renderBtn)}
@@ -201,9 +249,12 @@ export class MateuContentHeader extends LitElement {
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center; flex-wrap: wrap;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
-                        ${metadata?.title && level == 0?html`
+                        ${overline ? html`<div class="page-overline">${unsafeHTML(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
+                        ${(metadata?.title || titlePlaceholder) && level == 0?html`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
-                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>
+                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${metadata?.title
+                                    ? unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
+                                    : html`<span class="page-title-placeholder">${unsafeHTML(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
                                     ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))
                                     : nothing}
@@ -262,6 +313,26 @@ export class MateuContentHeader extends LitElement {
             padding-top: 0;
         }
 
+        /* Redwood overline: the small line above the title — a category or parent context.
+           Quieter and smaller than the title, with the same ellipsis discipline. */
+        .page-overline {
+            color: var(--lumo-secondary-text-color, #6b7280);
+            font-size: var(--lumo-font-size-s, .875rem);
+            line-height: 1.2;
+            margin-block-end: .15rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Redwood pageTitlePlaceholder: stands in for a title that does not exist yet (create
+           mode). Rendered inside the title heading so it keeps its size, but muted so it never
+           reads as a real title. */
+        .page-title-placeholder {
+            color: var(--lumo-tertiary-text-color, #9ca3af);
+            font-weight: inherit;
+        }
+
         .breadcrumb-link {
             border: none;
             background: transparent;
@@ -293,6 +364,15 @@ export class MateuContentHeader extends LitElement {
         }
         .kpi-value {
             font-weight: 600;
+        }
+
+        /* The action cluster stays on one line and moves/wraps as a unit; updated() measures it
+           against the header row to decide how many trailing secondaries overflow into the menu. */
+        .actions-cluster {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: var(--lumo-space-xs, .25rem);
         }
 
         /* "…" overflow menu for secondary header actions */

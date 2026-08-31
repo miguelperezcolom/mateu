@@ -23,9 +23,11 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
 | Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
+| Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
+| [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the derived table). Both ports mirror the model, the matching, the precedence and the definition lookup; neither has a static-bundle exporter, so nothing ships the table to a browser there | ✅ | ✅ | ✅ |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
 | Planning board (tape chart: resources × days, colored blocks, move/select actions) | ✅ | ✅ | ✅ |
@@ -52,6 +54,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST button action (`@RestAction`/`[RestAction]`/`@rest_action` on a button → calls an arbitrary endpoint client-side via `Action.restAction`; response toast + merge into form state) | ✅ | ✅ | ✅ |
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / env var; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
+| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ❌ | ❌ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
@@ -65,6 +68,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
+| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. The ports parse the key and decline the page rather than rendering it wrongly | ✅ | — | — |
+| [Partials](/java-ui-definition/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
 | YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
@@ -96,7 +101,7 @@ rather than Java's typed `FilterCriterion` objects; a contract difference, not a
 
 **Recent .NET/Python parity gains (2026-07-17)**: CRUD create/edit in a drawer
 (`Crud<T>.EditInDrawer` virtual / `@edit_in_drawer` decorator — new and row clicks answer the
-entity form inside a `Drawer` Add fragment over the listing; cancel closes it; save persists and
+entity form inside a `Drawer` Add partial over the listing; cancel closes it; save persists and
 answers `CloseModal` carrying the `mateu-crud:saved-in-drawer` event plus a `RunAction search`
 command, so the listing refreshes in place with no navigation), the wizard RAIL progress style
 (`[WizardProgress("rail")]` / `@wizard_progress("rail")` — the step form on the left, a sticky
@@ -112,7 +117,7 @@ page in place.
 (`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +
 the update-row action rebuilding and saving the row), lookup fields (`[Lookup]`/`Lookup()` →
 combobox + remoteCoordinates, the handler answers `search-<field>` from the options supplier,
-filtered and paged), Dialog/Drawer overlays returned from actions (Add fragments on the initiator,
+filtered and paged), Dialog/Drawer overlays returned from actions (Add partials on the initiator,
 with `CloseModal`/`DispatchEvent` command factories carrying `{eventName, detail}`), `[Toc]`/`@toc`,
 the full HeroSearch archetype (hero header + cards listing, starts empty), client-side rules
 (`[Hidden(expr)]`/`[Disabled]` + `IRuleSupplier`/`RuleSupplier` → `ServerSideComponent.rules`),
@@ -137,7 +142,7 @@ reflectively, so a thin wrapper view over the foreign object (fields exposing it
 writing back) replaces Java's `ComponentAdapter` SPI — see "Adapting foreign classes" in each
 manual. The four depth tails inside ✅ rows closed too: pre-existing `@Lookup`/`@Searchable`
 values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier` →
-`<fieldId>-label` fragment data), grid form fields edit in place (`@InlineEditing` on the
+`<fieldId>-label` partial data), grid form fields edit in place (`@InlineEditing` on the
 property, rows binding back into the typed list), permission-driven field states
 (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
@@ -163,40 +168,40 @@ each pinned by golden-JSON tests mirroring the Java sync suites.
 
 Every renderer speaks the same wire; the depth of widget support varies.
 
-| Feature | Vaadin (web) | Redwood (web) | SAP UI5 (web) | IntelliJ plugin | React Native |
-|---|---|---|---|---|---|
-| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
-| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
-| Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
-| Date picker | ✅ | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
-| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
-| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
-| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
-| App context selector | ✅ | ✅ | ✅ (shared) | ✅ (navigator combos) | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | ✅ | 🟡 loaded options only | ✅ |
-| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | ✅ mouse canvas | ✅ svg + view-shot |
-| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
-| Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ (JTree popup) | ✅ |
-| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| App header actions (buttons + dropdown groups) | ✅ | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
-| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (shared bar; redwood: own bar) | — | — |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ | — | — |
-| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
-| Undoable toasts (Undo button) | ✅ | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | — | ✅ sidebar search | ✅ drawer search |
-| Planning board (tape chart) | ✅ drag+select | ✅ | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
-| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (shared api client) | — | — |
-| Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
-| App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
+| Feature | Vaadin (web) | Redwood (web) | IntelliJ plugin | React Native |
+|---|---|---|---|---|
+| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ |
+| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
+| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
+| Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
+| Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
+| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
+| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
+| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
+| App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
+| — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
+| Signature capture | ✅ canvas | ✅ canvas | ✅ mouse canvas | ✅ svg + view-shot |
+| Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
+| Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
+| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
+| App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
+| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
+| Saved views (named filter sets, default view) | ✅ | ✅ | — | — |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | — | — |
+| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
+| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
+| Undoable toasts (Undo button) | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | ✅ sidebar search | ✅ drawer search |
+| Planning board (tape chart) | ✅ drag+select | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
+| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | — | — |
+| Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
+| App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
 
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
@@ -207,8 +212,15 @@ MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data mode
 (`List<MessageListItem>` / an `actionId` that fires on submit) — they were previously stubs that
 rendered hardcoded demo data.
 
-"Shared" = SAP UI5 reuses the shared web components (Lumo-variable theming), so it
-inherits those features automatically.
+**Retired renderers (2026-08-12 reconciliation).** SAP UI5, Redwood-OJ (OJET), Red Hat/PatternFly
+and SLDS were **retired**: `apps/sapui5`, `apps/redhat` and `apps/slds` hold only leftover `dist/`
+output, with no sources and no `package.json`. They had a column here long after they stopped
+existing — which is the worst failure mode for this page, since a matrix that promises a renderer
+nobody can use is worse than one that admits a gap. **The supported web renderers are Vaadin and the
+Redwood/VB line.**
+
+`frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
+bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

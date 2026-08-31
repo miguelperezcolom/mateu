@@ -7,6 +7,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.plugins.yaml</depends>
+    <depends>com.intellij.modules.json</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Visual-builder binding validation: squiggles when a YAML page's FormField id / Button
@@ -26,6 +27,11 @@
                             serviceImplementation="io.mateu.ijp.plugin.MateuEmptyEditorPainter"
                             overrides="true"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
+    </extensions>
+
+    <!-- Applies the unified Mateu authoring schema to every specs/ui/**.yaml in the text editor. -->
+    <extensions defaultExtensionNs="com.intellij.json">
+        <jsonSchemaProviderFactory implementation="io.mateu.ijp.schema.MateuSchemaProviderFactory"/>
     </extensions>
 
     <actions>

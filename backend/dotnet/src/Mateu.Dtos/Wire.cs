@@ -862,6 +862,13 @@ public record PageMetadataDto(
     /// "process"|"dashboard"; never null — every page gets a type). (Mirrors
     /// io.mateu.dtos.PageDto.pageType.)</summary>
     public string? PageType { get; init; }
+    /// <summary>The small line of text shown ABOVE the title (the Redwood overlineText header
+    /// element); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.overline.)</summary>
+    public string? Overline { get; init; }
+    /// <summary>What the header shows while Title is still empty (the Redwood
+    /// pageTitlePlaceholder header element); a placeholder, NOT a default — renderers must ignore
+    /// it once a title exists. (Mirrors io.mateu.dtos.PageDto.titlePlaceholder.)</summary>
+    public string? TitlePlaceholder { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];

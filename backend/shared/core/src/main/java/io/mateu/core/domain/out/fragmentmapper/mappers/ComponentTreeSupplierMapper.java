@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
+import io.mateu.core.application.runaction.PartialExpander;
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
@@ -29,7 +30,7 @@ public class ComponentTreeSupplierMapper {
         List.of(
             mapComponentToDto(
                 componentTreeSupplier,
-                componentTreeSupplier.component(httpRequest),
+                PartialExpander.expand(componentTreeSupplier.component(httpRequest), httpRequest),
                 baseUrl,
                 route,
                 consumedRoute,

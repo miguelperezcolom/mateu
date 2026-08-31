@@ -9,5 +9,7 @@ mdd-vaadin/src/main/webapp/VAADIN/themes/mateu/styles.css
 .mvn
 mvnw
 mvnw.*
-.dev/proyecto
+# Scratch clones of Oracle VB tooling, kept while reverse-engineering their page templates.
+# One of these once dragged 94k files into a commit; none of it is source.
+.dev/
 .DS_Store

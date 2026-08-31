@@ -32,8 +32,7 @@ All integrations support the same set of frontends — change renderer by swappi
 | Artifact | Design system |
 |---|---|
 | `vaadin-lit` | Vaadin (default, recommended) |
-| `sapui5-lit` | SAP Fiori / UI5 |
-| `redwood-oj-lit` | Oracle Redwood |
+| `redwood` | Oracle Redwood, on Visual Builder |
 
 ## Before you start
 

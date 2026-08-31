@@ -24,6 +24,13 @@ Place YAML files under `src/main/resources/specs/ui/`, mirroring the route struc
 | `demo/hello` | `src/main/resources/specs/ui/demo/hello.yaml` |
 | `admin/users/list` | `src/main/resources/specs/ui/admin/users/list.yaml` |
 
+:::note
+This convention ties a page's layout to its URL, so one definition cannot serve two routes. To name
+the file explicitly — and to bind parameters or reuse one layout across several routes — declare the
+route in a [`routes.yaml` registry](/java-ui-definition/route-registry/) instead. The convention
+stays as the default when no entry mentions the route.
+:::
+
 ## File format
 
 Every YAML file must have a root `type` field that names the component to render. All nested components also need a `type`.
@@ -139,6 +146,80 @@ IntelliJ will now provide autocompletion and validation for all YAML files under
 > **Tip:** If IntelliJ shows a yellow bar saying "Schema is not applied", make sure the file path pattern matches — use `specs/ui` without a leading slash.
 
 ---
+
+## Partials
+
+A YAML file under `specs/ui/partials/` is not a page but a **partial** — one component, or a list
+of them, usable anywhere a component is:
+
+```yaml
+- type: Partial
+  ref: address-block
+```
+
+See [Partials](/java-ui-definition/partials/).
+
+## `layoutDelta:` — keep inference alive
+
+A page can carry a **`layoutDelta:`** instead of a `layout:`. The difference matters more than it
+looks:
+
+```yaml
+modelView: com.acme.Contact
+layoutDelta:
+  order: [email, name]
+  hidden: [internalNote]
+  overrides:
+    name: { label: "Full name", colspan: 2 }
+```
+
+A `layout:` is a **snapshot**: it takes the screen out of the inference regime for good, because
+explicit always wins. Add a field to the model afterwards and it does not appear; rename one and the
+layout points at a ghost.
+
+A `layoutDelta:` records **what a human decided**, anchored to field ids. Inference still runs on
+every request and the delta is re-applied on top, so a field the model grows later lands in its
+inferred place, and one it loses is an entry that simply matches nothing.
+
+What a delta deliberately cannot express is arbitrary restructuring — "wrap these two in a card
+inside a tab". Anchoring to ids is exactly what makes it survive a model change; a delta that could
+rebuild the tree freely would be a snapshot with a different name.
+
+The delta is re-applied to the tree inference produced **on every request** — that is the whole
+difference from a `layout:`, which is computed once and then stands in for the model forever.
+
+### Three parts, three rules
+
+An inferred tree may spread the model's fields over sections, tabs or rows, so:
+
+| | |
+|---|---|
+| `hidden` | removes that field wherever it sits |
+| `overrides` | apply to that field wherever it sits |
+| `order` | reorders the fields **within each container that holds them**, leaving non-field siblings in their slots |
+
+A delta cannot move a field between containers, and cannot restructure the tree. That limit is not
+an omission — it is the reason a delta survives a model change at all.
+
+### The visual editor writes these
+
+Drag a field in the editor and it saves a `layoutDelta:`, not a snapshot. Two consequences worth
+knowing:
+
+- **Opening a screen and changing nothing writes `layoutDelta: {}`** — an empty delta, which costs
+  the screen nothing. Using the editor must not, by itself, end a page's inference.
+- **Some edits cannot be a delta.** Add a `Text`, wrap two fields in a card, set a stereotype by
+  hand — none of that is expressible as "these fields, in this order, with these tweaks". The
+  editor then falls back to writing a `layout:` and shows a **snapshot** badge instead of a
+  **delta** one, so the moment a screen leaves inference is visible rather than silent.
+
+An existing `layout:` page migrates by itself: open it in the editor, rearrange, and if the layout
+is a flat run of the model's own fields the next save comes back as a delta.
+
+:::note
+`layoutDelta:` is served by the **Java** server. The .NET and Python ports parse the key and decline
+the page rather than rendering it wrongly.
+:::
 
 ## Hybrid: YAML layout + Java logic with `@UISpec`
 

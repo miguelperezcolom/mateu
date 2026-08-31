@@ -1,0 +1,90 @@
+{
+  "commands" : [ {
+    "data" : "Requisition 4471",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "notes",
+                        "label" : "Notes",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "kpis" : [ {
+            "text" : "1,240 €",
+            "title" : "Amount",
+            "type" : "KPIDto"
+          } ],
+          "overline" : "Requisitions",
+          "pageTitle" : "Page header",
+          "pageType" : "form",
+          "subtitle" : "Pending approval",
+          "timestamp" : "Last updated 2026-07-20 12:00",
+          "title" : "Requisition 4471",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "amount" : "1,240 €",
+        "updatedAt" : "2026-07-20 12:00"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$PageHeader",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "amount" : "1,240 €",
+      "updatedAt" : "2026-07-20 12:00"
+    }
+  } ]
+}

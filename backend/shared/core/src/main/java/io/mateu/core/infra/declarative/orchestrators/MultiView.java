@@ -102,6 +102,21 @@ public abstract class MultiView
   }
 
   /**
+   * The name that travels on the wire for the orchestrator's OWN component, which has to be the
+   * same one {@link #serverSideTypeName()} advertises everywhere else.
+   *
+   * <p>The default from {@code ComponentTreeSupplier} answers "this class", and for the capability
+   * bridge that is a class the client must never name back: it stands in for a listing, it is built
+   * around one, and recreating it from a bare class name produces a bridge with nothing behind it —
+   * the listing page rendered, and its very first search died with a NullPointerException on the
+   * missing target.
+   */
+  @Override
+  public String serverSideType() {
+    return serverSideTypeName();
+  }
+
+  /**
    * Orchestrators own their whole action vocabulary (delete, bulk methods, action-on-row-*…).
    * {@code Listing} — which {@code Crud} also implements — narrows the claim to {@code search} for
    * plain listings; materializing the broad {@link ActionHandler} default as a class method makes
@@ -166,7 +181,23 @@ public abstract class MultiView
 
   @Override
   public ComponentDto dto(HttpRequest httpRequest) {
-    return wrapRoute((String) httpRequest.getAttribute("resolvedPath"), httpRequest);
+    return wrapRoute(requestedRoute(httpRequest), httpRequest);
+  }
+
+  /**
+   * What the browser ASKED for, falling back to the consumed path when there is nothing else.
+   *
+   * <p>They differ exactly when a link points INSIDE the listing — at one record — and opening the
+   * mediator on the consumed part alone drops the id, so a pasted link to a record lands on the
+   * list of them all. {@code wrapRoute} already knows what to do with a remainder; until now it was
+   * never given one.
+   */
+  public static String requestedRoute(HttpRequest httpRequest) {
+    var resolved = (String) httpRequest.getAttribute("resolvedPath");
+    var requested = httpRequest.runActionRq().route();
+    return requested != null && resolved != null && requested.startsWith(resolved)
+        ? requested
+        : resolved;
   }
 
   public ServerSideComponentDto wrapRoute(String route, HttpRequest httpRequest) {

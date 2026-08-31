@@ -1,3 +1,4 @@
+import { numericCommitValue } from '@components/fieldValue'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
 import { interpolate } from "@infra/ui/interpolation.ts";
@@ -48,12 +49,10 @@ const cacheLabel = (row: object, columnId: string, label: string) => {
 }
 
 // Coerce a raw editor string to the type the backing Java field expects, so the row array posted
-// back doesn't carry strings where a number is expected (blank → null; non-numeric → null).
-const toNumber = (raw: any): number | null => {
-    if (raw == null || raw === '') return null
-    const n = Number(raw)
-    return Number.isNaN(n) ? null : n
-}
+// back doesn't carry strings where a number is expected (blank → null; non-numeric → null). The
+// rule lives in libs/mateu and is shared with the form fields, which had their own copy of it and
+// got it wrong — an empty integer field committed NaN and hung the page.
+const toNumber = (raw: any, integer = false): number | null => numericCommitValue(raw, integer)
 
 // Inline-editing cell: an input bound to the row value. On commit it mutates the row and re-emits the
 // whole grid array as a value-changed so mateu-component updates state[fieldId] (edits then round-trip
@@ -100,7 +99,7 @@ const renderEditableCell = (
         case 'boolean':
             return html`<vaadin-checkbox ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
         case 'integer':
-            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-integer-field>`
+            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value, true))}></vaadin-integer-field>`
         case 'number':
             return html`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
         case 'date':

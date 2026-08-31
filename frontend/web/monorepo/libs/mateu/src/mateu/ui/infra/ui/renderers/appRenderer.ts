@@ -122,7 +122,13 @@ export const chooseBaseUrl = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedBaseUrl??container.baseUrl
     }
-    return metadata.homeBaseUrl
+    // `homeBaseUrl` is what the app calls itself FROM ITS OWN ORIGIN, and for a federated app that
+    // is not where the browser reached it: the shell fetched it at the remote's base, and its
+    // content has to keep talking to that base. Taking the metadata's value verbatim sent the
+    // listing's own load back to the SHELL — a path the shell does not serve, which is the "not
+    // found" you get from pasting a link to a page inside a remote app. Only a deep link takes this
+    // branch; clicking the menu goes through selectedBaseUrl above, which is why it worked there.
+    return container.baseUrl || metadata.homeBaseUrl
 }
 export const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
@@ -155,6 +161,17 @@ export const contentUxId = (container: MateuApp, metadata: App): string => {
 }
 
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+
+    // A shell fronting remote menus ends up MENU_ON_TOP: completeMenu (ConnectedElement) forces that
+    // variant once it has harvested the remotes' menus. Painting the first frame in the app's
+    // declared variant (e.g. TABS) and then flipping to MENU_ON_TOP moved the content <mateu-ux>
+    // into a different branch of this template, so Lit re-created it — the whole route re-fetched
+    // and re-painted, which is the listing you saw drawn twice on a cold load behind a shell.
+    // Adopt the final variant up front: same branch, same element across the menu arrival, so the
+    // menu update repaints only the menu and leaves the content mounted.
+    if (metadata.variant !== AppVariant.MENU_ON_TOP && metadata.menu?.some(option => option.remote)) {
+        metadata = { ...metadata, variant: AppVariant.MENU_ON_TOP }
+    }
 
     // Stable content-ux id (see contentUxId): reused across shell remounts so in-flight load/search
     // responses are not orphaned.

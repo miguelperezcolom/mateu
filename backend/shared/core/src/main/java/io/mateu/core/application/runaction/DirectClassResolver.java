@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.RouteSegmentUtils.addParameterValues;
+import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
@@ -54,6 +55,7 @@ final class DirectClassResolver {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
+        setResolvedPath(command.httpRequest(), route);
         log.info("direct class (absolute) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);
@@ -66,6 +68,7 @@ final class DirectClassResolver {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
+        setResolvedPath(command.httpRequest(), route);
         log.info("direct class (resolve) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);
