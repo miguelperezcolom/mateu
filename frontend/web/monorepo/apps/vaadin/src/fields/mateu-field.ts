@@ -7,6 +7,7 @@ import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
+import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -219,7 +220,7 @@ export class MateuField extends LitElement {
 
     convert = (value: string): any => {
         if (this.field?.dataType == 'integer') {
-            return parseInt(value)
+            return numericCommitValue(value, true)
         }
         return value
     }
@@ -260,7 +261,10 @@ export class MateuField extends LitElement {
 
     valueChanged = (e: CustomEvent) => {
         if (this.rendered) {
-            if (e.detail.value !== undefined && e.detail.value != this.state[this.field!.fieldId]) {
+            // An empty control over a state that never held the field is announcing nothing. Taking
+            // it as an edit is what let an untouched form start writing to itself.
+            if (e.detail.value !== undefined
+                && !isNoOpCommit(e.detail.value, this.state[this.field!.fieldId])) {
                 this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
                         value: this.convert(e.detail.value),

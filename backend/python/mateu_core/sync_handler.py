@@ -81,6 +81,7 @@ from .mapper import (
 from .naming import camel_case, humanize
 from .reflection import view_fields
 from .registry import MateuRegistry, normalize, type_name
+from .route_registry import RouteRegistry
 from .yaml_spec_loader import YamlSpecLoader
 
 
@@ -135,7 +136,10 @@ class SyncHandler:
         self.mapper = ReflectionMapper(translator, identity_provider)
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
-        self.yaml_specs = YamlSpecLoader()
+        #: The mount's authored route registry (specs/ui/routes.yaml). Shared with the spec loader
+        #: so both see one table.
+        self.routes = RouteRegistry()
+        self.yaml_specs = YamlSpecLoader(registry=self.routes)
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # 0. Audience projection: the appState value under "audience" (the @app_context selector
@@ -181,7 +185,25 @@ class SyncHandler:
         if lst is not None:
             return self.handle_listing(*lst, rq)
 
-        type_ = self.registry.resolve(rq.server_side_type, rq.route)
+        # The AUTHORED registry answers before the decorator-declared views — explicit beats
+        # derived, the same precedence the layout and page inference already use. Its parameters are
+        # folded into the component state here, at the single point every downstream step reads:
+        #
+        #   fixed > client state > path > defaults
+        #
+        # The fixed ones are re-applied on the SERVER rather than trusted from the client, because
+        # route resolution also runs in the browser (a statically deployed mount has no server to
+        # ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        route_match = self.routes.match(rq.route)
+        type_ = None
+        if route_match is not None:
+            rq = rq.model_copy(
+                update={"component_state": route_match.params(rq.component_state or {})}
+            )
+            if route_match.entry.view_model:
+                type_ = self.registry.type_by_name(route_match.entry.view_model)
+        if type_ is None:
+            type_ = self.registry.resolve(rq.server_side_type, rq.route)
         yaml_spec = self.yaml_specs.load_spec(rq.route)
         if type_ is None and yaml_spec is not None:
             # A route with no view class → a YAML page. A bare layout renders as a static, unbound

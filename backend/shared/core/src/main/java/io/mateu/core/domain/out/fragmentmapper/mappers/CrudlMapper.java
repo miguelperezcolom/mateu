@@ -154,17 +154,6 @@ public class CrudlMapper {
 
   private static io.mateu.dtos.RestDataSourceDto mapRestDataSource(
       io.mateu.uidl.data.RestDataSource source) {
-    if (source == null) {
-      return null;
-    }
-    return new io.mateu.dtos.RestDataSourceDto(
-        source.url(),
-        source.method(),
-        source.headers(),
-        source.body(),
-        source.itemsPath(),
-        source.valuePath(),
-        source.labelPath(),
-        source.proxy());
+    return FieldMapper.mapRestDataSource(source);
   }
 }

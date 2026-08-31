@@ -47,6 +47,8 @@ public class ReflectionPageMapper {
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))
+        .overline(getOverline(instance))
+        .titlePlaceholder(getTitlePlaceholder(instance))
         .style(getStyle(instance))
         .cssClasses(getCssClasses(instance))
         .toc(getToc(instance))

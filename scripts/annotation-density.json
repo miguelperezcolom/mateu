@@ -1,0 +1,6 @@
+{
+  "ceiling": 4.6,
+  "_baseline": "4.38 over 444 screens, measured 2026-08-12",
+  "_why_headroom": "A ceiling pinned to the exact current value fails on the very next annotation added anywhere, and a check that fires on ordinary work gets raised by reflex until it means nothing. ~5% of headroom means normal work passes and a TREND trips it — roughly 100 net new annotations across the corpus.",
+  "_when_it_fires": "Either infer it instead (doc/.../authoring-rule.md), or raise this deliberately and say why in the commit. Raising it is allowed; raising it silently is the thing to avoid."
+}

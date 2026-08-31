@@ -48,6 +48,27 @@ public class FrontDeskTasks extends TodoList<FrontDeskTasks.Task> {
 - When nothing is pending, the page shows an **"All caught up!"** empty state — override `emptyState()` to change it.
 - Works on every renderer and on the .NET (`TodoList<TRow>`) and Python (`TodoList[Row]`) backends — see the [parity matrix](/reference/parity/).
 
+## Redwood parameter and slot reference
+
+What the Redwood `task-organizer-page` template exposes, and what Mateu gives you for it. This is
+the **most fully covered template of the set** — its API is deliberately minimal. The canonical
+page-header elements shared by every template are documented once in
+[Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `pageTitle` | `@Title` | ✅ |
+| `primaryAction {label, icon, display}` + `spPrimaryAction` | a `Button` field with its `@Action` (the fluent `Button` carries `iconOnLeft`/`iconOnRight` and `disabled`) | ✅ |
+| `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
+| `displayMode` | the renderer adapts to the viewport | 🟡 |
+| **Slot** default (the task cards) | `rows()` + `idOf`/`titleOf`/`groupOf`, enriched by `captionOf`/`badgesOf`, composed as a `TaskQueue` | ✅ |
+| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
+
+Mateu adds bucket ordering and labelling (`groupOrder()`, `groupLabel(group, count)`) and an
+`emptyState()` override, none of which the Redwood template exposes.
+
 ## When to use it
 
 Use the to-do list for **personal or team work queues**: approvals, reviews, front-desk tasks, follow-ups. Prefer [collection detail](/ux-patterns/collection-detail/) when browsing a collection calls for an in-place detail pane, and a [smart search](/ux-patterns/smart-search/) page when finding the item is the hard part.

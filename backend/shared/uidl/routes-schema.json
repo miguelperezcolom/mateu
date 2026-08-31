@@ -1,0 +1,48 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "https://mateu.io/uidl/routes-schema.json",
+  "title" : "Mateu route registry",
+  "description" : "JSON Schema for a mount's route file — a pure routing table binding each URL to a definition, a view model and its parameters. Routes are relative to the mount. GENERATED from RouteEntry by UidlSchemaGenerator — do not edit by hand.",
+  "oneOf" : [ {
+    "type" : "object",
+    "properties" : {
+      "type" : {
+        "const" : "Routes"
+      },
+      "routes" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/$defs/RouteEntry"
+        }
+      }
+    },
+    "required" : [ "routes" ]
+  }, {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/$defs/RouteEntry"
+    }
+  } ],
+  "$defs" : {
+    "RouteEntry" : {
+      "type" : "object",
+      "properties" : {
+        "route" : {
+          "type" : "string"
+        },
+        "definition" : {
+          "type" : "string"
+        },
+        "viewModel" : {
+          "type" : "string"
+        },
+        "fixedParams" : {
+          "type" : "object"
+        },
+        "defaultParams" : {
+          "type" : "object"
+        }
+      }
+    }
+  }
+}

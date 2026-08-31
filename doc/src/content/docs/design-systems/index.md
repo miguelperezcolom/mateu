@@ -11,7 +11,7 @@ All renderers consume the same Mateu API, so you can switch or support multiple 
 
 Each renderer family serves a different goal. The same `@UI` backend can drive all of them at once, so you pick per deployment — or offer several.
 
-- **Web renderers** (with multiple design systems) — best when you want a **zero-install** UI delivered through the browser, and when you need to **drop Mateu into an application you already have without breaking its UX**. Choose the design system that matches the host application — [Vaadin](/design-systems/vaadin/), [SAP Fiori](/design-systems/sapui5/), [Oracle Redwood](/design-systems/oracle-redwood/) — and the Mateu screens blend in seamlessly.
+- **Web renderers** (with multiple design systems) — best when you want a **zero-install** UI delivered through the browser, and when you need to **drop Mateu into an application you already have without breaking its UX**. Choose the design system that matches the host application — [Vaadin](/design-systems/vaadin/) or [Oracle Redwood](/design-systems/oracle-redwood/) — and the Mateu screens blend in seamlessly.
 - **Native renderers** — best when you want **better performance** and an OS-native feel. The [desktop (IntelliJ plugin)](/native/) renderer runs your app inside IntelliJ IDEA and gives power users the IDE's productivity workspace — **docking, split editor tabs, Search Everywhere, keyboard-first navigation**. The [mobile (React Native)](/native/) renderer ships your app to iOS and Android.
 
 You don't have to pick just one: the identical backend can serve a web UI, a native desktop app, and a mobile app simultaneously.
@@ -21,12 +21,22 @@ You don't have to pick just one: the identical backend can serve a web UI, a nat
 | Renderer | Design system | Dependency |
 |---|---|---|
 | [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `vaadin-lit` |
-| [SAP Fiori](/design-systems/sapui5/) | SAP Fiori / UI5 | `sapui5-lit` |
-| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood | `redwood-oj-lit` |
+| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood, on Visual Builder | `redwood` |
+
+## Writing your own
+
+The supported renderers are Vaadin and the Redwood/VB line — and that list is short for a reason:
+four first-party renderers were built and retired, because one renderer per design system,
+maintained in first person, does not survive a single maintainer.
+
+So the useful question is not "which of ours matches your design system" but **"how cheaply can you
+own yours"**. See the [renderer contract](/design-systems/renderer-contract/): what a renderer has to
+implement, and the three conformance levels that tell you when you are done. Reaching **Core** is a
+complete, legitimate answer.
 
 ## How to switch renderer
 
-Replace the renderer dependency in your `pom.xml`. For example, to switch from Vaadin to Red Hat:
+Replace the renderer dependency in your `pom.xml`. For example, to switch from Vaadin to Redwood:
 
 ```xml
 <!-- remove -->
@@ -39,7 +49,7 @@ Replace the renderer dependency in your `pom.xml`. For example, to switch from V
 <!-- add -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>sapui5-lit</artifactId>
+    <artifactId>redwood</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

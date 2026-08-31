@@ -14,6 +14,7 @@ import "@vaadin/grid"
 import "@vaadin/card"
 import { customElement, property } from 'lit/decorators.js';
 import {Amount} from "@mateu/shared/apiClients/dtos/Amount.ts";
+import { numericCommitValue } from '@components/fieldValue'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 
@@ -47,40 +48,34 @@ export class MateuMoneyField extends LitElement {
     @property()
     helperText?: string
 
-    currencyChanged = (e: CustomEvent) => {
-        if (!this.value) {
-            this.value = {
-                value: 0,
-                currency: 'EUR',
-                locale: 'es-ES'
-            } as Amount
-        }
-        this.value.currency = e.detail.value
+    private static readonly EMPTY = { value: 0, currency: 'EUR', locale: 'es-ES' } as Amount
+
+    private commit = (amount: Amount) => {
+        this.value = amount
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
-                value: { ...this.value},
+                value: { ...amount },
                 fieldId: this.fieldId
             }
         }))
     }
 
+    currencyChanged = (e: CustomEvent) => {
+        const current = this.value ?? MateuMoneyField.EMPTY
+        if (!e.detail.value || e.detail.value === current.currency) return
+        this.commit({ ...current, currency: e.detail.value })
+    }
+
     valueChanged = (e: CustomEvent) => {
-        if (!this.value) {
-            this.value = {
-                value: 0,
-                currency: 'EUR',
-                locale: 'es-ES'
-            } as Amount
-        }
-        if (e.detail.value) {
-            this.value.value = e.detail.value?parseFloat(e.detail.value):0
-            this.dispatchEvent(new CustomEvent('value-changed', {
-                detail: {
-                    value: { ...this.value},
-                    fieldId: this.fieldId
-                }
-            }))
-        }
+        const current = this.value ?? MateuMoneyField.EMPTY
+        // An EMPTIED amount used to be dropped here, because '' is falsy: the field showed nothing
+        // while the state kept the previous figure, so what the user saw and what would be saved
+        // disagreed silently — and clearing an amount is exactly what someone does when it turns
+        // out not to apply. An Amount holds a primitive on the server, so cleared means zero, and
+        // committing it is what makes the field say what will be stored.
+        const amount = numericCommitValue(e.detail.value, false) ?? 0
+        if (amount === current.value) return
+        this.commit({ ...current, value: amount })
     }
 
     render() {

@@ -52,6 +52,32 @@ public class AssetSearch extends SmartSearchPage<AssetFilters, AssetRow> {
 - Results render with the default grid layout (`GridLayout.auto`); override `gridLayout()` to force `table`, `list` or `cards`.
 - Works on every renderer and on the .NET (`SmartSearchPage<TFilters, TRow>`) and Python (`SmartSearchPage[F, R]`) backends — see the [parity matrix](/reference/parity/).
 
+## Redwood parameter and slot reference
+
+What the Redwood `smart-search-page` template and its `smart-filter-search` pattern expose, and what
+Mateu gives you for them. The canonical page-header elements shared by every template are documented
+once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| `smartFilters.filtersMetadata` | the `Filters` class fields, typed: `DateRange`/`NumberRange` → from–to widgets, `Set<Enum>` → multi-select | ✅ |
+| `smartFilters.appliedFilters` / `value` | applied conditions render as removable chips; state round-trips through the component state and the URL | ✅ |
+| `smartFilters.resultsData` / `totalCount` | `search(SearchRequest, HttpRequest)` → `ListingData` (`Page` carries `totalElements`) | ✅ |
+| `smartFilters.askHint` | `pageSubtitle()` sets an intro line; the bar itself has no hint prop | 🟡 |
+| `smartFilters.autofocus` | `autoFocusOnSearchText` on the listing | ✅ |
+| `smartFilters.expanded` | — the *Filter by* panel opens on click or typing, never on load (opening it on focus would pop it on page load) | — |
+| `smartFilters.suggestions` / `suggestionFilters` / `autocompleteSource` | — no suggestion layer; `@Lookup`/`@RestOptions` cover per-field remote options | — |
+| `showAllTotalCount` / `allTotalCountMessage` | — | — |
+| `collectionScroller: off \| page` | pagination is the listing's own | 🟡 |
+| `selectContext` | — the record switcher is only available inside `GeneralOverview` | — |
+| **Slot** default (results) | the listing; `gridLayout()` picks `table`, `list` or `cards` | ✅ |
+| **Slot** `main` + **`dashboard`** (pre-search content) | — the page starts empty; there is no way to declare what shows before the first search | — |
+| **Slot** `search` | the smart search bar is the page's own | ✅ |
+| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+| `smartFiltersChangedAction` | chip add/remove and facet toggles re-run `search` automatically | ✅ |
+
 ## When to use it
 
 Use smart search when **searching is the task** but you want a workbench page, not a landing page: record finders, asset/article lookup, cross-team search tools. Prefer [hero search](/ux-patterns/hero-search/) for a distraction-free entry point (public catalogs, home pages), and a plain `AutoCrud`/`Listing` when the user works the collection (edits, exports, dense scanning).

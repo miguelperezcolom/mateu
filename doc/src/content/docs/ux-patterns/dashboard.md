@@ -88,6 +88,28 @@ public Component component(HttpRequest request) {
 }
 ```
 
+## Redwood parameter and slot reference
+
+What the Redwood `dashboard-landing-page` template (plus `dashboard-grid`, `dashboard-panel` and
+`scoreboard`) exposes, and what Mateu gives you for it. The canonical page-header elements shared by
+every template are documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| **Slot** `kpi` | consecutive `MetricCard` fields, grouped into the scoreboard band | ✅ |
+| `scoreboard.data` | the `MetricCard` fields themselves (or `Scoreboard` in the fluent variant) | ✅ |
+| `scoreboard.selection` / `selectionMode: none \| single` | `MetricCard.actionId` makes a tile actionable, but a tile cannot hold selected state | 🟡 |
+| `scoreboard.maxKpis` | — every declared metric renders | — |
+| `dashboard-panel {panelTitle, panelSubtitle}` | `@Panel(title, subtitle)` / `DashboardPanel` | ✅ |
+| `dashboard-grid` placement | `@Panel(colSpan, rowSpan)`; `columns()` fixes the column count (`0` = responsive auto-fit) | ✅ |
+| `displayOptions.scoreboardSticky` | — the band scrolls with the page | — |
+| `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
+| `selectContext` / `selectObject` + `displayOptions.switcherSearch` | — the record switcher is only available inside `GeneralOverview`, not as a header element here | — |
+| `editLayoutMode`, `contentLibraryData`, `editLayoutOptions {share, properties, contentLibraryFilters}` | ⚪ end-user-editable dashboards (drag tiles, content library) are a Fusion Apps concern, out of scope by decision | ⚪ |
+| `spRestoreDefaults`, `spShare` | ⚪ part of the same edit-layout feature | ⚪ |
+
 ## When to use it
 
 Use a dashboard as the **home route** of operational backoffices: the scoreboard answers "is everything OK?" and the panels give one-click access to whatever is not. Prefer `AutoCrud` listings with `@KPI` headers when the overview is about a single collection rather than the whole business.

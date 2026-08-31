@@ -1,3 +1,4 @@
+import type RestSourceEntry from './RestSourceEntry.ts'
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
@@ -40,5 +41,8 @@ export default interface App extends ComponentMetadata {
     globalSearchEnabled?: boolean
     commandCenterEnabled?: boolean
     chromeless?: boolean
+    /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
+     * App-wide configuration, so it arrives with the shell rather than on every response. */
+    restSources?: RestSourceEntry[] | undefined
 
 }

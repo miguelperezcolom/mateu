@@ -20,7 +20,7 @@ the [page templates map](/ux-patterns/page-templates/) for the template → arch
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood-oj-lit</artifactId>
+    <artifactId>redwood</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

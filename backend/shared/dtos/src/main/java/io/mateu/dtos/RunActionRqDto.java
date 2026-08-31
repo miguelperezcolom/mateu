@@ -1,9 +1,19 @@
 package io.mateu.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Collections;
 import java.util.Map;
 import lombok.Builder;
 
+/**
+ * The inbound wire request. Unknown properties are IGNORED because federation puts two independent
+ * deployments on this contract: a shell built against a newer Mateu sends fields (the last one
+ * added was {@code knownStructureHash}) that an older service has never heard of. Rejecting them
+ * makes the remote answer HTTP 400 to the shell's server-to-server call — which is exactly the
+ * deep-link path, so the screen works through the menu (the browser talks to the remote directly,
+ * with its own older-shaped request) and fails by URL.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 public record RunActionRqDto(
     Map<String, Object> componentState,

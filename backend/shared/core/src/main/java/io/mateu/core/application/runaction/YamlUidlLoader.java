@@ -35,7 +35,21 @@ import lombok.extern.slf4j.Slf4j;
 public class YamlUidlLoader {
 
   /** A parsed page spec: the layout, plus the ModelView class name when the YAML declares one. */
-  public record YamlPageSpec(String modelView, Component layout) {}
+  /**
+   * A parsed page spec.
+   *
+   * @param layout an explicit layout — a SNAPSHOT, which takes the screen out of inference for good
+   * @param delta what a human changed about the INFERRED layout. The two are alternatives: a delta
+   *     lets the screen keep re-deriving, so a field the model grows later still appears. See
+   *     {@link io.mateu.uidl.data.LayoutDelta}.
+   */
+  public record YamlPageSpec(
+      String modelView, Component layout, io.mateu.uidl.data.LayoutDelta delta) {
+
+    public YamlPageSpec(String modelView, Component layout) {
+      this(modelView, layout, io.mateu.uidl.data.LayoutDelta.empty());
+    }
+  }
 
   // Specs are static files, so parse once and cache by (normalized) route. A miss is cached as
   // NONE so an unmatched route — checked on every request that has no Java class — doesn't hit the
@@ -45,8 +59,22 @@ public class YamlUidlLoader {
   private final ObjectMapper mapper;
   private final ConcurrentHashMap<String, YamlPageSpec> byRoute = new ConcurrentHashMap<>();
 
+  /**
+   * The mount's route registry. When a route's entry names a {@code definition}, THAT file is the
+   * layout — instead of the {@code specs/ui/<route>.yaml} convention, which ties a screen's layout
+   * to its URL and so prevents one definition from serving several routes.
+   */
+  private final RouteRegistry routeRegistry;
+
+  @jakarta.inject.Inject
+  public YamlUidlLoader(RouteRegistry routeRegistry) {
+    this.mapper = YamlUidlMapperFactory.create();
+    this.routeRegistry = routeRegistry;
+  }
+
+  /** Without a registry: the convention alone, as before it existed. */
   public YamlUidlLoader() {
-    mapper = YamlUidlMapperFactory.create();
+    this(new RouteRegistry());
   }
 
   /**
@@ -105,8 +133,29 @@ public class YamlUidlLoader {
     return spec.modelView().equals(modelViewClass.getName()) ? spec.layout() : null;
   }
 
+  /**
+   * The layout DELTA for {@code route}, under the same "this instance IS the page's declared
+   * ModelView" rule as {@link #layoutForRoute}. Empty when the route has no spec, no delta, or
+   * belongs to another class — so the caller can apply it unconditionally.
+   */
+  public io.mateu.uidl.data.LayoutDelta deltaForRoute(String route, Class<?> modelViewClass) {
+    var spec = loadSpec(route);
+    if (spec == null || spec.modelView() == null || modelViewClass == null) {
+      return io.mateu.uidl.data.LayoutDelta.empty();
+    }
+    return spec.modelView().equals(modelViewClass.getName())
+        ? spec.delta()
+        : io.mateu.uidl.data.LayoutDelta.empty();
+  }
+
   private YamlPageSpec parseSpec(String normalizedRoute) {
-    var yamlPath = "specs/ui/" + normalizedRoute + ".yaml";
+    var entry = routeRegistry.authored().match(normalizedRoute).map(match -> match.entry());
+    var declaredDefinition =
+        entry.map(io.mateu.uidl.data.RouteEntry::definition).filter(d -> !d.isBlank()).orElse(null);
+    var yamlPath =
+        declaredDefinition != null
+            ? definitionPath(declaredDefinition)
+            : "specs/ui/" + normalizedRoute + ".yaml";
     var resource = resolve(yamlPath);
     if (resource == null) {
       log.info("No YAML spec found at {}", yamlPath);
@@ -117,14 +166,81 @@ public class YamlUidlLoader {
       if (root == null) {
         return NONE;
       }
+      // The definition is layout; the binding to a view model belongs to the route entry. A YAML
+      // that still declares `modelView:` keeps working and wins, so nothing that exists today
+      // changes — but a definition shared by several routes must NOT name one, or it could only
+      // ever serve the class it names.
       var modelView = root.hasNonNull("modelView") ? root.get("modelView").asText() : null;
+      if (modelView == null) {
+        modelView =
+            entry
+                .map(io.mateu.uidl.data.RouteEntry::viewModel)
+                .filter(viewModel -> !viewModel.isBlank())
+                .orElse(null);
+      }
       var layout = layoutOf(root);
-      log.info("Loaded YAML spec {} (modelView={})", yamlPath, modelView);
-      return new YamlPageSpec(modelView, layout);
+      var delta = deltaOf(root);
+      if (layout == null && delta.isEmpty()) {
+        return NONE; // neither a layout nor a delta: nothing this file can contribute
+      }
+      log.info(
+          "Loaded YAML spec {} (modelView={}, {})",
+          yamlPath,
+          modelView,
+          delta.isEmpty() ? "explicit layout" : "layout delta");
+      return new YamlPageSpec(modelView, layout, delta);
     } catch (Exception e) {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;
     }
+  }
+
+  /**
+   * Where a declared {@code definition} lives. Relative to {@code specs/ui/} — where the
+   * definitions and the {@code routes.yaml} that routes to them sit together — unless it starts
+   * with a slash, which addresses the classpath root.
+   */
+  private static String definitionPath(String definition) {
+    return definition.startsWith("/") ? definition.substring(1) : "specs/ui/" + definition;
+  }
+
+  /**
+   * The {@code layoutDelta:} of a page, or an empty one.
+   *
+   * <p>The alternative to {@code layout:}: instead of freezing what the screen looked like, it
+   * records what a human decided about it — anchored to field ids, so inference keeps running and a
+   * field the model grows later still appears.
+   */
+  private io.mateu.uidl.data.LayoutDelta deltaOf(JsonNode root) {
+    var node = root == null ? null : root.get("layoutDelta");
+    if (node == null || !node.isObject()) {
+      return io.mateu.uidl.data.LayoutDelta.empty();
+    }
+    var order = new java.util.ArrayList<String>();
+    if (node.has("order") && node.get("order").isArray()) {
+      node.get("order").forEach(n -> order.add(n.asText()));
+    }
+    var hidden = new java.util.ArrayList<String>();
+    if (node.has("hidden") && node.get("hidden").isArray()) {
+      node.get("hidden").forEach(n -> hidden.add(n.asText()));
+    }
+    var overrides =
+        new java.util.LinkedHashMap<String, io.mateu.uidl.data.LayoutDelta.FieldOverride>();
+    if (node.has("overrides") && node.get("overrides").isObject()) {
+      node.get("overrides")
+          .fields()
+          .forEachRemaining(
+              entry -> {
+                var value = entry.getValue();
+                overrides.put(
+                    entry.getKey(),
+                    new io.mateu.uidl.data.LayoutDelta.FieldOverride(
+                        value.hasNonNull("label") ? value.get("label").asText() : null,
+                        value.hasNonNull("colspan") ? value.get("colspan").asInt() : null,
+                        value.hasNonNull("section") ? value.get("section").asText() : null));
+              });
+    }
+    return new io.mateu.uidl.data.LayoutDelta(order, hidden, overrides);
   }
 
   /**
@@ -133,6 +249,12 @@ public class YamlUidlLoader {
    */
   private Component layoutOf(JsonNode root) throws Exception {
     if (root == null) {
+      return null;
+    }
+    // A page that carries a `layoutDelta:` and no `layout:` has NO explicit layout on purpose —
+    // that is the whole point of a delta. Falling back to "the whole document is the tree" here
+    // would try to parse the delta itself as components and lose the page.
+    if (!root.has("layout") && root.has("layoutDelta")) {
       return null;
     }
     var node = root.has("layout") ? root.get("layout") : root;

@@ -3,6 +3,16 @@ title: "SAP Fiori / UI5"
 description: "Mateu renderer built on SAP UI5 and Fiori components."
 ---
 
+
+:::danger[Retired renderer]
+The SAP UI5 renderer was **retired**. There is no `sapui5-lit` artifact to depend on and no source
+app behind it — `apps/sapui5` holds only leftover build output. The supported web renderers are
+[Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/); see the
+[parity matrix](/reference/parity/).
+
+This page is kept only so existing links do not break, and describes what the renderer used to do.
+:::
+
 The SAP renderer uses UI5 web components and optionally SAP Fiori components. Use it when your UIs need to look and feel like SAP applications, or when they will be embedded inside an existing SAP Fiori launchpad.
 
 <div style="display: flex; width: 100%; align-items: center; justify-content: center;">

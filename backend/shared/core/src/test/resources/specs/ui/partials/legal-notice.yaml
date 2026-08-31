@@ -1,0 +1,3 @@
+# A fragment that is just one component: the file is the component, no envelope needed.
+type: Text
+text: "Prices include VAT."

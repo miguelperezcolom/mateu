@@ -89,7 +89,7 @@ Mateu does not store UI state between requests. No sticky sessions, no session r
 
 ### Pluggable renderers
 
-Mateu separates UI definition from rendering. The same ViewModel can be rendered by different design systems — Oracle JET (Redwood), Vaadin, SAP UI5 — without rewriting any Java code. The definition is stable; the visual layer is pluggable.
+Mateu separates UI definition from rendering. The same ViewModel can be rendered by different design systems — Vaadin, Oracle Redwood — without rewriting any Java code. The definition is stable; the visual layer is pluggable.
 
 ### Architecture-friendly
 

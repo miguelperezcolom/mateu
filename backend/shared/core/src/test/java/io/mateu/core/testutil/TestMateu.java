@@ -25,6 +25,13 @@ public final class TestMateu implements AutoCloseable {
   private final AnnotationConfigApplicationContext ctx;
   private final MateuService service;
 
+  /**
+   * The service the generated controllers call — for tests that drive it directly (the exporter).
+   */
+  public MateuService service() {
+    return service;
+  }
+
   private TestMateu(AnnotationConfigApplicationContext ctx) {
     this.ctx = ctx;
     this.service = ctx.getBean(MateuService.class);

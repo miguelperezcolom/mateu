@@ -73,6 +73,17 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.failOnEmpty", defaultValue = "false")
   private boolean failOnEmpty;
 
+  /**
+   * Fail the build when ANY route could not be bundled.
+   *
+   * <p>Off by default, because a healthy app usually has routes that legitimately stay
+   * backend-served (service-backed loads, screens gated on identity). Turn it on once your set of
+   * bundled routes is stable: a route dropping out of the bundle is otherwise a silent performance
+   * regression whose only trace is one line in a build log nobody reads.
+   */
+  @Parameter(property = "mateu.bundle.failOnSkipped", defaultValue = "false")
+  private boolean failOnSkipped;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     var appLoader = buildAppLoader();
@@ -135,6 +146,18 @@ public class BundleMojo extends AbstractMojo {
                     + outputDirectory);
         if (failOnEmpty && ok == 0) {
           throw new MojoFailureException("mateu-bundle: no routes rendered");
+        }
+        var skipped = manifest.entries().stream().filter(e -> !e.ok()).toList();
+        if (failOnSkipped && !skipped.isEmpty()) {
+          var detail =
+              skipped.stream()
+                  .map(e -> "  " + e.route() + " — " + e.skipReason())
+                  .collect(java.util.stream.Collectors.joining("\n"));
+          throw new MojoFailureException(
+              "mateu-bundle: "
+                  + skipped.size()
+                  + " route(s) could not be bundled (failOnSkipped):\n"
+                  + detail);
         }
       }
     } catch (MojoFailureException e) {

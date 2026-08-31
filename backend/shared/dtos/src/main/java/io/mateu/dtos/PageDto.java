@@ -14,6 +14,19 @@ public record PageDto(
     int level,
     boolean readOnly,
     String subtitle,
+    /**
+     * The small line of text shown ABOVE the page title (the Oracle Redwood {@code overlineText}
+     * header element) — a category, parent context or step marker. {@code null} when the page
+     * declares none.
+     */
+    String overline,
+    /**
+     * What the header shows while {@link #title()} is still empty (the Oracle Redwood {@code
+     * pageTitlePlaceholder} header element) — the create-mode affordance, e.g. "New booking…". It
+     * is a placeholder, not a default: renderers must ignore it once a title exists. {@code null}
+     * when the page declares none.
+     */
+    String titlePlaceholder,
     StatusDto status,
     List<BreadcrumbDto> breadcrumbs,
     List<BadgeDto> badges,

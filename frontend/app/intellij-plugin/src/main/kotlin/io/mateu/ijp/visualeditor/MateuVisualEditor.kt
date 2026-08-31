@@ -10,6 +10,7 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
@@ -26,8 +27,12 @@ import javax.swing.JLabel
  * The Mateu visual editor as a JCEF-hosted web view — the SAME web bundle (`apps/visual-editor`)
  * that runs in a browser and (next) in VSCode. It loads from the in-plugin [MateuVisualEditorServer]
  * (which serves the bundle and proxies `/mateu` to the backend), bridges the web app's HostBridge
- * over a JCEF query pipe (web→IDE) and `window.postMessage` (IDE→web): the web app posts `save`
- * with the edited YAML, and the IDE seeds the open file's text via `init`.
+ * over a JCEF query pipe (web→IDE) and `window.postMessage` (IDE→web): on every edit the web app
+ * posts `contentChanged` with the YAML, and the IDE seeds the open file's text via `init`.
+ *
+ * Saving is the IDE's NATIVE mechanism, not a button: an edit only updates the in-memory Document
+ * (which marks the tab modified); the file is written by the user's own Ctrl+S / save-all / the IDE's
+ * save policy — never by this editor.
  */
 class MateuVisualEditor(
     private val project: Project,
@@ -75,18 +80,61 @@ class MateuVisualEditor(
         val msg = runCatching { mapper.readTree(raw) }.getOrNull() ?: return
         when (msg.path("type").asText()) {
             "ready" -> sendInit()
-            "save" -> save(msg.path("yaml").asText())
+            // Every edit only updates the in-memory Document (marks the tab modified). The file is
+            // written by the IDE's OWN save — this editor never persists. `save` kept as an alias.
+            "contentChanged", "save" -> updateDocument(msg.path("yaml").asText())
+            // Project awareness: hand the whole mount to the editor so its reference pickers work.
+            "listFiles" -> sendFiles()
         }
+    }
+
+    /** Reply with every YAML file under the mount's `specs/ui` directory (path relative to it) so the
+     *  editor can build its reference index. The edited file lives under `specs/ui`, one of its ancestors. */
+    private fun sendFiles() {
+        val files = runReadAction {
+            val root = specsUiRoot(file) ?: return@runReadAction emptyList<Map<String, String>>()
+            val out = mutableListOf<Map<String, String>>()
+            VfsUtilCore.iterateChildrenRecursively(root, null) { vf ->
+                val ext = vf.extension
+                if (!vf.isDirectory && (ext == "yaml" || ext == "yml")) {
+                    val rel = VfsUtilCore.getRelativePath(vf, root) ?: vf.name
+                    val text = FileDocumentManager.getInstance().getDocument(vf)?.text
+                        ?: String(vf.contentsToByteArray())
+                    out.add(mapOf("path" to rel, "content" to text))
+                }
+                true
+            }
+            out
+        }
+        sendToWeb(mapOf("type" to "files", "files" to files))
+    }
+
+    /** The nearest ancestor `specs/ui` directory of a file, or null when it is not under one. */
+    private fun specsUiRoot(f: VirtualFile): VirtualFile? {
+        var dir = f.parent
+        while (dir != null) {
+            if (dir.name == "ui" && dir.parent?.name == "specs") return dir
+            dir = dir.parent
+        }
+        return null
     }
 
     private fun sendInit() {
         val text = runReadAction {
             FileDocumentManager.getInstance().getDocument(file)?.text ?: String(file.contentsToByteArray())
         }
-        sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to ""))
+        val path = runReadAction {
+            specsUiRoot(file)?.let { VfsUtilCore.getRelativePath(file, it) } ?: file.name
+        }
+        sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to "", "path" to path))
     }
 
-    private fun save(yaml: String) {
+    /**
+     * Push the edited YAML into the IDE Document ONLY — this marks the file modified (the tab shows
+     * the unsaved-changes dot). It does NOT write to disk: that is the IDE's native save (Ctrl+S,
+     * Save All, the on-close prompt, or the user's own save policy). No save button, no auto-write.
+     */
+    private fun updateDocument(yaml: String) {
         ApplicationManager.getApplication().invokeLater {
             val doc = FileDocumentManager.getInstance().getDocument(file) ?: return@invokeLater
             if (doc.text == yaml) return@invokeLater

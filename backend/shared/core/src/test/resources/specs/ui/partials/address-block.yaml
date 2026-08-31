@@ -1,0 +1,11 @@
+# A fragment that stands for SEVERAL components. Used inside a FormLayout it must splice, not nest,
+# or the form grid breaks.
+content:
+  - type: FormField
+    id: street
+    label: Street
+    dataType: string
+  - type: FormField
+    id: city
+    label: City
+    dataType: string

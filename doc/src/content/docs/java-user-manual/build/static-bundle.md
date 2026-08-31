@@ -82,6 +82,23 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `assetsFrom` | vaadin-lit resources | directory holding `_index.html` + `assets/` |
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
+| `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
+
+### Knowing which bundle you are looking at
+
+The manifest carries a `structureHash`: a stable identity of **what the bundle contains**,
+independent of when it was built. `generatedAt` cannot answer "is this the same bundle?" — it
+differs on every build, and a stale bundle looks as fresh as any other.
+
+That matters because a bundle is derivation frozen in time. Deployed to a CDN it can outlive the
+model it came from, and in a hybrid deploy a client can be answering loads from build N while posting
+actions to a backend at N+1, with nothing anywhere saying so. Comparing hashes is what makes the
+bundle a **cache** rather than a fork — same hash, same screens — and gives a deploy check something
+to assert.
+
+The hash ignores entry order (route discovery walks beans and indexes, so the order is not stable
+between builds) and changes when a route stops being bundled, which is exactly the regression that
+otherwise leaves only a line in a build log.
 
 ## Serving the bundle at runtime (no build step)
 
@@ -157,6 +174,16 @@ skipped, exactly like a static view that needs a live backend. See `demo/demo-st
   client-side). A view that loads its entity server-side by id still needs a backend.
 - **Service-backed loads** — a ViewModel whose initial load needs a live DB / a bean the build can't
   construct is skipped at export time (logged) and stays backend-served.
+- **Screens gated on identity** — a route whose class, field or method declares `@EyesOnly` is
+  **skipped on purpose** and stays backend-served. A bundle is one file served to everyone, and
+  export runs headless: with no `Authorization` header the authorizer denies restricted content, so
+  nothing leaks — it fails closed. What would leak instead is *correctness*: the baked variant is the
+  **denied** one, and an authorised user hitting a static host has no server left to re-render the
+  version they are entitled to. The skip reason names the member, so the build log says which one.
+
+  `@Audience` is deliberately **not** treated this way: it is a UX projection, not access control, so
+  with no audience selected the export renders the full, unprojected view — correct for everyone,
+  merely not personalised.
 
 A **hybrid** deploy is the sweet spot: ship the bundle for instant, backend-free first paint, and
 point `baseUrl` at a real backend so actions and unbundled/param routes still work — the client uses
@@ -176,3 +203,10 @@ the bundle for the loads it has and falls through to the backend for everything 
 
 - The manifest carries only screen **structure** (never business data), so nothing stale is baked in;
   data is always fetched live.
+- The manifest also carries the mount's [route registry](/java-ui-definition/route-registry/) when
+  the app declares one — a statically deployed mount has no server left to ask what a URL means, so
+  the renderer resolves routes and their parameters from shipped data. Only the authored half
+  travels: the annotation-derived half is route→class, and a class is what a bundle with no backend
+  cannot use. Routes that exist only in `routes.yaml` are exported too, **including those with no
+  view model** — a definition that declares no `modelView` renders as a bare layout through the
+  ordinary sync path, so it is pre-rendered like any other route.

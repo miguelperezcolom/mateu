@@ -1,3 +1,5 @@
+import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import { property, state } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult, type PropertyValues } from 'lit'
 import { nanoid } from 'nanoid'
@@ -253,5 +255,8 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
         // Mount the command-center FAB (Ask-Oracle pattern) once for the DS-framework shells
         // (PatternFly, SLDS) — same single mechanism the MateuApp shells use.
         syncCommandCenter(this as unknown as { renderRoot: ParentNode; component: unknown; baseUrl?: string })
+        // Same catalogue publication as MateuApp — these shells run the same fetch layer.
+        const metadata = (this.component as { metadata?: { restSources?: RestSourceEntry[] } })?.metadata
+        setRestSourceCatalogue(metadata?.restSources)
     }
 }

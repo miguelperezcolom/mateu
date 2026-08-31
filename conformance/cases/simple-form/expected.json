@@ -1,0 +1,160 @@
+{
+  "commands" : [ {
+    "data" : "Simple form",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "name",
+                        "label" : "Name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "integer",
+                        "fieldId" : "age",
+                        "label" : "Age",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "bool",
+                        "fieldId" : "active",
+                        "label" : "Active",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "date",
+                        "fieldId" : "birthDate",
+                        "label" : "Birth date",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "colour",
+                        "label" : "Colour",
+                        "options" : [ {
+                          "label" : "red",
+                          "value" : "red"
+                        }, {
+                          "label" : "green",
+                          "value" : "green"
+                        }, {
+                          "label" : "blue",
+                          "value" : "blue"
+                        } ],
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "select",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Simple form",
+          "pageType" : "form",
+          "subtitle" : "Every basic field kind",
+          "title" : "Simple form",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "active" : true,
+        "age" : 36,
+        "birthDate" : "1815-12-10",
+        "colour" : "green",
+        "name" : "Ada"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$SimpleForm",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "active" : true,
+      "age" : 36,
+      "birthDate" : "1815-12-10",
+      "colour" : "green",
+      "name" : "Ada"
+    }
+  } ]
+}

@@ -330,6 +330,25 @@ public sealed class SubtitleAttribute(string value) : Attribute
     public string Value { get; } = value;
 }
 
+/// <summary>The small line of text shown ABOVE the page title (the Oracle Redwood overlineText
+/// header element) — a category, a parent context or a step marker. (Mirrors Java's
+/// <c>@Overline</c>.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class OverlineAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>What the header shows while the title is still empty (the Oracle Redwood
+/// pageTitlePlaceholder header element) — the create-mode affordance, e.g. "New booking…". A
+/// placeholder, not a default: it never overrides a title. (Mirrors Java's
+/// <c>@TitlePlaceholder</c>.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class TitlePlaceholderAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
 public enum BannerTheme { Info, Success, Warning, Danger }
 
 /// <summary>An action-returned page banner: return one, or a list, from an action/toolbar method.</summary>

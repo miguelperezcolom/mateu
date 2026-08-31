@@ -75,19 +75,7 @@ final class ActionDtoMapper {
     if (restAction == null) {
       return null;
     }
-    var s = restAction.source();
-    var sourceDto =
-        s == null
-            ? null
-            : new io.mateu.dtos.RestDataSourceDto(
-                s.url(),
-                s.method(),
-                s.headers(),
-                s.body(),
-                s.itemsPath(),
-                s.valuePath(),
-                s.labelPath(),
-                s.proxy());
+    var sourceDto = FieldMapper.mapRestDataSource(restAction.source());
     return new io.mateu.dtos.RestActionDto(
         sourceDto, restAction.successMessage(), restAction.resultPath());
   }

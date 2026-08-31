@@ -17,4 +17,7 @@ public class Remote {
     @Menu
     RemotePage page;
 
+    @Menu
+    RemoteThings things;
+
 }

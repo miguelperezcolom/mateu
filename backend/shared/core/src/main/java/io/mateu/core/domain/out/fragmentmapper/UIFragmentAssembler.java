@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper.mapData
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StateMapper.mapStateToDto;
 import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.createData;
 
+import io.mateu.core.application.runaction.PartialExpander;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -27,6 +28,9 @@ public final class UIFragmentAssembler {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    // Fragments are an authoring concept: they are inlined here, once, so that nothing downstream
+    // — no mapper, no DTO, no renderer — ever has to know they existed.
+    component = PartialExpander.expand(component, httpRequest);
     if (component instanceof State state) {
       return mapStateToDto(state, initiatorComponentId);
     }

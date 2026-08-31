@@ -174,3 +174,36 @@ describe('isPrefix', () => {
         expect(isPrefix([1], [0, 1])).toBe(false)
     })
 })
+
+describe('partials (content-list fragments)', () => {
+    const src = 'content:\n  - type: FormField\n    id: street\n    label: Street\n  - type: FormField\n    id: city\n    label: City\n'
+
+    it('parses a top-level content: list as a fragment wrapped for editing', () => {
+        const doc = parsePage(src)
+        expect(doc.fragment).toBe(true)
+        expect(doc.layout.type).toBe('VerticalLayout') // synthetic editing root
+        expect(doc.layout.content!.map((n) => (n as any).id)).toEqual(['street', 'city'])
+    })
+
+    it('serializes a fragment back to a bare content: list, NOT a VerticalLayout', () => {
+        const doc = parsePage(src)
+        const out = parse(serializePage(doc))
+        expect(out.type).toBeUndefined()             // no wrapper leaked in
+        expect(out.content.map((n: any) => n.id)).toEqual(['street', 'city'])
+    })
+
+    it('keeps the fragment shape after an edit', () => {
+        const doc = parsePage(src)
+        removeAt(doc, [1])                            // drop the "city" field
+        const out = parse(serializePage(doc))
+        expect(out.type).toBeUndefined()
+        expect(out.content.map((n: any) => n.id)).toEqual(['street'])
+    })
+
+    it('a single bare component partial is not a fragment and round-trips as-is', () => {
+        const doc = parsePage('type: Card\ncontent:\n  - type: Text\n    text: hi\n')
+        expect(doc.fragment).toBeFalsy()
+        const out = parse(serializePage(doc))
+        expect(out.type).toBe('Card')
+    })
+})

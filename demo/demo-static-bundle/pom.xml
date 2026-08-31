@@ -103,9 +103,27 @@
                             <pageTitle>Mateu static bundle demo</pageTitle>
                         </configuration>
                         <executions>
+                            <!-- The three steps of the path, in order: export the screens, derive the
+                                 contract they imply, then generate the server that has to satisfy it.
+                                 `server` is bound to prepare-package rather than its default
+                                 generate-sources because it reads the file `openapi` writes. -->
                             <execution>
+                                <id>bundle</id>
                                 <goals>
                                     <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>openapi</id>
+                                <goals>
+                                    <goal>openapi</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>server</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>server</goal>
                                 </goals>
                             </execution>
                         </executions>

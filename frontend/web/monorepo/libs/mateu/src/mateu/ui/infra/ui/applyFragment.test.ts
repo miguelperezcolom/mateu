@@ -104,10 +104,20 @@ describe('willUpdate data preservation', () => {
     // re-binds our .data with a fresh EMPTY object. That empty re-bind must not wipe the rows.
     // A plain stand-in (like componentElement above): .data is a normal field, so assigning it does
     // not run Lit's reactive setter. willUpdate keeps its super binding to LitElement's no-op.
+    // `willUpdate` is Lit's protected lifecycle hook and stays protected on ComponentElement:
+    // widening a framework base class's public surface so a test can reach it is the wrong way
+    // round. This test-only subclass is the single place that reaches it, and it hands the method
+    // out with its REAL type (a structural cast here would keep compiling if the signature moved).
+    class WillUpdateProbe extends ComponentElement {
+        static readonly hook = WillUpdateProbe.prototype.willUpdate
+    }
+
     const withProto = (over: Record<string, any>) => ({
         data: {} as Record<string, any>,
         _lastFragmentData: undefined as Record<string, any> | undefined,
-        willUpdate: ComponentElement.prototype.willUpdate,
+        _lastViewKey: undefined as string | undefined,
+        component: undefined as ServerSideComponent | undefined,
+        willUpdate: WillUpdateProbe.hook,
         ...over,
     })
 
@@ -126,6 +136,35 @@ describe('willUpdate data preservation', () => {
         const el = withProto({ data: cleared, _lastFragmentData: cleared })
         el.willUpdate(new Map([['data', { old: 1 }]]) as any)
         expect(el.data).toBe(cleared)
+    })
+
+    it('drops the rows when a DIFFERENT view arrives in this reused element', () => {
+        // Navigating from one listing to another: Lit reuses this element, so the new view's
+        // component and its still-empty data map are bound together. Preserving the previous
+        // rows there showed the outgoing listing's rows under the incoming listing's header.
+        const rows = { crud: { page: { content: [1, 2] } } }
+        const el = withProto({
+            data: rows,
+            _lastFragmentData: rows,
+            _lastViewKey: 'WorkflowDefinitions',
+            component: serverSide('Processes'),
+        })
+        el.data = {}
+        el.willUpdate(new Map<string, any>([['data', rows], ['component', serverSide('WorkflowDefinitions')]]) as any)
+        expect(el.data).toEqual({})
+    })
+
+    it('still keeps the rows when the SAME view re-renders', () => {
+        const rows = { crud: { page: { content: [1, 2] } } }
+        const el = withProto({
+            data: rows,
+            _lastFragmentData: rows,
+            _lastViewKey: 'Processes',
+            component: serverSide('Processes'),
+        })
+        el.data = {}
+        el.willUpdate(new Map([['data', rows]]) as any)
+        expect(el.data).toBe(rows)
     })
 
     it('lets a non-empty parent re-render through unchanged', () => {
