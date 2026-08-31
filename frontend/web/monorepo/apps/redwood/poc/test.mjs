@@ -7,7 +7,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute } from './transport.mjs'
+import { composeInnerRoute, loadRoute, bootstrapShell } from './transport.mjs'
+import {
+  toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
+  bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
+} from './bundle.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
@@ -792,6 +796,168 @@ atest('timeoutMillis negativo = sin ceiling, para un stream que dura lo que dure
   } finally {
     globalThis.fetch = original
     connectivity.reset()
+  }
+})
+
+// ── static bundle (modo sin backend) ──────────────────────────────────────────────────────
+test('bundle: toSyncPath refleja el transporte/web', () => {
+  assert.equal(toSyncPath(''), '_no_route')
+  assert.equal(toSyncPath('/'), '_no_route')
+  assert.equal(toSyncPath('/products'), 'products')
+  assert.equal(toSyncPath('orders/1'), 'orders/1')
+})
+
+test('bundle: matchBundledTemplate casa :param e inyecta el param en state y data', () => {
+  __setBundleForTests(new Map(), [
+    { regex: /^orders\/([^/]+)$/, paramNames: ['id'],
+      increment: { fragments: [{ targetComponentId: null, state: { id: '__mateu_param__' } }] } },
+  ])
+  assert.equal(getBundledIncrement('orders/42'), undefined) // una plantilla no es entrada exacta
+  const inc = matchBundledTemplate('orders/42')
+  assert.ok(inc)
+  assert.equal(inc.fragments[0].state.id, '42')  // el valor real gana al placeholder
+  assert.equal(inc.fragments[0].data.id, '42')
+  assert.equal(matchBundledTemplate('customers/7'), undefined)
+  __setBundleForTests(undefined)
+})
+
+test('bundle: bundledIncrementFor re-apunta el targetComponentId nulo al initiator', () => {
+  __setBundleForTests(new Map([['home', { fragments: [{ targetComponentId: null, component: {} }] }]]))
+  const inc = bundledIncrementFor('/home', 'isla1')
+  assert.equal(inc.fragments[0].targetComponentId, 'isla1')
+  __setBundleForTests(undefined)
+})
+
+// ── registro de rutas embarcado (el routes.yaml del mount, dentro del manifest) ───────────────
+// La precedencia tiene que ser IDÉNTICA a la del servidor y a la de libs/mateu; si no, la misma
+// ruta se comportaría distinto según el renderer o según haya backend:
+//   fixed > path > lo que ya trae el increment > defaults
+const inc1 = (state) => ({ fragments: [{ state, data: {} }] })
+const st = (inc) => (inc && inc.fragments && inc.fragments[0].state) || {}
+
+test('registro: un increment cuya ruta no está en el registro se devuelve INTACTO', () => {
+  __setBundleForTests(undefined, [], [{ route: 'orders' }])
+  const inc = inc1({ a: 1 })
+  assert.equal(applyRouteParams('customers', inc), inc, 'misma referencia: sin copia ni cambio')
+  __setBundleForTests(undefined)
+})
+
+test('registro: un parámetro fijado pisa lo que ya trae el increment', () => {
+  __setBundleForTests(undefined, [], [{ route: 'tickets/open', fixedParams: { status: 'open' } }])
+  assert.equal(st(applyRouteParams('tickets/open', inc1({ status: 'all' }))).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: un default cede ante lo que el increment ya trae, y rellena lo que falta', () => {
+  __setBundleForTests(undefined, [], [
+    { route: 'tickets', defaultParams: { status: 'open', page: 1 } },
+  ])
+  const state = st(applyRouteParams('tickets', inc1({ status: 'closed' })))
+  assert.equal(state.status, 'closed')
+  assert.equal(state.page, 1)
+  __setBundleForTests(undefined)
+})
+
+test('registro: un fijado gana también al parámetro del path con su mismo nombre', () => {
+  __setBundleForTests(undefined, [], [
+    { route: 'tickets/:status', fixedParams: { status: 'open' } },
+  ])
+  assert.equal(st(applyRouteParams('tickets/all', inc1({}))).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: una ruta parametrizada NO se traga a su hermana estática', () => {
+  // orders/:id se declara ANTES a propósito: el matching no puede depender del orden.
+  __setBundleForTests(undefined, [], [
+    { route: 'orders/:id', viewModel: 'Detail' },
+    { route: 'orders/new', viewModel: 'New' },
+  ])
+  assert.equal(getRouteEntry('orders/new').viewModel, 'New')
+  assert.equal(getRouteEntry('orders/42').viewModel, 'Detail')
+  __setBundleForTests(undefined)
+})
+
+test('registro: la raíz del mount es la entrada con ruta vacía', () => {
+  __setBundleForTests(undefined, [], [{ route: '', viewModel: 'Home' }])
+  assert.equal(getRouteEntry('_no_route').viewModel, 'Home')
+  __setBundleForTests(undefined)
+})
+
+test('registro: se aplica al responder una ruta bundleada', () => {
+  __setBundleForTests(
+    new Map([['tickets/open', inc1({ status: 'all' })]]), [],
+    [{ route: 'tickets/open', fixedParams: { status: 'open' } }])
+  assert.equal(st(getBundledIncrement('tickets/open')).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: se aplica ENCIMA de la plantilla, así el fijado sigue ganando al path', () => {
+  __setBundleForTests(undefined,
+    [{ regex: /^tickets\/([^/]+)$/, paramNames: ['status'], increment: inc1({}) }],
+    [{ route: 'tickets/:status', fixedParams: { status: 'open' } }])
+  assert.equal(st(bundledIncrementFor('/tickets/all', '')).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+test('registro: expone la entrada para llegar a su definición', () => {
+  __setBundleForTests(undefined, [], [{ route: 'about', definition: 'about.yaml' }])
+  assert.equal(getRouteEntry('about').definition, 'about.yaml')
+  assert.equal(getRouteEntry('about').viewModel, undefined)
+  __setBundleForTests(undefined)
+})
+
+atest('registro: loadBundleManifest lee manifest.routes.routes', async () => {
+  const manifest = {
+    entries: [{ syncPath: 'tickets/open', ok: true, json: JSON.stringify(inc1({ status: 'all' })) }],
+    routes: { routes: [{ route: 'tickets/open', fixedParams: { status: 'open' } }] },
+  }
+  await loadBundleManifest('/manifest.json', async () => ({ ok: true, json: async () => manifest }))
+  assert.equal(st(getBundledIncrement('tickets/open')).status, 'open')
+  __setBundleForTests(undefined)
+})
+
+atest('bundle: loadBundleManifest indexa las entradas ok y salta las rotas', async () => {
+  const manifest = { entries: [
+    { syncPath: 'home', ok: true, json: JSON.stringify({ fragments: [{ x: 1 }] }) },
+    { syncPath: 'broken', ok: false, json: null },
+    { syncPath: 'bad', ok: true, json: '{no json' },
+  ] }
+  await loadBundleManifest('x', async () => ({ ok: true, json: async () => manifest }))
+  assert.equal(hasBundle(), true)
+  assert.deepEqual(getBundledIncrement('home'), { fragments: [{ x: 1 }] })
+  assert.equal(getBundledIncrement('broken'), undefined)
+  assert.equal(getBundledIncrement('bad'), undefined)
+  __setBundleForTests(undefined)
+})
+
+atest('bundle: loadRoute responde desde el bundle SIN tocar la red', async () => {
+  __setBundleForTests(new Map([['home', { fragments: [{ targetComponentId: null }] }]]))
+  const original = globalThis.fetch
+  let hit = false
+  globalThis.fetch = async () => { hit = true; return { ok: true, json: async () => ({}) } }
+  try {
+    const inc = await loadRoute('https://x', '/home', 'shell')
+    assert.equal(hit, false, 'una carga bundleada no debe ir al backend')
+    assert.equal(inc.fragments[0].targetComponentId, 'shell')
+  } finally {
+    globalThis.fetch = original
+    __setBundleForTests(undefined)
+  }
+})
+
+atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO está', async () => {
+  __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
+  connectivity.reset()
+  const original = globalThis.fetch
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') } // backend caído
+  try {
+    const inc = await bootstrapShell('https://x', 'shell')
+    assert.ok(inc && inc.fragments, 'la shell debe arrancar desde el bundle sin backend')
+    assert.equal(inc.fragments[0].targetComponentId, 'shell')
+  } finally {
+    globalThis.fetch = original
+    connectivity.reset()
+    __setBundleForTests(undefined)
   }
 })
 

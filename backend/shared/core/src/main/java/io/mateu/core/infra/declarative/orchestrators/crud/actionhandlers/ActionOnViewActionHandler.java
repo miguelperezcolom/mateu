@@ -7,7 +7,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
-import lombok.SneakyThrows;
 
 public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler {
   @Override
@@ -15,13 +14,17 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
     return actionId.startsWith("action-on-view-");
   }
 
-  @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String methodName = actionId.substring("action-on-view-".length());
     var item = toView(httpRequest, orchestrator.viewClass());
     var idField = orchestrator.getIdFieldForRow();
-    var savedId = getValue(idField, item);
+    Object savedId;
+    try {
+      savedId = getValue(idField, item);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
 
     var result = CrudViewMethodInvoker.invoke(methodName, item, orchestrator, httpRequest);
     if (result != null) {

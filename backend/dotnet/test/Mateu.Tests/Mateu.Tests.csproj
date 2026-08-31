@@ -13,4 +13,9 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Mateu.Core/Mateu.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The route registry and the definitions it routes to: read from disk at runtime, so they
+         have to sit next to the test assembly. -->
+    <Content Include="specs/**/*.yaml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

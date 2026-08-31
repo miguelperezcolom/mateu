@@ -1,0 +1,6 @@
+# Fragments compose: this one uses another.
+content:
+  - type: Text
+    text: "Contact"
+  - type: Partial
+    ref: address-block

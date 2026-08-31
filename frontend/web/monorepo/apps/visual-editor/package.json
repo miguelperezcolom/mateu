@@ -1,0 +1,26 @@
+{
+  "name": "mateu-visual-editor",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Cross-IDE web-based visual editor for Mateu YAML pages (palette + WYSIWYG canvas + properties). Hosted by JCEF in IntelliJ and a Webview in VSCode.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview",
+    "copy": "vite build && rm -rf ../../../../app/intellij-plugin/src/main/resources/visual-editor && mkdir -p ../../../../app/intellij-plugin/src/main/resources/visual-editor && cp -rf dist/* ../../../../app/intellij-plugin/src/main/resources/visual-editor/"
+  },
+  "dependencies": {
+    "lit": "^3.3.1",
+    "mateu": "*",
+    "yaml": "^2.5.1"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vite": "^8.1.5",
+    "vitest": "^3.2.4"
+  }
+}

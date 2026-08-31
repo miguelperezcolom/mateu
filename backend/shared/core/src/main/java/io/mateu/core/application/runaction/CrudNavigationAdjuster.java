@@ -5,7 +5,6 @@ import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import lombok.SneakyThrows;
 
 /** Adjusts a {@link RunActionCommand} before route resolution for CRUD navigation actions. */
 @Named
@@ -19,11 +18,12 @@ public class CrudNavigationAdjuster {
    * pre-adjusted so the correct sub-route resolves. Returns routeFirst=true to signal that route
    * resolution should be attempted before falling back to the known serverSideType.
    */
-  @SneakyThrows
   AdjustedCommand adjust(RunActionCommand command) {
     if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
       return new AdjustedCommand(command, false);
     }
+    // forName throws an unchecked IllegalStateException naming the class if it is genuinely
+    // missing.
     var type = forName(command.serverSideType());
     if (!Crud.class.isAssignableFrom(type)) {
       return new AdjustedCommand(command, false);

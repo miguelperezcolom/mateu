@@ -1,0 +1,8 @@
+# A definition that names NO modelView: it is layout, nothing else. That is what lets the same file
+# serve several routes, each binding its own view model in its registry entry.
+layout:
+  type: VerticalLayout
+  spacing: true
+  content:
+    - type: Text
+      text: "A shared list layout"

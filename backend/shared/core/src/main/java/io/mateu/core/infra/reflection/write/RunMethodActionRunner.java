@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -39,7 +38,6 @@ public class RunMethodActionRunner implements ActionRunner {
             || getFieldByName(instance.getClass(), actionId) != null);
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var methodName = command.actionId();
@@ -85,7 +83,11 @@ public class RunMethodActionRunner implements ActionRunner {
                 .createInstance(f.getType().getName(), Map.of(), command.httpRequest());
       }
       if (result instanceof Callable<?> callable) {
-        result = callable.call();
+        try {
+          result = callable.call();
+        } catch (Exception e) {
+          throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+        }
       }
       if (result instanceof Runnable runnable) {
         runnable.run();
@@ -102,12 +104,27 @@ public class RunMethodActionRunner implements ActionRunner {
     return Flux.empty();
   }
 
-  public static Object invoke(Method m, Object instance, RunActionCommand command)
-      throws InvocationTargetException, IllegalAccessException {
-    if (m.getParameterCount() > 0) {
-      return m.invoke(instance, createParameters(m, command));
-    } else {
-      return m.invoke(instance);
+  public static Object invoke(Method m, Object instance, RunActionCommand command) {
+    try {
+      if (m.getParameterCount() > 0) {
+        return m.invoke(instance, createParameters(m, command));
+      } else {
+        return m.invoke(instance);
+      }
+    } catch (InvocationTargetException e) {
+      // Surface the real exception the user method threw, not the reflective wrapper (and not the
+      // NoClassDefFoundError: lombok/Lombok that @SneakyThrows produced when lombok is off
+      // runtime).
+      var cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof RuntimeException re) {
+        throw re;
+      }
+      if (cause instanceof Error err) {
+        throw err;
+      }
+      throw new RuntimeException(cause);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Cannot invoke " + m, e);
     }
   }
 

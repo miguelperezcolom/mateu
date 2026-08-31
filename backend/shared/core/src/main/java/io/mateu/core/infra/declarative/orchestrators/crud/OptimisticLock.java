@@ -5,7 +5,6 @@ import io.mateu.uidl.annotations.Version;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.Optional;
-import lombok.SneakyThrows;
 
 /**
  * Optimistic locking over the entity's {@code @Version} field: {@link #check} compares the incoming
@@ -39,7 +38,6 @@ public final class OptimisticLock {
     return Optional.empty();
   }
 
-  @SneakyThrows
   public static <T> void check(T incoming, Optional<T> stored, HttpRequest httpRequest) {
     if (stored.isEmpty()) {
       return;
@@ -48,30 +46,39 @@ public final class OptimisticLock {
     if (field.isEmpty()) {
       return;
     }
-    if (forceOverwrite(httpRequest)) {
-      // the user chose to overwrite from the conflict dialog: adopt the STORED version so the
-      // bump below moves it forward instead of resurrecting the stale one
-      field.get().set(incoming, field.get().get(stored.get()));
-      return;
-    }
-    long incomingVersion = ((Number) field.get().get(incoming)).longValue();
-    long storedVersion = ((Number) field.get().get(stored.get())).longValue();
-    if (storedVersion > incomingVersion) {
-      throw new StaleEditException();
+    // the @Version field is setAccessible(true) in versionField, so IllegalAccessException is
+    // effectively unreachable — wrapped so callers don't need @SneakyThrows.
+    try {
+      if (forceOverwrite(httpRequest)) {
+        // the user chose to overwrite from the conflict dialog: adopt the STORED version so the
+        // bump below moves it forward instead of resurrecting the stale one
+        field.get().set(incoming, field.get().get(stored.get()));
+        return;
+      }
+      long incomingVersion = ((Number) field.get().get(incoming)).longValue();
+      long storedVersion = ((Number) field.get().get(stored.get())).longValue();
+      if (storedVersion > incomingVersion) {
+        throw new StaleEditException();
+      }
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  @SneakyThrows
   public static <T> void bump(T entity) {
     var field = versionField(entity.getClass());
     if (field.isEmpty()) {
       return;
     }
-    long version = ((Number) field.get().get(entity)).longValue();
-    if (field.get().getType() == int.class || field.get().getType() == Integer.class) {
-      field.get().set(entity, (int) (version + 1));
-    } else {
-      field.get().set(entity, version + 1);
+    try {
+      long version = ((Number) field.get().get(entity)).longValue();
+      if (field.get().getType() == int.class || field.get().getType() == Integer.class) {
+        field.get().set(entity, (int) (version + 1));
+      } else {
+        field.get().set(entity, version + 1);
+      }
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 

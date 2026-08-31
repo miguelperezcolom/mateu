@@ -45,7 +45,22 @@ public record ServerSideComponentDto(
      * {@code "dashboard"} — inferred from the ModelView's shape unless declared with
      * {@code @PageTemplate}.
      */
-    String pageType)
+    String pageType,
+    /**
+     * The view is declared {@code @StaticView}: its full response never varies, so the client may
+     * cache it for the session and SKIP the round-trip on return visits (the last step of the
+     * client structure cache). A developer promise; {@code false} unless declared.
+     */
+    boolean staticView,
+    /**
+     * Stable content hash (ETag) of this component's STRUCTURE — everything but per-request
+     * state/data. The client stores it next to the cached structure and echoes it back as {@code
+     * RunActionRqDto.knownStructureHash}; when it still matches, the server omits the component
+     * from the response and the client reuses its cached structure (template-ref /
+     * stale-while-revalidate, phase b). Computed by the server after mapping; {@code null} on the
+     * wire only for old backends.
+     */
+    String structureHash)
     implements ComponentDto {
 
   @Override
@@ -67,7 +82,9 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        staticView,
+        structureHash);
   }
 
   @Override
@@ -91,7 +108,9 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        staticView,
+        structureHash);
   }
 
   @Override
@@ -113,7 +132,9 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        staticView,
+        structureHash);
   }
 
   @Override
@@ -135,6 +156,8 @@ public record ServerSideComponentDto(
         confirmOnNavigationIfDirty,
         emitsName,
         pageWidth,
-        pageType);
+        pageType,
+        staticView,
+        structureHash);
   }
 }

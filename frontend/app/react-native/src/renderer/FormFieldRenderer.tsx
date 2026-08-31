@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Switch,
@@ -27,6 +27,7 @@ import {
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
 import { interpolate } from '../core/expressions';
+import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
@@ -57,6 +58,19 @@ interface FieldMeta {
   disabled?: boolean;
   initialValue?: unknown;
   options?: Option[];
+  /** @RestOptions: options fetched CLIENT-SIDE from an arbitrary REST endpoint (url/method/headers/
+   *  body interpolated; itemsPath→array; valuePath/labelPath per item). */
+  optionsSource?: {
+    url: string;
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+    itemsPath?: string;
+    valuePath?: string;
+    labelPath?: string;
+    /** Fetch through the Mateu server (no CORS, secrets server-side) instead of directly. */
+    proxy?: boolean;
+  };
   /** Grid fields: ClientSide GridColumn nodes. */
   columns?: { metadata?: GridColumnMeta }[];
   /** Lookup fields: remote search coordinates (action = `search-<fieldId>` by convention). */
@@ -307,6 +321,21 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     }
     if (stereotype === 'camera') {
       return <PhotoCaptureField value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // @RestOptions: options fetched CLIENT-SIDE from an arbitrary REST endpoint.
+    if (metadata.optionsSource) {
+      return (
+        <RestOptionsField
+          source={metadata.optionsSource}
+          fieldId={fieldId}
+          state={state}
+          appState={controller.session.appState}
+          value={stringValue}
+          editable={editable}
+          onChange={(v) => commit(fieldId, v)}
+        />
+      );
     }
 
     // Options (enum / static list)
@@ -589,6 +618,37 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
       </View>
     </Modal>
   );
+}
+
+// @RestOptions: a select whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
+// mount (and refetched when the interpolated url changes — a state-dependent source).
+function RestOptionsField({ source, fieldId, state, appState, value, editable, onChange }: {
+  source: NonNullable<FieldMeta['optionsSource']>;
+  fieldId: string;
+  state: Record<string, unknown>;
+  appState: Record<string, unknown>;
+  value: string;
+  editable: boolean;
+  onChange: (v: string) => void;
+}) {
+  const controller = useViewController();
+  const [options, setOptions] = useState<FetchedOption[]>([]);
+  const resolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState });
+  const url = resolve(source.url);
+  useEffect(() => {
+    let cancelled = false;
+    // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
+    // direct fetch otherwise. Both resolve to the same JSON → mapItemsToOptions.
+    const jsonPromise = source.proxy
+      ? controller.fetchViaProxy('options', fieldId)
+      : fetchExternalJson(source, resolve);
+    jsonPromise
+      .then((json) => { if (!cancelled) setOptions(mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)); })
+      .catch((e) => console.warn('mateu: external options fetch failed', e));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+  return <OptionsField options={options} value={value} editable={editable} onChange={onChange} />;
 }
 
 function OptionsField({ options, value, editable, onChange }: { options: Option[]; value: string; editable: boolean; onChange: (v: string) => void }) {

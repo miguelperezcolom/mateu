@@ -5,12 +5,12 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 
 public class CrudAdapterHelper {
 
@@ -25,7 +25,6 @@ public class CrudAdapterHelper {
     return getInstance(map, viewClass, httpRequest);
   }
 
-  @SneakyThrows
   private static <T> T getInstance(
       Map<String, Object> data, Class<T> type, HttpRequest httpRequest) {
     T value = null;
@@ -34,9 +33,22 @@ public class CrudAdapterHelper {
     } catch (Exception e) {
     }
     if (value == null) {
-      var constructor = type.getDeclaredConstructor();
-      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
-      return constructor.newInstance();
+      try {
+        var constructor = type.getDeclaredConstructor();
+        if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
+        return constructor.newInstance();
+      } catch (InvocationTargetException e) {
+        var cause = e.getCause() != null ? e.getCause() : e;
+        if (cause instanceof RuntimeException re) {
+          throw re;
+        }
+        if (cause instanceof Error err) {
+          throw err;
+        }
+        throw new RuntimeException(cause);
+      } catch (ReflectiveOperationException e) {
+        throw new RuntimeException("Cannot instantiate " + type.getName(), e);
+      }
     }
     return value;
   }

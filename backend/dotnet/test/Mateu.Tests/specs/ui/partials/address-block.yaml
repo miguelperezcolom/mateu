@@ -1,0 +1,7 @@
+content:
+  - type: FormField
+    id: street
+    label: Street
+  - type: FormField
+    id: city
+    label: City

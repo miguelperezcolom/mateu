@@ -5,6 +5,7 @@
 
 import { reduceContexts, mediatorOf, HOST_ID } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
+import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
 export async function callMateu(base, body, options = {}) {
@@ -26,14 +27,27 @@ export async function callMateu(base, body, options = {}) {
   return res.json()
 }
 
-/** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico. */
+/** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
+ *  Static-bundle: la shell NO se exporta (el bundle guarda cargas de ruta, no el __load__ del App),
+ *  así que en modo híbrido (bundle + backend) el menú sale del backend como siempre; pero si el
+ *  backend NO está (despliegue estático puro) y el bundle trae la ruta raíz, se cae a ella para que
+ *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
 export async function bootstrapShell(base, initiator = 'shell') {
-  const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-  }, { actionId: '__load__' })
-  return res.json()
+  await awaitBundle()
+  try {
+    const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+    }, { actionId: '__load__' })
+    return res.json()
+  } catch (e) {
+    if (hasBundle()) {
+      const bundled = bundledIncrementFor('', initiator)
+      if (bundled) return bundled
+    }
+    throw e
+  }
 }
 
 /** Ruta INTERNA de un mediador/isla tras un flip de state._route: base del outbound +
@@ -46,9 +60,18 @@ export function composeInnerRoute(outboundRoute, flip) {
   return base + flip + query
 }
 
-/** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…). */
-export const loadRoute = (base, route, initiator = '', extra = {}) =>
-  callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+/** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
+ *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
+ *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
+ *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
+export const loadRoute = async (base, route, initiator = '', extra = {}) => {
+  await awaitBundle()
+  if (hasBundle()) {
+    const bundled = bundledIncrementFor(route, initiator)
+    if (bundled) return bundled
+  }
+  return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
+}
 
 /** Acción saliente: arma la request desde el CONTEXTO — "manda el estado que ya tienes".
  *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el

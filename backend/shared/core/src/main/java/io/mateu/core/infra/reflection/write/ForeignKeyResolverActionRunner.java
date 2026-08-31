@@ -16,7 +16,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -36,7 +35,6 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
     return false;
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var fieldName = command.actionId().substring("search-".length());

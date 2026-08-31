@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
@@ -30,9 +30,7 @@ final class ViewToolbarBuilder {
         .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
         .forEach(
             method ->
-                toolbar.add(
-                    new Button(
-                        toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName())));
+                toolbar.add(new Button(getLabel(method), "action-on-view-" + method.getName())));
     final var finalEntity = item;
     getAllMethods(finalEntity.getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
@@ -52,7 +50,7 @@ final class ViewToolbarBuilder {
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               toolbar.add(
                   Button.builder()
-                      .label(toUpperCaseFirst(method.getName()))
+                      .label(getLabel(method))
                       .actionId(method.getName())
                       .buttonStyle(buttonStyle)
                       .color(buttonColor)

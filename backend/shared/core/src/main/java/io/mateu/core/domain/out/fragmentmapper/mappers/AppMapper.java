@@ -21,11 +21,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import lombok.SneakyThrows;
 
 public final class AppMapper {
 
-  @SneakyThrows
   public static ClientSideComponentDto mapAppToDto(
       ComponentTreeSupplier componentSupplier,
       AppShell app,
@@ -79,6 +77,7 @@ public final class AppMapper {
             .serverSideType(
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
+            .restSources(RestSourceCatalogMapper.mapCatalogue())
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())
@@ -108,7 +107,6 @@ public final class AppMapper {
         null);
   }
 
-  @SneakyThrows
   private static List<FabDto> getAppFabs(AppShell app) {
     if (app.serverSideType() == null) return List.of();
     var appClass = forName(app.serverSideType());
@@ -140,7 +138,6 @@ public final class AppMapper {
    * (visibility follows server-side state). Each actionId dispatches like a {@code @Fab}: the app
    * class method with that name runs.
    */
-  @SneakyThrows
   private static List<AppHeaderActionDto> getContextActions(AppShell app, HttpRequest httpRequest) {
     if (app.serverSideType() == null) return List.of();
     var appClass = forName(app.serverSideType());
@@ -161,7 +158,6 @@ public final class AppMapper {
    * The bell renders when the app class implements {@link
    * io.mateu.uidl.interfaces.NotificationsSupplier}.
    */
-  @SneakyThrows
   private static boolean isNotificationsEnabled(AppShell app) {
     if (app.serverSideType() == null) {
       return false;
@@ -171,7 +167,6 @@ public final class AppMapper {
   }
 
   /** The ⌘K palette searches data too when the app class implements GlobalSearchSupplier. */
-  @SneakyThrows
   private static boolean isGlobalSearchEnabled(AppShell app) {
     if (app.serverSideType() == null) {
       return false;
@@ -198,7 +193,6 @@ public final class AppMapper {
    * with an empty text (first page). The selected value lives in the app state under the field's
    * name; see {@code HttpRequest.appContext(String)}.
    */
-  @SneakyThrows
   private static List<AppContextSelectorDto> getContextSelectors(
       AppShell app, HttpRequest httpRequest) {
     if (app.serverSideType() == null) return List.of();
@@ -223,7 +217,6 @@ public final class AppMapper {
     return selectors;
   }
 
-  @SneakyThrows
   private static List<OptionDto> getContextOptions(
       java.lang.reflect.Field field, HttpRequest httpRequest) {
     if (field.getType().isEnum()) {
@@ -264,7 +257,6 @@ public final class AppMapper {
     return List.of();
   }
 
-  @SneakyThrows
   private static boolean getThemeToggle(AppShell app) {
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
@@ -277,7 +269,6 @@ public final class AppMapper {
   /**
    * The command-center FAB shows when {@code @App(commandCenter=true)} — or implied by chromeless.
    */
-  @SneakyThrows
   private static boolean getCommandCenter(AppShell app) {
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
@@ -291,7 +282,6 @@ public final class AppMapper {
   /**
    * Chromeless drops the nav chrome; it implies the command center so navigation stays possible.
    */
-  @SneakyThrows
   private static boolean getChromeless(AppShell app) {
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
@@ -301,7 +291,6 @@ public final class AppMapper {
     return false;
   }
 
-  @SneakyThrows
   private static String getMcpUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
     var appClass = forName(app.serverSideType());
@@ -312,7 +301,6 @@ public final class AppMapper {
     return null;
   }
 
-  @SneakyThrows
   private static String getUploadUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
     var appClass = forName(app.serverSideType());
@@ -323,7 +311,6 @@ public final class AppMapper {
     return null;
   }
 
-  @SneakyThrows
   private static String getSseUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
     var appClass = forName(app.serverSideType());

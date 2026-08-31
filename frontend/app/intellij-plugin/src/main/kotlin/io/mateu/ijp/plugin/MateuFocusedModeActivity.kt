@@ -26,6 +26,19 @@ class MateuFocusedModeActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
         val focused = loadMateuConfig().focused
         withContext(Dispatchers.EDT) {
+            // Explicit-save UX: Mateu authors edit and save WHEN THEY DECIDE (Ctrl+S), the IDE's own
+            // save. So turn OFF IntelliJ's automatic saving (which otherwise writes on frame
+            // deactivation / idle and makes edits look auto-saved — worsened by the visual editor's
+            // JCEF window, whose focus grabs read as the IDE frame deactivating), and make the
+            // unsaved state VISIBLE by marking modified tabs with an asterisk.
+            com.intellij.ide.GeneralSettings.getInstance().apply {
+                isSaveOnFrameDeactivation = false
+                isAutoSaveIfInactive = false
+            }
+            com.intellij.ide.ui.UISettings.getInstance().apply {
+                markModifiedTabsWithAsterisk = true
+                fireUISettingsChanged()
+            }
             // Earliest: stop the Project view's ScopeViewPane from being built — its constructor
             // registers a scopes listener that later NPEs (ContentUI null) because we never show the
             // Project view, surfacing the "IDE error occurred" balloon.

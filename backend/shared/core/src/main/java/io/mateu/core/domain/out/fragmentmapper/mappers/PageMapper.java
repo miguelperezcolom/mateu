@@ -66,6 +66,8 @@ public class PageMapper {
             .favicon(page.favicon())
             .title(page.title())
             .subtitle(page.subtitle())
+            .overline(page.overline())
+            .titlePlaceholder(page.titlePlaceholder())
             .breadcrumbs(
                 page.breadcrumbs() != null
                     ? page.breadcrumbs().stream()

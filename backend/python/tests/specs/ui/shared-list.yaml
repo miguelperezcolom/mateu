@@ -1,0 +1,6 @@
+# Layout only: no modelView, so each route's entry binds its own.
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "A shared list layout"

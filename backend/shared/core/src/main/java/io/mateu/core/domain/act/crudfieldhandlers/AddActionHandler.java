@@ -18,11 +18,9 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
 import java.util.*;
-import lombok.SneakyThrows;
 
 public class AddActionHandler {
 
-  @SneakyThrows
   public static Object handleAdd(
       Object instance,
       String actionId,

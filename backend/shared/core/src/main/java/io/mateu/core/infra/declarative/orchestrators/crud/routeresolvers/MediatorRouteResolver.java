@@ -23,7 +23,7 @@ public class MediatorRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   public ComponentDto dto(HttpRequest httpRequest, Crud orchestrator) {
-    return wrapRoute((String) httpRequest.getAttribute("resolvedPath"), httpRequest, orchestrator);
+    return wrapRoute(MultiView.requestedRoute(httpRequest), httpRequest, orchestrator);
   }
 
   public ServerSideComponentDto wrapRoute(

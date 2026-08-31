@@ -63,7 +63,7 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
     }
 
     return html`
-        <div style="${component.style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
+        <div id="${component.id ?? nothing}" style="${component.style}" class="${component.cssClasses}" slot="${component.slot ?? nothing}">
             ${labelHtml}
             ${control}
         </div>

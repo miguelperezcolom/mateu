@@ -36,6 +36,30 @@ or `@InlineEditing` + `@Compact` for in-place editing); `ganttView` is typically
 canvas the `GanttPage` archetype uses). Pure composition of existing components, so it renders on
 every renderer without renderer work.
 
+## Redwood parameter and slot reference
+
+The real `data-management-page` API is **considerably richer than "grid ⇄ Gantt"**: it is a
+transactional page with four dockable panels. Mateu covers the view switcher and the full-width
+canvas; the panel system is not built. The canonical page-header elements shared by every template
+are documented once in [Page templates](/ux-patterns/page-templates/).
+
+**Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
+
+| Redwood prop / slot | Mateu | |
+|---|---|---|
+| Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ |
+| View switcher | `gridView`/`ganttView` + `gridLabel()`/`ganttLabel()`; the active view is page state and re-renders in place | ✅ |
+| Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ |
+| **Slots** `innerEnd` / `outerEnd` / `innerBottom` / `outerBottom` | — the four dockable panels are not built. `Drawer` already supports the underlying mechanic (`layout = true` docks and **pushes** the content instead of overlaying, for every `DrawerPosition`), so the missing piece is the page-level slot grammar, not the behaviour | 🟡 |
+| `endOpened` / `bottomOpened: inner \| outer \| none` | — | — |
+| `endDisplay` / `bottomDisplay: reflowModeless \| overlayModal` | `Drawer.layout` (reflow) vs `Drawer.modeless` (overlay) express both modes at component level | 🟡 |
+| `bottomDrawerState: auto \| closed \| maximized \| minimized` + `displayOptions.bottomDrawerMode/Height` | `DrawerPosition.bottom` + `collapsible` + `maximizable` + `DrawerSize` | 🟡 |
+| Transactional header (`save`/`cancel`) | — this archetype is a viewer; use `AutoCrud` or an advanced create-edit form for the transaction | — |
+| **Slot** `messages` | toasts/alerts ride on the wire's `messages`, not as a page slot | 🟡 |
+| **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
+| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+| `feedback` + `openFeedback` | ⚪ the embedded survey is a Fusion Apps concern, out of scope by decision | ⚪ |
+
 ## Demo
 
 `demo-admin-panel/.../datamanagement/DataManagementDemo.java` (`/data-management-demo`): a project

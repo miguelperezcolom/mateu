@@ -18,6 +18,7 @@ import "@vaadin/context-menu";
 // click (native <details> did neither). onSelect is the shell's existing itemSelected handler.
 export const renderTopNav = (items: AppMenuBarItem[], onSelect: (item: AppMenuBarItem) => void, cls?: string) => html`
     <vaadin-menu-bar
+        theme="tertiary"
         .items=${items as unknown as MenuBarItem[]}
         class="${cls ?? nothing}"
         @item-selected=${(e: CustomEvent) => onSelect((e.detail as { value: AppMenuBarItem }).value)}>

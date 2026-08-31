@@ -22,6 +22,12 @@ export interface RunActionOptions {
      * to the user as "Retry" when an action fails and cannot be retried automatically.
      */
     retry?: () => void
+    /**
+     * The structure hash the client already holds for this route (from its structure cache). Sent
+     * up so the server can OMIT the component when it still matches, replying with only state/data
+     * (template-ref / ETag, phase b). Only set for route loads; undefined = full structure.
+     */
+    knownStructureHash?: string
 }
 
 export interface MateuApiClient {

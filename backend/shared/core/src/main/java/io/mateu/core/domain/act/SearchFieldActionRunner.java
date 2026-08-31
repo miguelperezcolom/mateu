@@ -15,7 +15,6 @@ import jakarta.inject.Named;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
@@ -37,7 +36,6 @@ public class SearchFieldActionRunner implements ActionRunner {
     return actionId != null && actionId.startsWith("search-");
   }
 
-  @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var actionId = command.actionId();

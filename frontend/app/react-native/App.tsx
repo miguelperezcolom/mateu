@@ -23,6 +23,9 @@ import { MateuViewHost } from './src/renderer/MateuViewHost';
 // Overridable so a dev (or a probe) can point the app at a different backend without editing
 // this file — e.g. EXPO_PUBLIC_MATEU_BACKEND_PORT=8080 for the e2e SUT.
 const MATEU_BACKEND_PORT = Number(process.env.EXPO_PUBLIC_MATEU_BACKEND_PORT) || 8594;
+// Boot directly at a specific route instead of the backend's home — a probe/test affordance
+// (e.g. EXPO_PUBLIC_MATEU_ROUTE=/rest-data). Empty = the home route.
+const MATEU_ROUTE = process.env.EXPO_PUBLIC_MATEU_ROUTE || '';
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const DEV_CONFIG = {
   baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
@@ -159,7 +162,7 @@ function MateuRoot() {
 
   useEffect(() => {
     api
-      .initialLoad('', appState)
+      .initialLoad(MATEU_ROUTE, appState)
       .then((result) => {
         // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
         const res = result as Record<string, unknown>;
@@ -206,7 +209,7 @@ function MateuRoot() {
   }
 
   // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} target={{ label: '', route: '', consumedRoute: '_empty', serverSideType: '' }} />;
+  return <MateuViewHost session={session} target={{ label: '', route: MATEU_ROUTE, consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
 /** Blocking screen shown when the registry demands a newer renderer. "Update now" first tries

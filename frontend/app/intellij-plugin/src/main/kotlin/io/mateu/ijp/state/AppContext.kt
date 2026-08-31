@@ -244,6 +244,10 @@ class AppContext(val session: AppSession) {
     private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
     private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
 
+    /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
+     *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
+    private var currentActionRestData: MutableMap<String, JsonNode> = HashMap()
+
     /** A wire `parameters` object node → a plain map (empty when absent / not an object). */
     @Suppress("UNCHECKED_CAST")
     fun jsonToParams(node: JsonNode?): Map<String, Any?> =
@@ -460,6 +464,14 @@ class AppContext(val session: AppSession) {
             }
         }
 
+        // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching
+        // to the Mateu server — fetch + merge the response into the state + notify (fires on click
+        // for a @RestAction button, and on mount for @RestData via its OnLoad __restdata__ action).
+        currentActionRestData[actionId]?.let { rest ->
+            handleRestAction(rest, actionId)
+            return
+        }
+
         val serverSideType = resolveActionTarget(actionId)
         background(
             work = {
@@ -479,12 +491,93 @@ class AppContext(val session: AppSession) {
         )
     }
 
+    /**
+     * Runs a @RestAction/@RestData descriptor: fetch the external endpoint CLIENT-SIDE (url/headers/
+     * body interpolated from the live state), then merge the object at resultPath into the form
+     * state (so bound fields refresh) and show a success notification; an error shows a failure one.
+     * No server round-trip — the plugin analogue of the web's mateu-component.handleRestAction.
+     */
+    private fun handleRestAction(rest: JsonNode, actionId: String? = null) {
+        val source = rest.path("source")
+        val ctx = mapOf<String, Any?>("state" to currentComponentState, "appState" to appState)
+        background(
+            work = {
+                if (source.path("proxy").asBoolean(false)) {
+                    // Proxy mode: route through the Mateu server (no CORS, secrets injected
+                    // server-side) via the reserved __restfetch__ action. The __restdata__
+                    // (screen-load) id resolves the class @RestData source; any other id is a
+                    // @RestAction method — hence the source kind.
+                    val kind = if (actionId == "__restdata__") "data" else "action"
+                    fetchViaProxy(kind, actionId.orEmpty())
+                } else {
+                    val url = Expressions.interpolate(source.text("url"), ctx)
+                    val method = source.text("method").ifBlank { "GET" }.uppercase()
+                    val headers = LinkedHashMap<String, String>()
+                    source.path("headers").fields().forEach { (k, v) ->
+                        headers[k] = Expressions.interpolate(v.asText(""), ctx)
+                    }
+                    val body = source.get("body")?.asText("").orEmpty().let {
+                        if (it.isBlank()) null else Expressions.interpolate(it, ctx)
+                    }
+                    // A registered client-side auth provider supplies dynamic headers (merged last).
+                    headers.putAll(io.mateu.ijp.ui.RestFetch.authHeaders(url, method))
+                    apiClient.fetchExternal(url, method, headers, body)
+                }
+            },
+            onOk = { json ->
+                // resultPath: a string (possibly empty = whole response) merges into the state;
+                // null/absent (a @RestAction fire-and-toast) merges nothing.
+                val resultPath = rest.get("resultPath")
+                if (resultPath != null && resultPath.isTextual) {
+                    val merged = valueAtPath(json, resultPath.asText())
+                    if (merged != null && merged.isObject) {
+                        merged.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                        rerenderCurrentForm()
+                    }
+                }
+                val message = Expressions.interpolate(rest.get("successMessage")?.asText("").orEmpty(), ctx)
+                if (message.isNotBlank()) showMessage(message, "success")
+            },
+            onErr = {
+                if (silentErrors) println("[Mateu] rest action failed: ${it.message}")
+                else showMessage("Request failed", "error")
+            },
+        )
+    }
+
+    /**
+     * Proxy-mode external fetch: route a DECLARED REST source through the Mateu server via the
+     * reserved __restfetch__ action (the server resolves the source, injects `${'$'}{secret.X}` and
+     * fetches server-side — no CORS, secrets off the client). Returns the raw JSON the server
+     * fetched (appData._restfetch). Runs on the CALLER's thread (options/rows/action already fetch
+     * on a background worker), so no extra threading here.
+     */
+    fun fetchViaProxy(sourceKind: String, sourceId: String): JsonNode {
+        val increment = apiClient.runAction(
+            currentRoute, currentConsumedRoute, "__restfetch__", currentServerSideType,
+            currentComponentId, currentComponentState, appState,
+            mapOf("_sourceKind" to sourceKind, "_sourceId" to sourceId),
+        )
+        return increment.path("appData").path("_restfetch")
+    }
+
+    /** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
+    private fun valueAtPath(node: JsonNode, path: String): JsonNode? {
+        if (path.isBlank()) return node
+        var cur: JsonNode? = node
+        for (key in path.split('.')) {
+            cur = cur?.get(key) ?: return null
+        }
+        return cur
+    }
+
     // ── action bubbling / validation (framework-neutral, ported verbatim) ─────────────
     fun captureComponentContext(sscNode: JsonNode, serverSideType: String) {
         val actions = ArrayList<String>()
         val validationFlags = HashMap<String, Boolean>()
         val bubbleFlags = HashMap<String, Boolean>()
         val rowsSelectedFlags = HashMap<String, Boolean>()
+        val restData = HashMap<String, JsonNode>()
         val actionNodes = sscNode.path("actions")
         if (actionNodes.isArray) {
             for (a in actionNodes) {
@@ -494,6 +587,8 @@ class AppContext(val session: AppSession) {
                     validationFlags[id] = a.bool("validationRequired")
                     bubbleFlags[id] = a.bool("bubble")
                     rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
+                    val rest = a.path("restAction")
+                    if (rest.isObject) restData[id] = rest
                 }
             }
         }
@@ -501,6 +596,7 @@ class AppContext(val session: AppSession) {
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
         currentActionRowsSelectedRequired = rowsSelectedFlags
+        currentActionRestData = restData
         currentComponentValidations = sscNode.path("validations")
         currentRules = sscNode.path("rules").takeIf { it.isArray && it.size() > 0 }
         fieldAttributes.clear()

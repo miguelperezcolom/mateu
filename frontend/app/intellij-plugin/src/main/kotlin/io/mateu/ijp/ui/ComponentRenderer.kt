@@ -17,11 +17,15 @@ class ComponentRenderer(val ctx: AppContext) {
 
     fun render(component: JsonNode?, state: JsonNode, data: JsonNode): JComponent {
         if (component == null || component.isNull || component.isMissingNode) return JPanel()
-        return when (component.text("type", "ClientSide")) {
+        val widget = when (component.text("type", "ClientSide")) {
             "ClientSide" -> renderClientSide(component, state, data)
             "ServerSide" -> ctx.loadServerSideComponent(component)
             else -> JBLabel("Unknown component type: ${component.text("type")}")
         }
+        // Tag the widget with the wire component it rendered, so the visual-builder preview can map a
+        // drop back to its YAML source (see DropTargeting). Unused/harmless outside the builder.
+        widget.putClientProperty(io.mateu.ijp.contract.DropTargeting.WIRE_KEY, component)
+        return widget
     }
 
     private fun renderClientSide(component: JsonNode, state: JsonNode, data: JsonNode): JComponent {

@@ -38,4 +38,5 @@ public record ActionDto(
     boolean bubble,
     String shortcut,
     int timeoutMillis,
-    boolean idempotent) {}
+    boolean idempotent,
+    RestActionDto restAction) {}

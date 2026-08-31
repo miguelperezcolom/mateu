@@ -31,13 +31,16 @@ import './mateu-workflow'
 import './mateu-form-editor'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'
+import { resolveComponentState } from './common'
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
-import {evaluateExpression, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {evaluateExpression, interpolate, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
+import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
@@ -505,6 +508,48 @@ export class MateuComponent extends ComponentElement {
         showToast({ text: message, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
     }
 
+    // Runs a @RestAction: fetches the external endpoint CLIENT-SIDE (url/headers/body interpolated
+    // from the live state), then merges the object at resultPath into the form state (so bound
+    // fields refresh) and shows a success toast; an error shows a failure toast. No Mateu round-trip.
+    handleRestAction = (rest: RestActionDto, actionId?: string) => {
+        // Merge the fetched object (at resultPath) into the form state and toast — shared by the
+        // direct and proxy paths, so a @RestAction/@RestData behaves the same either way.
+        const applyResult = (json: unknown) => {
+            if (rest.resultPath != null) {
+                const merged = getByPath(json, rest.resultPath)
+                if (merged && typeof merged === 'object') {
+                    this.state = { ...this.state, ...(merged as Record<string, unknown>) }
+                }
+            }
+            const msg = interpolate(rest.successMessage, this.state, this.data)
+            if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
+        }
+        // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via the
+        // reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
+        // @RestData source; any other id is a @RestAction method — hence the source kind.
+        if (rest.source?.proxy) {
+            const kind = actionId === '__restdata__' ? 'data' : 'action'
+            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: '__restfetch__',
+                    parameters: { _sourceKind: kind, _sourceId: actionId },
+                    callback: (uiIncrement: any) => applyResult(uiIncrement?.appData?.['_restfetch']),
+                    callbackonly: true
+                },
+                bubbles: true,
+                composed: true
+            }))
+            return
+        }
+        const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
+        fetchExternalJson(rest.source, resolve)
+            .then(applyResult)
+            .catch((e) => {
+                console.warn('mateu: rest action failed', e)
+                showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+            })
+    }
+
     callAfterConfirmation = (action: Action, callback: Function) => {
         let header = "One moment, please"
         let message = 'Are you sure?'
@@ -608,6 +653,13 @@ export class MateuComponent extends ComponentElement {
             return
         }
 
+        // @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
+        // Mateu server — fetch + toast + optional merge of the response into the form state.
+        if (action && action.restAction) {
+            this.handleRestAction(action.restAction, action.id)
+            return
+        }
+
         if ('search' == detail.actionId) {
             const searchState = (detail.parameters as any)?._searchState
             if (searchState) {
@@ -637,11 +689,19 @@ export class MateuComponent extends ComponentElement {
             markPending(control)
         }
 
+        // A bubbled action (e.g. a @ViewToolbarButton on a crud's detail view, whose action is
+        // declared on the crud host rather than on the form) carries its originator's state in
+        // parameters.initiatorState — the form the button lives on, WITH its id. That is what the
+        // server's getComponentState(EntityType.class) must see, not this ancestor's own state (the
+        // crud list: filters/paging, no id). resolveComponentState prefers it when present; a direct
+        // action has no initiatorState and keeps its own state.
+        const componentState = resolveComponentState(this.state, detail.parameters)
+
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
                 route: this.route,
                 consumedRoute: this.consumedRoute,
-                componentState: {...this.state},
+                componentState,
                 parameters: detail.parameters ?? {},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,

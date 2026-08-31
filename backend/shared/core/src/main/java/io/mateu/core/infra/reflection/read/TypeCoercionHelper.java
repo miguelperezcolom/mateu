@@ -15,6 +15,16 @@ public class TypeCoercionHelper {
   public static Object getActualValue(
       Class targetType, Object value, InstanceFactory instanceFactory, HttpRequest httpRequest)
       throws Exception {
+    // A cleared control reports an empty string, and for anything that is not a String that is not
+    // a value — it is the absence of one. Parsing it instead throws (LocalDate.parse(""),
+    // Enum.valueOf(type, ""), new BigDecimal("")), and the hydration above logs the failure at
+    // DEBUG and moves on, so the field silently keeps what it held: the user clears a date, saves,
+    // and the old date is still there with nothing on screen saying so. Read as the absence it is,
+    // it takes the null branch below — which already answers a primitive with its zero, since a
+    // primitive cannot hold an absence.
+    if (value instanceof String string && string.isBlank() && !String.class.equals(targetType)) {
+      value = null;
+    }
     if (value == null) {
       if (int.class.equals(targetType)) return 0;
       if (long.class.equals(targetType)) return 0L;

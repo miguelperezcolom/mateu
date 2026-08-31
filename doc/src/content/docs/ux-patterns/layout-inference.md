@@ -195,6 +195,35 @@ Inference does not just pick a widget — it tells the renderer **what the group
 - `groupRelationship` — the semantic relation between the groups: `alternative` (the user looks at one group at a time — what tabs express), `sequential` (steps), or `simultaneous` (side by side). Developer-declared tabs and inferred section-tabs both emit `alternative`.
 - `adaptable` — `true` when the class is under `@AutoLayout`: the developer delegated the presentation, so a renderer **may degrade the tabs to an accordion** on a narrow viewport without losing the disclosure semantics. Tabs declared on a class *without* `@AutoLayout` still carry their `groupRelationship`, but are marked `adaptable: false` — the developer asked for tabs, so tabs they get.
 
+## The limits of inference
+
+Inference has a ceiling, and it is **not an implementation gap that a future version will close** —
+it is a limit on what your model contains. Knowing where it sits saves you waiting for something
+that cannot arrive.
+
+Mateu infers **presentation from shape**. It can do that because shape and presentation are tightly
+correlated: six short optional fields *are* a foldable group; a class of `MetricCard` fields *is* a
+dashboard.
+
+Page **family**, though, comes from a different place. The Redwood decision model that the six
+families come from starts at the **user's goal**:
+
+```
+user goal → category → data density → template → fixed anatomy
+```
+
+Mateu starts at the **data model**. That distance is the ceiling. A list of records could be a
+table, a calendar, a kanban, a planning board or a triage queue — **the same shape, five different
+user goals**. No amount of inference separates them, because the information is not in the model.
+
+So Mateu only composes the families that are **fully derivable** from what you declared
+(`MetricCard` fields → Dashboard; a page of `Button` calls-to-action → Welcome). For everything else
+it can at most *hint* — the advisor logs "this looks like a CollectionDetail" — and **you** pick,
+which is exactly what [The Mateu Way](/the-mateu-way/) asks you to do first.
+
+That is not a limitation to work around. It is the one decision the framework needs from you, and it
+takes one annotation.
+
 ## Notes
 
 - The decision table lives in `LayoutInference` (core, `componentmapper`), and it is the **reference implementation**: the C# and Python backends port the exact same rules and thresholds, so the wire JSON is identical whichever server emits it.

@@ -913,6 +913,7 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
         # action is never re-sent on its own.
         "timeoutMillis": 0,
         "idempotent": False,
+        "restAction": None,
     } in component["actions"]
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))

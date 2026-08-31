@@ -1,0 +1,10 @@
+# A page that records a DELTA instead of a layout snapshot: what the human decided, anchored to
+# field ids, so inference keeps running and a field the model grows later still appears.
+modelView: io.mateu.core.application.LayoutDeltaSpecTest$DeltaLogic
+layoutDelta:
+  order: [email, name]
+  hidden: [internalNote]
+  overrides:
+    name:
+      label: "Full name"
+      colspan: 2

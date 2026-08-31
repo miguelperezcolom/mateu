@@ -122,7 +122,13 @@ export const chooseBaseUrl = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedBaseUrl??container.baseUrl
     }
-    return metadata.homeBaseUrl
+    // `homeBaseUrl` is what the app calls itself FROM ITS OWN ORIGIN, and for a federated app that
+    // is not where the browser reached it: the shell fetched it at the remote's base, and its
+    // content has to keep talking to that base. Taking the metadata's value verbatim sent the
+    // listing's own load back to the SHELL — a path the shell does not serve, which is the "not
+    // found" you get from pasting a link to a page inside a remote app. Only a deep link takes this
+    // branch; clicking the menu goes through selectedBaseUrl above, which is why it worked there.
+    return container.baseUrl || metadata.homeBaseUrl
 }
 export const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
@@ -137,7 +143,39 @@ export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     return metadata.homeUriPrefix
 }
 
+/**
+ * A STABLE id for the content mateu-ux, derived from the app's route identity (consumed route +
+ * server-side type) instead of {@code container.id} — which is a fresh uuid on every render/remount.
+ * On Vaadin the app shell REMOUNTS on navigation (each incarnation had a new container.id), so a
+ * uuid-based id meant an in-flight route load / search response targeted the previous, now-dead ux
+ * and was dropped by applyFragment — the bug where a CRUD showed no initial rows and the page flipped
+ * to edge-to-edge (the bare shell) until you re-ran a search. A deterministic route-derived id makes
+ * successive incarnations of the same page reuse the same id, so those responses still land. Mirrors
+ * {@code MateuRendererApp._contentUxId}, the same fix already carried by the DS-native shells.
+ */
+export const contentUxId = (container: MateuApp, metadata: App): string => {
+    const identity =
+        (chooseConsumedRoute(container, metadata) || 'root')
+        + '|' + (chooseAppServerSideType(container, metadata) ?? '')
+    return 'ux_' + identity.replace(/[^a-zA-Z0-9]/g, '_')
+}
+
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+
+    // A shell fronting remote menus ends up MENU_ON_TOP: completeMenu (ConnectedElement) forces that
+    // variant once it has harvested the remotes' menus. Painting the first frame in the app's
+    // declared variant (e.g. TABS) and then flipping to MENU_ON_TOP moved the content <mateu-ux>
+    // into a different branch of this template, so Lit re-created it — the whole route re-fetched
+    // and re-painted, which is the listing you saw drawn twice on a cold load behind a shell.
+    // Adopt the final variant up front: same branch, same element across the menu arrival, so the
+    // menu update repaints only the menu and leaves the content mounted.
+    if (metadata.variant !== AppVariant.MENU_ON_TOP && metadata.menu?.some(option => option.remote)) {
+        metadata = { ...metadata, variant: AppVariant.MENU_ON_TOP }
+    }
+
+    // Stable content-ux id (see contentUxId): reused across shell remounts so in-flight load/search
+    // responses are not orphaned.
+    const cuid = contentUxId(container, metadata)
 
     // Chromeless: no header, no menu — the content fills the viewport and the command-center FAB is
     // the only navigation. "Prescindir de la barra de aplicación" for a clean, focused UI.
@@ -150,7 +188,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <mateu-api-caller>
                                 <mateu-ux
                                         route="${chooseRoute(_state, container, metadata)}"
-                                        id="ux_${container.id}"
+                                        id="${cuid}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                         serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -188,7 +226,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     <div style="display: block; width: calc(100% - 1rem);">
                                     <mateu-ux
                                             route="${chooseConsumedRoute(container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -205,7 +243,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
                                             route="${chooseRouteForDetail(_state, container, metadata)}"
-                                            id="ux_${container.id}_detail"
+                                            id="${cuid}_detail"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -224,7 +262,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <mateu-api-caller>
                                 <mateu-ux
                                         route="${chooseRoute(_state, container, metadata)}"
-                                        id="ux_${container.id}"
+                                        id="${cuid}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                         serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -271,7 +309,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     <mateu-api-caller>
                                         <mateu-ux
                                                 route="${chooseRoute(_state, container, metadata)}"
-                                                id="ux_${container.id}"
+                                                id="${cuid}"
                                                 baseUrl="${chooseBaseUrl(container, metadata)}"
                                                 consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                                 serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -322,7 +360,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -367,7 +405,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -397,7 +435,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -432,7 +470,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
@@ -490,7 +528,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"
-                                            id="ux_${container.id}"
+                                            id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"

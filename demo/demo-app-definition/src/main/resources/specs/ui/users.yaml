@@ -1,0 +1,8 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: VerticalLayout
+content:
+  - type: Text
+    text: Users
+    size: xl
+  - type: Text
+    text: Another typed page under the same YAML-defined app shell.

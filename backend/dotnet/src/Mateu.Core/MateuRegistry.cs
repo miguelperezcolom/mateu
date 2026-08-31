@@ -8,12 +8,14 @@ public sealed class MateuRegistry
 {
     private readonly Dictionary<string, Type> _byRoute = new();
     private readonly Dictionary<string, Type> _byName = new();
+    private readonly Assembly[] _assemblies;
 
     public Type? AppType { get; }
 
     public MateuRegistry(params Assembly[] assemblies)
     {
         var asms = assemblies.Length > 0 ? assemblies : [Assembly.GetEntryAssembly()!];
+        _assemblies = asms;
         foreach (var asm in asms)
         foreach (var type in asm.GetTypes())
         {
@@ -37,6 +39,15 @@ public sealed class MateuRegistry
         var norm = Normalize(route);
         if (_byRoute.TryGetValue(norm, out var r)) return r;
         return norm == "" ? AppType : null;
+    }
+
+    /// <summary>Resolves any type by full name across the scanned assemblies — used to instantiate a
+    /// YAML page's declared <c>modelView:</c> logic class, which need not carry [UI]/[App].</summary>
+    public Type? TypeByName(string? fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return null;
+        if (_byName.TryGetValue(fullName, out var known)) return known;
+        return _assemblies.Select(a => a.GetType(fullName)).FirstOrDefault(t => t is not null);
     }
 
     /// <summary>Finds the registered view whose route is the longest prefix of <paramref name="route"/>

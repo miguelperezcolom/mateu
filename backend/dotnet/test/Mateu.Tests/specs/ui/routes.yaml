@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# The mount's route registry. Routes are RELATIVE to the mount.
+routes:
+  # Two routes over ONE screen, told apart by a pinned parameter — the case an attribute cannot
+  # express, since it can only say "this class is at this path".
+  - route: tickets/open
+    viewModel: Mateu.Tests.RegistryTickets
+    fixedParams:
+      status: open
+  - route: tickets/closed
+    viewModel: Mateu.Tests.RegistryTickets
+    fixedParams:
+      status: closed
+
+  # Seeded, not pinned: the request may override these.
+  - route: tickets
+    viewModel: Mateu.Tests.RegistryTickets
+    defaultParams:
+      status: all
+      page: 1
+
+  # One definition, two view models. shared-list.yaml declares no modelView.
+  - route: catalog/books
+    definition: shared-list.yaml
+    viewModel: Mateu.Tests.RegistryBooks
+  - route: catalog/films
+    definition: shared-list.yaml
+    viewModel: Mateu.Tests.RegistryFilms
+
+  # No view model: a definition plus client-side data — the statically deployed case.
+  - route: about
+    definition: about.yaml
+
+  # A parameterised route and the static sibling it must not swallow.
+  - route: orders/:id
+    viewModel: Mateu.Tests.RegistryOrderDetail
+  - route: orders/new
+    viewModel: Mateu.Tests.RegistryNewOrder

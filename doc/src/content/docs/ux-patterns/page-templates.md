@@ -40,7 +40,7 @@ your call per screen (Mateu only composes it for you in two fully-derivable case
 Three notes on how to read the table:
 
 - **Templates are backend-side.** An archetype composes existing wire components, so it renders on
-  every web renderer (Vaadin, SAP UI5, Redwood) and on the native ones (React
+  every web renderer (Vaadin, Redwood) and on the native ones (React
   Native, IntelliJ) without renderer work. Styling follows each design system's tokens.
 - **Page width is a template parameter.** `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)` (or the
   `PageWidthSupplier` hook — `Foldout` declares edge-to-edge) decides how the content column is
@@ -74,6 +74,14 @@ Three notes on how to read the table:
   `PeerNav(prevLabel, prevRoute, nextLabel, nextRoute)` for the current record — a `null` route
   disables that side. Ported to .NET (`IPeerNavigationSupplier`) and Python
   (`PeerNavigationSupplier`). Demo: `/peer-nav-demo`.
+- **Header overline and title placeholder.** Two small text elements of the Redwood canonical
+  header. `@Overline("Requisitions")` puts a quiet line **above** the title — a category, a parent
+  context, a step marker. `@TitlePlaceholder("New booking…")` supplies what the header shows
+  **while the title is still empty** (the create-mode affordance); it is a placeholder, not a
+  default, so it disappears the moment a title exists. Both follow the house rule for page
+  metadata: implement `OverlineSupplier` / `TitlePlaceholderSupplier` when the text depends on
+  runtime state, and the supplier wins over the annotation. They travel on the wire as
+  `PageDto.overline` / `PageDto.titlePlaceholder`.
 - **Header timestamp.** Mark a field with `@Timestamp("Last updated")` to show a "last updated"
   line in the header (the Redwood timestamp element); the field's value renders as text and the
   field is dropped from the form body. Header key/value facts come from `@KPI` fields the same way.

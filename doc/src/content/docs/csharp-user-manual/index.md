@@ -488,6 +488,70 @@ app.MapPost("/ai/chat", async (HttpContext ctx, ChatRq rq) =>
 public record ChatRq(string Message, string? SessionId, string? MenuContext);
 ```
 
+## Partials
+
+A YAML file under `<specs>/partials/` is not a page but a **partial** — one component, or a
+`content:` list of them, usable anywhere a component is:
+
+```yaml
+# specs/ui/partials/address-block.yaml
+content:
+  - type: FormField
+    id: street
+    label: Street
+  - type: FormField
+    id: city
+    label: City
+```
+
+```yaml
+# any page
+- type: Partial
+  ref: address-block
+```
+
+A partial standing for several components is **spliced** into its parent's content, not wrapped, so
+one inside a form yields form fields. Partials are resolved while the tree is built and never reach
+the wire. A missing ref costs the partial, not the page; a cycle is broken rather than followed.
+
+```csharp
+loader.Partials.Register("legal-notice",
+    [new Dictionary<object, object> { ["type"] = "Text", ["text"] = "Prices include VAT." }]);
+```
+
+Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
+[Partials](/java-ui-definition/partials/).
+
+## Route registry (`routes.yaml`)
+
+Routes can also be declared as **data**, in a `routes.yaml` next to the definitions under your specs
+directory (`specs/ui/` by default, or `MATEU_SPECS_DIR`). An entry binds a `definition` (the layout),
+a `viewModel` and its parameters independently, so one screen can answer several routes with
+different parameters pinned:
+
+```yaml
+routes:
+  - route: tickets/open
+    viewModel: MyApp.Views.Tickets
+    fixedParams:
+      status: open
+  - route: tickets/closed
+    viewModel: MyApp.Views.Tickets
+    fixedParams:
+      status: closed
+```
+
+Entries are merged **over** the attribute-declared views and win. Parameters resolve as
+`fixed > client state > path > defaults`: defaults only fill what nothing else supplied, while fixed
+ones are re-applied on the server over everything, including the state the client sends back.
+
+`viewModel` takes the type's full name. Both `viewModel` and `view_model` are accepted, since the
+file is the same one a Java or Python app consumes.
+
+See the full reference, including the JSON Schema for editor completion, in
+[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+exporter, so nothing ships the table to a browser.
+
 ## Status
 
 The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against

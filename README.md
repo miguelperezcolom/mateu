@@ -1,31 +1,48 @@
 # Mateu
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/2E34heWF)
+[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/YFb9utDMYK)
 
-Mateu is a **model-driven UI framework for Java** that lets you build **business web applications** at very high speed.
-
-Define your UI once in Java.  
-Mateu generates forms, navigation, CRUD screens and application structure automatically.
+Mateu is a **model-driven UI framework** for building **business applications**: you declare what a
+screen contains, and Mateu derives the UI. Java is the reference implementation; .NET and Python
+speak the same wire.
 
 ---
 
 ## Why Mateu
 
-Traditional business applications usually require:
+An LLM will write you a React admin panel in a minute. So "less code" is no longer the point.
 
-- backend logic
-- frontend app
-- API layer
-- duplicated models
-- duplicated validation
-- a lot of glue code
+The point is what happens **on day 200**.
 
-Mateu takes a different approach:
+Generated code **derives** from your model and then **diverges** from it: the moment someone edits
+it, it is theirs to maintain, and it drifts. Mateu does not generate the UI — it **derives** it, so
+it cannot drift. Change the model and the screen is already correct.
 
-- one application model
-- one source of truth
-- less code
-- fewer moving parts
+That is one distinction, and it is the whole framework:
+
+> **Source of truth vs artifact.** You maintain the declaration. Everything downstream — the UI, the
+> API contract it implies, a static bundle — is derived, and nobody edits it.
+
+### Start from whatever you already have
+
+|  |  |
+|---|---|
+| A domain model? | Declare `@UI` classes — inside-out |
+| A design or a mockup? | Draw it in the visual editor — outside-in |
+| An existing REST API? | Point the screens at it |
+
+All three land on the same declaration. Code-first tools cannot start from a design; design-first
+low-code tools cannot start from your domain model.
+
+### And the UI travels with the domain
+
+Each service ships its own screens **inside its own jar** — the UI module needs one dependency and
+no framework coupling — and they aggregate into one shell, or embed into an IDE, a mobile app or
+another product's page. Eight teams can own, version and deploy their slice of the same back office
+independently.
+
+That is micro-frontends without the micro-frontend tax: what federates is a **declaration**, not a
+JS bundle, so there is one framework version, no runtime composition and no CSS collisions.
 
 ---
 
@@ -64,6 +81,9 @@ becomes:
 - menus from your object model
 - full CRUD with minimal code
 - responsive UI out of the box
+- the same screens on the web, on mobile (React Native) and inside an IDE — no renderer work
+- an optional [static bundle](https://mateu.io/java-user-manual/build/static-bundle/): the same app
+  served from a CDN with no backend running
 
 ---
 
@@ -82,13 +102,16 @@ Mateu is **not designed for**:
 - highly custom visual experiences
 - frontend-heavy products
 
+When one screen out of forty does need to be special, you drop to a custom component for that one
+and keep routing, state, validation, i18n and the rest of the app.
+
 ---
 
 ## 💬 Community
 
 Have questions, ideas or feedback?
 
-👉 **Join our Discord**: https://discord.gg/2E34heWF
+👉 **Join our Discord**: https://discord.gg/YFb9utDMYK
 
 ---
 
@@ -101,4 +124,4 @@ Have questions, ideas or feedback?
 
 ## One-sentence summary
 
-Mateu turns backend Java models into real business UIs with almost no frontend code.
+Mateu derives real business UIs from a declaration you keep — so they cannot drift away from it.

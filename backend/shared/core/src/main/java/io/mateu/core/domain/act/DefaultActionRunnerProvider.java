@@ -9,7 +9,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +19,6 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
   private final BeanProvider beanProvider;
   private final InstanceFactoryProvider instanceFactoryProvider;
 
-  @SneakyThrows
   @Override
   public ActionRunner get(
       Object instance,
@@ -29,7 +27,7 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
       String route,
       HttpRequest httpRequest) {
     if (instance == null) {
-      throw new NoSuchMethodException("No method with name " + actionId + " on null");
+      throw new IllegalStateException("No method with name " + actionId + " on null");
     }
     if (actionId == null) {
       return new ActionRunner() {
