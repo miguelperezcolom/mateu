@@ -2,6 +2,7 @@ import { LitElement, html, css, PropertyValues, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { AppDoc, AppFields, AppMenuItem, parseApp, serializeApp } from '../model/appModel'
 import { enumValues } from '../model/schemaCatalog'
+import type { ProjectIndex } from '../model/projectIndex'
 
 /**
  * The app-shell editor: a form over the `app:` block of `routes.yaml` — title, chrome and the
@@ -38,8 +39,14 @@ export class AppEditor extends LitElement {
     `
 
     @property() yaml = ''
+    @property({ attribute: false }) project?: ProjectIndex
     @state() private doc: AppDoc = { fields: {}, menu: [], widgets: [], appRest: {} }
     private lastEmitted?: string
+
+    /** The routes this mount declares, for the menu-link and home-route pickers (empty without a project). */
+    private get routeOptions(): string[] {
+        return (this.project?.routes ?? []).map((r) => r.route).filter((r) => r !== '')
+    }
 
     updated(changed: PropertyValues) {
         // Re-parse on a genuinely external change, but not on our own save echoed back (cursor jump).
@@ -50,6 +57,7 @@ export class AppEditor extends LitElement {
         const f = this.doc.fields
         return html`
             <div class="wrap">
+                <datalist id="ve-routes">${this.routeOptions.map((r) => html`<option value=${r}></option>`)}</datalist>
                 <h2>App shell</h2>
                 <div class="section">General</div>
                 ${this.text('Title', 'title', f)}
@@ -62,7 +70,9 @@ export class AppEditor extends LitElement {
                     <div>${this.text('Logo', 'logo', f)}</div>
                     <div>${this.text('Favicon', 'favicon', f)}</div>
                 </div>
-                ${this.text('Home route', 'homeRoute', f)}
+                <label>Home route</label>
+                <input list="ve-routes" .value=${(f.homeRoute as string) ?? ''}
+                    @change=${(e: Event) => this.setField('homeRoute', (e.target as HTMLInputElement).value)} />
                 <div class="check">
                     <input type="checkbox" .checked=${f.drawerClosed === true}
                         @change=${(e: Event) => this.setField('drawerClosed', (e.target as HTMLInputElement).checked)} />
@@ -122,7 +132,7 @@ export class AppEditor extends LitElement {
                 <span class="kind">Link</span>
                 <div class="menu-row">
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
-                    <input placeholder="route" .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)} />
+                    <input placeholder="route" list="ve-routes" .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)} />
                     <input placeholder="icon" .value=${item.icon ?? ''} @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)} />
                     ${this.delBtn(path)}
                 </div>

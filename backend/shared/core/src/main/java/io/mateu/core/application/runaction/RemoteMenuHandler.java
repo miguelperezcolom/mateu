@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 public class RemoteMenuHandler {
 
   private final MateuHttpClient mateuHttpClient;
+  private final RemoteAppDescriptorCache descriptorCache;
 
   Mono<?> handleRemoteMenuActionable(
       RemoteMenu remoteMenu, AppShell app, HttpRequest httpRequest, RunActionCommand command) {
@@ -122,9 +123,20 @@ public class RemoteMenuHandler {
                         menuRoutes(option.submenus())));
   }
 
-  /** The remote app's descriptor (title, menu, home wiring), asked at its home route. */
+  /**
+   * The remote app's descriptor (title, menu, home wiring), asked at its home route.
+   *
+   * <p>Asked once per remote per caller per TTL rather than once per navigation: this is an HTTP
+   * round trip that lands on the remote's home, so the remote renders its home just to say what its
+   * menu is. See {@link RemoteAppDescriptorCache} for what the TTL bounds.
+   */
   private Mono<AppDto> fetchRemoteAppDto(
       RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
+    var authorization = httpRequest.getHeaderValue("authorization");
+    var cached = descriptorCache.get(remoteMenu.baseUrl(), remoteMenu.route(), authorization);
+    if (cached != null) {
+      return Mono.just(cached);
+    }
     RunActionRqDto request =
         RunActionRqDto.builder()
             .actionId("")
@@ -139,8 +151,7 @@ public class RemoteMenuHandler {
       baseUrl = httpRequest.getHeaderValue("origin") + baseUrl;
     }
 
-    return Mono.fromFuture(
-            mateuHttpClient.send(baseUrl, request, httpRequest.getHeaderValue("authorization")))
+    return Mono.fromFuture(mateuHttpClient.send(baseUrl, request, authorization))
         .flatMap(
             uiIncrementDto ->
                 Mono.justOrEmpty(
@@ -152,7 +163,11 @@ public class RemoteMenuHandler {
                         .map(ClientSideComponentDto::metadata)
                         .filter(metadata -> metadata instanceof AppDto)
                         .map(metadata -> (AppDto) metadata)
-                        .findFirst()));
+                        .findFirst()))
+        .doOnNext(
+            appDto ->
+                descriptorCache.put(
+                    remoteMenu.baseUrl(), remoteMenu.route(), authorization, appDto));
   }
 
   private Mono<?> resolveRemoteMenu(
