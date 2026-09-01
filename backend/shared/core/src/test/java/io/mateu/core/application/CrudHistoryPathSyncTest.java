@@ -210,4 +210,43 @@ class CrudHistoryPathSyncTest {
 
     assertThat(pushedPath(increment)).isEqualTo("/p1/edit");
   }
+
+  /**
+   * A route that carries filters in its query string, which is how a generated navigation asks for
+   * a filtered listing — "show me the cancelled ones" becomes {@code
+   * /shop/products?status=CANCELLED}.
+   *
+   * <p>The view's own route must be the path remainder, never the query: the browser round-trips it
+   * and appends it to a url that already carries the query, and the doubled {@code ?a=1?a=1} parses
+   * as ONE parameter whose value holds the second copy. On a deployment that showed up as a filter
+   * chip reading {@code Status: CANCELLED?status=CANCELLED}, matching nothing.
+   */
+  @Test
+  void aFilteredRouteDoesNotMakeTheQueryStringTheViewsRoute() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/shop/products?status=CANCELLED")
+                .consumedRoute("")
+                // The PARENT home, which is what a generated navigation names: the app resolves
+                // the route down to the crud. Naming the crud itself skips the branch entirely.
+                .serverSideType(ShopHome.class.getName())
+                .actionId("")
+                .initiatorComponentId("c3_app")
+                .componentState(Map.of())
+                .parameters(Map.of())
+                .build());
+
+    assertThat(routeInState(increment)).isNotNull().doesNotContain("?");
+  }
+
+  /** The view's own route, as it travels back in the fragment state the browser round-trips. */
+  private static String routeInState(UIIncrementDto increment) {
+    for (var fragment : increment.fragments()) {
+      if (fragment.state() instanceof Map<?, ?> state && state.get("_route") != null) {
+        return String.valueOf(state.get("_route"));
+      }
+    }
+    return null;
+  }
 }

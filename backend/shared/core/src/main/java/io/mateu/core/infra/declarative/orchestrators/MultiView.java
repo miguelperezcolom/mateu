@@ -71,10 +71,14 @@ public abstract class MultiView
             httpRequest.setAttribute("resolvedPath", componentRoute);
           }
           setComponentRouteTo(componentRoute);
+          // `route`, not runActionRq().route(): the query string was stripped off it a few lines
+          // above and the raw one still carries it. Using the raw one made this view's own route
+          // the QUERY — "?status=CANCELLED" rather than "" — which the browser round-trips and
+          // appends to a url that already has it. The doubled query then parses as a single
+          // parameter whose VALUE contains the second copy, and a listing filtered from the chat
+          // showed a chip reading `Status: CANCELLED?status=CANCELLED` and matched nothing.
           setRouteTo(
-              httpRequest.runActionRq().route().startsWith(componentRoute)
-                  ? httpRequest.runActionRq().route().substring(componentRoute.length())
-                  : httpRequest.runActionRq().route());
+              route.startsWith(componentRoute) ? route.substring(componentRoute.length()) : route);
           return this;
         }
 
@@ -207,10 +211,29 @@ public abstract class MultiView
    */
   public static String requestedRoute(HttpRequest httpRequest) {
     var resolved = (String) httpRequest.getAttribute("resolvedPath");
-    var requested = httpRequest.runActionRq().route();
+    var requested = withoutQuery(httpRequest.runActionRq().route());
     return requested != null && resolved != null && requested.startsWith(resolved)
         ? requested
         : resolved;
+  }
+
+  /**
+   * A route is a path. Filters live in the query string and the browser reads them back out of
+   * {@code window.location.search} itself, so the query is not part of what a view is routed to.
+   *
+   * <p>Letting it through made a view's own route the QUERY — {@code "?status=CANCELLED"} instead
+   * of {@code ""} — because {@code wrapRoute} takes the remainder after the consumed path, and the
+   * consumed path never contains a query. The browser round-trips that route and appends it to a
+   * url that already carries the query, and {@code ?status=CANCELLED?status=CANCELLED} parses as
+   * ONE parameter whose value holds the second copy: a listing asked for from the chat showed a
+   * filter chip reading {@code Status: CANCELLED?status=CANCELLED}, and matched nothing.
+   */
+  static String withoutQuery(String route) {
+    if (route == null) {
+      return null;
+    }
+    var q = route.indexOf('?');
+    return q < 0 ? route : route.substring(0, q);
   }
 
   public ServerSideComponentDto wrapRoute(String route, HttpRequest httpRequest) {
