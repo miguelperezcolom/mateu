@@ -31,6 +31,7 @@ import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -623,8 +624,6 @@ export class MateuTableCrud extends LitElement {
             return parts.length ? parts.join(' ') : undefined
         }
 
-        const isNavButton = (id: string | undefined): boolean =>
-            id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
 
         // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
@@ -668,7 +667,9 @@ export class MateuTableCrud extends LitElement {
             return false
         })()
         const toolbar = pageShowsToolbar ? [] : (metadata?.toolbar ?? [])
-        const navButtons = toolbar.filter(b => isNavButton(b.actionId))
+        // Back reads as a chevron before the title (see toolbarButtonKinds); cancel stays a button.
+        const navButtons = toolbar.filter(b => isNavButton(b.actionId) && !isBackButton(b.actionId))
+        const backButtons = toolbar.filter(b => isBackButton(b.actionId))
         const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
         const hasDivider = navButtons.length > 0 && actionButtons.length > 0
         const hasHeader = !!metadata?.title || !!metadata?.subtitle || toolbar.length > 0
@@ -1080,6 +1081,17 @@ export class MateuTableCrud extends LitElement {
             ${importDialog}
             ${hasHeader ? html`
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem);">
+                        ${backButtons.map(button => html`
+                            <button class="back-chevron"
+                                    data-action-id="${button.id}"
+                                    title="${this.evalLabel(button.label)}"
+                                    aria-label="${this.evalLabel(button.label)}"
+                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor"
+                                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>`)}
                         <div style="flex: 1; min-width: 0;">
                             ${metadata?.title ? html`
                                 <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.evalLabel(metadata.title)}</h2>
@@ -1119,6 +1131,27 @@ export class MateuTableCrud extends LitElement {
     static styles = css`
         ${badge}
         /* DS-neutral crud widgets (replace vaadin-button/card/grid/list-box/form-layout/dialog). */
+        /* The way back: a chevron before the title, not a button competing with the actions.
+           Same shape as the header's — see mateu-content-header. */
+        .back-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            margin-inline-start: -0.35rem;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--lumo-secondary-text-color, #5a6270);
+            cursor: pointer;
+        }
+        .back-chevron svg { width: 1.25rem; height: 1.25rem; }
+        .back-chevron:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); color: inherit; }
+        .back-chevron:focus-visible { outline: 2px solid var(--lumo-primary-color, #2563eb); outline-offset: 2px; }
+
         .crud-btn {
             font: inherit; font-weight: 500;
             padding: .4rem .9rem; border-radius: var(--lumo-border-radius-m, 6px);
