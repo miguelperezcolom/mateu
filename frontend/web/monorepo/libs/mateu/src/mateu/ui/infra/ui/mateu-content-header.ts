@@ -12,6 +12,7 @@ import type Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
 import { interpolate, possiblyHtml } from './interpolation'
+import { isBackButton, isNavButton } from './toolbarButtonKinds'
 
 export { possiblyHtml } from './interpolation'
 
@@ -33,8 +34,9 @@ export const neutralButtonClass = (button: Button): string => {
     return c.join(' ')
 }
 
-export const isNavButton = (id: string | undefined): boolean =>
-    id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
+// Re-exported so the existing import site keeps working; the predicates themselves live in a
+// module of their own now that the crud shares them. See toolbarButtonKinds.
+export { isNavButton, isBackButton, isCancelButton } from './toolbarButtonKinds'
 
 @customElement('mateu-content-header')
 export class MateuContentHeader extends LitElement {
@@ -123,6 +125,28 @@ export class MateuContentHeader extends LitElement {
 
     evalLabel = (raw: string) => interpolate(raw, this.state, this.data)
 
+    /**
+     * The way back, as a chevron before the title.
+     *
+     * <p>Its label is not dropped, it moves to the accessible name: a screen reader still hears
+     * "Back to list", and so does a hover. A glyph with no name is a button nobody can identify.
+     */
+    renderBackChevron = (button: Button) => {
+        if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
+        const label = this.evalLabel(button.label)
+        return html`
+        <button class="back-chevron"
+                data-action-id="${button.id}"
+                title="${label}"
+                aria-label="${label}"
+                @click="${() => this.handleButtonClick(button.actionId)}">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>`
+    }
+
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
         const label = this.evalLabel(button.label)
@@ -205,7 +229,15 @@ export class MateuContentHeader extends LitElement {
             ? metadata.peerNav : undefined
 
         const toolbar: Button[] = metadata.toolbar ?? []
-        const navButtons = toolbar.filter((b: Button) => isNavButton(b.actionId))
+        // Back reads as a chevron before the title — but only where there IS a title to put it
+        // before. A header rendering no title (noHeader) keeps it as an ordinary button, because a
+        // lone glyph floating in a toolbar names nothing.
+        const backAsChevron = !metadata.noHeader
+        const navButtons = toolbar.filter((b: Button) =>
+            isNavButton(b.actionId) && !(backAsChevron && isBackButton(b.actionId)))
+        const backButtons = backAsChevron
+            ? toolbar.filter((b: Button) => isBackButton(b.actionId))
+            : []
         const actionButtons = toolbar.filter((b: Button) => !isNavButton(b.actionId))
         const divider = navButtons.length > 0 && actionButtons.length > 0
             ? html`<span class="toolbar-divider"></span>`
@@ -247,6 +279,7 @@ export class MateuContentHeader extends LitElement {
                 </div>
             ` : hasMainHeader ? html`
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center; flex-wrap: wrap;" class="form-header">
+                    ${backButtons.map(this.renderBackChevron)}
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
                         ${overline ? html`<div class="page-overline">${unsafeHTML(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
@@ -312,6 +345,28 @@ export class MateuContentHeader extends LitElement {
         :host([data-nested]) {
             padding-top: 0;
         }
+
+        /* The way back: a chevron sitting before the title, at its optical size rather than a
+           button's. Quiet until pointed at, like the affordance it imitates — a detail view's back
+           arrow is furniture, not an action competing with Save. */
+        .back-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            margin-inline-start: -0.35rem;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--lumo-secondary-text-color, #5a6270);
+            cursor: pointer;
+        }
+        .back-chevron svg { width: 1.25rem; height: 1.25rem; }
+        .back-chevron:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); color: inherit; }
+        .back-chevron:focus-visible { outline: 2px solid var(--lumo-primary-color, #2563eb); outline-offset: 2px; }
 
         /* Redwood overline: the small line above the title — a category or parent context.
            Quieter and smaller than the title, with the same ellipsis discipline. */

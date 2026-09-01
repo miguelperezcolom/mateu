@@ -44,6 +44,15 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     /** The exact `data` reference our own applyFragment last produced (see willUpdate). */
     private _lastFragmentData?: Record<string, any>
 
+    /** The exact `state` reference this element itself last produced — a fragment merge or a
+     *  field the user typed into. Same trick as _lastFragmentData: it tells our own authoritative
+     *  change apart from the parent re-binding `.state` with a fresh object (see willUpdate). */
+    private _lastOwnState?: Record<string, any>
+
+    /** Field ids the user has edited and the server has not spoken about since. Defended against
+     *  a parent re-bind in willUpdate; emptied per key as soon as a fragment carries that key. */
+    private _locallyEdited = new Set<string>()
+
     /** `serverSideType` of the view this element last rendered — the stable identity of a view
      *  across renders (ids are fresh uuids). Tells a re-render of the same view apart from a
      *  different one arriving in this reused element (see willUpdate). */
@@ -185,13 +194,22 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     if (fragment.action !== UIFragmentAction.ReplaceKeepData && !inPlace) {
                         this.state = { }
                         this.data = { }
+                        // A different component is taking this element over; whatever the previous
+                        // one's user had typed is not ours to defend any more.
+                        this._locallyEdited.clear()
                     }
                 }
             }
 
             if (fragment.state) {
+                // The server has spoken about these keys, so it is authoritative for them again:
+                // a local edit of the same field stops being defended from here on. Without this,
+                // willUpdate would keep re-applying the value the user typed over the one the
+                // server just sent, and a server-computed field could never change on screen.
+                Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
                 this.state = { ...this.state, ...fragment.state }
             }
+            this._lastOwnState = this.state
 
             if (fragment.data) {
                 for (const key in fragment.data) {
@@ -256,6 +274,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         const viewChanged = viewKey != undefined && this._lastViewKey != undefined
             && viewKey !== this._lastViewKey
         if (viewKey != undefined) this._lastViewKey = viewKey
+        if (viewChanged) this._locallyEdited.clear()
+        this._keepEditedFieldValues(changed, viewChanged)
         if (!changed.has('data') || this.data === this._lastFragmentData || viewChanged) return
         const incoming = this.data
         const previous = changed.get('data') as Record<string, any> | undefined
@@ -263,6 +283,53 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             && previous && Object.keys(previous).length > 0) {
             this.data = previous
         }
+    }
+
+    /**
+     * Keep what the user typed when a re-render re-binds `.state` with the parent's older copy.
+     *
+     * A form field reads its value out of `state` (see neutralFieldRenderer: `state[fieldId]`),
+     * and typing into one writes it there through the `value-changed` listener — locally, in this
+     * element. But the parent re-binds `.state` on every one of its own renders — renderComponent
+     * does `.state="${{...initialData, ...state}}"`, the same shape as the `.data` re-bind the
+     * block above defends against — and the parent's copy predates the typing.
+     *
+     * That is visible on every save. Saving is two round-trips: the `save` action answers first
+     * with no view and no field values, which re-renders the parent and re-binds our `.state` with
+     * the values from before the edit, and the route load that carries the saved record lands
+     * around 100ms later. In between, the field paints its OLD value — measured at 152ms and
+     * corrected at 251ms on a real deployment. It reads as the name flickering to something else,
+     * or "shortening", depending on which of the two values is longer.
+     *
+     * Only the keys the user actually edited are restored, and only until the server speaks about
+     * them again (applyFragment drops a key from the set as soon as a fragment carries it). So
+     * everything else in `state` — the CRUD chrome, a status, anything a surrounding view put
+     * there — still takes the parent's value, and a server-computed field still updates on screen.
+     */
+    protected _keepEditedFieldValues(changed: PropertyValues, viewChanged: boolean) {
+        if (viewChanged || !changed.has('state') || this._locallyEdited.size === 0) return
+        // Our own change (a fragment merge, or the keystroke that just happened) is authoritative.
+        if (this.state === this._lastOwnState) return
+        const previous = changed.get('state') as Record<string, any> | undefined
+        if (!previous) return
+        let restored: Record<string, any> | undefined
+        this._locallyEdited.forEach(fieldId => {
+            if (fieldId in previous && previous[fieldId] !== this.state?.[fieldId]) {
+                restored = restored ?? { ...this.state }
+                restored[fieldId] = previous[fieldId]
+            }
+        })
+        if (restored) this.state = restored
+    }
+
+    /**
+     * Records that the user changed a field, and that this element's `state` is the authoritative
+     * copy from here until the server says otherwise. Called by the subclass that owns the form.
+     */
+    protected adoptEditedState(fieldId: string, next: Record<string, any>) {
+        this._locallyEdited.add(fieldId)
+        this.state = next
+        this._lastOwnState = next
     }
 
 
