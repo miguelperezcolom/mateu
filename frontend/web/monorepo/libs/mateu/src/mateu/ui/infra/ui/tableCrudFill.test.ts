@@ -159,4 +159,32 @@ describe('the listing fill height', () => {
         expect(element.fillHeightPx).toBe(900 - 100 - 16)
         expect(element.pendingMeasure).toBe(false)
     })
+
+    /**
+     * A window too short to be worth filling leaves NO height, and the previous one must not
+     * survive that refusal — measureFill is the only thing that can clear it now, so a refusal has
+     * to clear it explicitly. Missing this kept a tall box on a short window and pushed the pager
+     * off the bottom of it; e2e's listing-fills-window is the test that says so out loud.
+     */
+    it('clears the height when the window is too short to be worth filling', () => {
+        const box = {
+            style: { height: '412px' },
+            getBoundingClientRect: () => ({ top: 100 }) as DOMRect,
+        }
+        const element = crud({
+            fillHeightPx: 412,
+            pendingMeasure: true,
+            renderRoot: { querySelector: () => box },
+        })
+        const priorWindow = (globalThis as any).window
+        ;(globalThis as any).window = { innerHeight: 400 }
+        try {
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)
+        } finally {
+            ;(globalThis as any).window = priorWindow
+        }
+
+        // 400 - 100 - 16 = 284, under MIN_FILL_PX, so there is no fill to apply.
+        expect(element.fillHeightPx).toBeUndefined()
+    })
 })

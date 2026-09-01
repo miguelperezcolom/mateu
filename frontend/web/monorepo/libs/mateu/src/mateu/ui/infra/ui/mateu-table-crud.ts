@@ -224,7 +224,12 @@ export class MateuTableCrud extends LitElement {
             window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
         if (applied) box.style.height = applied
         this.pendingMeasure = false
-        if (available >= MateuTableCrud.MIN_FILL_PX) this.fillHeightPx = available
+        // Always assign, including the refusal. A viewport too short to be worth filling leaves no
+        // height at all, and the box falls back to its max-height — but that only happens if the
+        // PREVIOUS height is cleared, and this method is now the only place that can clear it.
+        // Leaving it to survive a refused measurement kept a tall box on a short window and pushed
+        // the pager off the bottom of it, which is what e2e's listing-fills-window caught.
+        this.fillHeightPx = available >= MateuTableCrud.MIN_FILL_PX ? available : undefined
     }
 
     /**
