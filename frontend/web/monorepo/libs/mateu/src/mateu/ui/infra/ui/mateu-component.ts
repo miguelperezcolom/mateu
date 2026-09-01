@@ -328,7 +328,10 @@ export class MateuComponent extends ComponentElement {
             if (e.type == 'value-changed') {
                 const newState = {...this.state}
                 newState[detail.fieldId] = detail.value
-                this.state = newState
+                // Through the base class, so it can tell this edit apart from the parent re-binding
+                // `.state` with its older copy and paint the pre-edit value — see
+                // ComponentElement._keepEditedFieldValues.
+                this.adoptEditedState(detail.fieldId, newState)
 
                 //console.log('value changed?', this.state[detail.fieldId], this.formerState[detail.fieldId])
                 if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
