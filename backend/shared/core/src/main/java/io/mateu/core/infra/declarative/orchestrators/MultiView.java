@@ -23,6 +23,18 @@ public abstract class MultiView
   String _route = "";
   String _componentRoute = "";
 
+  /**
+   * Whether {@link #setComponentRouteTo} has been called at all, as opposed to {@code
+   * _componentRoute} merely still holding its empty initial value.
+   *
+   * <p>The two are different things and the difference is load bearing: a crud that IS its app's
+   * root legitimately has an empty component route, while a crud reached through an ACTION has
+   * never been told its own — the route-load path is the only one that calls the setter. Without
+   * this flag those two are indistinguishable, and {@link #pathForHistory} cannot tell "prepend
+   * nothing, correctly" from "prepend nothing, because nobody said".
+   */
+  boolean _componentRouteEstablished = false;
+
   public String route() {
     return _route;
   }
@@ -33,6 +45,7 @@ public abstract class MultiView
 
   public void setComponentRouteTo(String route) {
     _componentRoute = route;
+    _componentRouteEstablished = true;
   }
 
   public String getComponentRoute() {
@@ -233,6 +246,72 @@ public abstract class MultiView
       return _componentRoute;
     }
     return _componentRoute + route;
+  }
+
+  /**
+   * The same, for a request that reached this view as an ACTION rather than as a route load.
+   *
+   * <p>An action never establishes a component route: {@code handleRoute} is where {@link
+   * #setComponentRouteTo} is called, and only in its {@code actionId} is-empty branch. So a crud
+   * mounted under a menu at {@code /shop/products} pushed {@code /p1/edit} instead of {@code
+   * /shop/products/p1/edit} — a url that 404s on reload and is useless to paste — while the very
+   * same crud pushed the absolute path on a route load. One {@code PushStateToHistory} channel
+   * carrying sometimes a relative path and sometimes an absolute one is the actual defect; the
+   * client cannot tell them apart, and its own compensating rule (mateu-ux prepends its consumed
+   * route) is skipped exactly when it would be needed.
+   *
+   * <p>A crud that is its app's ROOT is left alone, and is told apart by the request carrying a
+   * consumed route the current route sits under: there the browser already prepends the app's base
+   * url, so the relative path is the right answer and prepending anything would double it.
+   */
+  public String pathForHistory(String route, HttpRequest httpRequest) {
+    if (_componentRouteEstablished || route == null) {
+      return pathForHistory(route);
+    }
+    var mount = mountPathOf(httpRequest, route);
+    return mount + pathForHistory(route);
+  }
+
+  /**
+   * Where this view is mounted, read off the route the browser is on.
+   *
+   * <p>The request route is {@code mount + whatever relative route the browser currently sits on},
+   * and the relative part is one of a crud's own shapes — a record, optionally followed by {@code
+   * /edit}, or {@code /new}. Stripping those off the end leaves the mount. The record's segment is
+   * taken from the route being navigated TO rather than from the component state, so it does not
+   * depend on what an entity happens to call its id field.
+   */
+  private static String mountPathOf(HttpRequest httpRequest, String route) {
+    var requested = httpRequest.runActionRq().route();
+    if (requested == null || requested.isBlank()) {
+      return "";
+    }
+    var consumed = httpRequest.runActionRq().consumedRoute();
+    // Its app's root: the browser prepends the base url itself.
+    if (consumed != null && !consumed.isBlank() && requested.startsWith(consumed)) {
+      return "";
+    }
+    var mount = requested;
+    for (var tail : new String[] {"/edit", "/new"}) {
+      if (mount.endsWith(tail)) {
+        mount = mount.substring(0, mount.length() - tail.length());
+        break;
+      }
+    }
+    var record = firstSegmentOf(route);
+    if (record != null && mount.endsWith("/" + record)) {
+      mount = mount.substring(0, mount.length() - record.length() - 1);
+    }
+    return mount;
+  }
+
+  private static String firstSegmentOf(String route) {
+    if (route == null || !route.startsWith("/") || route.length() < 2) {
+      return null;
+    }
+    var rest = route.substring(1);
+    var slash = rest.indexOf('/');
+    return slash < 0 ? rest : rest.substring(0, slash);
   }
 
   public UICommand setWindowTitle(HttpRequest httpRequest) {

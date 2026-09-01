@@ -33,7 +33,8 @@ final class CrudActionResultAssembler {
                   ? result.targetComponentId()
                   : httpRequest.runActionRq().initiatorComponentId()));
     }
-    list.add(UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route())));
+    list.add(
+        UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route(), httpRequest)));
     var actionId = httpRequest.runActionRq().actionId();
     if ("save".equals(actionId) || "create".equals(actionId)) {
       // After a successful save the form no longer has unsaved changes, so reset the
