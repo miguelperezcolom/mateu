@@ -6390,6 +6390,12 @@ ${i}
         :host {
             display: block;
             height: 100%;
+            /* border-box, because the app shell sets padding on this host inline (appRenderer adds
+               padding-top so the panel clears the header). Under the default content-box that
+               padding is ADDED to the 100%, so the panel ends up taller than the slot that holds
+               it and the overflow falls off the bottom of the viewport — which is where the input
+               bar lives, so the mic, the field and Send were all clipped when opened from the FAB. */
+            box-sizing: border-box;
         }
 
         /* Full-screen: the panel leaves its side slot and covers the whole viewport, so the
