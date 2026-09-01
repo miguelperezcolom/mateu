@@ -5,12 +5,20 @@ import { MateuTableCrud } from './mateu-table-crud'
  * The listing box's fill height across a navigation from one listing to another.
  *
  * <p>The rule the component is built on: measure the box's NATURAL layout, apply the height, and
- * do not look again until something outside changes. Everything here is about the "drop it first"
- * half of that — a measurement taken while a fill is applied reads the layout the fill produced.
+ * do not look again until something outside changes. A measurement taken while a fill is applied
+ * reads the layout the fill produced, so the fill has to be out of the way for the read.
  *
- * <p>What was wrong: arriving at a second listing set {@code pendingMeasure} but left
- * {@code fillHeightPx} alone, and {@code measureFill} returns immediately while that is set. The
- * new listing inherited the height the previous one had been given.
+ * <p>Two things have gone wrong here, and the tests below keep both from coming back. First,
+ * arriving at a second listing set {@code pendingMeasure} but left {@code fillHeightPx} alone, so
+ * the new listing inherited the height the previous one had been given. Then the cure had its own
+ * symptom: the fill was dropped through a RENDER, which made the unfilled layout a painted frame —
+ * the listing visibly collapsed to its natural height on the way into a detail view, shrinking a
+ * table that was about to be replaced anyway.
+ *
+ * <p>So the fill is now lifted and put back inside {@code measureFill}, in one task. The rule is
+ * unchanged; where it is enforced moved. These assertions are about the RULE — a new listing is
+ * re-measured, and nothing is measured through an applied fill — rather than about which line
+ * clears which field.
  */
 const crud = (over: Record<string, any> = {}) => ({
     fillHeightPx: undefined as number | undefined,
@@ -23,6 +31,8 @@ const crud = (over: Record<string, any> = {}) => ({
     beginLoading: vi.fn(),
     scheduleMeasure: (MateuTableCrud.prototype as any).scheduleMeasure,
     updated: (MateuTableCrud.prototype as any).updated,
+    measureBottomInset: () => 0,
+    closest: () => null,
     data: {},
     id: 'listing',
     loadingSince: undefined,
@@ -43,13 +53,15 @@ const changed = (keys: string[]) => new Map(keys.map(key => [key, undefined])) a
 
 describe('the listing fill height', () => {
 
-    it('is dropped when a different listing arrives, so the box can be measured afresh', () => {
+    it('marks the box for a fresh measurement when a different listing arrives', () => {
         const element = crud({ fillHeightPx: 412 })
 
         ;(MateuTableCrud.prototype as any).scheduleMeasure.call(element)
 
-        expect(element.fillHeightPx).toBeUndefined()
         expect(element.pendingMeasure).toBe(true)
+        // The height deliberately survives this call. Clearing it here is what used to put the
+        // unfilled layout on screen for a frame; measureFill lifts it for the read instead.
+        expect(element.fillHeightPx).toBe(412)
     })
 
     /**
@@ -64,34 +76,32 @@ describe('the listing fill height', () => {
         expect(element.corrections).toBe(0)
     })
 
-    it('asks for a render when there was no height to drop', () => {
-        const element = crud({ fillHeightPx: undefined })
+    it('always asks for a render', () => {
+        const element = crud({ fillHeightPx: 412 })
 
         ;(MateuTableCrud.prototype as any).scheduleMeasure.call(element)
 
-        // Nothing changed that Lit would notice on its own, so the re-render has to be requested
-        // or the natural layout is never laid out and never measured.
+        // Nothing here changes a reactive property any more, so without this the box is never
+        // laid out again and never measured.
         expect(element.requestUpdate).toHaveBeenCalled()
     })
 
     /**
-     * The one that bites. The three above describe scheduleMeasure, which was always right; what
-     * was wrong is that arriving at a new listing did not call it.
+     * The one that bites: arriving at a new listing has to ask for a measurement. Without it the
+     * new listing keeps whatever height the previous one was given — a short listing's box staying
+     * short on a page with room for twice as much.
      */
-    it('a new listing drops the previous one\'s height instead of inheriting it', () => {
+    it('a new listing is measured afresh rather than inheriting the previous height', () => {
         const element = crud({ fillHeightPx: 412 })
 
         ;(MateuTableCrud.prototype as any).updated.call(element, changed(['component']))
 
-        expect(element.fillHeightPx)
-            .toBeUndefined()
         expect(element.pendingMeasure).toBe(true)
     })
 
     /**
-     * And nothing is measured on that pass: dropping the height only takes effect on the next
-     * render, so measuring now would read the layout the PREVIOUS fill produced — the feedback
-     * loop this component was written to avoid.
+     * And nothing is measured on that pass: the incoming component has not rendered yet, so the
+     * box still in the DOM is the outgoing one.
      */
     it('does not measure on the pass that dropped the height', () => {
         const element = crud({ fillHeightPx: 412 })
@@ -110,5 +120,43 @@ describe('the listing fill height', () => {
         expect(element.fillHeightPx).toBe(412)
         expect(element.measureFill).toHaveBeenCalled()
         expect(element.trimOverflow).toHaveBeenCalled()
+    })
+
+    /**
+     * The rule itself, at the one place that now enforces it: the read must not see the fill.
+     *
+     * <p>Deleting the lift leaves every other test here green — the height still gets replaced,
+     * the counters still reset — and quietly reintroduces the feedback loop, where a box measures
+     * the layout its own previous measurement produced. So the box is handed a stub that records
+     * what its inline height was AT THE MOMENT it was measured.
+     */
+    it('lifts the applied fill for the read, and puts it back', () => {
+        let heightWhenMeasured: string | null = null
+        const box = {
+            style: { height: '412px' },
+            getBoundingClientRect() {
+                heightWhenMeasured = box.style.height
+                return { top: 100 } as DOMRect
+            },
+        }
+        const element = crud({
+            fillHeightPx: 412,
+            pendingMeasure: true,
+            renderRoot: { querySelector: () => box },
+        })
+        // This suite runs without a DOM; measureFill only needs the viewport height off window.
+        const priorWindow = (globalThis as any).window
+        ;(globalThis as any).window = { innerHeight: 900 }
+        try {
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)
+        } finally {
+            ;(globalThis as any).window = priorWindow
+        }
+
+        expect(heightWhenMeasured).toBe('')
+        // And restored, so nothing is painted unfilled between the read and the next render.
+        expect(box.style.height).toBe('412px')
+        expect(element.fillHeightPx).toBe(900 - 100 - 16)
+        expect(element.pendingMeasure).toBe(false)
     })
 })

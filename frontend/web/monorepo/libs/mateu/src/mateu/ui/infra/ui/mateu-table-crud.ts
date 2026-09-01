@@ -193,21 +193,36 @@ export class MateuTableCrud extends LitElement {
     private scheduleMeasure() {
         this.pendingMeasure = true
         this.corrections = 0
-        // Drop the fill first: the next render lays the box out naturally, and THAT is what gets
-        // measured. Measuring a filled box would feed its own height back into the calculation.
-        if (this.fillHeightPx != undefined) this.fillHeightPx = undefined
-        else this.requestUpdate()
+        // The fill is NOT dropped here any more. It used to be, so the next render would lay the
+        // box out naturally for measureFill to read — but that natural layout is a frame the user
+        // sees: on the way into a detail view the listing visibly collapsed to its unfilled height
+        // and then vanished, shrinking a table that was about to be replaced anyway. measureFill
+        // lifts the fill and puts it back within a single task instead, so the same natural layout
+        // is measured and none of it is ever painted.
+        this.requestUpdate()
     }
 
     private measureFill() {
-        if (!this.pendingMeasure || this.fillHeightPx != undefined) return
+        if (!this.pendingMeasure) return
         const box = (this.renderRoot as ParentNode)?.querySelector?.('[data-crud-box]') as HTMLElement | null
         if (!box) return
         // A listing inside an overlay is bounded by the overlay, not by the window.
         if (this.closest?.('mateu-dialog, mateu-drawer')) { this.pendingMeasure = false; return }
+        // Measure the NATURAL layout without ever showing it.
+        //
+        // The rule this component is built on stands: a filled box must not be measured, or its
+        // own height feeds back into the calculation. What changed is how the fill gets out of the
+        // way. Dropping it through a render — which is what scheduleMeasure used to do — makes the
+        // unfilled layout a painted frame, and that frame is the listing visibly shrinking. Lifting
+        // the inline height, reading, and putting it straight back happens inside one task: the
+        // read below forces the synchronous layout we need, and the browser paints only whatever
+        // the render after this decides.
+        const applied = box.style.height
+        if (applied) box.style.height = ''
         const top = box.getBoundingClientRect().top
         const available = Math.round(
             window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
+        if (applied) box.style.height = applied
         this.pendingMeasure = false
         if (available >= MateuTableCrud.MIN_FILL_PX) this.fillHeightPx = available
     }
@@ -536,17 +551,14 @@ export class MateuTableCrud extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        // A new listing is measured afresh, and the OLD fill height has to go first.
+        // A new listing is measured afresh, and the old fill height must not survive it: a short
+        // listing's box used to stay short on a page with room for twice as much, because
+        // measureFill returned early while a height was set. It no longer returns early — it lifts
+        // the height for the duration of the read instead — so a new component re-measures, and it
+        // does so without the unfilled layout ever reaching the screen.
         //
-        // Setting pendingMeasure alone was not enough: measureFill returns immediately while
-        // fillHeightPx is set, so navigating from one listing to another kept the height the
-        // previous one had been given — a short listing's box stayed short on a page that had
-        // room for twice as much. scheduleMeasure is the one that drops the height, which is the
-        // whole discipline here: lay the box out naturally, THEN measure.
-        //
-        // And nothing is measured on this pass. Dropping the height only takes effect on the next
-        // render, so measuring now would read the layout the previous fill produced — exactly the
-        // feedback loop this component was written to avoid.
+        // Still nothing is measured on this pass: the new component's own render has not happened
+        // yet, so the box below is the outgoing one.
         const componentChanged = _changedProperties.has("component")
         if (componentChanged) {
             this.scheduleMeasure()
