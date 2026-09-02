@@ -204,3 +204,132 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   }
   return next
 }
+
+// ── menús federados ────────────────────────────────────────────────────────────────────────
+//
+// Una shell declara secciones que sirve OTRO pod: `RemoteMenu("/_workflow")`. El árbol que llega
+// en el bootstrap trae esas opciones marcadas `remote` y SIN hijos — los hijos son del pod, y hay
+// que ir a buscarlos. Hasta ahora este renderer no lo hacía: pintaba el rótulo que la shell había
+// escrito y nada debajo, que se lee como "ese servicio no tiene pantallas" en vez de como "nadie
+// se lo ha preguntado".
+//
+// Lo que sigue es la mitad fácil. La otra está en la navegación: una entrada traída de otro pod
+// solo se puede cargar llamando a ESE pod, y este bridge llamaba siempre al base de la shell. Por
+// eso cada opción adoptada queda registrada en `remoteRoutes`, y la cadena de navegación consulta
+// ahí a dónde tiene que ir. Sin esa segunda mitad, expandir el menú es peor que no expandirlo:
+// aparecen entradas que al pulsarlas no llevan a ninguna parte.
+
+/** Ruta de menú → dónde vive de verdad. La llena expandRemoteMenus; la lee la navegación. */
+const remoteRoutes = new Map()
+
+/** Dónde vive una ruta de menú, o undefined si la sirve la propia shell. */
+export function remoteRouteOf(route) {
+  if (route == null) return undefined
+  return remoteRoutes.get(route) || remoteRoutes.get(String(route).replace(/^\//, ''))
+}
+
+const childrenOf = (option) => option.submenus || option.submenu || []
+
+/** Las opciones remotas del árbol, a cualquier profundidad.
+ *  No se baja DENTRO de una remota: lo que cuelgue de ella es del pod, y aún no ha contestado. */
+function collectRemoteMenus(menu, found = []) {
+  for (const option of menu || []) {
+    if (option.remote) found.push(option)
+    else if (childrenOf(option).length) collectRemoteMenus(childrenOf(option), found)
+  }
+  return found
+}
+
+/** El menú del App que contesta un pod, o null si no contestó con uno. */
+function appMenuOf(increment) {
+  for (const fragment of (increment && increment.fragments) || []) {
+    const md = (fragment.component && fragment.component.metadata) || {}
+    if (fragment.component && fragment.component.type === 'ClientSide' && md.type === 'App') {
+      return { menu: md.menu || [], route: md.route || '', serverSideType: md.serverSideType }
+    }
+  }
+  return null
+}
+
+/**
+ * Marca las hojas traídas de un pod con dónde vive ese pod.
+ *
+ * Solo las que no traen `baseUrl` propio: un pod puede a su vez federar, y su respuesta ya viene
+ * resuelta. Un grupo no se marca, se recorre — lo que navega es la hoja.
+ */
+function adoptRemote(menu, option, app) {
+  const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
+  for (const child of menu || []) {
+    if (child.baseUrl) continue
+    if (childrenOf(child).length) {
+      adoptRemote(childrenOf(child), option, app)
+      continue
+    }
+    child.baseUrl = option.baseUrl
+    child.consumedRoute = app.route || ''
+    child.serverSideType = serverSideType
+    child.uriPrefix = option.route
+    const descriptor = {
+      baseUrl: option.baseUrl,
+      consumedRoute: app.route || '',
+      serverSideType,
+      uriPrefix: option.route,
+    }
+    // Por la ruta tal cual, y por la que verá la navegación cuando shellNavOf le quite el
+    // prefijo del padre. Dos claves para la misma entrada es más barato que reconstruir
+    // aquí el cálculo que hace el nav, y que se desincronicen luego.
+    const route = child.route || child.path || ''
+    remoteRoutes.set(route, descriptor)
+    remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
+  }
+}
+
+function spliceRemote(menu, answers) {
+  const out = []
+  for (const option of menu || []) {
+    if (option.remote) {
+      const app = answers.get(option)
+      if (app) {
+        adoptRemote(app.menu, option, app)
+        out.push(...app.menu)
+      } else {
+        // El pod no contestó. Se queda el rótulo: una sección vacía se entiende, una que
+        // desaparece parece que nunca existió.
+        out.push(option)
+      }
+    } else if (childrenOf(option).length) {
+      out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
+    } else {
+      out.push(option)
+    }
+  }
+  return out
+}
+
+/**
+ * Pide a cada pod su menú y lo pone donde estaba su opción.
+ *
+ * En paralelo, y un pod que falle no tumba al resto: su sección se queda como estaba en vez de
+ * llevarse por delante las que sí contestaron.
+ */
+export async function expandRemoteMenus(menu) {
+  const remotes = collectRemoteMenus(menu)
+  if (!remotes.length) return menu
+  const answers = new Map()
+  await Promise.all(remotes.map(async (option) => {
+    try {
+      const increment = await callMateu(option.baseUrl || '', {
+        route: option.route || '',
+        actionId: '',
+        consumedRoute: '_empty',
+        initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
+        parameters: option.params || {},
+      })
+      const app = appMenuOf(increment)
+      if (app) answers.set(option, app)
+    } catch (e) {
+      // Ya reportado por el transporte. Aquí solo se decide no propagarlo.
+    }
+  }))
+  return spliceRemote(menu, answers)
+}

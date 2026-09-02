@@ -74,6 +74,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     loadRoute,
     loadRouteInto,
     composeInnerRoute,
+    // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
+    expandRemoteMenus,
+    remoteRouteOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión

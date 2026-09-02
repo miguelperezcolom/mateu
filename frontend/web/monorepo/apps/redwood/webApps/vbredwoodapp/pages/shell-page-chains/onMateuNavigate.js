@@ -67,10 +67,18 @@ define([
 
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};
+      // Una entrada traída de otro pod SOLO se puede cargar llamando a ese pod. El bridge
+      // registró a dónde va cada una al expandir el menú; sin esta consulta la petición saldría
+      // al base de la shell, que no conoce esa ruta, y la pantalla quedaría vacía.
+      const remote = bridge.remoteRouteOf(route);
+      const callBase = (remote && remote.baseUrl) ? remote.baseUrl : base;
+      const extra = remote
+        ? { appState, consumedRoute: remote.consumedRoute, serverSideType: remote.serverSideType }
+        : { appState };
       let reg;
       try {
         reg = await bridge.loadRouteInto(
-          base, $application.variables.mateuRegistry, route, '', { appState });
+          callBase, $application.variables.mateuRegistry, route, '', extra);
       } catch (e) {
         // La banda de error ya la puso el transporte (onSettle); aquí sólo se deja el
         // reintento a mano, y se corta: sin registro no hay nada que proyectar.

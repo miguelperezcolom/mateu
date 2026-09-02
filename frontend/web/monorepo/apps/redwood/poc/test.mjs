@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, loadRoute, bootstrapShell } from './transport.mjs'
+import { composeInnerRoute, loadRoute, bootstrapShell, expandRemoteMenus, remoteRouteOf } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -735,6 +735,80 @@ atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN so
     setTransportHooks(null)
     connectivity.reset()
   }
+})
+
+const remoteApp = (menu, route = '', serverSideType = 'Home') => ({
+  fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', menu, route, serverSideType } } }],
+})
+
+atest('expandRemoteMenus pide su menú a cada pod y lo pone donde estaba la opción', async () => {
+  // Lo que este renderer no hacía: pintaba el rótulo que la shell escribió y nada debajo.
+  const original = globalThis.fetch
+  const asked = []
+  globalThis.fetch = async (url) => {
+    asked.push(url)
+    return { ok: true, json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '/workflow') }
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_workflow', route: '/workflow', label: 'Workflow' },
+      { label: 'Contenidos', route: '/content' },
+    ])
+    assert.equal(asked.length, 1)
+    assert.ok(asked[0].startsWith('/_workflow/mateu/v3/sync/'), asked[0])
+    assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Contenidos'])
+  } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async () => {
+  // La mitad que hace que el menú sirva de algo: sin esto la navegación llamaría al base de
+  // la shell, que no conoce esa ruta.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '/workflow', 'WorkflowHome'),
+  })
+  try {
+    await expandRemoteMenus([{ remote: true, baseUrl: '/_workflow', route: '/workflow', label: 'Workflow' }])
+    const where = remoteRouteOf('/workflow/processes')
+    assert.ok(where, 'la ruta adoptada no quedó registrada')
+    assert.equal(where.baseUrl, '/_workflow')
+    assert.equal(where.consumedRoute, '/workflow')
+    assert.equal(where.serverSideType, 'WorkflowHome')
+    // También por la forma sin barra inicial, que es como la ve el nav
+    assert.ok(remoteRouteOf('workflow/processes'))
+  } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus baja a una opción remota ANIDADA en un grupo', async () => {
+  const original = globalThis.fetch
+  const asked = []
+  globalThis.fetch = async (url) => {
+    asked.push(url)
+    return { ok: true, json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '/workflow') }
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Admin', submenus: [{ remote: true, baseUrl: '/_workflow', route: '/workflow', label: 'Workflow' }] },
+    ])
+    assert.equal(asked.length, 1, 'una remota dentro de un grupo también se pregunta')
+    assert.deepEqual(menu[0].submenus.map((o) => o.label), ['Processes'])
+  } finally { globalThis.fetch = original }
+})
+
+atest('un pod que no contesta deja su rótulo y no tumba a los demás', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    if (String(url).indexOf('/_forms') === 0) throw new TypeError('Failed to fetch')
+    return { ok: true, json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '/workflow') }
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_workflow', route: '/workflow', label: 'Workflow' },
+      { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
+    ])
+    assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+  } finally { globalThis.fetch = original }
 })
 
 atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {

@@ -79,6 +79,13 @@ define([
       );
       $application.variables.mateuRegistry = reg;
 
+      // Las secciones que sirve otro pod llegan marcadas y sin hijos: hay que ir a
+      // buscarlos antes de construir el nav, o la barra sale con rótulos y nada debajo.
+      // Un pod que no conteste deja su rótulo y no impide arrancar.
+      if (reg.shell && reg.shell.menu) {
+        reg.shell.menu = await bridge.expandRemoteMenus(reg.shell.menu);
+      }
+
       const nav = bridge.shellNavOf(reg);
       const appState = $application.variables.mateuAppState || {};
       $application.variables.mateuNavItems = nav.items;
