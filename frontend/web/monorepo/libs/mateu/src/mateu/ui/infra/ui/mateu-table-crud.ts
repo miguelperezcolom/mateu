@@ -252,12 +252,7 @@ export class MateuTableCrud extends LitElement {
             // The refusal branch below already refused to obey an unsettled layout. This is the
             // same rule on the other side of the fork: wait for the box to stop, bounded exactly
             // the same way so a box that never settles still resolves.
-            if (stillMoving && this.unsettledRefusals < MateuTableCrud.MAX_UNSETTLED_REFUSALS) {
-                this.lastMeasuredTop = top
-                this.unsettledRefusals++
-                this.requestUpdate()
-                return
-            }
+            if (stillMoving && this.retryMeasure(top)) return
             this.pendingMeasure = false
             this.unsettledRefusals = 0
             this.lastMeasuredTop = top
@@ -280,16 +275,33 @@ export class MateuTableCrud extends LitElement {
         // What actually differs is the TOP: a short window's is still, a transition's is moving.
         // So a refusal on a layout that has not settled is retried rather than obeyed, bounded so
         // a box that never settles still resolves instead of re-rendering for ever.
+        // Unsettled here covers one case more than above: a FIRST measurement has nothing to
+        // compare against, so it cannot claim the box is still, and a refusal on it is retried
+        // rather than obeyed. The apply branch takes the opposite view of the same fact — with no
+        // reason to doubt the box, a height is better applied now than a frame from now.
         const settled = !firstMeasurement && !stillMoving
+        if (!settled && this.retryMeasure(top)) return
         this.lastMeasuredTop = top
-        if (settled || this.unsettledRefusals >= MateuTableCrud.MAX_UNSETTLED_REFUSALS) {
-            this.pendingMeasure = false
-            this.unsettledRefusals = 0
-            this.fillHeightPx = undefined
-            return
-        }
+        this.pendingMeasure = false
+        this.unsettledRefusals = 0
+        this.fillHeightPx = undefined
+    }
+
+    /**
+     * Puts the measurement off one render, and says whether it did.
+     *
+     * <p>Both forks of {@link measureFill} defer for the same reason — a box mid-transition is on
+     * its way somewhere else, so neither the height it suggests nor the refusal it produces is
+     * worth acting on — and they differ only in when they consider that true. Bounded, so a box
+     * that never settles resolves instead of re-rendering for ever: when the budget is spent this
+     * returns false and the caller does what it was going to do anyway.
+     */
+    private retryMeasure(top: number): boolean {
+        if (this.unsettledRefusals >= MateuTableCrud.MAX_UNSETTLED_REFUSALS) return false
+        this.lastMeasuredTop = top
         this.unsettledRefusals++
         this.requestUpdate()
+        return true
     }
 
     /**

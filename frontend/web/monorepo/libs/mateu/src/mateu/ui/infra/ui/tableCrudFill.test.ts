@@ -30,6 +30,9 @@ const crud = (over: Record<string, any> = {}) => ({
     endLoading: vi.fn(),
     beginLoading: vi.fn(),
     scheduleMeasure: (MateuTableCrud.prototype as any).scheduleMeasure,
+    // measureFill defers through this one; the stub carries only what it calls, so a method
+    // extracted out of it has to be wired here too or `this.retryMeasure` is undefined.
+    retryMeasure: (MateuTableCrud.prototype as any).retryMeasure,
     updated: (MateuTableCrud.prototype as any).updated,
     measureBottomInset: () => 0,
     closest: () => null,
@@ -194,59 +197,64 @@ describe('the listing fill height', () => {
         expect(element.requestUpdate).toHaveBeenCalled()
     })
 
+    /**
+     * A box whose top can be moved between looks. Both cases below are the same rig; what differs
+     * is whether the box ever comes to rest.
+     */
+    const measuring = (innerHeight = 900) => {
+        const at = { top: 100 }
+        const element = crud({
+            pendingMeasure: true,
+            renderRoot: {
+                querySelector: () => ({
+                    style: { height: '' },
+                    getBoundingClientRect: () => ({ top: at.top }) as DOMRect,
+                }),
+            },
+        })
+        const look = () => {
+            const priorWindow = (globalThis as any).window
+            ;(globalThis as any).window = { innerHeight }
+            try {
+                ;(MateuTableCrud.prototype as any).measureFill.call(element)
+            } finally {
+                ;(globalThis as any).window = priorWindow
+            }
+        }
+        return { element, at, look, fillFor: (top: number) => innerHeight - top - 16 }
+    }
+
     it('does not apply a SMALLER height measured while the box is still moving', () => {
-        // The 48px that the previous pass left behind and called "a real re-measurement".
+        // The 48px the previous pass left behind and called "a real re-measurement".
         //
         // Entering a detail view: the listing is still mounted, the incoming layout pushes its top
         // down, and the arithmetic yields a smaller available — smaller but still above the
         // minimum, so it was applied. The grid shrank by that much and was replaced a frame later.
-        // Nobody benefits from a height computed for a layout on its way somewhere else.
-        let top = 100
-        const box = {
-            style: { height: '' },
-            getBoundingClientRect: () => ({ top }) as DOMRect,
-        }
-        const element = crud({ pendingMeasure: true, renderRoot: { querySelector: () => box } })
-        const priorWindow = (globalThis as any).window
-        ;(globalThis as any).window = { innerHeight: 900 }
-        try {
-            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // settles at top 100
-            expect(element.fillHeightPx).toBe(900 - 100 - 16)
-            element.pendingMeasure = true
-            top = 148                                                      // the detail arrives
-            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // must NOT shrink
-        } finally {
-            ;(globalThis as any).window = priorWindow
-        }
+        const { element, at, look, fillFor } = measuring()
 
-        expect(element.fillHeightPx).toBe(900 - 100 - 16)
+        look()                                    // settles at top 100
+        expect(element.fillHeightPx).toBe(fillFor(100))
+        element.pendingMeasure = true
+        at.top = 148                              // the detail arrives
+        look()
+
+        expect(element.fillHeightPx).toBe(fillFor(100))
         expect(element.pendingMeasure).toBe(true)
-        expect(element.requestUpdate).toHaveBeenCalled()
     })
 
     it('applies the new height once the box has stopped moving', () => {
         // The other half: a layout that really did change — a banner above the listing, say —
-        // settles and is honoured, one retry later. The guard delays a real change by a frame; it
+        // settles and is honoured, one look later. The guard delays a real change by a frame; it
         // does not refuse it.
-        let top = 100
-        const box = {
-            style: { height: '' },
-            getBoundingClientRect: () => ({ top }) as DOMRect,
-        }
-        const element = crud({ pendingMeasure: true, renderRoot: { querySelector: () => box } })
-        const priorWindow = (globalThis as any).window
-        ;(globalThis as any).window = { innerHeight: 900 }
-        try {
-            ;(MateuTableCrud.prototype as any).measureFill.call(element)
-            element.pendingMeasure = true
-            top = 148
-            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // moving: retried
-            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // still at 148: applied
-        } finally {
-            ;(globalThis as any).window = priorWindow
-        }
+        const { element, at, look, fillFor } = measuring()
 
-        expect(element.fillHeightPx).toBe(900 - 148 - 16)
+        look()
+        element.pendingMeasure = true
+        at.top = 148
+        look()                                    // moving: deferred
+        look()                                    // still at 148: applied
+
+        expect(element.fillHeightPx).toBe(fillFor(148))
         expect(element.pendingMeasure).toBe(false)
     })
 
