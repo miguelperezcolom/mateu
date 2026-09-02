@@ -17,6 +17,7 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
@@ -119,6 +120,12 @@ export class MateuUx extends ConnectedElement {
      * can reply state-only when the structure is unchanged (phase b). Undefined = full structure.
      */
     private currentStructureHash: string | undefined
+
+    /**
+     * The component the page chrome below was last stamped from, so a view that re-reads itself
+     * on a timer does not re-walk its own tree three times a tick.
+     */
+    private lastStampedComponent: Component | undefined
 
     /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
     private structureCacheKey(): string {
@@ -408,6 +415,10 @@ export class MateuUx extends ConnectedElement {
                                 action: UIFragmentAction.Replace,
                                 containerId: undefined,
                             }
+                            // The seed IS the structure now on screen, so the chrome has to
+                            // follow it here: if the server answers state-only, no full
+                            // structure will arrive to stamp it later.
+                            this.stampPageChrome()
                         }
                     }
                     this.manageActionEvent(new CustomEvent('server-side-action-requested', {
@@ -461,6 +472,9 @@ export class MateuUx extends ConnectedElement {
                 state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
                 data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
             }
+            // The structure on screen may never have been stamped — a cache seed followed by a
+            // state-only reply reaches this return without a full structure ever arriving.
+            this.stampPageChrome()
             return
         }
         this.fragment = fragment
@@ -490,18 +504,40 @@ export class MateuUx extends ConnectedElement {
             this.pendingRouteFocus = false
             this.hasRenderedContent = true
         }
-        // Tag the host with the resolved page width (fixed|full|edge) so the renderer's
-        // stylesheet can size the content column — redwood-oj paints the RDS page-width modes
-        // from it. Recomputed on every load: each routed component can carry its own pageWidth
-        // (resolvePageWidth infers one from the content otherwise). The coarse page type rides
-        // too (landing|collection|detail|form|process|dashboard) as a stylesheet/conformance hook.
-        if (fragment.component) {
-            this.dataset.pageWidth = resolvePageWidth(fragment.component, { top: this.top })
-            this.dataset.pageType = pageTypeOf(fragment.component) ?? ''
-            // Redwood rule: the accent strip only shows on pages WITHOUT a welcome banner —
-            // stamp it so renderers can suppress theirs (mateu-page band, redwood listing strip).
-            this.dataset.hasWelcomeBanner = String(hasWelcomeBanner(fragment.component))
+        this.stampPageChrome()
+    }
+
+    /**
+     * Tags the host with the page chrome the stylesheets key off: the resolved page width
+     * (fixed|full|edge) so the renderer can size the content column — redwood-oj paints the RDS
+     * page-width modes from it — the coarse page type
+     * (landing|collection|detail|form|process|dashboard) as a stylesheet/conformance hook, and
+     * whether the page carries a welcome banner, since the Redwood accent strip only shows on
+     * pages without one.
+     *
+     * <p><b>From what is ON SCREEN, not from a fragment that just arrived,</b> and that is the
+     * whole point of it being a method. Only ONE of the three ways content reaches this element
+     * carries a full structure of its own. The client cache SEEDS a structure straight onto
+     * {@code this.fragment} before the request even goes out, and a server that recognises the
+     * echoed ETag replies state-only (phase b), which {@code applyFragment} merges without a
+     * component. Stamping only where a full structure landed left both of those wearing the
+     * PREVIOUS route's width — which is exactly what made a width look sticky: one screen that
+     * inferred {@code fixed} kept every cached screen visited after it capped, and a reload
+     * straight into a cached route came up with no width stamped at all, so every screen bled to
+     * the viewport edge until something re-stamped it.
+     *
+     * <p>Keyed on the component identity, so a view that re-reads itself on a timer does not walk
+     * its own tree three times a tick to arrive at the answer it already had.
+     */
+    private stampPageChrome() {
+        const component = this.fragment?.component
+        if (!component || component === this.lastStampedComponent) {
+            return
         }
+        this.lastStampedComponent = component
+        this.dataset.pageWidth = resolvePageWidth(component, { top: this.top })
+        this.dataset.pageType = pageTypeOf(component) ?? ''
+        this.dataset.hasWelcomeBanner = String(hasWelcomeBanner(component))
     }
 
     render(): TemplateResult {
