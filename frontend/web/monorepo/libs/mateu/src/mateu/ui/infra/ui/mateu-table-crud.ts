@@ -188,6 +188,13 @@ export class MateuTableCrud extends LitElement {
     /** How many times the measured height has been trimmed since the last measurement. */
     private corrections = 0
 
+    /** The box's top at the previous measurement attempt — see the refusal branch of measureFill. */
+    private lastMeasuredTop?: number
+
+    /** Consecutive refusals on a layout that was still moving. Bounded so a box that never settles
+     *  still resolves rather than re-rendering for ever. */
+    private unsettledRefusals = 0
+
     private windowResizeListener = () => this.scheduleMeasure()
 
     private scheduleMeasure() {
@@ -223,13 +230,41 @@ export class MateuTableCrud extends LitElement {
         const available = Math.round(
             window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
         if (applied) box.style.height = applied
-        this.pendingMeasure = false
-        // Always assign, including the refusal. A viewport too short to be worth filling leaves no
-        // height at all, and the box falls back to its max-height — but that only happens if the
-        // PREVIOUS height is cleared, and this method is now the only place that can clear it.
-        // Leaving it to survive a refused measurement kept a tall box on a short window and pushed
-        // the pager off the bottom of it, which is what e2e's listing-fills-window caught.
-        this.fillHeightPx = available >= MateuTableCrud.MIN_FILL_PX ? available : undefined
+
+        if (available >= MateuTableCrud.MIN_FILL_PX) {
+            this.pendingMeasure = false
+            this.unsettledRefusals = 0
+            this.lastMeasuredTop = top
+            this.fillHeightPx = available
+            return
+        }
+
+        // A refusal, and two very different things wear that face.
+        //
+        // The window can be too short to host a filled box at all, and then the height has to GO:
+        // this method is the only thing that can clear it, and leaving a tall one in place pushed
+        // the pager off the bottom of a short window — which is what e2e's listing-fills-window
+        // caught the first time this was touched.
+        //
+        // Or the box can be somewhere it is not going to stay. On the way into a detail view the
+        // listing is measured while the incoming layout is still arriving, its top transiently far
+        // down the page, and the same arithmetic refuses. Clearing there is what made the listing
+        // visibly collapse before being replaced — the bug this whole branch exists to stop.
+        //
+        // What actually differs is the TOP: a short window's is still, a transition's is moving.
+        // So a refusal on a layout that has not settled is retried rather than obeyed, bounded so
+        // a box that never settles still resolves instead of re-rendering for ever.
+        const settled = this.lastMeasuredTop != undefined
+            && Math.abs(top - this.lastMeasuredTop) < 2
+        this.lastMeasuredTop = top
+        if (settled || this.unsettledRefusals >= MateuTableCrud.MAX_UNSETTLED_REFUSALS) {
+            this.pendingMeasure = false
+            this.unsettledRefusals = 0
+            this.fillHeightPx = undefined
+            return
+        }
+        this.unsettledRefusals++
+        this.requestUpdate()
     }
 
     /**
@@ -295,6 +330,9 @@ export class MateuTableCrud extends LitElement {
     private static readonly MAX_CORRECTIONS = 3
 
     /** Below this the fill is not worth having, and a bad measurement would make the listing tiny. */
+    /** How many times a refusal on a moving layout is retried before it is obeyed. */
+    private static readonly MAX_UNSETTLED_REFUSALS = 4
+
     private static readonly MIN_FILL_PX = 320
 
     private boxStyle(): string {
