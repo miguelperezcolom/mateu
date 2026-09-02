@@ -166,6 +166,34 @@ describe('the listing fill height', () => {
      * to clear it explicitly. Missing this kept a tall box on a short window and pushed the pager
      * off the bottom of it; e2e's listing-fills-window is the test that says so out loud.
      */
+    it('retries a refusal while the layout is still moving, instead of clearing', () => {
+        // The transition into a detail view: the listing is measured while the incoming layout is
+        // still arriving and its top is transiently far down the page, so the arithmetic refuses.
+        // Obeying that refusal is what made the listing visibly collapse before being replaced.
+        let top = 100
+        const box = {
+            style: { height: '412px' },
+            getBoundingClientRect: () => ({ top }) as DOMRect,
+        }
+        const element = crud({
+            fillHeightPx: 412,
+            pendingMeasure: true,
+            renderRoot: { querySelector: () => box },
+        })
+        const priorWindow = (globalThis as any).window
+        ;(globalThis as any).window = { innerHeight: 400 }
+        try {
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // first look
+            top = 260                                                      // the layout moved
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // second look
+        } finally {
+            ;(globalThis as any).window = priorWindow
+        }
+
+        expect(element.fillHeightPx).toBe(412)
+        expect(element.requestUpdate).toHaveBeenCalled()
+    })
+
     it('clears the height when the window is too short to be worth filling', () => {
         const box = {
             style: { height: '412px' },
@@ -179,6 +207,10 @@ describe('the listing fill height', () => {
         const priorWindow = (globalThis as any).window
         ;(globalThis as any).window = { innerHeight: 400 }
         try {
+            // Twice, on a top that does not move: the first look cannot tell a short window from a
+            // layout still arriving, the second can.
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)
+            element.pendingMeasure = true
             ;(MateuTableCrud.prototype as any).measureFill.call(element)
         } finally {
             ;(globalThis as any).window = priorWindow
