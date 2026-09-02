@@ -264,7 +264,44 @@ async function sendOnce(url, init, timeoutMillis) {
 }
 
 /**
+ * La cabecera con el token, si el bootstrap dejó uno.
+ *
+ * La página de bootstrap autentica contra Keycloak y guarda el token en
+ * `localStorage.__mateu_auth_token`, refrescándolo al caducar. Hasta que esto existió, NADA lo
+ * leía: el bridge hacía cada llamada sin cabecera, el gateway respondía 401 y el clasificador de
+ * abajo lo traducía a "Tu sesión ya no es válida" — un mensaje cierto sobre el 401 y engañoso
+ * sobre la causa, porque la sesión estaba perfectamente viva y la petición sencillamente no la
+ * presentaba. La consola cargaba, se quedaba sin un solo menú, y el panel de chat tampoco
+ * respondía.
+ *
+ * Va aquí y no en los tres sitios que construyen cabeceras en transport.mjs, por lo mismo que en
+ * el otro renderer es un interceptor de axios y no un parámetro de cada llamada: un punto único
+ * que un cuarto sitio no puede olvidar.
+ *
+ * `localStorage` no existe en Node, donde corre test.mjs, así que se consulta con guarda; y un
+ * `Authorization` que el llamante ya haya puesto manda sobre este, que es lo que permite probar
+ * el camino sin tocar el almacenamiento.
+ */
+function authHeaders(init) {
+  const already = init && init.headers &&
+    (init.headers.Authorization || init.headers.authorization)
+  if (already) return null
+  let token = null
+  try {
+    token = typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
+  } catch (e) {
+    // Un navegador con el almacenamiento bloqueado. Sin token se sigue: el backend dirá que no,
+    // que es mejor que no llamar.
+    token = null
+  }
+  return token ? { Authorization: 'Bearer ' + token } : null
+}
+
+/**
  * El punto único por el que pasa TODO el tráfico de este renderer.
+ *
+ * Y por eso es donde se adjunta el token: es el cliente de Mateu de este renderer, igual que
+ * AxiosMateuApiClient lo es del otro.
  *
  * Reenvía mientras el fallo sea transitorio Y la acción sea segura de repetir; cada intento
  * resuelto enseña al rastreador de conectividad si el backend responde — una respuesta
@@ -272,6 +309,8 @@ async function sendOnce(url, init, timeoutMillis) {
  * resultado de cara a la UI: un estado de carga, un mensaje.
  */
 export async function fetchWithPolicy(url, init, options = {}) {
+  const auth = authHeaders(init)
+  if (auth) init = { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } }
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
   notify('onStart', { actionId })
