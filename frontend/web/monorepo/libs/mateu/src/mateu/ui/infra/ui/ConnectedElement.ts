@@ -124,6 +124,12 @@ export default abstract class ConnectedElement extends LitElement {
                         }
                     }
                 }
+            } else if (option.submenus && option.submenus.length > 0) {
+                // A group holding remote entries. Its children are rebuilt the same way, and the
+                // option is replaced by a NEW object rather than mutated: the caller decides
+                // whether Lit repaints by whether the reference changed, and an in-place edit
+                // several levels down would leave every reference above it untouched.
+                replaced.push({ ...option, submenus: this.updateMenu(option.submenus, increments) })
             } else {
                 replaced.push(option)
             }
@@ -146,11 +152,26 @@ export default abstract class ConnectedElement extends LitElement {
         })
     }
 
+    /**
+     * Every remote menu in the tree, at whatever depth it sits.
+     *
+     * <p>This used to look at the top level only, and `MenuOption` has carried `submenus` all
+     * along — so a RemoteMenu grouped under an ordinary entry was never fetched. Not an error, not
+     * a warning: the group rendered with the label the shell had written for it and nothing
+     * underneath, which reads as "that service has no screens" rather than as "nobody asked it".
+     * Grouping remote sections is the obvious thing to reach for on a bar with five of them, and
+     * it silently emptied them.
+     *
+     * <p>A remote option is not descended into: whatever it has underneath is the REMOTE app's to
+     * declare, and it has not answered yet.
+     */
     private getRemoteMenus(menu: MenuOption[]): MenuOption[] {
         const remotes: MenuOption[] = []
         menu.forEach(option => {
             if (option.remote) {
                 remotes.push(option)
+            } else if (option.submenus && option.submenus.length > 0) {
+                remotes.push(...this.getRemoteMenus(option.submenus))
             }
         })
         return remotes

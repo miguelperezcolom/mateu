@@ -63,6 +63,47 @@ describe('completeMenu', () => {
         runAction.mockReset()
     })
 
+    it('asks a remote menu that sits INSIDE a group, not just the ones on the bar', async () => {
+        // The regression this fixes. A shell that groups its remote sections under one entry —
+        // "Admin", holding Workflow, Forms and Worker — rendered the group with the labels the
+        // shell had written and nothing under them: the resolver only ever looked at the top
+        // level, so nobody asked those pods for their screens. It reads as three empty services.
+        const { element, clientSideComponent } = elementWith([
+            { label: 'Admin', remote: false, submenus: [remote('/_workflow', 'Workflow')] },
+            remote('/_booking', 'Booking'),
+        ])
+        runAction.mockImplementation((baseUrl: string) =>
+            Promise.resolve(remoteAnswer(baseUrl, '', [{ label: 'Processes', route: '/processes' }])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        await Promise.resolve(); await Promise.resolve()
+
+        const asked = runAction.mock.calls.map((c: unknown[]) => c[0]).sort()
+        expect(asked).toEqual(['/_booking', '/_workflow'])
+    })
+
+    it('puts a nested remote answer under its group, leaving the rest of the bar alone', async () => {
+        const { element, clientSideComponent } = elementWith([
+            { label: 'Admin', remote: false, submenus: [remote('/_workflow', 'Workflow')] },
+            { label: 'Contenidos', remote: false, submenus: [{ label: 'Contents', route: '/contents' }] },
+        ])
+        runAction.mockImplementation((baseUrl: string) =>
+            Promise.resolve(remoteAnswer(baseUrl, '', [{ label: 'Workflow', route: '', submenus: [
+                { label: 'Processes', route: '/processes' },
+            ] }])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        await Promise.resolve(); await Promise.resolve()
+
+        const menu = (clientSideComponent.metadata as any).menu
+        expect(menu.map((o: any) => o.label)).toEqual(['Admin', 'Contenidos'])
+        // The group now holds what the pod answered, not the placeholder label the shell wrote.
+        expect(menu[0].submenus.map((o: any) => o.label)).toEqual(['Workflow'])
+        expect(menu[0].submenus[0].submenus.map((o: any) => o.label)).toEqual(['Processes'])
+        // An ordinary group with no remote in it is untouched.
+        expect(menu[1].submenus.map((o: any) => o.label)).toEqual(['Contents'])
+    })
+
     it('asks each remote menu for its app once', async () => {
         const { element, clientSideComponent } = elementWith([
             remote('/_workflow', 'Workflow'), remote('/_booking', 'Booking'),
