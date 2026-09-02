@@ -737,6 +737,49 @@ atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN so
   }
 })
 
+atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
+  // La regresión que esto fija: el bootstrap autenticaba y guardaba el token, y NADA lo leía.
+  // Cada llamada salía sin cabecera, el gateway devolvía 401, y el clasificador lo traducía a
+  // "tu sesión ya no es válida" — con la sesión perfectamente viva. La consola cargaba sin un
+  // solo menú.
+  connectivity.reset()
+  let seen = null
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'un-token' : null) }
+  globalThis.fetch = async (url, init) => { seen = init; return { ok: true, json: async () => ({}) } }
+  try {
+    await fetchWithPolicy('http://x/', { headers: { 'Content-Type': 'application/json' } },
+                          { actionId: 'search' })
+    assert.equal(seen.headers.Authorization, 'Bearer un-token')
+    // Y sin pisar lo que el llamante ya traía.
+    assert.equal(seen.headers['Content-Type'], 'application/json')
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy llama sin cabecera cuando no hay token, en vez de no llamar', async () => {
+  // Sin token se sigue adelante: que conteste el backend. Un 401 explicado es mejor que una
+  // pantalla en blanco que no ha preguntado a nadie.
+  connectivity.reset()
+  let seen = null
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  globalThis.localStorage = { getItem: () => null }
+  globalThis.fetch = async (url, init) => { seen = init; return { ok: true, json: async () => ({}) } }
+  try {
+    await fetchWithPolicy('http://x/', {}, { actionId: 'search' })
+    assert.ok(!seen.headers || !seen.headers.Authorization)
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    connectivity.reset()
+  }
+})
+
 atest('fetchWithPolicy envía una escritura EXACTAMENTE una vez ante un 503, con el fallo clasificado', async () => {
   connectivity.reset()
   let calls = 0
