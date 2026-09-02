@@ -231,7 +231,33 @@ export class MateuTableCrud extends LitElement {
             window.innerHeight - top - this.measureBottomInset(box) - MateuTableCrud.BOTTOM_GUTTER_PX)
         if (applied) box.style.height = applied
 
+        // Has the box stopped moving? The first measurement has nothing to compare against and is
+        // taken at face value — otherwise the listing would not fill until a frame later, which is
+        // the very flicker this component exists to avoid.
+        const firstMeasurement = this.lastMeasuredTop == undefined
+        const stillMoving = !firstMeasurement
+            && Math.abs(top - (this.lastMeasuredTop as number)) >= 2
+
         if (available >= MateuTableCrud.MIN_FILL_PX) {
+            // A height computed while the box is still moving is a height for a layout that is on
+            // its way somewhere else.
+            //
+            // Entering a detail view is the case that shows it: the listing is still mounted, the
+            // incoming layout pushes its top down, and the arithmetic yields a SMALLER available —
+            // smaller but still above the minimum, so it used to be applied. The grid shrank by
+            // that difference and was replaced a frame later. Measured on a 900px viewport it was
+            // 48px: not a collapse any more, which the previous pass fixed, but a visible jump on
+            // a table about to disappear.
+            //
+            // The refusal branch below already refused to obey an unsettled layout. This is the
+            // same rule on the other side of the fork: wait for the box to stop, bounded exactly
+            // the same way so a box that never settles still resolves.
+            if (stillMoving && this.unsettledRefusals < MateuTableCrud.MAX_UNSETTLED_REFUSALS) {
+                this.lastMeasuredTop = top
+                this.unsettledRefusals++
+                this.requestUpdate()
+                return
+            }
             this.pendingMeasure = false
             this.unsettledRefusals = 0
             this.lastMeasuredTop = top
@@ -254,8 +280,7 @@ export class MateuTableCrud extends LitElement {
         // What actually differs is the TOP: a short window's is still, a transition's is moving.
         // So a refusal on a layout that has not settled is retried rather than obeyed, bounded so
         // a box that never settles still resolves instead of re-rendering for ever.
-        const settled = this.lastMeasuredTop != undefined
-            && Math.abs(top - this.lastMeasuredTop) < 2
+        const settled = !firstMeasurement && !stillMoving
         this.lastMeasuredTop = top
         if (settled || this.unsettledRefusals >= MateuTableCrud.MAX_UNSETTLED_REFUSALS) {
             this.pendingMeasure = false

@@ -194,6 +194,62 @@ describe('the listing fill height', () => {
         expect(element.requestUpdate).toHaveBeenCalled()
     })
 
+    it('does not apply a SMALLER height measured while the box is still moving', () => {
+        // The 48px that the previous pass left behind and called "a real re-measurement".
+        //
+        // Entering a detail view: the listing is still mounted, the incoming layout pushes its top
+        // down, and the arithmetic yields a smaller available — smaller but still above the
+        // minimum, so it was applied. The grid shrank by that much and was replaced a frame later.
+        // Nobody benefits from a height computed for a layout on its way somewhere else.
+        let top = 100
+        const box = {
+            style: { height: '' },
+            getBoundingClientRect: () => ({ top }) as DOMRect,
+        }
+        const element = crud({ pendingMeasure: true, renderRoot: { querySelector: () => box } })
+        const priorWindow = (globalThis as any).window
+        ;(globalThis as any).window = { innerHeight: 900 }
+        try {
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // settles at top 100
+            expect(element.fillHeightPx).toBe(900 - 100 - 16)
+            element.pendingMeasure = true
+            top = 148                                                      // the detail arrives
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // must NOT shrink
+        } finally {
+            ;(globalThis as any).window = priorWindow
+        }
+
+        expect(element.fillHeightPx).toBe(900 - 100 - 16)
+        expect(element.pendingMeasure).toBe(true)
+        expect(element.requestUpdate).toHaveBeenCalled()
+    })
+
+    it('applies the new height once the box has stopped moving', () => {
+        // The other half: a layout that really did change — a banner above the listing, say —
+        // settles and is honoured, one retry later. The guard delays a real change by a frame; it
+        // does not refuse it.
+        let top = 100
+        const box = {
+            style: { height: '' },
+            getBoundingClientRect: () => ({ top }) as DOMRect,
+        }
+        const element = crud({ pendingMeasure: true, renderRoot: { querySelector: () => box } })
+        const priorWindow = (globalThis as any).window
+        ;(globalThis as any).window = { innerHeight: 900 }
+        try {
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)
+            element.pendingMeasure = true
+            top = 148
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // moving: retried
+            ;(MateuTableCrud.prototype as any).measureFill.call(element)   // still at 148: applied
+        } finally {
+            ;(globalThis as any).window = priorWindow
+        }
+
+        expect(element.fillHeightPx).toBe(900 - 148 - 16)
+        expect(element.pendingMeasure).toBe(false)
+    })
+
     it('clears the height when the window is too short to be worth filling', () => {
         const box = {
             style: { height: '412px' },
