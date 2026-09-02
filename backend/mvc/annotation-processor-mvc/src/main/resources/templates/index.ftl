@@ -36,10 +36,40 @@ public class ${simpleClassName}Controller {
 
     // 1. Iniciamos la descarga del script de la UI inmediatamente,
     // sin esperar al init de Keycloak
-    const mateuScript = document.createElement('link');
-    mateuScript.rel = 'modulepreload';
-    mateuScript.href = '__MATEU_BUNDLE__';
-    document.head.appendChild(mateuScript);
+    // Empieza a bajar el bundle de la UI ya, sin esperar al init de Keycloak. Vacío cuando la
+    // página no arranca por un módulo único — ver bootDeferred() más abajo.
+    if ('__MATEU_BUNDLE__') {
+        const mateuScript = document.createElement('link');
+        mateuScript.rel = 'modulepreload';
+        mateuScript.href = '__MATEU_BUNDLE__';
+        document.head.appendChild(mateuScript);
+    }
+
+    /**
+     * Vuelve a poner en marcha los scripts que la página aplazó hasta haber token.
+     *
+     * Una página que no arranca por un módulo único — una app de Visual Builder, por ejemplo —
+     * marca sus scripts de arranque como text/mateu-deferred, que ningún navegador ejecuta, y
+     * guarda el src en data-src para que tampoco se descarguen. Se reponen aquí EN ORDEN y
+     * esperando a cada uno: son dependientes entre sí (require.js antes que su config, y ésta
+     * antes del runtime), así que lanzarlos a la vez arranca la app a medio cargar.
+     */
+    async function bootDeferred(nodes) {
+        for (const old of nodes) {
+            const s = document.createElement('script');
+            for (const a of Array.from(old.attributes)) {
+                if (a.name === 'type' || a.name === 'data-src') continue;
+                s.setAttribute(a.name, a.value);
+            }
+            const src = old.getAttribute('data-src');
+            const done = src
+                ? new Promise((ok, ko) => { s.onload = ok; s.onerror = () => ko(new Error(src)); })
+                : Promise.resolve();
+            if (src) s.src = src; else s.text = old.textContent;
+            old.parentNode.replaceChild(s, old);
+            await done;
+        }
+    }
 
     const keycloak = new Keycloak({
         url: '${keycloak.url}',
@@ -72,16 +102,26 @@ public class ${simpleClassName}Controller {
             if (authenticated) {
                 localStorage.setItem('__mateu_auth_token', keycloak.token);
                 localStorage.setItem('__mateu_auth_subject', keycloak.subject);
-                const s = document.createElement('script');
-                s.setAttribute('type', 'module')
-                s.setAttribute('src', '__MATEU_BUNDLE__')
-                document.head.appendChild(s);
+                const deferred = Array.from(
+                    document.querySelectorAll('script[type="text/mateu-deferred"]'));
+                if (deferred.length) {
+                    // La página trae su propio arranque y su propia raíz; solo le faltaba el
+                    // token. No se le añade un mateu-ui: ya tiene dónde pintarse.
+                    bootDeferred(deferred).catch(function (e) {
+                        console.log('failed to boot the deferred scripts', e);
+                    });
+                } else {
+                    const s = document.createElement('script');
+                    s.setAttribute('type', 'module')
+                    s.setAttribute('src', '__MATEU_BUNDLE__')
+                    document.head.appendChild(s);
 
-                const u = document.createElement('mateu-ui');
-                u.setAttribute('baseUrl', '${path}');
-                u.setAttribute('pathPrefix', '${path}');
-                u.setAttribute('style', 'width:100%;height:100vh;');
-                document.body.appendChild(u);
+                    const u = document.createElement('mateu-ui');
+                    u.setAttribute('baseUrl', '${path}');
+                    u.setAttribute('pathPrefix', '${path}');
+                    u.setAttribute('style', 'width:100%;height:100vh;');
+                    document.body.appendChild(u);
+                }
 
             }
         }).catch(function(e) {

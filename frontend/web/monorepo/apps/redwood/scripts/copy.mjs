@@ -41,6 +41,35 @@ if (!existsSync(join(src, 'index.html'))) {
   process.exit(1)
 }
 
+
+/**
+ * Aplaza los scripts de arranque de la app de Visual Builder.
+ *
+ * <p>Cada `<script>` marcado pasa a `type="text/mateu-deferred"`, que ningún navegador ejecuta, y
+ * el tramo entero queda entre AQUIJS/HASTAAQUIJS para que el controlador generado sepa que esta
+ * página aplaza su propio arranque en vez de exponer un módulo único como hacen las de Vite.
+ *
+ * <p>El `src` se guarda en `data-src` porque un `<script>` con `src` y un `type` desconocido no se
+ * descarga siquiera — que es justo lo que queremos hasta tener token — y el reproductor lo
+ * restaura al reinyectarlo.
+ */
+const deferBootScripts = (html) => {
+  const deferred = html.replace(/<script\b([^>]*)\sdata-mateu-defer([^>]*)>/g, (_m, before, after) => {
+    const attrs = (before + after)
+      .replace(/\stype=(["'])[^"']*\1/g, '')
+      .replace(/\ssrc=(["'])([^"']*)\1/g, ' data-src=$1$2$1')
+    return `<script type="text/mateu-deferred"${attrs}>`
+  })
+  const first = deferred.indexOf('<script type="text/mateu-deferred"')
+  if (first < 0) return deferred
+  const closing = '</script>'
+  const last = deferred.lastIndexOf('<script type="text/mateu-deferred"')
+  const end = deferred.indexOf(closing, last) + closing.length
+  return deferred.slice(0, first) + '<!-- AQUIJS -->\n'
+       + deferred.slice(first, end)
+       + '\n<!-- HASTAAQUIJS -->' + deferred.slice(end)
+}
+
 const transform = (file) => {
   if (!TEXT_EXTENSIONS.has(extname(file))) return
   const original = readFileSync(file, 'utf8')
@@ -57,6 +86,23 @@ const transform = (file) => {
       .replace('<title>Oracle Applications</title>', '<title>AQUIELTITULODELAPAGINA</title>')
       .replace('</head>', '    <style>mateu-ui { display: none !important; }</style>\n  </head>')
       .replace('</body>', '    <!-- AQUIUI --><!-- HASTAAQUIUI -->\n  </body>')
+      // El marcador donde el controlador generado inyecta el script que obtiene el token.
+      // Sin él, un @UI @KeycloakSecured que dependa de este artefacto se NIEGA a servirse — y
+      // hace bien: servir la página sin ese script publicaría una consola sin autenticar.
+      .replace('<base href="/">', '<base href="/">\n    <!-- AQUIKEYCLOAK -->')
+      // Y el arranque de Visual Builder, aplazado hasta que ese token exista.
+      //
+      // Esta app no arranca como las de Vite: no hay un módulo único, son siete scripts con
+      // dependencias entre ellos (require.js → bundles-config → third-party → visual-runtime).
+      // Dejarlos correr antes de autenticar es una carrera que se pierde en cada recarga: el
+      // runtime pide datos a Mateu antes de que Keycloak haya resuelto, y esa petición sale sin
+      // token. Así que se marcan como diferidos y el script inyectado los reproduce EN ORDEN
+      // cuando ya hay sesión — ver defer() más abajo.
+      .replace(/(<script\b(?![^>]*\btype=(["'])(?:module|text\/mateu-deferred)\2))/g,
+               '$1 data-mateu-defer')
+  }
+  if (file.endsWith('index.html')) {
+    content = deferBootScripts(content)
   }
   if (content !== original) writeFileSync(file, content)
 }
