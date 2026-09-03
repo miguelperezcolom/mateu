@@ -1681,3 +1681,15 @@ de un proceso aparecía el listado.
 
 Fixture de wire real `wf-process.json` + test 79 (campos de fuera, las 6 pestañas, el grid de
 Steps con sus badges y el grafo con los atributos ya interpolados) y test 80 (el deep-link).
+
+### Una caja dentro de otra (2026-09-03)
+
+Cualquier pantalla con pestañas o con una tabla dentro pintaba sus campos en un `oj-panel`
+metido en el contenedor de contenido — caja dentro de caja—, mientras que una ficha normal (que
+va por la rama de formulario) no lo tiene. El panel salía del `Card` del wire, que en estas
+páginas no es una tarjeta: **es el marco de la página**, y ése lo pinta el contenedor.
+
+Regla: un ÚNICO card SIN TÍTULO que envuelve todo el contenido se aplana. Con título es una
+tarjeta de verdad y se respeta, igual que cuando hay varias (la 360 y sus zonas siguen con sus
+paneles). El título de una tarjeta es reconocible porque `visit()` lo mete como primer átomo de
+texto con la clase del subencabezado.

@@ -300,7 +300,15 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   const host = reg.contexts[HOST_ID]
   assert.equal(itemOverviewOf(host), null, 'sin panel de datos clave no es un item overview')
 
-  const items = (hostContentOf(host, null, {}) || []).flatMap((b) => b.items)
+  // como en la chain: el título de la Page lo pinta la banda del header, no el contenido
+  const titulo = summarizeHost(reg, '').title
+  const bloques = hostContentOf(host, null, { title: titulo }) || []
+  // el card sin título que envuelve la página NO se pinta como tarjeta: el contenedor de
+  // contenido ya es el marco, y con panel quedaba una caja dentro de otra
+  assert.equal(bloques.length, 1)
+  assert.equal(bloques[0].isCard, false)
+  assert.equal(bloques[0].isPlain, true)
+  const items = bloques.flatMap((b) => b.items)
   // los campos que están FUERA de las pestañas
   assert.ok(items.some((a) => a.isInput && a.fieldId === 'id'))
   assert.ok(items.some((a) => a.isInput && a.fieldId === 'name'))
@@ -320,7 +328,7 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.ok(!items.some((a) => a.isGrid), 'la pestaña Diagram no tiene tablas')
 
   // otra pestaña: su grid embebido, con columnas y filas del estado
-  const steps = (hostContentOf(host, null, { activeTab: 'tab-1' }) || [])
+  const steps = (hostContentOf(host, null, { title: titulo, activeTab: 'tab-1' }) || [])
     .flatMap((b) => b.items).find((a) => a.isGrid)
   assert.ok(steps, 'no se proyectó la tabla de la pestaña Steps')
   assert.deepEqual(steps.columns.map((c) => c.headerText), ['Name', 'Status'])

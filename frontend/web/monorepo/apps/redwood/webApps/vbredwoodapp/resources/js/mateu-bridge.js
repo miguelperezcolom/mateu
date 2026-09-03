@@ -1196,6 +1196,13 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
    *  isla del host (p.ej. el documento) fusionada en su hueco (atomos fromNested → despachan
    *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
    *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
+  /** ¿El card llevaba título? visit() lo mete como primer átomo de texto con la clase del
+   *  subencabezado — que es justo lo que distingue una tarjeta de verdad del marco de la página. */
+  function cardHasTitle(block) {
+    const first = (block.items || [])[0]
+    return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
+  }
+
   function hostContentOf(ctx, islandBlocks, opts = {}) {
     const blocks = islandContentOf(ctx, opts)
     if (!blocks) return null
@@ -1235,6 +1242,14 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
       // el loop del host pinta los bloques dentro de un oj-flex: los bloques-columna de una
       // fila zonada llevan su colClass; el resto ocupa la fila entera (oj-sm-12)
       .map((block) => ({ ...block, blockClass: block.colClass || 'oj-flex-item oj-sm-12' }))
+    // Un ÚNICO card SIN TÍTULO que envuelve todo el contenido no es una tarjeta: es el marco de
+    // la página, y ése ya lo pinta el contenedor de contenido. Pintarlo además como oj-panel deja
+    // una caja dentro de otra, que es como se veía cualquier pantalla con pestañas o con una
+    // tabla dentro — mientras que una ficha normal (la rama de formulario) no la tiene. Con
+    // título sí es una tarjeta de verdad y se respeta, igual que cuando hay varias.
+    if (merged.length === 1 && merged[0].isCard && !cardHasTitle(merged[0])) {
+      merged = [{ ...merged[0], isCard: false, isPlain: true }]
+    }
     return merged.length ? merged : null
   }
 
