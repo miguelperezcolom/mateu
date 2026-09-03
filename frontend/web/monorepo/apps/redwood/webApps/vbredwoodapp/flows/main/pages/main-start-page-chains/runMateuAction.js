@@ -51,7 +51,10 @@ define([
         return;
       }
 
-      const base = $application.constants.mateuBaseUrl;
+      // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
+      // hablando con ESE backend, no con el de la shell.
+      const base = bridge.baseOf($application.variables.mateuRegistry)
+        || $application.constants.mateuBaseUrl;
       const before = $application.variables.mateuRegistry;
       const host = before.contexts[bridge.HOST_ID];
       const route = $application.variables.mateuSelectedRoute;

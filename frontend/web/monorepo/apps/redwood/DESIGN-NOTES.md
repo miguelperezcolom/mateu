@@ -1496,3 +1496,47 @@ pide SOLO las pendientes.
 - Verificado con Playwright contra demo-vb :9005 servido por el jar: deep-link `/products`
   (filas del crud), clic de menú → `/stock` sin hash, back → `/products` re-renderizado, raíz
   estable en `/`.
+
+## Menús federados: la navegación tenía que volver al pod (2026-09-03)
+
+Fallo observado en `rw.ec1.mateu.io` (`ec-demo1/shell-redwood`, la MISMA shell que la Vaadin de
+`ec1.mateu.io` con `io.mateu:redwood` en lugar de `vaadin-lit`): **el menú se pintaba entero y
+ningún crud abría**. `Booking → Bookings` contestaba un `Text` rojo "Not found.".
+
+Tres cosas rotas, en cadena. Las tres son de NAVEGACIÓN, no de expansión del menú: pedir su menú
+a cada pod ya se hacía (`expandRemoteMenus`), y eso era justamente lo que dejaba a la vista
+entradas que al pulsarlas no llevaban a ninguna parte.
+
+1. **La ruta se recortaba**. `shellNavOf` navega una hoja de grupo por su ruta TERMINAL, porque
+   la compuesta de un menú LOCAL (`/gestion/person`) es un camino de menú y no una ruta que el
+   backend resuelva. Aplicado a una hoja de otro pod es al revés: `/booking/bookings` es
+   exactamente lo que ese pod sirve, y recortarla a `/bookings` la deja sin dueño — ni casa con
+   el registro `remoteRoutes` (así que la petición sale al base de la shell) ni existe allí. La
+   marca para distinguirlas ya estaba: `expandRemoteMenus` deja su `baseUrl` en la hoja adoptada.
+2. **El contexto no recordaba de qué backend venía**. Con la ruta ya bien resuelta, el crud
+   pintaba toolbar y columnas pero SIN filas: el trigger `search` que el listado pide al cargar
+   salía otra vez al base de la shell, que contesta 200 con cero fragments — un listado vacío y
+   ni un error a la vista. Ahora `loadRouteInto` estampa `outbound.baseUrl` (junto a los 4 campos
+   de ruta que ya guardaba, por la misma razón) y `runMateuAction`/`runMateuActionSse` lo
+   prefieren; las cadenas leen `bridge.baseOf(reg)` en vez de la constante de la shell. Quien
+   dispara una acción sabe de qué CONTEXTO sale, nunca de qué backend vino.
+3. **El tercer nivel se perdía**. Una shell federada trae tres niveles sin pedir permiso: grupo
+   de la shell (`Admin`) → grupo del pod (`Workflow`) → sus pantallas (`Processes`, `Steps`). El
+   proyector modelaba dos, así que el grupo del pod quedaba como si fuese pantalla —clic → ruta
+   de grupo → contenido vacío— y sus pantallas no aparecían en ninguna parte: `Processes`,
+   `Steps` y todo `Forms`/`Worker` eran INALCANZABLES. `navNodeOf` es ahora recursivo y los dos
+   markups de navegación (submenú `oj-menu` anidado en la barra, tercer `<ul>` en el navigator)
+   pintan el nivel de abajo; el grupo a cualquier profundidad solo expande.
+
+Tests: 4 nuevos en `poc/test.mjs` (75). El caso del pod que contesta con un GRUPO es el que no
+estaba cubierto — el fixture antiguo hacía que el pod contestara una hoja suelta, forma que
+ningún pod real tiene, y por eso el test pasaba con la navegación rota.
+
+**Verificado contra el cluster SIN desplegar**, sirviendo el bundle recién construido a la app
+desplegada (`e2e/vb-live-dev.mjs`, ver README): `Booking → Bookings`, `Content → Labels`,
+`Content → Content types`, `Admin → Workflow → Processes` y `→ Steps` cargan con filas reales, y
+las tres peticiones de cada una (mediador, contenido y `search`) salen al `/_pod` que toca.
+
+**Pendiente anotado**: el título de la página del host se queda en `...` (el `SetWindowTitle`
+llega en el increment del contenido y no alimenta `mateuHostTitle`) — se ve en cualquier crud
+federado, y es independiente de la federación.

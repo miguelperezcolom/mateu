@@ -78,6 +78,11 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
   const outbound = (ctx && ctx.outbound) || {}
+  // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
+  // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
+  // trigger `search` de un listado, un botón del toolbar) sabe de qué contexto sale, pero
+  // no de qué backend vino — y mandarla a la shell la contesta vacía, sin error.
+  base = outbound.baseUrl != null ? outbound.baseUrl : base
   const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
   // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
   // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
@@ -111,6 +116,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
   const { onIncrement, ...bodyExtra } = extra || {}
   const outbound = (ctx && ctx.outbound) || {}
+  base = outbound.baseUrl != null ? outbound.baseUrl : base
   const effectiveRoute = outbound.route || route || ''
   const bare = effectiveRoute.replace(/^\//, '')
   // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
@@ -198,7 +204,7 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   const firstIncrement = await loadRoute(base, route, targetId, extra)
   let next = reduceContexts(reg, firstIncrement)
   const ctxId = targetId === '' ? HOST_ID : targetId
-  let outbound = { route, consumedRoute: '', serverSideType: undefined }
+  let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
   // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
   // la carga de contenido las pierde, así que se conservan aquí
   const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
@@ -209,6 +215,7 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
       route,
       consumedRoute: info.rootRoute || route,
       serverSideType: info.serverSideType,
+      baseUrl: base,
     }
     next = reduceContexts(
       next,
@@ -234,6 +241,18 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
     },
   }
   return next
+}
+
+/**
+ * De qué backend se cargó una superficie, o undefined si aún no se sabe.
+ *
+ * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
+ * dispara conoce el id del contexto, no el pod. Preguntándoselo al HOST (el valor por defecto)
+ * la isla se carga de donde vino la pantalla que la contiene, que es lo que siempre quiere.
+ */
+export function baseOf(reg, ctxId = HOST_ID) {
+  const ctx = reg && reg.contexts && reg.contexts[ctxId]
+  return ctx && ctx.outbound ? ctx.outbound.baseUrl : undefined
 }
 
 // ── menús federados ────────────────────────────────────────────────────────────────────────

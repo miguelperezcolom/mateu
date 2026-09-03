@@ -100,7 +100,7 @@ define([
           componentState[quickNav.fieldId] = quickNav.value;
         }
         const increment = await bridge.runMateuAction(
-          base, loaded, route, triggerActionId, componentState, { appState });
+          callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
       }
 
@@ -111,7 +111,7 @@ define([
       const firstIsland = islands.length ? islands[0] : null;
       if (firstIsland) {
         // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
-        reg = await bridge.loadRouteInto(base, reg, firstIsland.route, firstIsland.id, {
+        reg = await bridge.loadRouteInto(callBase, reg, firstIsland.route, firstIsland.id, {
           appState,
           componentState: firstIsland.initialData || {},
         });
@@ -157,7 +157,7 @@ define([
           || $application.variables.mateuNestedSeed !== nestedSeed)) {
         // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
         // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
-        reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
+        reg = await bridge.loadRouteInto(callBase, reg, nestedInfo.route, nestedInfo.id, {
           appState,
           componentState: nestedInfo.initialData || {},
         });

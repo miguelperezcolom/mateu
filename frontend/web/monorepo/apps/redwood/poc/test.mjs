@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf } from './transport.mjs'
+import { composeInnerRoute, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -864,6 +864,101 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+  } finally { globalThis.fetch = original }
+})
+
+atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compuesta', async () => {
+  // La forma REAL de un menú federado (ec-demo1): la shell declara la sección `Booking` como
+  // remota, y el pod NO contesta con hojas sueltas sino con SU grupo — `Booking` con
+  // `/booking/bookings` debajo. El nav recorta el prefijo del padre a los hijos porque una ruta
+  // compuesta de menú LOCAL no resuelve por sync; aplicado a una hoja de otro pod, ese recorte
+  // la dejaba en `/bookings`, que no la sirve nadie: ni casa con el registro de rutas remotas
+  // ni existe en la shell. El resultado era un crud que contestaba "Not found." al abrirlo.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp(
+      [{ label: 'Booking', route: '/booking', submenus: [{ label: 'Bookings', route: '/booking/bookings' }] }],
+      '',
+      'BookingHome',
+    ),
+  })
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_booking', route: '', path: '/booking', label: 'Booking' },
+    ])
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    const group = nav.menuTree.find((m) => m.hasChildren)
+    assert.deepEqual(group.children.map((c) => c.id), ['/booking/bookings'])
+    // …y por esa ruta el registro sabe a qué pod ir, con qué consumedRoute y qué serverSideType
+    const where = remoteRouteOf('/booking/bookings')
+    assert.equal(where.baseUrl, '/_booking')
+    assert.equal(where.consumedRoute, '')
+    assert.equal(where.serverSideType, 'BookingHome')
+  } finally { globalThis.fetch = original }
+})
+
+atest('una shell federada de TRES niveles conserva el nivel de abajo', async () => {
+  // La shell agrupa `Admin` y mete DENTRO tres pods; cada pod contesta con SU grupo y sus
+  // pantallas debajo. El árbol resultante tiene tres niveles, y el proyector solo modelaba dos:
+  // el grupo del pod quedaba como si fuese pantalla —clic → ruta de grupo → contenido vacío— y
+  // sus pantallas no aparecían en ninguna parte.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp(
+      [{ label: 'Workflow', route: '/workflow', submenus: [
+        { label: 'Processes', route: '/workflow/processes' },
+        { label: 'Steps', route: '/workflow/steps' },
+      ] }],
+      '',
+      'WorkflowHome',
+    ),
+  })
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Admin', route: '/admin', submenus: [
+        { remote: true, baseUrl: '/_workflow', route: '', path: '/workflow', label: 'Workflow' },
+      ] },
+    ])
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    const admin = nav.menuTree[0]
+    assert.equal(admin.children.length, 1)
+    const workflow = admin.children[0]
+    assert.equal(workflow.label, 'Workflow')
+    assert.equal(workflow.hasChildren, true, 'el grupo del pod se quedaba sin hijos')
+    assert.deepEqual(workflow.children.map((c) => c.id), ['/workflow/processes', '/workflow/steps'])
+    assert.equal(remoteRouteOf('/workflow/steps').baseUrl, '/_workflow')
+  } finally { globalThis.fetch = original }
+})
+
+atest('una hoja LOCAL bajo un grupo se sigue navegando por su ruta terminal', async () => {
+  // El contrapunto del test anterior: sin baseUrl no hay pod, y la ruta compuesta del menú
+  // (/gestion/person) no resuelve por sync — se navega por /person, como hasta ahora.
+  const nav = shellNavOf({ shell: { menu: [
+    { label: 'Gestion', route: '/gestion', submenus: [{ label: 'Person', route: '/gestion/person' }] },
+  ] } })
+  assert.deepEqual(nav.menuTree[0].children.map((c) => c.id), ['/person'])
+})
+
+atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí', async () => {
+  // La segunda mitad del mismo fallo: con la ruta ya bien resuelta, el crud pintaba columnas y
+  // toolbar pero SIN filas — el trigger `search` que el listado pide al cargar salía al base de
+  // la shell, que contesta 200 con cero fragments. Un listado vacío y ni un error a la vista.
+  const original = globalThis.fetch
+  const asked = []
+  globalThis.fetch = async (url) => {
+    asked.push(String(url))
+    return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+      type: 'ServerSide', id: '_list', children: [{ metadata: { type: 'Crud', title: 'Bookings' } }],
+    } }] }) }
+  }
+  try {
+    const reg = await loadRouteInto('/_booking', empty(), '/booking/bookings', '', {})
+    assert.equal(baseOf(reg), '/_booking')
+    asked.length = 0
+    await runMateuAction('/la-shell', reg.contexts[HOST_ID], '/booking/bookings', 'search', {})
+    assert.ok(asked[0].startsWith('/_booking/mateu/v3/sync/'), asked[0])
   } finally { globalThis.fetch = original }
 })
 

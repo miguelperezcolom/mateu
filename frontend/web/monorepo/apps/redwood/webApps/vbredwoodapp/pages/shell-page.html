@@ -37,7 +37,24 @@
                 <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
                   <oj-bind-for-each data="[[ $current.data.children ]]">
                     <template>
-                      <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                      <!-- hoja -->
+                      <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                        <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                      </oj-bind-if>
+                      <!-- grupo: una shell federada trae TRES niveles (grupo de la shell →
+                           grupo del pod → sus pantallas); el submenú de JET es un oj-menu
+                           anidado dentro de la propia oj-option -->
+                      <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                        <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                          <oj-menu>
+                            <oj-bind-for-each data="[[ $current.data.children ]]">
+                              <template>
+                                <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                              </template>
+                            </oj-bind-for-each>
+                          </oj-menu>
+                        </oj-option>
+                      </oj-bind-if>
                     </template>
                   </oj-bind-for-each>
                 </oj-menu>
@@ -157,7 +174,21 @@
                     <ul>
                       <oj-bind-for-each data="[[ $current.data.children ]]">
                         <template>
-                          <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                          <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                            <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                          </oj-bind-if>
+                          <!-- tercer nivel (shell federada): el grupo del pod con sus pantallas -->
+                          <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                            <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
+                              <ul>
+                                <oj-bind-for-each data="[[ $current.data.children ]]">
+                                  <template>
+                                    <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                                  </template>
+                                </oj-bind-for-each>
+                              </ul>
+                            </li>
+                          </oj-bind-if>
                         </template>
                       </oj-bind-for-each>
                     </ul>

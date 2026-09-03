@@ -534,27 +534,44 @@ define([], () => {
     return OJ_ICONS[icon] || undefined
   }
 
+  /**
+   * Una opción de menú → nodo del árbol que pintan la barra y el navigator.
+   *
+   * RECURSIVO porque el menú lo es: una shell federada llega con tres niveles sin pedir permiso
+   * (grupo de la shell → grupo del pod → sus pantallas), y aplanarlo no deja el tercer nivel feo,
+   * lo deja INALCANZABLE — el grupo del pod se navega como si fuese pantalla y contesta vacío.
+   *
+   * `id` es la ruta con la que se navega: la TERMINAL para una hoja local (la compuesta,
+   * /gestion/person, es un camino de menú y no una ruta que el backend resuelva) y la COMPUESTA
+   * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
+   * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
+   */
+  function navNodeOf(option, parentRoute) {
+    const raw = option.route || option.path || ''
+    const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
+      ? raw.slice(parentRoute.length)
+      : raw
+    const children = option.submenus || option.submenu || []
+    return {
+      id,
+      label: option.caption || option.label || id,
+      icon: ojIconOf(option.icon),
+      hasChildren: children.length > 0,
+      // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
+      children: children.map((child) => navNodeOf(child, raw)),
+    }
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
     const menuTree = []
     let hasGroups = false
     for (const option of shell.menu || []) {
-      const route = option.route || option.path
-      const label = option.caption || option.label || route
-      const children = option.submenus || option.submenu || []
-      items.push({ id: route, label, icon: ojIconOf(option.icon) })
-      if (children.length) hasGroups = true
-      menuTree.push({
-        id: route,
-        label,
-        hasChildren: children.length > 0,
-        children: children.map((child) => {
-          const childRoute = child.route || child.path || ''
-          const terminal = childRoute.indexOf(route + '/') === 0 ? childRoute.slice(route.length) : childRoute
-          return { id: terminal, label: child.caption || child.label || terminal }
-        }),
-      })
+      const node = navNodeOf(option, '')
+      items.push({ id: node.id, label: node.label, icon: node.icon })
+      if (node.hasChildren) hasGroups = true
+      menuTree.push(node)
     }
     // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
     // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
@@ -2482,6 +2499,11 @@ define([], () => {
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
     const outbound = (ctx && ctx.outbound) || {}
+    // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
+    // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
+    // trigger `search` de un listado, un botón del toolbar) sabe de qué contexto sale, pero
+    // no de qué backend vino — y mandarla a la shell la contesta vacía, sin error.
+    base = outbound.baseUrl != null ? outbound.baseUrl : base
     const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
     // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
     // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
@@ -2515,6 +2537,7 @@ define([], () => {
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
     const outbound = (ctx && ctx.outbound) || {}
+    base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
     // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
@@ -2602,7 +2625,7 @@ define([], () => {
     const firstIncrement = await loadRoute(base, route, targetId, extra)
     let next = reduceContexts(reg, firstIncrement)
     const ctxId = targetId === '' ? HOST_ID : targetId
-    let outbound = { route, consumedRoute: '', serverSideType: undefined }
+    let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
     // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
     // la carga de contenido las pierde, así que se conservan aquí
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
@@ -2613,6 +2636,7 @@ define([], () => {
         route,
         consumedRoute: info.rootRoute || route,
         serverSideType: info.serverSideType,
+        baseUrl: base,
       }
       next = reduceContexts(
         next,
@@ -2638,6 +2662,18 @@ define([], () => {
       },
     }
     return next
+  }
+
+  /**
+   * De qué backend se cargó una superficie, o undefined si aún no se sabe.
+   *
+   * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
+   * dispara conoce el id del contexto, no el pod. Preguntándoselo al HOST (el valor por defecto)
+   * la isla se carga de donde vino la pantalla que la contiene, que es lo que siempre quiere.
+   */
+  function baseOf(reg, ctxId = HOST_ID) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    return ctx && ctx.outbound ? ctx.outbound.baseUrl : undefined
   }
 
   // ── menús federados ────────────────────────────────────────────────────────────────────────
@@ -2819,6 +2855,7 @@ define([], () => {
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,
+    baseOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión

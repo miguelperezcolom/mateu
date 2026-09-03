@@ -36,7 +36,9 @@ define([
       if (!islandContext) {
         return;
       }
-      const base = $application.constants.mateuBaseUrl;
+      // idem que en runMateuAction: la isla vive en el backend de su host
+      const base = bridge.baseOf($application.variables.mateuRegistry)
+        || $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};
       // el SEED de la isla (initialData del wrapper: stayId/paxIndex…) debe viajar en CADA
       // acción — el server no lo eca y el estado del modelo cargado no lo lleva (mismo
