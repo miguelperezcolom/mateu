@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
+import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -865,6 +865,23 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
   } finally { globalThis.fetch = original }
+})
+
+test('routeFlipOf: un fragmento solo-estado con _route nuevo pide recargar la ruta interna', () => {
+  // Lo que contesta un crud de PÁGINA al clic de fila: ni componente ni navegación, un
+  // `_route` nuevo. Quien no lo sigue se queda en el listado sin un solo error a la vista.
+  const stateOnly = { fragments: [{ targetComponentId: '', component: null, state: { _route: '/2CSXZN' } }] }
+  const ctx = { state: { _route: '/2CSXZN' }, outbound: { route: '/booking/bookings' } }
+  assert.equal(routeFlipOf({ _route: 'list' }, ctx, stateOnly), '/booking/bookings/2CSXZN')
+  // sin cambio de _route no hay flip…
+  assert.equal(routeFlipOf({ _route: '/2CSXZN' }, ctx, stateOnly), null)
+  // …ni cuando la respuesta TRAE componente (eso ya repinta por sí solo)
+  const withComponent = { fragments: [{ component: { type: 'ServerSide' }, state: { _route: '/2CSXZN' } }] }
+  assert.equal(routeFlipOf({ _route: 'list' }, ctx, withComponent), null)
+  // los marcadores de query del mediador embebido siguen viajando
+  const embedded = { state: { _route: '/edit' }, outbound: { route: '/pax?_embeddedMediator=1' } }
+  assert.equal(routeFlipOf({}, embedded, { fragments: [{ component: null }] }),
+    '/pax/edit?_embeddedMediator=1')
 })
 
 atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compuesta', async () => {

@@ -60,6 +60,29 @@ export function composeInnerRoute(outboundRoute, flip) {
   return base + flip + query
 }
 
+/**
+ * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
+ * null si no hay flip.
+ *
+ * Un crud de PÁGINA no contesta el detalle: contesta un fragmento SOLO-ESTADO cuyo `_route`
+ * apunta a él (clic de fila → `/2CSXZN`, New → `/new`), que significa "recarga mi ruta interna
+ * con este estado". Quien no sigue el flip se queda mirando el listado: la petición sale, el
+ * servidor contesta 200, y no pasa nada — el fallo más difícil de ver de todos.
+ *
+ * El criterio es SEMÁNTICO (comparar el valor de `_route` antes y después), no por identidad:
+ * los objetos de VB son proxies y las referencias no dicen nada.
+ */
+export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '') {
+  const stateOnly = increment && (increment.fragments || []).length > 0
+    && (increment.fragments || []).every((f) => !f.component)
+  if (!stateOnly || !nextCtx || !nextCtx.state) return null
+  const flip = nextCtx.state._route
+  const previous = previousState ? previousState._route : undefined
+  if (flip == null || flip === previous) return null
+  const outbound = nextCtx.outbound || {}
+  return composeInnerRoute(outbound.route || fallbackRoute || '', flip)
+}
+
 /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
  *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
  *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no

@@ -373,3 +373,35 @@ oj-sp-global-header oj-menu-button .oj-button-icon {
   [data-mateu-pending] { animation: none; opacity: .55; }
   .mateu-skeleton-bone { animation: none; }
 }
+
+/* ── el contenido llena la ventana ────────────────────────────────────────────────────
+   El shell llena la ventana y su región de contenido se queda con lo que sobra bajo la
+   cabecera. Esto es ANDAMIAJE de altura, no repintar lo que pinta Oracle: el slot se llama
+   stretchingContents y es justo lo que se espera de él.
+
+   Antes, la utilidad `oj-web-applayout-page` pedía 100vh POR DEBAJO de una cabecera de
+   50px: la página medía 50px más que la ventana y salía una barra de scroll que no llevaba
+   a ninguna parte. */
+oj-sp-simple-ui-shell > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+oj-sp-simple-ui-shell > div:first-of-type > div:not([class*="globalheader"]),
+oj-sp-simple-ui-shell > div:first-of-type > div:not([class*="globalheader"]) > div:first-of-type {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+#pageContent.oj-web-applayout-page {
+  /* la utilidad trae min-height:100vh y aquí sobra: la altura la reparte el flex de arriba */
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+/* Estirar además la TARJETA del listado hasta abajo (como hace la shell Vaadin de la misma
+   app) se probó y se descartó por ahora: la cadena entre el contenedor de contenido y la
+   tabla la ponen el runtime de VB y el drawer-layout de JET, y tocarla desde fuera descoloca
+   la tarjeta. Queda anotado en DESIGN-NOTES; el hueco que queda bajo el listado es lienzo,
+   no un corte. */

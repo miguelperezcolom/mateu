@@ -1540,3 +1540,53 @@ las tres peticiones de cada una (mediador, contenido y `search`) salen al `/_pod
 **Pendiente anotado**: el título de la página del host se queda en `...` (el `SetWindowTitle`
 llega en el increment del contenido y no alimenta `mateuHostTitle`) — se ve en cualquier crud
 federado, y es independiente de la federación.
+
+## Pulido tras el primer uso real de la consola federada (2026-09-03)
+
+Tres cosas que se vieron al usar `rw.ec1.mateu.io` con los cruds ya cargando.
+
+**1. Del listado no se llegaba al detalle.** Un crud de PÁGINA no contesta el detalle: contesta
+un fragmento SOLO-ESTADO cuyo `_route` apunta a él (clic de fila → `/2CSXZN`, New → `/new`,
+volver → `/list`). La cadena de la ISLA seguía ese flip desde la Fase 9; la del HOST no, así que
+la petición salía, el servidor contestaba 200 y no pasaba nada — el fallo más difícil de ver de
+todos, porque no hay error en ninguna parte. `routeFlipOf` (transport) extrae el criterio y
+`runMateuAction` lo sigue.
+
+Dos detalles que costaron una vuelta cada uno:
+
+- **`_route` y `PushStateToHistory` NO son lo mismo**, aunque se parezcan. El primero es la ruta
+  INTERNA que hay que recargar (`/list`); el segundo es la URL, relativa al mediador (`''` para
+  el listado). Usar el primero como URL deja direcciones que no existen —
+  `/booking/bookings/list` en vez de `/booking/bookings`— y el botón atrás aterriza en blanco.
+- **Tras el flip hay que disparar los triggers OnLoad** del contenido nuevo: sin eso se vuelve
+  del detalle a una tabla con sus columnas y sin una sola fila.
+
+Verificado el ciclo entero contra el cluster: fila → detalle → Edit → Cancel → Back to list →
+New → atrás del navegador, con las URLs iguales a las de la shell Vaadin de la misma app.
+
+**2. El Ask Oracle solo ofrecía el primer nivel del menú.** Recorría `mateuNavItems`, así que
+listaba GRUPOS (que no son destino: pulsarlos no lleva a ninguna parte) y no las pantallas —
+que en una shell federada son casi todas. Ahora recorre el árbol entero y ofrece solo las hojas,
+con el rastro del grupo a la derecha de la fila (`Processes · Admin › Workflow`): dos pods pueden
+tener una pantalla que se llame igual. De paso, las "vistas rápidas" salen ahora de los
+quickFilters del listado que se esté viendo, en vez de tres rutas del front-office escritas a
+mano que en cualquier otra app son tres destinos muertos.
+
+**3. El título de página salía vacío (`...`) en todo crud federado.** `summarizeHost` buscaba el
+rótulo en el PRIMER nivel del menú, y la pantalla cuelga del grupo del pod, dos por debajo. Ahora
+busca a cualquier profundidad y, antes que eso, usa el título que declara el propio Crud.
+
+**4. Espacio en blanco abajo: media victoria.** `oj-web-applayout-page` fija `min-height:100vh`,
+pero el slot `stretchingContents` del shell ya empieza BAJO la cabecera de 50px: la página medía
+50px más que la ventana y salía una barra de scroll que no llevaba a ninguna parte. Arreglado
+haciendo que el shell reparta su alto (flex column + `min-height:100vh` en su raíz).
+
+Lo que NO se hizo, y por qué: estirar la TARJETA del listado hasta abajo (como hace la shell
+Vaadin). Entre el contenedor de contenido y la tabla hay envoltorios que ponen el runtime de VB
+(`oj-vb-content`/`oj-module`) y el `oj-drawer-layout` de JET; se intentó dos veces —con un
+comodín `*:has(#mateuTable)` y nombrando la cadena una a una— y las dos descolocaron la tarjeta
+(los `oj-flex` de FILA no se pueden volver columna). El hueco que queda es lienzo, no un corte,
+así que se deja anotado en vez de forzarlo a ciegas. Lo mismo con el ancho: los márgenes
+laterales en pantallas anchas son el modo `fixed` de RDS (tope 1408px centrado) y la shell
+Vaadin de la misma app hace exactamente lo mismo — cambiarlo sería una DECISIÓN de producto, no
+un arreglo.

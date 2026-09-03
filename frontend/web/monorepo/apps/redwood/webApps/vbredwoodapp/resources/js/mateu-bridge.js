@@ -1275,19 +1275,38 @@ define([], () => {
   }
 
   /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
+  /** La opción de menú de una ruta, a cualquier profundidad. */
+  function menuOptionAt(options, route) {
+    for (const option of options || []) {
+      if ((option.route || option.path) === route) return option
+      const found = menuOptionAt(option.submenus || option.submenu, route)
+      if (found) return found
+    }
+    return null
+  }
+
+  /** El título que declara el Crud del host, si lo hay. */
+  function crudTitleOf(host) {
+    const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
+    return crud && crud.metadata ? crud.metadata.title : ''
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
     const menu = (reg.shell && reg.shell.menu) || []
-    const option = menu.find((m) => m.route === route)
+    // a CUALQUIER profundidad: en una shell federada la pantalla que se está viendo cuelga del
+    // grupo del pod, dos niveles por debajo, y buscar solo en el primero dejaba el título vacío
+    const option = menuOptionAt(menu, route)
     // un listado (pageType collection) también lleva FormFields (columnas) — NO es un form
     const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
     const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
     const state = host.state || {}
     const fields = formMetadata ? fieldListOf(host.tree, state) : []
     return {
-      // la Page de un listado no lleva título (viaja en la metadata del Crudl) → caption del menú
-      title: pageMetadata.title || (option && (option.caption || option.label)) || '',
+      // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
+      // está, en el rótulo del menú
+      title: pageMetadata.title || crudTitleOf(host) || (option && (option.caption || option.label)) || '',
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -2481,6 +2500,29 @@ define([], () => {
     return base + flip + query
   }
 
+  /**
+   * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
+   * null si no hay flip.
+   *
+   * Un crud de PÁGINA no contesta el detalle: contesta un fragmento SOLO-ESTADO cuyo `_route`
+   * apunta a él (clic de fila → `/2CSXZN`, New → `/new`), que significa "recarga mi ruta interna
+   * con este estado". Quien no sigue el flip se queda mirando el listado: la petición sale, el
+   * servidor contesta 200, y no pasa nada — el fallo más difícil de ver de todos.
+   *
+   * El criterio es SEMÁNTICO (comparar el valor de `_route` antes y después), no por identidad:
+   * los objetos de VB son proxies y las referencias no dicen nada.
+   */
+  function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '') {
+    const stateOnly = increment && (increment.fragments || []).length > 0
+      && (increment.fragments || []).every((f) => !f.component)
+    if (!stateOnly || !nextCtx || !nextCtx.state) return null
+    const flip = nextCtx.state._route
+    const previous = previousState ? previousState._route : undefined
+    if (flip == null || flip === previous) return null
+    const outbound = nextCtx.outbound || {}
+    return composeInnerRoute(outbound.route || fallbackRoute || '', flip)
+  }
+
   /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
    *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
    *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
@@ -2852,6 +2894,7 @@ define([], () => {
     loadRoute,
     loadRouteInto,
     composeInnerRoute,
+    routeFlipOf,
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,

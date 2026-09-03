@@ -77,7 +77,9 @@ define([
       let hostRepainted = false;
       const touchesHost = (inc) =>
         ((inc && inc.fragments) || []).some((f) => f.action !== 'Add');
+      let lastIncrement = null;
       const applyInc = (inc) => {
+        lastIncrement = inc;
         reg = bridge.reduceContexts(reg, inc);
         if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
@@ -123,6 +125,50 @@ define([
         applyInc(await bridge.runMateuAction(
           base, host, route, id, componentState, { parameters: parameters || {}, appState }));
       }
+      // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
+      // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
+      // /new, volver → /list). Sin seguirlo no pasa NADA al pulsar: la petición sale, el
+      // servidor contesta 200 y el listado se queda igual. La isla ya lo seguía; el host no.
+      //
+      // El wire separa DOS cosas que se parecen y no son la misma: `_route` es la ruta
+      // INTERNA que hay que recargar (`/list`) y el `PushStateToHistory` es la URL, relativa
+      // al mediador (`''` para el listado). Usar la primera como URL deja direcciones que no
+      // existen — /booking/bookings/list en vez de /booking/bookings.
+      const urlPush = reg.effects ? reg.effects.urlPush : undefined;
+      const flipRoute = bridge.routeFlipOf(
+        host && host.state, reg.contexts[bridge.HOST_ID], lastIncrement, route);
+      if (flipRoute) {
+        const flipOutbound = (reg.contexts[bridge.HOST_ID] || {}).outbound || {};
+        const mediatorRoute = flipOutbound.route || route || '';
+        applyInc(await bridge.loadRoute(base, flipRoute, '', {
+          consumedRoute: flipOutbound.consumedRoute || mediatorRoute,
+          serverSideType: flipOutbound.serverSideType,
+          appState,
+          componentState: reg.contexts[bridge.HOST_ID].state,
+        }));
+        // lo que acaba de llegar puede pedir su carga OnLoad (el listado pide `search`; sin
+        // esto se vuelve del detalle a una tabla vacía, con sus columnas y sin una fila)
+        const reloaded = reg.contexts[bridge.HOST_ID];
+        for (const triggerActionId of bridge.onLoadTriggers(reloaded)) {
+          const reloadedListing = bridge.listingOf(reloaded);
+          applyInc(await bridge.runMateuAction(
+            base, reloaded, flipRoute, triggerActionId,
+            Object.assign({}, reloaded.state,
+              { page: 0, size: (reloadedListing && reloadedListing.pageSize) || 20 }),
+            { appState }));
+        }
+        // la URL acompaña al contenido: el detalle es direccionable y el botón atrás
+        // devuelve al listado (el popstate de la shell recarga la ruta anterior)
+        if (urlPush != null) {
+          const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
+          $application.variables.mateuSelectedRoute = urlRoute;
+          try {
+            window.history.pushState(
+              null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
+          } catch (ignored) { /* sin history en algunos contextos */ }
+        }
+      }
+
       const effects = reg.effects;
 
       // eventos del bus (CloseModal/DispatchEvent) → triggers OnCustomEvent suscritos
