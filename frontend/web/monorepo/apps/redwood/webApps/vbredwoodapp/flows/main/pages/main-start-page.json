@@ -214,6 +214,16 @@
         }
       ]
     },
+    "mateuContentTabChanged": {
+      "chains": [
+        {
+          "chain": "contentTabSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "itemTabChanged": {
       "chains": [
         {
@@ -385,6 +395,16 @@
           "chain": "runMateuAction",
           "parameters": {
             "actionId": "{{ $application.variables.mateuPageHeader.primaryId }}"
+          }
+        }
+      ]
+    },
+    "headerGoToParent": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuPageHeader.backId }}"
           }
         }
       ]

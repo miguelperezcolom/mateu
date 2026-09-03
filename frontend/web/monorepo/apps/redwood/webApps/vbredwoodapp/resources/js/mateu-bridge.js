@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define([], () => {
+define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
   'use strict';
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
@@ -448,6 +448,11 @@ define([], () => {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
     if (!tabLayout) return null
     const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+    // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
+    // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
+    // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
+    // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
+    if (!keyCard) return null
     const tabs = findAllByType(ctx.tree, 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
@@ -534,27 +539,44 @@ define([], () => {
     return OJ_ICONS[icon] || undefined
   }
 
+  /**
+   * Una opción de menú → nodo del árbol que pintan la barra y el navigator.
+   *
+   * RECURSIVO porque el menú lo es: una shell federada llega con tres niveles sin pedir permiso
+   * (grupo de la shell → grupo del pod → sus pantallas), y aplanarlo no deja el tercer nivel feo,
+   * lo deja INALCANZABLE — el grupo del pod se navega como si fuese pantalla y contesta vacío.
+   *
+   * `id` es la ruta con la que se navega: la TERMINAL para una hoja local (la compuesta,
+   * /gestion/person, es un camino de menú y no una ruta que el backend resuelva) y la COMPUESTA
+   * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
+   * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
+   */
+  function navNodeOf(option, parentRoute) {
+    const raw = option.route || option.path || ''
+    const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
+      ? raw.slice(parentRoute.length)
+      : raw
+    const children = option.submenus || option.submenu || []
+    return {
+      id,
+      label: option.caption || option.label || id,
+      icon: ojIconOf(option.icon),
+      hasChildren: children.length > 0,
+      // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
+      children: children.map((child) => navNodeOf(child, raw)),
+    }
+  }
+
   function shellNavOf(reg) {
     const shell = reg.shell || {}
     const items = []
     const menuTree = []
     let hasGroups = false
     for (const option of shell.menu || []) {
-      const route = option.route || option.path
-      const label = option.caption || option.label || route
-      const children = option.submenus || option.submenu || []
-      items.push({ id: route, label, icon: ojIconOf(option.icon) })
-      if (children.length) hasGroups = true
-      menuTree.push({
-        id: route,
-        label,
-        hasChildren: children.length > 0,
-        children: children.map((child) => {
-          const childRoute = child.route || child.path || ''
-          const terminal = childRoute.indexOf(route + '/') === 0 ? childRoute.slice(route.length) : childRoute
-          return { id: terminal, label: child.caption || child.label || terminal }
-        }),
-      })
+      const node = navNodeOf(option, '')
+      items.push({ id: node.id, label: node.label, icon: node.icon })
+      if (node.hasChildren) hasGroups = true
+      menuTree.push(node)
     }
     // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
     // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
@@ -663,8 +685,14 @@ define([], () => {
    *  CSP de VB (flags is*, clases, textos interpolados contra el state). Las islas
    *  ANIDADAS (App mediador dentro de la isla, p.ej. el documento) se saltan — fase
    *  posterior. null si el árbol no aporta nada display (isla de formulario puro). */
-  function islandContentOf(ctx) {
+  /** Fábrica de data providers de JET, inyectada por la app (en Node no hay ninguna: el atom
+   *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
+  let dataProviderFactory = null
+  function setDataProviderFactory(factory) { dataProviderFactory = factory }
+
+  function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
+    const activeTab = opts.activeTab || ''
     const state = ctx.state || {}
     const interp = (t) => interpolate(t, state)
     const badgeOf = (b) => ({
@@ -748,6 +776,28 @@ define([], () => {
       }
       if (t === 'FormField') {
         const fieldId = m.fieldId || m.id
+        // GRID embebido en un formulario (una lista con columnas: los Steps/Messages de un
+        // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
+        // búsqueda—, es una tabla más del contenido.
+        if ((m.columns || []).length) {
+          const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
+          atom({
+            isGrid: true,
+            fieldId,
+            label: m.label || '',
+            columns: m.columns.map((col) => {
+              const c = col.metadata || col
+              const def = { headerText: c.label || c.id, field: c.id }
+              if (c.dataType === 'status') def.template = 'cellStatusBadge'
+              return def
+            }),
+            rows: statusBadgeRows(rows, m.columns),
+            // el data provider lo construye la app (JET); en Node no hay, y el atom viaja igual
+            adp: dataProviderFactory ? dataProviderFactory(statusBadgeRows(rows, m.columns)) : null,
+            isEmpty: rows.length === 0,
+          }, container)
+          return
+        }
         if (m.propertyRow) {
           const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
           atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
@@ -763,6 +813,56 @@ define([], () => {
             value: state[fieldId] == null ? '' : String(state[fieldId]),
           }, container)
         }
+        return
+      }
+      if (t === 'TabLayout') {
+        // Las pestañas se APLANAN: el atom de la barra + el contenido de la pestaña activa
+        // como átomos normales del mismo contenedor. Anidar átomos dentro de átomos obligaría a
+        // duplicar toda la plantilla dentro de la pestaña y a pelearse con el $current anidado
+        // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
+        const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
+        if (!tabs.length) return
+        const ids = tabs.map((tab, i) => 'tab-' + i)
+        const wanted = ids.indexOf(activeTab)
+        const selected = wanted >= 0 ? wanted : tabs.findIndex((tab) => tab.metadata.active)
+        const current = selected >= 0 ? selected : 0
+        atom({
+          isTabs: true,
+          selectedId: ids[current],
+          tabs: tabs.map((tab, i) => ({
+            id: ids[i],
+            label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
+          })),
+        }, container)
+        for (const child of tabs[current].children || []) visit(child, container)
+        return
+      }
+      if (t === 'CustomField') {
+        // envoltorio: lo que importa es lo que lleva dentro (metadata.content)
+        const inner = m.content
+        if (Array.isArray(inner)) inner.forEach((c) => visit(c, container))
+        else if (inner && typeof inner === 'object') visit(inner, container)
+        return
+      }
+      if (t === 'Element') {
+        // Componente WEB de terceros (el grafo de un proceso). Los atributos son su único canal
+        // de datos y viajan en la METADATA, que un State no reenvía: escritos como `${state.x}`
+        // son VALORES y se reevalúan en cada render — mismo idioma que cualquier rótulo. El
+        // módulo del atributo `import` lo carga la app la primera vez que se usa la etiqueta.
+        const attributes = {}
+        for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
+        atom({
+          isElement: true,
+          elementId: node.id || m.name,
+          name: m.name,
+          importUrl: (m.attributes || {}).import || '',
+          attributes,
+          style: node.style || '',
+          cssClasses: node.cssClasses || '',
+          content: interp(m.content || ''),
+          asHtml: !!m.html,
+          on: m.on || null,
+        }, container)
         return
       }
       if (t === 'Card') {
@@ -1096,8 +1196,15 @@ define([], () => {
    *  isla del host (p.ej. el documento) fusionada en su hueco (atomos fromNested → despachan
    *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
    *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
+  /** ¿El card llevaba título? visit() lo mete como primer átomo de texto con la clase del
+   *  subencabezado — que es justo lo que distingue una tarjeta de verdad del marco de la página. */
+  function cardHasTitle(block) {
+    const first = (block.items || [])[0]
+    return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
+  }
+
   function hostContentOf(ctx, islandBlocks, opts = {}) {
-    const blocks = islandContentOf(ctx)
+    const blocks = islandContentOf(ctx, opts)
     if (!blocks) return null
     let merged = mergeNestedContent(blocks, islandBlocks || null)
     const title = opts.title || ''
@@ -1135,6 +1242,14 @@ define([], () => {
       // el loop del host pinta los bloques dentro de un oj-flex: los bloques-columna de una
       // fila zonada llevan su colClass; el resto ocupa la fila entera (oj-sm-12)
       .map((block) => ({ ...block, blockClass: block.colClass || 'oj-flex-item oj-sm-12' }))
+    // Un ÚNICO card SIN TÍTULO que envuelve todo el contenido no es una tarjeta: es el marco de
+    // la página, y ése ya lo pinta el contenedor de contenido. Pintarlo además como oj-panel deja
+    // una caja dentro de otra, que es como se veía cualquier pantalla con pestañas o con una
+    // tabla dentro — mientras que una ficha normal (la rama de formulario) no la tiene. Con
+    // título sí es una tarjeta de verdad y se respeta, igual que cuando hay varias.
+    if (merged.length === 1 && merged[0].isCard && !cardHasTitle(merged[0])) {
+      merged = [{ ...merged[0], isCard: false, isPlain: true }]
+    }
     return merged.length ? merged : null
   }
 
@@ -1229,6 +1344,40 @@ define([], () => {
       }))
   }
 
+  /**
+   * Cuál de los botones del toolbar ocupa el hueco de acción PRIMARIA de la cabecera.
+   *
+   * `oj-sp-header-general-overview` da UN hueco visible para la primaria y pinta la primera
+   * secundaria como botón; el resto va al desbordamiento `···`. Con lo que manda el wire hoy —
+   * ningún botón marcado `primary` en la vista de un crud — todo caía en secundarias y la acción
+   * de verdad (Edit) quedaba escondida detrás de los puntos suspensivos.
+   *
+   * Manda el wire cuando dice algo (`buttonStyle: primary`). Si no dice nada, se toma la ÚLTIMA
+   * que no sea de vuelta: en los toolbars de Mateu el orden es "salir, …, avanzar" — Cancel→Save,
+   * Back to list→Add another→Edit —, así que la última no-vuelta es la que uno vino a hacer.
+   * Heurística explícita, a sustituir el día que el wire traiga el rol del botón.
+   */
+  const BACK_ACTIONS = { back: true, 'back-to-list': true, close: true }
+  const isBackButton = (button) => !!button && (
+    BACK_ACTIONS[button.actionId] || String(button.actionId || '').indexOf('cancel') === 0)
+
+  /** El botón de VOLVER del toolbar, si lo hay: en RDS eso no es una acción más, es la
+   *  afordancia `goToParent` de la cabecera — meterlo entre las secundarias lo esconde en el
+   *  desbordamiento justo cuando es lo que más se pulsa. */
+  function backToolbarButton(toolbar) {
+    return (toolbar || []).find(isBackButton) || null
+  }
+
+  function primaryToolbarButton(toolbar) {
+    const buttons = toolbar || []
+    const declared = buttons.find((b) => b.chroming === 'callToAction')
+    if (declared) return declared
+    for (let i = buttons.length - 1; i >= 0; i -= 1) {
+      if (!isBackButton(buttons[i])) return buttons[i]
+    }
+    return null
+  }
+
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
@@ -1258,19 +1407,38 @@ define([], () => {
   }
 
   /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
+  /** La opción de menú de una ruta, a cualquier profundidad. */
+  function menuOptionAt(options, route) {
+    for (const option of options || []) {
+      if ((option.route || option.path) === route) return option
+      const found = menuOptionAt(option.submenus || option.submenu, route)
+      if (found) return found
+    }
+    return null
+  }
+
+  /** El título que declara el Crud del host, si lo hay. */
+  function crudTitleOf(host) {
+    const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
+    return crud && crud.metadata ? crud.metadata.title : ''
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
     const menu = (reg.shell && reg.shell.menu) || []
-    const option = menu.find((m) => m.route === route)
+    // a CUALQUIER profundidad: en una shell federada la pantalla que se está viendo cuelga del
+    // grupo del pod, dos niveles por debajo, y buscar solo en el primero dejaba el título vacío
+    const option = menuOptionAt(menu, route)
     // un listado (pageType collection) también lleva FormFields (columnas) — NO es un form
     const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
     const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
     const state = host.state || {}
     const fields = formMetadata ? fieldListOf(host.tree, state) : []
     return {
-      // la Page de un listado no lleva título (viaja en la metadata del Crudl) → caption del menú
-      title: pageMetadata.title || (option && (option.caption || option.label)) || '',
+      // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
+      // está, en el rótulo del menú
+      title: pageMetadata.title || crudTitleOf(host) || (option && (option.caption || option.label)) || '',
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -1415,7 +1583,12 @@ define([], () => {
     const md = child?.metadata
     if (md?.type !== 'App') return null
     return {
-      rootRoute: md.rootRoute || ctx.state?._route || '',
+      // homeConsumedRoute ANTES que rootRoute: en un deep-link a una sub-ruta (el detalle de un
+      // proceso) `rootRoute` es la ruta ENTERA que se pidió, mientras que lo consumido por el
+      // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
+      // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
+      // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
+      rootRoute: md.homeConsumedRoute || md.rootRoute || ctx.state?._route || '',
       homeRoute: md.homeRoute ?? '',
       serverSideType: md.homeServerSideType ?? md.serverSideType,
       variant: md.variant,
@@ -2213,6 +2386,104 @@ define([], () => {
   }
 
 
+  // Montaje de COMPONENTES WEB de terceros (átomo isElement): el wire trae la etiqueta, sus
+  // atributos y la URL del módulo que la define. Vive fuera del reducer porque toca el DOM.
+  //
+  // Por qué no se puede pintar en la plantilla: VB no sabe escribir `<{name}>`. Y por qué no se
+  // recrea en cada render: un componente web guarda estado que el servidor no conoce —el zoom y la
+  // selección de un grafo, un layout ya calculado—, así que se crea UNA vez por hueco y en los
+  // renders siguientes solo se le reescriben los atributos. Mismo criterio que el renderer web
+  // compartido (libs/mateu elementRenderer).
+
+  const loaded = {}
+
+  /**
+   * Carga el módulo que define la etiqueta, una sola vez. El elemento se puede crear antes: los
+   * componentes web se "actualizan" solos en cuanto su definición llega.
+   *
+   * Se inyecta un `<script type="module">` en vez de usar `import(url)` porque el build de VB
+   * transpila el import dinámico a un `require()` de AMD, y requirejs se pone a resolver la URL
+   * como si fuera un id de módulo suyo: la petición no llega a salir y el hueco se queda vacío
+   * sin un solo error. Un script de módulo no lo puede reescribir nadie.
+   */
+  function ensureDefined(name, importUrl) {
+    if (!importUrl || !name || name.indexOf('-') < 0) return
+    if (loaded[importUrl]) return
+    if (typeof customElements !== 'undefined' && customElements.get(name)) return
+    if (typeof document === 'undefined') return
+    loaded[importUrl] = true
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.src = importUrl
+    // que un componente de terceros no cargue no puede tumbar la pantalla: el hueco se queda
+    // vacío y el resto del contenido sigue ahí
+    script.addEventListener('error', () => { loaded[importUrl] = false })
+    document.head.appendChild(script)
+  }
+
+  function hydrate(element, atom) {
+    for (const key of Object.keys(atom.attributes || {})) {
+      // setAttribute sobre el que YA está, nunca sobre uno nuevo: el componente lo convierte en
+      // cambio de propiedad y se repinta conservando lo suyo
+      element.setAttribute(key, atom.attributes[key])
+    }
+    if (atom.style) element.setAttribute('style', atom.style)
+    if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
+    if (atom.content) {
+      if (atom.asHtml) element.innerHTML = atom.content
+      else element.textContent = atom.content
+    }
+  }
+
+  /** Hidrata los huecos `.mateu-element` que haya en el documento. Devuelve cuántos quedaron
+   *  montados, para que quien reintenta sepa si ya está. */
+  function mountElements(atoms) {
+    const byId = {}
+    for (const atom of atoms || []) byId[atom.elementId] = atom
+    let mounted = 0
+    const holes = typeof document === 'undefined'
+      ? [] : document.querySelectorAll('.mateu-element[data-element-id]')
+    for (const hole of holes) {
+      const atom = byId[hole.getAttribute('data-element-id')]
+      if (!atom) continue
+      ensureDefined(atom.name, atom.importUrl)
+      let element = hole.firstElementChild
+      if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
+        hole.textContent = ''
+        element = document.createElement(atom.name)
+        hole.appendChild(element)
+      }
+      hydrate(element, atom)
+      mounted += 1
+    }
+    return mounted
+  }
+
+  /** Igual, pero esperando a que VB pinte: sus bindings se actualizan de forma ASÍNCRONA, así que
+   *  al terminar la chain el hueco todavía no está en el DOM (la misma trampa que costó el foco
+   *  del contenido en la accesibilidad). */
+  function mountElementsSoon(atoms, frames = 12) {
+    const pending = (atoms || []).filter((a) => a && a.isElement)
+    if (!pending.length || typeof requestAnimationFrame === 'undefined') return
+    let left = frames
+    const tick = () => {
+      if (mountElements(pending) >= pending.length) return
+      left -= 1
+      if (left > 0) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }
+
+  /** Los átomos isElement de una proyección de bloques (los que hay que montar). */
+  function elementAtomsOf(blocks) {
+    const out = []
+    for (const block of blocks || []) {
+      for (const atom of block.items || []) if (atom && atom.isElement) out.push(atom)
+    }
+    return out
+  }
+
+
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
   // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
@@ -2464,6 +2735,29 @@ define([], () => {
     return base + flip + query
   }
 
+  /**
+   * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
+   * null si no hay flip.
+   *
+   * Un crud de PÁGINA no contesta el detalle: contesta un fragmento SOLO-ESTADO cuyo `_route`
+   * apunta a él (clic de fila → `/2CSXZN`, New → `/new`), que significa "recarga mi ruta interna
+   * con este estado". Quien no sigue el flip se queda mirando el listado: la petición sale, el
+   * servidor contesta 200, y no pasa nada — el fallo más difícil de ver de todos.
+   *
+   * El criterio es SEMÁNTICO (comparar el valor de `_route` antes y después), no por identidad:
+   * los objetos de VB son proxies y las referencias no dicen nada.
+   */
+  function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '') {
+    const stateOnly = increment && (increment.fragments || []).length > 0
+      && (increment.fragments || []).every((f) => !f.component)
+    if (!stateOnly || !nextCtx || !nextCtx.state) return null
+    const flip = nextCtx.state._route
+    const previous = previousState ? previousState._route : undefined
+    if (flip == null || flip === previous) return null
+    const outbound = nextCtx.outbound || {}
+    return composeInnerRoute(outbound.route || fallbackRoute || '', flip)
+  }
+
   /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
    *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
    *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
@@ -2482,6 +2776,11 @@ define([], () => {
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
     const outbound = (ctx && ctx.outbound) || {}
+    // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
+    // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
+    // trigger `search` de un listado, un botón del toolbar) sabe de qué contexto sale, pero
+    // no de qué backend vino — y mandarla a la shell la contesta vacía, sin error.
+    base = outbound.baseUrl != null ? outbound.baseUrl : base
     const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
     // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
     // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
@@ -2515,6 +2814,7 @@ define([], () => {
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
     const outbound = (ctx && ctx.outbound) || {}
+    base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
     // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
@@ -2602,7 +2902,7 @@ define([], () => {
     const firstIncrement = await loadRoute(base, route, targetId, extra)
     let next = reduceContexts(reg, firstIncrement)
     const ctxId = targetId === '' ? HOST_ID : targetId
-    let outbound = { route, consumedRoute: '', serverSideType: undefined }
+    let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
     // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
     // la carga de contenido las pierde, así que se conservan aquí
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
@@ -2613,6 +2913,7 @@ define([], () => {
         route,
         consumedRoute: info.rootRoute || route,
         serverSideType: info.serverSideType,
+        baseUrl: base,
       }
       next = reduceContexts(
         next,
@@ -2640,6 +2941,18 @@ define([], () => {
     return next
   }
 
+  /**
+   * De qué backend se cargó una superficie, o undefined si aún no se sabe.
+   *
+   * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
+   * dispara conoce el id del contexto, no el pod. Preguntándoselo al HOST (el valor por defecto)
+   * la isla se carga de donde vino la pantalla que la contiene, que es lo que siempre quiere.
+   */
+  function baseOf(reg, ctxId = HOST_ID) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    return ctx && ctx.outbound ? ctx.outbound.baseUrl : undefined
+  }
+
   // ── menús federados ────────────────────────────────────────────────────────────────────────
   //
   // Una shell declara secciones que sirve OTRO pod: `RemoteMenu("/_workflow")`. El árbol que llega
@@ -2657,10 +2970,30 @@ define([], () => {
   /** Ruta de menú → dónde vive de verdad. La llena expandRemoteMenus; la lee la navegación. */
   const remoteRoutes = new Map()
 
-  /** Dónde vive una ruta de menú, o undefined si la sirve la propia shell. */
+  /**
+   * Dónde vive una ruta, o undefined si la sirve la propia shell.
+   *
+   * Casa también por PREFIJO, con el registro más largo que encaje: al registro solo llegan las
+   * rutas del MENÚ (`/workflow/processes`), y todo lo que cuelga de ellas —el detalle de un
+   * proceso, `/new`, `/{id}/edit`— vive en el mismo pod. Sin esto, un deep-link a
+   * `/workflow/processes/<id>` salía al backend de la shell, que contesta "Not found.".
+   */
   function remoteRouteOf(route) {
     if (route == null) return undefined
-    return remoteRoutes.get(route) || remoteRoutes.get(String(route).replace(/^\//, ''))
+    const bare = String(route).replace(/^\//, '')
+    const exact = remoteRoutes.get(route) || remoteRoutes.get(bare)
+    if (exact) return exact
+    let best = null
+    let bestLength = -1
+    for (const [registered, descriptor] of remoteRoutes) {
+      const prefix = String(registered).replace(/^\//, '')
+      if (!prefix || prefix.length <= bestLength) continue
+      if (bare === prefix || bare.indexOf(prefix + '/') === 0) {
+        best = descriptor
+        bestLength = prefix.length
+      }
+    }
+    return best || undefined
   }
 
   const childrenOf = (option) => option.submenus || option.submenu || []
@@ -2769,8 +3102,14 @@ define([], () => {
     return spliceRemote(menu, answers)
   }
 
+  // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
+  setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
+
   return {
     HOST_ID,
+    mountElements,
+    mountElementsSoon,
+    elementAtomsOf,
     reduceContexts,
     collectFields,
     collectActions,
@@ -2807,6 +3146,8 @@ define([], () => {
     bannersOf,
     pageStyleOf,
     pageToolbarOf,
+    primaryToolbarButton,
+    backToolbarButton,
     entityHeaderOf,
     collectTexts,
     foldoutOf,
@@ -2816,9 +3157,11 @@ define([], () => {
     loadRoute,
     loadRouteInto,
     composeInnerRoute,
+    routeFlipOf,
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,
+    baseOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión

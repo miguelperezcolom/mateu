@@ -100,7 +100,7 @@ define([
           componentState[quickNav.fieldId] = quickNav.value;
         }
         const increment = await bridge.runMateuAction(
-          base, loaded, route, triggerActionId, componentState, { appState });
+          callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
       }
 
@@ -111,7 +111,7 @@ define([
       const firstIsland = islands.length ? islands[0] : null;
       if (firstIsland) {
         // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
-        reg = await bridge.loadRouteInto(base, reg, firstIsland.route, firstIsland.id, {
+        reg = await bridge.loadRouteInto(callBase, reg, firstIsland.route, firstIsland.id, {
           appState,
           componentState: firstIsland.initialData || {},
         });
@@ -157,7 +157,7 @@ define([
           || $application.variables.mateuNestedSeed !== nestedSeed)) {
         // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
         // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
-        reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
+        reg = await bridge.loadRouteInto(callBase, reg, nestedInfo.route, nestedInfo.id, {
           appState,
           componentState: nestedInfo.initialData || {},
         });
@@ -272,6 +272,9 @@ define([
       // el huésped + el CTA van en la banda, el foldout es solo el cuerpo
       const hostEntity = (!esWizard && (sinOtrasRamas || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(host) : null;
+      // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
+      // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
+      $application.variables.mateuActiveTab = '';
       const hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
             { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
@@ -279,7 +282,7 @@ define([
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow)));
+        || a.isStat || a.isNotice || a.isPropertyRow || a.isTabs || a.isGrid || a.isElement)));
       // las acciones del toolbar de la Page (se calculan aquí porque los templates de
       // página de entidad las recolocan: iop → goToParent/secondaryActions del panel)
       const hostToolbar = bridge.pageToolbarOf(host);
@@ -313,6 +316,17 @@ define([
         ? { on: true, main: gopFold(zonedGop[0]), info: gopFold(zonedGop[1]) }
         : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
       $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? hostBlocks : null) || [];
+      // los componentes web del contenido (el grafo de un proceso) los crea el bridge en su
+      // hueco: VB no puede escribir una etiqueta cuyo nombre llega en los datos
+      bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
+      // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
+      // después: sin refresh se queda con la lista sin estilar (misma trampa que el
+      // oj-navigation-list del navigator)
+      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+        } catch (ignored) { /* aún sin montar */ }
+      }
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
@@ -390,7 +404,11 @@ define([
       const showBand = showHeader && pw !== 'edgeToEdge';
       const showListBand = !!listingSummary && pw !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const primaryBtn = hostToolbar.find((b) => b.chroming === 'callToAction') || null;
+      // la cabecera Spectra solo enseña la primaria y la PRIMERA secundaria; el resto va al
+      // desbordamiento, así que quién es la primaria decide qué se ve
+      const primaryBtn = bridge.primaryToolbarButton(hostToolbar);
+      // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
+      const backBtn = bridge.backToolbarButton(hostToolbar);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
@@ -402,9 +420,28 @@ define([
         showListInline: !!listingSummary && !showListBand,
         primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtn ? primaryBtn.actionId : '',
-        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
+          .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        goToParent: !!backBtn,
+        backId: backBtn ? backBtn.actionId : '',
+        backLabel: backBtn ? backBtn.label : '',
         toolbar: hostToolbar,
       };
+      // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
+      $application.variables.mateuPageHeaderTranslations = backBtn
+        ? { goToParent: backBtn.label } : {};
+
+      // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
+      // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO
+      // `metadata.toolbar`, así que al entrar en un detalle salían Back to list / Add another /
+      // Edit arriba y otra vez abajo. Manda la cabecera cuando se pinta; si no hay cabecera, la
+      // fila de abajo es la única y se queda entera.
+      if (($application.variables.mateuPageHeader.showBand || $application.variables.mateuPageHeader.showInline) && hostToolbar.length) {
+        const enCabecera = {};
+        for (const boton of hostToolbar) enCabecera[boton.actionId] = true;
+        $application.variables.mateuFormActions =
+          ($application.variables.mateuFormActions || []).filter((a) => !enCabecera[a.actionId]);
+      }
       // el solape -40px de la banda NO aplica con el template iop (sus sticky internos
       // calculan contra el flujo y el solape los descuadra)
       if ((showBand && !iopOn) || showListBand) {

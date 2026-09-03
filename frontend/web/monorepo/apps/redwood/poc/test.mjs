@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf } from './transport.mjs'
+import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -22,7 +22,7 @@ import {
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
-  entityHeaderOf, itemOverviewPageOf,
+  entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -271,6 +271,70 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const menu = nav.headerActions.find((a) => a.hasChildren)
   assert.deepEqual(menu.children.map((c) => c.actionId), ['exportPdf', 'exportExcel'])
   assert.match(nav.serverSideType, /VbHome$/)
+})
+
+test('primaryToolbarButton: manda el wire; si calla, la última que no sea de vuelta', () => {
+  // La cabecera Spectra enseña la primaria y la PRIMERA secundaria; lo demás va al `···`.
+  // Con el toolbar de la vista de un crud (nadie marcado primary) `Edit` quedaba escondido.
+  const view = [
+    { actionId: 'cancel-view', label: 'Back to list', chroming: 'outlined' },
+    { actionId: 'new', label: 'Add another', chroming: 'outlined' },
+    { actionId: 'edit', label: 'Edit', chroming: 'outlined' },
+  ]
+  assert.equal(primaryToolbarButton(view).actionId, 'edit')
+  // lo que declara el wire gana, esté donde esté
+  const declared = [{ actionId: 'a', chroming: 'callToAction' }, { actionId: 'b', chroming: 'outlined' }]
+  assert.equal(primaryToolbarButton(declared).actionId, 'a')
+  // un toolbar de solo vueltas no promociona nada (mejor sin primaria que con una que saca de la pantalla)
+  assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'back' }]), null)
+  assert.equal(primaryToolbarButton([]), null)
+  // editor: Cancel + Save → Save
+  assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'save' }]).actionId, 'save')
+})
+
+test('detalle de proceso (wire real): campos, pestañas, grid embebido y el componente del grafo', () => {
+  // Página de FORMULARIO con pestañas dentro. Antes la reclamaba el arquetipo item-overview
+  // por el mero hecho de llevar un TabLayout, y quedaba en rótulos de pestaña sin nada debajo:
+  // ni los campos de fuera, ni las tablas de dentro, ni el grafo.
+  const reg = reduceContexts(empty(), fx('wf-process'))
+  const host = reg.contexts[HOST_ID]
+  assert.equal(itemOverviewOf(host), null, 'sin panel de datos clave no es un item overview')
+
+  // como en la chain: el título de la Page lo pinta la banda del header, no el contenido
+  const titulo = summarizeHost(reg, '').title
+  const bloques = hostContentOf(host, null, { title: titulo }) || []
+  // el card sin título que envuelve la página NO se pinta como tarjeta: el contenedor de
+  // contenido ya es el marco, y con panel quedaba una caja dentro de otra
+  assert.equal(bloques.length, 1)
+  assert.equal(bloques[0].isCard, false)
+  assert.equal(bloques[0].isPlain, true)
+  const items = bloques.flatMap((b) => b.items)
+  // los campos que están FUERA de las pestañas
+  assert.ok(items.some((a) => a.isInput && a.fieldId === 'id'))
+  assert.ok(items.some((a) => a.isInput && a.fieldId === 'name'))
+  // la barra de pestañas, entera y con la primera activa
+  const tabs = items.find((a) => a.isTabs)
+  assert.ok(tabs, 'no se proyectó la barra de pestañas')
+  assert.deepEqual(tabs.tabs.map((t) => t.label),
+    ['Diagram', 'Steps', 'Messages', 'Errors', 'Resources', 'Variables'])
+  assert.equal(tabs.selectedId, 'tab-0')
+  // …y el contenido de la ACTIVA: el grafo, con sus atributos ya interpolados del estado
+  const element = items.find((a) => a.isElement)
+  assert.ok(element, 'el componente del grafo no se proyectó')
+  assert.equal(element.name, 'eventconductor-workflow-graph')
+  assert.equal(element.importUrl, '/eventconductor/workflow-graph.js')
+  assert.ok(element.attributes.value && element.attributes.value.indexOf('${') < 0,
+    'el value del grafo llegó sin interpolar')
+  assert.ok(!items.some((a) => a.isGrid), 'la pestaña Diagram no tiene tablas')
+
+  // otra pestaña: su grid embebido, con columnas y filas del estado
+  const steps = (hostContentOf(host, null, { title: titulo, activeTab: 'tab-1' }) || [])
+    .flatMap((b) => b.items).find((a) => a.isGrid)
+  assert.ok(steps, 'no se proyectó la tabla de la pestaña Steps')
+  assert.deepEqual(steps.columns.map((c) => c.headerText), ['Name', 'Status'])
+  assert.ok(steps.rows.length > 0)
+  // la columna de estado llega con su clase de badge precomputada (CSP)
+  assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
@@ -864,6 +928,170 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+  } finally { globalThis.fetch = original }
+})
+
+test('routeFlipOf: un fragmento solo-estado con _route nuevo pide recargar la ruta interna', () => {
+  // Lo que contesta un crud de PÁGINA al clic de fila: ni componente ni navegación, un
+  // `_route` nuevo. Quien no lo sigue se queda en el listado sin un solo error a la vista.
+  const stateOnly = { fragments: [{ targetComponentId: '', component: null, state: { _route: '/2CSXZN' } }] }
+  const ctx = { state: { _route: '/2CSXZN' }, outbound: { route: '/booking/bookings' } }
+  assert.equal(routeFlipOf({ _route: 'list' }, ctx, stateOnly), '/booking/bookings/2CSXZN')
+  // sin cambio de _route no hay flip…
+  assert.equal(routeFlipOf({ _route: '/2CSXZN' }, ctx, stateOnly), null)
+  // …ni cuando la respuesta TRAE componente (eso ya repinta por sí solo)
+  const withComponent = { fragments: [{ component: { type: 'ServerSide' }, state: { _route: '/2CSXZN' } }] }
+  assert.equal(routeFlipOf({ _route: 'list' }, ctx, withComponent), null)
+  // los marcadores de query del mediador embebido siguen viajando
+  const embedded = { state: { _route: '/edit' }, outbound: { route: '/pax?_embeddedMediator=1' } }
+  assert.equal(routeFlipOf({}, embedded, { fragments: [{ component: null }] }),
+    '/pax/edit?_embeddedMediator=1')
+})
+
+atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compuesta', async () => {
+  // La forma REAL de un menú federado (ec-demo1): la shell declara la sección `Booking` como
+  // remota, y el pod NO contesta con hojas sueltas sino con SU grupo — `Booking` con
+  // `/booking/bookings` debajo. El nav recorta el prefijo del padre a los hijos porque una ruta
+  // compuesta de menú LOCAL no resuelve por sync; aplicado a una hoja de otro pod, ese recorte
+  // la dejaba en `/bookings`, que no la sirve nadie: ni casa con el registro de rutas remotas
+  // ni existe en la shell. El resultado era un crud que contestaba "Not found." al abrirlo.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp(
+      [{ label: 'Booking', route: '/booking', submenus: [{ label: 'Bookings', route: '/booking/bookings' }] }],
+      '',
+      'BookingHome',
+    ),
+  })
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_booking', route: '', path: '/booking', label: 'Booking' },
+    ])
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    const group = nav.menuTree.find((m) => m.hasChildren)
+    assert.deepEqual(group.children.map((c) => c.id), ['/booking/bookings'])
+    // …y por esa ruta el registro sabe a qué pod ir, con qué consumedRoute y qué serverSideType
+    const where = remoteRouteOf('/booking/bookings')
+    assert.equal(where.baseUrl, '/_booking')
+    assert.equal(where.consumedRoute, '')
+    assert.equal(where.serverSideType, 'BookingHome')
+  } finally { globalThis.fetch = original }
+})
+
+atest('una shell federada de TRES niveles conserva el nivel de abajo', async () => {
+  // La shell agrupa `Admin` y mete DENTRO tres pods; cada pod contesta con SU grupo y sus
+  // pantallas debajo. El árbol resultante tiene tres niveles, y el proyector solo modelaba dos:
+  // el grupo del pod quedaba como si fuese pantalla —clic → ruta de grupo → contenido vacío— y
+  // sus pantallas no aparecían en ninguna parte.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp(
+      [{ label: 'Workflow', route: '/workflow', submenus: [
+        { label: 'Processes', route: '/workflow/processes' },
+        { label: 'Steps', route: '/workflow/steps' },
+      ] }],
+      '',
+      'WorkflowHome',
+    ),
+  })
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Admin', route: '/admin', submenus: [
+        { remote: true, baseUrl: '/_workflow', route: '', path: '/workflow', label: 'Workflow' },
+      ] },
+    ])
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    const admin = nav.menuTree[0]
+    assert.equal(admin.children.length, 1)
+    const workflow = admin.children[0]
+    assert.equal(workflow.label, 'Workflow')
+    assert.equal(workflow.hasChildren, true, 'el grupo del pod se quedaba sin hijos')
+    assert.deepEqual(workflow.children.map((c) => c.id), ['/workflow/processes', '/workflow/steps'])
+    assert.equal(remoteRouteOf('/workflow/steps').baseUrl, '/_workflow')
+  } finally { globalThis.fetch = original }
+})
+
+atest('deep-link a una sub-ruta: el mediador consume SU ruta, no la entera', async () => {
+  // Entrando por el enlace del detalle de un proceso salía el LISTADO: el mediador contesta con
+  // rootRoute = la ruta que se pidió (la entera) y homeConsumedRoute = la suya
+  // (/workflow/processes). Mandando la entera como consumedRoute el servidor sirve la vista por
+  // defecto del crud.
+  const original = globalThis.fetch
+  const consumed = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    consumed.push(body.consumedRoute)
+    if (consumed.length === 1) {
+      return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+        type: 'ServerSide', id: '_app', children: [{ type: 'ClientSide', metadata: {
+          type: 'App', variant: 'MEDIATOR',
+          rootRoute: '/workflow/processes/abc',
+          homeRoute: '/workflow/processes/abc',
+          homeConsumedRoute: '/workflow/processes',
+          homeServerSideType: 'Processes',
+        } }],
+      } }] }) }
+    }
+    return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+      type: 'ServerSide', id: '_view', children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Proceso abc' } }],
+    } }] }) }
+  }
+  try {
+    const reg = await loadRouteInto('/_workflow', empty(), '/workflow/processes/abc', '', {})
+    assert.deepEqual(consumed, ['', '/workflow/processes'])
+    assert.equal(reg.contexts[HOST_ID].outbound.consumedRoute, '/workflow/processes')
+  } finally { globalThis.fetch = original }
+})
+
+atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado', async () => {
+  // Al registro solo llegan las rutas del MENÚ. Un deep-link al detalle de un proceso
+  // (/workflow/processes/<id>) no casaba con nada y salía al backend de la shell → "Not found.".
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '', 'WorkflowHome'),
+  })
+  try {
+    await expandRemoteMenus([{ remote: true, baseUrl: '/_workflow', route: '', path: '/workflow', label: 'Workflow' }])
+    const detalle = remoteRouteOf('/workflow/processes/4df04a98')
+    assert.ok(detalle, 'el detalle no encontró su pod')
+    assert.equal(detalle.baseUrl, '/_workflow')
+    assert.equal(remoteRouteOf('/workflow/processes/4df04a98/edit').baseUrl, '/_workflow')
+    // lo que no cuelga de una ruta registrada NO se adopta (un prefijo no es un "empieza por")
+    assert.equal(remoteRouteOf('/workflow/processesXX'), undefined)
+    assert.equal(remoteRouteOf('/otra/cosa'), undefined)
+  } finally { globalThis.fetch = original }
+})
+
+atest('una hoja LOCAL bajo un grupo se sigue navegando por su ruta terminal', async () => {
+  // El contrapunto del test anterior: sin baseUrl no hay pod, y la ruta compuesta del menú
+  // (/gestion/person) no resuelve por sync — se navega por /person, como hasta ahora.
+  const nav = shellNavOf({ shell: { menu: [
+    { label: 'Gestion', route: '/gestion', submenus: [{ label: 'Person', route: '/gestion/person' }] },
+  ] } })
+  assert.deepEqual(nav.menuTree[0].children.map((c) => c.id), ['/person'])
+})
+
+atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí', async () => {
+  // La segunda mitad del mismo fallo: con la ruta ya bien resuelta, el crud pintaba columnas y
+  // toolbar pero SIN filas — el trigger `search` que el listado pide al cargar salía al base de
+  // la shell, que contesta 200 con cero fragments. Un listado vacío y ni un error a la vista.
+  const original = globalThis.fetch
+  const asked = []
+  globalThis.fetch = async (url) => {
+    asked.push(String(url))
+    return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+      type: 'ServerSide', id: '_list', children: [{ metadata: { type: 'Crud', title: 'Bookings' } }],
+    } }] }) }
+  }
+  try {
+    const reg = await loadRouteInto('/_booking', empty(), '/booking/bookings', '', {})
+    assert.equal(baseOf(reg), '/_booking')
+    asked.length = 0
+    await runMateuAction('/la-shell', reg.contexts[HOST_ID], '/booking/bookings', 'search', {})
+    assert.ok(asked[0].startsWith('/_booking/mateu/v3/sync/'), asked[0])
   } finally { globalThis.fetch = original }
 })
 

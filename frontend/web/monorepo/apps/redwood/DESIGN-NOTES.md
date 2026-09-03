@@ -1496,3 +1496,200 @@ pide SOLO las pendientes.
 - Verificado con Playwright contra demo-vb :9005 servido por el jar: deep-link `/products`
   (filas del crud), clic de menú → `/stock` sin hash, back → `/products` re-renderizado, raíz
   estable en `/`.
+
+## Menús federados: la navegación tenía que volver al pod (2026-09-03)
+
+Fallo observado en `rw.ec1.mateu.io` (`ec-demo1/shell-redwood`, la MISMA shell que la Vaadin de
+`ec1.mateu.io` con `io.mateu:redwood` en lugar de `vaadin-lit`): **el menú se pintaba entero y
+ningún crud abría**. `Booking → Bookings` contestaba un `Text` rojo "Not found.".
+
+Tres cosas rotas, en cadena. Las tres son de NAVEGACIÓN, no de expansión del menú: pedir su menú
+a cada pod ya se hacía (`expandRemoteMenus`), y eso era justamente lo que dejaba a la vista
+entradas que al pulsarlas no llevaban a ninguna parte.
+
+1. **La ruta se recortaba**. `shellNavOf` navega una hoja de grupo por su ruta TERMINAL, porque
+   la compuesta de un menú LOCAL (`/gestion/person`) es un camino de menú y no una ruta que el
+   backend resuelva. Aplicado a una hoja de otro pod es al revés: `/booking/bookings` es
+   exactamente lo que ese pod sirve, y recortarla a `/bookings` la deja sin dueño — ni casa con
+   el registro `remoteRoutes` (así que la petición sale al base de la shell) ni existe allí. La
+   marca para distinguirlas ya estaba: `expandRemoteMenus` deja su `baseUrl` en la hoja adoptada.
+2. **El contexto no recordaba de qué backend venía**. Con la ruta ya bien resuelta, el crud
+   pintaba toolbar y columnas pero SIN filas: el trigger `search` que el listado pide al cargar
+   salía otra vez al base de la shell, que contesta 200 con cero fragments — un listado vacío y
+   ni un error a la vista. Ahora `loadRouteInto` estampa `outbound.baseUrl` (junto a los 4 campos
+   de ruta que ya guardaba, por la misma razón) y `runMateuAction`/`runMateuActionSse` lo
+   prefieren; las cadenas leen `bridge.baseOf(reg)` en vez de la constante de la shell. Quien
+   dispara una acción sabe de qué CONTEXTO sale, nunca de qué backend vino.
+3. **El tercer nivel se perdía**. Una shell federada trae tres niveles sin pedir permiso: grupo
+   de la shell (`Admin`) → grupo del pod (`Workflow`) → sus pantallas (`Processes`, `Steps`). El
+   proyector modelaba dos, así que el grupo del pod quedaba como si fuese pantalla —clic → ruta
+   de grupo → contenido vacío— y sus pantallas no aparecían en ninguna parte: `Processes`,
+   `Steps` y todo `Forms`/`Worker` eran INALCANZABLES. `navNodeOf` es ahora recursivo y los dos
+   markups de navegación (submenú `oj-menu` anidado en la barra, tercer `<ul>` en el navigator)
+   pintan el nivel de abajo; el grupo a cualquier profundidad solo expande.
+
+Tests: 4 nuevos en `poc/test.mjs` (75). El caso del pod que contesta con un GRUPO es el que no
+estaba cubierto — el fixture antiguo hacía que el pod contestara una hoja suelta, forma que
+ningún pod real tiene, y por eso el test pasaba con la navegación rota.
+
+**Verificado contra el cluster SIN desplegar**, sirviendo el bundle recién construido a la app
+desplegada (`e2e/vb-live-dev.mjs`, ver README): `Booking → Bookings`, `Content → Labels`,
+`Content → Content types`, `Admin → Workflow → Processes` y `→ Steps` cargan con filas reales, y
+las tres peticiones de cada una (mediador, contenido y `search`) salen al `/_pod` que toca.
+
+**Pendiente anotado**: el título de la página del host se queda en `...` (el `SetWindowTitle`
+llega en el increment del contenido y no alimenta `mateuHostTitle`) — se ve en cualquier crud
+federado, y es independiente de la federación.
+
+## Pulido tras el primer uso real de la consola federada (2026-09-03)
+
+Tres cosas que se vieron al usar `rw.ec1.mateu.io` con los cruds ya cargando.
+
+**1. Del listado no se llegaba al detalle.** Un crud de PÁGINA no contesta el detalle: contesta
+un fragmento SOLO-ESTADO cuyo `_route` apunta a él (clic de fila → `/2CSXZN`, New → `/new`,
+volver → `/list`). La cadena de la ISLA seguía ese flip desde la Fase 9; la del HOST no, así que
+la petición salía, el servidor contestaba 200 y no pasaba nada — el fallo más difícil de ver de
+todos, porque no hay error en ninguna parte. `routeFlipOf` (transport) extrae el criterio y
+`runMateuAction` lo sigue.
+
+Dos detalles que costaron una vuelta cada uno:
+
+- **`_route` y `PushStateToHistory` NO son lo mismo**, aunque se parezcan. El primero es la ruta
+  INTERNA que hay que recargar (`/list`); el segundo es la URL, relativa al mediador (`''` para
+  el listado). Usar el primero como URL deja direcciones que no existen —
+  `/booking/bookings/list` en vez de `/booking/bookings`— y el botón atrás aterriza en blanco.
+- **Tras el flip hay que disparar los triggers OnLoad** del contenido nuevo: sin eso se vuelve
+  del detalle a una tabla con sus columnas y sin una sola fila.
+
+Verificado el ciclo entero contra el cluster: fila → detalle → Edit → Cancel → Back to list →
+New → atrás del navegador, con las URLs iguales a las de la shell Vaadin de la misma app.
+
+**2. El Ask Oracle solo ofrecía el primer nivel del menú.** Recorría `mateuNavItems`, así que
+listaba GRUPOS (que no son destino: pulsarlos no lleva a ninguna parte) y no las pantallas —
+que en una shell federada son casi todas. Ahora recorre el árbol entero y ofrece solo las hojas,
+con el rastro del grupo a la derecha de la fila (`Processes · Admin › Workflow`): dos pods pueden
+tener una pantalla que se llame igual. De paso, las "vistas rápidas" salen ahora de los
+quickFilters del listado que se esté viendo, en vez de tres rutas del front-office escritas a
+mano que en cualquier otra app son tres destinos muertos.
+
+**3. El título de página salía vacío (`...`) en todo crud federado.** `summarizeHost` buscaba el
+rótulo en el PRIMER nivel del menú, y la pantalla cuelga del grupo del pod, dos por debajo. Ahora
+busca a cualquier profundidad y, antes que eso, usa el título que declara el propio Crud.
+
+**4. Espacio en blanco abajo: media victoria.** `oj-web-applayout-page` fija `min-height:100vh`,
+pero el slot `stretchingContents` del shell ya empieza BAJO la cabecera de 50px: la página medía
+50px más que la ventana y salía una barra de scroll que no llevaba a ninguna parte. Arreglado
+haciendo que el shell reparta su alto (flex column + `min-height:100vh` en su raíz).
+
+Lo que NO se hizo, y por qué: estirar la TARJETA del listado hasta abajo (como hace la shell
+Vaadin). Entre el contenedor de contenido y la tabla hay envoltorios que ponen el runtime de VB
+(`oj-vb-content`/`oj-module`) y el `oj-drawer-layout` de JET; se intentó dos veces —con un
+comodín `*:has(#mateuTable)` y nombrando la cadena una a una— y las dos descolocaron la tarjeta
+(los `oj-flex` de FILA no se pueden volver columna). El hueco que queda es lienzo, no un corte,
+así que se deja anotado en vez de forzarlo a ciegas. Lo mismo con el ancho: los márgenes
+laterales en pantallas anchas son el modo `fixed` de RDS (tope 1408px centrado) y la shell
+Vaadin de la misma app hace exactamente lo mismo — cambiarlo sería una DECISIÓN de producto, no
+un arreglo.
+
+### El toolbar de la Page se pintaba dos veces (2026-09-03)
+
+Al entrar en una reserva salían `Back to list` / `Add another` / `Edit` en la cabecera Y otra vez
+en una fila bajo el formulario. Las dos proyecciones salen del MISMO `Page.metadata.toolbar`:
+`pageToolbarOf` lo lleva a la cabecera y `actionsOf` (que recorre el árbol buscando nodos con
+`actionId` + `label`) lo recoge también para `mateuFormActions`. Manda la cabecera cuando se
+pinta; sin cabecera, la fila de abajo es la única y se queda entera. Aplicado en las dos chains
+(navegación y acción), porque las dos rehacen las proyecciones.
+
+Con eso, el detalle queda como manda el componente de Oracle: la acción principal visible y el
+resto en el desbordamiento `···` (`oj-sp-header-general-overview` decide el reparto, no
+nosotros). Verificado que `Edit` desde el `···` sigue llevando a `/booking/bookings/<id>/edit`.
+
+Es el mismo fallo que ya se había visto en el renderer redwood-oj retirado, donde `renderFilterBar`
+pintaba `metadata.toolbar` además del encabezado del crud: **cuando dos proyecciones distintas
+leen el mismo trozo del wire, una de las dos tiene que callarse explícitamente.**
+
+### Los puntos suspensivos salían demasiado pronto (2026-09-03)
+
+`oj-sp-header-general-overview` da UN hueco de acción primaria y pinta **la primera secundaria**
+como botón; todo lo demás va al desbordamiento `···`. No hay `displayOptions` ni umbral que
+tocar: con 3 acciones y ninguna marcada primary, salían dos escondidas. Es comportamiento de
+Spectra, no nuestro — lo nuestro es CÓMO repartimos las acciones entre sus huecos, y lo estábamos
+haciendo mal por partida doble:
+
+- **`primaryToolbarButton`**: manda `buttonStyle: primary` del wire; si el wire calla, se toma la
+  ÚLTIMA que no sea de vuelta. En los toolbars de Mateu el orden es "salir, …, avanzar"
+  (Cancel→Save, Back to list→Add another→Edit), así que la última no-vuelta es la que uno vino a
+  hacer. Heurística explícita, a sustituir el día que el wire traiga el rol del botón (el `role`
+  que se difirió en la Fase 0).
+- **`backToolbarButton` → `displayOptions.goToParent`**: volver no es una acción más. RDS tiene su
+  propia afordancia (enlace sobre el título + evento `spGoToParent`) y meterla entre las
+  secundarias la escondía justo cuando es lo que más se pulsa. Su rótulo sale del botón del wire
+  vía `translations.goToParent` (sin eso pone "Parent page").
+
+Con las dos, el detalle de un crud pasa de "un botón y dos escondidas" a **Back to list** (enlace)
++ **Add another** + **Edit**, y el `···` ya no aparece: hacen falta 4 botones (vuelta + primaria +
+dos secundarias) para que vuelva a hacer falta. El editor queda Cancel + Save.
+
+## Formulario con pestañas, tablas embebidas y componentes web (2026-09-03)
+
+El detalle de un proceso (`/workflow/processes/{id}`) enseñaba los rótulos de las pestañas y nada
+más: ni los campos de fuera, ni las tablas de dentro, ni el grafo. Cinco cosas, todas distintas.
+
+**1. La página la reclamaba el arquetipo equivocado.** `itemOverviewOf` se activaba con CUALQUIER
+`TabLayout` en el árbol y proyecta "panel de datos clave + pestañas", sacando de cada pestaña solo
+textos sueltos. Esta página no es un item overview: es un FORMULARIO que lleva pestañas dentro.
+Ahora el arquetipo exige su panel (una `Card` fuera del `TabLayout`); sin él, se cae al contenido
+genérico.
+
+**2. Las pestañas se APLANAN.** El átomo `isTabs` es solo la barra; el contenido de la pestaña
+activa va detrás, como átomos normales del mismo contenedor. Anidar átomos dentro de átomos
+obligaría a duplicar la plantilla entera dentro de la pestaña y a pelearse con el `$current`
+anidado de VB. La pestaña activa es estado de CLIENTE (`mateuActiveTab`): cambiarla reproyecta el
+mismo contexto sin preguntar nada al servidor, y una navegación la resetea. Limitación consciente:
+un id fijo (`#mateuContentTabs`), o sea UNA barra de pestañas por pantalla.
+
+**3. Tabla embebida (`isGrid`).** Una lista con columnas dentro de un formulario no es el listado
+de un crud (ése tiene su cabecera de búsqueda y su ruta). Su data provider **viaja en el átomo**:
+son varias por página y una variable por tabla no se puede declarar de antemano, así que el core
+recibe la fábrica de la app (`setDataProviderFactory`, `ojs/ojarraydataprovider`) y en Node se
+queda sin ella — el átomo lleva las filas igual y los tests las comprueban.
+
+**4. Componente web de terceros (`isElement`).** El wire trae etiqueta, atributos y la URL del
+módulo. La plantilla solo pone el hueco (`.mateu-element`) porque VB no sabe escribir
+`<{name}>`; el bridge crea el elemento **una vez por hueco** y en los renders siguientes solo le
+reescribe los atributos: un componente web guarda estado que el servidor no conoce (el zoom y la
+selección de un grafo), y recrearlo lo tira. Los atributos son `${state.x}` y se reinterpolan en
+cada render — es su único canal de datos y la metadata no se reenvía con un State.
+
+> **GOTCHA que costó la primera vuelta**: `import(url)` NO vale. El transpilador del build de VB
+> lo convierte en un `require()` de AMD y requirejs se pone a resolver la URL como un id de módulo
+> suyo: la petición no llega a salir, el hueco se queda vacío y no hay ni un error. Se inyecta un
+> `<script type="module">`, que no lo puede reescribir nadie.
+
+> **Y el segundo**: el `oj-tab-bar` sale VERTICAL por defecto (como el navigator) — hay que poner
+> `edge="top"` — y parsea su `<ul>` al inicializarse, así que los `<li>` que estampa un for-each
+> llegan tarde y hay que llamarle `refresh()`. La misma trampa que el `oj-navigation-list` de la
+> shell, dos veces.
+
+**5. El deep-link caía en el listado.** Dos fallos encadenados: `remoteRouteOf` solo casaba
+rutas EXACTAS y al registro solo llegan las del menú (`/workflow/processes`), así que el detalle
+salía al backend de la shell → "Not found."; ahora casa por prefijo con el registro más largo que
+encaje. Y una vez en el pod correcto, el mediador contesta `rootRoute` = la ruta ENTERA que se
+pidió y `homeConsumedRoute` = la suya (`/workflow/processes`): mandando la entera como
+consumedRoute el servidor sirve la vista por defecto del crud, y por eso al entrar por el enlace
+de un proceso aparecía el listado.
+
+Fixture de wire real `wf-process.json` + test 79 (campos de fuera, las 6 pestañas, el grid de
+Steps con sus badges y el grafo con los atributos ya interpolados) y test 80 (el deep-link).
+
+### Una caja dentro de otra (2026-09-03)
+
+Cualquier pantalla con pestañas o con una tabla dentro pintaba sus campos en un `oj-panel`
+metido en el contenedor de contenido — caja dentro de caja—, mientras que una ficha normal (que
+va por la rama de formulario) no lo tiene. El panel salía del `Card` del wire, que en estas
+páginas no es una tarjeta: **es el marco de la página**, y ése lo pinta el contenedor.
+
+Regla: un ÚNICO card SIN TÍTULO que envuelve todo el contenido se aplana. Con título es una
+tarjeta de verdad y se respeta, igual que cuando hay varias (la 360 y sus zonas siguen con sus
+paneles). El título de una tarjeta es reconocible porque `visit()` lo mete como primer átomo de
+texto con la clase del subencabezado.

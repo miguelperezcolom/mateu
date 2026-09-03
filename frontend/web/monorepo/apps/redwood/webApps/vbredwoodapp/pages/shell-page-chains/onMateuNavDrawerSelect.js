@@ -29,9 +29,11 @@ define([
       if (!route) {
         return;
       }
-      const tree = $application.variables.mateuMenuTree || [];
-      const group = tree.find((entry) => entry.id === route && entry.hasChildren);
-      if (group) {
+      // el grupo puede estar a CUALQUIER profundidad: una shell federada trae tres niveles
+      // (grupo de la shell → grupo del pod → sus pantallas)
+      const isGroup = (nodes) => (nodes || []).some((entry) => (
+        (entry.id === route && entry.hasChildren) || isGroup(entry.children)));
+      if (isGroup($application.variables.mateuMenuTree || [])) {
         return; // el clic en el grupo solo expande/colapsa
       }
       // el navigator es PERSISTENTE: navegar no lo cierra

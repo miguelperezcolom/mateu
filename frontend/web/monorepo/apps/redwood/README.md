@@ -35,6 +35,26 @@ sirve SIEMPRE desde `build/optimized`: los cambios no llegan hasta re-ejecutar `
 En desarrollo el bridge apunta al backend con la constante `mateuBaseUrl` de
 `webApps/vbredwoodapp/app-flow.json` (punto único de cambio).
 
+## Probar el renderer local contra una UI YA DESPLEGADA
+
+Para no pasar por release → despliegue por cada cambio, `e2e/vb-live-dev.mjs` abre un navegador
+sobre la app desplegada e **intercepta el bundle** de la app VB para servir el que acabas de
+construir aquí:
+
+```bash
+cd frontend/web/monorepo/apps/redwood && npm run build   # deja build/optimized
+cd ../../../../e2e && node vb-live-dev.mjs               # rw.ec1.mateu.io, login demo/demo
+node vb-live-dev.mjs --url https://rw-console.ec1.mateu.io --user … --pass …
+node vb-live-dev.mjs --watch                             # reconstruye al guardar y recarga
+```
+
+El navegador sigue estando en el origen desplegado, así que **Keycloak, el token, el gateway y
+las rutas `/_pod` de los menús federados funcionan tal cual**: no hay que abrir CORS, ni dar de
+alta un `redirect_uri` de localhost, ni replicar el arranque de Keycloak que inyecta el
+controller de Mateu. Lo único que cambia es de dónde sale el JS del renderer.
+
+El bundle se lee en CADA petición: reconstruir y recargar la página basta.
+
 ## Empaquetado como dependencia Java (jar de renderer)
 
 Igual que el renderer Vaadin (`apps/vaadin` → `backend/shared/frontend/vaadin-lit`):

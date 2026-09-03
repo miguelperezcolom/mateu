@@ -51,7 +51,10 @@ define([
         return;
       }
 
-      const base = $application.constants.mateuBaseUrl;
+      // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
+      // hablando con ESE backend, no con el de la shell.
+      const base = bridge.baseOf($application.variables.mateuRegistry)
+        || $application.constants.mateuBaseUrl;
       const before = $application.variables.mateuRegistry;
       const host = before.contexts[bridge.HOST_ID];
       const route = $application.variables.mateuSelectedRoute;
@@ -74,7 +77,9 @@ define([
       let hostRepainted = false;
       const touchesHost = (inc) =>
         ((inc && inc.fragments) || []).some((f) => f.action !== 'Add');
+      let lastIncrement = null;
       const applyInc = (inc) => {
+        lastIncrement = inc;
         reg = bridge.reduceContexts(reg, inc);
         if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
@@ -120,6 +125,50 @@ define([
         applyInc(await bridge.runMateuAction(
           base, host, route, id, componentState, { parameters: parameters || {}, appState }));
       }
+      // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
+      // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
+      // /new, volver → /list). Sin seguirlo no pasa NADA al pulsar: la petición sale, el
+      // servidor contesta 200 y el listado se queda igual. La isla ya lo seguía; el host no.
+      //
+      // El wire separa DOS cosas que se parecen y no son la misma: `_route` es la ruta
+      // INTERNA que hay que recargar (`/list`) y el `PushStateToHistory` es la URL, relativa
+      // al mediador (`''` para el listado). Usar la primera como URL deja direcciones que no
+      // existen — /booking/bookings/list en vez de /booking/bookings.
+      const urlPush = reg.effects ? reg.effects.urlPush : undefined;
+      const flipRoute = bridge.routeFlipOf(
+        host && host.state, reg.contexts[bridge.HOST_ID], lastIncrement, route);
+      if (flipRoute) {
+        const flipOutbound = (reg.contexts[bridge.HOST_ID] || {}).outbound || {};
+        const mediatorRoute = flipOutbound.route || route || '';
+        applyInc(await bridge.loadRoute(base, flipRoute, '', {
+          consumedRoute: flipOutbound.consumedRoute || mediatorRoute,
+          serverSideType: flipOutbound.serverSideType,
+          appState,
+          componentState: reg.contexts[bridge.HOST_ID].state,
+        }));
+        // lo que acaba de llegar puede pedir su carga OnLoad (el listado pide `search`; sin
+        // esto se vuelve del detalle a una tabla vacía, con sus columnas y sin una fila)
+        const reloaded = reg.contexts[bridge.HOST_ID];
+        for (const triggerActionId of bridge.onLoadTriggers(reloaded)) {
+          const reloadedListing = bridge.listingOf(reloaded);
+          applyInc(await bridge.runMateuAction(
+            base, reloaded, flipRoute, triggerActionId,
+            Object.assign({}, reloaded.state,
+              { page: 0, size: (reloadedListing && reloadedListing.pageSize) || 20 }),
+            { appState }));
+        }
+        // la URL acompaña al contenido: el detalle es direccionable y el botón atrás
+        // devuelve al listado (el popstate de la shell recarga la ruta anterior)
+        if (urlPush != null) {
+          const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
+          $application.variables.mateuSelectedRoute = urlRoute;
+          try {
+            window.history.pushState(
+              null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
+          } catch (ignored) { /* sin history en algunos contextos */ }
+        }
+      }
+
       const effects = reg.effects;
 
       // eventos del bus (CloseModal/DispatchEvent) → triggers OnCustomEvent suscritos
@@ -328,12 +377,12 @@ define([
         ? bridge.entityHeaderOf(hostAfter) : null;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
-            { title: summary.title, dropEntityHeader: !!hostEntity2 }) : null;
+            { title: summary.title, activeTab: $application.variables.mateuActiveTab, dropEntityHeader: !!hostEntity2 }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow)));
+        || a.isStat || a.isNotice || a.isPropertyRow || a.isTabs || a.isGrid || a.isElement)));
       // las acciones del toolbar de la Page (se calculan antes del header por si algún
       // template de página de entidad las recoloca)
       const hostToolbarA = bridge.pageToolbarOf(hostAfter);
@@ -356,6 +405,15 @@ define([
         ? { on: true, main: gopFold2(zonedGop2[0]), info: gopFold2(zonedGop2[1]) }
         : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
       $application.variables.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
+      bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
+      // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
+      // después: sin refresh se queda con la lista sin estilar (misma trampa que el
+      // oj-navigation-list del navigator)
+      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+        } catch (ignored) { /* aún sin montar */ }
+      }
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
@@ -384,7 +442,11 @@ define([
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
       const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const primaryBtnA = hostToolbarA.find((b) => b.chroming === 'callToAction') || null;
+      // la cabecera Spectra solo enseña la primaria y la PRIMERA secundaria; el resto va al
+      // desbordamiento, así que quién es la primaria decide qué se ve
+      const primaryBtnA = bridge.primaryToolbarButton(hostToolbarA);
+      // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
+      const backBtnA = bridge.backToolbarButton(hostToolbarA);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
@@ -396,9 +458,28 @@ define([
         showListInline: !!listingSummary && !showListBandA,
         primary: primaryBtnA ? { label: primaryBtnA.label, display: primaryBtnA.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
-        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        secondary: hostToolbarA.filter((b) => b !== primaryBtnA && b !== backBtnA)
+          .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        goToParent: !!backBtnA,
+        backId: backBtnA ? backBtnA.actionId : '',
+        backLabel: backBtnA ? backBtnA.label : '',
         toolbar: hostToolbarA,
       };
+      // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
+      $application.variables.mateuPageHeaderTranslations = backBtnA
+        ? { goToParent: backBtnA.label } : {};
+
+      // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
+      // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO
+      // `metadata.toolbar`, así que al entrar en un detalle salían Back to list / Add another /
+      // Edit arriba y otra vez abajo. Manda la cabecera cuando se pinta; si no hay cabecera, la
+      // fila de abajo es la única y se queda entera.
+      if (($application.variables.mateuPageHeader.showBand || $application.variables.mateuPageHeader.showInline) && hostToolbarA.length) {
+        const enCabecera = {};
+        for (const boton of hostToolbarA) enCabecera[boton.actionId] = true;
+        $application.variables.mateuFormActions =
+          ($application.variables.mateuFormActions || []).filter((a) => !enCabecera[a.actionId]);
+      }
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       // los márgenes del contenido se RECALCULAN también tras una acción (una acción
       // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
