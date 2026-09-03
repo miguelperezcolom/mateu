@@ -295,10 +295,30 @@ export function baseOf(reg, ctxId = HOST_ID) {
 /** Ruta de menú → dónde vive de verdad. La llena expandRemoteMenus; la lee la navegación. */
 const remoteRoutes = new Map()
 
-/** Dónde vive una ruta de menú, o undefined si la sirve la propia shell. */
+/**
+ * Dónde vive una ruta, o undefined si la sirve la propia shell.
+ *
+ * Casa también por PREFIJO, con el registro más largo que encaje: al registro solo llegan las
+ * rutas del MENÚ (`/workflow/processes`), y todo lo que cuelga de ellas —el detalle de un
+ * proceso, `/new`, `/{id}/edit`— vive en el mismo pod. Sin esto, un deep-link a
+ * `/workflow/processes/<id>` salía al backend de la shell, que contesta "Not found.".
+ */
 export function remoteRouteOf(route) {
   if (route == null) return undefined
-  return remoteRoutes.get(route) || remoteRoutes.get(String(route).replace(/^\//, ''))
+  const bare = String(route).replace(/^\//, '')
+  const exact = remoteRoutes.get(route) || remoteRoutes.get(bare)
+  if (exact) return exact
+  let best = null
+  let bestLength = -1
+  for (const [registered, descriptor] of remoteRoutes) {
+    const prefix = String(registered).replace(/^\//, '')
+    if (!prefix || prefix.length <= bestLength) continue
+    if (bare === prefix || bare.indexOf(prefix + '/') === 0) {
+      best = descriptor
+      bestLength = prefix.length
+    }
+  }
+  return best || undefined
 }
 
 const childrenOf = (option) => option.submenus || option.submenu || []

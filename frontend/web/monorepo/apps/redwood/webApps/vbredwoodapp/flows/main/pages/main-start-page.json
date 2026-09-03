@@ -214,6 +214,16 @@
         }
       ]
     },
+    "mateuContentTabChanged": {
+      "chains": [
+        {
+          "chain": "contentTabSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "itemTabChanged": {
       "chains": [
         {

@@ -292,6 +292,43 @@ test('primaryToolbarButton: manda el wire; si calla, la última que no sea de vu
   assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'save' }]).actionId, 'save')
 })
 
+test('detalle de proceso (wire real): campos, pestañas, grid embebido y el componente del grafo', () => {
+  // Página de FORMULARIO con pestañas dentro. Antes la reclamaba el arquetipo item-overview
+  // por el mero hecho de llevar un TabLayout, y quedaba en rótulos de pestaña sin nada debajo:
+  // ni los campos de fuera, ni las tablas de dentro, ni el grafo.
+  const reg = reduceContexts(empty(), fx('wf-process'))
+  const host = reg.contexts[HOST_ID]
+  assert.equal(itemOverviewOf(host), null, 'sin panel de datos clave no es un item overview')
+
+  const items = (hostContentOf(host, null, {}) || []).flatMap((b) => b.items)
+  // los campos que están FUERA de las pestañas
+  assert.ok(items.some((a) => a.isInput && a.fieldId === 'id'))
+  assert.ok(items.some((a) => a.isInput && a.fieldId === 'name'))
+  // la barra de pestañas, entera y con la primera activa
+  const tabs = items.find((a) => a.isTabs)
+  assert.ok(tabs, 'no se proyectó la barra de pestañas')
+  assert.deepEqual(tabs.tabs.map((t) => t.label),
+    ['Diagram', 'Steps', 'Messages', 'Errors', 'Resources', 'Variables'])
+  assert.equal(tabs.selectedId, 'tab-0')
+  // …y el contenido de la ACTIVA: el grafo, con sus atributos ya interpolados del estado
+  const element = items.find((a) => a.isElement)
+  assert.ok(element, 'el componente del grafo no se proyectó')
+  assert.equal(element.name, 'eventconductor-workflow-graph')
+  assert.equal(element.importUrl, '/eventconductor/workflow-graph.js')
+  assert.ok(element.attributes.value && element.attributes.value.indexOf('${') < 0,
+    'el value del grafo llegó sin interpolar')
+  assert.ok(!items.some((a) => a.isGrid), 'la pestaña Diagram no tiene tablas')
+
+  // otra pestaña: su grid embebido, con columnas y filas del estado
+  const steps = (hostContentOf(host, null, { activeTab: 'tab-1' }) || [])
+    .flatMap((b) => b.items).find((a) => a.isGrid)
+  assert.ok(steps, 'no se proyectó la tabla de la pestaña Steps')
+  assert.deepEqual(steps.columns.map((c) => c.headerText), ['Name', 'Status'])
+  assert.ok(steps.rows.length > 0)
+  // la columna de estado llega con su clase de badge precomputada (CSP)
+  assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
+})
+
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
 test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {
   const { contexts } = reduceContexts(empty(), fx('load-foldout'))
@@ -965,6 +1002,58 @@ atest('una shell federada de TRES niveles conserva el nivel de abajo', async () 
     assert.equal(workflow.hasChildren, true, 'el grupo del pod se quedaba sin hijos')
     assert.deepEqual(workflow.children.map((c) => c.id), ['/workflow/processes', '/workflow/steps'])
     assert.equal(remoteRouteOf('/workflow/steps').baseUrl, '/_workflow')
+  } finally { globalThis.fetch = original }
+})
+
+atest('deep-link a una sub-ruta: el mediador consume SU ruta, no la entera', async () => {
+  // Entrando por el enlace del detalle de un proceso salía el LISTADO: el mediador contesta con
+  // rootRoute = la ruta que se pidió (la entera) y homeConsumedRoute = la suya
+  // (/workflow/processes). Mandando la entera como consumedRoute el servidor sirve la vista por
+  // defecto del crud.
+  const original = globalThis.fetch
+  const consumed = []
+  globalThis.fetch = async (url, init) => {
+    const body = JSON.parse(init.body)
+    consumed.push(body.consumedRoute)
+    if (consumed.length === 1) {
+      return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+        type: 'ServerSide', id: '_app', children: [{ type: 'ClientSide', metadata: {
+          type: 'App', variant: 'MEDIATOR',
+          rootRoute: '/workflow/processes/abc',
+          homeRoute: '/workflow/processes/abc',
+          homeConsumedRoute: '/workflow/processes',
+          homeServerSideType: 'Processes',
+        } }],
+      } }] }) }
+    }
+    return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: {
+      type: 'ServerSide', id: '_view', children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Proceso abc' } }],
+    } }] }) }
+  }
+  try {
+    const reg = await loadRouteInto('/_workflow', empty(), '/workflow/processes/abc', '', {})
+    assert.deepEqual(consumed, ['', '/workflow/processes'])
+    assert.equal(reg.contexts[HOST_ID].outbound.consumedRoute, '/workflow/processes')
+  } finally { globalThis.fetch = original }
+})
+
+atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado', async () => {
+  // Al registro solo llegan las rutas del MENÚ. Un deep-link al detalle de un proceso
+  // (/workflow/processes/<id>) no casaba con nada y salía al backend de la shell → "Not found.".
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp([{ label: 'Processes', route: '/workflow/processes' }], '', 'WorkflowHome'),
+  })
+  try {
+    await expandRemoteMenus([{ remote: true, baseUrl: '/_workflow', route: '', path: '/workflow', label: 'Workflow' }])
+    const detalle = remoteRouteOf('/workflow/processes/4df04a98')
+    assert.ok(detalle, 'el detalle no encontró su pod')
+    assert.equal(detalle.baseUrl, '/_workflow')
+    assert.equal(remoteRouteOf('/workflow/processes/4df04a98/edit').baseUrl, '/_workflow')
+    // lo que no cuelga de una ruta registrada NO se adopta (un prefijo no es un "empieza por")
+    assert.equal(remoteRouteOf('/workflow/processesXX'), undefined)
+    assert.equal(remoteRouteOf('/otra/cosa'), undefined)
   } finally { globalThis.fetch = original }
 })
 

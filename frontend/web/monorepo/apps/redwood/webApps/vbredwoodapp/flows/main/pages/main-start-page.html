@@ -481,6 +481,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -825,6 +867,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -1192,6 +1276,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -1536,6 +1662,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -2131,6 +2299,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -2554,6 +2764,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -2896,6 +3148,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -3365,6 +3659,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -3685,6 +4021,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -4074,6 +4452,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -4418,6 +4838,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -4778,6 +5240,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -5122,6 +5626,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
@@ -5482,6 +6028,48 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
                       <oj-c-progress-bar class="oj-sm-margin-1x-vertical" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
@@ -5826,6 +6414,48 @@
                         </div>
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
+                    </oj-bind-if>
+                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
+                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
+                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
+                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <oj-bind-if test="[[ $current.data.isTabs ]]">
+                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
+                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <oj-tab-bar id="mateuContentTabs" class="oj-sm-margin-4x-bottom" edge="top"
+                        selection="[[ $current.data.selectedId ]]"
+                        on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
+                        <ul>
+                          <oj-bind-for-each data="[[ $current.data.tabs ]]">
+                            <template>
+                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                            </template>
+                          </oj-bind-for-each>
+                        </ul>
+                      </oj-tab-bar>
+                    </oj-bind-if>
+                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
+                         formulario). El data provider lo trae ya hecho el átomo: son varias por
+                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <oj-bind-if test="[[ $current.data.isGrid ]]">
+                      <div class="oj-sm-margin-4x-bottom">
+                        <oj-table class="oj-sm-12" display="list"
+                          data="[[ $current.data.adp ]]"
+                          columns="[[ $current.data.columns ]]">
+                          <template slot="noData">
+                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                          </template>
+                          <template slot="cellStatusBadge">
+                            <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
+                          </template>
+                        </oj-table>
+                      </div>
+                    </oj-bind-if>
+                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
+                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
+                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <oj-bind-if test="[[ $current.data.isElement ]]">
+                      <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMeter ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>

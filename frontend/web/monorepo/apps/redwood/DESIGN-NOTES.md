@@ -1629,3 +1629,55 @@ haciendo mal por partida doble:
 Con las dos, el detalle de un crud pasa de "un botón y dos escondidas" a **Back to list** (enlace)
 + **Add another** + **Edit**, y el `···` ya no aparece: hacen falta 4 botones (vuelta + primaria +
 dos secundarias) para que vuelva a hacer falta. El editor queda Cancel + Save.
+
+## Formulario con pestañas, tablas embebidas y componentes web (2026-09-03)
+
+El detalle de un proceso (`/workflow/processes/{id}`) enseñaba los rótulos de las pestañas y nada
+más: ni los campos de fuera, ni las tablas de dentro, ni el grafo. Cinco cosas, todas distintas.
+
+**1. La página la reclamaba el arquetipo equivocado.** `itemOverviewOf` se activaba con CUALQUIER
+`TabLayout` en el árbol y proyecta "panel de datos clave + pestañas", sacando de cada pestaña solo
+textos sueltos. Esta página no es un item overview: es un FORMULARIO que lleva pestañas dentro.
+Ahora el arquetipo exige su panel (una `Card` fuera del `TabLayout`); sin él, se cae al contenido
+genérico.
+
+**2. Las pestañas se APLANAN.** El átomo `isTabs` es solo la barra; el contenido de la pestaña
+activa va detrás, como átomos normales del mismo contenedor. Anidar átomos dentro de átomos
+obligaría a duplicar la plantilla entera dentro de la pestaña y a pelearse con el `$current`
+anidado de VB. La pestaña activa es estado de CLIENTE (`mateuActiveTab`): cambiarla reproyecta el
+mismo contexto sin preguntar nada al servidor, y una navegación la resetea. Limitación consciente:
+un id fijo (`#mateuContentTabs`), o sea UNA barra de pestañas por pantalla.
+
+**3. Tabla embebida (`isGrid`).** Una lista con columnas dentro de un formulario no es el listado
+de un crud (ése tiene su cabecera de búsqueda y su ruta). Su data provider **viaja en el átomo**:
+son varias por página y una variable por tabla no se puede declarar de antemano, así que el core
+recibe la fábrica de la app (`setDataProviderFactory`, `ojs/ojarraydataprovider`) y en Node se
+queda sin ella — el átomo lleva las filas igual y los tests las comprueban.
+
+**4. Componente web de terceros (`isElement`).** El wire trae etiqueta, atributos y la URL del
+módulo. La plantilla solo pone el hueco (`.mateu-element`) porque VB no sabe escribir
+`<{name}>`; el bridge crea el elemento **una vez por hueco** y en los renders siguientes solo le
+reescribe los atributos: un componente web guarda estado que el servidor no conoce (el zoom y la
+selección de un grafo), y recrearlo lo tira. Los atributos son `${state.x}` y se reinterpolan en
+cada render — es su único canal de datos y la metadata no se reenvía con un State.
+
+> **GOTCHA que costó la primera vuelta**: `import(url)` NO vale. El transpilador del build de VB
+> lo convierte en un `require()` de AMD y requirejs se pone a resolver la URL como un id de módulo
+> suyo: la petición no llega a salir, el hueco se queda vacío y no hay ni un error. Se inyecta un
+> `<script type="module">`, que no lo puede reescribir nadie.
+
+> **Y el segundo**: el `oj-tab-bar` sale VERTICAL por defecto (como el navigator) — hay que poner
+> `edge="top"` — y parsea su `<ul>` al inicializarse, así que los `<li>` que estampa un for-each
+> llegan tarde y hay que llamarle `refresh()`. La misma trampa que el `oj-navigation-list` de la
+> shell, dos veces.
+
+**5. El deep-link caía en el listado.** Dos fallos encadenados: `remoteRouteOf` solo casaba
+rutas EXACTAS y al registro solo llegan las del menú (`/workflow/processes`), así que el detalle
+salía al backend de la shell → "Not found."; ahora casa por prefijo con el registro más largo que
+encaje. Y una vez en el pod correcto, el mediador contesta `rootRoute` = la ruta ENTERA que se
+pidió y `homeConsumedRoute` = la suya (`/workflow/processes`): mandando la entera como
+consumedRoute el servidor sirve la vista por defecto del crud, y por eso al entrar por el enlace
+de un proceso aparecía el listado.
+
+Fixture de wire real `wf-process.json` + test 79 (campos de fuera, las 6 pestañas, el grid de
+Steps con sus badges y el grafo con los atributos ya interpolados) y test 80 (el deep-link).

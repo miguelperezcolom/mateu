@@ -19,16 +19,22 @@ const strip = (file) =>
     .join('\n')
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
-const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}`
+const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define([], () => {
+define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
   'use strict';
 ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
+  // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
+  setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
+
   return {
     HOST_ID,
+    mountElements,
+    mountElementsSoon,
+    elementAtomsOf,
     reduceContexts,
     collectFields,
     collectActions,

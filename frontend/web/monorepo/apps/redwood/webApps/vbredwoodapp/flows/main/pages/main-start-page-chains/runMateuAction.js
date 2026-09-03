@@ -377,12 +377,12 @@ define([
         ? bridge.entityHeaderOf(hostAfter) : null;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
-            { title: summary.title, dropEntityHeader: !!hostEntity2 }) : null;
+            { title: summary.title, activeTab: $application.variables.mateuActiveTab, dropEntityHeader: !!hostEntity2 }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow)));
+        || a.isStat || a.isNotice || a.isPropertyRow || a.isTabs || a.isGrid || a.isElement)));
       // las acciones del toolbar de la Page (se calculan antes del header por si algún
       // template de página de entidad las recoloca)
       const hostToolbarA = bridge.pageToolbarOf(hostAfter);
@@ -405,6 +405,15 @@ define([
         ? { on: true, main: gopFold2(zonedGop2[0]), info: gopFold2(zonedGop2[1]) }
         : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
       $application.variables.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
+      bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
+      // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
+      // después: sin refresh se queda con la lista sin estilar (misma trampa que el
+      // oj-navigation-list del navigator)
+      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+        } catch (ignored) { /* aún sin montar */ }
+      }
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];

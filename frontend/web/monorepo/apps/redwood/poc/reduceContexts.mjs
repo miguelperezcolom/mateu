@@ -443,6 +443,11 @@ export function itemOverviewOf(ctx) {
   const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
   if (!tabLayout) return null
   const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+  // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
+  // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
+  // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
+  // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
+  if (!keyCard) return null
   const tabs = findAllByType(ctx.tree, 'Tab').map((tab, i) => ({
     id: 'itab-' + i,
     label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
@@ -675,8 +680,14 @@ const NOTICE_CLASSES = {
  *  CSP de VB (flags is*, clases, textos interpolados contra el state). Las islas
  *  ANIDADAS (App mediador dentro de la isla, p.ej. el documento) se saltan — fase
  *  posterior. null si el árbol no aporta nada display (isla de formulario puro). */
-export function islandContentOf(ctx) {
+/** Fábrica de data providers de JET, inyectada por la app (en Node no hay ninguna: el atom
+ *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
+let dataProviderFactory = null
+export function setDataProviderFactory(factory) { dataProviderFactory = factory }
+
+export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
+  const activeTab = opts.activeTab || ''
   const state = ctx.state || {}
   const interp = (t) => interpolate(t, state)
   const badgeOf = (b) => ({
@@ -760,6 +771,28 @@ export function islandContentOf(ctx) {
     }
     if (t === 'FormField') {
       const fieldId = m.fieldId || m.id
+      // GRID embebido en un formulario (una lista con columnas: los Steps/Messages de un
+      // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
+      // búsqueda—, es una tabla más del contenido.
+      if ((m.columns || []).length) {
+        const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
+        atom({
+          isGrid: true,
+          fieldId,
+          label: m.label || '',
+          columns: m.columns.map((col) => {
+            const c = col.metadata || col
+            const def = { headerText: c.label || c.id, field: c.id }
+            if (c.dataType === 'status') def.template = 'cellStatusBadge'
+            return def
+          }),
+          rows: statusBadgeRows(rows, m.columns),
+          // el data provider lo construye la app (JET); en Node no hay, y el atom viaja igual
+          adp: dataProviderFactory ? dataProviderFactory(statusBadgeRows(rows, m.columns)) : null,
+          isEmpty: rows.length === 0,
+        }, container)
+        return
+      }
       if (m.propertyRow) {
         const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
         atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
@@ -775,6 +808,56 @@ export function islandContentOf(ctx) {
           value: state[fieldId] == null ? '' : String(state[fieldId]),
         }, container)
       }
+      return
+    }
+    if (t === 'TabLayout') {
+      // Las pestañas se APLANAN: el atom de la barra + el contenido de la pestaña activa
+      // como átomos normales del mismo contenedor. Anidar átomos dentro de átomos obligaría a
+      // duplicar toda la plantilla dentro de la pestaña y a pelearse con el $current anidado
+      // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
+      const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
+      if (!tabs.length) return
+      const ids = tabs.map((tab, i) => 'tab-' + i)
+      const wanted = ids.indexOf(activeTab)
+      const selected = wanted >= 0 ? wanted : tabs.findIndex((tab) => tab.metadata.active)
+      const current = selected >= 0 ? selected : 0
+      atom({
+        isTabs: true,
+        selectedId: ids[current],
+        tabs: tabs.map((tab, i) => ({
+          id: ids[i],
+          label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
+        })),
+      }, container)
+      for (const child of tabs[current].children || []) visit(child, container)
+      return
+    }
+    if (t === 'CustomField') {
+      // envoltorio: lo que importa es lo que lleva dentro (metadata.content)
+      const inner = m.content
+      if (Array.isArray(inner)) inner.forEach((c) => visit(c, container))
+      else if (inner && typeof inner === 'object') visit(inner, container)
+      return
+    }
+    if (t === 'Element') {
+      // Componente WEB de terceros (el grafo de un proceso). Los atributos son su único canal
+      // de datos y viajan en la METADATA, que un State no reenvía: escritos como `${state.x}`
+      // son VALORES y se reevalúan en cada render — mismo idioma que cualquier rótulo. El
+      // módulo del atributo `import` lo carga la app la primera vez que se usa la etiqueta.
+      const attributes = {}
+      for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
+      atom({
+        isElement: true,
+        elementId: node.id || m.name,
+        name: m.name,
+        importUrl: (m.attributes || {}).import || '',
+        attributes,
+        style: node.style || '',
+        cssClasses: node.cssClasses || '',
+        content: interp(m.content || ''),
+        asHtml: !!m.html,
+        on: m.on || null,
+      }, container)
       return
     }
     if (t === 'Card') {
@@ -1109,7 +1192,7 @@ export function mergeNestedContent(islandBlocks, nestedBlocks) {
  *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
  *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
 export function hostContentOf(ctx, islandBlocks, opts = {}) {
-  const blocks = islandContentOf(ctx)
+  const blocks = islandContentOf(ctx, opts)
   if (!blocks) return null
   let merged = mergeNestedContent(blocks, islandBlocks || null)
   const title = opts.title || ''
@@ -1480,7 +1563,12 @@ export function mediatorOf(ctx) {
   const md = child?.metadata
   if (md?.type !== 'App') return null
   return {
-    rootRoute: md.rootRoute || ctx.state?._route || '',
+    // homeConsumedRoute ANTES que rootRoute: en un deep-link a una sub-ruta (el detalle de un
+    // proceso) `rootRoute` es la ruta ENTERA que se pidió, mientras que lo consumido por el
+    // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
+    // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
+    // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
+    rootRoute: md.homeConsumedRoute || md.rootRoute || ctx.state?._route || '',
     homeRoute: md.homeRoute ?? '',
     serverSideType: md.homeServerSideType ?? md.serverSideType,
     variant: md.variant,
