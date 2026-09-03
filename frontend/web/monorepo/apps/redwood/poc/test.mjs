@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, loadRoute, bootstrapShell, expandRemoteMenus, remoteRouteOf } from './transport.mjs'
+import { composeInnerRoute, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf } from './transport.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -739,6 +739,62 @@ atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN so
 
 const remoteApp = (menu, route = '', serverSideType = 'Home') => ({
   fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', menu, route, serverSideType } } }],
+})
+
+atest('opción de menú → crud: el App de mediador (ClientSide/App) se sigue y proyecta el listado', async () => {
+  // El bug: al abrir CUALQUIER opción de menú se veía la misma pantalla sin search form ni listado.
+  // La 1ª carga de la ruta llega como App de mediador con forma ClientSide/App (la misma del
+  // bootstrap, pero pedida para una SUB-ruta), que reduceContexts absorbe como shell; mediatorOf
+  // no la ve y la 2ª carga —el contenido del crud— no se disparaba. Ahora se saca del incremento.
+  const original = globalThis.fetch
+  const shellApp = {
+    fragments: [{ targetComponentId: '', component: { type: 'ClientSide', metadata: {
+      type: 'App', route: '/app', rootRoute: '/app', homeConsumedRoute: '/app',
+      homeServerSideType: 'io.example.MenuApp', serverSideType: 'io.example.MenuApp',
+      menu: [{ route: '/app/products' }],
+    } } }],
+  }
+  const crudContent = {
+    fragments: [{ targetComponentId: '', component: { type: 'ServerSide', children: [
+      { metadata: { type: 'Crud', title: 'Products', searchable: true,
+        columns: [{ metadata: { id: 'name', label: 'Name' } }] } },
+    ] } }],
+  }
+  let secondCallSaw = null
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    // El 2º salto es el que lleva consumedRoute + serverSideType del App de mediador.
+    if (body.serverSideType) { secondCallSaw = body; return { ok: true, json: async () => crudContent } }
+    return { ok: true, json: async () => shellApp }
+  }
+  try {
+    const reg = await loadRouteInto('http://x', empty(), '/app/products', '', {})
+    assert.ok(secondCallSaw, 'la 2ª carga (contenido) debe dispararse')
+    assert.equal(secondCallSaw.consumedRoute, '/app')
+    assert.equal(secondCallSaw.serverSideType, 'io.example.MenuApp')
+    const listing = listingOf(reg.contexts[HOST_ID])
+    assert.ok(listing, 'la opción de menú debe proyectar el listado (no la shell vacía)')
+    assert.equal(listing.columns.length, 1)
+    assert.equal(listing.title, 'Products')
+  } finally { globalThis.fetch = original }
+})
+
+atest('bootstrap del App (route === rootRoute) NO dispara un 2º salto: es la shell, no contenido', async () => {
+  // El guardarraíl del fix: sólo una navegación POR DEBAJO de la raíz busca contenido. La raíz del
+  // app es la shell/home y la resuelve el bootstrap — seguirla aquí sería una carga de más.
+  const original = globalThis.fetch
+  let calls = 0
+  globalThis.fetch = async (_url, init) => {
+    calls++
+    const body = JSON.parse(init.body)
+    assert.ok(!body.serverSideType, 'no debe haber 2º salto para la raíz del app')
+    return { ok: true, json: async () => ({ fragments: [{ targetComponentId: '', component: { type: 'ClientSide',
+      metadata: { type: 'App', route: '/app', rootRoute: '/app', serverSideType: 'io.example.MenuApp', menu: [] } } }] }) }
+  }
+  try {
+    await loadRouteInto('http://x', empty(), '/app', '', {})
+    assert.equal(calls, 1, 'una sola carga para la raíz del app')
+  } finally { globalThis.fetch = original }
 })
 
 atest('expandRemoteMenus pide su menú a cada pod y lo pone donde estaba la opción', async () => {
