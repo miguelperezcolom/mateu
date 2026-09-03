@@ -72,8 +72,17 @@ if (!bundlePath()) {
   await build();
 }
 
-const browser = await chromium.launch({ headless: !!values.headless });
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+// `viewport: null` = la página ocupa la VENTANA. Con un viewport fijo, en modo headed
+// Playwright pinta la página a ese tamaño dentro de una ventana más grande y deja franjas en
+// blanco a la derecha y abajo — que se leen como un fallo de maquetación del renderer y no lo
+// son (me pasó: costó media hora de medir cajas antes de caer).
+const browser = await chromium.launch({
+  headless: !!values.headless,
+  args: values.headless ? [] : ['--start-maximized'],
+});
+const ctx = await browser.newContext({
+  viewport: values.headless ? { width: 1600, height: 1000 } : null,
+});
 
 await ctx.route('**/vb-app-bundle.js', async (route) => {
   const path = bundlePath();
