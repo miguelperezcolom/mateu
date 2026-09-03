@@ -2870,19 +2870,50 @@ define('resources/js/mateu-bridge',[], () => {
   }
 
   /**
+   * Un mediador cuyo WRAPPER llega como App de chrome (ClientSide type App) en vez de envuelto en un
+   * ServerSide. Es la forma que hoy manda el backend al abrir una opción de menú: el mismo App que en
+   * el bootstrap, pero pedido para una SUB-ruta (route por debajo de rootRoute). reduceContexts lo
+   * absorbe como shell y el contexto queda vacío, así que mediatorOf(host) no lo detecta y la 2ª carga
+   * —la del contenido real: search form + listado del crud— nunca se dispara. Se lee entonces del
+   * incremento: si trae un App cuyo rootRoute es prefijo de la ruta pedida, hay contenido que buscar.
+   *
+   * La raíz del app (route === rootRoute) es la shell/home y NO pasa por aquí: la resuelve el
+   * bootstrap. Sólo una navegación por debajo de la raíz necesita el segundo salto.
+   */
+  function mediatorFromShellApp(increment, route) {
+    for (const fr of increment?.fragments || []) {
+      const c = fr.component
+      const md = c?.metadata
+      if (c?.type !== 'ClientSide' || md?.type !== 'App') continue
+      const rootRoute = md.rootRoute || ''
+      if (rootRoute && route && route.startsWith(`${rootRoute}/`)) {
+        return {
+          rootRoute: md.homeConsumedRoute || rootRoute,
+          serverSideType: md.homeServerSideType ?? md.serverSideType,
+        }
+      }
+    }
+    return null
+  }
+
+  /**
    * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
    * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
    * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
    */
   async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
-    let next = reduceContexts(reg, await loadRoute(base, route, targetId, extra))
+    // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
+    // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
+    // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
+    const firstIncrement = await loadRoute(base, route, targetId, extra)
+    let next = reduceContexts(reg, firstIncrement)
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined }
     // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
     // la carga de contenido las pierde, así que se conservan aquí
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
-    const info = mediatorOf(next.contexts[ctxId])
+    const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, route)
     if (info) {
       outbound = {
         route,

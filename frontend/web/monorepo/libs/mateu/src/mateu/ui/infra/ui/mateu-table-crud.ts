@@ -332,6 +332,10 @@ export class MateuTableCrud extends LitElement {
     private measureBottomInset(box: HTMLElement): number {
         let node: HTMLElement | null = box
         let inset = 0
+        // Everything is counted against the box's OWN bottom edge (measured with the fill lifted,
+        // so this is its natural height). A "following sibling" only sits UNDER the box if it starts
+        // at or after that edge — see the guard in the loop below.
+        const boxBottom = box.getBoundingClientRect().bottom
         for (let hops = 0; node && hops < 20; hops++) {
             inset += parseFloat(getComputedStyle(node).marginBottom) || 0
             const root = node.getRootNode() as ShadowRoot | Document
@@ -347,8 +351,22 @@ export class MateuTableCrud extends LitElement {
                 + (parseFloat(parentStyle.borderBottomWidth) || 0)
             const rowGap = parseFloat(parentStyle.rowGap) || 0
             for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+                const siblingRect = sibling.getBoundingClientRect()
+                // Only siblings actually laid out BELOW the box eat into the height available to it.
+                //
+                // A "following sibling" in the flattened tree is not necessarily below the box on
+                // screen: it can sit BESIDE it (a detail pane in a split master-detail row) or, worst
+                // of all, it can be the WHOLE incoming view during a route change — the shell mounts
+                // the detail as a sibling of the listing's branch, anchored at the top of the
+                // viewport, while the outgoing listing is still in the DOM. Counting that as "space
+                // below" made the arithmetic refuse a filled box on a tall window (available fell far
+                // below the minimum), which cleared the fill and collapsed the grid to its 400px
+                // default for the one frame before the listing was replaced — the visible shrink on
+                // the way into a detail. A sibling whose top is above the box's bottom is not under
+                // it, and must not be subtracted.
+                if (siblingRect.top < boxBottom - 1) continue
                 const siblingStyle = getComputedStyle(sibling)
-                inset += sibling.getBoundingClientRect().height
+                inset += siblingRect.height
                     + (parseFloat(siblingStyle.marginTop) || 0)
                     + (parseFloat(siblingStyle.marginBottom) || 0)
                     + rowGap
