@@ -1246,6 +1246,40 @@ define([], () => {
       }))
   }
 
+  /**
+   * Cuál de los botones del toolbar ocupa el hueco de acción PRIMARIA de la cabecera.
+   *
+   * `oj-sp-header-general-overview` da UN hueco visible para la primaria y pinta la primera
+   * secundaria como botón; el resto va al desbordamiento `···`. Con lo que manda el wire hoy —
+   * ningún botón marcado `primary` en la vista de un crud — todo caía en secundarias y la acción
+   * de verdad (Edit) quedaba escondida detrás de los puntos suspensivos.
+   *
+   * Manda el wire cuando dice algo (`buttonStyle: primary`). Si no dice nada, se toma la ÚLTIMA
+   * que no sea de vuelta: en los toolbars de Mateu el orden es "salir, …, avanzar" — Cancel→Save,
+   * Back to list→Add another→Edit —, así que la última no-vuelta es la que uno vino a hacer.
+   * Heurística explícita, a sustituir el día que el wire traiga el rol del botón.
+   */
+  const BACK_ACTIONS = { back: true, 'back-to-list': true, close: true }
+  const isBackButton = (button) => !!button && (
+    BACK_ACTIONS[button.actionId] || String(button.actionId || '').indexOf('cancel') === 0)
+
+  /** El botón de VOLVER del toolbar, si lo hay: en RDS eso no es una acción más, es la
+   *  afordancia `goToParent` de la cabecera — meterlo entre las secundarias lo esconde en el
+   *  desbordamiento justo cuando es lo que más se pulsa. */
+  function backToolbarButton(toolbar) {
+    return (toolbar || []).find(isBackButton) || null
+  }
+
+  function primaryToolbarButton(toolbar) {
+    const buttons = toolbar || []
+    const declared = buttons.find((b) => b.chroming === 'callToAction')
+    if (declared) return declared
+    for (let i = buttons.length - 1; i >= 0; i -= 1) {
+      if (!isBackButton(buttons[i])) return buttons[i]
+    }
+    return null
+  }
+
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
@@ -2885,6 +2919,8 @@ define([], () => {
     bannersOf,
     pageStyleOf,
     pageToolbarOf,
+    primaryToolbarButton,
+    backToolbarButton,
     entityHeaderOf,
     collectTexts,
     foldoutOf,

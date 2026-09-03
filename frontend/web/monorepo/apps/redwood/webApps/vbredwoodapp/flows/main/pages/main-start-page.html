@@ -67,7 +67,9 @@
         secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
         on-sp-primary-action="[[ $listeners.headerPrimary ]]"
         on-sp-secondary-action="[[ $listeners.headerSecondary ]]"
-        display-options.go-to-parent="false"
+        on-sp-go-to-parent="[[ $listeners.headerGoToParent ]]"
+        display-options.go-to-parent="[[ $application.variables.mateuPageHeader.goToParent ]]"
+        translations="[[ $application.variables.mateuPageHeaderTranslations ]]"
         display-options.contextual-info-label="true"></oj-sp-header-general-overview>
     </div>
   </div>

@@ -279,6 +279,11 @@
       "type": "string",
       "defaultValue": ""
     },
+    "mateuPageHeaderTranslations": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "traducciones del oj-sp-header-general-overview de PANTALLA — hoy solo el rótulo del goToParent (el botón de vuelta del toolbar; sin esto pone \"Parent page\")"
+    },
     "mateuHostTitle": {
       "type": "string",
       "defaultValue": ""

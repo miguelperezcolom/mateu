@@ -1607,3 +1607,25 @@ nosotros). Verificado que `Edit` desde el `···` sigue llevando a `/booking/bo
 Es el mismo fallo que ya se había visto en el renderer redwood-oj retirado, donde `renderFilterBar`
 pintaba `metadata.toolbar` además del encabezado del crud: **cuando dos proyecciones distintas
 leen el mismo trozo del wire, una de las dos tiene que callarse explícitamente.**
+
+### Los puntos suspensivos salían demasiado pronto (2026-09-03)
+
+`oj-sp-header-general-overview` da UN hueco de acción primaria y pinta **la primera secundaria**
+como botón; todo lo demás va al desbordamiento `···`. No hay `displayOptions` ni umbral que
+tocar: con 3 acciones y ninguna marcada primary, salían dos escondidas. Es comportamiento de
+Spectra, no nuestro — lo nuestro es CÓMO repartimos las acciones entre sus huecos, y lo estábamos
+haciendo mal por partida doble:
+
+- **`primaryToolbarButton`**: manda `buttonStyle: primary` del wire; si el wire calla, se toma la
+  ÚLTIMA que no sea de vuelta. En los toolbars de Mateu el orden es "salir, …, avanzar"
+  (Cancel→Save, Back to list→Add another→Edit), así que la última no-vuelta es la que uno vino a
+  hacer. Heurística explícita, a sustituir el día que el wire traiga el rol del botón (el `role`
+  que se difirió en la Fase 0).
+- **`backToolbarButton` → `displayOptions.goToParent`**: volver no es una acción más. RDS tiene su
+  propia afordancia (enlace sobre el título + evento `spGoToParent`) y meterla entre las
+  secundarias la escondía justo cuando es lo que más se pulsa. Su rótulo sale del botón del wire
+  vía `translations.goToParent` (sin eso pone "Parent page").
+
+Con las dos, el detalle de un crud pasa de "un botón y dos escondidas" a **Back to list** (enlace)
++ **Add another** + **Edit**, y el `···` ya no aparece: hacen falta 4 botones (vuelta + primaria +
+dos secundarias) para que vuelva a hacer falta. El editor queda Cancel + Save.

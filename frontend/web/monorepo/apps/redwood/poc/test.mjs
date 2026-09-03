@@ -22,7 +22,7 @@ import {
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
-  entityHeaderOf, itemOverviewPageOf,
+  entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -271,6 +271,25 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const menu = nav.headerActions.find((a) => a.hasChildren)
   assert.deepEqual(menu.children.map((c) => c.actionId), ['exportPdf', 'exportExcel'])
   assert.match(nav.serverSideType, /VbHome$/)
+})
+
+test('primaryToolbarButton: manda el wire; si calla, la última que no sea de vuelta', () => {
+  // La cabecera Spectra enseña la primaria y la PRIMERA secundaria; lo demás va al `···`.
+  // Con el toolbar de la vista de un crud (nadie marcado primary) `Edit` quedaba escondido.
+  const view = [
+    { actionId: 'cancel-view', label: 'Back to list', chroming: 'outlined' },
+    { actionId: 'new', label: 'Add another', chroming: 'outlined' },
+    { actionId: 'edit', label: 'Edit', chroming: 'outlined' },
+  ]
+  assert.equal(primaryToolbarButton(view).actionId, 'edit')
+  // lo que declara el wire gana, esté donde esté
+  const declared = [{ actionId: 'a', chroming: 'callToAction' }, { actionId: 'b', chroming: 'outlined' }]
+  assert.equal(primaryToolbarButton(declared).actionId, 'a')
+  // un toolbar de solo vueltas no promociona nada (mejor sin primaria que con una que saca de la pantalla)
+  assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'back' }]), null)
+  assert.equal(primaryToolbarButton([]), null)
+  // editor: Cancel + Save → Save
+  assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'save' }]).actionId, 'save')
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.

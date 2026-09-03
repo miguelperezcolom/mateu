@@ -390,7 +390,11 @@ define([
       const showBand = showHeader && pw !== 'edgeToEdge';
       const showListBand = !!listingSummary && pw !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const primaryBtn = hostToolbar.find((b) => b.chroming === 'callToAction') || null;
+      // la cabecera Spectra solo enseña la primaria y la PRIMERA secundaria; el resto va al
+      // desbordamiento, así que quién es la primaria decide qué se ve
+      const primaryBtn = bridge.primaryToolbarButton(hostToolbar);
+      // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
+      const backBtn = bridge.backToolbarButton(hostToolbar);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
@@ -402,9 +406,16 @@ define([
         showListInline: !!listingSummary && !showListBand,
         primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtn ? primaryBtn.actionId : '',
-        secondary: hostToolbar.filter((b) => b !== primaryBtn).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
+          .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        goToParent: !!backBtn,
+        backId: backBtn ? backBtn.actionId : '',
+        backLabel: backBtn ? backBtn.label : '',
         toolbar: hostToolbar,
       };
+      // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
+      $application.variables.mateuPageHeaderTranslations = backBtn
+        ? { goToParent: backBtn.label } : {};
 
       // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
       // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO

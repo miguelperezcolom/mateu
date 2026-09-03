@@ -389,6 +389,16 @@
         }
       ]
     },
+    "headerGoToParent": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "{{ $application.variables.mateuPageHeader.backId }}"
+          }
+        }
+      ]
+    },
     "headerSecondary": {
       "chains": [
         {

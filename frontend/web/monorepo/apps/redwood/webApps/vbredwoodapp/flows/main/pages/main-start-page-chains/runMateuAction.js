@@ -433,7 +433,11 @@ define([
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';
       const showListBandA = !!listingSummary && pwAfter !== 'edgeToEdge';
       // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      const primaryBtnA = hostToolbarA.find((b) => b.chroming === 'callToAction') || null;
+      // la cabecera Spectra solo enseña la primaria y la PRIMERA secundaria; el resto va al
+      // desbordamiento, así que quién es la primaria decide qué se ve
+      const primaryBtnA = bridge.primaryToolbarButton(hostToolbarA);
+      // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
+      const backBtnA = bridge.backToolbarButton(hostToolbarA);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
@@ -445,9 +449,16 @@ define([
         showListInline: !!listingSummary && !showListBandA,
         primary: primaryBtnA ? { label: primaryBtnA.label, display: primaryBtnA.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
-        secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        secondary: hostToolbarA.filter((b) => b !== primaryBtnA && b !== backBtnA)
+          .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        goToParent: !!backBtnA,
+        backId: backBtnA ? backBtnA.actionId : '',
+        backLabel: backBtnA ? backBtnA.label : '',
         toolbar: hostToolbarA,
       };
+      // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
+      $application.variables.mateuPageHeaderTranslations = backBtnA
+        ? { goToParent: backBtnA.label } : {};
 
       // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
       // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO
