@@ -1590,3 +1590,20 @@ así que se deja anotado en vez de forzarlo a ciegas. Lo mismo con el ancho: los
 laterales en pantallas anchas son el modo `fixed` de RDS (tope 1408px centrado) y la shell
 Vaadin de la misma app hace exactamente lo mismo — cambiarlo sería una DECISIÓN de producto, no
 un arreglo.
+
+### El toolbar de la Page se pintaba dos veces (2026-09-03)
+
+Al entrar en una reserva salían `Back to list` / `Add another` / `Edit` en la cabecera Y otra vez
+en una fila bajo el formulario. Las dos proyecciones salen del MISMO `Page.metadata.toolbar`:
+`pageToolbarOf` lo lleva a la cabecera y `actionsOf` (que recorre el árbol buscando nodos con
+`actionId` + `label`) lo recoge también para `mateuFormActions`. Manda la cabecera cuando se
+pinta; sin cabecera, la fila de abajo es la única y se queda entera. Aplicado en las dos chains
+(navegación y acción), porque las dos rehacen las proyecciones.
+
+Con eso, el detalle queda como manda el componente de Oracle: la acción principal visible y el
+resto en el desbordamiento `···` (`oj-sp-header-general-overview` decide el reparto, no
+nosotros). Verificado que `Edit` desde el `···` sigue llevando a `/booking/bookings/<id>/edit`.
+
+Es el mismo fallo que ya se había visto en el renderer redwood-oj retirado, donde `renderFilterBar`
+pintaba `metadata.toolbar` además del encabezado del crud: **cuando dos proyecciones distintas
+leen el mismo trozo del wire, una de las dos tiene que callarse explícitamente.**

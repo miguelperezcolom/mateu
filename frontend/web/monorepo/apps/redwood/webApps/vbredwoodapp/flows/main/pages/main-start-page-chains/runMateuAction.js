@@ -448,6 +448,18 @@ define([
         secondary: hostToolbarA.filter((b) => b !== primaryBtnA).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
         toolbar: hostToolbarA,
       };
+
+      // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
+      // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO
+      // `metadata.toolbar`, así que al entrar en un detalle salían Back to list / Add another /
+      // Edit arriba y otra vez abajo. Manda la cabecera cuando se pinta; si no hay cabecera, la
+      // fila de abajo es la única y se queda entera.
+      if (($application.variables.mateuPageHeader.showBand || $application.variables.mateuPageHeader.showInline) && hostToolbarA.length) {
+        const enCabecera = {};
+        for (const boton of hostToolbarA) enCabecera[boton.actionId] = true;
+        $application.variables.mateuFormActions =
+          ($application.variables.mateuFormActions || []).filter((a) => !enCabecera[a.actionId]);
+      }
       $application.variables.mateuShellPageLayout = pwAfter === 'fixed' ? 'fixedWidth' : pwAfter;
       // los márgenes del contenido se RECALCULAN también tras una acción (una acción
       // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
