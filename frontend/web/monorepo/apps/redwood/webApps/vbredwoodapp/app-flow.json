@@ -599,20 +599,48 @@
       },
       "description": "general overview nativo: on + bloques de los slots main/info"
     },
-    "mateuQuickFilter": {
+    "mateuFilterValues": {
       "type": "any",
       "defaultValue": {},
-      "description": "selector rápido del listado activo: {fieldId, value} ({} = sin filtro)"
+      "description": "filtros aplicados del listado activo: {fieldId: valor} (un rango ocupa <campo>_from/<campo>_to). Viajan en el componentState de la búsqueda"
+    },
+    "mateuFilterChips": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "un chip por filtro declarado, aplicado o no (bridge.filterChipsOf) — la fila bajo el smart search"
+    },
+    "mateuHasAppliedFilters": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "hay al menos un filtro aplicado — PRECOMPUTADO: el evaluador de expresiones de VB corre bajo CSP y no ejecuta un .filter() en la plantilla"
+    },
+    "mateuBoolChoices": {
+      "type": "any",
+      "defaultValue": [
+        { "value": "true", "label": "Yes" },
+        { "value": "false", "label": "No" }
+      ],
+      "description": "las dos opciones de un filtro booleano (mismo par que la barra compartida)"
+    },
+    "mateuFilterEditing": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "el filtro cuyo editor está abierto (descriptor de bridge), null si ninguno"
+    },
+    "mateuFilterDraft": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "lo tecleado en el editor abierto antes de aplicarlo: {text, from, to}"
     },
     "mateuLastSearchText": {
       "type": "string",
       "defaultValue": "",
       "description": "último texto buscado en el smart search (para re-buscar al togglear chips)"
     },
-    "mateuQuickFilterPending": {
+    "mateuFiltersPending": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "una vista rápida del Ask Oracle dejó el filtro puesto: onMateuNavigate lo aplica en vez de resetearlo"
+      "description": "una vista rápida del Ask Oracle (o un deep-link ?campo=valor) dejó filtros puestos: onMateuNavigate los aplica en vez de resetearlos"
     },
     "mateuWelcomeTheme": {
       "type": "string",

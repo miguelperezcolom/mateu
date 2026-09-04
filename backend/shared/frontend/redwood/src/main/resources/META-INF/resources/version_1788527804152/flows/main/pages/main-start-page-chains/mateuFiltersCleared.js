@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context;$application.variables.mateuFilterValues={},$application.variables.mateuFilterEditing=null,$application.variables.mateuFilterDraft={},await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText:$application.variables.mateuLastSearchText||""}})}};});
+//# sourceMappingURL=mateuFiltersCleared.js.map

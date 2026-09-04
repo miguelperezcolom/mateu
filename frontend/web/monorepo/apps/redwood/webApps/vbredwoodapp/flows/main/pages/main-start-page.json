@@ -437,16 +437,68 @@
         }
       ]
     },
-    "quickFilterClicked": {
+    "filterChipClicked": {
       "chains": [
-        {
-          "chain": "listingQuickFilter",
-          "parameters": {
-            "fieldId": "{{ $application.variables.mateuListing.quickFilters[0].fieldId }}",
-            "value": "{{ $current.data.value }}"
-          }
-        }
+        { "chain": "mateuFilterOpened", "parameters": { "fieldId": "{{ $current.data.fieldId }}" } }
       ]
+    },
+    "filterChipCleared": {
+      "chains": [
+        { "chain": "mateuFilterApplied", "parameters": { "fieldId": "{{ $current.data.fieldId }}", "keys": "{{ $current.data.keys }}" } }
+      ]
+    },
+    "filterOptionPicked": {
+      "chains": [
+        { "chain": "mateuFilterApplied", "parameters": {
+            "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
+            "value": "{{ $current.data.value }}" } }
+      ]
+    },
+    "filterOptionToggled": {
+      "chains": [
+        { "chain": "mateuFilterApplied", "parameters": {
+            "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
+            "value": "{{ $current.data.value }}", "toggle": true, "keepOpen": true } }
+      ]
+    },
+    "filterBoolPicked": {
+      "chains": [
+        { "chain": "mateuFilterApplied", "parameters": {
+            "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
+            "value": "{{ $current.data.value }}" } }
+      ]
+    },
+    "filterTextApplied": {
+      "chains": [
+        { "chain": "mateuFilterApplied", "parameters": {
+            "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
+            "value": "{{ $application.variables.mateuFilterDraft.text }}" } }
+      ]
+    },
+    "filterRangeApplied": {
+      "chains": [
+        { "chain": "mateuRangeApplied", "parameters": {
+            "fromKey": "{{ $application.variables.mateuFilterEditing.fromKey }}",
+            "toKey": "{{ $application.variables.mateuFilterEditing.toKey }}" } }
+      ]
+    },
+    "filterDraftText": {
+      "chains": [
+        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "text", "value": "{{ $event.detail.value }}" } }
+      ]
+    },
+    "filterDraftFrom": {
+      "chains": [
+        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "from", "value": "{{ $event.detail.value }}" } }
+      ]
+    },
+    "filterDraftTo": {
+      "chains": [
+        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "to", "value": "{{ $event.detail.value }}" } }
+      ]
+    },
+    "filtersCleared": {
+      "chains": [ { "chain": "mateuFiltersCleared" } ]
     },
     "welcomeKpiClicked": {
       "chains": [

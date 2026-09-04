@@ -38,10 +38,11 @@ define([
         page: 0,
         size: listing.pageSize,
       });
-      // selector rápido activo (chips junto al smart search) → viaja como filtro
-      const quick = $application.variables.mateuQuickFilter || {};
-      if (quick.fieldId && quick.value) {
-        componentState[quick.fieldId] = quick.value;
+      // filtros aplicados (los chips bajo el smart search) → viajan en el componentState,
+      // que es donde SearchActionHandler los lee; un rango ocupa dos claves
+      const applied = $application.variables.mateuFilterValues || {};
+      for (const key of Object.keys(applied)) {
+        componentState[key] = applied[key];
       }
       $application.variables.mateuLastSearchText = searchText == null ? '' : searchText;
       const route = $application.variables.mateuSelectedRoute;
@@ -52,6 +53,12 @@ define([
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];
+      // los filtros declarados viajan en cada respuesta del listado: re-proyectar los chips
+      // aquí es lo que hace que el estado aplicado y lo que se ve no se separen nunca
+      $application.variables.mateuFilterChips = bridge.filterChipsOf(
+        (refreshed && refreshed.filters) || [], applied);
+      $application.variables.mateuHasAppliedFilters =
+        $application.variables.mateuFilterChips.filter((c) => c.applied).length > 0;
     }
   }
 

@@ -23,6 +23,7 @@ import {
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
+  filterDescriptorOf, filterChipsOf, multiValuesOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -1360,6 +1361,81 @@ atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO est
     connectivity.reset()
     __setBundleForTests(undefined)
   }
+})
+
+// ── Filtros del listado ────────────────────────────────────────────────────────
+// Un listado declara sus filtros en el wire y el buscador tiene que ofrecerlos TODOS: antes
+// sólo salían los de opciones —y sólo el primero—, así que un booleano, un lookup y dos
+// fechas no existían para el usuario aunque el server los mandara. El kind se precomputa
+// aquí porque las plantillas de VB corren bajo CSP; el orden de resolución es el mismo de la
+// barra compartida (rango → multi → opciones → booleano → texto).
+
+const PROCESS_FILTERS = [
+  { fieldId: 'onlyErrors', label: 'Only errors', stereotype: 'regular', dataType: 'bool' },
+  { fieldId: 'workflowDefinitionId', label: 'Definition', stereotype: 'combobox', dataType: 'string' },
+  { fieldId: 'status', label: 'Status', stereotype: 'multiSelect', dataType: 'string',
+    options: [{ value: 'ERROR', label: 'Error' }, { value: 'RUNNING', label: 'Running' }] },
+  { fieldId: 'createdFrom', label: 'Created from', stereotype: 'dateRange', dataType: 'dateTime' },
+]
+
+test('filtros: cada declaración resuelve al widget que le toca', () => {
+  const [bool, lookup, multi, range] = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
+  assert.equal(bool.kind, 'bool')
+  assert.equal(lookup.kind, 'text', 'un combobox sin opciones se teclea, como en la barra compartida')
+  assert.equal(multi.kind, 'multi')
+  assert.equal(range.kind, 'range')
+  assert.equal(range.inputType, 'datetime-local', 'una fecha-hora se teclea fatal como texto')
+  assert.deepEqual(range.fromKey, 'createdFrom_from')
+})
+
+test('filtros: dataType boolean (.NET) cuenta como booleano igual que bool (Java)', () => {
+  assert.equal(filterDescriptorOf({ fieldId: 'x', dataType: 'boolean' }).kind, 'bool')
+})
+
+test('filtros: un select con opciones manda sobre el tipo del dato', () => {
+  const d = filterDescriptorOf({ fieldId: 'v', stereotype: 'select', dataType: 'string',
+    options: [{ value: 'a', label: 'A' }] })
+  assert.equal(d.kind, 'options')
+  assert.equal(d.options[0].label, 'A')
+})
+
+test('chips: uno por FILTRO, no uno por valor posible', () => {
+  const chips = filterChipsOf(PROCESS_FILTERS.map((f) => filterDescriptorOf(f)), {})
+  assert.equal(chips.length, 4, 'cuatro filtros, cuatro chips')
+  assert.deepEqual(chips.map((c) => c.applied), [false, false, false, false])
+  assert.equal(chips[2].label, 'Status')
+})
+
+test('chips: un filtro aplicado enseña su valor con la etiqueta de la opción', () => {
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
+  const chips = filterChipsOf(filters, { status: ['ERROR', 'RUNNING'], onlyErrors: true })
+  const status = chips.filter((c) => c.fieldId === 'status')[0]
+  assert.equal(status.applied, true)
+  assert.equal(status.text, 'Error, Running')
+  assert.equal(chips.filter((c) => c.fieldId === 'onlyErrors')[0].text, 'Yes')
+})
+
+test('chips: un rango se quita ENTERO — sus dos claves', () => {
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
+  const chips = filterChipsOf(filters, { createdFrom_from: '2026-01-01T00:00' })
+  const range = chips.filter((c) => c.fieldId === 'createdFrom')[0]
+  assert.equal(range.applied, true)
+  assert.equal(range.text, '≥ 2026-01-01T00:00')
+  assert.deepEqual(range.keys, ['createdFrom_from', 'createdFrom_to'],
+    'quitar medio rango deja el listado filtrado por algo que ya no se ve')
+})
+
+test('chips: un valor en blanco no cuenta como filtro aplicado', () => {
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
+  const chips = filterChipsOf(filters, { workflowDefinitionId: '   ', status: [] })
+  assert.deepEqual(chips.map((c) => c.applied), [false, false, false, false])
+})
+
+test('multi: los valores llegan como lista o como cadena separada por comas', () => {
+  assert.deepEqual(multiValuesOf(['A', 'B']), ['A', 'B'])
+  assert.deepEqual(multiValuesOf('A, B'), ['A', 'B'], 'así vuelven tras restaurar desde la URL')
+  assert.deepEqual(multiValuesOf(''), [])
+  assert.deepEqual(multiValuesOf(null), [])
 })
 
 await queue
