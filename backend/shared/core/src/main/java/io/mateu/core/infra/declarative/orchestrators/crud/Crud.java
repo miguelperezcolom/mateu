@@ -10,11 +10,12 @@ import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.SplitCrud;
-import io.mateu.uidl.data.Button;
+import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.AppLayout;
 import io.mateu.uidl.fluent.GridLayout;
+import io.mateu.uidl.fluent.ToolbarButtons;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
@@ -82,19 +83,26 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return this;
   }
 
+  /**
+   * The bulk buttons of the listing toolbar: one per {@code @ListToolbarButton} method, wearing the
+   * appearance its {@code @Toolbar} declares (see {@link ToolbarButtons}) and ordered by
+   * {@code @Toolbar(order)} — reflection does not guarantee method order, so a toolbar of more than
+   * one button needs a way to fix it.
+   */
   public void addButtonsToList(List<UserTrigger> toolbar) {
     getAllMethods(behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
+        .sorted(
+            java.util.Comparator.comparingInt(
+                method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))
         .forEach(
-            method -> {
-              toolbar.add(
-                  Button.builder()
-                      .label(
-                          io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel(
-                              method))
-                      .actionId("action-on-row-" + method.getName())
-                      .build());
-            });
+            method ->
+                toolbar.add(
+                    ToolbarButtons.toolbarButton(
+                        "action-on-row-" + method.getName(),
+                        io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel(
+                            method),
+                        MetaAnnotations.find(method, Toolbar.class))));
   }
 
   public boolean readOnly() {

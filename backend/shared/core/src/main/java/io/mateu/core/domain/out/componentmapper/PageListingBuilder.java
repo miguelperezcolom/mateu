@@ -23,6 +23,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.FiltersLayout;
 import io.mateu.uidl.fluent.GridLayout;
 import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.ToolbarButtons;
 import io.mateu.uidl.interfaces.*;
 import io.mateu.uidl.layout.FilterLayoutSelector;
 import java.lang.reflect.Field;
@@ -121,12 +122,25 @@ public class PageListingBuilder {
    */
   public static List<Button> getToolbarButtons(Object instance) {
     var buttons = new java.util.ArrayList<Button>();
-    for (var method : getAllMethods(instance.getClass())) {
-      if (MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.ListToolbarButton.class)) {
-        var label = MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class);
-        buttons.add(new Button(label != null ? label.value() : method.getName(), method.getName()));
-      }
-    }
+    getAllMethods(instance.getClass()).stream()
+        .filter(
+            method ->
+                MetaAnnotations.isPresent(
+                    method, io.mateu.uidl.annotations.ListToolbarButton.class))
+        .sorted(
+            java.util.Comparator.comparingInt(
+                method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))
+        .forEach(
+            method -> {
+              var label = MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class);
+              // the appearance declared by an @Toolbar on the same method; unset keeps the
+              // renderer's default (see ToolbarButtons)
+              buttons.add(
+                  ToolbarButtons.toolbarButton(
+                      method.getName(),
+                      label != null ? label.value() : method.getName(),
+                      MetaAnnotations.find(method, Toolbar.class)));
+            });
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
       buttons.add(new Button("Import", "import"));
     }

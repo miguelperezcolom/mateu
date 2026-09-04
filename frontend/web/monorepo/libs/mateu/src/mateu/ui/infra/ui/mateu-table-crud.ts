@@ -17,8 +17,6 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
-import {ButtonColor} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor.ts";
-import {ButtonStyle} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStyle.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
@@ -32,6 +30,7 @@ import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statu
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
+import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -727,13 +726,6 @@ export class MateuTableCrud extends LitElement {
 
     render(): TemplateResult {
 
-        const buttonTheme = (button: Button): string | undefined => {
-            const parts: string[] = []
-            if (button.color && button.color !== ButtonColor.normal) parts.push(button.color)
-            if (button.buttonStyle) parts.push(button.buttonStyle === ButtonStyle.tertiaryInline ? 'tertiary-inline' : button.buttonStyle)
-            return parts.length ? parts.join(' ') : undefined
-        }
-
 
         // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
@@ -743,8 +735,11 @@ export class MateuTableCrud extends LitElement {
             if (custom) {
                 return custom
             }
+            // The DS-neutral fallback carries the theme BOTH as an attribute (for a design system
+            // that reads it) and as classes, because a plain <button> has no theme mechanism of
+            // its own — a red bulk action would otherwise render like any other button here.
             return html`
-                <button class="crud-btn"
+                <button class="crud-btn ${neutralButtonClass(button)}"
                         data-action-id="${button.id}"
                         theme="${buttonTheme(button) || nothing}"
                         @click="${() => this.handleToolbarButtonClick(button.actionId)}"
@@ -1272,6 +1267,11 @@ export class MateuTableCrud extends LitElement {
         .crud-btn.small, .crud-btn[theme~="small"] { padding: .2rem .55rem; font-size: var(--lumo-font-size-s, .875rem); }
         .crud-btn[theme~="tertiary"] { border-color: transparent; background: transparent; color: var(--lumo-primary-text-color, #1676f3); }
         .crud-btn[theme~="primary"] { border-color: transparent; background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); }
+        /* A destructive bulk action must READ destructive — same treatment as the page header's
+           toolbar (mateu-content-header .mtb), so the two toolbars of a crud agree. */
+        .crud-btn.danger { color: var(--lumo-error-text-color, #c0392b); border-color: var(--lumo-error-color-50pct, rgba(192,57,43,.5)); }
+        .crud-btn.danger:hover { background: var(--lumo-error-color-10pct, rgba(192,57,43,.1)); }
+        .crud-btn.danger.primary { background: var(--lumo-error-color, #c0392b); color: #fff; border-color: transparent; }
 
         .m-listbox { display: flex; flex-direction: column; }
         .m-item { padding: .5rem 0; border-radius: var(--lumo-border-radius-m, 6px); }
