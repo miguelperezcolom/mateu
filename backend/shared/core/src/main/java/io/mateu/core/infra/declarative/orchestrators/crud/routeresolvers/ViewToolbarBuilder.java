@@ -11,9 +11,7 @@ import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.ButtonColor;
-import io.mateu.uidl.data.ButtonSize;
-import io.mateu.uidl.data.ButtonStyle;
+import io.mateu.uidl.fluent.ToolbarButtons;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
@@ -26,11 +24,20 @@ final class ViewToolbarBuilder {
   static List<UserTrigger> createViewToolbar(
       Object item, Crud orchestrator, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
+    // @ViewToolbarButton says WHICH toolbar; an @Toolbar on the same method says how it looks —
+    // the same composition the listing toolbar uses (see ToolbarButtons).
     getAllMethods(orchestrator.behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
+        .sorted(
+            java.util.Comparator.comparingInt(
+                method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))
         .forEach(
             method ->
-                toolbar.add(new Button(getLabel(method), "action-on-view-" + method.getName())));
+                toolbar.add(
+                    ToolbarButtons.toolbarButton(
+                        "action-on-view-" + method.getName(),
+                        getLabel(method),
+                        MetaAnnotations.find(method, Toolbar.class))));
     final var finalEntity = item;
     getAllMethods(finalEntity.getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
@@ -43,20 +50,12 @@ final class ViewToolbarBuilder {
                 !(finalEntity instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
-            method -> {
-              var ann = MetaAnnotations.find(method, Toolbar.class);
-              var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
-              var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
-              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
-              toolbar.add(
-                  Button.builder()
-                      .label(getLabel(method))
-                      .actionId(method.getName())
-                      .buttonStyle(buttonStyle)
-                      .color(buttonColor)
-                      .size(buttonSize)
-                      .build());
-            });
+            method ->
+                toolbar.add(
+                    ToolbarButtons.toolbarButton(
+                        method.getName(),
+                        getLabel(method),
+                        MetaAnnotations.find(method, Toolbar.class))));
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
