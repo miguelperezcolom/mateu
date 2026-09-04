@@ -82,7 +82,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "cookieconsent": "^3.1.1",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.4.12",
+    "dompurify": "^3.4.13",
     "js-base64": "^3.9.1",
     "marked": "^18.0.7",
     "minimatch": "^10.2.3",
