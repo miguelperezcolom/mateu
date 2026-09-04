@@ -130,13 +130,92 @@ the one-to-one case.
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
   `viewModel` and `view_model`. User docs: `doc/.../java-ui-definition/route-registry.md`.
 
+### REST source catalogue (`specs/ui/sources.yaml`) — 2026-08-19
+
+A **named endpoint**, declared once, that any surface references instead of repeating its URL:
+`@RestOptions(source = "countries")` rather than the url + mapping paths at every field that needs
+it. Before this, a `RestDataSource` was inlined at each surface (`FormField.optionsSource`,
+`Crudl.rowsSource`, `Action.restAction.source`), so the same endpoint in five screens was five copies
+to edit, there was nowhere to state what is true of the ENDPOINT rather than of one screen (base url,
+auth, `proxy`, secrets), and a statically deployed bundle could not be re-pointed at another
+environment without a rebuild.
+
+- **Two producers, one table**, exactly like the route registry: `@RestSource` (repeatable, on any
+  registered routed class) + `RestSourceCatalogSupplier` beans are the *derived* half, `sources.yaml`
+  is the *authored* half merged on top, **authored wins** and replaces outright. `RestSourceRegistry`
+  (core `application/runaction/`) is the single truth. **Names are GLOBAL, not per-mount** — a source
+  is an endpoint, not a screen.
+- **Resolution is by `ref` only.** The wire carries the NAME (`RestDataSource.ref` →
+  `RestDataSourceDto.ref`) and the catalogue travels separately: `AppDto.restSources` for a live app,
+  once in `manifest.json` for a bundle. Web resolves in `fetchExternalJson` (libs/mateu, the single
+  fetch choke point, so vaadin + every shell at once) via `restSourceCatalogue.ts`; what a surface
+  declares still wins over the entry. **PENDING: React Native and IntelliJ consume REST sources and
+  still need the same lookup**; VB/Redwood does not consume them yet, so it will be ref-native.
+- **`fields` (name → dot path) closes a gap no surface can close**: a listing reads each column by
+  using the column id DIRECTLY as the path, and a record field cannot be called `customer.name`.
+  `mapItemsToRows` gained a `pathOf` hook for it. `totalPath` is the server-paged total.
+- **`provenance`** (`generate` | `existing` | `auto`) decides what the DERIVED artifacts do with an
+  entry — `auto` infers it from the origin (relative = ours to build, another origin = somebody
+  else's). Without it the derivation is wrong in both directions: a Spring controller for a third
+  party's API, or an endpoint we owe silently omitted.
+- **Proxy mode gets safer, not just tidier**: `RestSourceResolver.resolve(instance, kind, id,
+  catalogue)` resolves the ref from a table the SERVER holds, still never from the request.
+- **`structureHash` deliberately EXCLUDES the catalogue** — re-pointing a deployment edits that table
+  and leaves the screens identical, so folding it in would make a re-pointed bundle look like a
+  different build from its backend, which is the workflow shipping it enables.
+- GOTCHA that cost a test: these records are serialised into `manifest.json`, and Jackson reads an
+  `isX()` accessor on a record as an extra property that then fails to deserialise — hence
+  `hasNoSources()` / `hasRef()` instead of `isEmpty()` / `isReference()`. **Any helper added to a
+  serialised uidl record needs a name that is not a getter.** Pinned by a round-trip test.
+- Tests: `RestSourceRegistryTest` (12), `restSourceCatalogue.test.ts` (12). User docs:
+  `doc/.../java-ui-definition/rest-source-catalogue.md`.
+
+### Derived API contract and server generator (2026-08-19)
+
+The declaration derives TWO artifacts: the UI, and the contract the server behind it must satisfy.
+
+- **`mateu-bundle:openapi`** reads all three channels through one model (`RestCall`): the catalogue
+  (`CatalogueRestCalls` — the primary reader, the only one carrying identity, provenance and the
+  field map), the annotations (`AnnotatedRestCalls`) and **rendered wire JSON** (`WireRestCalls`).
+  The wire reader is what makes it channel-independent: a mount authored in YAML has no annotated
+  class and everything it declares still reaches the wire, so the contract derives from a bundle's
+  `manifest.json` alone with no classpath. It walks for the KEYS, not for known DTO shapes, so it
+  does not go blind when a surface moves. `from` = `classes` | `bundle` | `both` (default).
+- **Identity**: a call's identity is its source NAME when it has one, else method+url; declarations
+  reaching the emitter twice are merged, not emitted twice. The name becomes the `operationId`.
+  A declaration that only NAMES a source carries no request — so it must not weaken the parameters
+  the catalogue declared (that bug made every parameter optional), and it is filtered AFTER the
+  merge, not before, or its parameter TYPES (which live on the referencing view, while the url lives
+  in the catalogue) would be thrown away.
+- **Schemas stay OPEN** — the contract is a lower bound, so no `additionalProperties: false`. Fields
+  are emitted at the paths the ENDPOINT uses, not the flat aliases the UI reads them under.
+- `x-mateu-source` / `x-mateu-provenance` per operation; `servers` distinguishes external
+  dependencies from what this project serves.
+- **`mateu-bundle:server`** generates a Spring Boot module from the OpenAPI FILE (so the goals compose
+  and it works on any document): controller + port per group, response records, runnable app.
+  **NEVER an adapter** — the non-negotiable rule is *never mix generated and hand-written code in the
+  same file*, because a generated file with a `// TODO` either destroys work on the second run or is
+  skipped forever. Every file being generated is what makes regenerating safe; the goal only writes
+  its own files and never deletes, so hand-written adapters may sit in the same module. An
+  unimplemented port is a MISSING BEAN (a generated `FailureAnalyzer` names the adapter to write),
+  never a stub answering 200 with nothing. Only `generate` operations are built.
+- Tests: `OpenApiDerivationTest` (13), `ServerSkeletonTest` (9, one of which compiles the generated
+  model with javac). Verified end to end on `demo/demo-static-bundle`. User docs:
+  `doc/.../java-user-manual/build/derived-openapi.md`.
+
 ### Generated JSON Schemas — do not edit by hand (2026-08-12)
 
-`backend/shared/uidl/uidl-schema.json` (the component catalog) and `routes-schema.json` (the route
-registry) are **generated** from the records by `UidlSchemaGenerator` (uidl test sources) and pinned
-by `UidlSchemaTest`, so adding a component or a `RouteEntry` field without regenerating fails the
-build instead of shipping a schema that does not know about it. Both are published as the public
-authoring contract (editors point YAML IntelliSense at the raw files on master).
+`backend/shared/uidl/uidl-schema.json` (the component catalog), `routes-schema.json` (the route
+registry), `sources-schema.json` (the REST source catalogue) and `specs-schema.json` (the unified
+`specs/ui/**` schema, a `oneOf` of every file kind) are **generated** from the records by
+`UidlSchemaGenerator` (uidl test sources) and pinned by `UidlSchemaTest`, so adding a component or a
+`RouteEntry`/`RestSourceEntry` field without regenerating fails the build instead of shipping a schema
+that does not know about it. All are published as the public authoring contract (editors point YAML
+IntelliSense at the raw files on master).
+
+Because the schema is generated from the record, **the authored YAML keys ARE the record's
+components** — `sources.yaml` nests the request under `source:` for that reason. A flatter spelling
+would be sugar the schema does not describe, so an editor would flag a valid file.
 
 ```bash
 mvn -pl shared/uidl test -Dtest=UidlSchemaTest -Duidl.schema.write=true
