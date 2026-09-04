@@ -1379,7 +1379,7 @@ const PROCESS_FILTERS = [
 ]
 
 test('filtros: cada declaración resuelve al widget que le toca', () => {
-  const [bool, lookup, multi, range] = PROCESS_FILTERS.map(filterDescriptorOf)
+  const [bool, lookup, multi, range] = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
   assert.equal(bool.kind, 'bool')
   assert.equal(lookup.kind, 'text', 'un combobox sin opciones se teclea, como en la barra compartida')
   assert.equal(multi.kind, 'multi')
@@ -1400,14 +1400,14 @@ test('filtros: un select con opciones manda sobre el tipo del dato', () => {
 })
 
 test('chips: uno por FILTRO, no uno por valor posible', () => {
-  const chips = filterChipsOf(PROCESS_FILTERS.map(filterDescriptorOf), {})
+  const chips = filterChipsOf(PROCESS_FILTERS.map((f) => filterDescriptorOf(f)), {})
   assert.equal(chips.length, 4, 'cuatro filtros, cuatro chips')
   assert.deepEqual(chips.map((c) => c.applied), [false, false, false, false])
   assert.equal(chips[2].label, 'Status')
 })
 
 test('chips: un filtro aplicado enseña su valor con la etiqueta de la opción', () => {
-  const filters = PROCESS_FILTERS.map(filterDescriptorOf)
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
   const chips = filterChipsOf(filters, { status: ['ERROR', 'RUNNING'], onlyErrors: true })
   const status = chips.filter((c) => c.fieldId === 'status')[0]
   assert.equal(status.applied, true)
@@ -1416,7 +1416,7 @@ test('chips: un filtro aplicado enseña su valor con la etiqueta de la opción',
 })
 
 test('chips: un rango se quita ENTERO — sus dos claves', () => {
-  const filters = PROCESS_FILTERS.map(filterDescriptorOf)
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
   const chips = filterChipsOf(filters, { createdFrom_from: '2026-01-01T00:00' })
   const range = chips.filter((c) => c.fieldId === 'createdFrom')[0]
   assert.equal(range.applied, true)
@@ -1426,7 +1426,7 @@ test('chips: un rango se quita ENTERO — sus dos claves', () => {
 })
 
 test('chips: un valor en blanco no cuenta como filtro aplicado', () => {
-  const filters = PROCESS_FILTERS.map(filterDescriptorOf)
+  const filters = PROCESS_FILTERS.map((f) => filterDescriptorOf(f))
   const chips = filterChipsOf(filters, { workflowDefinitionId: '   ', status: [] })
   assert.deepEqual(chips.map((c) => c.applied), [false, false, false, false])
 })
