@@ -44,6 +44,7 @@ import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestA
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
+import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -554,16 +555,7 @@ export class MateuComponent extends ComponentElement {
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
-        let header = "One moment, please"
-        let message = 'Are you sure?'
-        let confirmationText = 'Yes'
-        let denialText = 'No'
-        if (action.confirmationTexts) {
-            header = action.confirmationTexts.title
-            message = action.confirmationTexts.message
-            confirmationText = action.confirmationTexts.confirmationText
-            denialText = action.confirmationTexts.denialText
-        }
+        const { header, message, confirmationText, denialText } = confirmationDialogTexts(action)
 
         // DS-neutral confirm modal (was a vaadin-confirm-dialog).
         const backdrop = document.createElement('div')

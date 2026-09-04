@@ -231,6 +231,23 @@ public Object refresh(List<Grupo> selection) {
 }
 ```
 
+### Look and confirmation texts
+
+`@ListToolbarButton` only says WHICH toolbar the button belongs to — a crud has two, this one and the detail view's. How it looks and how it behaves are declared by [`@Toolbar`](#toolbar) and [`@Action`](#action) on the same method, exactly as on a detail-view method:
+
+```java
+@ListToolbarButton(confirmationRequired = true)
+@Toolbar(buttonStyle = ButtonStyle.secondary, buttonColor = ButtonColor.error, order = 10)
+@Action(confirmationTitle = "Cancel processes",
+        confirmationMessage = "Cancelling stops every selected process. This cannot be undone.",
+        confirmationText = "Cancel them",
+        confirmationDenialText = "Keep running")
+@Label("Cancel")
+public Message cancel(List<Process> selection) { ... }
+```
+
+The two flags are merged by OR, so adding an `@Action` for its texts never turns off the selection guard; `@Action.id()` is ignored (the dispatch id is `action-on-row-<method>`). See [Bulk actions](/ux-patterns/bulk-actions/#making-it-look-and-read-dangerous).
+
 ---
 
 ## @ViewToolbarButton
@@ -244,6 +261,8 @@ public @interface ViewToolbarButton {
     boolean confirmationRequired() default true;
 }
 ```
+
+Like `@ListToolbarButton`, it takes its look from an `@Toolbar` and its behaviour (confirmation texts included) from an `@Action` on the same method.
 
 ### Attributes
 

@@ -5,44 +5,12 @@ import io.mateu.dtos.ConfirmationTextsDto;
 import io.mateu.dtos.CustomEventDto;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
-import io.mateu.uidl.fluent.CustomEvent;
 
 final class ActionDtoMapper {
 
+  /** Delegates to the record's own factory — the conversion is pure uidl, the DTOs are ours. */
   static Action mapToAction(io.mateu.uidl.annotations.Action annotation) {
-    return Action.builder()
-        .id(annotation.id())
-        .validationRequired(annotation.validationRequired())
-        .bubble(annotation.bubble())
-        .fieldsToValidate(annotation.fieldsToValidate())
-        .confirmationRequired(annotation.confirmationRequired())
-        .rowsSelectedRequired(annotation.rowsSelectedRequired())
-        .confirmationTexts(
-            isConfirmationTextNeeded(annotation)
-                ? ConfirmationTexts.builder()
-                    .title(annotation.confirmationTitle())
-                    .message(annotation.confirmationMessage())
-                    .confirmationText(annotation.confirmationText())
-                    .denialText(annotation.confirmationDenialText())
-                    .build()
-                : null)
-        .modalStyle(annotation.modalStyle())
-        .modalTitle(annotation.modalTitle())
-        .customEvent(
-            isCustomEventNeeded(annotation)
-                ? CustomEvent.builder()
-                    .eventName(annotation.customEventName())
-                    .detail(annotation.customEventDetail())
-                    .build()
-                : null)
-        .href(annotation.href())
-        .js(annotation.js())
-        .background(annotation.background())
-        .sse(annotation.sse())
-        .shortcut(annotation.shortcut().isEmpty() ? null : annotation.shortcut())
-        .timeoutMillis(annotation.timeoutMillis())
-        .idempotent(annotation.idempotent())
-        .build();
+    return Action.of(annotation);
   }
 
   static ActionDto mapAction(Action action) {
@@ -89,16 +57,5 @@ final class ActionDtoMapper {
         confirmationTexts.message(),
         confirmationTexts.confirmationText(),
         confirmationTexts.denialText());
-  }
-
-  private static boolean isCustomEventNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return !annotation.customEventName().isEmpty() || !annotation.customEventDetail().isEmpty();
-  }
-
-  private static boolean isConfirmationTextNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return !annotation.confirmationText().isEmpty()
-        || !annotation.confirmationMessage().isEmpty()
-        || !annotation.confirmationTitle().isEmpty()
-        || !annotation.confirmationDenialText().isEmpty();
   }
 }
