@@ -117,9 +117,9 @@ The orchestrator's `search()` returns the roots with their children nested; `edi
 
 ## Tree is opt-in — the flat layouts are not
 
-For a **non-hierarchical** listing you never choose the layout: Mateu auto-selects **table**, **list**, or **cards** from the column weights and the available screen width (a few narrow columns → table, an identifier plus secondary info → list, image/rich content or many columns → cards). See [Listing layout](/java-user-manual/build/listing-layout/) for the full algorithm.
+For a **non-hierarchical** listing you usually choose nothing: a listing you do not configure is a **table**, at any screen width. Ask for **list** or **cards** with `gridLayout()` when a table is not the right shape. See [Listing layout](/java-user-manual/build/listing-layout/).
 
-**tree is the one layout that is never auto-selected.** You opt into it with `gridLayout()` precisely because it changes the data contract — the rows must carry a self-referential `children` list.
+**tree also changes the data contract**, not just the look: the rows must carry a self-referential `children` list. That is the extra reason to opt in deliberately.
 
 ## Principles served
 
@@ -135,5 +135,5 @@ For a **non-hierarchical** listing you never choose the layout: Mateu auto-selec
 ## Related
 
 - [Split View](/ux-patterns/split-view/) — the flat (non-hierarchical) master-detail CRUD this pattern builds on.
-- [Listing layout](/java-user-manual/build/listing-layout/) — how the flat layouts are auto-selected, and every `GridLayout` value.
+- [Listing layout](/java-user-manual/build/listing-layout/) — every `GridLayout` value and when to reach for each.
 - [Workspace](/ux-patterns/workspace/) — composing several heterogeneous panels on one screen.

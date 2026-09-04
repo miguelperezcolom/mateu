@@ -51,7 +51,7 @@ public record SearchRequest(
 | `search(request, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
 | `rowClass()` | Returns the `Row` class; auto-inferred via generics, rarely overridden |
-| `gridLayout()` | Force a specific grid layout. Defaults to `GridLayout.auto` (auto-selection based on column weights). Override to pin a layout: `GridLayout.table`, `.list`, `.cards`, `.masterDetail`, or `.tree` (hierarchical rows with a self-referential `children` list) |
+| `gridLayout()` | The layout this listing renders in. Defaults to `GridLayout.auto`, which is a plain **table** at any width. Override to ask for `GridLayout.list`, `.cards`, `.masterDetail`, or `.tree` (hierarchical rows with a self-referential `children` list) |
 
 Interaction capabilities — clickable rows, editing, creation, deletion — are separate interfaces (`Navigable`, `Editable`, `Creatable`, `Deletable`) declared on the same class. See [Listings and capabilities](/java-user-manual/build/capability-listings/).
 
@@ -73,7 +73,7 @@ public class Arrivals implements Listing<ArrivalRow>, Searchable, Filterable<Arr
 }
 ```
 
-See [Listing layout](/java-user-manual/build/listing-layout/) for the full auto-selection algorithm and all available `GridLayout` values.
+See [Listing layout](/java-user-manual/build/listing-layout/) for every `GridLayout` value and when to reach for each.
 
 ## Export support
 
