@@ -156,9 +156,8 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
   }
 
   /**
-   * Preferred grid layout for this listing. Defaults to {@link GridLayout#auto} (the renderer picks
-   * via the weight formula). Override to force a concrete layout, e.g. {@code table} for an
-   * information-dense listing whose many columns would otherwise fall back to {@code masterDetail}.
+   * The layout this listing renders in. Undeclared ({@link GridLayout#auto}) is a plain {@code
+   * table} — override to ask for {@code cards}, {@code list}, {@code masterDetail} or {@code tree}.
    */
   default GridLayout gridLayout() {
     return GridLayout.auto;

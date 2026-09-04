@@ -23,7 +23,14 @@ export function columnWeight(col: GridColumn): number {
     return 3.0
 }
 
-/** Selects column-display layout given columns and available container width in px. */
+/**
+ * Selects a column-display layout by measuring total column weight against the available width.
+ *
+ * <p>NOT the default any more: an undeclared listing is a table (see
+ * {@code mateu-table-crud.effectiveGridLayout}), because a layout that changed with the window
+ * width made the same screen look like a different screen and the model said nothing about it.
+ * Kept for a renderer that wants to make the choice for itself.
+ */
 export function selectColumnLayout(cols: GridColumn[], availableWidthPx: number): ResolvedGridLayout {
     if (cols.length === 0) return 'table'
 

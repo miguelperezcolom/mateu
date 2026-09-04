@@ -196,8 +196,17 @@ public class PageListingBuilder {
         .build();
   }
 
+  /**
+   * The listing box's own style. 30rem is what a listing WANTS, not what it demands: capping it at
+   * the container makes a narrow window scroll the grid sideways INSIDE the listing instead of
+   * pushing the whole page — title and toolbar included — off to the left. A bare {@code min-width}
+   * did the latter, which only stopped being visible because an undeclared listing used to turn
+   * itself into cards below 30rem.
+   */
+  public static final String LISTING_BOX_STYLE = "min-width: min(30rem, 100%); display: block;";
+
   private static String getStyle(Object instance, HttpRequest httpRequest) {
-    var style = "min-width: 30rem; display: block;";
+    var style = LISTING_BOX_STYLE;
     if (MetaAnnotations.isPresent(instance.getClass(), Style.class)) {
       style += MetaAnnotations.find(instance.getClass(), Style.class).value();
     }

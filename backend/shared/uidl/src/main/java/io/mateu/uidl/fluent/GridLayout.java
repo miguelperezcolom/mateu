@@ -1,7 +1,14 @@
 package io.mateu.uidl.fluent;
 
 public enum GridLayout {
-  /** Renderer picks the best layout using the weight formula. */
+  /**
+   * Undeclared: the listing renders as a {@link #table}.
+   *
+   * <p>It used to be measured — column weight against the available width — and came out a table,
+   * a list, cards or a master/detail split depending on the result, so the same screen looked
+   * different on a narrower window or once a column was added, with nothing in the model saying
+   * so. A listing that wants to be something other than a table now says which.
+   */
   auto,
   /** Classic tabular grid. */
   table,

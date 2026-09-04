@@ -23,7 +23,6 @@ import {
     ResolvedGridLayout,
     compactColumns,
     railColumns,
-    selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -149,13 +148,27 @@ export class MateuTableCrud extends LitElement {
         return this.cols.find(c => c.id === 'id')?.id
     }
 
+    /**
+     * The layout the listing renders in: what the model DECLARES, and a table when it declares
+     * nothing.
+     *
+     * <p>An undeclared listing used to be measured — total column weight against the available
+     * width — and came out a table, a two-line list, cards or a master/detail split depending on
+     * the result. It made the same screen look like a different screen on a narrower window, on a
+     * second monitor, or once a column was added, and none of it was written down anywhere in the
+     * model: the developer had declared a listing and could not tell you what it would look like.
+     * A table is what a listing is, so that is what an undeclared one gets; a listing that wants
+     * to be cards, a list or a master/detail says so with {@code gridLayout()}.
+     *
+     * <p>Narrow windows keep the table and scroll it sideways rather than turning it into
+     * something else — a predictable listing that needs a swipe beats an unpredictable one.
+     */
     private get effectiveGridLayout(): ResolvedGridLayout {
         const metadata = this.component?.metadata as Crud | undefined
         const raw = metadata?.gridLayout ?? 'auto'
         if (raw === 'auto') {
-            const type = metadata?.crudlType
-            if (type === 'card') return 'cards'
-            return selectColumnLayout(this.cols, this.availableWidthPx)
+            // listingType is the model's other way of declaring cards (fluent Listing.listingType)
+            return metadata?.crudlType === 'card' ? 'cards' : 'table'
         }
         return raw as ResolvedGridLayout
     }
