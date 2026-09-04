@@ -61,18 +61,23 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
       actions.add(Action.builder().id("view").build());
     }
     // @ListToolbarButton / @Toolbar methods dispatch their bare method name from the toolbar —
-    // advertise them too, or the shared renderer drops the click the same way
+    // advertise them too, or the shared renderer drops the click the same way. An @Action on the
+    // same method declares how the button BEHAVES (confirmation texts, timeout, sse…), exactly as
+    // it does on a detail-view method: see ToolbarButtons.
     for (var method : getClass().getMethods()) {
       var toolbarButton = method.getAnnotation(io.mateu.uidl.annotations.ListToolbarButton.class);
+      var behaviour = method.getAnnotation(io.mateu.uidl.annotations.Action.class);
       if (toolbarButton != null) {
         actions.add(
-            Action.builder()
-                .id(method.getName())
-                .confirmationRequired(toolbarButton.confirmationRequired())
-                .rowsSelectedRequired(toolbarButton.rowsSelectedRequired())
-                .build());
+            io.mateu.uidl.fluent.ToolbarButtons.toolbarAction(
+                method.getName(),
+                behaviour,
+                toolbarButton.confirmationRequired(),
+                toolbarButton.rowsSelectedRequired()));
       } else if (method.getAnnotation(io.mateu.uidl.annotations.Toolbar.class) != null) {
-        actions.add(Action.builder().id(method.getName()).build());
+        actions.add(
+            io.mateu.uidl.fluent.ToolbarButtons.toolbarAction(
+                method.getName(), behaviour, false, false));
       }
     }
     if (this instanceof Selector<?>) {

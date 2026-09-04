@@ -6,6 +6,7 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ToolbarButtons;
 import io.mateu.uidl.interfaces.Auditable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
@@ -51,18 +52,16 @@ final class CrudActionsBuilder {
       getAllMethods(orchestrator.behaviourSource().getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
           .forEach(
-              method ->
-                  actions.add(
-                      Action.builder()
-                          .id("action-on-row-" + method.getName())
-                          .confirmationRequired(
-                              MetaAnnotations.find(method, ListToolbarButton.class)
-                                  .confirmationRequired())
-                          .rowsSelectedRequired(
-                              MetaAnnotations.find(method, ListToolbarButton.class)
-                                  .rowsSelectedRequired())
-                          .bubble(true)
-                          .build()));
+              method -> {
+                var placement = MetaAnnotations.find(method, ListToolbarButton.class);
+                actions.add(
+                    ToolbarButtons.toolbarAction(
+                            "action-on-row-" + method.getName(),
+                            MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class),
+                            placement.confirmationRequired(),
+                            placement.rowsSelectedRequired())
+                        .withBubble(true));
+              });
     }
     if (httpRequest.getAttribute("view") != null) {
       getAllMethods(orchestrator.behaviourSource().getClass()).stream()
@@ -70,13 +69,13 @@ final class CrudActionsBuilder {
           .forEach(
               method ->
                   actions.add(
-                      Action.builder()
-                          .id("action-on-view-" + method.getName())
-                          .confirmationRequired(
+                      ToolbarButtons.toolbarAction(
+                              "action-on-view-" + method.getName(),
+                              MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class),
                               MetaAnnotations.find(method, ViewToolbarButton.class)
-                                  .confirmationRequired())
-                          .bubble(true)
-                          .build()));
+                                  .confirmationRequired(),
+                              false)
+                          .withBubble(true)));
     }
     return actions;
   }

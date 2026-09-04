@@ -40,10 +40,54 @@ public class InvoicesCrud extends AutoCrud<Invoice> {
   notice instead of calling the server. Opt out with
   `@ListToolbarButton(rowsSelectedRequired = false)` for toolbar actions that don't need rows.
 - `@ListToolbarButton(confirmationRequired = true)` asks for confirmation first — combine both
-  for destructive bulk operations.
+  for destructive bulk operations. See [Making it look and read
+  dangerous](#making-it-look-and-read-dangerous) for saying *what* is being confirmed.
 - The button label follows the usual rules: `@Label` (translated) or the humanized method name.
 - Return value semantics are the standard action ones: a `Message` toasts, a `PageBanner` shows a
   banner, `void`/`null` simply re-runs the search so the listing reflects the changes.
+
+## Making it look and read dangerous
+
+A bulk action runs over N records at once, so it is the one that most needs to look destructive and
+to say what the user is about to confirm. Three annotations on the same method, each with one job:
+
+| Annotation | Says |
+|---|---|
+| `@ListToolbarButton` | **where** the button goes (a crud has two toolbars — this one and the detail view's `@ViewToolbarButton`) |
+| `@Toolbar` | **how it looks** — `buttonStyle`, `buttonColor`, `buttonSize`, `order` |
+| `@Action` | **how it behaves** — the confirmation texts, `timeoutMillis`, `sse`, `background`, `idempotent`… |
+
+This is the same composition a detail-view method already uses, so nothing is duplicated:
+
+```java
+@ListToolbarButton(confirmationRequired = true)
+@Toolbar(buttonStyle = ButtonStyle.secondary, buttonColor = ButtonColor.error, order = 10)
+@Action(confirmationTitle = "Cancel processes",
+        confirmationMessage = "Cancelling stops every selected process. This cannot be undone.",
+        confirmationText = "Cancel them",
+        confirmationDenialText = "Keep running")
+@Label("Cancel")
+public Message cancel(List<Process> selection) {
+    selection.forEach(process -> service.cancel(process.id()));
+    return new Message(selection.size() + " cancelled");
+}
+```
+
+Notes:
+
+- Each confirmation text falls back **on its own**, so declaring only `confirmationMessage` keeps
+  the framework's title and Yes/No labels instead of blanking them.
+- The flags are **merged, not overridden**: `@Action.rowsSelectedRequired` defaults to `false` while
+  `@ListToolbarButton` defaults it to `true`, so adding an `@Action` for its texts never disarms the
+  selection guard.
+- `@Action.id()` is ignored here — the dispatch id belongs to the placement
+  (`action-on-row-<method>`).
+- Without `@Toolbar` the button keeps the renderer's default look, and without `@Action` it keeps
+  the generic confirmation dialog: existing buttons are untouched.
+- `@Toolbar(order = N)` fixes the button sequence, which reflection alone does not guarantee.
+
+The same three annotations work on a capability `Listing` and on `@ViewToolbarButton` methods of the
+detail view.
 
 ## Built-in bulk delete
 
@@ -52,7 +96,10 @@ Every crud listing already ships a bulk **Delete** (selection + confirmation) wi
 
 ## Other servers
 
-Same wire contract from .NET and Python:
+Same wire contract from .NET and Python — with the caveat that the appearance and confirmation-text
+knobs above are **Java only** for now: neither port carries a `[Toolbar]`/`toolbar` equivalent nor
+confirmation texts on the wire (no action of theirs can declare them, bulk or not).
+
 
 ```csharp
 public class InvoicesCrud : AutoCrud<Invoice>
