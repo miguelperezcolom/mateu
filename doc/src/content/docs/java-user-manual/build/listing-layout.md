@@ -1,9 +1,9 @@
 ---
 title: Listing layout
-description: How Mateu chooses between table, two-line list, cards, and master-detail — and how to override it.
+description: The layouts a listing can render in — table by default, and how to ask for a different one.
 ---
 
-Every listing in Mateu renders in one of four layouts. The framework picks one automatically based on the columns you define and the available screen width. You can also force a specific layout when the automatic choice is not right for your use case.
+Every listing in Mateu renders in one of five layouts. **A listing you do not configure is a table** — at any screen width. Ask for a different layout with `gridLayout()` when a table is not the right shape for your data.
 
 ![Listing with search bar, filters and paginated table](/images/docs/build/listing.png)
 
@@ -11,20 +11,32 @@ Every listing in Mateu renders in one of four layouts. The framework picks one a
 
 ## The four layouts
 
-| Layout | When it appears | Best for |
+| Layout | How you get it | Best for |
 |---|---|---|
-| **table** | All columns fit comfortably | Dense data with many comparable fields |
-| **list** | Columns fit in two lines (title + secondary info) | Navigation-heavy UIs on medium screens |
-| **cards** | Image/rich content present, or many columns without a clear primary one | Product catalogues, media galleries |
-| **masterDetail** | Too many or too wide columns to summarise | Complex entities that need side-by-side browsing |
+| **table** | the default | Dense data with many comparable fields |
+| **list** | `gridLayout(GridLayout.list)` | Navigation-heavy UIs: a title line plus secondary info |
+| **cards** | `gridLayout(GridLayout.cards)` | Product catalogues, media galleries |
+| **masterDetail** | `gridLayout(GridLayout.masterDetail)` | Complex entities that need side-by-side browsing |
+| **tree** | `gridLayout(GridLayout.tree)` | Hierarchical rows — see [Tree layout](#tree-layout-hierarchical-rows) |
 
-A fifth layout, **tree**, is never auto-selected: force it with `GridLayout.tree` when your rows are hierarchical (each row exposes a self-referential `children` list) and you want an expandable tree grid — see [Tree layout](#tree-layout-hierarchical-rows) below.
+### Why the default is not inferred
+
+It used to be. The framework measured the total column weight against the available width and
+picked table, list, cards or master-detail from the result. The measurement was reasonable and the
+outcome was not: the same screen looked like a different screen on a narrower window, on a second
+monitor, or the day somebody added a column — and nothing in the model said it would. A listing is
+a table until it says otherwise; if you want cards, say `cards`.
+
+A **narrow window keeps the table** and scrolls it sideways inside the listing box (the page itself
+never scrolls sideways). On a phone, prefer `list` or `cards` explicitly.
 
 ---
 
-## How auto-selection works
+## Column weights
 
-The framework assigns a **weight** to every column (roughly, how many pixels wide it needs to be), then compares the total column weight to the available container width. 1 unit ≈ 76 px.
+Weights no longer choose the layout, but they still describe how much room a column needs, and the
+compact layouts (`list`, `masterDetail`) use the related `@Priority` metadata to decide what goes
+in the summary line. 1 unit ≈ 76 px.
 
 ### Default weights by type
 
@@ -43,29 +55,11 @@ weighs 1.5, a `LocalDate` 2.0, …) and travels with each column on the wire, so
 accurate even though the coarse column `dataType` collapses most types to `string` for rendering
 purposes. `@Weight` / `@ColumnWidth` still override it.
 
-### Decision tree
-
-```
-density ratio = totalColumnWeight / (containerWidthPx / 76)
-
-ratio ≤ 1.1                          → table
-ratio > 1.6  OR  columns > 10        → masterDetail
-otherwise:
-  compact columns exist AND their weight ≤ 8  → list
-  has image or html stereotype                → cards
-  no compact columns AND 4–8 columns          → cards
-  fallback                                    → masterDetail
-```
-
-The table branch tolerates up to ~10% of estimated overweight: the estimate is conservative
-(auto-width columns take what their content needs, usually less), so a slightly tight table
-beats flipping a scannable listing into cards.
-
 **Compact columns** are columns marked as the identifier (`@Priority(identifier = true)`) or with a priority value ≤ 2 (`@Priority(1)`, `@Priority(2)`). They are the fields shown in the condensed views (list row title, master-detail panel header).
 
 ---
 
-## Influencing auto-selection via annotations
+## Telling the compact layouts what matters
 
 ### Mark the primary column
 
@@ -88,7 +82,7 @@ public record ProductRow(
 ```java
 public record ProductRow(
 
-    @Weight(5.0)         // treat as very wide — pushes density ratio up
+    @Weight(5.0)         // treat as very wide
     String description,
 
     @ColumnWidth("60px") // narrow fixed column — weight derived from px
@@ -123,13 +117,13 @@ return Listing.builder()
     .build();
 ```
 
-`listingType(ListingType.card)` is equivalent to `gridLayout(GridLayout.cards)`. It exists as a semantic alias for CRUDs whose primary presentation is always cards regardless of screen width.
+`listingType(ListingType.card)` is equivalent to `gridLayout(GridLayout.cards)`. It exists as a semantic alias for CRUDs whose primary presentation is cards.
 
 ---
 
 ## Tree layout (hierarchical rows)
 
-`GridLayout.tree` renders the listing as an **expandable tree grid** instead of a flat table. It is the only layout that is never auto-selected — you opt in explicitly, because it changes the data contract: the rows must be hierarchical.
+`GridLayout.tree` renders the listing as an **expandable tree grid** instead of a flat table. You opt in explicitly, as with every non-default layout, and here it also changes the data contract: the rows must be hierarchical.
 
 Two requirements:
 
@@ -186,14 +180,12 @@ return Listing.builder()
 
 ## Practical guide: which layout will I get?
 
-| Situation | Expected layout |
+| Situation | Layout |
 |---|---|
-| 3 short columns (name, status, date) on desktop | table |
-| 6 columns total, 1 marked `identifier`, compact weight ≤ 8 | list |
-| Any column with `image` or `html` stereotype | cards |
-| More than 10 columns | masterDetail |
-| Density ratio > 1.6 after adding many wide columns | masterDetail |
-| `gridLayout(GridLayout.cards)` set explicitly | always cards |
+| Anything you did not configure | table |
+| The same listing on a phone | table, scrolled sideways |
+| 20 columns and no `gridLayout()` | table (a wide one) — ask for `masterDetail` if that is what you want |
+| `gridLayout(GridLayout.cards)`, or `listingType(ListingType.card)` | cards |
 | Rows carry a `children` list and `gridLayout(GridLayout.tree)` set | tree (expandable) |
 
 ---

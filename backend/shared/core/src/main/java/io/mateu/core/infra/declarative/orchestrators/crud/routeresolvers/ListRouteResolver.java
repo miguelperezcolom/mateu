@@ -148,7 +148,9 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             // crud semantics: temporals/annotated numerics as ranges, enums as
                             // multi-selects — their values travel as criteria, not in the example
                             true))
-                    .style("min-width: 30rem; display: block;")
+                    .style(
+                        io.mateu.core.domain.out.componentmapper.PageListingBuilder
+                            .LISTING_BOX_STYLE)
                     .initialPage(parseInitialPage(httpRequest.runActionRq().route()))
                     .gridLayout(orchestrator.gridLayout())
                     .build()))
