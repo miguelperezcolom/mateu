@@ -43,9 +43,10 @@ define([
         const par = route.slice(queryIdx + 1).split('&')[0].split('=');
         route = route.slice(0, queryIdx);
         if (par.length === 2 && par[0] && par[1]) {
-          $application.variables.mateuQuickFilter = {
-            fieldId: par[0], value: decodeURIComponent(par[1]) };
-          $application.variables.mateuQuickFilterPending = true;
+          const seeded = {};
+          seeded[par[0]] = decodeURIComponent(par[1]);
+          $application.variables.mateuFilterValues = seeded;
+          $application.variables.mateuFiltersPending = true;
           force = true; // aunque ya estemos en la ruta, hay que re-buscar filtrado
         }
       }
@@ -90,14 +91,14 @@ define([
       const loaded = reg.contexts[bridge.HOST_ID];
       // una vista rápida del Ask Oracle deja el filtro PENDIENTE: la búsqueda OnLoad
       // aterriza ya filtrada (y el chip aparece aplicado)
-      const quickNav = $application.variables.mateuQuickFilterPending
-        ? ($application.variables.mateuQuickFilter || {}) : {};
+      const quickNav = $application.variables.mateuFiltersPending
+        ? ($application.variables.mateuFilterValues || {}) : {};
       for (const triggerActionId of bridge.onLoadTriggers(loaded)) {
         const listing = bridge.listingOf(loaded);
         const componentState = Object.assign(
           {}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 });
-        if (quickNav.fieldId && quickNav.value) {
-          componentState[quickNav.fieldId] = quickNav.value;
+        for (const key of Object.keys(quickNav)) {
+          componentState[key] = quickNav[key];
         }
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
@@ -354,12 +355,21 @@ define([
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
       // el selector rápido del listado no sobrevive a la navegación — salvo que el
       // Ask Oracle lo haya dejado pendiente para ESTA carga
-      if ($application.variables.mateuQuickFilterPending) {
-        $application.variables.mateuQuickFilterPending = false;
+      if ($application.variables.mateuFiltersPending) {
+        $application.variables.mateuFiltersPending = false;
       } else {
-        $application.variables.mateuQuickFilter = {};
+        $application.variables.mateuFilterValues = {};
         $application.variables.mateuLastSearchText = '';
       }
+      // los chips son proyección de (filtros declarados × valores aplicados): se recalculan
+      // en cuanto cambia cualquiera de los dos, y una navegación cambia los dos
+      $application.variables.mateuFilterEditing = null;
+      $application.variables.mateuFilterDraft = {};
+      $application.variables.mateuFilterChips = bridge.filterChipsOf(
+        (($application.variables.mateuListing || {}).filters) || [],
+        $application.variables.mateuFilterValues || {});
+      $application.variables.mateuHasAppliedFilters =
+        $application.variables.mateuFilterChips.filter((c) => c.applied).length > 0;
       const banners = bridge.bannersOf(host);
       const staleKeys = $application.variables.mateuBannerKeys || [];
       if (staleKeys.length) {

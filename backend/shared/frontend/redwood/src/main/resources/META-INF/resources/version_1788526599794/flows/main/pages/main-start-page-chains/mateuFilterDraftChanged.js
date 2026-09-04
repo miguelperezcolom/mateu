@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain"],ActionChain=>{"use strict";return class extends ActionChain{async run(context,{part,value}){const{$application}=context,draft=Object.assign({},$application.variables.mateuFilterDraft||{});draft[part]=null==value?"":value,$application.variables.mateuFilterDraft=draft}};});
+//# sourceMappingURL=mateuFilterDraftChanged.js.map

@@ -47,6 +47,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     findByType,
     listingOf,
     onLoadTriggers,
+    // filtros del listado: descriptores ya resueltos a widget y su fila de chips
+    filterChipsOf,
+    multiValuesOf,
     fieldListOf,
     overlayOf,
     eventTriggersOf,

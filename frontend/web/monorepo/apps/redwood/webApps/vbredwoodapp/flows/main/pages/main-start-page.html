@@ -24,31 +24,97 @@
         <oj-input-search id="mateuSearch" slot="search" placeholder="Buscar…"
           on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
       </oj-sp-smart-filter-search>
-      <oj-bind-if test="[[ (($application.variables.mateuListing || {}).quickFilters || []).length > 0 ]]">
-        <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top oj-sm-margin-6x-bottom">
-          <oj-bind-for-each data="[[ $application.variables.mateuListing.quickFilters[0].options ]]">
+      <!-- FILTROS del listado: un chip por filtro declarado (no uno por valor posible, que
+           era lo de antes: ocho estados de un enum sueltos y sin decir de qué campo eran).
+           Uno aplicado enseña su valor y se quita por la ✕; uno sin aplicar abre SU editor
+           debajo. Todo lo que decide el widget viene precomputado del bridge (CSP de VB). -->
+      <oj-bind-if test="[[ ($application.variables.mateuFilterChips || []).length > 0 ]]">
+        <div class="oj-flex oj-sm-flex-wrap oj-sm-align-items-center oj-sm-margin-3x-top">
+          <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end">Filtrar por</span>
+          <oj-bind-for-each data="[[ $application.variables.mateuFilterChips ]]">
             <template>
-              <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value === $current.data.value ]]">
-                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="applied" close-icon="always" actionable="true"
-                  label="[[ $application.variables.mateuListing.quickFilters[0].label ]]"
-                  value="[[ $current.data.label ]]"
-                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
-                  :data-value="[[ $current.data.value ]]"
-                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-close="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              <oj-bind-if test="[[ $current.data.applied ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                  type="applied" close-icon="always" actionable="true"
+                  label="[[ $current.data.label ]]" value="[[ $current.data.text ]]"
+                  on-sp-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-label-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-close="[[ $listeners.filterChipCleared ]]"></oj-sp-filter-chip>
               </oj-bind-if>
-              <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value !== $current.data.value ]]">
-                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+              <oj-bind-if test="[[ !$current.data.applied ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                  type="nonApplied" actionable="true" has-popup="true"
                   label="[[ $current.data.label ]]"
-                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
-                  :data-value="[[ $current.data.value ]]"
-                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+                  on-sp-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-label-action="[[ $listeners.filterChipClicked ]]"></oj-sp-filter-chip>
               </oj-bind-if>
             </template>
           </oj-bind-for-each>
+          <oj-bind-if test="[[ $application.variables.mateuHasAppliedFilters ]]">
+            <oj-button chroming="borderless" display="all" class="oj-sm-margin-1x-bottom"
+              on-oj-action="[[ $listeners.filtersCleared ]]">Quitar filtros</oj-button>
+          </oj-bind-if>
         </div>
+        <!-- EDITOR del filtro abierto: una rama por tipo de widget, que es como se hace bajo
+             CSP (nada de decidir en la plantilla; el kind viene resuelto del bridge) -->
+        <oj-bind-if test="[[ $application.variables.mateuFilterEditing ]]">
+          <div class="oj-panel oj-sm-padding-3x oj-sm-margin-2x-top oj-bg-neutral-0">
+            <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom">
+              <oj-bind-text value="[[ $application.variables.mateuFilterEditing.label ]]"></oj-bind-text>
+            </div>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isOptions ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuFilterEditing.options ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                    type="nonApplied" actionable="true" label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterOptionPicked ]]"
+                    on-sp-label-action="[[ $listeners.filterOptionPicked ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isMulti ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuFilterEditing.options ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                    type="nonApplied" actionable="true" label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterOptionToggled ]]"
+                    on-sp-label-action="[[ $listeners.filterOptionToggled ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isBool ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuBoolChoices ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+                    label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterBoolPicked ]]"
+                    on-sp-label-action="[[ $listeners.filterBoolPicked ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isText ]]">
+              <div class="oj-flex oj-sm-align-items-end">
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-8 oj-md-3" label-hint=""
+                  value="[[ ($application.variables.mateuFilterDraft || {}).text ]]"
+                  on-value-changed="[[ $listeners.filterDraftText ]]"></oj-input-text>
+                <oj-button chroming="callToAction"
+                  on-oj-action="[[ $listeners.filterTextApplied ]]">Aplicar</oj-button>
+              </div>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isRange ]]">
+              <div class="oj-flex oj-sm-align-items-end">
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-5 oj-md-2" label-hint="Desde"
+                  value="[[ ($application.variables.mateuFilterDraft || {}).from ]]"
+                  on-value-changed="[[ $listeners.filterDraftFrom ]]"></oj-input-text>
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-5 oj-md-2" label-hint="Hasta"
+                  value="[[ ($application.variables.mateuFilterDraft || {}).to ]]"
+                  on-value-changed="[[ $listeners.filterDraftTo ]]"></oj-input-text>
+                <oj-button chroming="callToAction"
+                  on-oj-action="[[ $listeners.filterRangeApplied ]]">Aplicar</oj-button>
+              </div>
+            </oj-bind-if>
+          </div>
+        </oj-bind-if>
       </oj-bind-if>
     </div>
   </div>
@@ -1884,31 +1950,97 @@
       <oj-input-search id="mateuSearchInline" slot="search" placeholder="Buscar…"
         on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
     </oj-sp-smart-filter-search>
-    <oj-bind-if test="[[ (($application.variables.mateuListing || {}).quickFilters || []).length > 0 ]]">
-        <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top oj-sm-margin-6x-bottom">
-          <oj-bind-for-each data="[[ $application.variables.mateuListing.quickFilters[0].options ]]">
+      <!-- FILTROS del listado: un chip por filtro declarado (no uno por valor posible, que
+           era lo de antes: ocho estados de un enum sueltos y sin decir de qué campo eran).
+           Uno aplicado enseña su valor y se quita por la ✕; uno sin aplicar abre SU editor
+           debajo. Todo lo que decide el widget viene precomputado del bridge (CSP de VB). -->
+      <oj-bind-if test="[[ ($application.variables.mateuFilterChips || []).length > 0 ]]">
+        <div class="oj-flex oj-sm-flex-wrap oj-sm-align-items-center oj-sm-margin-3x-top">
+          <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end">Filtrar por</span>
+          <oj-bind-for-each data="[[ $application.variables.mateuFilterChips ]]">
             <template>
-            <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value === $current.data.value ]]">
-                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="applied" close-icon="always" actionable="true"
-                  label="[[ $application.variables.mateuListing.quickFilters[0].label ]]"
-                  value="[[ $current.data.label ]]"
-                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
-                  :data-value="[[ $current.data.value ]]"
-                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-close="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+              <oj-bind-if test="[[ $current.data.applied ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                  type="applied" close-icon="always" actionable="true"
+                  label="[[ $current.data.label ]]" value="[[ $current.data.text ]]"
+                  on-sp-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-label-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-close="[[ $listeners.filterChipCleared ]]"></oj-sp-filter-chip>
               </oj-bind-if>
-            <oj-bind-if test="[[ ($application.variables.mateuQuickFilter || {}).value !== $current.data.value ]]">
-                <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+              <oj-bind-if test="[[ !$current.data.applied ]]">
+                <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                  type="nonApplied" actionable="true" has-popup="true"
                   label="[[ $current.data.label ]]"
-                  :data-field-id="[[ $application.variables.mateuListing.quickFilters[0].fieldId ]]"
-                  :data-value="[[ $current.data.value ]]"
-                  on-sp-action="[[ $listeners.quickFilterClicked ]]"
-                  on-sp-label-action="[[ $listeners.quickFilterClicked ]]"></oj-sp-filter-chip>
+                  on-sp-action="[[ $listeners.filterChipClicked ]]"
+                  on-sp-label-action="[[ $listeners.filterChipClicked ]]"></oj-sp-filter-chip>
               </oj-bind-if>
             </template>
           </oj-bind-for-each>
+          <oj-bind-if test="[[ $application.variables.mateuHasAppliedFilters ]]">
+            <oj-button chroming="borderless" display="all" class="oj-sm-margin-1x-bottom"
+              on-oj-action="[[ $listeners.filtersCleared ]]">Quitar filtros</oj-button>
+          </oj-bind-if>
         </div>
+        <!-- EDITOR del filtro abierto: una rama por tipo de widget, que es como se hace bajo
+             CSP (nada de decidir en la plantilla; el kind viene resuelto del bridge) -->
+        <oj-bind-if test="[[ $application.variables.mateuFilterEditing ]]">
+          <div class="oj-panel oj-sm-padding-3x oj-sm-margin-2x-top oj-bg-neutral-0">
+            <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom">
+              <oj-bind-text value="[[ $application.variables.mateuFilterEditing.label ]]"></oj-bind-text>
+            </div>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isOptions ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuFilterEditing.options ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                    type="nonApplied" actionable="true" label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterOptionPicked ]]"
+                    on-sp-label-action="[[ $listeners.filterOptionPicked ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isMulti ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuFilterEditing.options ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
+                    type="nonApplied" actionable="true" label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterOptionToggled ]]"
+                    on-sp-label-action="[[ $listeners.filterOptionToggled ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isBool ]]">
+              <oj-bind-for-each data="[[ $application.variables.mateuBoolChoices ]]">
+                <template>
+                  <oj-sp-filter-chip class="oj-sm-margin-2x-end" type="nonApplied" actionable="true"
+                    label="[[ $current.data.label ]]"
+                    on-sp-action="[[ $listeners.filterBoolPicked ]]"
+                    on-sp-label-action="[[ $listeners.filterBoolPicked ]]"></oj-sp-filter-chip>
+                </template>
+              </oj-bind-for-each>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isText ]]">
+              <div class="oj-flex oj-sm-align-items-end">
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-8 oj-md-3" label-hint=""
+                  value="[[ ($application.variables.mateuFilterDraft || {}).text ]]"
+                  on-value-changed="[[ $listeners.filterDraftText ]]"></oj-input-text>
+                <oj-button chroming="callToAction"
+                  on-oj-action="[[ $listeners.filterTextApplied ]]">Aplicar</oj-button>
+              </div>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuFilterEditing.isRange ]]">
+              <div class="oj-flex oj-sm-align-items-end">
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-5 oj-md-2" label-hint="Desde"
+                  value="[[ ($application.variables.mateuFilterDraft || {}).from ]]"
+                  on-value-changed="[[ $listeners.filterDraftFrom ]]"></oj-input-text>
+                <oj-input-text class="oj-sm-margin-2x-end oj-flex-item oj-sm-5 oj-md-2" label-hint="Hasta"
+                  value="[[ ($application.variables.mateuFilterDraft || {}).to ]]"
+                  on-value-changed="[[ $listeners.filterDraftTo ]]"></oj-input-text>
+                <oj-button chroming="callToAction"
+                  on-oj-action="[[ $listeners.filterRangeApplied ]]">Aplicar</oj-button>
+              </div>
+            </oj-bind-if>
+          </div>
+        </oj-bind-if>
       </oj-bind-if>
   </oj-bind-if>
   <!-- la TARJETA del listado (la banda con el header capado se pinta arriba, fuera del

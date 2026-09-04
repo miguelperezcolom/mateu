@@ -25,8 +25,10 @@ define([
       }
       await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'close' });
       if (item.quickField && item.quickValue) {
-        $application.variables.mateuQuickFilter = { fieldId: item.quickField, value: item.quickValue };
-        $application.variables.mateuQuickFilterPending = true;
+        const seeded = {};
+        seeded[item.quickField] = item.quickValue;
+        $application.variables.mateuFilterValues = seeded;
+        $application.variables.mateuFiltersPending = true;
       }
       await Actions.callChain(context, {
         chain: 'onMateuNavigate',

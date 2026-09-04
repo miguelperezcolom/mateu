@@ -42,7 +42,10 @@ define([
     // front-office escritas a mano, que en cualquier otra app son tres destinos muertos)
     const listing = $application.variables.mateuListing || {};
     const route = $application.variables.mateuSelectedRoute;
-    for (const quick of (listing.quickFilters || [])) {
+    // sólo los filtros de OPCIONES dan vistas rápidas: una vista rápida es un destino con un
+    // valor puesto, y un texto libre o un rango no tienen valores que enumerar
+    for (const quick of (listing.filters || [])) {
+      if (!quick.isOptions && !quick.isMulti) continue;
       for (const option of (quick.options || [])) {
         items.push({ label: (listing.title || 'Listado') + ' — ' + option.label, route,
           quickField: quick.fieldId, quickValue: option.value,

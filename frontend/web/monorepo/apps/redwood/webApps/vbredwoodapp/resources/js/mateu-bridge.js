@@ -1518,7 +1518,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
       // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
       // los filtros viajan como FormField select en la metadata (a veces en el mediator,
       // no en el nodo Crud — se busca en todo el árbol)
-      quickFilters: quickFiltersOf(ctx),
+      filters: filtersOf(ctx),
     }
   }
 
@@ -1549,23 +1549,123 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     })
   }
 
-  function quickFiltersOf(ctx) {
+  /**
+   * TODOS los filtros que declara el listado, cada uno ya resuelto al widget que le toca.
+   *
+   * Antes sólo salían los de opciones, y sólo el primero: un listado con un booleano, un
+   * lookup, un enum y dos fechas mostraba una tira de chips sueltos con los valores del enum
+   * —sin decir siquiera de qué campo eran— y los otros cuatro filtros no existían para el
+   * usuario. En el renderer Vaadin salen los cinco.
+   *
+   * El `kind` se PRECOMPUTA aquí porque las plantillas de VB corren bajo CSP y no pueden
+   * evaluar expresiones; el orden de resolución es el mismo que el de la barra compartida
+   * (rango → multi → opciones → booleano → texto), para que un mismo listado ofrezca lo
+   * mismo en los dos renderers.
+   */
+  function filtersOf(ctx) {
     const found = []
     const walk = (node) => {
       if (!node || typeof node !== 'object') return
       for (const f of ((node.metadata || {}).filters) || []) {
-        if ((f.options || []).length && (f.stereotype === 'select' || f.stereotype === 'multiSelect')) {
-          found.push({
-            fieldId: f.fieldId,
-            label: f.label || f.fieldId,
-            options: f.options.map((o) => ({ value: o.value, label: o.label || o.value })),
-          })
-        }
+        found.push(filterDescriptorOf(f))
       }
       ;(node.children || []).forEach(walk)
     }
     walk(ctx && ctx.tree)
     return found
+  }
+
+  function filterDescriptorOf(f) {
+    const options = (f.options || []).map((o) => ({ value: o.value, label: o.label || o.value }))
+    // 'bool' lo emite el server Java y 'boolean' el .NET
+    const isBool = f.dataType === 'bool' || f.dataType === 'boolean'
+      || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
+    const isNumeric = ['integer', 'decimal', 'number', 'money'].indexOf(f.dataType) >= 0
+    let kind
+    if (f.stereotype === 'dateRange' || f.stereotype === 'numberRange') kind = 'range'
+    else if (f.stereotype === 'multiSelect') kind = 'multi'
+    else if (options.length) kind = 'options'
+    else if (isBool) kind = 'bool'
+    else kind = 'text'
+    return {
+      fieldId: f.fieldId,
+      label: f.label || f.fieldId,
+      kind,
+      options,
+      // el tipo del <input> de los kinds 'range' y 'text' (una fecha se teclea fatal como texto)
+      inputType: f.stereotype === 'dateRange'
+        ? (f.dataType === 'dateTime' ? 'datetime-local' : 'date')
+        : (f.stereotype === 'numberRange' || isNumeric) ? 'number' : 'text',
+      isRange: kind === 'range',
+      isMulti: kind === 'multi',
+      isOptions: kind === 'options',
+      isBool: kind === 'bool',
+      isText: kind === 'text',
+      fromKey: f.fieldId + '_from',
+      toKey: f.fieldId + '_to',
+    }
+  }
+
+  /**
+   * Los filtros como CHIPS: uno por filtro, aplicado o no.
+   *
+   * Uno por FILTRO y no uno por valor posible, que es lo que se pintaba antes: los ocho
+   * estados de un enum salían como ocho chips sueltos, sin decir de qué campo eran, y ocupando
+   * la fila entera que debían compartir los otros cuatro filtros. Un chip sin aplicar abre su
+   * editor; uno aplicado enseña el valor y se quita por la ✕.
+   *
+   * `keys` son las claves de estado que hay que borrar para quitarlo — un rango ocupa dos, y
+   * quitarlo a medias deja el listado filtrado por algo que ya no se ve.
+   */
+  function filterChipsOf(filters, values) {
+    const v = values || {}
+    return (filters || []).map((f) => {
+      if (f.isRange) {
+        const from = v[f.fromKey]
+        const to = v[f.toKey]
+        const applied = !isBlank(from) || !isBlank(to)
+        const text = !applied ? ''
+          : isBlank(from) ? '≤ ' + to
+          : isBlank(to) ? '≥ ' + from
+          : from + ' → ' + to
+        return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fromKey, f.toKey] }
+      }
+      const value = v[f.fieldId]
+      const applied = !isBlank(value)
+      let text = ''
+      if (applied) {
+        if (f.isMulti) {
+          const selected = Array.isArray(value) ? value : String(value).split(',')
+          text = selected.map((s) => labelOfOption(f, s)).join(', ')
+        } else if (f.isBool) {
+          text = (value === true || value === 'true') ? 'Yes' : 'No'
+        } else if (f.isOptions) {
+          text = labelOfOption(f, value)
+        } else {
+          text = String(value)
+        }
+      }
+      return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
+    })
+  }
+
+  /** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
+  function multiValuesOf(value) {
+    if (value == null) return []
+    if (Array.isArray(value)) return value.map(String)
+    const text = String(value).trim()
+    return text === '' ? [] : text.split(',').map((s) => s.trim()).filter((s) => s)
+  }
+
+  function labelOfOption(filter, value) {
+    const hit = (filter.options || []).filter((o) => String(o.value) === String(value))[0]
+    return hit ? hit.label : String(value)
+  }
+
+  function isBlank(value) {
+    if (value == null) return true
+    if (Array.isArray(value)) return value.length === 0
+    return String(value).trim() === ''
   }
 
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
@@ -3122,6 +3222,9 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     findByType,
     listingOf,
     onLoadTriggers,
+    // filtros del listado: descriptores ya resueltos a widget y su fila de chips
+    filterChipsOf,
+    multiValuesOf,
     fieldListOf,
     overlayOf,
     eventTriggersOf,
