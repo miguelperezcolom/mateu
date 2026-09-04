@@ -105,8 +105,19 @@ public class ${simpleClassName}Controller {
                 const deferred = Array.from(
                     document.querySelectorAll('script[type="text/mateu-deferred"]'));
                 if (deferred.length) {
-                    // La página trae su propio arranque y su propia raíz; solo le faltaba el
-                    // token. No se le añade un mateu-ui: ya tiene dónde pintarse.
+                    // La página trae su propio arranque y su propia raíz; sólo le faltaba el
+                    // token. Aun así se le añade el mateu-ui, oculto: no está ahí para pintar
+                    // nada, sino porque TRANSPORTA el baseUrl y es la SEÑAL de que a esta página
+                    // la sirve el backend de Mateu — que es lo que decide si la shell rutea por
+                    // path (/ruta) o por hash (#/ruta). Sin él, la misma app cambiaba de esquema
+                    // de URL por el mero hecho de estar securizada, que no tiene nada que ver.
+                    // Va ANTES de arrancar: la shell lo consulta nada más entrar.
+                    const u = document.createElement('mateu-ui');
+                    u.setAttribute('baseUrl', '${path}');
+                    u.setAttribute('pathPrefix', '${path}');
+                    u.setAttribute('style', 'display:none;');
+                    document.body.appendChild(u);
+
                     bootDeferred(deferred).catch(function (e) {
                         console.log('failed to boot the deferred scripts', e);
                     });
