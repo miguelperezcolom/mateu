@@ -11,9 +11,11 @@ import jakarta.inject.Singleton;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -161,32 +163,115 @@ public class RouteRegistry {
   }
 
   /**
-   * The authored half: every mount's route files, merged (last wins) and prefixed with the mount's
-   * base path into absolute routes. Falls back to the conventional {@code specs/ui/routes.yaml} at
-   * the root when no {@code type: UI} mount is declared. Never fails — a broken file logs and
-   * yields fewer routes, not an outage.
+   * The authored half: every mount's route files, grouped by base path, merged (last wins) and
+   * prefixed with the base path into absolute routes. Three producers feed it, all keyed by base
+   * path so they compose:
+   *
+   * <ol>
+   *   <li><b>{@code type: UI} mounts</b> — a descriptor listing the route files of its base path.
+   *   <li><b>standalone {@code type: Routes} files</b> — a route file that tags itself with a
+   *       {@code basePath}, so a class-declared {@code @UI("/shop")} mount authors its inner routes
+   *       with no separate descriptor. This is the common case now that inner routes are data, not
+   *       annotations.
+   *   <li><b>the conventional {@code specs/ui/routes.yaml}</b> at the root — kept for back-compat
+   *       when nothing else declares a mount.
+   * </ol>
+   *
+   * <p>A declared base path is validated against the known mounts ({@code type: UI} + the
+   * {@code @UI} classes in the derived index); an unknown one is logged loudly rather than silently
+   * prefixing routes onto a mount that does not exist. Never fails — a broken file logs and yields
+   * fewer routes, not an outage.
    */
   public RouteTable authoredFrom(ClassLoader classLoader) {
     var cl = classLoader == null ? RouteRegistry.class.getClassLoader() : classLoader;
     var discovered = mountRegistry.mounts(cl);
     this.mounts = discovered;
-    if (discovered.isEmpty()) {
-      // The conventional single root mount: a route file at base path "".
-      return new RouteTable(readRouteEntries(cl, CONVENTIONAL_ROUTES));
-    }
-    var entries = new ArrayList<RouteEntry>();
+
+    // base path -> relative entries, last write winning on a route collision.
+    var byBasePath = new LinkedHashMap<String, LinkedHashMap<String, RouteEntry>>();
+    var consumed = new LinkedHashSet<String>();
+
+    // 1. type: UI descriptors — their listed route files.
     for (var mount : discovered) {
-      var byRoute = new LinkedHashMap<String, RouteEntry>();
+      var bucket = byBasePath.computeIfAbsent(mount.basePath(), key -> new LinkedHashMap<>());
       for (var routeFile : mount.routeFiles()) {
-        for (var entry : readRouteEntries(cl, resolveRouteFilePath(routeFile))) {
-          byRoute.put(entry.route(), entry); // last file wins on a route collision
+        var resourcePath = resolveRouteFilePath(routeFile);
+        consumed.add(resourcePath);
+        for (var entry : readRouteEntries(cl, resourcePath)) {
+          bucket.put(entry.route(), entry);
         }
       }
-      for (var entry : byRoute.values()) {
-        entries.add(withRoute(entry, prefix(mount.basePath(), entry.route())));
+    }
+
+    // 2. Standalone type: Routes files tagging themselves with a base path.
+    for (var routeFile : mountRegistry.routeFileMounts(cl)) {
+      if (!consumed.add(routeFile.resourcePath())) {
+        continue; // already loaded as part of a type: UI mount, or seen twice
+      }
+      var bucket = byBasePath.computeIfAbsent(routeFile.basePath(), key -> new LinkedHashMap<>());
+      for (var entry : readRouteEntries(cl, routeFile.resourcePath())) {
+        bucket.put(entry.route(), entry);
       }
     }
+
+    // 3. The conventional root routes.yaml, only when no mount already covers it (back-compat).
+    if (discovered.isEmpty() && consumed.add(CONVENTIONAL_ROUTES)) {
+      var conventional = readRouteEntries(cl, CONVENTIONAL_ROUTES);
+      if (!conventional.isEmpty()) {
+        var bucket = byBasePath.computeIfAbsent("", key -> new LinkedHashMap<>());
+        for (var entry : conventional) {
+          bucket.putIfAbsent(entry.route(), entry);
+        }
+      }
+    }
+
+    validateBasePaths(cl, byBasePath.keySet(), discovered);
+
+    var entries = new ArrayList<RouteEntry>();
+    byBasePath.forEach(
+        (basePath, bucket) ->
+            bucket
+                .values()
+                .forEach(
+                    entry ->
+                        entries.add(
+                            withRoute(
+                                entry,
+                                prefix(basePath, entry.route()),
+                                entry.hasParent() ? prefix(basePath, entry.parent()) : null))));
     return new RouteTable(entries);
+  }
+
+  /**
+   * Warns when a route file declares a {@code basePath} that matches no known mount — a {@code
+   * type: UI} descriptor or a {@code @UI} class. The routes are still applied (they resolve as
+   * absolute paths regardless), but the mismatch is almost always a typo against the owning
+   * {@code @UI}, so it is named with both the declared value and what is available.
+   */
+  private void validateBasePaths(ClassLoader cl, Set<String> declared, List<Mount> discovered) {
+    var known = new LinkedHashSet<String>();
+    known.add("");
+    for (var mount : discovered) {
+      known.add(mount.basePath());
+    }
+    for (var entry : derivedFrom(cl).routes()) {
+      known.add(normalize(entry.route()));
+    }
+    if (known.size() == 1) {
+      // Only the root is known: there is no annotation index and no descriptor to validate
+      // against (a unit test or a static bundle), so a mismatch cannot be told from a valid mount.
+      return;
+    }
+    for (var basePath : declared) {
+      if (!known.contains(basePath)) {
+        log.error(
+            "Route file declares basePath '{}', which matches no @UI mount. Known mounts: {}. The"
+                + " routes are applied as-is, but this is almost certainly a typo against the owning"
+                + " @UI base path.",
+            basePath,
+            known);
+      }
+    }
   }
 
   /** Reads a route file (a {@code routes:} envelope or a bare list) into relative-route entries. */
@@ -205,18 +290,43 @@ public class RouteRegistry {
       }
       var entries = new ArrayList<RouteEntry>();
       for (var node : routesNode) {
-        entries.add(
-            new RouteEntry(
-                normalize(node.hasNonNull("route") ? node.get("route").asText() : ""),
-                node.hasNonNull("definition") ? node.get("definition").asText() : null,
-                node.hasNonNull("viewModel") ? node.get("viewModel").asText() : null,
-                paramsOf(node, "fixedParams"),
-                paramsOf(node, "defaultParams")));
+        flattenNode(node, null, "", entries);
       }
       return entries;
     } catch (Exception e) {
       log.warn("Failed to read route file {}: {}", resourcePath, e.getMessage());
       return List.of();
+    }
+  }
+
+  /**
+   * Flattens one authored node and its nested {@code children} into flat entries. A child's route
+   * is composed RELATIVE to its parent ({@code orders} under {@code use-cases/rra} becomes {@code
+   * use-cases/rra/orders}) and carries the parent's route as {@link RouteEntry#parent}, so the
+   * sub-route renders into the parent screen's slot instead of replacing the page. Routes are still
+   * relative to the mount here; the base path is applied afterwards.
+   */
+  private void flattenNode(
+      com.fasterxml.jackson.databind.JsonNode node,
+      String parentRoute,
+      String prefix,
+      List<RouteEntry> out) {
+    var relative = normalize(node.hasNonNull("route") ? node.get("route").asText() : "");
+    var full = prefix.isEmpty() ? relative : relative.isEmpty() ? prefix : prefix + "/" + relative;
+    out.add(
+        new RouteEntry(
+            full,
+            node.hasNonNull("definition") ? node.get("definition").asText() : null,
+            node.hasNonNull("viewModel") ? node.get("viewModel").asText() : null,
+            paramsOf(node, "fixedParams"),
+            paramsOf(node, "defaultParams"),
+            parentRoute,
+            null));
+    var childrenNode = node.get("children");
+    if (childrenNode != null && childrenNode.isArray()) {
+      for (var child : childrenNode) {
+        flattenNode(child, full, full, out);
+      }
     }
   }
 
@@ -238,9 +348,15 @@ public class RouteRegistry {
     return route == null || route.isEmpty() ? basePath : basePath + "/" + route;
   }
 
-  private static RouteEntry withRoute(RouteEntry entry, String route) {
+  private static RouteEntry withRoute(RouteEntry entry, String route, String parent) {
     return new RouteEntry(
-        route, entry.definition(), entry.viewModel(), entry.fixedParams(), entry.defaultParams());
+        route,
+        entry.definition(),
+        entry.viewModel(),
+        entry.fixedParams(),
+        entry.defaultParams(),
+        parent,
+        entry.children());
   }
 
   private Map<String, Object> paramsOf(com.fasterxml.jackson.databind.JsonNode node, String field) {

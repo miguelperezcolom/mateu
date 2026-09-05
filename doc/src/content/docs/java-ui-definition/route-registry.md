@@ -43,6 +43,52 @@ That unlocks the cases an annotation cannot express:
 - **A route with no server class at all** — which is what a
   [statically deployed](/java-user-manual/build/static-bundle/) mount is.
 
+## Which one do I use?
+
+There is **one route table**. `@UI`/`@Route` and `routes.yaml` are two producers that feed it —
+they are not two competing routing systems. So the question is never "which mechanism does my app
+use", it is "which producer declares *this* route".
+
+The rule fits on one line:
+
+> **A route that maps one URL to one class → annotation. Anything the annotation cannot express → `routes.yaml`.**
+
+Reach for the annotation by default. It co-locates the URL with the class that answers it (you see
+`@UI("/products")` on `ProductsCrud`, right where you work), it is the compile-time signal the
+annotation processor uses to generate the framework controllers, and with no `routes.yaml` present
+nothing else is involved.
+
+Reach for `routes.yaml` when the mapping stops being one-to-one, because there the annotation simply
+*cannot* say what you need — so the two never overlap:
+
+| You want to… | Use | Why the annotation can't |
+|---|---|---|
+| Serve a class at a fixed path (`/products`) | `@UI` / `@Route` | — (this *is* the one-to-one case) |
+| One screen at several URLs, told apart by a pinned parameter (`orders/pending`, `orders/archived`) | `routes.yaml` (`fixedParams`) | An annotation carries one path and no pinned params |
+| Seed a screen with overridable defaults (`?status=open&page=1`) | `routes.yaml` (`defaultParams`) | An annotation has nowhere to put seed values |
+| One layout serving several view models (books and films over one list) | `routes.yaml` (`definition` + `viewModel`) | An annotation binds a class to a path, not a layout to many classes |
+| A route with **no** view model — a bare layout | `routes.yaml` (`definition`, no `viewModel`) | An annotation needs a class to hang off |
+| A [data-driven mount](/java-ui-definition/yaml-app-shell/#the-mount-that-ties-it-together) with no `@UI` class | `type: UI` + `routes.yaml` | There is no class to annotate |
+| A [statically deployed](/java-user-manual/build/static-bundle/) route (no backend) | `routes.yaml` | Only the authored table ships in the bundle; a class is useless without a server |
+| Re-point or rename a route without touching Java | `routes.yaml` (authored wins) | Editing an annotation means recompiling |
+
+### They also compose
+
+You do not have to migrate a whole mount to one side. Because the authored entry **replaces** the
+derived one outright, you can keep the annotation as the default and add a `routes.yaml` entry only
+for the route you need to bend — an alias, a pinned parameter, a swapped layout. The other routes
+keep resolving from their annotations untouched.
+
+### Rules of thumb
+
+- **Start with the annotation.** Promote a route to `routes.yaml` the day it needs something the
+  annotation cannot carry — not before.
+- **Don't split a mount's routes across both for no reason.** A route in `routes.yaml` is authored
+  and wins; keeping the trivial 1:1 routes as annotations keeps them next to their code.
+- **A shared `definition` must not declare `modelView:`** — see
+  [The definition is layout only](#the-definition-is-layout-only). Otherwise it can only ever serve
+  the class it names, defeating the "one layout, several view models" case.
+
 ## The file
 
 ```yaml

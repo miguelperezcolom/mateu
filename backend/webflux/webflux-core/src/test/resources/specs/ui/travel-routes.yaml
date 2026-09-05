@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the /travel mount (declared by @UI("/travel") on TravelApp). Routes are relative
+# to the base path, so `bookings` answers /travel/bookings.
+type: Routes
+basePath: /travel
+routes:
+
+  - route: bookings
+    viewModel: com.example.uis.travel.BookingsCrud

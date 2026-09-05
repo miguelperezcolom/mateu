@@ -5,7 +5,6 @@ import io.mateu.uidl.annotations.Breadcrumbs;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.OptionsLayout;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Message;
@@ -17,7 +16,6 @@ import io.mateu.uidl.interfaces.OptionsSupplier;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route("/manycheckboxes")
 @Breadcrumbs({
         @Breadcrumb(label = "Home", url = "/"),
         @Breadcrumb(label = "Users", url = "/users"),

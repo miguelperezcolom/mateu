@@ -1,6 +1,5 @@
 package com.example.uis.travel;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.Filterable;
@@ -13,7 +12,6 @@ record BookingFilters() {}
 
 record BookingRow(String bookingId) {}
 
-@Route("/bookings")
 public class BookingsCrud
     implements ReactiveListing<BookingRow>, Searchable, Filterable<BookingFilters> {
 

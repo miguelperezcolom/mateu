@@ -38,23 +38,51 @@ import java.util.Map;
  *     one via the query string would be a capability escalation.
  * @param defaultParams parameters the entry seeds but the request may override — path parameters
  *     first, then the incoming query/state.
+ * @param parent the ABSOLUTE route of the screen whose slot this route fills, or {@code null} for a
+ *     top-level route. A sub-route with a parent does not replace the page: the parent renders its
+ *     shell (a master-detail with tabs, a mediator app) and this route's screen is nested into the
+ *     parent's slot. This is what {@code @Route(parentRoute=…)} expressed; it is set when the
+ *     authored {@link #children} tree is flattened, so on a flat table entry it is the link back to
+ *     the host.
+ * @param children sub-routes nested under this one, authored RELATIVE to it (so {@code orders}
+ *     under {@code use-cases/rra} answers {@code use-cases/rra/orders}). Each child fills this
+ *     screen's slot. This is the AUTHORING shape; the registry flattens it into absolute entries
+ *     carrying {@link #parent}, so a table entry read at runtime has an empty {@code children}.
  */
 public record RouteEntry(
     String route,
     String definition,
     String viewModel,
     Map<String, Object> fixedParams,
-    Map<String, Object> defaultParams) {
+    Map<String, Object> defaultParams,
+    String parent,
+    List<RouteEntry> children) {
 
   public RouteEntry {
     route = route == null ? "" : route;
     fixedParams = fixedParams == null ? Map.of() : Map.copyOf(fixedParams);
     defaultParams = defaultParams == null ? Map.of() : Map.copyOf(defaultParams);
+    children = children == null ? List.of() : List.copyOf(children);
   }
 
-  /** The plain case: a route backed by a view model, no parameters pinned. */
+  /** A top-level entry with no slot host and no nested children. */
+  public RouteEntry(
+      String route,
+      String definition,
+      String viewModel,
+      Map<String, Object> fixedParams,
+      Map<String, Object> defaultParams) {
+    this(route, definition, viewModel, fixedParams, defaultParams, null, null);
+  }
+
+  /** The plain case: a route backed by a view model, no parameters pinned, no slot host. */
   public static RouteEntry of(String route, String viewModel) {
-    return new RouteEntry(route, null, viewModel, null, null);
+    return new RouteEntry(route, null, viewModel, null, null, null, null);
+  }
+
+  /** Whether this route fills the slot of a parent screen rather than replacing the page. */
+  public boolean hasParent() {
+    return parent != null && !parent.isBlank();
   }
 
   /** The names of the {@code :name} path parameters this route declares, in order. */

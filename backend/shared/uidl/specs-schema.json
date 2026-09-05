@@ -5670,6 +5670,15 @@
         },
         "defaultParams" : {
           "type" : "object"
+        },
+        "parent" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RouteEntry"
+          }
         }
       }
     },

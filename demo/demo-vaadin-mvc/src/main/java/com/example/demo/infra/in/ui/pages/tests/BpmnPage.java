@@ -1,11 +1,9 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
-import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.annotations.Breadcrumb;
 import io.mateu.uidl.annotations.Breadcrumbs;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.OptionsLayout;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.Bpmn;
 import io.mateu.uidl.data.FieldStereotype;
@@ -18,7 +16,6 @@ import io.mateu.uidl.interfaces.OptionsSupplier;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route(value = "/bpmn", parentRoute = RouteConstants.NO_PARENT_ROUTE)
 public class BpmnPage {
 
     Bpmn bpmn = new Bpmn("""

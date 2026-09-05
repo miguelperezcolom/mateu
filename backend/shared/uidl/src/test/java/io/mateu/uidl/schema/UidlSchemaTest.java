@@ -112,7 +112,13 @@ class UidlSchemaTest {
     assertThat(properties.fieldNames())
         .toIterable()
         .containsExactlyInAnyOrder(
-            "route", "definition", "viewModel", "fixedParams", "defaultParams");
+            "route",
+            "definition",
+            "viewModel",
+            "fixedParams",
+            "defaultParams",
+            "parent",
+            "children");
   }
 
   private static Path sourcesSchemaFile() {

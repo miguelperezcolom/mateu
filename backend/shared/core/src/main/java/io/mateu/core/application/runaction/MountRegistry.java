@@ -44,6 +44,19 @@ public final class MountRegistry {
     }
   }
 
+  /**
+   * A standalone {@code type: Routes} file that tags itself with the mount it belongs to. Unlike a
+   * {@link Mount} descriptor (which merely LISTS route files to load), such a file IS the route
+   * content and carries its own optional {@code basePath} — so a class-declared
+   * {@code @UI("/shop")} mount can author its inner routes without a separate {@code type: UI}
+   * descriptor.
+   */
+  public record RouteFileMount(String basePath, String resourcePath) {
+    public RouteFileMount {
+      basePath = normalizeBasePath(basePath);
+    }
+  }
+
   private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
 
   /** All mounts declared as {@code type: UI} files on the classpath, in discovery order. */
@@ -63,6 +76,31 @@ public final class MountRegistry {
           mounts.stream().map(Mount::basePath).collect(Collectors.joining(", ")));
     }
     return mounts;
+  }
+
+  /**
+   * All standalone {@code type: Routes} files on the classpath, each with its declared {@code
+   * basePath} (default {@code ""}). These are the route files that tag themselves with a mount
+   * rather than being listed by a {@code type: UI} descriptor.
+   */
+  public List<RouteFileMount> routeFileMounts(ClassLoader classLoader) {
+    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var found = new ArrayList<RouteFileMount>();
+    for (var resourcePath : scanYamlResourcePaths(cl)) {
+      try (InputStream is = cl.getResourceAsStream(resourcePath)) {
+        if (is == null) {
+          continue;
+        }
+        var root = yaml.readTree(is);
+        if (root == null || !root.isObject() || !"Routes".equals(text(root, "type"))) {
+          continue;
+        }
+        found.add(new RouteFileMount(text(root, "basePath"), resourcePath));
+      } catch (Exception e) {
+        log.warn("Failed to read route file {}: {}", resourcePath, e.getMessage());
+      }
+    }
+    return found;
   }
 
   /** Reads one resource; returns a Mount only when it carries {@code type: UI}. */
