@@ -131,8 +131,7 @@ class AppMetadataExtractor {
     if (MetaAnnotations.isPresent(instance.getClass(), PageTitle.class)) {
       return MetaAnnotations.find(instance.getClass(), PageTitle.class).value();
     }
-    if (instance.getClass().isAnnotationPresent(UI.class)
-        || instance.getClass().isAnnotationPresent(Route.class)) {
+    if (instance.getClass().isAnnotationPresent(UI.class)) {
       return toUpperCaseFirst(instance.getClass().getSimpleName());
     }
     return null;

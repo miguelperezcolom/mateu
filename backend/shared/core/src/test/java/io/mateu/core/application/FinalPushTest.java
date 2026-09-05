@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.time.LocalDate;
@@ -82,9 +81,6 @@ class FinalPushTest {
     @io.mateu.uidl.annotations.Menu ShopSection section = new ShopSection();
   }
 
-  @Route("/aisle")
-  static class Aisle {}
-
   private static RunActionCommand command(String route, String consumedRoute) {
     return new RunActionCommand(
         "", "", route, consumedRoute, "", Map.of(), Map.of(), null, null, null, null);
@@ -104,18 +100,6 @@ class FinalPushTest {
     assertThat(
             io.mateu.core.application.RouteAnnotationMatcher.matchesApp(
                 "/other", ShopApp.class, command("/other", "_empty")))
-        .isEmpty();
-  }
-
-  @Test
-  void plainMatchesResolvesRouteAnnotations() {
-    assertThat(
-            io.mateu.core.application.RouteAnnotationMatcher.matches(
-                "/aisle", Aisle.class, command("/aisle", "_empty")))
-        .isPresent();
-    assertThat(
-            io.mateu.core.application.RouteAnnotationMatcher.matches(
-                "/nope", Aisle.class, command("/nope", "_empty")))
         .isEmpty();
   }
 

@@ -33,7 +33,6 @@ public final class ViewTypeClassifier {
     if (route.endsWith("_page") || route.endsWith("_no_home_route")) {
       return false;
     }
-    if (instanceType.isAnnotationPresent(HomeRoute.class)) return true;
     if (AppSupplier.class.isAssignableFrom(instanceType)) return true;
     if (App.class.isAssignableFrom(instanceType)) return true;
     if (getAllFields(instanceType).stream()
@@ -70,7 +69,6 @@ public final class ViewTypeClassifier {
     return instance instanceof Page
         || instance instanceof Listing<?>
         || instance.getClass().isAnnotationPresent(UI.class)
-        || instance.getClass().isAnnotationPresent(Route.class)
         || instance.getClass().isRecord()
         || (!isBasic(instance)
             && (hasSomething(instance) || getAllFields(instance.getClass()).isEmpty()));

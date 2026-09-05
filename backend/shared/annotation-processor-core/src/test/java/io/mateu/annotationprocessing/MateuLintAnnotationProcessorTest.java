@@ -217,60 +217,6 @@ public class MateuLintAnnotationProcessorTest {
   }
 
   // ---------------------------------------------------------------------------
-  // checkRouteValue
-  // ---------------------------------------------------------------------------
-
-  @Test
-  public void emptyRouteValue_isError() {
-    var ctx = buildContext();
-    var element = mock(Element.class);
-    var route = mock(Route.class);
-    when(route.value()).thenReturn("");
-    when(element.getAnnotationsByType(Route.class)).thenReturn(new Route[] {route});
-
-    ctx.processor().checkRouteValue(element);
-
-    verify(ctx.messager()).printMessage(eq(Kind.ERROR), any(), eq(element));
-  }
-
-  @Test
-  public void blankRouteValue_isError() {
-    var ctx = buildContext();
-    var element = mock(Element.class);
-    var route = mock(Route.class);
-    when(route.value()).thenReturn("  ");
-    when(element.getAnnotationsByType(Route.class)).thenReturn(new Route[] {route});
-
-    ctx.processor().checkRouteValue(element);
-
-    verify(ctx.messager()).printMessage(eq(Kind.ERROR), any(), eq(element));
-  }
-
-  @Test
-  public void validRouteValue_isOk() {
-    var ctx = buildContext();
-    var element = mock(Element.class);
-    var route = mock(Route.class);
-    when(route.value()).thenReturn("/products");
-    when(element.getAnnotationsByType(Route.class)).thenReturn(new Route[] {route});
-
-    ctx.processor().checkRouteValue(element);
-
-    verify(ctx.messager(), never()).printMessage(any(), any(), any());
-  }
-
-  @Test
-  public void noRouteAnnotations_isOk() {
-    var ctx = buildContext();
-    var element = mock(Element.class);
-    when(element.getAnnotationsByType(Route.class)).thenReturn(new Route[0]);
-
-    ctx.processor().checkRouteValue(element);
-
-    verify(ctx.messager(), never()).printMessage(any(), any(), any());
-  }
-
-  // ---------------------------------------------------------------------------
   // process() integration
   // ---------------------------------------------------------------------------
 

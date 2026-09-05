@@ -9,9 +9,6 @@ import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.infra.HeadlessHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.EyesOnly;
-import io.mateu.uidl.annotations.HomeRoute;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RouteTable;
@@ -401,28 +398,14 @@ public final class MateuBundleExporter {
   }
 
   /**
-   * The route(s) declared by a routed class's routing annotations ({@code @UI}, {@code @Route},
-   * {@code @Routes}, {@code @HomeRoute}). Read directly (routing annotations are NOT
-   * meta-annotation composable — the AP resolves them at compile time).
+   * The mount route a routed class declares via {@code @UI}. Inner routes are no longer annotations
+   * — they travel in the authored table shipped in the manifest, not through this reflective read.
    */
   private static List<String> routesOf(Class<?> c) {
     var routes = new ArrayList<String>();
     var ui = c.getAnnotation(UI.class);
     if (ui != null) {
       routes.add(ui.value());
-    }
-    var route = c.getAnnotation(Route.class);
-    if (route != null) {
-      routes.add(route.value());
-    }
-    var routesAnn = c.getAnnotation(Routes.class);
-    if (routesAnn != null) {
-      for (Route r : routesAnn.value()) {
-        routes.add(r.value());
-      }
-    }
-    if (c.getAnnotation(HomeRoute.class) != null) {
-      routes.add("");
     }
     return routes;
   }

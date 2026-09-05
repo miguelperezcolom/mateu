@@ -2,7 +2,6 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 
-import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.fluent.AppShell;
@@ -130,9 +129,6 @@ public class HomeRouteResolver {
     }
     if (instance instanceof HomeRouteSupplier homeRouteSupplier) {
       return homeRouteSupplier.homeRoute().substring(prefix.length());
-    }
-    if (instance.getClass().isAnnotationPresent(HomeRoute.class)) {
-      return instance.getClass().getAnnotation(HomeRoute.class).value().substring(prefix.length());
     }
     if (instance instanceof AppShell app) {
       return app.homeRoute();

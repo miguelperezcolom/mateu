@@ -23,8 +23,7 @@ import javax.tools.Diagnostic.Kind;
   "io.mateu.uidl.annotations.ReadOnly",
   "io.mateu.uidl.annotations.EditableOnlyWhenCreating",
   "io.mateu.uidl.annotations.Action",
-  "io.mateu.uidl.annotations.Actions",
-  "io.mateu.uidl.annotations.Route"
+  "io.mateu.uidl.annotations.Actions"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuLintAnnotationProcessor extends AbstractProcessor {
@@ -68,10 +67,6 @@ public class MateuLintAnnotationProcessor extends AbstractProcessor {
           if (e.getKind() == ElementKind.METHOD) {
             checkActionFieldsToValidate(e);
           }
-        }
-      } else if ("io.mateu.uidl.annotations.Route".equals(name)) {
-        for (Element e : elements) {
-          checkRouteValue(e);
         }
       }
     }
@@ -127,16 +122,6 @@ public class MateuLintAnnotationProcessor extends AbstractProcessor {
                   + "' in "
                   + enclosingClass.getSimpleName());
         }
-      }
-    }
-  }
-
-  void checkRouteValue(Element element) {
-    Route[] routes = element.getAnnotationsByType(Route.class);
-    if (routes == null) return;
-    for (Route route : routes) {
-      if (route.value() == null || route.value().isBlank()) {
-        error(element, "@Route value must not be blank");
       }
     }
   }

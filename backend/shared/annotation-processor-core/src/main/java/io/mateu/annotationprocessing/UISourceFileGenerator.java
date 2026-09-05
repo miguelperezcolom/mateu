@@ -7,17 +7,88 @@ import io.mateu.uidl.annotations.Link;
 import io.mateu.uidl.annotations.Meta;
 import io.mateu.uidl.annotations.Script;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.interfaces.RouteValue;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.tools.JavaFileObject;
 
 class UISourceFileGenerator {
+
+  /**
+   * Turns a route pattern into the regex the pre-compiled route resolvers bake in ({@code :param}
+   * segments become {@code .*}). Only {@code @UI} feeds this now — inner routes are data.
+   */
+  static String toRegex(String route) {
+    if (route == null) return "";
+    return Arrays.stream(route.split("/"))
+        .map(token -> token.startsWith(":") ? ".*" : token)
+        .collect(Collectors.joining("/"));
+  }
+
+  /** Generates the {@code <Class>UIRouteResolver} (a {@code RoutedClassProvider}) for a mount. */
+  static void createRouteHandler(
+      String generatedFullClassName,
+      String pkgName,
+      String className,
+      String simpleClassName,
+      Element e,
+      String generatedClassName,
+      String caption,
+      List<RouteValue> paths,
+      Filer filer)
+      throws IOException {
+    createRouteHandlerFromModel(
+        generatedFullClassName,
+        pkgName,
+        className,
+        simpleClassName,
+        generatedClassName,
+        caption,
+        paths,
+        filer);
+  }
+
+  /**
+   * Same as {@link #createRouteHandler} for indexed mounts, where no source {@code Element} exists.
+   */
+  static void createRouteHandlerFromModel(
+      String generatedFullClassName,
+      String pkgName,
+      String className,
+      String simpleClassName,
+      String generatedClassName,
+      String caption,
+      List<RouteValue> paths,
+      Filer filer)
+      throws IOException {
+    JavaFileObject builderFile = filer.createSourceFile(generatedFullClassName);
+    try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
+      Formatter formatter =
+          new Formatter(
+              "route.ftl",
+              Map.of(
+                  "pkgName", pkgName,
+                  "className", className,
+                  "simpleClassName", simpleClassName,
+                  "generatedClassName", generatedClassName,
+                  "generatedFullClassName", generatedFullClassName,
+                  "label", caption,
+                  "routes", paths));
+      try {
+        out.println(formatter.apply());
+      } catch (TemplateException ex) {
+        ex.printStackTrace();
+      }
+    }
+  }
 
   static void createIndexController(
       String generatedFullClassName,

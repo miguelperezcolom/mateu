@@ -1,8 +1,5 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
-import static io.mateu.core.infra.reflection.ClassLoaders.forName;
-
-import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
@@ -54,12 +51,8 @@ final class AppHomeRouteResolver {
         if (effectiveRoute == null
             || effectiveRoute.endsWith("_no_home_route")
             || effectiveRoute.equals(appRoute)) {
-          if (app.serverSideType() != null) {
-            Class<?> appClass = forName(app.serverSideType());
-            if (appClass.isAnnotationPresent(HomeRoute.class)) {
-              return appClass.getAnnotation(HomeRoute.class).value();
-            }
-          }
+          // The home route is the app's first menu item (carried on app.homeRoute()); there is no
+          // longer a @HomeRoute annotation to consult.
           if (app.homeRoute() != null) {
             return app.homeRoute();
           }
