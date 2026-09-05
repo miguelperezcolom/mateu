@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
@@ -16,7 +15,6 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/logic/actions/foreground", parentRoute="")
 public class ForegroundActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override

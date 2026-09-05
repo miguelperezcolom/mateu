@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.HorizontalLayoutJustification;
 import io.mateu.uidl.data.SpacingVariant;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route(value="/layouts/vertical", parentRoute="")
 public class VerticalLayoutSample implements ComponentTreeSupplier {
 
     @Override

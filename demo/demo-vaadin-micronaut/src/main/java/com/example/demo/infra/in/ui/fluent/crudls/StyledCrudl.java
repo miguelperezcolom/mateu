@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Route(value="/components/high-level/crudls/styled", parentRoute="")
 @Slf4j
 public class StyledCrudl implements ComponentTreeSupplier, TriggersSupplier, ActionHandler {
 

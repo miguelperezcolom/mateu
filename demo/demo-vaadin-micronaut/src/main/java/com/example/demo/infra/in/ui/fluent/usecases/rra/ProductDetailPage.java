@@ -5,7 +5,6 @@ import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Button;
@@ -35,7 +34,6 @@ import java.util.List;
 import static com.example.demo.infra.in.ui.fluent.usecases.rra.HomePage.color;
 
 
-@Route(value="/use-cases/rra/inventory/.*", parentRoute="/use-cases/rra")
 @Singleton
 public class ProductDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 

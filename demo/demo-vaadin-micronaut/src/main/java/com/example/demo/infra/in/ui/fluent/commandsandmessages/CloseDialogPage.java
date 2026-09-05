@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.commandsandmessages;
 
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.UICommand;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-@Route(value="/logic/commands-and-messages/close-dialog", parentRoute="")
 @Schema
 @Slf4j
 public class CloseDialogPage implements ComponentTreeSupplier, ActionHandler {

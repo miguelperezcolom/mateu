@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -31,7 +30,6 @@ record Person(String name, int age) {
 
 }
 
-@Route(value="/components/high-level/forms/with-grid1", parentRoute="")
 public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier {
 
     String name = "Mateu";

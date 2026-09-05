@@ -1,6 +1,5 @@
 package io.mateu.federation.remote;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
@@ -19,7 +18,6 @@ import java.util.stream.IntStream;
  * a link — the second one is the only one that makes the shell resolve the whole path before any
  * of the apps involved have rendered anything.
  */
-@Route(value = "/remote/things", parentRoute = "/remote")
 @Title("Remote Things")
 public class RemoteThings implements Listing<RemoteThings.Row>, Navigable<RemoteThings.Detail, String> {
 

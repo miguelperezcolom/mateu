@@ -4,7 +4,6 @@ import io.mateu.mdd.demofrontoffice.domain.automation.Automation;
 import io.mateu.mdd.demofrontoffice.domain.automation.ConnectedSystem;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
  * ACCIÓN "Solucionar" en la propia fila ({@link ColumnActionGroup} → {@code action-on-row-*})
  * para los procesos con warnings/errores — al arreglar, el listado se refresca por el bus.
  */
-@Route(value = "/automatizaciones", parentRoute = "")
 @Title("Automatizaciones")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Trigger(type = TriggerType.OnCustomEvent, actionId = "search", eventName = "automatizacion-arreglada")

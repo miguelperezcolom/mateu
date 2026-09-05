@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.rules;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.Rule;
@@ -13,7 +12,6 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route(value="/logic/rules/run-js", parentRoute="")
 public class RunJSRulePage implements ComponentTreeSupplier, RuleSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

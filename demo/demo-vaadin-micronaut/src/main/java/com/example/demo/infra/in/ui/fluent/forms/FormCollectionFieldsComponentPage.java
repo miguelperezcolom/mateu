@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -16,7 +15,6 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route(value="/components/high-level/forms/collection-fields", parentRoute="")
 @Singleton
 public class FormCollectionFieldsComponentPage implements ComponentTreeSupplier {
 

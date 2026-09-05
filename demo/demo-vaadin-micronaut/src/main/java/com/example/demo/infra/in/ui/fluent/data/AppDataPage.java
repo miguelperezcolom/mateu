@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
@@ -53,7 +52,6 @@ class NestedForm implements ComponentTreeSupplier, ActionHandler {
 }
 
 @Slf4j
-@Route(value="/data/app-data", parentRoute="")
 public class AppDataPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

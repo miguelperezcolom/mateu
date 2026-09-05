@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.usecases;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
@@ -13,7 +12,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/use-cases/rra", parentRoute="/fluent")
 public class RRA implements AppSupplier {
 
     @Override

@@ -4,7 +4,6 @@ import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
 import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
@@ -28,7 +27,6 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/components/high-level/forms/data-sourced-fields-2", parentRoute="")
 public class FormDataSourcedFieldsComponentPage2 implements ComponentTreeSupplier, ActionHandler, DataSupplier {
 
     private final CustomerRepository customerRepository;

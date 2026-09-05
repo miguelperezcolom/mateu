@@ -3,7 +3,6 @@ package io.mateu.mdd.demofrontoffice.ui;
 import io.mateu.core.infra.declarative.orchestrators.welcome.Welcome;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Panel;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
@@ -12,9 +11,8 @@ import java.net.URI;
 /**
  * La landing de la suite con el arquetipo {@link Welcome} (template RDS de welcome page): hero
  * con las llamadas a la acción y las tres áreas de la suite como tiles. Es la HOME del app
- * ({@code @HomeRoute} en {@link FrontOfficeSuite}).
+ * (ruta declarada en {@code specs/ui/routes.yaml}).
  */
-@Route(value = "/bienvenida", parentRoute = "")
 @Title("Front-Office Suite")
 public class Bienvenida extends Welcome {
 

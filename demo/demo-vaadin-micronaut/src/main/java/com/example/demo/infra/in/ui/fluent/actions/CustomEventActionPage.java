@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
@@ -71,7 +70,6 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
 }
 
 
-@Route(value="/logic/actions/custom-event", parentRoute="")
 @Slf4j
 public class CustomEventActionPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
 

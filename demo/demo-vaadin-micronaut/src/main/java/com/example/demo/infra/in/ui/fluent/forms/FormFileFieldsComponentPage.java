@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.File;
@@ -17,7 +16,6 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route(value="/components/high-level/forms/file-fields", parentRoute="")
 public class FormFileFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     File[] file = {new File("xx", "fichero.png")};

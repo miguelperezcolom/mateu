@@ -3,7 +3,6 @@ package io.mateu.mdd.demofrontoffice.ui.reservas;
 import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -26,7 +25,6 @@ import java.util.Locale;
  * aparte según el estado: el wizard de check-in, el 360 de en casa o el folio de check-out (para
  * las in house, el check-out se lanza desde el toolbar del 360).
  */
-@Route(value = "/reservas", parentRoute = "")
 @Title("Reservas")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 // tras seedear reservas de demo, el propio listado se refresca (bus estándar)

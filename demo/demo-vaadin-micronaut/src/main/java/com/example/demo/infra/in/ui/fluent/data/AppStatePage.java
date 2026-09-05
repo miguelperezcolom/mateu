@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
@@ -61,7 +60,6 @@ class NestedAppStateForm implements ComponentTreeSupplier, ActionHandler {
 
 
 @Slf4j
-@Route(value="/data/app-state", parentRoute="")
 public class AppStatePage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

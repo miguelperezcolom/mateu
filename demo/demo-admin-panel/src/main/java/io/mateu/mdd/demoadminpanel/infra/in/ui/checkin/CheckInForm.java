@@ -4,7 +4,6 @@ import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.TriggerType;
@@ -27,7 +26,6 @@ import java.util.List;
  */
 @Service
 @Scope("prototype")
-@Route(value = "/checkin/:id", parentRoute = "")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
 @ReadOnly

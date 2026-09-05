@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionLayoutVariant;
 import io.mateu.uidl.data.AccordionPanel;
@@ -11,7 +10,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/layouts/accordion", parentRoute="")
 public class AccordionLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

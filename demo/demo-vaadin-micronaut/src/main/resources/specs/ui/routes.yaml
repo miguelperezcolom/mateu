@@ -1,0 +1,331 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes migrated from @Route/@HomeRoute. @UI mounts and the @Route-declared nested apps
+# (NestedApp*, RRA — resolved as apps via isApp) all resolve their inner routes from here.
+type: Routes
+routes:
+  - route: all-fields
+    viewModel: com.example.demo.infra.in.ui.declarative.AllFieldsForm
+  - route: components/building-blocks/anchor
+    viewModel: com.example.demo.infra.in.ui.fluent.components.AnchorComponentPage
+  - route: components/building-blocks/avatar
+    viewModel: com.example.demo.infra.in.ui.fluent.components.AvatarComponentPage
+  - route: components/building-blocks/badge
+    viewModel: com.example.demo.infra.in.ui.fluent.components.BadgeComponentPage
+  - route: components/building-blocks/breadcrumbs
+    viewModel: com.example.demo.infra.in.ui.fluent.components.BreadcrumbsComponentPage
+  - route: components/building-blocks/button
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ButtonComponentPage
+  - route: components/building-blocks/card
+    viewModel: com.example.demo.infra.in.ui.fluent.components.CardComponentPage
+  - route: components/building-blocks/charts
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ChartsComponentPage
+  - route: components/building-blocks/checkbox
+    viewModel: com.example.demo.infra.in.ui.fluent.components.CheckboxComponentPage
+  - route: components/building-blocks/choice
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ChoiceComponentPage
+  - route: components/building-blocks/combobox
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ComboBoxComponentPage
+  - route: components/building-blocks/confirm-dialog
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ConfirmDialogComponentPage
+  - route: components/building-blocks/context-menu
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ContextMenuComponentPage
+  - route: components/building-blocks/cookie-consent
+    viewModel: com.example.demo.infra.in.ui.fluent.components.CookieConsentComponentPage
+  - route: components/building-blocks/custom-field
+    viewModel: com.example.demo.infra.in.ui.fluent.components.CustomFieldComponentPage
+  - route: components/building-blocks/dashboard
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DashboardComponentPage
+  - route: components/building-blocks/date-picker
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DatePickerComponentPage
+  - route: components/building-blocks/date-time-picker
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DateTimePickerComponentPage
+  - route: components/building-blocks/details
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DetailsComponentPage
+  - route: components/building-blocks/dialog
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DialogComponentPage
+  - route: components/building-blocks/directory
+    viewModel: com.example.demo.infra.in.ui.fluent.components.DirectoryComponentPage
+  - route: components/building-blocks/element
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ElementComponentPage
+  - route: components/building-blocks/email-field
+    viewModel: com.example.demo.infra.in.ui.fluent.components.EmailFieldComponentPage
+  - route: components/building-blocks/grid
+    viewModel: com.example.demo.infra.in.ui.fluent.components.GridComponentPage
+  - route: components/building-blocks/icon
+    viewModel: com.example.demo.infra.in.ui.fluent.components.IconComponentPage
+  - route: components/building-blocks/image
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ImageComponentPage
+  - route: components/building-blocks/list-box
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ListBoxComponentPage
+  - route: components/building-blocks/map
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MapComponentPage
+  - route: components/building-blocks/markdown
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MarkdownComponentPage
+  - route: components/building-blocks/menubar
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MenubarComponentPage
+  - route: components/building-blocks/message-input
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MessageInputComponentPage
+  - route: components/building-blocks/message-list
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MessageListComponentPage
+  - route: components/building-blocks/micro-frontend
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MicroFrontendComponentPage
+  - route: components/building-blocks/multi-select-combo-box
+    viewModel: com.example.demo.infra.in.ui.fluent.components.MultiSelectComboBoxComponentPage
+  - route: components/building-blocks/notification
+    viewModel: com.example.demo.infra.in.ui.fluent.components.NotificationComponentPage
+  - route: components/building-blocks/number-field
+    viewModel: com.example.demo.infra.in.ui.fluent.components.NumberFieldComponentPage
+  - route: components/building-blocks/password-field
+    viewModel: com.example.demo.infra.in.ui.fluent.components.PasswordFieldComponentPage
+  - route: components/building-blocks/popover
+    viewModel: com.example.demo.infra.in.ui.fluent.components.PopoverComponentPage
+  - route: components/building-blocks/progress-bar
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ProgressBarComponentPage
+  - route: components/building-blocks/radio-button
+    viewModel: com.example.demo.infra.in.ui.fluent.components.RadioButtonComponentPage
+  - route: components/building-blocks/rich-text-editor
+    viewModel: com.example.demo.infra.in.ui.fluent.components.RichTextEditorComponentPage
+  - route: components/building-blocks/scroller
+    viewModel: com.example.demo.infra.in.ui.fluent.components.ScrollerComponentPage
+  - route: components/building-blocks/select
+    viewModel: com.example.demo.infra.in.ui.fluent.components.SelectComponentPage
+  - route: components/building-blocks/side-navigation
+    viewModel: com.example.demo.infra.in.ui.fluent.components.SideNavigationComponentPage
+  - route: components/building-blocks/text-area
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TextAreaComponentPage
+  - route: components/building-blocks/text-field
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TextFieldComponentPage
+  - route: components/building-blocks/text
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TextComponentPage
+  - route: components/building-blocks/time-picker
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TimePickerComponentPage
+  - route: components/building-blocks/tooltip
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TooltipComponentPage
+  - route: components/building-blocks/train
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TrainComponentPage
+  - route: components/building-blocks/tree-grid
+    viewModel: com.example.demo.infra.in.ui.fluent.components.TreeGridComponentPage
+  - route: components/building-blocks/upload
+    viewModel: com.example.demo.infra.in.ui.fluent.components.UploadComponentPage
+  - route: components/building-blocks/virtual-list
+    viewModel: com.example.demo.infra.in.ui.fluent.components.VirtualListComponentPage
+  - route: components/building-blocks/web-component
+    viewModel: com.example.demo.infra.in.ui.fluent.components.WebComponentComponentPage
+  - route: components/high-level/crudls/basic
+    viewModel: com.example.demo.infra.in.ui.fluent.crudls.BasicListing
+  - route: components/high-level/crudls/more-columns
+    viewModel: com.example.demo.infra.in.ui.fluent.crudls.MoreColumnsListing
+  - route: components/high-level/crudls/styled
+    viewModel: com.example.demo.infra.in.ui.fluent.crudls.StyledCrudl
+  - route: components/high-level/crudls/with-row-menu
+    viewModel: com.example.demo.infra.in.ui.fluent.crudls.WithRowMenuListing
+  - route: components/high-level/forms/basic
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.BasicForm
+  - route: components/high-level/forms/boolean-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormBooleanFieldsComponentPage
+  - route: components/high-level/forms/choice-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormChoicesFieldsComponentPage
+  - route: components/high-level/forms/choice-with-images-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormChoicesWithImagesFieldsComponentPage
+  - route: components/high-level/forms/collection-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormCollectionFieldsComponentPage
+  - route: components/high-level/forms/combobox-default-value
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormComboDefaultValueComponentPage
+  - route: components/high-level/forms/counter1
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter1
+  - route: components/high-level/forms/counter2
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter2
+  - route: components/high-level/forms/counter3
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter3
+  - route: components/high-level/forms/counter4
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter4
+  - route: components/high-level/forms/counter5
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter5
+  - route: components/high-level/forms/counter6
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.Counter6
+  - route: components/high-level/forms/data-sourced-fields-1
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormDataSourcedFieldsComponentPage1
+  - route: components/high-level/forms/data-sourced-fields-2
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormDataSourcedFieldsComponentPage2
+  - route: components/high-level/forms/date-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormDateFieldsComponentPage
+  - route: components/high-level/forms/editable-grid-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormEditableGridFieldsComponentPage
+  - route: components/high-level/forms/file-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormFileFieldsComponentPage
+  - route: components/high-level/forms/grid-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormGridFieldsComponentPage
+  - route: components/high-level/forms/numeric-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormNumericFieldsComponentPage
+  - route: components/high-level/forms/other-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormOtherFieldsComponentPage
+  - route: components/high-level/forms/string-fields
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.FormStringFieldsComponentPage
+  - route: components/high-level/forms/with-grid1
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.WithGridForm1
+  - route: components/high-level/forms/with-grid2
+    viewModel: com.example.demo.infra.in.ui.fluent.forms.WithGridForm2
+  - route: components/high-level/nested-apps/left/home
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.SharedHome
+  - route: components/high-level/nested-apps/left/page1
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.Page1
+  - route: components/high-level/nested-apps/left/submenu/home
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.SharedHome
+  - route: components/high-level/nested-apps/left/submenu/page1
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.Page1
+  - route: components/high-level/nested-apps/left
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.NestedAppMenuOnLeft
+  - route: components/high-level/nested-apps/tabs/home
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.SharedHome
+  - route: components/high-level/nested-apps/tabs/page1
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.Page1
+  - route: components/high-level/nested-apps/tabs
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.NestedAppTabs
+  - route: components/high-level/nested-apps/top/home
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.SharedHome
+  - route: components/high-level/nested-apps/top/page1
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.Page1
+  - route: components/high-level/nested-apps/top
+    viewModel: com.example.demo.infra.in.ui.fluent.nestedapps.NestedAppMenuOnTop
+  - route: crud1
+    viewModel: com.example.demo.infra.in.ui.declarative.Crud1
+  - route: data/app-data
+    viewModel: com.example.demo.infra.in.ui.fluent.data.AppDataPage
+  - route: data/app-state
+    viewModel: com.example.demo.infra.in.ui.fluent.data.AppStatePage
+  - route: data/component-data
+    viewModel: com.example.demo.infra.in.ui.fluent.data.ComponentDataPage
+  - route: data/component-state-and-data
+    viewModel: com.example.demo.infra.in.ui.fluent.data.ComponentStateAndDataPage
+  - route: data/component-state
+    viewModel: com.example.demo.infra.in.ui.fluent.data.ComponentStatePage
+  - route: home
+    viewModel: com.example.demo.infra.in.ui.fluent.Home
+  - route: layouts/accordion
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.AccordionLayoutSample
+  - route: layouts/board
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.BoardLayoutSample
+  - route: layouts/carousel
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.CarouselLayoutSample
+  - route: layouts/form
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.FormLayoutSample
+  - route: layouts/horizontal
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.HorizontalLayoutSample
+  - route: layouts/master-detail
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.MasterDetailLayoutSample
+  - route: layouts/split
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.SplitLayoutSample
+  - route: layouts/tab
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.TabLayoutSample
+  - route: layouts/vertical
+    viewModel: com.example.demo.infra.in.ui.fluent.layouts.VerticalLayoutSample
+  - route: logic/actions/background
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.BackgroundActionPage
+  - route: logic/actions/confirmation-required
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.ConfirmationRequiredActionPage
+  - route: logic/actions/custom-event
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.CustomEventActionPage
+  - route: logic/actions/foreground
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.ForegroundActionPage
+  - route: logic/actions/href
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.HrefActionPage
+  - route: logic/actions/js
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.JsActionPage
+  - route: logic/actions/row-selected-required
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.RowSelectedRequiredActionPage
+  - route: logic/actions/server-side-events
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.ServerSentEventsActionPage
+  - route: logic/actions/validation-required
+    viewModel: com.example.demo.infra.in.ui.fluent.actions.ValidationRequiredActionPage
+  - route: logic/commands-and-messages/close-dialog
+    viewModel: com.example.demo.infra.in.ui.fluent.commandsandmessages.CloseDialogPage
+  - route: logic/commands-and-messages/message
+    viewModel: com.example.demo.infra.in.ui.fluent.commandsandmessages.MessagePage
+  - route: logic/commands-and-messages/run-action
+    viewModel: com.example.demo.infra.in.ui.fluent.commandsandmessages.RunActionPage
+  - route: logic/commands-and-messages/set-favicon
+    viewModel: com.example.demo.infra.in.ui.fluent.commandsandmessages.SetFaviconPage
+  - route: logic/commands-and-messages/set-window-title
+    viewModel: com.example.demo.infra.in.ui.fluent.commandsandmessages.SetWindowTitlePage
+  - route: logic/rules/enabled-from-backend
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.EnableFromBackendPage
+  - route: logic/rules/enabled
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.EnabledRulePage
+  - route: logic/rules/run-action
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.RunActionRulePage
+  - route: logic/rules/run-js
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.RunJSRulePage
+  - route: logic/rules/set-attribute-value
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.SetAttributeValueRulePage
+  - route: logic/rules/set-css-classes
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.SetCssClassesRulePage
+  - route: logic/rules/set-data-value
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.SetDataValueRulePage
+  - route: logic/rules/set-metadata-value
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.SetMetadataValueRulePage
+  - route: logic/rules/set-style
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.SetStyleRulePage
+  - route: logic/rules/visibility-from-backend
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.HideFromBackendPage
+  - route: logic/rules/visibility
+    viewModel: com.example.demo.infra.in.ui.fluent.rules.VisibilityRulePage
+  - route: logic/triggers/on-custom-event
+    viewModel: com.example.demo.infra.in.ui.fluent.triggers.OnCustomEventTriggerPage
+  - route: logic/triggers/on-error
+    viewModel: com.example.demo.infra.in.ui.fluent.triggers.OnErrorTriggerPage
+  - route: logic/triggers/on-load
+    viewModel: com.example.demo.infra.in.ui.fluent.triggers.OnLoadTriggerPage
+  - route: logic/triggers/on-success
+    viewModel: com.example.demo.infra.in.ui.fluent.triggers.OnSuccessTriggerPage
+  - route: logic/triggers/on-value-change
+    viewModel: com.example.demo.infra.in.ui.fluent.triggers.OnValueChangeTriggerPage
+  - route: logic/validations/conditional
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.ConditionalValidationPage
+  - route: logic/validations/form-wise
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.FormWiseValidationPage
+  - route: logic/validations/min-and-max-length
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.MinAndMaxLengthValidationPage
+  - route: logic/validations/min-and-max
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.MinAndMaxValidationPage
+  - route: logic/validations/pattern
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.PatternValidationPage
+  - route: logic/validations/required
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.RequiredValidationPage
+  - route: logic/validations/row-selected-required
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.RowSelectedRequiredValidationPage
+  - route: logic/validations/server-side
+    viewModel: com.example.demo.infra.in.ui.fluent.validations.ServerSideValidationPage
+  - route: page1
+    viewModel: com.example.demo.infra.in.ui.declarative.Page1
+  - route: page2
+    viewModel: com.example.demo.infra.in.ui.declarative.Page2
+  - route: page3
+    viewModel: com.example.demo.infra.in.ui.declarative.Page3
+  - route: styling/container
+    viewModel: com.example.demo.infra.in.ui.fluent.styling.ContainerSample
+  - route: styling/full-width
+    viewModel: com.example.demo.infra.in.ui.fluent.styling.FullWidthSample
+  - route: use-cases/booking-detail
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.BookingDetailPage
+  - route: use-cases/bookings
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.BookingsPage
+  - route: use-cases/rra/customers/:id
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.CustomerDetailPage
+  - route: use-cases/rra/home
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.HomePage
+  - route: use-cases/rra/inventory/:id
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.ProductDetailPage
+  - route: use-cases/rra/inventory
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.ProductInventoryPage
+  - route: use-cases/rra/orders/create
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.CreateOrderPage
+  - route: use-cases/rra/orders
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.OrdersPage
+  - route: use-cases/rra/trainings/:id
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.TrainingDetailPage
+  - route: use-cases/rra/training
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.rra.TrainingPage
+  - route: use-cases/rra
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.RRA
+  - route: use-cases/x-config
+    viewModel: com.example.demo.infra.in.ui.fluent.usecases.XConfigPage

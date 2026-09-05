@@ -4,7 +4,6 @@ import com.example.demo.domain.Training;
 import com.example.demo.domain.TrainingRepository;
 import com.example.demo.domain.TrainingStep;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
 import io.mateu.uidl.data.Button;
@@ -25,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/use-cases/rra/trainings/.*", parentRoute="/use-cases/rra")
 @Singleton
 public class TrainingDetailPage implements ComponentTreeSupplier, PostHydrationHandler, ActionHandler {
 

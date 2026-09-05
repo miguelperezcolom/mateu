@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.dtos.ComponentDto;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
@@ -55,7 +54,6 @@ record Params(String name, int age) {
 
 }
 
-@Route(value="/components/high-level/crudls/with-row-menu", parentRoute="")
 @Slf4j
 public class WithRowMenuListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row3>, Searchable, Filterable<Filters3>, TriggersSupplier {
 

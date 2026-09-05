@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.Product;
 import com.example.demo.domain.ProductRepository;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.ListingData;
@@ -42,7 +41,6 @@ record ProductInventoryRow(
 
 }
 
-@Route(value="/use-cases/rra/inventory", parentRoute="/use-cases/rra")
 @Singleton
 public class ProductInventoryPage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<ProductInventoryRow>, Searchable, Filterable<ProductInventoryFilters>, TriggersSupplier, ActionHandler {
 

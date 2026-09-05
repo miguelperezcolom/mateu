@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.validations;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -19,7 +18,6 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Route(value="/logic/validations/server-side", parentRoute="")
 public class ServerSideValidationPage implements ComponentTreeSupplier, ActionHandler {
 
     @NotEmpty

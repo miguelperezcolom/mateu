@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the root app (Home, @UI("")). These were @Route classes; they render in the app's
+# content slot. Routes are relative to the mount base path (here "" — the root app).
+type: Routes
+routes:
+
+  - route: about
+    viewModel: io.mateu.demo.staticbundle.About

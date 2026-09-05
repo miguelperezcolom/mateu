@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 import com.example.demo.domain.Order;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
@@ -55,7 +54,6 @@ record OrderRow(
 
 }
 
-@Route(value="/use-cases/rra/orders", parentRoute="/use-cases/rra")
 @Singleton
 @io.mateu.uidl.annotations.Action(id="go-to-selected-order")
 public class OrdersPage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<OrderRow>, Searchable, Filterable<OrdersFilters>, TriggersSupplier, ActionHandler, ActionSupplier {

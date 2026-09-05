@@ -4,7 +4,6 @@ import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Lookup;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.FieldStereotype;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@Route(value = "/:id/edit", uis = {"/users"})
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {

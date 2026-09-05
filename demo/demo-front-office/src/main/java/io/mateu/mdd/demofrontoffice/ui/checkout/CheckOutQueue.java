@@ -9,7 +9,6 @@ import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Chip;
@@ -34,7 +33,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Route(value = "/checkout", parentRoute = "")
 @Title("Check-Out")
 @FormLayout(columns = 3)
 @AutoSave(action = "filtrar", debounceMillis = 400)

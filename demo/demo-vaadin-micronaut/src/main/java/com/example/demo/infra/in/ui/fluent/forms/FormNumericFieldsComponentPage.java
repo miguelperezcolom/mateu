@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -11,7 +10,6 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route(value="/components/high-level/forms/numeric-fields", parentRoute="")
 public class FormNumericFieldsComponentPage implements ComponentTreeSupplier, ActionHandler {
 
     Range range = new Range(10, 30);

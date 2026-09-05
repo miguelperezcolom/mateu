@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Direction;
@@ -32,7 +31,6 @@ record Filters(int age) {}
 @Serdeable
 record Row(String name, int age) {}
 
-@Route(value="/logic/actions/row-selected-required", parentRoute="")
 @Slf4j
 public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, ReactiveListing<Row>, Searchable, Filterable<Filters>, ActionSupplier {
 

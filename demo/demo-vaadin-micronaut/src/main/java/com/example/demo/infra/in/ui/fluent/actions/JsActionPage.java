@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/logic/actions/js", parentRoute="")
 public class JsActionPage implements ComponentTreeSupplier, ActionSupplier {
 
     @Override

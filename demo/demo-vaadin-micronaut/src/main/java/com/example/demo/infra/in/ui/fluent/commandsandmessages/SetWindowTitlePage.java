@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.commandsandmessages;
 
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Route(value="/logic/commands-and-messages/set-window-title", parentRoute="")
 @Schema
 public class SetWindowTitlePage implements ComponentTreeSupplier, ActionHandler {
 

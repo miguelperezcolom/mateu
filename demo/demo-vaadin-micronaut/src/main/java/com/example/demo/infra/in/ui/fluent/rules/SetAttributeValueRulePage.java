@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.rules;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
@@ -15,7 +14,6 @@ import io.mateu.uidl.interfaces.RuleSupplier;
 
 import java.util.List;
 
-@Route(value="/logic/rules/set-attribute-value", parentRoute="")
 public class SetAttributeValueRulePage implements ComponentTreeSupplier, RuleSupplier {
 
     @Override

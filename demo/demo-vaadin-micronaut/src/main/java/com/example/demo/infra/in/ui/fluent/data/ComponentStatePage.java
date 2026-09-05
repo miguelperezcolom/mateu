@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Route(value="/data/component-state", parentRoute="")
 public class ComponentStatePage implements ComponentTreeSupplier, ActionHandler {
 
     String name = "Mateu";

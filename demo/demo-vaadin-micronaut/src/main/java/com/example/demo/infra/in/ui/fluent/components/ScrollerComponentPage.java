@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.Text;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route(value="/components/building-blocks/scroller", parentRoute="")
 public class ScrollerComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

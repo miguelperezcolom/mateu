@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 import com.example.demo.domain.Order;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BadgeColor;
 import io.mateu.uidl.data.Card;
@@ -32,7 +31,6 @@ import java.util.List;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
-@Route(value="/use-cases/rra/home", parentRoute="/use-cases/rra")
 @Singleton
 public class HomePage implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<CardRow>, Searchable, TriggersSupplier {
 

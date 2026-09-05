@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.triggers;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/logic/triggers/on-load", parentRoute="")
 public class OnLoadTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

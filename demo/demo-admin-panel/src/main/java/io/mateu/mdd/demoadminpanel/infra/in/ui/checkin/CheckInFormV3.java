@@ -4,7 +4,6 @@ import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Zone;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Scope("prototype")
-@Route(value = "/checkin/:id/v3", parentRoute = "")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
 @ReadOnly

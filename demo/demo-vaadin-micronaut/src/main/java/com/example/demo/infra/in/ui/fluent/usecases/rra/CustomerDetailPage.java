@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.usecases.rra;
 import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.OrderStatus;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.ColumnAction;
@@ -166,7 +165,6 @@ class OrdersCrud implements io.mateu.uidl.interfaces.Listing<OrderCrudRow>, Sear
     }
 }
 
-@Route(value="/use-cases/rra/customers/.*", parentRoute="/use-cases/rra")
 @Singleton
 public class CustomerDetailPage implements ComponentTreeSupplier, PostHydrationHandler {
 

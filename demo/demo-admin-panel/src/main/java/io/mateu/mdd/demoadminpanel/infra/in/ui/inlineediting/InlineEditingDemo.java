@@ -2,7 +2,6 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.inlineediting;
 
 import io.mateu.uidl.annotations.InlineEditing;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
@@ -21,7 +20,6 @@ import java.util.List;
  */
 @Service
 @Scope("prototype")
-@Route(value = "/inline-editing", parentRoute = "")
 @Title("Inline editing")
 public class InlineEditingDemo {
 

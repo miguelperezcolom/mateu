@@ -20,7 +20,6 @@ import java.util.concurrent.Callable;
  * from the automation aggregates and the process health board. The fix actions resolve the
  * process' warnings for real ({@code Automation.resolveWarnings()} → repository) and re-render.
  */
-@Route(value = "/automatizaciones", parentRoute = "")
 @Title("Automatizaciones")
 @FormLayout(columns = 4)
 public class Automatizaciones {

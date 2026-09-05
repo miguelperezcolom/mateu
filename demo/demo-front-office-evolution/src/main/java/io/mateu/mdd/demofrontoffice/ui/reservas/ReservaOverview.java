@@ -11,7 +11,6 @@ import io.mateu.mdd.demofrontoffice.ui.common.Paxes;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.mdd.demofrontoffice.domain.folio.Folio;
@@ -60,7 +59,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Route(value = "/reservas/:id", parentRoute = "")
 @Title("Reserva")
 // anatomía RDS del foldout: página a sangre (sin gutters ni tope de ancho)
 @FormLayout(columns = 1)

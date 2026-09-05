@@ -6,7 +6,6 @@ import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Message;
@@ -26,7 +25,6 @@ import java.util.concurrent.Callable;
  * process' warnings for real ({@code Automation.resolveWarnings()} → repository) and re-render.
  */
 // el board scoreboard+monitor se conserva en una ruta propia; /automatizaciones es el LISTADO
-@Route(value = "/automatizaciones-board", parentRoute = "")
 @Title("Automatizaciones")
 public class Automatizaciones {
 

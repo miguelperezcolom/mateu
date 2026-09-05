@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.BoardLayout;
 import io.mateu.uidl.data.BoardLayoutItem;
 import io.mateu.uidl.data.BoardLayoutRow;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/layouts/board", parentRoute="")
 public class BoardLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

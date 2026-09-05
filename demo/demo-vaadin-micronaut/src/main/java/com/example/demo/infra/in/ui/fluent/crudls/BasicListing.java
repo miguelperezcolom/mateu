@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.dtos.ComponentDto;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ListingData;
@@ -48,7 +47,6 @@ record Row(
         String longText,
         ComponentDto detail) {}
 
-@Route(value="/components/high-level/crudls/basic", parentRoute="")
 @Slf4j
 @With
 public class BasicListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row>, Searchable, Filterable<Filters>, TriggersSupplier {

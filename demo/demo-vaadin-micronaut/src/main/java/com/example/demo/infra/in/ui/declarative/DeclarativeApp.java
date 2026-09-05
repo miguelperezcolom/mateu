@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.declarative;
 
-import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.PageTitle;
@@ -76,7 +75,6 @@ class MyNestedSubmenu implements Submenu {
 
 @UI("/declarative")
 @PageTitle("Antonia")
-@HomeRoute("/home")
 @Slf4j
 public class DeclarativeApp implements App {
     @Menu(selected = true)

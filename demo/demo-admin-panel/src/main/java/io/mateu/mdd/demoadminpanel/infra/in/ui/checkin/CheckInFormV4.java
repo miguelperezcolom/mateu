@@ -7,7 +7,6 @@ import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
@@ -52,7 +51,6 @@ import java.util.List;
  */
 @Service
 @Scope("prototype")
-@Route(value = "/checkin/:id/v4", parentRoute = "")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @ReadOnly
 @PlainText

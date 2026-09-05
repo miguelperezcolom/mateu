@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.triggers;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Action;
@@ -15,7 +14,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/logic/triggers/on-success", parentRoute="")
 public class OnSuccessTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

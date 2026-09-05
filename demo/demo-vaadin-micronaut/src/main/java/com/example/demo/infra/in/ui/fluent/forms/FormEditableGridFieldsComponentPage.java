@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
 import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
@@ -21,7 +20,6 @@ import java.util.Map;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 
-@Route(value="/components/high-level/forms/editable-grid-fields", parentRoute="")
 @Named
 public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 

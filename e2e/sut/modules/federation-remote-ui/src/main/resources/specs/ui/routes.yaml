@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the /remote mount (Remote, @UI("/remote")). RemoteThings is a Listing+Navigable,
+# so its detail sub-route (things/:id) is served by the capability, not declared here.
+type: Routes
+basePath: /remote
+routes:
+
+  - route: things
+    viewModel: io.mateu.federation.remote.RemoteThings

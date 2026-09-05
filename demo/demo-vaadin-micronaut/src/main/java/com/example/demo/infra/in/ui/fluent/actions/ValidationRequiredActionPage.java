@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -20,7 +19,6 @@ import lombok.SneakyThrows;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/logic/actions/validation-required", parentRoute="")
 public class ValidationRequiredActionPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler, ValidationSupplier {
 
     @Override

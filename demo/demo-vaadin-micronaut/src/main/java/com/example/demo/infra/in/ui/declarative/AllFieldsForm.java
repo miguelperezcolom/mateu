@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.declarative;
 
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.Range;
@@ -26,7 +25,6 @@ record Row(String name, int age) {
 
 }
 
-@Route(value="/all-fields", parentRoute="")
 public class AllFieldsForm {
 
     /*
