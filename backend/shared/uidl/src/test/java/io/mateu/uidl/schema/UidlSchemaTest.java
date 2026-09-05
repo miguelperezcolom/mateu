@@ -118,7 +118,11 @@ class UidlSchemaTest {
             "fixedParams",
             "defaultParams",
             "parent",
-            "children");
+            "children",
+            "state",
+            "appState",
+            "data",
+            "appData");
   }
 
   private static Path sourcesSchemaFile() {

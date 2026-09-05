@@ -5679,6 +5679,18 @@
           "items" : {
             "$ref" : "#/$defs/RouteEntry"
           }
+        },
+        "state" : {
+          "type" : "object"
+        },
+        "appState" : {
+          "type" : "object"
+        },
+        "data" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "appData" : {
+          "$ref" : "#/$defs/RestDataSource"
         }
       }
     },

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.core.application.export.RouteRegistrations;
 import io.mateu.core.application.runaction.MountRegistry.Mount;
+import io.mateu.uidl.data.RestDataSource;
 import io.mateu.uidl.data.RouteEntry;
 import io.mateu.uidl.data.RouteTable;
 import jakarta.inject.Named;
@@ -321,7 +322,11 @@ public class RouteRegistry {
             paramsOf(node, "fixedParams"),
             paramsOf(node, "defaultParams"),
             parentRoute,
-            null));
+            null,
+            paramsOf(node, "state"),
+            paramsOf(node, "appState"),
+            dataSourceOf(node, "data"),
+            dataSourceOf(node, "appData")));
     var childrenNode = node.get("children");
     if (childrenNode != null && childrenNode.isArray()) {
       for (var child : childrenNode) {
@@ -356,7 +361,40 @@ public class RouteRegistry {
         entry.fixedParams(),
         entry.defaultParams(),
         parent,
-        entry.children());
+        entry.children(),
+        entry.state(),
+        entry.appState(),
+        entry.data(),
+        entry.appData());
+  }
+
+  /**
+   * Parses a {@code data}/{@code appData} node into a {@link RestDataSource}. A bare string is the
+   * {@code data: countries} shorthand (a reference by name); an object may also carry inline
+   * endpoint fields.
+   */
+  private static RestDataSource dataSourceOf(
+      com.fasterxml.jackson.databind.JsonNode node, String field) {
+    if (!node.hasNonNull(field)) {
+      return null;
+    }
+    var n = node.get(field);
+    if (n.isTextual()) {
+      return RestDataSource.ref(n.asText());
+    }
+    if (n.isObject()) {
+      return new RestDataSource(
+          n.hasNonNull("ref") ? n.get("ref").asText() : null,
+          n.hasNonNull("url") ? n.get("url").asText() : null,
+          n.hasNonNull("method") ? n.get("method").asText() : null,
+          null,
+          n.hasNonNull("body") ? n.get("body").asText() : null,
+          n.hasNonNull("itemsPath") ? n.get("itemsPath").asText() : null,
+          n.hasNonNull("valuePath") ? n.get("valuePath").asText() : null,
+          n.hasNonNull("labelPath") ? n.get("labelPath").asText() : null,
+          n.hasNonNull("proxy") && n.get("proxy").asBoolean());
+    }
+    return null;
   }
 
   private Map<String, Object> paramsOf(com.fasterxml.jackson.databind.JsonNode node, String field) {

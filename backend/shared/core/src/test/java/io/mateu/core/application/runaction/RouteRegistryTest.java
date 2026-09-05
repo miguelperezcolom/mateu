@@ -130,4 +130,17 @@ class RouteRegistryTest {
     assertThat(dashboard.viewModel()).isEqualTo("com.acme.ShopDashboard");
     assertThat(dashboard.hasParent()).isFalse();
   }
+
+  @Test
+  void aRouteSeedsStateAndAppStateLiteralsAndSourcesDataAndAppDataByRef() {
+    var reports = authored().match("shop/reports").orElseThrow().entry();
+
+    assertThat(reports.state()).containsEntry("tab", "summary");
+    assertThat(reports.appState()).containsEntry("theme", "dark");
+    // data/app-data are references into sources.yaml, never literals — there is no inbound data
+    // channel, so the value is always a named source resolved when the route (or app) loads.
+    assertThat(reports.data()).isNotNull();
+    assertThat(reports.data().ref()).isEqualTo("shop-metrics");
+    assertThat(reports.appData().ref()).isEqualTo("shop-catalog");
+  }
 }

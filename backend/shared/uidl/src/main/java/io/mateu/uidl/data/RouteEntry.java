@@ -48,6 +48,16 @@ import java.util.Map;
  *     under {@code use-cases/rra} answers {@code use-cases/rra/orders}). Each child fills this
  *     screen's slot. This is the AUTHORING shape; the registry flattens it into absolute entries
  *     carrying {@link #parent}, so a table entry read at runtime has an empty {@code children}.
+ * @param state literal values that seed the route's <em>component/route</em> state on entry (the
+ *     {@code componentState} scope). They enter at the client-state precedence level, so a {@link
+ *     #fixedParams pinned} parameter still wins.
+ * @param appState literal values that seed the <em>app</em> state on entry (the app-scoped store
+ *     that {@code @AppContext} also feeds, persisted across navigation).
+ * @param data the route's <em>component/route</em> data, as a reference to a named data source in
+ *     {@code sources.yaml} — there is no literal data channel; data is always sourced. Resolved
+ *     when the route loads.
+ * @param appData the route's <em>app</em> data, a reference to a named data source resolved once at
+ *     app scope (shared across routes).
  */
 public record RouteEntry(
     String route,
@@ -56,13 +66,42 @@ public record RouteEntry(
     Map<String, Object> fixedParams,
     Map<String, Object> defaultParams,
     String parent,
-    List<RouteEntry> children) {
+    List<RouteEntry> children,
+    Map<String, Object> state,
+    Map<String, Object> appState,
+    RestDataSource data,
+    RestDataSource appData) {
 
   public RouteEntry {
     route = route == null ? "" : route;
     fixedParams = fixedParams == null ? Map.of() : Map.copyOf(fixedParams);
     defaultParams = defaultParams == null ? Map.of() : Map.copyOf(defaultParams);
     children = children == null ? List.of() : List.copyOf(children);
+    state = state == null ? Map.of() : Map.copyOf(state);
+    appState = appState == null ? Map.of() : Map.copyOf(appState);
+  }
+
+  /** A top-level entry with no slot host, no nested children and no seeded state/data. */
+  public RouteEntry(
+      String route,
+      String definition,
+      String viewModel,
+      Map<String, Object> fixedParams,
+      Map<String, Object> defaultParams,
+      String parent,
+      List<RouteEntry> children) {
+    this(
+        route,
+        definition,
+        viewModel,
+        fixedParams,
+        defaultParams,
+        parent,
+        children,
+        null,
+        null,
+        null,
+        null);
   }
 
   /** A top-level entry with no slot host and no nested children. */
