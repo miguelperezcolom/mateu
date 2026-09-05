@@ -31,10 +31,12 @@ public record MenuOptionDto(
     Map<String, Object> params,
     boolean explode,
     String uriPrefix,
-    String description) {
+    String description,
+    List<RuleDto> rules) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());
+    rules = Collections.unmodifiableList(rules != null ? rules : Collections.emptyList());
   }
 
   @Override
