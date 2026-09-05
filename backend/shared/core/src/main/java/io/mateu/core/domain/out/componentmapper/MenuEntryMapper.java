@@ -16,6 +16,8 @@ import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.Rule;
+import io.mateu.uidl.data.RuleLink;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MenuSupplier;
@@ -73,6 +75,24 @@ final class MenuEntryMapper {
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
           .withPath("/" + field.getName())
+          .withDescription(description);
+    }
+    // A leaf that RUNS client-side rules instead of navigating: a @Menu field typed Rule or
+    // List<Rule>. The other leaf primitive (a route) is every branch around this one.
+    if (Rule.class.equals(field.getType())) {
+      var rule = (Rule) getValue(field, instance);
+      return new RuleLink(getLabel(field), rule == null ? List.of() : List.of(rule))
+          .withPath("/" + toKebabCase(field.getName()))
+          .withDescription(description);
+    }
+    if (List.class.isAssignableFrom(field.getType())
+        && getValue(field, instance) instanceof List<?> list
+        && !list.isEmpty()
+        && list.stream().allMatch(element -> element instanceof Rule)) {
+      @SuppressWarnings("unchecked")
+      var rules = (List<Rule>) list;
+      return new RuleLink(getLabel(field), rules)
+          .withPath("/" + toKebabCase(field.getName()))
           .withDescription(description);
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {

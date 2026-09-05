@@ -11,6 +11,7 @@ import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.RuleLink;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
@@ -55,6 +56,10 @@ final class AppMenuDtoBuilder {
                           ? remoteMenu.serverSideType()
                           : app.serverSideType())
                   .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
+                  .rules(
+                      (option instanceof RuleLink ruleLink)
+                          ? ruleLink.rules().stream().map(RuleMapper::mapToRule).toList()
+                          : List.of())
                   .uriPrefix(appRoute)
                   .description(option.description())
                   .build();
