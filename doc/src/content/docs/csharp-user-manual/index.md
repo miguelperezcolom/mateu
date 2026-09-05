@@ -554,15 +554,18 @@ exporter, so nothing ships the table to a browser.
 
 ## Status
 
-The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against
-this server: forms + sections + field types + validation, `Crud<T>` (list / detail / edit / new /
+The core Mateu surface is covered and verified live against this server: forms + sections + field
+types + validation, `Crud<T>` (list / detail / edit / new /
 save / delete), the `[App]` shell + menu navigation, wizards, page decorations, i18n, events,
 security scaffolding, the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
 unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Scoreboard,
 DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
-declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 43 golden-JSON tests
-assert wire compatibility with the Java backend.
+declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). Federated microfrontends
+(`[RemoteMenu]` + the `MicroFrontend` component) and the SSE/AI chat entry point (`[AI]` → the
+app's `SseUrl`) are wired through the mapper as well. Over 270 tests cover this port, including a
+golden-JSON wire-conformance corpus (`WireConformanceTests`) that checks the emitted JSON against
+shared `expected.json` snapshots derived from the Java reference.
 
-Beyond the core, the remaining Java features (component adapters, federated microfrontends, framework
-adapters, SSE/AI chat) follow the same pattern: extend the mapper, add a metadata DTO, add a golden
-test.
+Beyond the core, the remaining Java features (the component-adapter SPI, the other framework
+adapters, the static-bundle exporter) follow the same pattern: extend the mapper, add a metadata
+DTO, add a conformance case.

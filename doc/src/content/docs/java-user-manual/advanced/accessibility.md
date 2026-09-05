@@ -66,7 +66,7 @@ Image.builder().src("/logo.png").alt("Acme Corp logo").build()
 
 | Layer | Who is responsible |
 |---|---|
-| Component rendering (buttons, fields, grids, dialogs, …) | Design system (Vaadin, UI5, Redwood, …) |
+| Component rendering (buttons, fields, grids, dialogs, …) | Design system (Vaadin, Redwood, …) |
 | Labels, descriptions, validation messages | Mateu (passes them to the design system) |
 | Raw HTML injected via `Hydratable` or `Text` | Developer |
 | Custom web components via `Element.builder()` | Developer |

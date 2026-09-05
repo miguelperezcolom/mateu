@@ -137,6 +137,8 @@ routes:
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
 | `defaultParams` | Seeded. The request may override them. |
+| `children` | Sub-routes nested under this one, authored **relative** to it. Each fills this screen's slot — see [Nested routes](#nested-routes-a-sub-route-in-a-parents-slot). |
+| `parent` | Set automatically when `children` is flattened: the absolute route of the screen whose slot a sub-route fills. You normally author `children`, not `parent`. |
 
 ### Routes are relative to the mount
 
@@ -144,6 +146,31 @@ An entry `orders/:id` under a mount at `/back-office` answers `/back-office/orde
 federated domains can therefore each have their own `orders` screen without colliding: uniqueness
 only has to hold *within* a mount, and between mount base paths (two `@UI` classes claiming the same
 base path already fail at startup).
+
+### Nested routes (a sub-route in a parent's slot)
+
+Some screens are a *shell with a slot* — a master-detail with tabs, or a mediator app — where a
+sub-route does not replace the page but renders **inside** the parent. Author that with `children`:
+each child's `route` is relative to its parent, and it fills the parent's slot instead of taking
+over the screen.
+
+```yaml
+- route: use-cases/rra
+  viewModel: com.acme.RRA          # the shell (its own tabs / slot)
+  children:
+    - route: orders                # → use-cases/rra/orders, rendered in RRA's slot
+      viewModel: com.acme.OrdersPage
+    - route: orders/create
+      viewModel: com.acme.CreateOrderPage
+    - route: inventory/:id         # a detail, still inside the slot
+      viewModel: com.acme.ProductDetailPage
+```
+
+On load, the loader flattens the tree to absolute routes, and each child carries its parent's route
+as `parent`. This is the data equivalent of the annotation `@Route(parentRoute = …)`. Children nest
+to any depth. A parent that is itself an app/mediator (implements `App`, has a `@Menu`, or supplies
+one) is resolved as the enclosing shell and consumes its prefix, so its children render in place —
+you do not wire anything else.
 
 ## IntelliSense
 

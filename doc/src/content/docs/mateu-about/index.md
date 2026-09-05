@@ -2,7 +2,7 @@
 title: About Mateu
 ---
 
-Mateu is a backend-driven UI layer for Java teams building business applications and internal tools.
+Mateu is a model-driven UI system for building business applications and internal tools: you declare the model — in code (Java, C# or Python) or in YAML — and Mateu derives the UI, served by a backend or shipped as a static bundle.
 
 This section explains what Mateu is, why it was built, and how to think about it. Start here if you are evaluating Mateu or need to understand it from the ground up.
 

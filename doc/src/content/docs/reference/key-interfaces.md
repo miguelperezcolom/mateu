@@ -111,7 +111,7 @@ Defines how a lookup field searches available options.
 
 Use it with `@Lookup`.
 
-In real applications, this is usually a Spring bean so it can inject repositories, services, or API clients.
+In real applications, this is usually a bean in your DI container (Spring, Micronaut, Quarkus, Helidon MP…) so it can inject repositories, services, or API clients.
 
 Typical use cases:
 
@@ -128,7 +128,7 @@ Defines how Mateu resolves the display label for a selected id/value.
 
 Use it with `@Lookup` or `@Searchable` when the raw value is not enough for UI rendering.
 
-In real applications, this is usually a Spring bean.
+In real applications, this is usually a bean in your DI container (Spring, Micronaut, Quarkus, Helidon MP…).
 
 ---
 
@@ -198,7 +198,7 @@ public interface Translator {
 }
 ```
 
-The `core` module provides a default implementation backed by Java i18n (`ResourceBundle`). To override it, register a bean with higher priority (e.g., `@Primary` in Spring Boot):
+The `core` module provides a default implementation backed by Java i18n (`ResourceBundle`). To override it, register a bean in your DI container with higher priority (the mechanism depends on the framework — e.g. `@Primary` in Spring Boot, `@Replaces` in Micronaut, `@Alternative`/`@Priority` in Quarkus/Helidon MP):
 
 ```java
 @Component

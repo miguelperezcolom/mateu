@@ -107,6 +107,7 @@ No intermediate layer. No boilerplate.
 
 ## Notes
 
+- Routes can also be declared as data in a `routes.yaml` route registry, which is merged over the annotation-derived routes (authored entries win). See the [route registry](/java-ui-definition/route-registry/).
 - Field names must match parameter names exactly (case-sensitive)
 - Type conversion is automatic for primitives and common types (`String`, `int`, `long`, `boolean`, `LocalDate`, etc.)
 - Missing parameters leave fields at their Java default value

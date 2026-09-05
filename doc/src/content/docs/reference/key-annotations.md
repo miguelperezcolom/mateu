@@ -673,7 +673,7 @@ These are also part of the public DSL and are worth knowing:
 - `@TreeSelect` — the field's dropdown unfolds a TREE of options (children come from the view's `OptionsSupplier`); `leavesOnly = true` restricts selection to leaves
 - `@RowAction` — per-row contextual actions in listings
 - `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
-- `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the repository as a `FilterCriterion`
+- `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the store (`CrudStore`) as a `FilterCriterion`
 - `@HomeRoute` — designate the default/home route
 - `@Fab` — floating action button (app level or page level)
 - `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`

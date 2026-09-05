@@ -39,6 +39,8 @@ Use this manual as a guided path.
 - [Working with domain models](/java-user-manual/build/domain-models/)
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/)
+- [Static bundle](/java-user-manual/build/static-bundle/)
+- [Derived OpenAPI](/java-user-manual/build/derived-openapi/)
 
 ## 5. Advanced
 

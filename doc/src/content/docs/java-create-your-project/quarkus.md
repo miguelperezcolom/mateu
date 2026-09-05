@@ -72,7 +72,7 @@ public class HelloWorld {
 
 ```
 
-When you run you spring boot application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
+When you run your Quarkus application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
 <p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
@@ -84,10 +84,6 @@ In case you are using a maven project and you are setting custom annotation proc
 ```xml
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

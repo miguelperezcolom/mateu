@@ -3,7 +3,15 @@ title: "Oracle Redwood"
 description: "Mateu renderer built on Oracle's Redwood design system."
 ---
 
-The Oracle Redwood renderer uses Oracle JET components. Use it when your UIs need to match Oracle Cloud applications or when they will be embedded inside existing Oracle Redwood interfaces.
+The Oracle Redwood renderer is built on **Oracle Visual Builder** — it renders Mateu screens with the
+Redwood design system's `oj-*` components (served from Oracle's CDN) inside a Visual Builder app. Use
+it when your UIs need to match Oracle Cloud applications or will be embedded inside existing Oracle
+Redwood interfaces.
+
+:::note
+This is the current Redwood/Visual-Builder line. The earlier standalone Oracle JET renderer
+(`redwood-oj`) has been [retired](/design-systems/renderer-contract/).
+:::
 
 <p align="center"><img src="../../../images/oracle_redwood_1.webp?raw=true" width="200"/></p>
 

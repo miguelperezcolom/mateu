@@ -2,9 +2,13 @@
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/YFb9utDMYK)
 
-Mateu is a **model-driven UI framework** for building **business applications**: you declare what a
-screen contains, and Mateu derives the UI. Java is the reference implementation; .NET and Python
-speak the same wire.
+Mateu is a **model-driven UI system** for building **business applications**: you declare what a
+screen contains — in **code** (Java, C# or Python) or in **YAML** — and Mateu derives the UI, across
+web and native, served by a backend or shipped as a static bundle. Java is the reference
+implementation; .NET and Python speak the same wire, and the same model can be authored as pure data.
+
+It spans the spectrum from **code-first** (pro developers) to **low-code/no-code** (YAML + the visual
+editor). Backend-driven and low-code are modes it supports, not what it is.
 
 ---
 
@@ -30,8 +34,9 @@ That is one distinction, and it is the whole framework:
 | A domain model? | Declare `@UI` classes — inside-out |
 | A design or a mockup? | Draw it in the visual editor — outside-in |
 | An existing REST API? | Point the screens at it |
+| Prefer data over code? | Declare it in YAML — `type: UI` mounts, `routes.yaml`, layout definitions |
 
-All three land on the same declaration. Code-first tools cannot start from a design; design-first
+They all land on the same declaration. Code-first tools cannot start from a design; design-first
 low-code tools cannot start from your domain model.
 
 ### And the UI travels with the domain

@@ -70,6 +70,8 @@ This screen does not publish a new UI. It defines a route inside the existing `/
 
 A class can have both annotations if it is simultaneously an application root and its own first screen. Typically they are separate.
 
+Beyond annotations, routes can also be declared as data in a `routes.yaml` route registry, merged over the annotation-derived routes (authored entries win). See the [route registry](/java-ui-definition/route-registry/).
+
 ---
 
 ## Next

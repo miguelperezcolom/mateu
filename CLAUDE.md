@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Mateu
 
-Mateu is a model-driven UI framework for Java. You annotate Java classes with `@UI` and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Developers write zero frontend code for typical business apps.
+Mateu is a **model-driven UI system**: you declare the model once and Mateu renders it across web and native. The model can be authored as **code** (Java, C#, or Python — annotate a class with `@UI`/`[UI]`/`@ui`) or as **data** (YAML — `type: UI` mounts, `routes.yaml`, and layout definitions), all feeding one wire model. From that model Mateu generates forms, CRUD screens, navigation, wizards and full app shells automatically, so developers write zero frontend code for typical business apps.
+
+It spans the spectrum from **code-first** (pro developers) to **low-code/no-code** (YAML + the visual builder), and a declared UI can be **served by a backend** (backend-driven at runtime) or shipped as a **static bundle** to a CDN with no backend at all. "Backend-driven" and "low-code" are modes it supports, not what it is.
 
 ## Repository Layout
 

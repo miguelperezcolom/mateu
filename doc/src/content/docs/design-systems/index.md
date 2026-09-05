@@ -60,7 +60,7 @@ No Java code changes are needed.
 
 Because each renderer is a web component, you can embed a Mateu UI inside any existing application — including React, Vue, Angular, or plain HTML pages — regardless of which design system that application uses.
 
-A Vaadin-rendered Mateu component can be embedded in an Oracle JET application. An SAP Fiori renderer can be dropped into any HTML page.
+A Vaadin-rendered Mateu component can be dropped into a React, Angular or plain-HTML page, and an Oracle Redwood one into an Oracle Cloud / Visual Builder application.
 
 See [Embedded UI](/java-user-manual/use-cases/embedded-ui/) for details.
 
