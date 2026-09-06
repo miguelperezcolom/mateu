@@ -8,7 +8,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.Listing;
+import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.interfaces.Actionable;
 
 final class YamlUidlMapperFactory {
@@ -103,6 +105,58 @@ final class YamlUidlMapperFactory {
         new NamedType(VerticalLayout.class, "VerticalLayout"),
         new NamedType(VirtualList.class, "VirtualList"),
         new NamedType(Workflow.class, "Workflow"),
+        // The rest of the authoring catalogue. These were authorable per the generated schema but
+        // never registered here, so a YAML page using any of them failed to deserialise — the same
+        // drift that hid Listing. YamlComponentRegistrationTest now pins this list against the
+        // schema.
+        new NamedType(AddOnPicker.class, "AddOnPicker"),
+        new NamedType(BulletedList.class, "BulletedList"),
+        new NamedType(ButtonGroup.class, "ButtonGroup"),
+        new NamedType(Calendar.class, "Calendar"),
+        new NamedType(CalloutCard.class, "CalloutCard"),
+        new NamedType(Checklist.class, "Checklist"),
+        new NamedType(CommentThread.class, "CommentThread"),
+        new NamedType(ComparisonCard.class, "ComparisonCard"),
+        new NamedType(ContentLayout.class, "ContentLayout"),
+        new NamedType(DashboardLayout.class, "DashboardLayout"),
+        new NamedType(DashboardPanel.class, "DashboardPanel"),
+        new NamedType(EmbeddedView.class, "EmbeddedView"),
+        new NamedType(EmptyState.class, "EmptyState"),
+        new NamedType(EntityHeader.class, "EntityHeader"),
+        new NamedType(Faq.class, "Faq"),
+        new NamedType(FeatureGrid.class, "FeatureGrid"),
+        new NamedType(FileList.class, "FileList"),
+        new NamedType(FoldoutLayout.class, "FoldoutLayout"),
+        new NamedType(FoldoutPanel.class, "FoldoutPanel"),
+        new NamedType(Form.class, "Form"),
+        new NamedType(Funnel.class, "Funnel"),
+        new NamedType(Gantt.class, "Gantt"),
+        new NamedType(Heatmap.class, "Heatmap"),
+        new NamedType(HeroSection.class, "HeroSection"),
+        new NamedType(Kanban.class, "Kanban"),
+        new NamedType(Ledger.class, "Ledger"),
+        new NamedType(MenuBar.class, "MenuBar"),
+        new NamedType(Meter.class, "Meter"),
+        new NamedType(MetricCard.class, "MetricCard"),
+        new NamedType(Notice.class, "Notice"),
+        new NamedType(OfferCard.class, "OfferCard"),
+        new NamedType(OrgChart.class, "OrgChart"),
+        new NamedType(PaymentPicker.class, "PaymentPicker"),
+        new NamedType(PlanningBoard.class, "PlanningBoard"),
+        new NamedType(PricingTable.class, "PricingTable"),
+        new NamedType(ProcessMonitor.class, "ProcessMonitor"),
+        new NamedType(ProgressSteps.class, "ProgressSteps"),
+        new NamedType(ResourceGrid.class, "ResourceGrid"),
+        new NamedType(Scoreboard.class, "Scoreboard"),
+        new NamedType(Separator.class, "Separator"),
+        new NamedType(Skeleton.class, "Skeleton"),
+        new NamedType(Stat.class, "Stat"),
+        new NamedType(StatusList.class, "StatusList"),
+        new NamedType(TaskProgress.class, "TaskProgress"),
+        new NamedType(TaskQueue.class, "TaskQueue"),
+        new NamedType(Testimonials.class, "Testimonials"),
+        new NamedType(Timeline.class, "Timeline"),
+        new NamedType(TrendChart.class, "TrendChart"),
         new NamedType(ContentLink.class, "ContentLink"),
         new NamedType(FieldLink.class, "FieldLink"),
         new NamedType(Menu.class, "Menu"),

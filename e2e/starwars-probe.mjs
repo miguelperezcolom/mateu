@@ -20,9 +20,9 @@ const BASE = process.env.BASE ?? 'http://localhost:8600'
 
 const FIXTURES = {
   people: [
-    { name: 'Luke Skywalker', gender: 'male', birth_year: '19BBY', height: '172', mass: '77' },
-    { name: 'Leia Organa', gender: 'female', birth_year: '19BBY', height: '150', mass: '49' },
-    { name: 'Darth Vader', gender: 'male', birth_year: '41.9BBY', height: '202', mass: '136' },
+    { name: 'Luke Skywalker', gender: 'male', birth_year: '19BBY', height: '172', mass: '77', hair_color: 'blond', eye_color: 'blue' },
+    { name: 'Leia Organa', gender: 'female', birth_year: '19BBY', height: '150', mass: '49', hair_color: 'brown', eye_color: 'brown' },
+    { name: 'Darth Vader', gender: 'male', birth_year: '41.9BBY', height: '202', mass: '136', hair_color: 'none', eye_color: 'yellow' },
   ],
   planets: [
     { name: 'Tatooine', climate: 'arid', terrain: 'desert', population: '200000', diameter: '10465' },
@@ -87,6 +87,33 @@ try {
     check(`/${c.route} renders "${c.needle}" from the external source`, text.includes(c.needle), `grid rows=${len}`)
     check(`/${c.route} mapped every fixture row into the grid`, len === c.rows, `${len}/${c.rows}`)
   }
+
+  // People is a master-detail listing: clicking a person shows their full record in the detail
+  // pane, entirely from the already-fetched rows (no re-fetch, no id).
+  await page.goto(`${BASE}/people`, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+  const selected = await page.evaluate(() => {
+    let el = null
+    const walk = (r) => {
+      const f = r.querySelector('mateu-table-crud')
+      if (f) el = f
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    if (!el) return { err: 'no table-crud' }
+    const root = el.shadowRoot || el
+    const cell = [...root.querySelectorAll('*')].find(
+      (n) => /Luke Skywalker/.test(n.textContent) && n.children.length === 0,
+    )
+    if (!cell) return { err: 'no row cell' }
+    cell.click()
+    return { name: el.selectedItem?.name, hair: el.selectedItem?.hair_color }
+  })
+  check(
+    'People master-detail: clicking a person selects their full record',
+    selected.name === 'Luke Skywalker' && selected.hair === 'blond',
+    JSON.stringify(selected),
+  )
 
   await page.close()
 } finally {
