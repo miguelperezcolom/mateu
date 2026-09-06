@@ -12,6 +12,7 @@ import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {installAnnouncer} from "@infra/a11y/announcer.ts";
 import {mountSkipLink} from "@infra/ui/mateu-skip-link.ts";
 import {loadBundleManifest} from "@infra/http/bundleStore.ts";
+import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
 import { nextHistoryUrl } from './navigationUrl'
 
@@ -77,6 +78,9 @@ export class MateuUi extends LitElement {
     /** URL the user is currently sitting on, so a cancelled back/forward can be undone. */
     private _lastUrl: string = ''
 
+    /** Disposer for the theme-attribute mirror (theming isolation when embedded). */
+    private _themeMirrorDisposer: (() => void) | undefined
+
     routeChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
@@ -141,6 +145,10 @@ export class MateuUi extends LitElement {
     connectedCallback() {
         super.connectedCallback()
 
+        // Theming isolation: mirror the document's theme onto this container so the scoped token
+        // baseline (declared on `mateu-ui`) firewalls the app from a host page's design tokens.
+        this._themeMirrorDisposer = mirrorThemeAttribute(this)
+
         dirtyGuard.install()
         this._lastUrl = window.location.href
 
@@ -184,6 +192,7 @@ export class MateuUi extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._themeMirrorDisposer?.()
         this.upstreamSubscription?.unsubscribe()
         this.removeEventListener('url-update-requested', this.routeChangedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
