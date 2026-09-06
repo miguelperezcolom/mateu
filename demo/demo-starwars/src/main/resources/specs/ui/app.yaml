@@ -1,0 +1,20 @@
+# The app shell — a view of its own, discriminated by `type: AppShell`. Bound to the mount root
+# ("") in routes.yaml. Title, subtitle and the top menu, all as data.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Star Wars
+subtitle: A Mateu app authored entirely in YAML, powered by the public Star Wars API
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: People
+    route: people
+    icon: vaadin:user
+  - type: RouteLink
+    label: Planets
+    route: planets
+    icon: vaadin:globe
+  - type: RouteLink
+    label: Films
+    route: films
+    icon: vaadin:film

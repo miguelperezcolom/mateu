@@ -1,0 +1,7 @@
+# The mount: a UI served at a base path (the data-driven equivalent of @UI). Discovered by scanning
+# specs/ui/** for `type: UI`. No Java class declares this app — the file does.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+routes:
+  - routes.yaml

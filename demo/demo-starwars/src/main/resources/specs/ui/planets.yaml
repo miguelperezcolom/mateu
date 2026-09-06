@@ -1,0 +1,21 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Planets
+rowsSource:
+  ref: swapi-planets
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+  - type: GridColumn
+    id: climate
+    label: Climate
+  - type: GridColumn
+    id: terrain
+    label: Terrain
+  - type: GridColumn
+    id: population
+    label: Population
+  - type: GridColumn
+    id: diameter
+    label: Diameter (km)

@@ -19,6 +19,7 @@
 
   <modules>
     <module>demo-app-definition</module>
+    <module>demo-starwars</module>
     <module>demo-vaadin-webflux</module>
     <module>demo-vaadin-mvc</module>
     <module>demo-vaadin-quarkus</module>

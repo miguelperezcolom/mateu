@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.interfaces.Actionable;
 
 final class YamlUidlMapperFactory {
@@ -82,6 +83,7 @@ final class YamlUidlMapperFactory {
         new NamedType(Icon.class, "Icon"),
         new NamedType(Image.class, "Image"),
         new NamedType(KPI.class, "KPI"),
+        new NamedType(Listing.class, "Listing"),
         new NamedType(Map.class, "Map"),
         new NamedType(Markdown.class, "Markdown"),
         new NamedType(MasterDetailLayout.class, "MasterDetailLayout"),

@@ -1,0 +1,19 @@
+# The REST source catalogue: each external endpoint named ONCE, referenced by the pages. swapi.info
+# serves each collection as a plain JSON array of full objects (no envelope), so no itemsPath is
+# needed — the response IS the row array — and it sends `Access-Control-Allow-Origin: *`, so the
+# browser fetches it directly (no backend proxy). These are somebody else's endpoints (absolute url →
+# provenance inferred as `existing`): documented and consumed, never generated.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+  - name: swapi-people
+    description: Characters of the Star Wars saga
+    source:
+      url: https://swapi.info/api/people
+  - name: swapi-planets
+    description: Planets of the Star Wars galaxy
+    source:
+      url: https://swapi.info/api/planets
+  - name: swapi-films
+    description: The Star Wars films
+    source:
+      url: https://swapi.info/api/films
