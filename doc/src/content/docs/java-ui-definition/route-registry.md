@@ -139,6 +139,35 @@ routes:
 | `defaultParams` | Seeded. The request may override them. |
 | `children` | Sub-routes nested under this one, authored **relative** to it. Each fills this screen's slot — see [Nested routes](#nested-routes-a-sub-route-in-a-parents-slot). |
 | `parent` | Set automatically when `children` is flattened: the absolute route of the screen whose slot a sub-route fills. You normally author `children`, not `parent`. |
+| `state` | Literal values that seed the **component/route** state on entry — see [What a route carries](#what-a-route-carries). |
+| `appState` | Literal values that seed the **app** state on entry (merged under the persisted `@AppContext`). |
+| `data` | The route's **component** data, as a **reference** to a named [source](/java-ui-definition/rest-source-catalogue/). Fetched when the route loads. |
+| `appData` | The route's **app-scope** data, a reference to a named source, fetched **once** on app boot and shared across routes. |
+
+### What a route carries
+
+Beyond where it goes, a route can carry the four data scopes it will populate on entry — the same
+four a menu leaf brings when it navigates here. They split by nature:
+
+- **`state` / `appState` are literals** (there is an inbound channel for state): the route seeds them
+  at the *defaults* level, so anything the client sent — including the persisted `@AppContext` in
+  `appState` — still wins. `state` is component-scoped and replaced on navigation; `appState` is
+  app-scoped and persists.
+- **`data` / `appData` are references** into the [REST source catalogue](/java-ui-definition/rest-source-catalogue/)
+  — there is no literal data channel, so data is always *sourced*. `data: countries` is shorthand
+  for `{ref: countries}`. `data` is fetched at route load (it reuses the `@RestData` load path);
+  `appData` is fetched once at app scope.
+
+```yaml
+- route: reports
+  viewModel: com.acme.Reports
+  state:                 # literal, component scope
+    tab: summary
+  appState:             # literal, app scope (merged under @AppContext)
+    theme: dark
+  data: report-rows      # a source ref → the route's component data
+  appData: kpi-totals    # a source ref → app-scope data, fetched once
+```
 
 ### Routes are relative to the mount
 

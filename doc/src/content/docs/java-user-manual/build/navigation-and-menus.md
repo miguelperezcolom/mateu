@@ -22,7 +22,7 @@ Products products;
 Changes changes;
 ```
 
-- The class must be annotated with `@UI` or `@Route`
+- The class is a mount (`@UI`) or is bound to a route in [`routes.yaml`](/java-ui-definition/route-registry/)
 - Mateu uses the class name (or `@Title`) as the menu label
 - The instance is created and managed by Mateu (or Spring, if it is a bean)
 
@@ -79,7 +79,6 @@ A `@Menu` field that points to a class which itself has `@Menu` fields creates a
 NestedApp nestedApp;
 
 // NestedApp defines its own sub-menu
-@Route(value = "/xxx", parentRoute = "/home2")
 public class NestedApp {
 
     @Menu
@@ -92,7 +91,9 @@ public class NestedApp {
 
 `NestedApp` becomes a menu section header. `Page1` and `Page2` appear under it.
 
-`@Route(parentRoute = "/home2")` declares that `/xxx` is nested under `/home2` in the route hierarchy.
+Route nesting (a sub-route that renders inside a parent screen's slot) is declared as data in
+[`routes.yaml`](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)
+with `children:`, not by an annotation.
 
 ---
 
@@ -106,6 +107,31 @@ String xxx;
 ```
 
 Useful as a placeholder during development, or as a section header with no own page.
+
+---
+
+## A leaf is a route or a rule
+
+Every menu leaf above is a **route** — clicking it navigates. The other primitive is a **rule**: a
+leaf that runs a client-side action instead of navigating. A `@Menu` field typed `Rule` (or
+`List<Rule>`) becomes a rule leaf.
+
+```java
+import io.mateu.uidl.data.Rule;
+import io.mateu.uidl.data.RuleAction;
+
+@Menu
+Rule refresh =
+    Rule.builder().action(RuleAction.RunAction).actionId("refreshAll").build();
+```
+
+- `RunAction` dispatches the action (the same path a FAB/header action uses), so "a menu item that
+  runs something on the server" is a rule, not a special third kind of entry.
+- `RunJS` runs a statement client-side.
+- Clicking the leaf runs the rules; it does **not** navigate.
+
+So the whole menu-leaf surface reduces to two things: a **route** (with the parameters, state and
+data it carries — see [the route registry](/java-ui-definition/route-registry/)) or a **rule**.
 
 ---
 
