@@ -89,6 +89,14 @@ final class RouteSegmentUtils {
       if (httpRequest != null && !entry.appState().isEmpty()) {
         httpRequest.setAttribute("_routeAppState", entry.appState());
       }
+      // `data` is a reference to a named source: the route's component data. Stashed here so the
+      // action/trigger mappers advertise the same __restdata__ action + OnLoad the @RestData
+      // surface
+      // uses — the client fetches it and merges it into the state, reusing the whole @RestData
+      // path.
+      if (httpRequest != null && entry.data() != null) {
+        httpRequest.setAttribute("_routeData", entry.data());
+      }
     }
     return newData;
   }

@@ -2,6 +2,7 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.testutil.TestMateu;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -34,5 +35,16 @@ class AppStateSeedSyncTest {
 
     assertThat(increment.appState()).isInstanceOf(Map.class);
     assertThat((Map<String, Object>) increment.appState()).containsEntry("tenant", "acme");
+  }
+
+  @Test
+  void aRouteSourcesItsDataByRef() throws Exception {
+    // the route declares `data: reportData` — the increment advertises the synthetic __restdata__
+    // action (carrying the source ref) plus an OnLoad trigger, so the client fetches it and merges
+    // it into the state, reusing the @RestData load path.
+    var wire = new ObjectMapper().writeValueAsString(mateu.sync("/appstate-seed"));
+
+    assertThat(wire).contains("__restdata__");
+    assertThat(wire).contains("reportData");
   }
 }

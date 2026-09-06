@@ -101,6 +101,16 @@ public class ActionMapper {
               .validationRequired(false)
               .restAction(RestDataSupport.restActionOf(restData))
               .build());
+    } else if (httpRequest.getAttribute("_routeData")
+        instanceof io.mateu.uidl.data.RestDataSource routeData) {
+      // The route (routes.yaml) declares its `data` source by ref — advertise the same synthetic
+      // __restdata__ action so the client fetches it and merges it into the state.
+      actions.add(
+          Action.builder()
+              .id(RestDataSupport.RESTDATA_ACTION_ID)
+              .validationRequired(false)
+              .restAction(RestDataSupport.restActionOf(routeData))
+              .build());
     }
 
     // Proxy mode (@RestOptions/@RestListing/@RestAction/@RestData with proxy=true): advertise the

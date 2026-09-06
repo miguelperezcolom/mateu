@@ -66,8 +66,10 @@ routes:
     definition: shared-list.yaml
     viewModel: com.acme.Films
 
-  # A route that SEEDS the app state on entry (merged under the client's persisted @AppContext).
+  # A route that SEEDS the app state on entry (merged under the client's persisted @AppContext),
+  # and SOURCES its component data from a named source by ref (reuses the @RestData load path).
   - route: appstate-seed
     viewModel: io.mateu.core.application.AppStateSeedView
     appState:
       tenant: acme
+    data: reportData

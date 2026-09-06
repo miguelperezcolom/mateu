@@ -81,8 +81,10 @@ public class TriggerMapper {
     }
     // @RestData: fire the synthetic __restdata__ action on load, so the screen's initial data is
     // fetched client-side and merged into the form state (ActionMapper advertises the action).
+    // A route's `data` source (routes.yaml) reuses the same OnLoad + __restdata__ path.
     if (MetaAnnotations.isPresent(
-        serverSideObject.getClass(), io.mateu.uidl.annotations.RestData.class)) {
+            serverSideObject.getClass(), io.mateu.uidl.annotations.RestData.class)
+        || httpRequest.getAttribute("_routeData") instanceof io.mateu.uidl.data.RestDataSource) {
       triggers.add(new OnLoadTrigger(RestDataSupport.RESTDATA_ACTION_ID));
     }
     triggers.addAll(supplied);
