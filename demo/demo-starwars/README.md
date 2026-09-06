@@ -26,6 +26,16 @@ Each page is a `type: Listing` with a `rowsSource: { ref: … }`. The browser re
 the catalogue, fetches the endpoint directly (swapi.info sends `Access-Control-Allow-Origin: *`, so no
 proxy is needed), and each column reads its field by id. No server search action, no view model.
 
+**Person detail** — the People page is a `gridLayout: masterDetail` listing: clicking a person shows
+their full record in the detail pane, entirely from the already-fetched rows (no re-fetch, no id).
+This is the fully-declarative detail that swapi.info's shape allows: its list rows carry no numeric
+id — only a `url` and `name` — so a re-fetch-by-id route is not expressible in pure YAML here.
+
+> A separate URL-addressable detail route (a page bound to a `data:` source that fetches one record)
+> is the natural next step, but it currently surfaces two framework gaps on the **definition-only**
+> (no view model) path: a route's `data:` source is not wired there, and query params do not reach
+> page state. Tracked as a follow-up; master-detail is the working detail today.
+
 This is the concrete pay-off of two recent pieces: **DSL-app enumeration** (a mount announced with no
 class) and the **REST source catalogue** (`sources.yaml`).
 

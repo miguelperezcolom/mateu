@@ -83,6 +83,8 @@
         "$ref" : "#/$defs/RemoteMenu"
       }, {
         "$ref" : "#/$defs/RouteLink"
+      }, {
+        "$ref" : "#/$defs/RuleLink"
       } ]
     },
     "AddOn" : {
@@ -4820,6 +4822,86 @@
     "RouteTarget" : {
       "type" : "string",
       "enum" : [ "Top", "Parent" ]
+    },
+    "Rule" : {
+      "type" : "object",
+      "properties" : {
+        "filter" : {
+          "type" : "string"
+        },
+        "action" : {
+          "$ref" : "#/$defs/RuleAction"
+        },
+        "fieldName" : {
+          "type" : "string"
+        },
+        "fieldAttribute" : {
+          "$ref" : "#/$defs/RuleFieldAttribute"
+        },
+        "value" : { },
+        "expression" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "result" : {
+          "$ref" : "#/$defs/RuleResult"
+        }
+      }
+    },
+    "RuleAction" : {
+      "type" : "string",
+      "enum" : [ "SetAppDataValue", "SetAppStateValue", "SetDataValue", "RunAction", "RunJS", "SetAttributeValue", "SetStateValue", "SetCssClass", "SetStyle" ]
+    },
+    "RuleFieldAttribute" : {
+      "type" : "string",
+      "enum" : [ "required", "disabled", "hidden", "pattern", "minValue", "maxValue", "minLength", "maxLength", "css", "style", "theme", "errorMessage", "description", "none" ]
+    },
+    "RuleLink" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "RuleLink"
+        },
+        "path" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "rules" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Rule"
+          }
+        },
+        "selected" : {
+          "type" : "boolean"
+        },
+        "component" : {
+          "$ref" : "#/$defs/Component"
+        },
+        "className" : {
+          "type" : "string"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "disabledOnClick" : {
+          "type" : "boolean"
+        },
+        "itemData" : { },
+        "description" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RuleResult" : {
+      "type" : "string",
+      "enum" : [ "Continue", "Stop" ]
     },
     "Scoreboard" : {
       "type" : "object",

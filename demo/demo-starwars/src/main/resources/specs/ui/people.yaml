@@ -1,14 +1,18 @@
-# A Listing page whose rows come from a named external source. No viewModel: the browser fetches the
-# source (resolved by ref against sources.yaml) and each column reads its field by id.
+# A Listing whose rows come from a named external source. `gridLayout: masterDetail` turns it into a
+# list + detail: clicking a person shows their full record in the right pane — entirely from the
+# already-fetched rows, no re-fetch and no id needed (swapi.info rows carry no numeric id). The name
+# column is the identifier, so the selected row is tracked by name.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: People
+gridLayout: masterDetail
 rowsSource:
   ref: swapi-people
 columns:
   - type: GridColumn
     id: name
     label: Name
+    identifier: true
   - type: GridColumn
     id: gender
     label: Gender
@@ -21,3 +25,9 @@ columns:
   - type: GridColumn
     id: mass
     label: Mass (kg)
+  - type: GridColumn
+    id: hair_color
+    label: Hair
+  - type: GridColumn
+    id: eye_color
+    label: Eyes
