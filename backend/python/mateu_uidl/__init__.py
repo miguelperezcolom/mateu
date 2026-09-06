@@ -865,6 +865,7 @@ def app(
     variant: str = "",
     command_center: bool = False,
     chromeless: bool = False,
+    requires: list[str] | None = None,
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS),
@@ -875,13 +876,19 @@ def app(
     a floating button opening a full-screen palette that unifies navigation, global entity search
     (when the app implements ``GlobalSearchSupplier``), recent screens and the AI assistant.
     ``chromeless=True`` additionally drops the nav chrome — the command center becomes the only
-    navigation, so it implies ``command_center``."""
+    navigation, so it implies ``command_center``.
+
+    ``requires`` DECLARES extra capability tokens the app needs from its host renderer, for
+    anything the derivation cannot see (most tokens are derived from the app's own metadata). They
+    ride, sorted+deduped with the derived ones, on ``AppMetadata.requiredCapabilities`` — the
+    Python mirror of Java's ``@App(requires = {...})``."""
 
     def deco(cls: type) -> type:
         cls.__mateu_app__ = title_
         cls.__mateu_app_variant__ = variant
         cls.__mateu_app_command_center__ = command_center
         cls.__mateu_app_chromeless__ = chromeless
+        cls.__mateu_app_requires__ = list(requires) if requires else []
         return cls
 
     return deco

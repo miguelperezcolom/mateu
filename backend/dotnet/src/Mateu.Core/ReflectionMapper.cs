@@ -160,7 +160,32 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             CommandCenterEnabled = app.CommandCenter || app.Chromeless,
             Chromeless = app.Chromeless,
         };
-        return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
+        return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
+    }
+
+    /// <summary>The capability tokens this app requires from its host renderer: the app-scoped
+    /// features it actually declares (DERIVED from the metadata just built, so the developer never
+    /// re-states what the model already says) plus whatever [App(Requires = new[]{...})] adds. The
+    /// host compares these against what it PROVIDES and reports the difference — compatibility by
+    /// capability, not by version. Sorted + deduped so the wire is stable. (C# mirror of
+    /// AppMapper.getRequiredCapabilities.) NOTE: app-data derives from AppMetadataDto.AppDataSource,
+    /// which the SyncHandler pins AFTER this mapping — so the SyncHandler re-derives the full list
+    /// once it is known (see RenderApp).</summary>
+    internal static IReadOnlyList<string> RequiredCapabilities(AppAttribute app, AppMetadataDto meta)
+    {
+        var caps = new SortedSet<string>(StringComparer.Ordinal);
+        if (!string.IsNullOrEmpty(meta.SseUrl)) caps.Add(Capabilities.Sse);
+        if (meta.AppDataSource is not null) caps.Add(Capabilities.AppData);
+        // No REST source catalogue in this port — rest-sources is never derived (like Java when
+        // the catalogue is empty).
+        if (meta.CommandCenterEnabled) caps.Add(Capabilities.CommandCenter);
+        if (meta.GlobalSearchEnabled) caps.Add(Capabilities.GlobalSearch);
+        if (meta.NotificationsEnabled) caps.Add(Capabilities.Notifications);
+        if (meta.ContextSelectors.Count > 0) caps.Add(Capabilities.ContextSelectors);
+        if (meta.ContextActions.Count > 0) caps.Add(Capabilities.HeaderActions);
+        foreach (var token in app.Requires)
+            if (!string.IsNullOrWhiteSpace(token)) caps.Add(token.Trim());
+        return caps.ToList();
     }
 
     /// <summary>Header action buttons next to the context selectors: the app class implements

@@ -82,6 +82,7 @@ from .mapper import (
     listing_types,
     set_current_audience,
 )
+from . import capabilities
 from .naming import camel_case, humanize
 from .reflection import view_fields
 from .registry import MateuRegistry, normalize, type_name
@@ -240,7 +241,16 @@ class SyncHandler:
         for i, frag in enumerate(inc.fragments):
             comp = frag.component
             if isinstance(comp, ClientSideComponent) and getattr(comp.metadata, "type", None) == "App":
-                new_meta = comp.metadata.model_copy(update={"app_data_source": rest_source})
+                # app-data becomes a REQUIRED capability the moment an app-scope source is present
+                # (the descriptor never contradicts the metadata it is derived from). Sorted+deduped.
+                caps = set(getattr(comp.metadata, "required_capabilities", []) or [])
+                caps.add(capabilities.APP_DATA)
+                new_meta = comp.metadata.model_copy(
+                    update={
+                        "app_data_source": rest_source,
+                        "required_capabilities": sorted(caps),
+                    }
+                )
                 new_comp = comp.model_copy(update={"metadata": new_meta})
                 inc.fragments[i] = frag.model_copy(update={"component": new_comp})
                 break

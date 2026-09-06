@@ -26,4 +26,13 @@ public @interface App {
    * and the only way to move around is the command-center FAB. Implies {@link #commandCenter()}.
    */
   boolean chromeless() default false;
+
+  /**
+   * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the
+   * ones derived automatically from the app's metadata. A host embedding the app checks it provides
+   * all of them and reports what is missing instead of rendering a broken screen — compatibility by
+   * capability, not by version. Use the {@link io.mateu.uidl.Capabilities} vocabulary (or a token a
+   * custom renderer understands) for anything the automatic derivation cannot see.
+   */
+  String[] requires() default {};
 }

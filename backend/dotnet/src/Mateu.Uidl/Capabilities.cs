@@ -156,3 +156,56 @@ public interface IDeletable<TId>
 {
     void DeleteAllById(IReadOnlyList<TId> selectedIds);
 }
+
+// ── The capability-token vocabulary (C# mirror of Java's io.mateu.uidl.Capabilities) ──
+//
+// The stable tokens an app advertises as REQUIRED (what it needs from whatever renderer/shell
+// hosts it) and a renderer advertises as PROVIDED (what it implements). Compatibility across the
+// embedding boundary is negotiated BY CAPABILITY, not by a fixed version window. Most tokens are
+// DERIVED from the app's own metadata; a developer can DECLARE extra ones via
+// [App(Requires = new[]{...})]. The token strings are the contract shared with the Java reference,
+// the frontend (libs/mateu capabilities.ts) and the Python port — keep them in step. Adding a
+// capability is additive; never rename or repurpose an existing token.
+
+/// <summary>The capability-token vocabulary an app requires and a renderer provides (mirror of
+/// Java's io.mateu.uidl.Capabilities). Not to be confused with the capability-LISTING model above,
+/// which shares this file only because both are named "capability".</summary>
+public static class Capabilities
+{
+    /// <summary>Server-sent events: long-running actions stream, and/or the AI chat endpoint.</summary>
+    public const string Sse = "sse";
+
+    /// <summary>An app-scope data source fetched once on boot (AppMetadataDto.AppDataSource).</summary>
+    public const string AppData = "app-data";
+
+    /// <summary>A named REST source catalogue the surfaces reference by ref.</summary>
+    public const string RestSources = "rest-sources";
+
+    /// <summary>The command-center palette FAB (Ask-Oracle pattern).</summary>
+    public const string CommandCenter = "command-center";
+
+    /// <summary>Global entity search wired into the ⌘K palette / command center.</summary>
+    public const string GlobalSearch = "global-search";
+
+    /// <summary>The notification inbox bell.</summary>
+    public const string Notifications = "notifications";
+
+    /// <summary>App-header context selectors ([AppContext]).</summary>
+    public const string ContextSelectors = "context-selectors";
+
+    /// <summary>App-header action buttons (IAppActionsSupplier).</summary>
+    public const string HeaderActions = "header-actions";
+
+    /// <summary>Every token this build knows about — the set a full renderer PROVIDES.</summary>
+    public static readonly IReadOnlyCollection<string> All = new HashSet<string>
+    {
+        Sse,
+        AppData,
+        RestSources,
+        CommandCenter,
+        GlobalSearch,
+        Notifications,
+        ContextSelectors,
+        HeaderActions,
+    };
+}

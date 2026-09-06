@@ -1448,7 +1448,15 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // so a ref-only source travels on the wire but is not resolved server-side here.)
         if (app is { Metadata: AppMetadataDto meta }
             && _routes.Authored().Routes.Select(r => r.AppData).FirstOrDefault(d => d is not null) is { } appData)
-            app = app with { Metadata = meta with { AppDataSource = appData } };
+        {
+            // app-data is derived from AppDataSource, pinned only here — add the token and keep the
+            // list sorted + deduped (mirrors AppMapper's TreeSet derivation).
+            var caps = new SortedSet<string>(meta.RequiredCapabilities, StringComparer.Ordinal)
+            {
+                Capabilities.AppData,
+            };
+            app = app with { Metadata = meta with { AppDataSource = appData, RequiredCapabilities = caps.ToList() } };
+        }
         return UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);

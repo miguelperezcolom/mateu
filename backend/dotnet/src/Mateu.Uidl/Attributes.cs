@@ -212,6 +212,12 @@ public sealed class AppAttribute(string title) : Attribute
     /// <summary>Render the app without its navigation chrome (header, menu/tabs) — content fills the
     /// viewport and the only way to move around is the command-center FAB. Implies CommandCenter.</summary>
     public bool Chromeless { get; set; }
+
+    /// <summary>Extra capability tokens this app REQUIRES from its host renderer, beyond the ones
+    /// derived from the app's own metadata — for anything the derivation cannot see. They are added
+    /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES
+    /// them all. (C# analogue of Java's @App(requires = {...}).)</summary>
+    public string[] Requires { get; set; } = [];
 }
 
 /// <summary>AI chat on the app: a floating button opens a chat panel that streams its answers

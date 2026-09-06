@@ -67,6 +67,35 @@ The behaviour is pinned by the browser probe `e2e/theming-isolation-probe.mjs` (
 `--lumo-primary-color` on the host `:root` and asserts it reaches a plain element but **not** the
 inside of `<mateu-ui>`) and the unit test `libs/mateu/.../theme/themeScope.test.ts`.
 
+## Capability compatibility
+
+A host embeds an app served by a possibly-different backend, and a static bundle can outlive the
+renderer build a CDN serves it with. The honest compatibility question is not *"which version?"* but
+*"does the loaded renderer implement everything this app relies on?"* — so Mateu negotiates
+**by capability, not by version window**.
+
+Every app advertises, on `AppDto.requiredCapabilities` (and, for a static bundle, on
+`manifest.json`), the capability tokens it needs from its host renderer. Most are **derived** from
+the app's own metadata — it needs `command-center` because it opted into it, `sse` because it
+declared a streaming endpoint, `rest-sources` because it ships a source catalogue. You can declare
+extra ones for anything the derivation cannot see:
+
+```java
+@App(requires = {"my-custom-widget"})
+public class MyApp { … }
+```
+
+The renderer holds the set it **provides**. On boot the shell compares the two; if it is missing
+anything the app requires, it logs a clear warning and dispatches a `mateu-capability-mismatch`
+event (with the missing tokens) so a host can react — show its own message, load a newer renderer,
+or block. It never blocks rendering: a degraded screen the host is told about beats a silently broken
+one. A newer app needing a token an older renderer bundle does not provide is exactly what this
+catches — a version number could not, because it says nothing about which features a build actually
+implements.
+
+The token vocabulary (`io.mateu.uidl.Capabilities`, and its .NET/Python/`libs/mateu` mirrors) is a
+stable contract: adding a token is additive; existing tokens are never renamed or repurposed.
+
 ## Key idea
 
 Mateu UIs are not just pages.

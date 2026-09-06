@@ -2,6 +2,7 @@ import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import ComponentElement from "@infra/ui/ComponentElement";
 import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
@@ -775,6 +776,11 @@ export class MateuApp extends ComponentElement {
                     link.href = app.favicon
                 }
                 if (_changedProperties.has('component')) {
+                    // Capability handshake: warn + emit `mateu-capability-mismatch` if this build
+                    // does not provide everything the app requires (compat by capability, not
+                    // version). Never blocks rendering — a degraded screen the host is told about
+                    // beats a silent broken one.
+                    announceCapabilityMismatch(app.requiredCapabilities, this)
                     this.selectedRoute = app.homeRoute
                     this.selectedConsumedRoute = app.homeConsumedRoute
                     this.selectedServerSideType = app.homeServerSideType

@@ -813,6 +813,14 @@ public record AppMetadataDto(
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>
     public RestDataSourceDto? AppDataSource { get; init; }
+
+    /// <summary>The capability tokens this app REQUIRES from its host renderer: the app-scoped
+    /// features it actually declares (derived from this metadata, so the developer never re-states
+    /// what the model already says) plus whatever [App(Requires = new[]{...})] adds. The host
+    /// compares these against what it PROVIDES and reports the difference — compatibility by
+    /// capability, not by version. Sorted + deduped so the wire is stable. (Mirrors
+    /// io.mateu.dtos.AppDto.requiredCapabilities.)</summary>
+    public IReadOnlyList<string> RequiredCapabilities { get; init; } = [];
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for

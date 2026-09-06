@@ -80,7 +80,16 @@ public final class MateuBundleExporter {
       boolean staticOnly,
       List<BundleEntry> entries,
       RouteTable routes,
-      RestSourceCatalog sources) {
+      RestSourceCatalog sources,
+      /**
+       * The capability tokens the bundled app REQUIRES from whatever renderer serves it (the union
+       * of every entry's {@code AppDto.requiredCapabilities}). A statically deployed bundle can
+       * outlive the renderer build a CDN serves it with; this lets a host check, from the manifest
+       * alone, that it implements what the bundle needs — compatibility by capability, not version.
+       * Derived from the entries, so it never contradicts them; deliberately NOT part of {@link
+       * #structureHash()} (it is redundant with the entry JSON the hash already covers).
+       */
+      List<String> requiredCapabilities) {
 
     /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
     public BundleManifest(
@@ -96,6 +105,66 @@ public final class MateuBundleExporter {
         List<BundleEntry> entries,
         RouteTable routes) {
       this(baseUrl, generatedAt, staticOnly, entries, routes, RestSourceCatalog.empty());
+    }
+
+    /** Pre-capabilities shape: the required capabilities are aggregated from the entries. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          aggregateCapabilities(entries));
+    }
+
+    /**
+     * The union of every entry's {@code AppDto.requiredCapabilities}, read out of the rendered wire
+     * JSON. Walks for the KEY rather than a known DTO shape, so it keeps working if the AppDto
+     * moves within the tree — the same channel-independent approach the OpenAPI derivation uses.
+     */
+    private static List<String> aggregateCapabilities(List<BundleEntry> entries) {
+      var mapper = new ObjectMapper();
+      var caps = new java.util.TreeSet<String>();
+      for (var entry : entries) {
+        if (!entry.ok() || entry.json() == null || entry.json().isBlank()) {
+          continue;
+        }
+        try {
+          collectCapabilities(mapper.readTree(entry.json()), caps);
+        } catch (Exception ignore) {
+          // a malformed entry must not sink the manifest; its capabilities are simply not counted.
+        }
+      }
+      return new ArrayList<>(caps);
+    }
+
+    private static void collectCapabilities(
+        com.fasterxml.jackson.databind.JsonNode node, java.util.Set<String> out) {
+      if (node == null) {
+        return;
+      }
+      if (node.isObject()) {
+        var rc = node.get("requiredCapabilities");
+        if (rc != null && rc.isArray()) {
+          rc.forEach(
+              n -> {
+                if (n.isTextual() && !n.asText().isBlank()) {
+                  out.add(n.asText());
+                }
+              });
+        }
+        node.forEach(child -> collectCapabilities(child, out));
+      } else if (node.isArray()) {
+        node.forEach(child -> collectCapabilities(child, out));
+      }
     }
 
     /**
