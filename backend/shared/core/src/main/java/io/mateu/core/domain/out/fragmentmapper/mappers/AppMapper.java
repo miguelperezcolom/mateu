@@ -66,6 +66,11 @@ public final class AppMapper {
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
             .restSources(RestSourceCatalogMapper.mapCatalogue())
+            .appDataSource(
+                httpRequest.getAttribute("_routeAppData")
+                        instanceof io.mateu.uidl.data.RestDataSource appData
+                    ? FieldMapper.mapRestDataSource(appData)
+                    : null)
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())

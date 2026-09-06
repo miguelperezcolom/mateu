@@ -5224,7 +5224,7 @@ ${i}
             animation: l5 1s infinite;
         }
         @keyframes l5 {to{transform: rotate(.5turn)}}
-  `}};k([C()],to.prototype,`loading`,void 0),to=k([g(`mateu-api-caller`)],to);var G=function(e){return e.SetAppDataValue=`SetAppDataValue`,e.SetAppStateValue=`SetAppStateValue`,e.SetDataValue=`SetDataValue`,e.RunAction=`RunAction`,e.RunJS=`RunJS`,e.SetAttributeValue=`SetAttributeValue`,e.SetStateValue=`SetStateValue`,e.SetCssClass=`SetCssClass`,e.SetStyle=`SetStyle`,e}({}),no=new class{constructor(){this._dirty=!1,this._installed=!1,this.message=`You have unsaved changes. Are you sure you want to leave this page?`,this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=e=>{this._dirty&&(e.preventDefault(),e.returnValue=``)}}install(){this._installed||(this._installed=!0,document.addEventListener(`dirty`,this._onDirty),document.addEventListener(`clean`,this._onClean),window.addEventListener(`beforeunload`,this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;let e=window.confirm(this.message);return e&&(this._dirty=!1),e}},ro,io=(e,t)=>(e.homeBaseUrl??``).includes(`://`)?e.homeBaseUrl:t||e.homeBaseUrl,K=class extends Ga{static{ro=this}constructor(...e){super(...e),this.filter=``,this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery=``,this.commandPaletteSelectedIndex=0,this.commandPaletteDataHits=[],this.openDataHit=e=>{no.confirmLeave()&&(this.commandPaletteOpen=!1,this.commandPaletteQuery=``,this.commandPaletteDataHits=[],this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:e.route},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:e.route},bubbles:!0,composed:!0})))},this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this._openAiHandler=()=>{this.chatOpen||this.showHideIa()},this.isDark=document.documentElement.getAttribute(`theme`)===`dark`,this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;let e=this.isDark?`dark`:`light`;document.documentElement.setAttribute(`theme`,e),localStorage.setItem(`mateu-theme`,e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?`detail`:`detail-hidden`)},this.runAction=e=>{let t=this.renderRoot.querySelector?.(`mateu-component`);t&&t.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e},bubbles:!0,composed:!0}))},this.runMenuRules=e=>{for(let t of e)if(t.action===G.RunAction&&t.actionId)this.runAction(t.actionId);else if(t.action===G.RunJS&&t.value!=null)try{Function(String(t.value))()}catch(e){console.error(`menu RunJS rule failed`,e)}},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){let n=e[t];if(this.selectedRoute?this.isActiveOption(n):n.selected)return n;let r=this.getSelectedOption(n.submenus);if(r)return r}return null},this.itemSelected=e=>{let t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix,t.rules)},this.itemSelectedTiles=e=>{let t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix,t.rules))},this.mapItemsForTiles=e=>e.map(e=>({text:e.label,consumedRoute:e.consumedRoute,route:e.route,baseUrl:e.baseUrl,serverSideType:e.serverSideType,uriPrefix:e.uriPrefix,actionId:e.actionId,selected:e.selected,_menuOption:e})),this.flattenMenuForPalette=(e,t)=>{let n=[];for(let r of e)if(!r.separator)if(r.submenus&&r.submenus.length>0){let e=t?`${t} › ${r.label}`:r.label;n.push(...this.flattenMenuForPalette(r.submenus,e))}else n.push({label:r.label,breadcrumb:t,consumedRoute:r.consumedRoute,route:r.route,actionId:r.actionId,baseUrl:r.baseUrl,serverSideType:r.serverSideType,uriPrefix:r.uriPrefix});return n},this.handleCommandPaletteKeydown=(e,t)=>{let n=Math.min(t.length,10),r=n+Math.min(this.commandPaletteDataHits.length,8);if(e.key===`ArrowDown`)e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,r-1);else if(e.key===`ArrowUp`)e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key===`Enter`){if(this.commandPaletteSelectedIndex>=n){let e=this.commandPaletteDataHits[this.commandPaletteSelectedIndex-n];e&&this.openDataHit(e);return}let e=t[this.commandPaletteSelectedIndex];e&&(this.selectRoute(e.consumedRoute,e.route,e.actionId,e.baseUrl,e.serverSideType,e.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery=``)}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return v;let e=this.component?.metadata;if(e?.commandCenterEnabled||!e?.menu)return v;let t=this.flattenMenuForPalette(e.menu,``),n=this.commandPaletteQuery.toLowerCase(),r=n?t.filter(e=>e.label.toLowerCase().includes(n)||e.breadcrumb.toLowerCase().includes(n)):t;return T`
+  `}};k([C()],to.prototype,`loading`,void 0),to=k([g(`mateu-api-caller`)],to);var G=function(e){return e.SetAppDataValue=`SetAppDataValue`,e.SetAppStateValue=`SetAppStateValue`,e.SetDataValue=`SetDataValue`,e.RunAction=`RunAction`,e.RunJS=`RunJS`,e.SetAttributeValue=`SetAttributeValue`,e.SetStateValue=`SetStateValue`,e.SetCssClass=`SetCssClass`,e.SetStyle=`SetStyle`,e}({}),no=new class{constructor(){this._dirty=!1,this._installed=!1,this.message=`You have unsaved changes. Are you sure you want to leave this page?`,this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=e=>{this._dirty&&(e.preventDefault(),e.returnValue=``)}}install(){this._installed||(this._installed=!0,document.addEventListener(`dirty`,this._onDirty),document.addEventListener(`clean`,this._onClean),window.addEventListener(`beforeunload`,this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;let e=window.confirm(this.message);return e&&(this._dirty=!1),e}},ro,io=(e,t)=>(e.homeBaseUrl??``).includes(`://`)?e.homeBaseUrl:t||e.homeBaseUrl,K=class extends Ga{static{ro=this}constructor(...e){super(...e),this.filter=``,this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery=``,this.commandPaletteSelectedIndex=0,this.commandPaletteDataHits=[],this._fetchedAppDataRef=void 0,this.openDataHit=e=>{no.confirmLeave()&&(this.commandPaletteOpen=!1,this.commandPaletteQuery=``,this.commandPaletteDataHits=[],this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:e.route},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:e.route},bubbles:!0,composed:!0})))},this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this._openAiHandler=()=>{this.chatOpen||this.showHideIa()},this.isDark=document.documentElement.getAttribute(`theme`)===`dark`,this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;let e=this.isDark?`dark`:`light`;document.documentElement.setAttribute(`theme`,e),localStorage.setItem(`mateu-theme`,e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?`detail`:`detail-hidden`)},this.runAction=e=>{let t=this.renderRoot.querySelector?.(`mateu-component`);t&&t.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e},bubbles:!0,composed:!0}))},this.runMenuRules=e=>{for(let t of e)if(t.action===G.RunAction&&t.actionId)this.runAction(t.actionId);else if(t.action===G.RunJS&&t.value!=null)try{Function(String(t.value))()}catch(e){console.error(`menu RunJS rule failed`,e)}},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){let n=e[t];if(this.selectedRoute?this.isActiveOption(n):n.selected)return n;let r=this.getSelectedOption(n.submenus);if(r)return r}return null},this.itemSelected=e=>{let t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix,t.rules)},this.itemSelectedTiles=e=>{let t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix,t.rules))},this.mapItemsForTiles=e=>e.map(e=>({text:e.label,consumedRoute:e.consumedRoute,route:e.route,baseUrl:e.baseUrl,serverSideType:e.serverSideType,uriPrefix:e.uriPrefix,actionId:e.actionId,selected:e.selected,_menuOption:e})),this.flattenMenuForPalette=(e,t)=>{let n=[];for(let r of e)if(!r.separator)if(r.submenus&&r.submenus.length>0){let e=t?`${t} › ${r.label}`:r.label;n.push(...this.flattenMenuForPalette(r.submenus,e))}else n.push({label:r.label,breadcrumb:t,consumedRoute:r.consumedRoute,route:r.route,actionId:r.actionId,baseUrl:r.baseUrl,serverSideType:r.serverSideType,uriPrefix:r.uriPrefix});return n},this.handleCommandPaletteKeydown=(e,t)=>{let n=Math.min(t.length,10),r=n+Math.min(this.commandPaletteDataHits.length,8);if(e.key===`ArrowDown`)e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,r-1);else if(e.key===`ArrowUp`)e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key===`Enter`){if(this.commandPaletteSelectedIndex>=n){let e=this.commandPaletteDataHits[this.commandPaletteSelectedIndex-n];e&&this.openDataHit(e);return}let e=t[this.commandPaletteSelectedIndex];e&&(this.selectRoute(e.consumedRoute,e.route,e.actionId,e.baseUrl,e.serverSideType,e.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery=``)}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return v;let e=this.component?.metadata;if(e?.commandCenterEnabled||!e?.menu)return v;let t=this.flattenMenuForPalette(e.menu,``),n=this.commandPaletteQuery.toLowerCase(),r=n?t.filter(e=>e.label.toLowerCase().includes(n)||e.breadcrumb.toLowerCase().includes(n)):t;return T`
             <div class="cmd-backdrop" @click=${()=>{this.commandPaletteOpen=!1,this.commandPaletteQuery=``}}>
                 <div class="cmd-palette" @click=${e=>e.stopPropagation()}>
                     <div class="cmd-search-wrapper">
@@ -5320,7 +5320,7 @@ ${i}
                         `}
 
                             `})}`:v,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix,t.rules)}}createRenderRoot(){return N.mustUseShadowRoot()?super.createRenderRoot():(ro.injectLightDomStyles(),this)}static{this.lightDomStylesInjected=!1}static injectLightDomStyles(){if(ro.lightDomStylesInjected||typeof document>`u`||(ro.lightDomStylesInjected=!0,document.getElementById(`mateu-app-light-styles`)))return;let e=ro.styles,t=Array.isArray(e)?e.map(e=>e?.cssText??``).join(`
-`):e?.cssText??``;if(!t)return;let n=document.createElement(`style`);n.id=`mateu-app-light-styles`,n.textContent=t,document.head.appendChild(n)}fetchGlobalSearch(e){let t=this.component?.metadata;if(t?.globalSearchEnabled){if(clearTimeout(this._globalSearchTimer),!e){this.commandPaletteDataHits=[];return}this._globalSearchTimer=setTimeout(async()=>{try{let n=(await lt.runAction(this.baseUrl??``,t.rootRoute??``,``,`_globalsearch`,`cmd-palette`,void 0,t.serverSideType,{},{searchText:e},this,!0))?.fragments?.map(e=>e.data).find(e=>e&&e._globalsearch);this.commandPaletteDataHits=n?._globalsearch??[]}catch{this.commandPaletteDataHits=[]}},250)}}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute(`theme`)===`dark`,this._commandPaletteHandler=e=>{this.component?.metadata?.commandCenterEnabled||((e.metaKey||e.ctrlKey)&&e.key===`k`&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery=``,this.commandPaletteSelectedIndex=0),e.key===`Escape`&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery=``))},document.addEventListener(`keydown`,this._commandPaletteHandler),no.install(),this.addEventListener(`compact-changed`,this._compactHandler),this.addEventListener(`mateu-open-ai`,this._openAiHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener(`keydown`,this._commandPaletteHandler),this.removeEventListener(`compact-changed`,this._compactHandler),this.removeEventListener(`mateu-open-ai`,this._openAiHandler)}updated(e){if(super.updated(e),eo(this),this.component){let t=this.component.metadata;if(t){let n=t;if(Ne(n.restSources),n.favicon){let e=document.querySelector(`link[rel~='icon']`);e||(e=document.createElement(`link`),e.rel=`icon`,document.head.appendChild(e)),e.href=n.favicon}e.has(`component`)&&(this.selectedRoute=n.homeRoute,this.selectedConsumedRoute=n.homeConsumedRoute,this.selectedServerSideType=n.homeServerSideType,this.selectedBaseUrl=io(n,this.baseUrl),this.selectedUriPrefix=n.homeUriPrefix)}}e.has(`commandPaletteOpen`)&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(`.cmd-input`)?.focus()},0)}render(){return N.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}static{this.styles=h`
+`):e?.cssText??``;if(!t)return;let n=document.createElement(`style`);n.id=`mateu-app-light-styles`,n.textContent=t,document.head.appendChild(n)}fetchGlobalSearch(e){let t=this.component?.metadata;if(t?.globalSearchEnabled){if(clearTimeout(this._globalSearchTimer),!e){this.commandPaletteDataHits=[];return}this._globalSearchTimer=setTimeout(async()=>{try{let n=(await lt.runAction(this.baseUrl??``,t.rootRoute??``,``,`_globalsearch`,`cmd-palette`,void 0,t.serverSideType,{},{searchText:e},this,!0))?.fragments?.map(e=>e.data).find(e=>e&&e._globalsearch);this.commandPaletteDataHits=n?._globalsearch??[]}catch{this.commandPaletteDataHits=[]}},250)}}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute(`theme`)===`dark`,this._commandPaletteHandler=e=>{this.component?.metadata?.commandCenterEnabled||((e.metaKey||e.ctrlKey)&&e.key===`k`&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery=``,this.commandPaletteSelectedIndex=0),e.key===`Escape`&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery=``))},document.addEventListener(`keydown`,this._commandPaletteHandler),no.install(),this.addEventListener(`compact-changed`,this._compactHandler),this.addEventListener(`mateu-open-ai`,this._openAiHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener(`keydown`,this._commandPaletteHandler),this.removeEventListener(`compact-changed`,this._compactHandler),this.removeEventListener(`mateu-open-ai`,this._openAiHandler)}updated(e){if(super.updated(e),eo(this),this.component){let t=this.component.metadata;if(t){let n=t;if(Ne(n.restSources),n.appDataSource){let e=n.appDataSource.ref||n.appDataSource.url;e&&e!==this._fetchedAppDataRef&&(this._fetchedAppDataRef=e,hn(n.appDataSource).then(e=>{e&&typeof e==`object`&&(ue.value={...ue.value,...e},this.dispatchEvent(new CustomEvent(`app-data-updated`,{bubbles:!0,composed:!0})))}).catch(e=>console.error(`app-scope data source fetch failed`,e)))}if(n.favicon){let e=document.querySelector(`link[rel~='icon']`);e||(e=document.createElement(`link`),e.rel=`icon`,document.head.appendChild(e)),e.href=n.favicon}e.has(`component`)&&(this.selectedRoute=n.homeRoute,this.selectedConsumedRoute=n.homeConsumedRoute,this.selectedServerSideType=n.homeServerSideType,this.selectedBaseUrl=io(n,this.baseUrl),this.selectedUriPrefix=n.homeUriPrefix)}}e.has(`commandPaletteOpen`)&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(`.cmd-input`)?.focus()},0)}render(){return N.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}static{this.styles=h`
         /* DS-neutral app chrome (replaces vaadin-app-layout / menu-bar / tabs / side-nav). */
         .m-hl { display: flex; flex-direction: row; }
         .m-vl { display: flex; flex-direction: column; }
@@ -7564,7 +7564,7 @@ ${i}
             outline: 2px solid var(--lumo-body-text-color, #161513);
             outline-offset: 2px;
         }
-    `}};Qs=Zs=k([g(`mateu-skip-link`)],Qs);var $s=null;function ec(){if(!(typeof document>`u`)&&!($s&&$s.isConnected)){if(!document.body){document.addEventListener(`DOMContentLoaded`,()=>ec(),{once:!0});return}$s=document.createElement(`mateu-skip-link`),document.body.insertBefore($s,document.body.firstChild)}}var tc=(e,t)=>{let n=t.pathname+(t.search??``),r=(e.pathname??``)+(e.search??``);return!n&&!r||r===n?null:n.startsWith(`/`)?n:`/`+n};qs(),Xs(),mt(),ec();var nc=class extends b{constructor(...e){super(...e),this.baseUrl=``,this.route=void 0,this.consumedRoute=`_empty`,this.config=void 0,this.top=`true`,this.pathPrefix=void 0,this.bundleUrl=void 0,this.debug=!1,this._lastUrl=``,this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top==`true`){let t=e.detail.route,n=this.baseUrl??``;!t||t.startsWith(`/`)?n=window.location.origin+(this.pathPrefix??``):(t=(this.pathPrefix??``)+t,n.indexOf(`://`)<0&&(n.startsWith(`/`)||(n=`/`+n),n=window.location.origin+n)),t.startsWith(this.pathPrefix+`/`)&&(t=t.substring(this.pathPrefix?.length)),n.endsWith(`/`)&&t.startsWith(`/`)&&(t=t.substring(1));let r=new URL(n+t),i=tc(window.location,r);i&&(window.history.pushState({},``,i),this._lastUrl=window.location.href)}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),no.markClean(),e instanceof CustomEvent){let t=e.detail.route,n=this.renderRoot.querySelector(`mateu-ux`);n&&(n.setAttribute(`route`,t),n.setAttribute(`instant`,E()))}}}createRenderRoot(){return N.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),no.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!no.confirmLeave()){window.history.pushState({},``,this._lastUrl);return}let t=e.target;this.loadUrl(t)},this.top==`true`?(this.bundleUrl&&Ke(this.bundleUrl),this.loadUrl(window)):this.route&&(this.consumedRoute=``),this.config)try{let e=JSON.parse(this.config);O.value={...O.value,...e}}catch{O.value={...O.value,config:this.config}}this.addEventListener(`url-update-requested`,this.routeChangedListener),this.addEventListener(`navigate-to-requested`,this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener(`url-update-requested`,this.routeChangedListener),this.removeEventListener(`navigate-to-requested`,this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute(`route`,this.route),this.instant=E(),this._lastUrl=e.location.href,e.location.search){let t=new URLSearchParams(e.location.search).get(`overrides`);if(t&&(this.config=t,this.config))try{let e=JSON.parse(this.config);O.value={...O.value,...e}}catch{O.value={...O.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){let t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t==`/`?``:t}addQueryParams(e,t){return e+(t.search?``+t.search:``)}extractGrossRouteFromUrl(e){let t=e.location.pathname,n=this.baseUrl&&(this.baseUrl.startsWith(`http://`)||this.baseUrl.startsWith(`https://`))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(n)?t.substring(n.length):t}getContextPathStartingIndex(e){return e.startsWith(`http:`)?e.indexOf(`/`,7):e.startsWith(`https:`)?e.indexOf(`/`,8):0}render(){return T`
+    `}};Qs=Zs=k([g(`mateu-skip-link`)],Qs);var $s=null;function ec(){if(!(typeof document>`u`)&&!($s&&$s.isConnected)){if(!document.body){document.addEventListener(`DOMContentLoaded`,()=>ec(),{once:!0});return}$s=document.createElement(`mateu-skip-link`),document.body.insertBefore($s,document.body.firstChild)}}var tc=(e,t)=>{let n=t.pathname+(t.search??``),r=(e.pathname??``)+(e.search??``);return!n&&!r||r===n?null:n.startsWith(`/`)?n:`/`+n};qs(),Xs(),mt(),ec();var X=class extends b{constructor(...e){super(...e),this.baseUrl=``,this.route=void 0,this.consumedRoute=`_empty`,this.config=void 0,this.top=`true`,this.pathPrefix=void 0,this.bundleUrl=void 0,this.debug=!1,this._lastUrl=``,this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top==`true`){let t=e.detail.route,n=this.baseUrl??``;!t||t.startsWith(`/`)?n=window.location.origin+(this.pathPrefix??``):(t=(this.pathPrefix??``)+t,n.indexOf(`://`)<0&&(n.startsWith(`/`)||(n=`/`+n),n=window.location.origin+n)),t.startsWith(this.pathPrefix+`/`)&&(t=t.substring(this.pathPrefix?.length)),n.endsWith(`/`)&&t.startsWith(`/`)&&(t=t.substring(1));let r=new URL(n+t),i=tc(window.location,r);i&&(window.history.pushState({},``,i),this._lastUrl=window.location.href)}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),no.markClean(),e instanceof CustomEvent){let t=e.detail.route,n=this.renderRoot.querySelector(`mateu-ux`);n&&(n.setAttribute(`route`,t),n.setAttribute(`instant`,E()))}}}createRenderRoot(){return N.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),no.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!no.confirmLeave()){window.history.pushState({},``,this._lastUrl);return}let t=e.target;this.loadUrl(t)},this.top==`true`?(this.bundleUrl&&Ke(this.bundleUrl),this.loadUrl(window)):this.route&&(this.consumedRoute=``),this.config)try{let e=JSON.parse(this.config);O.value={...O.value,...e}}catch{O.value={...O.value,config:this.config}}this.addEventListener(`url-update-requested`,this.routeChangedListener),this.addEventListener(`navigate-to-requested`,this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener(`url-update-requested`,this.routeChangedListener),this.removeEventListener(`navigate-to-requested`,this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute(`route`,this.route),this.instant=E(),this._lastUrl=e.location.href,e.location.search){let t=new URLSearchParams(e.location.search).get(`overrides`);if(t&&(this.config=t,this.config))try{let e=JSON.parse(this.config);O.value={...O.value,...e}}catch{O.value={...O.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){let t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t==`/`?``:t}addQueryParams(e,t){return e+(t.search?``+t.search:``)}extractGrossRouteFromUrl(e){let t=e.location.pathname,n=this.baseUrl&&(this.baseUrl.startsWith(`http://`)||this.baseUrl.startsWith(`https://`))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(n)?t.substring(n.length):t}getContextPathStartingIndex(e){return e.startsWith(`http:`)?e.indexOf(`/`,7):e.startsWith(`https:`)?e.indexOf(`/`,8):0}render(){return T`
            <mateu-api-caller>
                 <mateu-ux id="_ux"
                           baseurl="${this.baseUrl}"
@@ -7588,9 +7588,9 @@ ${i}
         :host {
             --lumo-clickable-cursor: pointer;
         }
-  `}};k([y()],nc.prototype,`baseUrl`,void 0),k([y()],nc.prototype,`route`,void 0),k([y()],nc.prototype,`consumedRoute`,void 0),k([y()],nc.prototype,`config`,void 0),k([y()],nc.prototype,`top`,void 0),k([y()],nc.prototype,`pathPrefix`,void 0),k([y()],nc.prototype,`bundleUrl`,void 0),k([C()],nc.prototype,`instant`,void 0),k([y({type:Boolean})],nc.prototype,`debug`,void 0),nc=k([g(`mateu-ui`)],nc);var rc,ic=class extends b{static{rc=this}constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.searchText=``}static{this.SEARCHABLE_THRESHOLD=7}connectedCallback(){super.connectedCallback(),Ee()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Se()[this.selector.fieldName]??``)}currentLabel(){let e=this.currentValue();if(!e)return`—`;let t=(this.searchedOptions??this.selector.options)?.find(t=>String(t.value)===e);if(t)return t.label;let n=Ce()[this.selector.fieldName];return n===void 0?e:String(n)}pick(e,t){we(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText=``,this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector(`input.picker-search`)?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){let e=this.app;if(e?.serverSideType)try{let t=await lt.runAction(this.baseUrl??``,e.rootRoute??e.initialRoute??``,``,`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(let e of t?.fragments??[]){let t=e.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(t)){this.searchedOptions=t.map(e=>({value:e.value,label:e.label??String(e.value)}));return}}}catch{}}visibleOptions(){let e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(e=>e.label.toLowerCase().includes(t)):e}renderPanel(){let e=this.currentValue(),t=this.visibleOptions();return T`
+  `}};k([y()],X.prototype,`baseUrl`,void 0),k([y()],X.prototype,`route`,void 0),k([y()],X.prototype,`consumedRoute`,void 0),k([y()],X.prototype,`config`,void 0),k([y()],X.prototype,`top`,void 0),k([y()],X.prototype,`pathPrefix`,void 0),k([y()],X.prototype,`bundleUrl`,void 0),k([C()],X.prototype,`instant`,void 0),k([y({type:Boolean})],X.prototype,`debug`,void 0),X=k([g(`mateu-ui`)],X);var nc,rc=class extends b{static{nc=this}constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.searchText=``}static{this.SEARCHABLE_THRESHOLD=7}connectedCallback(){super.connectedCallback(),Ee()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Se()[this.selector.fieldName]??``)}currentLabel(){let e=this.currentValue();if(!e)return`—`;let t=(this.searchedOptions??this.selector.options)?.find(t=>String(t.value)===e);if(t)return t.label;let n=Ce()[this.selector.fieldName];return n===void 0?e:String(n)}pick(e,t){we(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText=``,this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector(`input.picker-search`)?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){let e=this.app;if(e?.serverSideType)try{let t=await lt.runAction(this.baseUrl??``,e.rootRoute??e.initialRoute??``,``,`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(let e of t?.fragments??[]){let t=e.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(t)){this.searchedOptions=t.map(e=>({value:e.value,label:e.label??String(e.value)}));return}}}catch{}}visibleOptions(){let e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(e=>e.label.toLowerCase().includes(t)):e}renderPanel(){let e=this.currentValue(),t=this.visibleOptions();return T`
             <div class="panel">
-                ${this.searchText!==``||t.length>rc.SEARCHABLE_THRESHOLD?T`
+                ${this.searchText!==``||t.length>nc.SEARCHABLE_THRESHOLD?T`
                     <input class="picker-search" type="text" placeholder="Search"
                            .value="${this.searchText}"
                            @input="${this.onSearchInput}"
@@ -7682,7 +7682,7 @@ ${i}
         .option--clear {
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
         }
-    `}};k([y()],ic.prototype,`selector`,void 0),k([y()],ic.prototype,`app`,void 0),k([y()],ic.prototype,`baseUrl`,void 0),k([C()],ic.prototype,`opened`,void 0),k([C()],ic.prototype,`searchText`,void 0),k([C()],ic.prototype,`searchedOptions`,void 0),ic=rc=k([g(`mateu-app-context-picker`)],ic);var ac=class extends b{constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&this.app?.serverSideType&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){let n=this.app;if(n?.serverSideType)try{let r=await lt.runAction(this.baseUrl??``,n.rootRoute??n.initialRoute??``,``,e,`notification-bell`,void 0,n.serverSideType,{},t,this,!0);for(let e of r?.fragments??[]){let t=e.data?._notifications;if(Array.isArray(t)){this.notifications=t;return}}}catch{}}refresh(){return this.runNotificationsAction(`_notifications-list`,{})}markRead(e){return this.runNotificationsAction(`_notifications-read`,{ids:e})}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);let t=e.route;if(t){if(!no.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return T`
+    `}};k([y()],rc.prototype,`selector`,void 0),k([y()],rc.prototype,`app`,void 0),k([y()],rc.prototype,`baseUrl`,void 0),k([C()],rc.prototype,`opened`,void 0),k([C()],rc.prototype,`searchText`,void 0),k([C()],rc.prototype,`searchedOptions`,void 0),rc=nc=k([g(`mateu-app-context-picker`)],rc);var ic=class extends b{constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&this.app?.serverSideType&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){let n=this.app;if(n?.serverSideType)try{let r=await lt.runAction(this.baseUrl??``,n.rootRoute??n.initialRoute??``,``,e,`notification-bell`,void 0,n.serverSideType,{},t,this,!0);for(let e of r?.fragments??[]){let t=e.data?._notifications;if(Array.isArray(t)){this.notifications=t;return}}}catch{}}refresh(){return this.runNotificationsAction(`_notifications-list`,{})}markRead(e){return this.runNotificationsAction(`_notifications-read`,{ids:e})}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);let t=e.route;if(t){if(!no.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return T`
             <div role="button" tabindex="0" class="entry ${e.unread?`entry--unread`:``}"
                  @click="${()=>this.entryClicked(e)}" @keydown="${L(()=>this.entryClicked(e))}">
                 <span class="unread-dot" aria-hidden="true"></span>
@@ -7870,46 +7870,46 @@ ${i}
         }
     
         ${R}
-    `}};k([y()],ac.prototype,`app`,void 0),k([y()],ac.prototype,`baseUrl`,void 0),k([C()],ac.prototype,`opened`,void 0),k([C()],ac.prototype,`notifications`,void 0),ac=k([g(`mateu-notification-bell`)],ac);var oc=e=>{if(!e||!(`querySelectorAll`in e))return null;for(let t of e.querySelectorAll(`*`)){if(t.tagName?.toLowerCase()===`mateu-component`)return t;let e=oc(t.shadowRoot);if(e)return e}return null},sc=async(e,t,n)=>{let r=oc(t.renderRoot??t);await hs.runAction(lt,t.baseUrl??``,e.rootRoute||`_no_route`,``,n,r?.id??`app-header-action`,{},e.serverSideType??``,{},{},r??t,!0,void 0,!1,``)},cc=async(e,t,n)=>{try{await sc(e,t,n)}catch(e){Ra({text:`La acción falló: `+e,position:`bottomStart`,duration:6e3,variant:`error`},t)}},lc=(e,t)=>{let n=e.contextSelectors??[],r=e.contextActions??[];return n.length===0&&r.length===0&&!e.notificationsEnabled?v:T`${e.notificationsEnabled?T`
+    `}};k([y()],ic.prototype,`app`,void 0),k([y()],ic.prototype,`baseUrl`,void 0),k([C()],ic.prototype,`opened`,void 0),k([C()],ic.prototype,`notifications`,void 0),ic=k([g(`mateu-notification-bell`)],ic);var ac=e=>{if(!e||!(`querySelectorAll`in e))return null;for(let t of e.querySelectorAll(`*`)){if(t.tagName?.toLowerCase()===`mateu-component`)return t;let e=ac(t.shadowRoot);if(e)return e}return null},oc=async(e,t,n)=>{let r=ac(t.renderRoot??t);await hs.runAction(lt,t.baseUrl??``,e.rootRoute||`_no_route`,``,n,r?.id??`app-header-action`,{},e.serverSideType??``,{},{},r??t,!0,void 0,!1,``)},sc=async(e,t,n)=>{try{await oc(e,t,n)}catch(e){Ra({text:`La acción falló: `+e,position:`bottomStart`,duration:6e3,variant:`error`},t)}},cc=(e,t)=>{let n=e.contextSelectors??[],r=e.contextActions??[];return n.length===0&&r.length===0&&!e.notificationsEnabled?v:T`${e.notificationsEnabled?T`
         <mateu-notification-bell .app="${e}" .baseUrl="${t.baseUrl??``}"></mateu-notification-bell>`:v}${n.map(n=>T`
         <mateu-app-context-picker .selector="${n}" .app="${e}" .baseUrl="${t.baseUrl??``}"></mateu-app-context-picker>`)}${r.map(n=>(n.children?.length??0)>0?T`
         <details class="mateu-nav-group" style="margin-left: 0.5rem; flex-shrink: 0;">
             <summary class="app-header-action-btn">${n.label} ▾</summary>
             <div class="mateu-nav-panel" style="right: 0; left: auto;">
                 ${n.children.map(n=>T`
-                    <button class="mateu-nav-item" @click="${()=>n.actionId&&cc(e,t,n.actionId)}">${n.label}</button>`)}
+                    <button class="mateu-nav-item" @click="${()=>n.actionId&&sc(e,t,n.actionId)}">${n.label}</button>`)}
             </div>
         </details>`:T`
         <button class="app-header-action-btn" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${()=>n.actionId&&cc(e,t,n.actionId)}" title="${n.label}">${n.icon?F(n.icon):v}${n.label}</button>`)}`},uc=(e,t)=>T`
+            @click="${()=>n.actionId&&sc(e,t,n.actionId)}" title="${n.label}">${n.icon?F(n.icon):v}${n.label}</button>`)}`},lc=(e,t)=>T`
     <button class="mateu-nav-item ${e.selected?`mateu-nav-item--active`:``}"
             ?disabled="${e.disabled}"
-            @click="${()=>t(e)}">${e.text}</button>`,dc=(e,t,n=``)=>T`
+            @click="${()=>t(e)}">${e.text}</button>`,uc=(e,t,n=``)=>T`
     <nav class="mateu-nav ${n}">
         ${e.map(e=>(e.children?.length??0)>0?T`<details class="mateu-nav-group">
                        <summary class="mateu-nav-item">${e.text} ▾</summary>
                        <div class="mateu-nav-panel">
-                           ${e.children.map(e=>uc(e,t))}
+                           ${e.children.map(e=>lc(e,t))}
                        </div>
-                   </details>`:uc(e,t))}
-    </nav>`,fc=(e,t)=>n=>t.call(e,{detail:{value:n}}),pc=(e,t)=>e.themeToggle?T`
+                   </details>`:lc(e,t))}
+    </nav>`,dc=(e,t)=>n=>t.call(e,{detail:{value:n}}),fc=(e,t)=>e.themeToggle?T`
         <button class="app-chrome-icon-btn" @click="${t.toggleTheme}"
             title="${t.isDark?`Switch to light mode`:`Switch to dark mode`}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             ${F(t.isDark?`vaadin:sun-o`:`vaadin:moon`,`color: var(--lumo-body-text-color);`)}
         </button>
-    `:v,mc=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},hc=(e,t,n)=>{let r=gc(e,t,n),i=X(t,n);return r==`list`||r==i?`new`:r},gc=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=X(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},X=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,_c=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,Z=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,vc=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,yc=(e,t)=>`ux_`+((X(e,t)||`root`)+`|`+(Z(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),bc=(e,t,n,r,i,a,o)=>{t.variant!==ut.MENU_ON_TOP&&t.menu?.some(e=>e.remote)&&(t={...t,variant:ut.MENU_ON_TOP});let s=yc(e,t);if(t.chromeless)return T`
+    `:v,pc=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},mc=(e,t,n)=>{let r=hc(e,t,n),i=Z(t,n);return r==`list`||r==i?`new`:r},hc=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=Z(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},Z=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,gc=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,_c=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,vc=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,yc=(e,t)=>`ux_`+((Z(e,t)||`root`)+`|`+(_c(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),bc=(e,t,n,r,i,a,o)=>{t.variant!==ut.MENU_ON_TOP&&t.menu?.some(e=>e.remote)&&(t={...t,variant:ut.MENU_ON_TOP});let s=yc(e,t);if(t.chromeless)return T`
             <div class="app chromeless">
                 <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}" style="height: 100%;">
                     <div class="m-md">
                         <div class="m-scroll" style="height: 100%;">
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${gc(r,e,t)}"
+                                        route="${hc(r,e,t)}"
                                         id="${s}"
-                                        baseUrl="${_c(e,t)}"
-                                        consumedRoute="${X(e,t)}"
-                                        serverSideType="${Z(e,t)}"
+                                        baseUrl="${gc(e,t)}"
+                                        consumedRoute="${Z(e,t)}"
+                                        serverSideType="${_c(e,t)}"
                                         uriPrefix="${vc(e,t)}"
                                         style="width: 100%;"
                                         .appState="${a}"
@@ -7924,7 +7924,7 @@ ${i}
                 </div>
                 <slot></slot>
             </div>
-        `;let c=e.mapItems(t.menu,e.filter?.toLowerCase()??``),l=X(e,t),u=hc(r,e,t),d=u&&u!==`new`&&u.startsWith(l+`/`)?u.substring(l.length+1).split(`/`)[0]:void 0;return T`
+        `;let c=e.mapItems(t.menu,e.filter?.toLowerCase()??``),l=Z(e,t),u=mc(r,e,t),d=u&&u!==`new`&&u.startsWith(l+`/`)?u.substring(l.length+1).split(`/`)[0]:void 0;return T`
                     ${t.variant==ut.MEDIATOR?T`
 
                         ${t.layout==`SPLIT`?T`
@@ -7932,11 +7932,11 @@ ${i}
                                 <mateu-api-caller>
                                     <div style="display: block; width: calc(100% - 1rem);">
                                     <mateu-ux
-                                            route="${X(e,t)}"
+                                            route="${Z(e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${{...a,_splitDetailId:d}}"
@@ -7949,11 +7949,11 @@ ${i}
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
-                                            route="${hc(r,e,t)}"
+                                            route="${mc(r,e,t)}"
                                             id="${s}_detail"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
@@ -7968,11 +7968,11 @@ ${i}
                         `:T`
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${gc(r,e,t)}"
+                                        route="${hc(r,e,t)}"
                                         id="${s}"
-                                        baseUrl="${_c(e,t)}"
-                                        consumedRoute="${X(e,t)}"
-                                        serverSideType="${Z(e,t)}"
+                                        baseUrl="${gc(e,t)}"
+                                        consumedRoute="${Z(e,t)}"
+                                        serverSideType="${_c(e,t)}"
                                         uriPrefix="${vc(e,t)}"
                                         style="width: 100%;"
                                         .appState="${a}"
@@ -7995,7 +7995,7 @@ ${i}
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${t.title}</h2><p style="margin: 0;">${t.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${lc(t,e)}${pc(t,e)}
+                            ${cc(t,e)}${fc(t,e)}
                         </div>
                     </header>
                     <div class="app-body">
@@ -8003,7 +8003,7 @@ ${i}
                             ${t.menu&&t.totalMenuOptions>10?T`
                                 <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
                                     <input class="drawer-search" placeholder="Search…" style="width: calc(100% - 20px); margin: 0 10px;"
-                                           @input="${t=>mc({detail:{value:t.target.value}},e)}">
+                                           @input="${t=>pc({detail:{value:t.target.value}},e)}">
                                 </div>
                                 `:v}
                             <nav class="side-nav">
@@ -8015,11 +8015,11 @@ ${i}
                                 <div class="m-scroll" style="height: 100%;">
                                     <mateu-api-caller>
                                         <mateu-ux
-                                                route="${gc(r,e,t)}"
+                                                route="${hc(r,e,t)}"
                                                 id="${s}"
-                                                baseUrl="${_c(e,t)}"
-                                                consumedRoute="${X(e,t)}"
-                                                serverSideType="${Z(e,t)}"
+                                                baseUrl="${gc(e,t)}"
+                                                consumedRoute="${Z(e,t)}"
+                                                serverSideType="${_c(e,t)}"
                                                 uriPrefix="${vc(e,t)}"
                                                 style="width: 100%;"
                                                 .appState="${a}"
@@ -8049,10 +8049,10 @@ ${i}
                             ${t.title?T`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:v}
                         </div>
                         </a>
-                        ${(()=>{let t=fc(e,e.itemSelected);return N.get()?.renderTopNav?.(c,t,`menu-on-top`)??dc(c,t,`menu-on-top`)})()}
+                        ${(()=>{let t=dc(e,e.itemSelected);return N.get()?.renderTopNav?.(c,t,`menu-on-top`)??uc(c,t,`menu-on-top`)})()}
                         <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${lc(t,e)}${pc(t,e)}
+                            ${cc(t,e)}${fc(t,e)}
                         </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -8060,11 +8060,11 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${gc(r,e,t)}"
+                                            route="${hc(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
@@ -8093,10 +8093,10 @@ ${i}
                             ${t.title?T`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:v}
                         </div>
                         </a>
-                        ${dc(e.mapItemsForTiles(t.menu),fc(e,e.itemSelectedTiles),`menu-on-top`)}
+                        ${uc(e.mapItemsForTiles(t.menu),dc(e,e.itemSelectedTiles),`menu-on-top`)}
                         <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${lc(t,e)}${pc(t,e)}
+                            ${cc(t,e)}${fc(t,e)}
                         </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -8105,11 +8105,11 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${gc(r,e,t)}"
+                                            route="${hc(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
@@ -8135,11 +8135,11 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${gc(r,e,t)}"
+                                            route="${hc(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
@@ -8162,7 +8162,7 @@ ${i}
                         <div class="m-vl"
                                 @navigation-requested="${e.updateRoute}">
                             ${t.menu.map(t=>e.renderOptionOnLeftMenu(t))}
-                            ${lc(t,e)}${pc(t,e)}
+                            ${cc(t,e)}${fc(t,e)}
                         </div>
                     </div>
                     <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}">
@@ -8170,11 +8170,11 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${gc(r,e,t)}"
+                                            route="${hc(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%; padding: 1em;"
                                             .appState="${a}"
@@ -8219,7 +8219,7 @@ ${i}
                             </nav>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
-                                ${lc(t,e)}${pc(t,e)}
+                                ${cc(t,e)}${fc(t,e)}
                             </div>
                         </div>
                     </div>
@@ -8228,11 +8228,11 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${gc(r,e,t)}"
+                                            route="${hc(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${_c(e,t)}"
-                                            consumedRoute="${X(e,t)}"
-                                            serverSideType="${Z(e,t)}"
+                                            baseUrl="${gc(e,t)}"
+                                            consumedRoute="${Z(e,t)}"
+                                            serverSideType="${_c(e,t)}"
                                             uriPrefix="${vc(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"

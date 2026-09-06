@@ -73,3 +73,9 @@ routes:
     appState:
       tenant: acme
     data: reportData
+
+  # An app whose route declares an APP-SCOPE data source: emitted on the AppDto, fetched once by the
+  # shell into the app-data store.
+  - route: appdata-app
+    viewModel: io.mateu.core.application.AppDataApp
+    appData: appMetrics

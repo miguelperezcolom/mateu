@@ -97,6 +97,12 @@ final class RouteSegmentUtils {
       if (httpRequest != null && entry.data() != null) {
         httpRequest.setAttribute("_routeData", entry.data());
       }
+      // `appData` is a reference to a named source at APP scope: stashed so the app shell
+      // (AppMapper)
+      // emits it on AppDto and the client fetches it once, into the app-data store.
+      if (httpRequest != null && entry.appData() != null) {
+        httpRequest.setAttribute("_routeAppData", entry.appData());
+      }
     }
     return newData;
   }

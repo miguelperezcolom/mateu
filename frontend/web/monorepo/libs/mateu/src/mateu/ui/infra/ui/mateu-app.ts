@@ -2,6 +2,8 @@ import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import ComponentElement from "@infra/ui/ComponentElement";
 import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import { fetchExternalJson } from '../http/externalOptions.ts'
+import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
@@ -113,6 +115,9 @@ export class MateuApp extends ComponentElement {
     commandPaletteDataHits: GlobalSearchHit[] = []
 
     private _globalSearchTimer: ReturnType<typeof setTimeout> | undefined
+
+    // the app-scope data source already fetched, so the boot fetch runs once (not on every update)
+    private _fetchedAppDataRef: string | undefined = undefined
 
     private fetchGlobalSearch(query: string) {
         const metadata = (this.component as ClientSideComponent)?.metadata as App
@@ -744,6 +749,22 @@ export class MateuApp extends ComponentElement {
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)
+                // The app-scope data source: fetch it ONCE (deduped by ref) into the app-data store,
+                // after the catalogue is published so the ref resolves. Shared across routes.
+                if (app.appDataSource) {
+                    const ref = app.appDataSource.ref || app.appDataSource.url
+                    if (ref && ref !== this._fetchedAppDataRef) {
+                        this._fetchedAppDataRef = ref
+                        fetchExternalJson(app.appDataSource)
+                            .then(json => {
+                                if (json && typeof json === 'object') {
+                                    appData.value = { ...appData.value, ...(json as Record<string, unknown>) }
+                                    this.dispatchEvent(new CustomEvent('app-data-updated', { bubbles: true, composed: true }))
+                                }
+                            })
+                            .catch(e => console.error('app-scope data source fetch failed', e))
+                    }
+                }
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
