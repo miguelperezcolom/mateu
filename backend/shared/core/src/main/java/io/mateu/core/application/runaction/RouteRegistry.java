@@ -132,6 +132,58 @@ public class RouteRegistry {
     return mounts().stream().anyMatch(mount -> mount.basePath().equals(normalized));
   }
 
+  /**
+   * An app a jar contributes: a mount root, with the class that backs it ({@code null} for a
+   * purely-DSL app) and the definition it renders ({@code null} for a class-based app).
+   */
+  public record AppRef(String route, String className, String definition) {
+    public boolean isDsl() {
+      return className == null || className.isBlank();
+    }
+  }
+
+  /**
+   * Every app on the classpath, from TWO producers merged into ONE table — the same "authored wins"
+   * rule the routes and sources use:
+   *
+   * <ul>
+   *   <li><b>derived</b>: the {@code @UI} classes in the annotation index (each is an app at its
+   *       path);
+   *   <li><b>authored</b>: the {@code type: UI} mounts discovered in {@code specs/ui/**} — which
+   *       need NO Java class, so a jar can ship a purely-DSL app and be announced here like any
+   *       other.
+   * </ul>
+   *
+   * A mount at the same base path as a {@code @UI} class replaces it (authored wins). This is the
+   * enumeration a federated shell (or a bundle/tool) reads to announce apps uniformly, with or
+   * without a class behind them.
+   */
+  public List<RouteRegistry.AppRef> apps() {
+    return appsFrom(classLoader());
+  }
+
+  List<RouteRegistry.AppRef> appsFrom(ClassLoader classLoader) {
+    var cl = classLoader == null ? RouteRegistry.class.getClassLoader() : classLoader;
+    var byRoute = new LinkedHashMap<String, AppRef>();
+    for (var ref : RouteRegistrations.read(cl)) {
+      var route = normalize(ref.route());
+      byRoute.put(route, new AppRef(route, ref.className(), null));
+    }
+    // authored (DSL) mounts win over a @UI class at the same base path.
+    var authoredTable = authoredFrom(cl);
+    for (var mount : mountRegistry.mounts(cl)) {
+      var basePath = mount.basePath();
+      var definition =
+          authoredTable
+              .match(basePath)
+              .map(match -> match.entry().definition())
+              .filter(value -> value != null && !value.isBlank())
+              .orElse(null);
+      byRoute.put(basePath, new AppRef(basePath, null, definition));
+    }
+    return new ArrayList<>(byRoute.values());
+  }
+
   private static ClassLoader classLoader() {
     var contextClassLoader = Thread.currentThread().getContextClassLoader();
     return contextClassLoader == null ? RouteRegistry.class.getClassLoader() : contextClassLoader;

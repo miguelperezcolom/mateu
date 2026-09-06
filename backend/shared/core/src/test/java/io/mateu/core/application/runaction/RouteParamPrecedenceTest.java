@@ -88,6 +88,31 @@ class RouteParamPrecedenceTest {
   }
 
   @Test
+  void seedsOverrideAtTheKeyLevelNotByDeepMerge() {
+    // The four scopes merge by KEY, not deeply: a client value for a key wins over the route's seed
+    // for that same key OUTRIGHT — nested maps are not merged. Predictable, and matches how every
+    // other parameter source composes.
+    var entry =
+        new RouteEntry(
+            "reports",
+            null,
+            "X",
+            Map.of(),
+            Map.of(),
+            null,
+            null,
+            Map.of("prefs", Map.of("a", 1)), // state seed: prefs = {a:1}
+            Map.of(),
+            null,
+            null);
+
+    var resolved = resolve(Map.of("prefs", Map.of("b", 2)), "reports", "reports", entry);
+
+    // the client's `prefs` wins whole — NOT {a:1, b:2}
+    assertThat(resolved).containsEntry("prefs", Map.of("b", 2));
+  }
+
+  @Test
   void aRouteResolvedFromAnAnnotationBehavesExactlyAsBefore() {
     // No entry: the existing path-parameter behaviour, untouched.
     var state =

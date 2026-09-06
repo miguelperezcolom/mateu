@@ -1,0 +1,5 @@
+type: Routes
+routes:
+  # the app root ("") binds the shell definition — no viewModel, no class
+  - route: ""
+    definition: back-office-shell.yaml

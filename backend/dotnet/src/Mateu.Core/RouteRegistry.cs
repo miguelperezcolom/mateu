@@ -158,6 +158,109 @@ public sealed class RouteRegistry
 
     public RouteMatch? Match(string? path) => Authored().Match(path);
 
+    /// <summary>An app a deployment contributes: a mount root, with the class that backs it (null for
+    /// a purely-DSL app) and the definition it renders (null for a class-based app). (Mirrors Java's
+    /// RouteRegistry.AppRef and Python's AppRef.)</summary>
+    public sealed record AppRef(string Route, string? ClassName, string? Definition)
+    {
+        public bool IsDsl() => string.IsNullOrWhiteSpace(ClassName);
+    }
+
+    /// <summary>
+    /// Every app of the deployment, from TWO producers merged into ONE table — the same "authored
+    /// wins" rule the routes and sources use:
+    /// <list type="bullet">
+    /// <item><b>derived</b>: the reflection-discovered <c>[Ui]</c> classes (each an app at its path),
+    /// supplied by the caller (there is no compile-time index here as in Java);</item>
+    /// <item><b>authored</b>: the <c>type: UI</c> mounts discovered in the specs directory — which
+    /// need NO class, so a deployment can ship a purely-DSL app and announce it here like any
+    /// other.</item>
+    /// </list>
+    /// A mount at the same base path as a class replaces it (authored wins). This is the enumeration a
+    /// federated shell (or a bundle/tool) reads to announce apps uniformly, with or without a class
+    /// behind them.
+    /// </summary>
+    public IReadOnlyList<AppRef> Apps(IEnumerable<AppRef>? derived = null)
+    {
+        var byRoute = new Dictionary<string, AppRef>();
+        if (derived is not null)
+            foreach (var d in derived)
+                byRoute[Normalize(d.Route)] = d with { Route = Normalize(d.Route) };
+        foreach (var mount in ScanMounts())
+            byRoute[mount.BasePath] = new AppRef(mount.BasePath, null, DefinitionOf(mount));
+        return byRoute.Values.ToList();
+    }
+
+    /// <summary>A DSL mount discovered by content: a base path and the route files that make it up.</summary>
+    private sealed record MountDescriptor(string BasePath, IReadOnlyList<string> RouteFiles);
+
+    /// <summary>Scans the specs directory for <c>type: UI</c> files (by content, not by filename), so
+    /// several DSL apps can coexist. (Mirrors Java's MountRegistry.mounts.)</summary>
+    private IReadOnlyList<MountDescriptor> ScanMounts()
+    {
+        var mounts = new List<MountDescriptor>();
+        if (!Directory.Exists(_dir)) return mounts;
+        foreach (var file in Directory.EnumerateFiles(_dir, "*.*", SearchOption.AllDirectories)
+                     .Where(f => f.EndsWith(".yaml") || f.EndsWith(".yml")))
+        {
+            try
+            {
+                if (Yaml.Deserialize<object?>(File.ReadAllText(file)) is not IDictionary<object, object> root)
+                    continue;
+                if (Str(root, "type") != "UI") continue;
+                var basePath = Normalize(Str(root, "basePath") ?? Str(root, "base_path"));
+                var routeFiles = new List<string>();
+                if (root.TryGetValue("routes", out var routes))
+                {
+                    if (routes is IEnumerable<object> list)
+                        routeFiles.AddRange(list.Select(n => n?.ToString()).Where(s => s is not null)!);
+                    else if (routes is string one)
+                        routeFiles.Add(one);
+                }
+                mounts.Add(new MountDescriptor(basePath, routeFiles));
+            }
+            catch
+            {
+                // a broken descriptor must not take app enumeration down — skip it.
+            }
+        }
+        return mounts;
+    }
+
+    /// <summary>The definition bound to a DSL mount's ROOT route: load its route files (relative
+    /// entries prefixed with the mount base path), match the base path, read the definition. That
+    /// root entry is where a DSL app's shell lives — a route with a definition and no class.</summary>
+    private string? DefinitionOf(MountDescriptor mount)
+    {
+        foreach (var routeFile in mount.RouteFiles)
+        {
+            var path = Path.Combine(_dir, routeFile);
+            if (!File.Exists(path)) continue;
+            try
+            {
+                if (Yaml.Deserialize<object?>(File.ReadAllText(path)) is not { } root) continue;
+                var nodes = root switch
+                {
+                    IDictionary<object, object> map when map.TryGetValue("routes", out var r) => r as IEnumerable<object>,
+                    IEnumerable<object> list => list,
+                    _ => null,
+                };
+                if (nodes is null) continue;
+                var entries = new List<RouteEntry>();
+                foreach (var node in nodes)
+                    if (node is IDictionary<object, object> entry)
+                        FlattenNode(entry, parentRoute: null, prefix: "", basePath: mount.BasePath, entries);
+                var definition = new RouteTable(entries).Match(mount.BasePath)?.Entry.Definition;
+                if (!string.IsNullOrWhiteSpace(definition)) return definition;
+            }
+            catch
+            {
+                // ignore a broken route file — try the next one.
+            }
+        }
+        return null;
+    }
+
     private RouteTable Load()
     {
         var path = Path.Combine(_dir, FileName);

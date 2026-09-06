@@ -1,0 +1,6 @@
+# A purely-DSL app: a mount declared as data, with NO Python class. The registry announces it
+# alongside class-based @ui apps (two producers, one table — authored wins).
+type: UI
+basePath: /back-office
+routes:
+  - back-office-routes.yaml
