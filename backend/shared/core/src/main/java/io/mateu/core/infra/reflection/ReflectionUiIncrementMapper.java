@@ -107,6 +107,25 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     if (instance instanceof AppState appState) {
       return appState.state();
     }
+    // A route may seed the app state (stashed during resolution). Emit it MERGED UNDER the client's
+    // request app state so the route's values are defaults and the persisted @AppContext still wins
+    // — the client replaces its store with what we return, so it must carry the client's values
+    // too.
+    if (httpRequest != null
+        && httpRequest.getAttribute("_routeAppState") instanceof java.util.Map<?, ?> seeds
+        && !seeds.isEmpty()) {
+      var merged = new java.util.LinkedHashMap<String, Object>();
+      seeds.forEach((key, value) -> merged.put(String.valueOf(key), value));
+      try {
+        var rq = httpRequest.runActionRq();
+        if (rq != null && rq.appState() != null) {
+          merged.putAll(rq.appState());
+        }
+      } catch (Exception ignored) {
+        // no run-action request in hand (e.g. a bare index load): the seeds stand alone
+      }
+      return merged;
+    }
     return null;
   }
 

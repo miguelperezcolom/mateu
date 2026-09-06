@@ -83,6 +83,12 @@ final class RouteSegmentUtils {
       entry.state().forEach(newData::putIfAbsent);
       entry.defaultParams().forEach(newData::putIfAbsent);
       newData.putAll(entry.fixedParams());
+      // `appState` seeds the APP scope. It is applied on the response side (the increment mapper
+      // reads this and merges it UNDER the client's app state, so the route's seeds are defaults
+      // and the persisted @AppContext still wins) — stash it here where the entry is in hand.
+      if (httpRequest != null && !entry.appState().isEmpty()) {
+        httpRequest.setAttribute("_routeAppState", entry.appState());
+      }
     }
     return newData;
   }
