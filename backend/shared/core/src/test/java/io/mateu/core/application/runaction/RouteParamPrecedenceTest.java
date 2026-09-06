@@ -66,6 +66,28 @@ class RouteParamPrecedenceTest {
   }
 
   @Test
+  void theRoutesLiteralStateSeedsTheComponentStateAtTheDefaultsLevel() {
+    var entry =
+        new RouteEntry(
+            "reports",
+            null,
+            "X",
+            Map.of(),
+            Map.of(),
+            null,
+            null,
+            Map.of("tab", "summary"), // state
+            Map.of(),
+            null,
+            null);
+
+    assertThat(resolve(Map.of(), "reports", "reports", entry)).containsEntry("tab", "summary");
+    // the client still wins over the route's seeded state
+    assertThat(resolve(Map.of("tab", "detail"), "reports", "reports", entry))
+        .containsEntry("tab", "detail");
+  }
+
+  @Test
   void aRouteResolvedFromAnAnnotationBehavesExactlyAsBefore() {
     // No entry: the existing path-parameter behaviour, untouched.
     var state =

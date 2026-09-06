@@ -78,6 +78,9 @@ final class RouteSegmentUtils {
     // would widen the scope the route was pinned to.
     var entry = matchingRoute.entry();
     if (entry != null) {
+      // `state` seeds the component/route state at the same (defaults) level as defaultParams:
+      // literal values the route brings, which anything the client sent still overrides.
+      entry.state().forEach(newData::putIfAbsent);
       entry.defaultParams().forEach(newData::putIfAbsent);
       newData.putAll(entry.fixedParams());
     }

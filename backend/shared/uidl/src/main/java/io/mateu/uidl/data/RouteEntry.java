@@ -139,6 +139,8 @@ public record RouteEntry(
    */
   public Map<String, Object> resolveParams(Map<String, Object> fromRequest) {
     var resolved = new java.util.LinkedHashMap<String, Object>(defaultParams);
+    // `state` seeds at the defaults level too (literal component state the route brings).
+    state.forEach(resolved::putIfAbsent);
     if (fromRequest != null) {
       resolved.putAll(fromRequest);
     }
