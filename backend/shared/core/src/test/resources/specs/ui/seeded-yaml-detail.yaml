@@ -1,0 +1,5 @@
+# A definition-only page (no modelView) whose ROUTE seeds it: `state:` literals + a `data:` source.
+type: VerticalLayout
+content:
+  - type: Text
+    text: "Tab: ${state.tab}"

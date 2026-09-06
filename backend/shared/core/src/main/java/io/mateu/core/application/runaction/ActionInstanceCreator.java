@@ -124,9 +124,59 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
-      return Mono.justOrEmpty(spec.layout());
+      return Mono.justOrEmpty(seedBareLayout(spec.layout(), command));
     }
     return createInstanceAndPostHydrate(spec.modelView(), command);
+  }
+
+  /**
+   * A definition-only page has no view model to hold state, so a route that SEEDS it — a {@code
+   * data:}/{@code appData:} source, {@code state:}/{@code appState:} literals, or query/path params
+   * the page reads as {@code ${state.x}} — needs those applied here, exactly as the class path does
+   * via {@link RouteSegmentUtils#addParameterValues}. When the route seeds something we fold it
+   * into the state and wrap the layout as a {@link SeededYamlPage} so the mapping emits that state
+   * and the {@code __restdata__} OnLoad the resolver stashed on the request; otherwise the bare
+   * layout is returned unchanged (a plain static page).
+   */
+  private Object seedBareLayout(io.mateu.uidl.fluent.Component layout, RunActionCommand command) {
+    if (layout == null) {
+      return null;
+    }
+    var pathOnly = stripQuery(command.route());
+    var match = routeRegistry.match(pathOnly).orElse(null);
+    if (match == null || match.entry() == null) {
+      return layout; // no registry entry (e.g. convention-only page) → nothing to seed
+    }
+    var entry = match.entry();
+    var httpRequest = command.httpRequest();
+    var hasQueryParams =
+        httpRequest != null && httpRequest.getParameterNames().iterator().hasNext();
+    var seeds =
+        entry.data() != null
+            || entry.appData() != null
+            || !entry.appState().isEmpty()
+            || !entry.state().isEmpty()
+            || !entry.defaultParams().isEmpty()
+            || !entry.fixedParams().isEmpty()
+            || hasQueryParams;
+    if (!seeds) {
+      return layout; // a static page: keep the bare-layout shape (unchanged wire)
+    }
+    var resolved =
+        new io.mateu.core.application.ResolvedRoute(pathOnly, entry.route(), Void.class, entry);
+    var state =
+        RouteSegmentUtils.addParameterValues(
+            command.componentState(), pathOnly, resolved, httpRequest);
+    return new SeededYamlPage(layout, state);
+  }
+
+  private static String stripQuery(String route) {
+    if (route == null) {
+      return "";
+    }
+    var q = route.indexOf('?');
+    var path = q >= 0 ? route.substring(0, q) : route;
+    return path.startsWith("/") ? path.substring(1) : path;
   }
 
   private Mono<?> instantiateWithKnownType(RunActionCommand command) {
