@@ -734,6 +734,24 @@ public class ChromelessApp
     [MenuItem("Things")] public Things Home() => new();
 }
 
+// A menu with a RULE LEAF: a [MenuItem] method typed Rule / IReadOnlyList<Rule> RUNS client-side
+// rules when clicked instead of navigating (mirrors Java's @Menu Rule/List<Rule> → MenuOptionDto.rules).
+[App("Rule Menu App")]
+public class RuleMenuApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+
+    [MenuItem("Toggle debug")]
+    public Rule ToggleDebug() => new("true", "SetDataValue", "debug", "hidden", null, "false");
+
+    [MenuItem("Reset")]
+    public IReadOnlyList<Rule> Reset() =>
+    [
+        Rule.Hide("a", "true"),
+        Rule.Disable("b"),
+    ];
+}
+
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
 // the [GroupBy] column groups the rows (implicit primary sort + per-group subtotals).
 public class Sale
@@ -851,6 +869,38 @@ public class SyncHandlerTests
             "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
             + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+    }
+
+    // ── route seeding (state / appState / data / appData) ──────────────────────────
+
+    [Fact]
+    public void A_route_entry_seeds_component_state_app_state_and_a_data_source()
+    {
+        // specs/ui/routes.yaml `seeded` route: state{status:seeded}, appState{hotel:berlin},
+        // data: bookings, appData: profile → resolves the RegistryTickets view.
+        var inc = Handler().Handle(new RunActionRqDto { Route = "seeded", ConsumedRoute = "seeded" });
+        var json = Render(inc);
+
+        // State seeded into componentState → the field arrives prefilled.
+        Assert.Contains("\"initialValue\":\"seeded\"", json);
+        // AppState merged UNDER the client's app state and emitted on the increment.
+        Assert.Contains("\"appState\":{\"hotel\":\"berlin\"}", json);
+        // Data → the __restdata__ client-side load path (action + OnLoad trigger), ref-only source.
+        Assert.Contains("\"id\":\"__restdata__\"", json);
+        Assert.Contains("\"type\":\"OnLoad\",\"actionId\":\"__restdata__\"", json);
+        Assert.Contains("\"ref\":\"bookings\"", json);
+    }
+
+    [Fact]
+    public void The_client_app_state_wins_over_a_route_app_state_seed()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "seeded",
+            ConsumedRoute = "seeded",
+            AppState = new() { ["hotel"] = "madrid" },
+        });
+        Assert.Contains("\"appState\":{\"hotel\":\"madrid\"}", Render(inc));
     }
 
     // ── Structure ETag / template-ref (phase b of the client structure cache) ──────
@@ -1132,6 +1182,30 @@ public class SyncHandlerTests
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ChromelessApp).FullName }));
         Assert.Contains("\"chromeless\":true", json);
         Assert.Contains("\"commandCenterEnabled\":true", json);
+    }
+
+    [Fact]
+    public void A_menu_entry_typed_rule_is_a_rule_leaf_carrying_rules_instead_of_a_route()
+    {
+        var handler = new SyncHandler(new MateuRegistry(typeof(RuleMenuApp).Assembly));
+        var app = (AppMetadataDto)((ClientSideComponentDto)handler
+            .Handle(new RunActionRqDto { ServerSideType = typeof(RuleMenuApp).FullName })
+            .Fragments.Single().Component!).Metadata;
+
+        var navigating = app.Menu.Single(i => i.Label == "Things");
+        Assert.Empty(navigating.Rules);
+        Assert.NotEqual("", navigating.Route);
+
+        // A Rule-typed leaf: no route, one rule.
+        var single = app.Menu.Single(i => i.Label == "Toggle debug");
+        Assert.Equal("", single.Route);
+        Assert.Single(single.Rules);
+        Assert.Equal("hidden", single.Rules[0].FieldAttribute);
+
+        // A List<Rule>-typed leaf: no route, the declared rules.
+        var many = app.Menu.Single(i => i.Label == "Reset");
+        Assert.Equal("", many.Route);
+        Assert.Equal(2, many.Rules.Count);
     }
 
     [Fact]

@@ -56,6 +56,10 @@ class AppMetadata(Wire):
     #: @app(chromeless=True): drop the nav chrome; the command center is the only navigation
     #: (implies command_center_enabled). Mirrors AppDto.chromeless.
     chromeless: bool = False
+    #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
+    #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
+    #: no route under the mount declares one.
+    app_data_source: "RestDataSource | None" = None
 
 
 class AppContextSelector(Wire):
@@ -211,9 +215,16 @@ class RestDataSource(Wire):
     """Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
     ``io.mateu.dtos.RestDataSourceDto``): the renderer fetches ``url`` directly, navigates
     ``items_path`` to the response array and maps each item via ``value_path``/``label_path``.
-    ``url``/``headers``/``body`` support ``${state.x}`` interpolation."""
+    ``url``/``headers``/``body`` support ``${state.x}`` interpolation.
 
-    url: str
+    A descriptor points at an endpoint in one of two ways, and they are alternatives: **by
+    reference** — ``ref`` names an entry of ``sources.yaml`` (the ``data: countries`` shorthand),
+    so the URL is declared once and re-pointable — or **inline** with ``url`` + mapping paths."""
+
+    #: The name of a catalogue entry (sources.yaml) to take the endpoint from; blank means this
+    #: descriptor is inline (mirrors RestDataSourceDto.ref). The paths declared HERE still win.
+    ref: str | None = None
+    url: str | None = None
     method: str | None = None
     headers: dict[str, str] | None = None
     body: str | None = None
@@ -1332,6 +1343,10 @@ class MenuItem(Wire):
     base_url: str | None = None
     #: Inline the remote entries at this level instead of nesting under label.
     explode: bool = False
+    #: A rule leaf (mirrors MenuOptionDto.rules): a menu entry that RUNS client-side rules when
+    #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
+    #: leaf leaves it empty.
+    rules: list["RuleRecord"] = Field(default_factory=list)
 
 
 class Kpi(Wire):

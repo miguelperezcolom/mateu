@@ -1,0 +1,11 @@
+# A standalone type: Routes file tagging itself with a basePath (group/prefix): a class-declared
+# mount authors its inner routes with no separate descriptor. Routes are relative to the mount; the
+# base path is prefixed onto every absolute route + onto a child's parent.
+type: Routes
+basePath: back-office
+routes:
+  - route: orders
+    viewModel: Mateu.Tests.RegistryOrderDetail
+    children:
+      - route: ":id"
+        viewModel: Mateu.Tests.RegistryNewOrder

@@ -36,3 +36,25 @@ routes:
     viewModel: Mateu.Tests.RegistryOrderDetail
   - route: orders/new
     viewModel: Mateu.Tests.RegistryNewOrder
+
+  # Nested children: authored relative to the parent, flattened into absolute entries carrying the
+  # parent's route (the sub-route renders into the parent's slot instead of replacing the page).
+  - route: use-cases/rra
+    viewModel: Mateu.Tests.RegistryOrderDetail
+    children:
+      - route: orders
+        viewModel: Mateu.Tests.RegistryNewOrder
+      - route: books
+        definition: shared-list.yaml
+        viewModel: Mateu.Tests.RegistryBooks
+
+  # Route seeding across the four scopes: State/AppState seed literal values, Data/AppData reference
+  # named sources (the `data: name` shorthand = a ref-only descriptor).
+  - route: seeded
+    viewModel: Mateu.Tests.RegistryTickets
+    state:
+      status: seeded
+    appState:
+      hotel: berlin
+    data: bookings
+    appData: profile

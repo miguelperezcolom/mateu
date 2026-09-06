@@ -808,6 +808,11 @@ public record AppMetadataDto(
     /// <summary>[App(Chromeless=true)] — drop the nav chrome; the command center is the only
     /// navigation (implies CommandCenterEnabled).</summary>
     public bool Chromeless { get; init; }
+
+    /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
+    /// fetches it once into the app-data store, shared across routes. Null when no route on this
+    /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>
+    public RestDataSourceDto? AppDataSource { get; init; }
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for
@@ -836,6 +841,11 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
 
     /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
     public bool Explode { get; init; }
+
+    /// <summary>Client-side rules this menu entry RUNS when clicked instead of navigating — a menu
+    /// method typed Rule / IReadOnlyList&lt;Rule&gt; is a rule leaf, not a route. Empty on a normal
+    /// (navigating) entry. (Mirrors io.mateu.dtos.MenuOptionDto.rules / RuleLink.)</summary>
+    public IReadOnlyList<RuleDto> Rules { get; init; } = [];
 }
 
 /// <summary>Lateral navigation across peer objects — the previous/next arrows in the page header
@@ -1002,6 +1012,17 @@ public record RestDataSourceDto(string Url)
     /// no CORS, and ${secret.X} auth is injected server-side. The renderer dispatches the reserved
     /// __restfetch__ action instead of a direct fetch. Default false (client-direct).</summary>
     public bool Proxy { get; init; }
+
+    /// <summary>The name of a catalogue entry to take the endpoint from; null/blank means this
+    /// descriptor is inline (carries its own Url). The <c>data: countries</c> shorthand in
+    /// routes.yaml produces a ref-only descriptor. (Mirrors io.mateu.dtos.RestDataSourceDto.ref;
+    /// the .NET port has no source catalogue yet, so a ref-only descriptor travels on the wire but
+    /// is not resolved server-side here.)</summary>
+    public string? Ref { get; init; }
+
+    /// <summary>A descriptor that only names a catalogue entry — the <c>data: countries</c>
+    /// shorthand (empty Url, Ref set).</summary>
+    public static RestDataSourceDto FromRef(string name) => new("") { Ref = name };
 }
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a

@@ -26,6 +26,106 @@ def _normalize(route: str | None) -> str:
     return "" if r in ("_empty", "_no_route", "_no_home_route") else r
 
 
+def _prefix(base_path: str, route: str) -> str:
+    """Prefix a relative route with the mount base path: ``(shop, orders) → shop/orders``."""
+    if not base_path:
+        return route
+    return base_path if not route else base_path + "/" + route
+
+
+def _params_of(node: dict, *keys: str) -> dict[str, Any]:
+    """A literal params/state map under any of the accepted keys (camelCase or snake_case)."""
+    for key in keys:
+        value = node.get(key)
+        if isinstance(value, dict):
+            return dict(value)
+    return {}
+
+
+def _data_source_of(node: dict, *keys: str) -> "RestSourceRef | None":
+    """Parse a ``data``/``appData`` node into a :class:`RestSourceRef`. A bare string is the
+    ``data: countries`` shorthand (a reference by name); an object may carry inline endpoint
+    fields — mirrors Java's RouteRegistry.dataSourceOf."""
+    for key in keys:
+        if key not in node or node.get(key) is None:
+            continue
+        n = node[key]
+        if isinstance(n, str):
+            return RestSourceRef(ref=n)
+        if isinstance(n, dict):
+            return RestSourceRef(
+                ref=n.get("ref"),
+                url=n.get("url"),
+                method=n.get("method"),
+                body=n.get("body"),
+                items_path=n.get("itemsPath") or n.get("items_path"),
+                value_path=n.get("valuePath") or n.get("value_path"),
+                label_path=n.get("labelPath") or n.get("label_path"),
+                proxy=bool(n.get("proxy", False)),
+            )
+    return None
+
+
+def _flatten_node(
+    node: dict, parent_route: str | None, prefix: str, out: list["RouteEntry"]
+) -> None:
+    """Flatten one authored node and its nested ``children`` into flat entries. A child's route is
+    composed RELATIVE to its parent (``orders`` under ``use-cases/rra`` → ``use-cases/rra/orders``)
+    and carries the parent's route as :attr:`RouteEntry.parent`, so the sub-route renders into the
+    parent screen's slot instead of replacing the page. Routes are still relative to the mount here;
+    the base path is applied afterwards (mirrors Java's RouteRegistry.flattenNode)."""
+    relative = _normalize(node.get("route"))
+    full = relative if not prefix else (prefix if not relative else prefix + "/" + relative)
+    out.append(
+        RouteEntry(
+            route=full,
+            definition=node.get("definition"),
+            view_model=node.get("viewModel") or node.get("view_model"),
+            fixed_params=_params_of(node, "fixedParams", "fixed_params"),
+            default_params=_params_of(node, "defaultParams", "default_params"),
+            parent=parent_route,
+            state=_params_of(node, "state"),
+            app_state=_params_of(node, "appState", "app_state"),
+            data=_data_source_of(node, "data"),
+            app_data=_data_source_of(node, "appData", "app_data"),
+        )
+    )
+    children = node.get("children")
+    if isinstance(children, list):
+        for child in children:
+            if isinstance(child, dict):
+                _flatten_node(child, parent_route=full, prefix=full, out=out)
+
+
+def _with_base_path(entry: "RouteEntry", base_path: str) -> "RouteEntry":
+    """Return the entry with its (and its parent's) route prefixed by the file's base path."""
+    if not base_path:
+        return entry
+    from dataclasses import replace
+
+    return replace(
+        entry,
+        route=_prefix(base_path, entry.route),
+        parent=_prefix(base_path, entry.parent) if entry.has_parent() else entry.parent,
+    )
+
+
+@dataclass(frozen=True)
+class RestSourceRef:
+    """A route's ``data``/``appData`` source — a reference to a named entry of ``sources.yaml`` (the
+    ``data: countries`` shorthand), or an inline endpoint. The Python mirror of Java's
+    ``RestDataSource`` in this file (kept tiny: the registry only needs to carry the ref through)."""
+
+    ref: str | None = None
+    url: str | None = None
+    method: str | None = None
+    body: str | None = None
+    items_path: str | None = None
+    value_path: str | None = None
+    label_path: str | None = None
+    proxy: bool = False
+
+
 @dataclass(frozen=True)
 class RouteEntry:
     """What a URL resolves to.
@@ -39,6 +139,15 @@ class RouteEntry:
         than trusted from the client, or "fixed" would be a suggestion and flipping one via the query
         string would be a capability escalation.
     :param default_params: seeded — the request may override them.
+    :param parent: the ABSOLUTE route of the screen whose slot this route fills, or ``None`` for a
+        top-level route. Set when the authored ``children`` tree is flattened.
+    :param state: literal values seeding the route's component/route state on entry (at the defaults
+        precedence level, so a pinned parameter still wins).
+    :param app_state: literal values seeding the app-scope state on entry (merged UNDER the client's).
+    :param data: the route's component/route data, a reference to a named source in ``sources.yaml``
+        (there is no literal data channel; data is always sourced). Fetched when the route loads.
+    :param app_data: the route's app-scope data, a reference to a named source resolved once at app
+        scope (shared across routes).
     """
 
     route: str = ""
@@ -46,14 +155,26 @@ class RouteEntry:
     view_model: str | None = None
     fixed_params: dict[str, Any] = field(default_factory=dict)
     default_params: dict[str, Any] = field(default_factory=dict)
+    parent: str | None = None
+    state: dict[str, Any] = field(default_factory=dict)
+    app_state: dict[str, Any] = field(default_factory=dict)
+    data: RestSourceRef | None = None
+    app_data: RestSourceRef | None = None
+
+    def has_parent(self) -> bool:
+        """Whether this route fills the slot of a parent screen rather than replacing the page."""
+        return bool(self.parent and self.parent.strip())
 
     def path_params(self) -> list[str]:
         return [s[1:] for s in self.route.split("/") if s.startswith(":") and len(s) > 1]
 
     def resolve_params(self, from_request: dict[str, Any] | None) -> dict[str, Any]:
-        """Defaults first, then whatever the request brought, then the fixed ones — which win over
-        everything, which is the whole point of declaring them fixed."""
+        """Defaults first, then ``state`` at the same defaults level, then whatever the request
+        brought, then the fixed ones — which win over everything, which is the whole point of
+        declaring them fixed."""
         resolved = dict(self.default_params)
+        for k, v in self.state.items():
+            resolved.setdefault(k, v)
         resolved.update(from_request or {})
         resolved.update(self.fixed_params)
         return resolved
@@ -142,23 +263,22 @@ class RouteRegistry:
             return RouteTable()
         if root is None:
             return RouteTable()
-        # Both shapes are accepted: a bare list of entries, or a `routes:` envelope.
-        nodes = root.get("routes") if isinstance(root, dict) else root
+        # Both shapes are accepted: a bare list of entries, or a `routes:` envelope. A standalone
+        # `type: Routes` envelope may tag itself with a `basePath` so a class-declared @ui("/shop")
+        # mount authors its inner routes relatively and they resolve absolutely (last-wins on a
+        # route collision is not needed for a single file — one file is one bucket).
+        base_path = ""
+        nodes = root
+        if isinstance(root, dict):
+            base_path = _normalize(root.get("basePath") or root.get("base_path"))
+            nodes = root.get("routes")
         if not isinstance(nodes, list):
             return RouteTable()
-        entries = []
+        # Flatten each authored node (composing nested `children` relative to their parent and
+        # setting `parent`), then prefix everything with the file's base path into absolute routes.
+        relative: list[RouteEntry] = []
         for node in nodes:
-            if not isinstance(node, dict):
-                continue
-            entries.append(
-                RouteEntry(
-                    route=_normalize(node.get("route")),
-                    definition=node.get("definition"),
-                    view_model=node.get("viewModel") or node.get("view_model"),
-                    fixed_params=dict(node.get("fixedParams") or node.get("fixed_params") or {}),
-                    default_params=dict(
-                        node.get("defaultParams") or node.get("default_params") or {}
-                    ),
-                )
-            )
+            if isinstance(node, dict):
+                _flatten_node(node, parent_route=None, prefix="", out=relative)
+        entries = [_with_base_path(e, base_path) for e in relative]
         return RouteTable(tuple(entries))

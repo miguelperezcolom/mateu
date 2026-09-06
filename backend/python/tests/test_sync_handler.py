@@ -2200,3 +2200,159 @@ def test_action_returns_route_navigates():
         RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={})
     )
     assert any(c.type == "NavigateTo" and c.data == "/things" for c in inc.commands)
+
+
+# ── Menu rule leaf (a @menu_item returning Rule / list[Rule]) ───────────────────
+
+
+@ui("/rulemenu/catalog")
+class RuleMenuCatalog:
+    pass
+
+
+@app("Rule Menu App")
+class RuleMenuApp:
+    """A menu is made of two leaf primitives: routes and rules. A @menu_item that navigates is a
+    route leaf; one returning Rule / list[Rule] is a rule leaf carrying its rules on the wire."""
+
+    @menu_item("Catalog")
+    def catalog(self) -> "RuleMenuCatalog":
+        return RuleMenuCatalog()
+
+    @menu_item("Refresh")
+    def refresh(self) -> Rule:
+        return Rule("true", "RunAction", action_id="refreshAll")
+
+    @menu_item("Reset both")
+    def reset_both(self) -> list[Rule]:
+        return [Rule.hide("a", "true"), Rule.disable("b")]
+
+
+def _rule_menu() -> "list":
+    reg = MateuRegistry(RuleMenuApp, RuleMenuCatalog)
+    inc = SyncHandler(reg).handle(RunActionRq(route="", consumed_route="_empty"))
+    return inc.fragments[0].component.metadata.menu
+
+
+def test_a_menu_item_returning_a_rule_becomes_a_rule_leaf_carrying_its_rules():
+    by_label = {m.label: m for m in _rule_menu()}
+
+    refresh = by_label["Refresh"]
+    assert refresh.route == ""              # a rule leaf does not navigate
+    assert refresh.server_side_type == ""
+    assert len(refresh.rules) == 1
+    assert refresh.rules[0].action == "RunAction"
+    assert refresh.rules[0].action_id == "refreshAll"
+
+
+def test_a_menu_item_returning_a_list_of_rules_carries_all_of_them():
+    by_label = {m.label: m for m in _rule_menu()}
+    reset = by_label["Reset both"]
+    assert reset.route == ""
+    assert [r.field_name for r in reset.rules] == ["a", "b"]
+    assert [r.field_attribute for r in reset.rules] == ["hidden", "disabled"]
+
+
+def test_a_navigating_menu_item_stays_a_route_leaf_with_no_rules():
+    by_label = {m.label: m for m in _rule_menu()}
+    catalog = by_label["Catalog"]
+    assert catalog.route == "/rulemenu/catalog"
+    assert catalog.rules == []
+
+
+# ── Route seeding on the response (appState / data / appData) ───────────────────
+
+
+class SeededView:
+    tab: str = ""
+
+
+def _seeded_handler(tmp_path):
+    # Author a routes.yaml that seeds every scope, pointing `viewModel` at SeededView by its real
+    # module-qualified name (robust to how pytest imports this file).
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n"
+        "  - route: seeded\n"
+        f"    viewModel: {_name(SeededView)}\n"
+        "    state:\n"
+        "      tab: summary\n"
+        "    appState:\n"
+        "      theme: dark\n"
+        "    data: seed-metrics\n"
+        "    appData:\n"
+        "      ref: seed-catalog\n"
+    )
+    h = SyncHandler(MateuRegistry(MODULE))
+    from mateu_core.route_registry import RouteRegistry as _RR
+
+    h.routes = _RR(str(tmp_path))
+    return h
+
+
+def test_a_route_seeds_component_state_and_merges_app_state_under_the_client(tmp_path):
+    h = _seeded_handler(tmp_path)
+    inc = h.handle(RunActionRq(route="seeded", consumed_route="seeded", app_state={"user": "u1"}))
+    # appState is merged UNDER the client's app state: the route's seed is a default, the client wins.
+    assert inc.app_state == {"theme": "dark", "user": "u1"}
+    # a client value for a seeded appState key overrides it
+    inc2 = h.handle(RunActionRq(route="seeded", consumed_route="seeded", app_state={"theme": "light"}))
+    assert inc2.app_state["theme"] == "light"
+
+
+def test_a_route_state_seed_binds_onto_the_view(tmp_path):
+    # `state` folds into the component state at the defaults level, so it binds onto the view's
+    # field — SeededView.tab arrives as "summary" (the fold precedence itself is pinned at the
+    # registry level in test_route_registry).
+    h = _seeded_handler(tmp_path)
+    inc = h.handle(RunActionRq(route="seeded", consumed_route="seeded"))
+    field = _find_form_field(inc.fragments[0].component, "tab")
+    assert field is not None and field.metadata.initial_value == "summary"
+
+
+def _find_form_field(component, field_id):
+    """Walk the component tree for the FormField metadata with the given field id (descending into
+    both `children` and the `metadata.content` slot Cards/Divs nest their content under)."""
+    stack = [component]
+    while stack:
+        node = stack.pop()
+        meta = getattr(node, "metadata", None)
+        if meta is not None and getattr(meta, "type", None) == "FormField" and getattr(meta, "field_id", None) == field_id:
+            return node
+        stack.extend(getattr(node, "children", None) or [])
+        content = getattr(meta, "content", None) if meta is not None else None
+        if content is not None:
+            stack.append(content)
+    return None
+
+
+def test_a_route_data_ref_advertises_the_restdata_action_and_onload_trigger(tmp_path):
+    inc = _seeded_handler(tmp_path).handle(RunActionRq(route="seeded", consumed_route="seeded"))
+    comp = inc.fragments[0].component
+    restdata = next((a for a in comp.actions if a.id == "__restdata__"), None)
+    assert restdata is not None
+    assert restdata.rest_action.source.ref == "seed-metrics"
+    assert any(
+        (getattr(t, "type", None) == "OnLoad" and getattr(t, "action_id", None) == "__restdata__")
+        for t in comp.triggers
+    )
+
+
+def test_a_route_app_data_ref_is_emitted_on_the_app_metadata(tmp_path):
+    # `appData` names an app-scope source; the shell fetches it once. It rides on AppDto.appDataSource
+    # (the shell may not consume it yet in this port, but the wire field must be present).
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n"
+        "  - route: \"\"\n"
+        f"    viewModel: {_name(RuleMenuApp)}\n"
+        "    appData:\n"
+        "      ref: shop-catalog\n"
+    )
+    h = SyncHandler(MateuRegistry(RuleMenuApp, RuleMenuCatalog))
+    from mateu_core.route_registry import RouteRegistry as _RR
+
+    h.routes = _RR(str(tmp_path))
+    inc = h.handle(RunActionRq(route="", consumed_route="_empty"))
+    meta = inc.fragments[0].component.metadata
+    assert meta.type == "App"
+    assert meta.app_data_source is not None
+    assert meta.app_data_source.ref == "shop-catalog"

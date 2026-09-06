@@ -1,0 +1,31 @@
+# A standalone route file that tags itself with the mount it belongs to. This is how a
+# class-declared @ui("/shop") mount authors its inner routes: just the relative routes and the base
+# path they hang off. Routes are prefixed with `shop/` on load. Mirrors Java's shop-routes.yaml.
+type: Routes
+basePath: /shop
+routes:
+
+  - route: products
+    viewModel: com.acme.Products
+
+  - route: products/:id
+    viewModel: com.acme.ProductDetail
+
+  # A shell screen (master-detail with tabs) whose sub-routes fill its slot. Children are authored
+  # RELATIVE to it, so `sales` answers /shop/dashboard/sales and renders into the dashboard's slot.
+  - route: dashboard
+    viewModel: com.acme.ShopDashboard
+    children:
+      - route: sales
+        viewModel: com.acme.SalesPanel
+
+  # A route seeding all four scopes: literal state/app-state, and data/app-data sourced by ref.
+  - route: reports
+    viewModel: com.acme.Reports
+    state:
+      tab: summary
+    appState:
+      theme: dark
+    data: shop-metrics          # source ref shorthand
+    appData:
+      ref: shop-catalog
