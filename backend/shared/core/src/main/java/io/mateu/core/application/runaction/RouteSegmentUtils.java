@@ -78,8 +78,31 @@ final class RouteSegmentUtils {
     // would widen the scope the route was pinned to.
     var entry = matchingRoute.entry();
     if (entry != null) {
+      // `state` seeds the component/route state at the same (defaults) level as defaultParams:
+      // literal values the route brings, which anything the client sent still overrides.
+      entry.state().forEach(newData::putIfAbsent);
       entry.defaultParams().forEach(newData::putIfAbsent);
       newData.putAll(entry.fixedParams());
+      // `appState` seeds the APP scope. It is applied on the response side (the increment mapper
+      // reads this and merges it UNDER the client's app state, so the route's seeds are defaults
+      // and the persisted @AppContext still wins) — stash it here where the entry is in hand.
+      if (httpRequest != null && !entry.appState().isEmpty()) {
+        httpRequest.setAttribute("_routeAppState", entry.appState());
+      }
+      // `data` is a reference to a named source: the route's component data. Stashed here so the
+      // action/trigger mappers advertise the same __restdata__ action + OnLoad the @RestData
+      // surface
+      // uses — the client fetches it and merges it into the state, reusing the whole @RestData
+      // path.
+      if (httpRequest != null && entry.data() != null) {
+        httpRequest.setAttribute("_routeData", entry.data());
+      }
+      // `appData` is a reference to a named source at APP scope: stashed so the app shell
+      // (AppMapper)
+      // emits it on AppDto and the client fetches it once, into the app-data store.
+      if (httpRequest != null && entry.appData() != null) {
+        httpRequest.setAttribute("_routeAppData", entry.appData());
+      }
     }
     return newData;
   }

@@ -31,6 +31,19 @@ public class MyApp {
 
 That is all that is required on the Java side.
 
+## MCP tools and file uploads
+
+`@AI` has two optional attributes beyond `sse`:
+
+- `mcp` — path (or absolute URL) of the app's MCP endpoint. The chat forwards it with every message so the agent — in-process or the user's local companion — can operate **this** app through its tools.
+- `upload` — path (or absolute URL) where the chat POSTs attached files (multipart). When set, the chat panel shows an **attach** button; each upload is saved server-side (its URL travels to the frontend as `ChatDto.uploadUrl`) and the assistant reads it — e.g. the `agent-cli` module saves it to a local directory and exposes it through a filesystem MCP server. Empty (the default) = no file attachments.
+
+```java
+@UI("")
+@AI(sse = "/api/ai/chat", mcp = "/api/ai/mcp", upload = "/api/ai/upload")
+public class MyApp { ... }
+```
+
 ## How it works
 
 1. Mateu reads the `sse` value from `@AI` at startup.
@@ -322,3 +335,5 @@ Only emit one event per response. Never show the raw JSON to the user.
 - Mateu handles the rest: button, panel, streaming UI.
 - Stream the reply line by line; replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
 - Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM; emit token-usage JSON to feed the token bar.
+
+**Related:** the [command center](/ux-patterns/command-center/) (`@App(commandCenter=true)`) adds an always-present palette that unifies navigation, global search and an AI hand-off — an AI-adjacent entry point alongside the IA button.

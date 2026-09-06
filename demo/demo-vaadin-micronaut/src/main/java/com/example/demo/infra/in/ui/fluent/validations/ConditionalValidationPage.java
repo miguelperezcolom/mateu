@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.validations;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -17,7 +16,6 @@ import io.mateu.uidl.interfaces.ValidationSupplier;
 
 import java.util.List;
 
-@Route(value="/logic/validations/conditional", parentRoute="")
 public class ConditionalValidationPage implements ComponentTreeSupplier, ValidationSupplier, ActionHandler, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

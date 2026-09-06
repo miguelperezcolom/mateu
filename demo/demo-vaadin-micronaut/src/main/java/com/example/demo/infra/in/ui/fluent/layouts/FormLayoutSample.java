@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route(value="/layouts/form", parentRoute="")
 public class FormLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

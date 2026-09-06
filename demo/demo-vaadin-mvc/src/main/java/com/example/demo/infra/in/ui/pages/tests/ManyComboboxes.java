@@ -11,7 +11,6 @@ import io.mateu.uidl.interfaces.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route("/manycomboboxes")
 @Breadcrumbs({
         @Breadcrumb(label = "Home", url = "/"),
         @Breadcrumb(label = "Users", url = "/users"),

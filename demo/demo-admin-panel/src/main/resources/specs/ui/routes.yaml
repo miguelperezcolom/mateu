@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: page4
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.Page4
+  - route: page3
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.Page3
+  - route: example/:name
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.ExampleParametersViewModel
+  - route: inline-editing
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.inlineediting.InlineEditingDemo
+  - route: users/:id/edit
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.users.UserEditorPage
+  - route: checkin
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInListing
+  - route: checkin/:id
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInForm
+  - route: checkin/:id/v2
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInFormV2
+  - route: checkin/:id/v3
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInFormV3
+  - route: checkin/:id/v4
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInFormV4
+  - route: home2
+    children:
+      - route: xxx
+        viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.NestedApp

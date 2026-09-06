@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.fluent.forms;
 
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FieldDataType;
@@ -20,7 +19,6 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-@Route(value="/components/high-level/forms/grid-fields", parentRoute="")
 @Singleton
 public class FormGridFieldsComponentPage implements ComponentTreeSupplier {
 

@@ -10,7 +10,6 @@ import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.FavIcon;
-import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Logo;
 import io.mateu.uidl.annotations.Menu;
@@ -85,7 +84,6 @@ class AppSyncTest {
   @Logo("/img/logo.png")
   @FavIcon("/img/fav.ico")
   @App(value = AppVariant.MENU_ON_TOP, layout = AppLayout.SPLIT, themeToggle = true)
-  @HomeRoute("/shop/catalog")
   @AI(sse = "http://localhost:9999/ai/stream")
   public static class ShopApp {
     @Menu

@@ -1,7 +1,7 @@
 package io.mateu.annotationprocessing;
 
-import static io.mateu.annotationprocessing.RouteAnnotationProcessor.createRouteHandler;
-import static io.mateu.annotationprocessing.RouteAnnotationProcessor.toRegex;
+import static io.mateu.annotationprocessing.UISourceFileGenerator.createRouteHandler;
+import static io.mateu.annotationprocessing.UISourceFileGenerator.toRegex;
 
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.interfaces.RouteValue;

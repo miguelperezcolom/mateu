@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.forms;
 import com.example.demo.domain.CustomerRepository;
 import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -25,7 +24,6 @@ import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/components/high-level/forms/data-sourced-fields-1", parentRoute="")
 public class FormDataSourcedFieldsComponentPage1 implements ComponentTreeSupplier, ActionHandler, DataSupplier {
 
     private final CustomerRepository customerRepository;

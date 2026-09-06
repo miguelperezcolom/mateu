@@ -40,7 +40,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Route(value = "/checkout/:id", parentRoute = "")
 @Title("Check-Out")
 @FormLayout(columns = 1)
 @Style(StyleConstants.CONTAINER)

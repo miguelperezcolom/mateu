@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 import com.example.demo.domain.CustomerRepository;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/components/high-level/forms/combobox-default-value", parentRoute="")
 @Singleton
 public class FormComboDefaultValueComponentPage implements ComponentTreeSupplier, ActionHandler, PostHydrationHandler {
 

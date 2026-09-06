@@ -3,7 +3,6 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 @Service
 @Scope("prototype")
 @RequiredArgsConstructor
-@Route(value = "/checkin", parentRoute = "")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 public class CheckInListing implements Listing<CheckInRow>, Searchable, Filterable<CheckInFilters> {
 

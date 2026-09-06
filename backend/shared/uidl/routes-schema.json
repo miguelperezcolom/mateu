@@ -24,6 +24,38 @@
     }
   } ],
   "$defs" : {
+    "RestDataSource" : {
+      "type" : "object",
+      "properties" : {
+        "ref" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        },
+        "method" : {
+          "type" : "string"
+        },
+        "headers" : {
+          "type" : "object"
+        },
+        "body" : {
+          "type" : "string"
+        },
+        "itemsPath" : {
+          "type" : "string"
+        },
+        "valuePath" : {
+          "type" : "string"
+        },
+        "labelPath" : {
+          "type" : "string"
+        },
+        "proxy" : {
+          "type" : "boolean"
+        }
+      }
+    },
     "RouteEntry" : {
       "type" : "object",
       "properties" : {
@@ -41,6 +73,27 @@
         },
         "defaultParams" : {
           "type" : "object"
+        },
+        "parent" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RouteEntry"
+          }
+        },
+        "state" : {
+          "type" : "object"
+        },
+        "appState" : {
+          "type" : "object"
+        },
+        "data" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "appData" : {
+          "$ref" : "#/$defs/RestDataSource"
         }
       }
     }

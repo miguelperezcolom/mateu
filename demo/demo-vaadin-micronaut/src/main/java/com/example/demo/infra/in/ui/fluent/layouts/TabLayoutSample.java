@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Orientation;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/layouts/tab", parentRoute="")
 public class TabLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

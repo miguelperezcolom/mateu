@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.ContextMenu;
 import io.mateu.uidl.data.Menu;
@@ -14,7 +13,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/building-blocks/context-menu", parentRoute="")
 public class ContextMenuComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

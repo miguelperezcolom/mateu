@@ -179,6 +179,7 @@ from mateu_uidl import (
     RangeFilter,
     ReadOnly,
     ReadOnlyUnless,
+    Rule,
     RuleSupplier,
     Searchable,
     SeparatorBefore,
@@ -542,8 +543,18 @@ class ReflectionMapper:
             view_type = get_type_hints(fn).get("return")
         except Exception:
             view_type = fn.__annotations__.get("return")
-        route = "/" + normalize(getattr(view_type, "__mateu_ui__", "")) if view_type else "/"
         marker = getattr(fn, "__mateu_menu_item__")
+        # A menu leaf is one of two primitives: a route or a rule. A @menu_item returning a Rule
+        # (or list[Rule]) becomes the rule leaf — clicking it runs client-side rules instead of
+        # navigating — and carries them in MenuItem.rules; every other return shape is a route leaf
+        # (mirrors Java's MenuEntryMapper: a @Menu field typed Rule/List<Rule>).
+        rules = self._menu_rule_leaf(fn, view_type)
+        if rules is not None:
+            label = marker if isinstance(marker, str) else humanize(name)
+            return MenuItem(
+                label=self.T(label), route="", server_side_type="", rules=rules
+            )
+        route = "/" + normalize(getattr(view_type, "__mateu_ui__", "")) if view_type else "/"
         label = (
             marker
             if isinstance(marker, str)
@@ -551,6 +562,51 @@ class ReflectionMapper:
         )
         ssn = type_name(view_type) if view_type else ""
         return MenuItem(label=self.T(label), route=route, server_side_type=ssn, consumed_route=route)
+
+    def _menu_rule_leaf(self, fn, return_type) -> "list[RuleRecord] | None":
+        """The rules of a rule-leaf @menu_item, or None when the entry is a route leaf. A method
+        annotated to return a Rule (or list[Rule]) is a rule leaf — clicking it runs client-side
+        rules instead of navigating; every other return shape is a route (mirrors MenuEntryMapper's
+        Rule / List<Rule> branch). Detection is by the declared return type, so mapping a menu never
+        speculatively calls a view-factory method."""
+        is_rule_return = return_type is Rule or (
+            get_origin(return_type) is list
+            and (get_args(return_type) or (None,))[0] is Rule
+        )
+        if not is_rule_return:
+            return None
+        try:
+            result = fn(self._owner_of(fn)())
+        except Exception:
+            result = None
+        if isinstance(result, Rule):
+            result = [result]
+        if isinstance(result, list) and all(isinstance(r, Rule) for r in result):
+            return [self._map_rule(r) for r in result]
+        return []
+
+    @staticmethod
+    def _owner_of(fn):
+        """The class that declares an unbound @menu_item function (so it can be instantiated to
+        call the rule-leaf method). Falls back to a no-arg lambda when it cannot be found."""
+        qual = getattr(fn, "__qualname__", "")
+        if "." in qual:
+            import sys
+
+            owner_name = qual.rsplit(".", 1)[0]
+            module = sys.modules.get(getattr(fn, "__module__", ""))
+            owner = getattr(module, owner_name, None)
+            if isinstance(owner, type):
+                return owner
+        return lambda: None
+
+    @staticmethod
+    def _map_rule(r) -> RuleRecord:
+        return RuleRecord(
+            filter=r.filter, action=r.action, field_name=r.field_name,
+            field_attribute=r.field_attribute, value=r.value, expression=r.expression,
+            result=r.result, action_id=r.action_id,
+        )
 
     # ── Plain view ─────────────────────────────────────────────────────────────
     def map_view(self, cls, instance, route: str, layout_override=None) -> ServerSideComponent:

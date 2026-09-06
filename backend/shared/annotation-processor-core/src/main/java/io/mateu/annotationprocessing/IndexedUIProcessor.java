@@ -100,17 +100,17 @@ class IndexedUIProcessor {
           new RouteValue(
               path,
               "_empty",
-              RouteAnnotationProcessor.toRegex(path),
-              RouteAnnotationProcessor.toRegex("_empty")));
+              UISourceFileGenerator.toRegex(path),
+              UISourceFileGenerator.toRegex("_empty")));
       if (path.isEmpty()) {
         routes.add(
             new RouteValue(
                 "",
                 "_empty",
-                RouteAnnotationProcessor.toRegex(""),
-                RouteAnnotationProcessor.toRegex("_empty")));
+                UISourceFileGenerator.toRegex(""),
+                UISourceFileGenerator.toRegex("_empty")));
       }
-      RouteAnnotationProcessor.createRouteHandlerFromModel(
+      UISourceFileGenerator.createRouteHandlerFromModel(
           className + "UIRouteResolver",
           pkgName,
           className,

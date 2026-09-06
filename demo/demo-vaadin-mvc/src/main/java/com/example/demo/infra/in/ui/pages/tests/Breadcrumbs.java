@@ -5,7 +5,6 @@ import io.mateu.uidl.annotations.Breadcrumb;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.OptionsLayout;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.FieldStereotype;
@@ -18,7 +17,6 @@ import io.mateu.uidl.interfaces.OptionsSupplier;
 import java.util.ArrayList;
 import java.util.List;
 
-@Route("/breadcrumbs")
 @io.mateu.uidl.annotations.Breadcrumbs({
         @Breadcrumb(label = "Home", url = "/"),
         @Breadcrumb(label = "Users", url = "/users"),

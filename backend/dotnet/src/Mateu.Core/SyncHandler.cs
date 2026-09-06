@@ -80,13 +80,30 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // The fixed ones are re-applied on the SERVER rather than trusted from the client, because
         // route resolution also runs in the browser (a statically deployed mount has no server to
         // ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        // Route seeding: State/DefaultParams/FixedParams fold into componentState (client wins,
+        // fixed wins over all — done in RouteMatch.Params); AppState is merged UNDER the client's
+        // app state; Data injects the __restdata__ action + OnLoad (the @RestData load path);
+        // AppData rides on the app metadata. State/params are folded here; the app-scope seeds
+        // (AppState/Data) decorate the resolved increment (mirrors Java's RouteSegmentUtils +
+        // ReflectionUiIncrementMapper.mapToAppState).
+        RouteEntry? routeEntry = null;
         Type? type = null;
         if (_routes.Match(rq.Route) is { } routeMatch)
         {
             rq = rq with { ComponentState = routeMatch.Params(rq.ComponentState) };
+            routeEntry = routeMatch.Entry;
             if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);
         }
+        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry), rq, routeEntry);
+    }
+
+    /// <summary>The route-resolution tail of <see cref="Handle"/>: a view/listing/wizard resolved
+    /// either from the authored registry or from attributes. Split out so route-scope seeding can
+    /// decorate its result once, at every exit. When <paramref name="routeEntry"/> declares Data the
+    /// resolved view gets a __restdata__ action + OnLoad trigger injected (the @RestData load path).</summary>
+    private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry)
+    {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
         var yamlSpec = _yaml.LoadSpec(rq.Route);
         if (type is null && yamlSpec is not null)
@@ -1421,10 +1438,21 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             .ToList();
 
     // ── Plain views ─────────────────────────────────────────────────────────────
-    private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl) =>
-        UIIncrementDto.Of(
+    private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl)
+    {
+        var app = _mapper.MapApp(appType, requestBaseUrl);
+        // AppData: a route entry's app-scope data source rides on the app metadata — the shell
+        // fetches it once into the app-data store, shared across routes. The .NET port's mount model
+        // is method-based (no route↔mount linkage), so we emit the appData of any authored route,
+        // matching Java's AppDto.appDataSource wire field. (The .NET shell has no source catalogue,
+        // so a ref-only source travels on the wire but is not resolved server-side here.)
+        if (app is { Metadata: AppMetadataDto meta }
+            && _routes.Authored().Routes.Select(r => r.AppData).FirstOrDefault(d => d is not null) is { } appData)
+            app = app with { Metadata = meta with { AppDataSource = appData } };
+        return UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto(Target(rq), _mapper.MapApp(appType, requestBaseUrl), null, null, "Replace", null)]);
+            fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);
+    }
 
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
@@ -1503,6 +1531,59 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), null, data, "Replace", null)]);
+
+    /// <summary>Decorates a resolved route's increment with the route entry's APP-SCOPE seeds. State
+    /// and params were already folded into componentState (RouteMatch.Params). Here:
+    /// <list type="bullet">
+    /// <item>AppState is merged UNDER the client's request app state (so route seeds are defaults
+    /// and the persisted [AppContext] still wins) and emitted on the increment.</item>
+    /// <item>Data injects a __restdata__ action + OnLoad trigger into the rendered view's fragment —
+    /// the same client-side load path a [RestData] class uses (mirrors Java's RouteSegmentUtils
+    /// stashing _routeData + the action/trigger mappers).</item>
+    /// </list>
+    /// AppData rides on the app metadata (see MapApp), not here. (Mirrors Java's
+    /// ReflectionUiIncrementMapper.mapToAppState + the _routeData wiring.)</summary>
+    private static UIIncrementDto SeedRouteScopes(UIIncrementDto increment, RunActionRqDto rq, RouteEntry? entry)
+    {
+        if (entry is null) return increment;
+
+        // Data: inject __restdata__ + OnLoad into the resolved view's ServerSideComponentDto so the
+        // client fetches it and merges it into the state on load.
+        if (entry.Data is { } data)
+        {
+            var fragments = increment.Fragments.Select(f =>
+                f.Component is ServerSideComponentDto ssc
+                    ? f with { Component = WithRestData(ssc, data) }
+                    : f).ToList();
+            increment = increment with { Fragments = fragments };
+        }
+
+        // AppState: merge the route's seeds UNDER the client's request app state.
+        if (entry.AppState is { Count: > 0 } seeds)
+        {
+            var merged = new Dictionary<string, object?>();
+            foreach (var kv in seeds) merged[kv.Key] = kv.Value;
+            if (rq.AppState is not null)
+                foreach (var kv in rq.AppState) merged[kv.Key] = kv.Value;
+            increment = increment with { AppState = merged };
+        }
+
+        return increment;
+    }
+
+    /// <summary>The view with a __restdata__ action + OnLoad trigger added (deduplicated), so a
+    /// route-declared data source is fetched client-side on load exactly like a [RestData] class.</summary>
+    private static ServerSideComponentDto WithRestData(ServerSideComponentDto ssc, RestDataSourceDto source)
+    {
+        if (ssc.Actions.Any(a => a.Id == "__restdata__")) return ssc;
+        var actions = ssc.Actions.Append(
+            new ActionDto("__restdata__", ValidationRequired: false)
+            {
+                RestAction = new RestActionDto(source, null, ""),
+            }).ToList();
+        var triggers = ssc.Triggers.Append(new TriggerDto("OnLoad", "__restdata__")).ToList();
+        return ssc with { Actions = actions, Triggers = triggers };
+    }
 
     // ── ModelView contract ─────────────────────────────────────────────────────
     private UIIncrementDto ContractResponse(Type type, RunActionRqDto rq)

@@ -6,7 +6,6 @@ import io.mateu.uidl.annotations.Breadcrumb;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.fluent.AppVariant;
@@ -17,7 +16,6 @@ import lombok.SneakyThrows;
 import java.net.URI;
 import java.util.List;
 
-@Route("/home")
 @Title("App")
 public class Home {
 

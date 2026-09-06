@@ -48,6 +48,13 @@ public record RestDataSource(
   }
 
   /**
+   * A descriptor that only names a catalogue entry — the common {@code data: countries} shorthand.
+   */
+  public static RestDataSource ref(String name) {
+    return new RestDataSource(name, null, null, null, null, null, null, null, false);
+  }
+
+  /**
    * True when this descriptor points at a catalogue entry instead of carrying its own URL.
    *
    * <p>Named {@code hasRef} rather than {@code isReference} because this record is SERIALISED into

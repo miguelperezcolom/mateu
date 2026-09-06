@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.usecases;
 
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -12,7 +11,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@Route(value="/use-cases/booking-detail", parentRoute="")
 @Schema
 public class BookingDetailPage implements ComponentTreeSupplier, ActionHandler {
 

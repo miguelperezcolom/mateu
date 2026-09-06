@@ -11,7 +11,6 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Fab;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -43,17 +42,6 @@ public final class AppMapper {
       appRoute = appRoute.substring(baseUrl.length());
     }
     var appRouteForMenu = appRoute;
-    if (app.serverSideType() != null) {
-      var appType = forName(app.serverSideType());
-      if (appType.isAnnotationPresent(Route.class)) {
-        appRouteForMenu = "";
-        if (route.equals(appType.getAnnotation(Route.class).value())
-            || route.equals(appType.getAnnotation(Route.class).value() + "/")) {
-          appRouteForMenu = route;
-          route = "/_page";
-        }
-      }
-    }
     var menu = buildMenu(app, route, appRouteForMenu);
     var selectedOption = getSelectedOption(appRoute, route, app.menu(), httpRequest);
     var appDto =
@@ -78,6 +66,11 @@ public final class AppMapper {
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
             .restSources(RestSourceCatalogMapper.mapCatalogue())
+            .appDataSource(
+                httpRequest.getAttribute("_routeAppData")
+                        instanceof io.mateu.uidl.data.RestDataSource appData
+                    ? FieldMapper.mapRestDataSource(appData)
+                    : null)
             .menu(menu)
             .totalMenuOptions(totalMenuOptions(menu))
             .drawerClosed(app.drawerClosed())

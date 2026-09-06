@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.Image;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/building-blocks/card", parentRoute="")
 public class CardComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

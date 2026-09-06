@@ -7,7 +7,6 @@ import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
@@ -32,7 +31,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Route(value = "/encasa/:id", parentRoute = "")
 @Title("En Casa")
 @FormLayout(columns = 1)
 public class EnCasaDetail implements PostHydrationHandler {

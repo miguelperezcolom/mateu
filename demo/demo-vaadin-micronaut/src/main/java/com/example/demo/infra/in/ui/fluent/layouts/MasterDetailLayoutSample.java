@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.MasterDetailLayout;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Text;
@@ -10,7 +9,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/layouts/master-detail", parentRoute="")
 public class MasterDetailLayoutSample implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

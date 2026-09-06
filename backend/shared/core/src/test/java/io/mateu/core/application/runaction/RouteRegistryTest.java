@@ -98,4 +98,49 @@ class RouteRegistryTest {
     var emptyClassLoader = new ClassLoader(null) {};
     assertThat(registry.authoredFrom(emptyClassLoader).routes()).isEmpty();
   }
+
+  @Test
+  void aStandaloneTypeRoutesFilePrefixesItsEntriesWithTheDeclaredBasePath() {
+    // shop-routes.yaml declares `type: Routes` + `basePath: /shop`, so a class-declared
+    // @UI("/shop") mount authors its inner routes relatively and they resolve absolutely.
+    var table = authored();
+
+    assertThat(table.match("shop/products").orElseThrow().entry().viewModel())
+        .isEqualTo("com.acme.Products");
+    var detail = table.match("shop/products/7").orElseThrow();
+    assertThat(detail.entry().viewModel()).isEqualTo("com.acme.ProductDetail");
+    assertThat(detail.pathParams()).containsEntry("id", "7");
+    // The bare relative route is NOT exposed unprefixed.
+    assertThat(table.match("products")).isEmpty();
+  }
+
+  @Test
+  void nestedChildrenFlattenToAbsoluteRoutesThatFillTheParentSlot() {
+    // dashboard declares a `children` sub-route; it composes to /shop/dashboard/sales and carries
+    // the parent's absolute route, so the sub-route renders into the dashboard's slot.
+    var table = authored();
+
+    var sales = table.match("shop/dashboard/sales").orElseThrow().entry();
+    assertThat(sales.viewModel()).isEqualTo("com.acme.SalesPanel");
+    assertThat(sales.hasParent()).isTrue();
+    assertThat(sales.parent()).isEqualTo("shop/dashboard");
+
+    // The parent itself is a plain top-level entry.
+    var dashboard = table.match("shop/dashboard").orElseThrow().entry();
+    assertThat(dashboard.viewModel()).isEqualTo("com.acme.ShopDashboard");
+    assertThat(dashboard.hasParent()).isFalse();
+  }
+
+  @Test
+  void aRouteSeedsStateAndAppStateLiteralsAndSourcesDataAndAppDataByRef() {
+    var reports = authored().match("shop/reports").orElseThrow().entry();
+
+    assertThat(reports.state()).containsEntry("tab", "summary");
+    assertThat(reports.appState()).containsEntry("theme", "dark");
+    // data/app-data are references into sources.yaml, never literals — there is no inbound data
+    // channel, so the value is always a named source resolved when the route (or app) loads.
+    assertThat(reports.data()).isNotNull();
+    assertThat(reports.data().ref()).isEqualTo("shop-metrics");
+    assertThat(reports.appData().ref()).isEqualTo("shop-catalog");
+  }
 }

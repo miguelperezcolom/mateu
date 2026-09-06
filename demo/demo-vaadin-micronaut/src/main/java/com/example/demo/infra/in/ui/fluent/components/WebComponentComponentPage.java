@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-@Route(value="/components/building-blocks/web-component", parentRoute="")
 public class WebComponentComponentPage implements ComponentTreeSupplier, ActionHandler, CommandSupplier, TriggersSupplier {
     private static final Logger log = LoggerFactory.getLogger(WebComponentComponentPage.class);
 

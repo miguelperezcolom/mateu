@@ -5670,6 +5670,27 @@
         },
         "defaultParams" : {
           "type" : "object"
+        },
+        "parent" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RouteEntry"
+          }
+        },
+        "state" : {
+          "type" : "object"
+        },
+        "appState" : {
+          "type" : "object"
+        },
+        "data" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "appData" : {
+          "$ref" : "#/$defs/RestDataSource"
         }
       }
     },

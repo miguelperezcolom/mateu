@@ -14,7 +14,6 @@ import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
 import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -123,9 +122,6 @@ public class ComponentStateHelper {
   public static String getAppRoute(Object potentialApp) {
     if (potentialApp.getClass().isAnnotationPresent(UI.class)) {
       return potentialApp.getClass().getAnnotation(UI.class).value();
-    }
-    if (potentialApp.getClass().isAnnotationPresent(Route.class)) {
-      return potentialApp.getClass().getAnnotation(Route.class).value();
     }
     return "";
   }

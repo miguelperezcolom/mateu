@@ -48,7 +48,12 @@ public record AppDto(
      * The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it travels with the shell rather than on every response.
      */
-    List<RestSourceEntryDto> restSources)
+    List<RestSourceEntryDto> restSources,
+    /**
+     * The app's APP-SCOPE data source: a reference the shell fetches ONCE on boot into the app-data
+     * store, shared across routes. Declared by a mount's root route {@code appData} in routes.yaml.
+     */
+    RestDataSourceDto appDataSource)
     implements ComponentMetadataDto {
 
   public AppDto {

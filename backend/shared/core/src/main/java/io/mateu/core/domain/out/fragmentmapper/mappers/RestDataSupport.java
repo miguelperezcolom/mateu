@@ -94,4 +94,13 @@ final class RestDataSupport {
     // an empty path is identity on the frontend), a path narrows to that sub-object.
     return new RestAction(source, null, a.resultPath());
   }
+
+  /**
+   * The client-side REST descriptor for a route's {@code data} source (a routes.yaml reference).
+   * The whole response object is merged into the state (empty result path = identity on the
+   * frontend).
+   */
+  static RestAction restActionOf(RestDataSource source) {
+    return new RestAction(source, null, "");
+  }
 }

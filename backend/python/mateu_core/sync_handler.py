@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Any, get_args, get_origin
 
 from mateu_dtos import (
+    Action,
     Banner as BannerDto,
     ButtonMetadata,
     ClientSideComponent,
@@ -24,8 +25,11 @@ from mateu_dtos import (
     DrawerMetadata,
     HorizontalLayoutMetadata,
     Message as MessageDto,
+    RestAction,
+    RestDataSource,
     ServerSideComponent,
     TextMetadata,
+    Trigger,
     UICommand,
     UIFragment,
     UIIncrement,
@@ -140,8 +144,109 @@ class SyncHandler:
         #: so both see one table.
         self.routes = RouteRegistry()
         self.yaml_specs = YamlSpecLoader(registry=self.routes)
+        #: The route entry matched for the request in flight, whose appState/data/appData seeds are
+        #: applied on the response side (mirrors Java's HttpRequest _route* attributes).
+        self._route_seed = None
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
+        # A route (routes.yaml) may seed state/appState/data/appData. `state` folds into the
+        # component state at resolution (see below), but the other three are applied on the
+        # RESPONSE side, so the matched entry is stashed for this request and read back when the
+        # increment is built (mirrors Java's HttpRequest.setAttribute("_routeAppState"/…)).
+        self._route_seed = self.routes.match(rq.route)
+        try:
+            return self._seed_increment(self._handle_inner(rq, request_base_url), rq)
+        finally:
+            self._route_seed = None
+
+    def _seed_increment(self, inc: UIIncrement, rq: RunActionRq) -> UIIncrement:
+        """Apply a matched route's `appState`/`appData` seeds onto the response (component `data`
+        rides on the component via the mapper's __restdata__ path; `state` was folded into the
+        component state at resolution). appState is merged UNDER the client's app state so the
+        route's values are defaults and the persisted @app_context still wins; appData is emitted
+        on the app metadata (mirrors ReflectionUiIncrementMapper.mapToAppState + AppDto.appDataSource)."""
+        seed = self._route_seed
+        if seed is None:
+            return inc
+        entry = seed.entry
+        if entry.app_state:
+            merged = dict(entry.app_state)
+            merged.update(rq.app_state or {})
+            inc = inc.model_copy(update={"app_state": merged})
+        # `data`: the route names a component-scope source. Advertise the same synthetic
+        # __restdata__ action + OnLoad trigger the @rest_data surface uses, so the client fetches it
+        # and merges it into the state (mirrors Java's ActionMapper/TriggerMapper reading _routeData).
+        if entry.data is not None:
+            inc = self._advertise_route_data(inc, entry.data)
+        # `appData`: an app-scope source, emitted on the app metadata (AppDto.appDataSource) so the
+        # shell fetches it once. Applied only when the response carries the app shell.
+        if entry.app_data is not None:
+            inc = self._advertise_route_app_data(inc, entry.app_data)
+        return inc
+
+    @staticmethod
+    def _rest_action_from_ref(source) -> RestAction:
+        """A client-side REST descriptor for a route-declared data/appData source (a ref into
+        sources.yaml, or an inline endpoint). Blank result_path merges the whole response."""
+        return RestAction(
+            source=RestDataSource(
+                ref=source.ref,
+                url=source.url,
+                method=source.method,
+                body=source.body,
+                items_path=source.items_path,
+                value_path=source.value_path,
+                label_path=source.label_path,
+                proxy=source.proxy,
+            ),
+            success_message=None,
+            result_path="",
+        )
+
+    def _advertise_route_data(self, inc: UIIncrement, source) -> UIIncrement:
+        rest_action = self._rest_action_from_ref(source)
+        for i, frag in enumerate(inc.fragments):
+            comp = frag.component
+            if not isinstance(comp, ServerSideComponent):
+                continue
+            actions = list(comp.actions or [])
+            if not any(a.id == "__restdata__" for a in actions):
+                actions.append(
+                    Action(id="__restdata__", validation_required=False, rest_action=rest_action)
+                )
+            triggers = list(comp.triggers or [])
+            if not any(
+                (isinstance(t, Trigger) and t.type == "OnLoad" and t.action_id == "__restdata__")
+                or (isinstance(t, dict) and t.get("type") == "OnLoad" and t.get("actionId") == "__restdata__")
+                for t in triggers
+            ):
+                triggers.append(Trigger(type="OnLoad", action_id="__restdata__"))
+            new_comp = comp.model_copy(update={"actions": actions, "triggers": triggers})
+            inc.fragments[i] = frag.model_copy(update={"component": new_comp})
+            break
+        return inc
+
+    def _advertise_route_app_data(self, inc: UIIncrement, source) -> UIIncrement:
+        rest_source = RestDataSource(
+            ref=source.ref,
+            url=source.url,
+            method=source.method,
+            body=source.body,
+            items_path=source.items_path,
+            value_path=source.value_path,
+            label_path=source.label_path,
+            proxy=source.proxy,
+        )
+        for i, frag in enumerate(inc.fragments):
+            comp = frag.component
+            if isinstance(comp, ClientSideComponent) and getattr(comp.metadata, "type", None) == "App":
+                new_meta = comp.metadata.model_copy(update={"app_data_source": rest_source})
+                new_comp = comp.model_copy(update={"metadata": new_meta})
+                inc.fragments[i] = frag.model_copy(update={"component": new_comp})
+                break
+        return inc
+
+    def _handle_inner(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # 0. Audience projection: the appState value under "audience" (the @app_context selector
         # named audience) filters Audience()-marked members for the whole request.
         set_current_audience(rq.app_state.get("audience"))

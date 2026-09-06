@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.data;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.State;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Route(value="/data/component-state-and-data", parentRoute="")
 public class ComponentStateAndDataPage implements ComponentTreeSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

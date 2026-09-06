@@ -34,7 +34,6 @@ import reactor.core.publisher.Mono;
  * runs the real domain lifecycle: assign the room, check the stay in, occupy the room and open the
  * folio with the accommodation and add-on charges.
  */
-@Route(value = "/checkin/:id", parentRoute = "")
 @Title("Check-In")
 @Style(StyleConstants.CONTAINER)
 @WizardProgress(WizardProgressStyle.STEPS)

@@ -3,7 +3,6 @@ package io.mateu.core.domain.out.componentmapper;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Inline;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.ServerSideComponent;
@@ -211,9 +210,6 @@ final class EmbeddedOrchestratorFieldBuilder {
   private static String routeOf(Class<?> type) {
     if (type.isAnnotationPresent(UI.class)) {
       return type.getAnnotation(UI.class).value();
-    }
-    if (type.isAnnotationPresent(Route.class)) {
-      return type.getAnnotation(Route.class).value();
     }
     return "";
   }

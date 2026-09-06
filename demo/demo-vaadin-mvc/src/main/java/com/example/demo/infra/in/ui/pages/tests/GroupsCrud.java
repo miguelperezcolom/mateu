@@ -6,7 +6,6 @@ import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.MappedValue;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.ValueMapping;
@@ -75,7 +74,6 @@ class Adapter implements CrudStore<Grupo> {
 
 }
 
-@Route(value = "/home/grupos")
 //@Trigger(type = TriggerType.OnLoad, route = "search", timeoutMillis = 4000, times = -1)
 public class GroupsCrud extends AutoCrud<Grupo> {
     @Override

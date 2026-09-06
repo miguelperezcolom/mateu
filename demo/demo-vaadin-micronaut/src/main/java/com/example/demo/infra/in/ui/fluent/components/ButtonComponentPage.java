@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
@@ -12,7 +11,6 @@ import io.mateu.uidl.interfaces.IconKey;
 
 import java.util.List;
 
-@Route(value="/components/building-blocks/button", parentRoute="")
 public class ButtonComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

@@ -4,7 +4,9 @@ title: "Use cases"
 
 Mateu is especially powerful for a specific type of applications.
 
-If you're building any of the following, Mateu can dramatically reduce complexity.
+If you're building any of the following, Mateu can dramatically reduce complexity — whether you author
+the model in code (Java, C#, Python) or in YAML, and whether you serve it from a backend or ship it as
+a static bundle.
 
 ---
 

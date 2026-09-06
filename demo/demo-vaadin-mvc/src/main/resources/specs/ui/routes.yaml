@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the root app (Home, @UI("")). These were @Route classes; they render in the app's
+# content slot. Routes are relative to the mount base path (here "" — the root app).
+type: Routes
+routes:
+
+  - route: home
+    viewModel: com.example.demo.infra.in.ui.pages.tests.Home
+
+  - route: static-about
+    viewModel: com.example.demo.infra.in.ui.pages.tests.StaticAbout
+
+  - route: breadcrumbs
+    viewModel: com.example.demo.infra.in.ui.pages.tests.Breadcrumbs
+
+  - route: bpmn
+    viewModel: com.example.demo.infra.in.ui.pages.tests.BpmnPage
+
+  - route: manycomboboxes
+    viewModel: com.example.demo.infra.in.ui.pages.tests.ManyComboboxes
+
+  - route: manycheckboxes
+    viewModel: com.example.demo.infra.in.ui.pages.tests.ManyCheckboxes
+
+  - route: editable-list
+    viewModel: com.example.demo.infra.in.ui.pages.tests.EditableList
+
+  # One class answering several routes — the case an annotation could only express by stacking.
+  - route: users/:id
+    viewModel: com.example.demo.infra.in.ui.pages.tests.UsersCrud
+  - route: users2/:id
+    viewModel: com.example.demo.infra.in.ui.pages.tests.UsersCrud
+  - route: users3
+    viewModel: com.example.demo.infra.in.ui.pages.tests.UsersCrud
+
+  # An AutoCrud: its /new and /:id/edit sub-routes are served by the CRUD orchestrator, which only
+  # needs this parent entry to resolve the class.
+  - route: home/grupos
+    viewModel: com.example.demo.infra.in.ui.pages.tests.GroupsCrud
+
+  - route: home/grupos/dwdsss
+    viewModel: com.example.demo.infra.in.ui.pages.tests.AbsoluteRoute

@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.fluent.Form;
@@ -9,7 +8,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/building-blocks/time-picker", parentRoute="")
 public class TimePickerComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

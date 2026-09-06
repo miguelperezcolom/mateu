@@ -138,3 +138,53 @@ def test_a_definition_only_route_has_a_layout_and_no_model_view():
     spec = YamlSpecLoader(str(HERE), registry()).load_spec("about")
     assert spec.layout is not None
     assert spec.model_view is None
+
+
+# ── base path, children & the four seed scopes ─────────────────────────────────────────────────
+SHOP = Path(__file__).resolve().parent / "specs" / "shop"
+
+
+def shop() -> RouteRegistry:
+    return RouteRegistry(str(SHOP))
+
+
+def test_a_standalone_type_routes_file_prefixes_its_entries_with_the_declared_base_path():
+    # shop/routes.yaml declares `type: Routes` + `basePath: /shop`, so a class-declared @ui("/shop")
+    # mount authors its inner routes relatively and they resolve absolutely.
+    table = shop().authored()
+    assert table.match("shop/products").entry.view_model == "com.acme.Products"
+    detail = table.match("shop/products/7")
+    assert detail.entry.view_model == "com.acme.ProductDetail"
+    assert detail.path_params == {"id": "7"}
+    # The bare relative route is NOT exposed unprefixed.
+    assert table.match("products") is None
+
+
+def test_nested_children_flatten_to_absolute_routes_that_fill_the_parent_slot():
+    table = shop().authored()
+    sales = table.match("shop/dashboard/sales").entry
+    assert sales.view_model == "com.acme.SalesPanel"
+    assert sales.has_parent()
+    assert sales.parent == "shop/dashboard"
+    # The parent itself is a plain top-level entry.
+    dashboard = table.match("shop/dashboard").entry
+    assert dashboard.view_model == "com.acme.ShopDashboard"
+    assert not dashboard.has_parent()
+
+
+def test_a_route_seeds_state_and_app_state_literals_and_sources_data_and_app_data_by_ref():
+    reports = shop().authored().match("shop/reports").entry
+    assert reports.state == {"tab": "summary"}
+    assert reports.app_state == {"theme": "dark"}
+    # data/app-data are references into sources.yaml, never literals — there is no inbound data
+    # channel, so the value is always a named source resolved when the route (or app) loads.
+    assert reports.data is not None
+    assert reports.data.ref == "shop-metrics"
+    assert reports.app_data.ref == "shop-catalog"
+
+
+def test_state_seeds_component_state_at_the_defaults_level_so_the_request_still_wins():
+    reports = shop().authored().match("shop/reports")
+    # `state` seeds like a default: the client's own value overrides it.
+    assert reports.params({})["tab"] == "summary"
+    assert reports.params({"tab": "detail"})["tab"] == "detail"

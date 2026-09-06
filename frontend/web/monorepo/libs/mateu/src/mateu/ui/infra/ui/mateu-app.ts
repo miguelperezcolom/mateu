@@ -2,10 +2,14 @@ import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import ComponentElement from "@infra/ui/ComponentElement";
 import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import { fetchExternalJson } from '../http/externalOptions.ts'
+import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import Rule from "@mateu/shared/apiClients/dtos/componentmetadata/Rule";
+import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
@@ -111,6 +115,9 @@ export class MateuApp extends ComponentElement {
     commandPaletteDataHits: GlobalSearchHit[] = []
 
     private _globalSearchTimer: ReturnType<typeof setTimeout> | undefined
+
+    // the app-scope data source already fetched, so the boot fetch runs once (not on every update)
+    private _fetchedAppDataRef: string | undefined = undefined
 
     private fetchGlobalSearch(query: string) {
         const metadata = (this.component as ClientSideComponent)?.metadata as App
@@ -229,6 +236,24 @@ export class MateuApp extends ComponentElement {
         }
     }
 
+    // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
+    // of navigating. Only the app-level rule actions make sense here: RunAction dispatches the action
+    // (same path as a FAB/header action), RunJS evaluates a statement. The state-mutating rules have
+    // no component target at menu scope and are ignored.
+    runMenuRules = (rules: Rule[]) => {
+        for (const rule of rules) {
+            if (rule.action === RuleAction.RunAction && rule.actionId) {
+                this.runAction(rule.actionId)
+            } else if (rule.action === RuleAction.RunJS && rule.value != null) {
+                try {
+                    new Function(String(rule.value))()
+                } catch (e) {
+                    console.error('menu RunJS rule failed', e)
+                }
+            }
+        }
+    }
+
         getSelectedOption = (options: MenuOption[]): MenuOption | null => {
         if (options) {
             for (let i = 0; i < options.length; i++) {
@@ -249,7 +274,7 @@ export class MateuApp extends ComponentElement {
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         const v = e.detail.value as any
-        this.selectRoute(v.consumedRoute, v.route, v.actionId, v.baseUrl, v.serverSideType, v.uriPrefix)
+        this.selectRoute(v.consumedRoute, v.route, v.actionId, v.baseUrl, v.serverSideType, v.uriPrefix, v.rules)
     }
 
     itemSelectedTiles = (e: MenuBarItemSelectedEvent) => {
@@ -258,7 +283,7 @@ export class MateuApp extends ComponentElement {
             this.tilesMenuOption = option
         } else {
             this.tilesMenuOption = null
-            this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+            this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
         }
     }
 
@@ -410,7 +435,7 @@ export class MateuApp extends ComponentElement {
                         this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
                     } else {
                         this.railOpenOption = null
-                        this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+                        this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
                     }
                 }}
             >
@@ -433,7 +458,7 @@ export class MateuApp extends ComponentElement {
                             if (sub.submenus && sub.submenus.length > 0) {
                                 this.railOpenOption = sub
                             } else {
-                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix)
+                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
                             }
                         }}
                     >${sub.label}</div>
@@ -454,7 +479,7 @@ export class MateuApp extends ComponentElement {
                                     this.tilesMenuOption = sub
                                 } else {
                                     this.tilesMenuOption = null
-                                    this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix)
+                                    this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
                                 }
                             }}
                         >
@@ -480,7 +505,11 @@ export class MateuApp extends ComponentElement {
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
     }
 
-    selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
+    selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined, rules?: Rule[] ) => {
+        if (rules && rules.length > 0) {
+            this.runMenuRules(rules)
+            return
+        }
         if (!dirtyGuard.confirmLeave()) {
             return
         }
@@ -649,7 +678,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<button class="left-menu-item"
-                @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
+                @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
         >${option.label}</button>`
     }
 
@@ -706,7 +735,7 @@ export class MateuApp extends ComponentElement {
         e.preventDefault()
         e.stopPropagation()
         var detail = (e as CustomEvent).detail
-        this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
+        this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix, detail.rules)
     }
 
     protected updated(_changedProperties: PropertyValues) {
@@ -720,6 +749,22 @@ export class MateuApp extends ComponentElement {
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)
+                // The app-scope data source: fetch it ONCE (deduped by ref) into the app-data store,
+                // after the catalogue is published so the ref resolves. Shared across routes.
+                if (app.appDataSource) {
+                    const ref = app.appDataSource.ref || app.appDataSource.url
+                    if (ref && ref !== this._fetchedAppDataRef) {
+                        this._fetchedAppDataRef = ref
+                        fetchExternalJson(app.appDataSource)
+                            .then(json => {
+                                if (json && typeof json === 'object') {
+                                    appData.value = { ...appData.value, ...(json as Record<string, unknown>) }
+                                    this.dispatchEvent(new CustomEvent('app-data-updated', { bubbles: true, composed: true }))
+                                }
+                            })
+                            .catch(e => console.error('app-scope data source fetch failed', e))
+                    }
+                }
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {

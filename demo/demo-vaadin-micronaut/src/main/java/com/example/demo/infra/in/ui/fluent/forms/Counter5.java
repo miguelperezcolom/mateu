@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
@@ -16,7 +15,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/high-level/forms/counter5", parentRoute="")
 public class Counter5 implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
 
     int count = 0;

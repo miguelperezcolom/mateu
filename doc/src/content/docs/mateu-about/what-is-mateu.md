@@ -1,9 +1,11 @@
 ---
 title: "What is Mateu?"
-description: "Mateu is a backend-driven UI layer for business applications and distributed systems."
+description: "Mateu is a model-driven UI system for business applications and distributed systems — author the model in code or YAML."
 ---
 
-Mateu is a **backend-driven UI layer** that lets Java teams build real browser UIs directly from backend code, without a separate frontend application.
+Mateu is a **model-driven UI system**: you declare a screen's model and Mateu derives the UI, with no separate frontend application. The model can be authored as **code** (Java, C# or Python) or as **data** (YAML), and the resulting UI runs on web and native — **served by a backend** or shipped as a **static bundle** to a CDN with no backend at all. So it spans the spectrum from code-first to low-code; "backend-driven" is one mode it supports, not what it is.
+
+The examples below are Java (the reference implementation), but the same model can be written in C#, Python or plain YAML — see the [language rosetta](/reference/language-rosetta/).
 
 ## The shortest possible example
 

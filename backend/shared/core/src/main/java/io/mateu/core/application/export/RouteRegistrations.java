@@ -26,8 +26,7 @@ public final class RouteRegistrations {
 
   public static List<RouteRef> read(ClassLoader cl) {
     var byRoute = new LinkedHashMap<String, RouteRef>();
-    readResource(cl, "META-INF/mateu/ui-registrations", byRoute, true);
-    readResource(cl, "META-INF/mateu/route-registrations", byRoute, false);
+    readResource(cl, "META-INF/mateu/ui-registrations", byRoute);
     return new ArrayList<>(byRoute.values());
   }
 
@@ -64,8 +63,7 @@ public final class RouteRegistrations {
     }
   }
 
-  private static void readResource(
-      ClassLoader cl, String path, Map<String, RouteRef> out, boolean ui) {
+  private static void readResource(ClassLoader cl, String path, Map<String, RouteRef> out) {
     try {
       var urls = cl.getResources(path);
       while (urls.hasMoreElements()) {
@@ -80,21 +78,9 @@ public final class RouteRegistrations {
           if (cls == null || cls.isBlank()) {
             continue;
           }
-          if (ui) {
-            var p = kv.get("path");
-            if (p != null && !p.isBlank()) {
-              claim(out, p, cls);
-            }
-          } else {
-            var routes = kv.get("routes");
-            if (routes != null && !routes.isBlank()) {
-              for (String entry : routes.split(";")) {
-                var value = entry.split("\\|", -1)[0];
-                if (value != null && !value.isBlank()) {
-                  claim(out, value, cls);
-                }
-              }
-            }
+          var p = kv.get("path");
+          if (p != null && !p.isBlank()) {
+            claim(out, p, cls);
           }
         }
       }

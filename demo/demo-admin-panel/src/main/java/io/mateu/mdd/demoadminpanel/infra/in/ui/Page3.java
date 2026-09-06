@@ -8,7 +8,6 @@ import lombok.ToString;
 
 import java.util.List;
 
-@Route(value = "/page3", parentRoute = "")
 @ToString
 @FoldedLayout
 @Action(shortcut = "ctrl+f2", id = "save")

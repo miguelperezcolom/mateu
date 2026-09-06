@@ -1,7 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.crudls;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.FieldDataType;
@@ -40,7 +39,6 @@ record Row2(
         String link,
         String image) {}
 
-@Route(value="/components/high-level/crudls/more-columns", parentRoute="")
 @Slf4j
 public class MoreColumnsListing implements ComponentTreeSupplier, io.mateu.uidl.interfaces.Listing<Row2>, Searchable, Filterable<Filters2>, TriggersSupplier {
 

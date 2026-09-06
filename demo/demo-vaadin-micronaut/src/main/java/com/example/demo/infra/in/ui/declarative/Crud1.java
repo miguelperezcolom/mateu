@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.declarative;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.SearchRequest;
@@ -22,7 +21,6 @@ record Crud1Row(
 
 }
 
-@Route(value="/crud1", parentRoute="")
 public class Crud1 implements Listing<Crud1Row>, Searchable, Filterable<Crud1Filters> {
 
 

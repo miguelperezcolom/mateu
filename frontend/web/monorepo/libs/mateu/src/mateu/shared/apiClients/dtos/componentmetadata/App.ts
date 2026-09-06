@@ -1,4 +1,5 @@
 import type RestSourceEntry from './RestSourceEntry.ts'
+import type RestDataSource from "@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
@@ -44,5 +45,9 @@ export default interface App extends ComponentMetadata {
     /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it arrives with the shell rather than on every response. */
     restSources?: RestSourceEntry[] | undefined
+
+    /** The app's app-scope data source: the shell fetches it ONCE on boot into the app-data store,
+     * shared across routes (declared by a mount's root route `appData` in routes.yaml). */
+    appDataSource?: RestDataSource | undefined
 
 }

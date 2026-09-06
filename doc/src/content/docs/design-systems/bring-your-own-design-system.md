@@ -7,19 +7,26 @@ Mateu's frontend and backend communicate through a simple, documented JSON API. 
 
 ## How it works
 
-The Mateu backend exposes a small REST API describing the UI:
+The Mateu backend exposes **one** sync endpoint per mount. A renderer POSTs the current route and any
+user action to it, and gets back a UI increment to apply:
 
 ```
-GET /mateu/uis/{uiId}          → full UI definition (routes, menus, metadata)
-GET /mateu/uis/{uiId}/steps    → component tree for the current route
-POST /mateu/uis/{uiId}/actions → execute a user action
+POST /{baseUrl}/mateu/v3/components/_/action
+Body: { "route": "...", "actionId": "<the load action> | <methodName>", "componentState": { ... } }
 ```
+
+The response is a `UIIncrementDto` carrying `commands` (navigation, window title, …), `messages`
+(toasts/alerts) and `fragments` (the component tree to render or patch). The same increment shape
+drives every interaction, so a renderer only ever implements one request/response.
 
 A renderer:
-1. fetches the UI definition and component tree
-2. renders it using its own component library
-3. sends user interactions back as action requests
-4. applies the response (state updates, navigation, messages)
+1. POSTs the route with the load action to get the initial `fragments`
+2. renders the fragments using its own component library
+3. sends user interactions back as further actions (the method's `actionId` + `componentState`)
+4. applies the response — `fragments`, `commands` and `messages`
+
+See the [renderer contract](/design-systems/renderer-contract/) for the authoritative wire spec
+(exact action ids, component types and the increment schema).
 
 ## Starting point
 

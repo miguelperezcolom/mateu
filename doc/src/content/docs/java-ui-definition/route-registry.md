@@ -43,6 +43,52 @@ That unlocks the cases an annotation cannot express:
 - **A route with no server class at all** — which is what a
   [statically deployed](/java-user-manual/build/static-bundle/) mount is.
 
+## Which one do I use?
+
+There is **one route table**. `@UI`/`@Route` and `routes.yaml` are two producers that feed it —
+they are not two competing routing systems. So the question is never "which mechanism does my app
+use", it is "which producer declares *this* route".
+
+The rule fits on one line:
+
+> **A route that maps one URL to one class → annotation. Anything the annotation cannot express → `routes.yaml`.**
+
+Reach for the annotation by default. It co-locates the URL with the class that answers it (you see
+`@UI("/products")` on `ProductsCrud`, right where you work), it is the compile-time signal the
+annotation processor uses to generate the framework controllers, and with no `routes.yaml` present
+nothing else is involved.
+
+Reach for `routes.yaml` when the mapping stops being one-to-one, because there the annotation simply
+*cannot* say what you need — so the two never overlap:
+
+| You want to… | Use | Why the annotation can't |
+|---|---|---|
+| Serve a class at a fixed path (`/products`) | `@UI` / `@Route` | — (this *is* the one-to-one case) |
+| One screen at several URLs, told apart by a pinned parameter (`orders/pending`, `orders/archived`) | `routes.yaml` (`fixedParams`) | An annotation carries one path and no pinned params |
+| Seed a screen with overridable defaults (`?status=open&page=1`) | `routes.yaml` (`defaultParams`) | An annotation has nowhere to put seed values |
+| One layout serving several view models (books and films over one list) | `routes.yaml` (`definition` + `viewModel`) | An annotation binds a class to a path, not a layout to many classes |
+| A route with **no** view model — a bare layout | `routes.yaml` (`definition`, no `viewModel`) | An annotation needs a class to hang off |
+| A [data-driven mount](/java-ui-definition/yaml-app-shell/#the-mount-that-ties-it-together) with no `@UI` class | `type: UI` + `routes.yaml` | There is no class to annotate |
+| A [statically deployed](/java-user-manual/build/static-bundle/) route (no backend) | `routes.yaml` | Only the authored table ships in the bundle; a class is useless without a server |
+| Re-point or rename a route without touching Java | `routes.yaml` (authored wins) | Editing an annotation means recompiling |
+
+### They also compose
+
+You do not have to migrate a whole mount to one side. Because the authored entry **replaces** the
+derived one outright, you can keep the annotation as the default and add a `routes.yaml` entry only
+for the route you need to bend — an alias, a pinned parameter, a swapped layout. The other routes
+keep resolving from their annotations untouched.
+
+### Rules of thumb
+
+- **Start with the annotation.** Promote a route to `routes.yaml` the day it needs something the
+  annotation cannot carry — not before.
+- **Don't split a mount's routes across both for no reason.** A route in `routes.yaml` is authored
+  and wins; keeping the trivial 1:1 routes as annotations keeps them next to their code.
+- **A shared `definition` must not declare `modelView:`** — see
+  [The definition is layout only](#the-definition-is-layout-only). Otherwise it can only ever serve
+  the class it names, defeating the "one layout, several view models" case.
+
 ## The file
 
 ```yaml
@@ -91,6 +137,37 @@ routes:
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
 | `defaultParams` | Seeded. The request may override them. |
+| `children` | Sub-routes nested under this one, authored **relative** to it. Each fills this screen's slot — see [Nested routes](#nested-routes-a-sub-route-in-a-parents-slot). |
+| `parent` | Set automatically when `children` is flattened: the absolute route of the screen whose slot a sub-route fills. You normally author `children`, not `parent`. |
+| `state` | Literal values that seed the **component/route** state on entry — see [What a route carries](#what-a-route-carries). |
+| `appState` | Literal values that seed the **app** state on entry (merged under the persisted `@AppContext`). |
+| `data` | The route's **component** data, as a **reference** to a named [source](/java-ui-definition/rest-source-catalogue/). Fetched when the route loads. |
+| `appData` | The route's **app-scope** data, a reference to a named source, fetched **once** on app boot and shared across routes. |
+
+### What a route carries
+
+Beyond where it goes, a route can carry the four data scopes it will populate on entry — the same
+four a menu leaf brings when it navigates here. They split by nature:
+
+- **`state` / `appState` are literals** (there is an inbound channel for state): the route seeds them
+  at the *defaults* level, so anything the client sent — including the persisted `@AppContext` in
+  `appState` — still wins. `state` is component-scoped and replaced on navigation; `appState` is
+  app-scoped and persists.
+- **`data` / `appData` are references** into the [REST source catalogue](/java-ui-definition/rest-source-catalogue/)
+  — there is no literal data channel, so data is always *sourced*. `data: countries` is shorthand
+  for `{ref: countries}`. `data` is fetched at route load (it reuses the `@RestData` load path);
+  `appData` is fetched once at app scope.
+
+```yaml
+- route: reports
+  viewModel: com.acme.Reports
+  state:                 # literal, component scope
+    tab: summary
+  appState:             # literal, app scope (merged under @AppContext)
+    theme: dark
+  data: report-rows      # a source ref → the route's component data
+  appData: kpi-totals    # a source ref → app-scope data, fetched once
+```
 
 ### Routes are relative to the mount
 
@@ -98,6 +175,31 @@ An entry `orders/:id` under a mount at `/back-office` answers `/back-office/orde
 federated domains can therefore each have their own `orders` screen without colliding: uniqueness
 only has to hold *within* a mount, and between mount base paths (two `@UI` classes claiming the same
 base path already fail at startup).
+
+### Nested routes (a sub-route in a parent's slot)
+
+Some screens are a *shell with a slot* — a master-detail with tabs, or a mediator app — where a
+sub-route does not replace the page but renders **inside** the parent. Author that with `children`:
+each child's `route` is relative to its parent, and it fills the parent's slot instead of taking
+over the screen.
+
+```yaml
+- route: use-cases/rra
+  viewModel: com.acme.RRA          # the shell (its own tabs / slot)
+  children:
+    - route: orders                # → use-cases/rra/orders, rendered in RRA's slot
+      viewModel: com.acme.OrdersPage
+    - route: orders/create
+      viewModel: com.acme.CreateOrderPage
+    - route: inventory/:id         # a detail, still inside the slot
+      viewModel: com.acme.ProductDetailPage
+```
+
+On load, the loader flattens the tree to absolute routes, and each child carries its parent's route
+as `parent`. This is the data equivalent of the annotation `@Route(parentRoute = …)`. Children nest
+to any depth. A parent that is itself an app/mediator (implements `App`, has a `@Menu`, or supplies
+one) is resolved as the enclosing shell and consumes its prefix, so its children render in place —
+you do not wire anything else.
 
 ## IntelliSense
 

@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.actions;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
@@ -10,7 +9,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/logic/actions/href", parentRoute="")
 public class HrefActionPage implements ComponentTreeSupplier, ActionSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

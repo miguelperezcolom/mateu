@@ -49,7 +49,7 @@ public class AssetSearch extends SmartSearchPage<AssetFilters, AssetRow> {
 
 - The `Filters` fields become the **facets** of the [smart search bar](/ux-patterns/filters-and-listing/#the-smart-search-bar); typed fields get typed widgets — `DateRange`/`NumberRange` render from–to ranges, a `Set<SomeEnum>` renders a multi-select with the enum constants as options.
 - The page starts **empty** (search-first) and searches on enter. Add `@Trigger(type = TriggerType.OnLoad, actionId = "search")` on the class to preload results.
-- Results render with the default grid layout (`GridLayout.auto`); override `gridLayout()` to force `table`, `list` or `cards`.
+- Results default to a table (`GridLayout.auto`); override `gridLayout()` to force `list`, `cards`, `masterDetail` or `tree`.
 - Works on every renderer and on the .NET (`SmartSearchPage<TFilters, TRow>`) and Python (`SmartSearchPage[F, R]`) backends — see the [parity matrix](/reference/parity/).
 
 ## Redwood parameter and slot reference

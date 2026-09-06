@@ -37,7 +37,7 @@ public final class TestMateu implements AutoCloseable {
     this.service = ctx.getBean(MateuService.class);
   }
 
-  /** Boot a backend whose registered routes are the given @UI/@Route fixture classes. */
+  /** Boot a backend whose registered routes are the given @UI fixture classes. */
   public static TestMateu withUis(Class<?>... uiClasses) {
     return withUisAndBeans(List.of(), uiClasses);
   }

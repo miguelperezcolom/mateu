@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.forms;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FormField;
@@ -25,7 +24,6 @@ import java.util.List;
 
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
-@Route(value="/components/high-level/forms/with-grid2", parentRoute="")
 @Slf4j
 public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
 

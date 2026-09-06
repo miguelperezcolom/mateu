@@ -20,8 +20,8 @@ classes into the Mateu component tree; Pydantic v2 discriminated unions produce 
 discriminators the renderers expect.
 
 The implementation lives at [`backend/python`](https://github.com/miguelperezcolom/mateu/tree/master/backend/python)
-(`DESIGN.md` for the plan, `README.md` for status). Its output was verified byte-identical to the C#
-reference for the same view.
+(`DESIGN.md` for the plan, `README.md` for status). It mirrors the C# reference behaviour, emitting
+the same wire JSON for the same view.
 
 ## The Python idiom: `Annotated` + decorators
 
@@ -241,7 +241,7 @@ renders the Python backend unchanged:
 | `Scoreboard` | horizontal band of metric cards |
 | `DashboardPanel` | titled tile wrapping any component; `col_span`/`row_span` |
 | `DashboardLayout` | responsive dashboard grid (`columns=0` = auto-fit) |
-| `FoldoutPanel` / `FoldoutLayout` | Redwood-style foldout: fixed overview + lateral fold-out panels |
+| `FoldoutPanel` / `FoldoutLayout` | Foldout: a fixed overview with lateral fold-out panels |
 | `HeroSection` | big page hero: title, subtitle, background image, slotted content |
 | `EmptyState` | friendly "nothing here yet" placeholder with an optional call-to-action |
 | `Skeleton` (+ `SkeletonVariant`) | shimmering loading placeholder (`text`/`card`/`grid`/`form`) |
@@ -558,5 +558,6 @@ the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes
 shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
 UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
 HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
-declarative archetypes. 43 golden-JSON tests assert wire compatibility; the live `showcase` view
-is byte-identical to the C# reference.
+declarative archetypes. Over 270 tests cover this port, including a golden-JSON wire-conformance
+suite (`test_wire_conformance.py`) that checks the emitted JSON against shared `expected.json`
+snapshots derived from the Java reference.

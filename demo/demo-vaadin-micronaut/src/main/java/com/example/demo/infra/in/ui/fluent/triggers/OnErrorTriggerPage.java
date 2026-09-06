@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.triggers;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Action;
@@ -16,7 +15,6 @@ import lombok.SneakyThrows;
 
 import java.util.List;
 
-@Route(value="/logic/triggers/on-error", parentRoute="")
 public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier, ActionHandler {
     @Override
     public Form component(HttpRequest httpRequest) {

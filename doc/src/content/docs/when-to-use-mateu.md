@@ -10,6 +10,11 @@ It shines when your UI is:
 - CRUD-heavy
 - tightly coupled to backend logic
 
+However you start, the authoring surface is your choice: declare the model in **code** (Java, C# or
+Python) or in **YAML**, or draw it in the **visual editor**. And a Mateu app can be **served by a
+backend** or shipped as a **static bundle** to a CDN with no backend — so "needs a running backend"
+is not a prerequisite for adopting it.
+
 ---
 
 ## Ideal use cases

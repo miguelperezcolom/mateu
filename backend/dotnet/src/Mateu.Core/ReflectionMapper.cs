@@ -222,11 +222,38 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private MenuItemDto MapMenuItem(MethodInfo m)
     {
         var viewType = m.ReturnType;
-        var route = "/" + (viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
         var label = m.Find<MenuItemAttribute>()?.Label
                     ?? viewType.Find<TitleAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
+        // A menu leaf that RUNS client-side rules instead of navigating: a [MenuItem] method typed
+        // Rule or IReadOnlyList<Rule>. The other leaf primitive (a route) is every branch around
+        // this one. (Mirrors Java's MenuEntryMapper Rule/List<Rule> → RuleLink → MenuOptionDto.rules.)
+        if (MenuRules(m) is { } rules)
+            return new MenuItemDto(T(label), "", "") { Rules = rules };
+        var route = "/" + (viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
+    }
+
+    /// <summary>The client-side rules of a [MenuItem] method whose return type is Rule or a list of
+    /// Rule (a rule leaf), or null when it returns a view (a navigating entry). The method is
+    /// invoked on a fresh app instance to read the declared rules.</summary>
+    private static IReadOnlyList<RuleDto>? MenuRules(MethodInfo m)
+    {
+        var rt = m.ReturnType;
+        var isRule = rt == typeof(Rule);
+        var isRuleList = typeof(System.Collections.IEnumerable).IsAssignableFrom(rt)
+                         && rt.IsGenericType && rt.GetGenericArguments() is [var arg] && arg == typeof(Rule);
+        if (!isRule && !isRuleList) return null;
+        var value = m.DeclaringType is { } dt && Activator.CreateInstance(dt) is { } inst
+            ? m.Invoke(inst, null) : null;
+        var rules = value switch
+        {
+            Rule single => [single],
+            IEnumerable<Rule> list => list.ToList(),
+            _ => new List<Rule>(),
+        };
+        return rules.Select(r => new RuleDto(
+            r.Filter, r.Action, r.FieldName, r.FieldAttribute, r.Value, r.Expression, r.Result, r.ActionId)).ToList();
     }
 
     public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null)

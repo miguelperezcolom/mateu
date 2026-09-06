@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: encasa
+    viewModel: io.mateu.mdd.demofrontoffice.ui.encasa.EnCasaQueue
+  - route: encasa/:id
+    viewModel: io.mateu.mdd.demofrontoffice.ui.encasa.EnCasaDetail
+  - route: automatizaciones
+    viewModel: io.mateu.mdd.demofrontoffice.ui.automatizaciones.Automatizaciones
+  - route: checkout
+    viewModel: io.mateu.mdd.demofrontoffice.ui.checkout.CheckOutQueue
+  - route: checkout/:id
+    viewModel: io.mateu.mdd.demofrontoffice.ui.checkout.CheckOutDetail
+  - route: checkin
+    viewModel: io.mateu.mdd.demofrontoffice.ui.checkin.CheckInQueue
+  - route: checkin/:id
+    viewModel: io.mateu.mdd.demofrontoffice.ui.checkin.CheckInWizard

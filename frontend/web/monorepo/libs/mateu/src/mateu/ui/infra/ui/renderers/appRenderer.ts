@@ -513,7 +513,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${metadata.menu.map((option, i) => html`
                                 <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
-                                        @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
+                                        @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}
                             </nav>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">

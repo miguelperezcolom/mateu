@@ -43,3 +43,8 @@ If you are building something new, read the pages in order. If you are solving a
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — when to use `@Lookup`, `List<Entity>`, or an embedded orchestrator
 - [Master-detail](/java-user-manual/build/master-detail/) — embedding a child CRUD inside a parent screen
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete business UI combining all of the above
+
+### Deployment & contracts
+
+- [Static bundle](/java-user-manual/build/static-bundle/) — export your declared screens to a static site the renderer boots from, served from any static host with an optional backend
+- [Derived OpenAPI](/java-user-manual/build/derived-openapi/) — derive the API contract from the endpoints your screens already declare, and use it as a check

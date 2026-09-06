@@ -153,4 +153,77 @@ public class RouteRegistryTests
         Assert.NotNull(spec.Layout);
         Assert.Null(spec.ModelView);
     }
+
+    // ── nested children (parent slot) ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public void A_child_route_is_composed_relative_to_its_parent_and_carries_the_parent()
+    {
+        // orders under use-cases/rra answers use-cases/rra/orders and points back at its host.
+        var child = Registry().Match("use-cases/rra/orders")!.Entry;
+        Assert.Equal("Mateu.Tests.RegistryNewOrder", child.ViewModel);
+        Assert.Equal("use-cases/rra", child.Parent);
+        Assert.True(child.HasParent());
+
+        var books = Registry().Match("use-cases/rra/books")!.Entry;
+        Assert.Equal("use-cases/rra", books.Parent);
+        Assert.Equal("shared-list.yaml", books.Definition);
+    }
+
+    [Fact]
+    public void The_parent_entry_itself_is_a_top_level_route_with_no_parent()
+    {
+        var parent = Registry().Match("use-cases/rra")!.Entry;
+        Assert.Null(parent.Parent);
+        Assert.False(parent.HasParent());
+    }
+
+    // ── the four seeded scopes ─────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void State_seeds_the_component_state_at_the_defaults_level()
+    {
+        var match = Registry().Match("seeded")!;
+        // Nobody overrides it → the seed stands.
+        Assert.Equal("seeded", match.Params(null)["status"]);
+        // The client wins over a seed.
+        var incoming = new Dictionary<string, object?> { ["status"] = "live" };
+        Assert.Equal("live", match.Params(incoming)["status"]);
+    }
+
+    [Fact]
+    public void App_state_seeds_are_read_off_the_entry()
+    {
+        var entry = Registry().Match("seeded")!.Entry;
+        Assert.NotNull(entry.AppState);
+        Assert.Equal("berlin", entry.AppState!["hotel"]);
+    }
+
+    [Fact]
+    public void A_data_string_is_the_ref_shorthand()
+    {
+        var entry = Registry().Match("seeded")!.Entry;
+        Assert.NotNull(entry.Data);
+        Assert.Equal("bookings", entry.Data!.Ref);
+        Assert.NotNull(entry.AppData);
+        Assert.Equal("profile", entry.AppData!.Ref);
+    }
+
+    // ── the basePath header on a standalone Routes file ────────────────────────────────────────
+
+    [Fact]
+    public void A_base_path_header_prefixes_every_route_and_a_childs_parent()
+    {
+        var registry = new RouteRegistry(Path.Combine(
+            AppContext.BaseDirectory, "specs", "base-path"));
+        var parent = registry.Match("back-office/orders")!.Entry;
+        Assert.Equal("Mateu.Tests.RegistryOrderDetail", parent.ViewModel);
+        Assert.Null(parent.Parent);
+
+        var child = registry.Match("back-office/orders/7")!;
+        Assert.Equal("Mateu.Tests.RegistryNewOrder", child.Entry.ViewModel);
+        // The parent link is prefixed with the base path too.
+        Assert.Equal("back-office/orders", child.Entry.Parent);
+        Assert.Equal("7", child.Params(null)["id"]);
+    }
 }

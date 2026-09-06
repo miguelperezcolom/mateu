@@ -2,11 +2,9 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.AutoSave;
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.Message;
 
-@Route(value = "/page4", parentRoute = "")
 @AutoSave
 @Style(StyleConstants.CONTAINER)
 public class Page4 {

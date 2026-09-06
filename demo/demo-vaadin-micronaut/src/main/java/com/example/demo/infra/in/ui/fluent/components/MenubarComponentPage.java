@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.components;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.Form;
@@ -11,7 +10,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.List;
 
-@Route(value="/components/building-blocks/menubar", parentRoute="")
 public class MenubarComponentPage implements ComponentTreeSupplier {
     @Override
     public Form component(HttpRequest httpRequest) {

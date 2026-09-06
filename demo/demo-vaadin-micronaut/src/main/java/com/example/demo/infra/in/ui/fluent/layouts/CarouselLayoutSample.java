@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.fluent.layouts;
 
-import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.CarouselLayout;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
@@ -11,7 +10,6 @@ import java.util.List;
 
 import static com.example.demo.infra.in.ui.fluent.layouts.LayoutSampleHelper.buildPanel;
 
-@Route(value="/layouts/carousel", parentRoute="")
 public class CarouselLayoutSample implements ComponentTreeSupplier {
 
     @Override
