@@ -1,0 +1,23 @@
+# A Listing page whose rows come from a named external source. No viewModel: the browser fetches the
+# source (resolved by ref against sources.yaml) and each column reads its field by id.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: People
+rowsSource:
+  ref: swapi-people
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+  - type: GridColumn
+    id: gender
+    label: Gender
+  - type: GridColumn
+    id: birth_year
+    label: Birth year
+  - type: GridColumn
+    id: height
+    label: Height (cm)
+  - type: GridColumn
+    id: mass
+    label: Mass (kg)

@@ -46,6 +46,22 @@ class YamlUidlLoaderTest {
   }
 
   @Test
+  void parsesAListingBoundToAnExternalSourceByRef() {
+    // A 100%-DSL app renders a listing over an existing API as `type: Listing` with a rowsSource
+    // ref. This pins that Listing is registered as a Component subtype (it was missing, so a
+    // YAML-only listing failed to deserialise even though the authoring schema advertised it).
+    Component component = layoutFor("demo/starwars-listing");
+
+    assertThat(component).isInstanceOf(io.mateu.uidl.fluent.Listing.class);
+    var listing = (io.mateu.uidl.fluent.Listing) component;
+    assertThat(listing.title()).isEqualTo("People");
+    assertThat(listing.rowsSource()).isNotNull();
+    assertThat(listing.rowsSource().ref()).isEqualTo("swapi-people");
+    assertThat(listing.columns()).hasSize(3);
+    assertThat(((GridColumn) listing.columns().get(0)).id()).isEqualTo("name");
+  }
+
+  @Test
   void parsesFormFieldsCorrectly() {
     VerticalLayout layout = (VerticalLayout) layoutFor("demo/hello");
 

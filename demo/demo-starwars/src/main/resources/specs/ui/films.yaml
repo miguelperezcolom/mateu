@@ -1,0 +1,21 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Films
+rowsSource:
+  ref: swapi-films
+columns:
+  - type: GridColumn
+    id: episode_id
+    label: Episode
+  - type: GridColumn
+    id: title
+    label: Title
+  - type: GridColumn
+    id: director
+    label: Director
+  - type: GridColumn
+    id: producer
+    label: Producer
+  - type: GridColumn
+    id: release_date
+    label: Released

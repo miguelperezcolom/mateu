@@ -1,0 +1,14 @@
+# The route registry: each URL bound to a definition. The root is the app shell; each menu target is
+# a Listing page that reads live rows from a named REST source (see sources.yaml). No viewModel on
+# any route — there is no Java behind these screens.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: ""          # the mount root → the app shell
+    definition: app.yaml
+  - route: people
+    definition: people.yaml
+  - route: planets
+    definition: planets.yaml
+  - route: films
+    definition: films.yaml

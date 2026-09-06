@@ -1,0 +1,17 @@
+# A YAML-authored Listing bound to a named external source by ref — the shape a 100%-DSL app uses to
+# render a listing over an existing API with no Java class. Pins that `type: Listing` deserialises
+# (it must be registered as a Component subtype in YamlUidlMapperFactory).
+type: Listing
+title: People
+rowsSource:
+  ref: swapi-people
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+  - type: GridColumn
+    id: gender
+    label: Gender
+  - type: GridColumn
+    id: birth_year
+    label: Birth year
