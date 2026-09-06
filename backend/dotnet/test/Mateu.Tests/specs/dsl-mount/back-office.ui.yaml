@@ -1,0 +1,6 @@
+# A purely-DSL app: a mount declared as data, with NO C# class. The registry announces it
+# alongside class-based [Ui] apps (two producers, one table — authored wins).
+type: UI
+basePath: /back-office
+routes:
+  - back-office-routes.yaml

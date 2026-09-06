@@ -1,0 +1,6 @@
+# A purely-DSL app: a mount declared as data, with NO Java class. The indexer/registry announces it
+# alongside class-based @UI apps (two producers, one table — authored wins).
+type: UI
+basePath: /back-office
+routes:
+  - back-office-routes.yaml

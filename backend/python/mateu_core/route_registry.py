@@ -234,6 +234,21 @@ class RouteTable:
         return best
 
 
+@dataclass(frozen=True)
+class AppRef:
+    """An app a deployment contributes: a mount root, with the class that backs it (``None`` for a
+    purely-DSL app) and the definition it renders (``None`` for a class-based app). The Python mirror
+    of Java's ``RouteRegistry.AppRef`` and .NET's ``RouteRegistry.AppRef``."""
+
+    route: str
+    class_name: str | None = None
+    definition: str | None = None
+
+    def is_dsl(self) -> bool:
+        """No server class backs it — it is announced purely from its ``type: UI`` mount."""
+        return not (self.class_name and self.class_name.strip())
+
+
 class RouteRegistry:
     """Reads ``routes.yaml`` from the specs directory, next to the definitions it routes to."""
 
@@ -250,6 +265,81 @@ class RouteRegistry:
 
     def match(self, path: str | None) -> Match | None:
         return self.authored().match(path)
+
+    def apps(self, derived: "list[AppRef] | None" = None) -> list[AppRef]:
+        """Every app of the deployment, from TWO producers merged into ONE table — the same
+        "authored wins" rule the routes and sources use:
+
+        * **derived**: the reflection-discovered ``@ui`` classes (each an app at its path), supplied
+          by the caller (there is no compile-time index here as in Java);
+        * **authored**: the ``type: UI`` mounts discovered in the specs directory — which need NO
+          class, so a deployment can ship a purely-DSL app and announce it here like any other.
+
+        A mount at the same base path as a class replaces it (authored wins). This is the enumeration
+        a federated shell (or a bundle/tool) reads to announce apps uniformly, with or without a
+        class behind them.
+        """
+        by_route: dict[str, AppRef] = {}
+        for ref in derived or []:
+            route = _normalize(ref.route)
+            by_route[route] = AppRef(route, ref.class_name, ref.definition)
+        for base_path, route_files in self._scan_mounts():
+            by_route[base_path] = AppRef(
+                base_path, None, self._definition_of(base_path, route_files)
+            )
+        return list(by_route.values())
+
+    def _scan_mounts(self) -> list[tuple[str, list[str]]]:
+        """Scan the specs directory for ``type: UI`` files (by content, not by filename), so several
+        DSL apps can coexist. Returns each mount's base path + its listed route files. (Mirrors
+        Java's MountRegistry.mounts.)"""
+        mounts: list[tuple[str, list[str]]] = []
+        if not self._dir.is_dir():
+            return mounts
+        for file in sorted(self._dir.rglob("*")):
+            if file.suffix not in (".yaml", ".yml"):
+                continue
+            try:
+                root = yaml.safe_load(file.read_text())
+            except Exception:
+                continue  # a broken descriptor must not take app enumeration down
+            if not isinstance(root, dict) or root.get("type") != "UI":
+                continue
+            base_path = _normalize(root.get("basePath") or root.get("base_path"))
+            routes = root.get("routes")
+            if isinstance(routes, str):
+                route_files = [routes]
+            elif isinstance(routes, list):
+                route_files = [r for r in routes if isinstance(r, str)]
+            else:
+                route_files = []
+            mounts.append((base_path, route_files))
+        return mounts
+
+    def _definition_of(self, base_path: str, route_files: list[str]) -> str | None:
+        """The definition bound to a DSL mount's ROOT route: load its route files (relative entries
+        prefixed with the base path), match the base path, read the definition. That root entry is
+        where a DSL app's shell lives — a route with a definition and no class."""
+        for route_file in route_files:
+            path = self._dir / route_file
+            if not path.is_file():
+                continue
+            try:
+                root = yaml.safe_load(path.read_text())
+            except Exception:
+                continue
+            nodes = root.get("routes") if isinstance(root, dict) else root
+            if not isinstance(nodes, list):
+                continue
+            relative: list[RouteEntry] = []
+            for node in nodes:
+                if isinstance(node, dict):
+                    _flatten_node(node, parent_route=None, prefix="", out=relative)
+            entries = [_with_base_path(e, base_path) for e in relative]
+            match = RouteTable(tuple(entries)).match(base_path)
+            if match is not None and match.entry.definition:
+                return match.entry.definition
+        return None
 
     def _load(self) -> RouteTable:
         path = self._dir / self.FILE
