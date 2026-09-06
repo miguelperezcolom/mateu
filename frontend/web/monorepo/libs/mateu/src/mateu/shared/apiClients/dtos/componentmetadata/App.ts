@@ -50,4 +50,9 @@ export default interface App extends ComponentMetadata {
      * shared across routes (declared by a mount's root route `appData` in routes.yaml). */
     appDataSource?: RestDataSource | undefined
 
+    /** Capability tokens this app REQUIRES from whatever renderer/shell hosts it (see
+     * infra/capabilities). The shell compares them against what this build PROVIDES and reports what
+     * is missing instead of rendering a broken screen — compatibility by capability, not by version. */
+    requiredCapabilities?: string[] | undefined
+
 }

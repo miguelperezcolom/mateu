@@ -198,7 +198,7 @@ from mateu_uidl import (
 )
 from mateu_uidl import components as fluent
 
-from . import labels_aside_inference, layout_inference
+from . import capabilities, labels_aside_inference, layout_inference
 from .naming import camel_case, humanize
 from .page_type_inference import page_type_of
 from . import page_inference
@@ -442,6 +442,15 @@ class ReflectionMapper:
             ))
         variant = self.variant_of(cls, items)
         home = items[0] if items else None
+        sse_url = getattr(cls, "__mateu_ai_sse__", None)
+        context_selectors = self.map_context_selectors(cls)
+        context_actions = self.map_context_actions(cls)
+        notifications_enabled = issubclass(cls, NotificationsSupplier)
+        global_search_enabled = issubclass(cls, GlobalSearchSupplier)
+        command_center_enabled = bool(
+            getattr(cls, "__mateu_app_command_center__", False)
+            or getattr(cls, "__mateu_app_chromeless__", False)
+        )
         meta = AppMetadata(
             title=self.T(app_title),
             variant=variant,
@@ -451,23 +460,66 @@ class ReflectionMapper:
             home_base_url=request_base_url or "",
             home_server_side_type=home.server_side_type if home else "",
             server_side_type=type_name(cls),
-            sse_url=getattr(cls, "__mateu_ai_sse__", None),
-            context_selectors=self.map_context_selectors(cls),
-            context_actions=self.map_context_actions(cls),
+            sse_url=sse_url,
+            context_selectors=context_selectors,
+            context_actions=context_actions,
             # Notification inbox: the app class implements NotificationsSupplier → the shell
             # shows the header bell (mirrors AppMapper's notificationsEnabled).
-            notifications_enabled=issubclass(cls, NotificationsSupplier),
+            notifications_enabled=notifications_enabled,
             # Command palette entity search: the app class implements GlobalSearchSupplier →
             # the palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
-            global_search_enabled=issubclass(cls, GlobalSearchSupplier),
+            global_search_enabled=global_search_enabled,
             # Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
-            command_center_enabled=bool(
-                getattr(cls, "__mateu_app_command_center__", False)
-                or getattr(cls, "__mateu_app_chromeless__", False)
-            ),
+            command_center_enabled=command_center_enabled,
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
+            # The capability tokens this app requires from its host renderer: derived from the
+            # app-scoped features it declares plus whatever @app(requires=[...]) adds. app-data /
+            # rest-sources are not carried by this port at build time (app_data_source is applied
+            # post-hoc by the sync handler; there is no rest-source catalogue here), matching the
+            # 🟡 matrix. Sorted + deduped so the wire is stable (mirrors AppMapper).
+            required_capabilities=self._required_capabilities(
+                cls,
+                sse_url=sse_url,
+                command_center_enabled=command_center_enabled,
+                global_search_enabled=global_search_enabled,
+                notifications_enabled=notifications_enabled,
+                context_selectors=context_selectors,
+                context_actions=context_actions,
+            ),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
+
+    def _required_capabilities(
+        self,
+        cls,
+        *,
+        sse_url,
+        command_center_enabled: bool,
+        global_search_enabled: bool,
+        notifications_enabled: bool,
+        context_selectors: list,
+        context_actions: list,
+    ) -> list[str]:
+        """The sorted, deduped capability tokens the app REQUIRES from its host — derived from the
+        same flags the metadata carries, plus the explicit @app(requires=[...]) tokens (trimmed,
+        non-blank). Mirrors Java's AppMapper.getRequiredCapabilities."""
+        caps: set[str] = set()
+        if sse_url and str(sse_url).strip():
+            caps.add(capabilities.SSE)
+        if command_center_enabled:
+            caps.add(capabilities.COMMAND_CENTER)
+        if global_search_enabled:
+            caps.add(capabilities.GLOBAL_SEARCH)
+        if notifications_enabled:
+            caps.add(capabilities.NOTIFICATIONS)
+        if context_selectors:
+            caps.add(capabilities.CONTEXT_SELECTORS)
+        if context_actions:
+            caps.add(capabilities.HEADER_ACTIONS)
+        for token in getattr(cls, "__mateu_app_requires__", []) or []:
+            if token and token.strip():
+                caps.add(token.strip())
+        return sorted(caps)
 
     def map_context_actions(self, cls) -> list[AppHeaderAction]:
         """Header action buttons next to the context selectors: the app class implements

@@ -9,6 +9,7 @@ import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
+import io.mateu.uidl.Capabilities;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.fluent.AppShell;
@@ -88,6 +89,7 @@ public final class AppMapper {
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
+            .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -248,6 +250,57 @@ public final class AppMapper {
           .toList();
     }
     return List.of();
+  }
+
+  /**
+   * The capability tokens this app requires from its host renderer: the app-scoped features it
+   * actually declares (derived, so the developer never re-states what the model already says) plus
+   * whatever {@code @App(requires = {...})} adds. The host compares these against what it PROVIDES
+   * and reports the difference — compatibility by capability, not by version. Sorted + deduped so
+   * the wire and any hash are stable.
+   */
+  private static List<String> getRequiredCapabilities(AppShell app, HttpRequest httpRequest) {
+    var caps = new java.util.TreeSet<String>();
+    if (notBlank(getSseUrl(app))) {
+      caps.add(Capabilities.SSE);
+    }
+    if (httpRequest.getAttribute("_routeAppData") instanceof io.mateu.uidl.data.RestDataSource) {
+      caps.add(Capabilities.APP_DATA);
+    }
+    if (!RestSourceCatalogMapper.mapCatalogue().isEmpty()) {
+      caps.add(Capabilities.REST_SOURCES);
+    }
+    if (getCommandCenter(app)) {
+      caps.add(Capabilities.COMMAND_CENTER);
+    }
+    if (isGlobalSearchEnabled(app)) {
+      caps.add(Capabilities.GLOBAL_SEARCH);
+    }
+    if (isNotificationsEnabled(app)) {
+      caps.add(Capabilities.NOTIFICATIONS);
+    }
+    if (!getContextSelectors(app, httpRequest).isEmpty()) {
+      caps.add(Capabilities.CONTEXT_SELECTORS);
+    }
+    if (!getContextActions(app, httpRequest).isEmpty()) {
+      caps.add(Capabilities.HEADER_ACTIONS);
+    }
+    if (app.serverSideType() != null) {
+      var appClass = forName(app.serverSideType());
+      if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+        for (var token :
+            MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).requires()) {
+          if (notBlank(token)) {
+            caps.add(token.trim());
+          }
+        }
+      }
+    }
+    return new java.util.ArrayList<>(caps);
+  }
+
+  private static boolean notBlank(String s) {
+    return s != null && !s.isBlank();
   }
 
   private static boolean getThemeToggle(AppShell app) {

@@ -28,6 +28,30 @@ class MateuBundleExporterTest {
     String name = "Alice";
   }
 
+  @UI("/caps-bundle")
+  @Title("Caps Bundle")
+  @io.mateu.uidl.annotations.App(
+      commandCenter = true,
+      requires = {"my-custom-widget"})
+  public static class CapsBundleApp {
+    @io.mateu.uidl.annotations.Menu String home = "/";
+  }
+
+  @Test
+  void theManifestAggregatesTheRequiredCapabilitiesFromTheEntries() {
+    try (var mateu = TestMateu.withUis(CapsBundleApp.class)) {
+      var exporter = new MateuBundleExporter(mateu.context().getBean(MateuService.class));
+
+      var manifest = exporter.export("", List.of("/caps-bundle"));
+
+      // The bundle-level descriptor is the union read out of the entries' wire JSON, so a host can
+      // check compatibility from the manifest alone.
+      assertThat(manifest.requiredCapabilities())
+          .contains("command-center", "my-custom-widget")
+          .isSorted();
+    }
+  }
+
   @UI("/boom")
   public static class BoomFixture {
     // field initializer throws when the view is instantiated on load → export must skip, not fail

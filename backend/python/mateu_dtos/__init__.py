@@ -60,6 +60,11 @@ class AppMetadata(Wire):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.
     app_data_source: "RestDataSource | None" = None
+    #: The capability tokens this app REQUIRES from its host renderer — the app-scoped features it
+    #: declares (derived from this metadata) plus whatever ``@app(requires=[...])`` adds. The host
+    #: compares them against what it PROVIDES and reports the difference: compatibility by
+    #: capability, not by version. Sorted + deduped (mirrors AppDto.requiredCapabilities).
+    required_capabilities: list[str] = Field(default_factory=list)
 
 
 class AppContextSelector(Wire):

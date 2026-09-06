@@ -53,7 +53,14 @@ public record AppDto(
      * The app's APP-SCOPE data source: a reference the shell fetches ONCE on boot into the app-data
      * store, shared across routes. Declared by a mount's root route {@code appData} in routes.yaml.
      */
-    RestDataSourceDto appDataSource)
+    RestDataSourceDto appDataSource,
+    /**
+     * The capability tokens this app REQUIRES from whatever renderer/shell hosts it (see {@code
+     * io.mateu.uidl.Capabilities}). A host compares them against what its renderer PROVIDES and
+     * reports what is missing instead of rendering a broken screen — compatibility by capability,
+     * not by version. Mostly derived from the app's own metadata, plus any {@code @App(requires)}.
+     */
+    List<String> requiredCapabilities)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -66,6 +73,9 @@ public record AppDto(
     contextActions =
         Collections.unmodifiableList(contextActions != null ? contextActions : List.of());
     restSources = Collections.unmodifiableList(restSources != null ? restSources : List.of());
+    requiredCapabilities =
+        Collections.unmodifiableList(
+            requiredCapabilities != null ? requiredCapabilities : List.of());
   }
 
   @Override
@@ -86,5 +96,10 @@ public record AppDto(
   @Override
   public List<AppDescriptorDto> apps() {
     return Collections.unmodifiableList(apps != null ? apps : List.of());
+  }
+
+  public List<String> requiredCapabilities() {
+    return Collections.unmodifiableList(
+        requiredCapabilities != null ? requiredCapabilities : List.of());
   }
 }
