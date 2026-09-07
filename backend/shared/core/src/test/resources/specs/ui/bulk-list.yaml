@@ -1,0 +1,35 @@
+# A definition-only Listing (no view model) that DELETES the selected rows. The toolbar's Delete
+# button names an action the page declares; the action's restAction runs once PER SELECTED ROW
+# (forEachSelectedRow) against a per-id endpoint, then reloads the listing via successRoute. The
+# call is proxied because it carries a secret — resolved server-side, never on the wire.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Bulk
+rowsSelectionEnabled: true
+toolbar:
+  - type: Button
+    label: Delete selected
+    color: error
+    actionId: delete-selected
+rowsSource:
+  url: https://example.test/api/people
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: Delete the selected rows?
+    restAction:
+      forEachSelectedRow: true
+      source:
+        url: https://example.test/api/people/${state.id}
+        method: DELETE
+        proxy: true
+        headers:
+          X-Api-Key: ${secret.WRITE_KEY}
+      successMessage: Deleted
+      successRoute: bulk-list

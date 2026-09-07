@@ -244,13 +244,45 @@ public class RunActionUseCase {
         command.componentState() != null
             ? command.componentState()
             : java.util.Map.<String, Object>of();
+    // Bulk (forEachSelectedRow): the loop runs on the SERVER, once per selected listing row, each
+    // row merged OVER the component state so a per-id url like `.../people/${state.id}` resolves to
+    // that row's id. Doing it here — rather than firing N calls from the browser — keeps the secret
+    // server-side, needs a single round trip, and sidesteps the client's write-exclusivity guard
+    // (which would otherwise drop all but the first of N identical `__restfetch__` actions).
+    if (Boolean.parseBoolean(String.valueOf(params.get("_forEachSelectedRow")))) {
+      var rows = state.get("crud_selected_items");
+      if (rows instanceof java.util.List<?> list) {
+        for (var row : list) {
+          var rowState = new java.util.LinkedHashMap<String, Object>(state);
+          if (row instanceof java.util.Map<?, ?> map) {
+            map.forEach((k, v) -> rowState.put(String.valueOf(k), v));
+          }
+          performRestCall(source, rowState);
+        }
+      }
+      // The rows are gone; the client reloads the listing via successRoute, so no body is needed.
+      return UIIncrementDto.builder()
+          .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))
+          .build();
+    }
+    return UIIncrementDto.builder()
+        .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(source, state)))
+        .build();
+  }
+
+  /**
+   * One proxied REST call: interpolate the resolved source's url/headers/body against {@code state}
+   * (with {@code ${secret.X}} resolved server-side) and send it, returning the parsed JSON response
+   * (an empty map on any failure). The single unit both the single-fetch and bulk paths reuse.
+   */
+  private Object performRestCall(
+      io.mateu.uidl.data.RestDataSource source, java.util.Map<String, Object> state) {
     java.util.function.Function<String, String> secrets = this::resolveSecret;
     var url = TemplateInterpolator.interpolate(source.url(), state, secrets);
     var method =
         source.method() == null || source.method().isBlank()
             ? "GET"
             : source.method().toUpperCase();
-    Object json;
     try {
       var builder =
           java.net.http.HttpRequest.newBuilder()
@@ -279,12 +311,11 @@ public class RunActionUseCase {
       if (response.statusCode() >= 400) {
         throw new RuntimeException("HTTP " + response.statusCode());
       }
-      json = REST_MAPPER.readValue(response.body(), Object.class);
+      return REST_MAPPER.readValue(response.body(), Object.class);
     } catch (Exception e) {
       log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
-      json = java.util.Map.of();
+      return java.util.Map.of();
     }
-    return UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, json)).build();
   }
 
   /** A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment. */

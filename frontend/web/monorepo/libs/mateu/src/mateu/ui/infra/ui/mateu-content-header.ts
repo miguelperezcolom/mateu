@@ -125,11 +125,48 @@ export class MateuContentHeader extends LitElement {
             navigateToRoute(this, route)
             return
         }
+        // A ROUTED listing renders its toolbar HERE (not in the crud), so a "Delete selected" acts on
+        // rows the sibling <mateu-table-crud> tracks in its own state. Carry that selection with the
+        // action — the enclosing mateu-component's rowsSelectedRequired gate, a bulk restAction and
+        // the componentState sent to the server all read it. Absent a listing, this is an empty array
+        // and changes nothing.
         this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: { actionId: button.actionId },
+            detail: { actionId: button.actionId, parameters: { crud_selected_items: this.listingSelection() } },
             bubbles: true,
             composed: true
         }))
+    }
+
+    /** The row selection of the listing this header belongs to (its sibling crud), or []. */
+    private listingSelection = (): unknown[] => {
+        const crud = this.findSiblingCrud()
+        const sel = (crud as any)?.state?.['crud_selected_items']
+        return Array.isArray(sel) ? sel : []
+    }
+
+    /** Climb to the ancestor that also holds the listing, then find the crud (piercing shadow). */
+    private findSiblingCrud = (): Element | null => {
+        const deepQuery = (root: Document | ShadowRoot | Element): Element | null => {
+            for (const el of Array.from(root.querySelectorAll('*'))) {
+                if (el.tagName === 'MATEU-TABLE-CRUD') return el
+                if ((el as any).shadowRoot) {
+                    const hit = deepQuery((el as any).shadowRoot)
+                    if (hit) return hit
+                }
+            }
+            return null
+        }
+        let node: Node | null = this
+        while (node) {
+            const el = node as any
+            const container: Element | null =
+                el.parentElement ?? (el.getRootNode?.() instanceof ShadowRoot ? (el.getRootNode() as ShadowRoot).host : null)
+            if (!container) break
+            const hit = deepQuery(container)
+            if (hit) return hit
+            node = container
+        }
+        return null
     }
 
     evalLabel = (raw: string) => interpolate(raw, this.state, this.data)

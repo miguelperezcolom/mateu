@@ -13,4 +13,7 @@ export default interface RestActionDto {
     successMessage?: string | undefined
     resultPath?: string | undefined
     successRoute?: string | undefined
+    // When true, run the call once per selected listing row (crud_selected_items), each row as the
+    // interpolation scope — a per-id endpoint becomes a bulk operation over the checked rows.
+    forEachSelectedRow?: boolean | undefined
 }

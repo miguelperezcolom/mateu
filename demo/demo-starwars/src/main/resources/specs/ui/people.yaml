@@ -12,6 +12,9 @@ pageSize: 20
 # A row is the entrance to the record, not the whole of it: clicking one goes to its own URL, which
 # is shareable and survives a reload — which `masterDetail` never was.
 rowRoute: people/${row.id}
+# Check rows and Delete them in the listing — the CRUD's own delete, not a per-record one buried in
+# the edit form.
+rowsSelectionEnabled: true
 toolbar:
   - type: Button
     label: New character
@@ -19,6 +22,10 @@ toolbar:
     actionable:
       type: RouteLink
       route: people/new
+  - type: Button
+    label: Delete selected
+    color: error
+    actionId: delete-selected
 searchable: true
 filters:
   - type: FormField
@@ -72,3 +79,17 @@ columns:
   - type: GridColumn
     id: eyeColor
     label: Eyes
+# The Delete button acts on the CHECKED rows: forEachSelectedRow runs the per-id delete once per
+# selection (server-side, since it carries a secret), then successRoute reloads the listing.
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the selected characters. They come back on the next restart of the API.
+    restAction:
+      forEachSelectedRow: true
+      source:
+        ref: swapi-person-delete
+      successMessage: Deleted
+      successRoute: people
