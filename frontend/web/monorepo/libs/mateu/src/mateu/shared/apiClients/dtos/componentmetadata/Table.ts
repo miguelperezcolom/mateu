@@ -26,6 +26,8 @@ export default interface Table extends ComponentMetadata {
     vaadinGridCellPadding: string
     gridStyle: string
     detailPath: string
+    /** Where a row click goes, as a `${row.x}` template. Empty means a row click does nothing. */
+    rowRoute?: string | undefined
     pageSize: number
     contentHeight: string
 

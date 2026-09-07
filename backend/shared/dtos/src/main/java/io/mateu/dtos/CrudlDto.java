@@ -53,6 +53,7 @@ public record CrudlDto(
     String vaadinGridCellPadding,
     String gridStyle,
     String detailPath,
+    String rowRoute,
     String onRowSelectionChangedActionId,
     String contentHeight,
     int initialPage,

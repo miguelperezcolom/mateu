@@ -3441,6 +3441,9 @@
         "detailPath" : {
           "type" : "string"
         },
+        "rowRoute" : {
+          "type" : "string"
+        },
         "onRowSelectionChangedActionId" : {
           "type" : "string"
         },

@@ -59,14 +59,47 @@ rather than a shortcut: the data holds "wheeled walker" and "assault walker" as 
 both casings of "starfighter", so the API matches them by containment and one word finds the family.
 Species **classification** is a closed set of single words, so it is a multi-select matched exactly.
 
-**Person detail** — the People page is a `gridLayout: masterDetail` listing: clicking a person shows
-their full record in the detail pane, entirely from the already-fetched rows (no re-fetch, no id).
+## A complete CRUD, still with no Java
 
-> A separate URL-addressable detail route — a page bound to a `data:` source that fetches one record
-> from `/api/people/{id}` — is the natural next step, and the backend no longer stands in its way:
-> every row now carries a numeric `id`, which the swapi.info mirror never had. What is left is the
-> framework side of the **definition-only** (no view model) path. Not attempted here; master-detail
-> is the working detail today.
+Clicking a row goes to that character's **own URL** (`rowRoute: people/${row.id}`) — shareable, and
+it survives a reload, which the old `masterDetail` pane never did. That page reads, writes and
+deletes:
+
+```yaml
+# routes.yaml — the record's route names the source that fetches it
+- route: people/:id
+  definition: person.yaml
+  data: swapi-person          # url: .../api/people/${state.id}
+```
+```yaml
+# person.yaml — fields bind to the same state the record was merged into
+buttons:
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
+  - {type: Button, label: Delete, actionId: delete}
+actions:
+  - id: save
+    validationRequired: true
+    restAction: {source: {ref: swapi-person-update}, successMessage: Saved}
+  - id: delete
+    confirmationRequired: true
+    restAction: {source: {ref: swapi-person-delete}, successMessage: Deleted}
+```
+
+`actions:` beside the layout is the door that was missing. An action carrying a `restAction` has
+always travelled to the browser and been run there without a server round trip — but only a Java
+`@RestAction` method could attach one, so a page with no class could read and never write.
+
+**The write key never reaches the browser.** The write sources are `proxy: true`, so the SERVER makes
+the call and resolves `${secret.SWAPI_WRITE_KEY}` from its environment. A direct write could not do
+that: the client-side interpolator has no `secret` scope, deliberately. Run the demo with the key in
+the environment:
+
+```bash
+SWAPI_WRITE_KEY=… mvn -s ../../settings.xml spring-boot:run
+```
+
+Without it the reads all work and a write comes back 401 — which is the API refusing, exactly as it
+should.
 
 This is the concrete pay-off of two recent pieces: **DSL-app enumeration** (a mount announced with no
 class) and the **REST source catalogue** (`sources.yaml`).

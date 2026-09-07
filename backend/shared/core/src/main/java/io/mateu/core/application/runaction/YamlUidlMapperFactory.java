@@ -11,6 +11,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.MenuBar;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.Actionable;
 
 final class YamlUidlMapperFactory {
@@ -33,6 +34,11 @@ final class YamlUidlMapperFactory {
 
     mapper.addMixIn(Component.class, PolymorphicMixin.class);
     mapper.addMixIn(Actionable.class, PolymorphicMixin.class);
+    // A `toolbar:`/`buttons:` list is typed UserTrigger, and the generated schema has always
+    // advertised it (Button | ButtonGroup) — but without the mixin Jackson could not build one, so
+    // the whole definition failed to parse and the page fell back to "Not found". The schema and
+    // the mapper have to agree on what is authorable.
+    mapper.addMixIn(UserTrigger.class, PolymorphicMixin.class);
     mapper.addMixIn(GridContent.class, PolymorphicMixin.class);
     mapper.addMixIn(FieldValidation.class, PolymorphicMixin.class);
 

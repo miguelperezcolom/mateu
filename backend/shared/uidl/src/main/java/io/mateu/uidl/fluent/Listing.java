@@ -43,6 +43,18 @@ public record Listing(
     String vaadinGridCellPadding,
     String gridStyle,
     String detailPath,
+    /**
+     * Where a row click goes, as a template over the row: {@code "people/${row.id}"}.
+     *
+     * <p>This is what makes a listing the entrance to a record rather than the whole of it. Without
+     * it the only detail a listing without a view model could offer was {@code gridLayout:
+     * masterDetail}, which paints a pane from the row already fetched — not addressable, not
+     * shareable, and gone on reload. A route is all three.
+     *
+     * <p>Interpolated against the clicked row (as {@code row}) and the listing state, so a row's
+     * own id picks the record. Empty means a row click does nothing, which stays the default.
+     */
+    String rowRoute,
     String onRowSelectionChangedActionId,
     String contentHeight,
     int initialPage,

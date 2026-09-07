@@ -44,10 +44,17 @@ public class YamlUidlLoader {
    *     {@link io.mateu.uidl.data.LayoutDelta}.
    */
   public record YamlPageSpec(
-      String modelView, Component layout, io.mateu.uidl.data.LayoutDelta delta) {
+      String modelView,
+      Component layout,
+      io.mateu.uidl.data.LayoutDelta delta,
+      java.util.List<io.mateu.uidl.fluent.Action> actions) {
 
     public YamlPageSpec(String modelView, Component layout) {
-      this(modelView, layout, io.mateu.uidl.data.LayoutDelta.empty());
+      this(modelView, layout, io.mateu.uidl.data.LayoutDelta.empty(), java.util.List.of());
+    }
+
+    public YamlPageSpec(String modelView, Component layout, io.mateu.uidl.data.LayoutDelta delta) {
+      this(modelView, layout, delta, java.util.List.of());
     }
   }
 
@@ -183,16 +190,45 @@ public class YamlUidlLoader {
       if (layout == null && delta.isEmpty()) {
         return NONE; // neither a layout nor a delta: nothing this file can contribute
       }
+      var actions = actionsOf(root);
       log.info(
           "Loaded YAML spec {} (modelView={}, {})",
           yamlPath,
           modelView,
           delta.isEmpty() ? "explicit layout" : "layout delta");
-      return new YamlPageSpec(modelView, layout, delta);
+      return new YamlPageSpec(modelView, layout, delta, actions);
     } catch (Exception e) {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;
     }
+  }
+
+  /**
+   * The {@code actions:} a definition declares, or none.
+   *
+   * <p>What an action IS was never the thing missing from the DSL — a {@code Button} could already
+   * name one, and an {@code Action} carrying a {@code restAction} already travels to the wire and
+   * is run client-side. What was missing is a place for a page with NO view model to declare one,
+   * since every other producer of actions reads them off a Java class. This is that place, and it
+   * sits beside {@code layout:} because an action belongs to the screen, not to the route that
+   * reaches it: two routes on the same definition should not have to repeat it.
+   */
+  private java.util.List<io.mateu.uidl.fluent.Action> actionsOf(JsonNode root) {
+    var node = root == null ? null : root.get("actions");
+    if (node == null || !node.isArray()) {
+      return java.util.List.of();
+    }
+    var actions = new java.util.ArrayList<io.mateu.uidl.fluent.Action>();
+    for (var item : node) {
+      try {
+        actions.add(mapper.treeToValue(item, io.mateu.uidl.fluent.Action.class));
+      } catch (Exception e) {
+        // One malformed action must not cost the page: the rest still render, and the id that did
+        // not parse simply has nothing behind it — which the log says out loud.
+        log.warn("Ignoring an unparseable action in a YAML spec: {}", e.getMessage());
+      }
+    }
+    return java.util.List.copyOf(actions);
   }
 
   /**

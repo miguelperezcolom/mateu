@@ -11,7 +11,8 @@ import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from
 import { interpolate } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows } from '@infra/http/restRowFilters.ts'
-import { totalPathOf } from '@infra/http/restSourceCatalogue.ts'
+import { rowRouteFields } from '@infra/ui/rowRoute.ts'
+import { resolveRestSource, totalPathOf } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -612,7 +613,14 @@ export class MateuTableCrud extends LitElement {
      *   a page of rows cannot say how many rows matched.
      */
     private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
-        const columnIds = this.cols.map(c => c.id).filter(Boolean)
+        // The visible columns, plus whatever the rowRoute needs to identify the record — an id
+        // column nobody wants to see is still the thing a detail route is addressed by.
+        const columnIds = [
+            ...new Set([
+                ...this.cols.map(c => c.id).filter(Boolean),
+                ...rowRouteFields(metadata.rowRoute),
+            ]),
+        ]
         const src = metadata.rowsSource!
         // Proxy mode routes the fetch through the Mateu server (no CORS, secrets injected
         // server-side) via the reserved __restfetch__ action; direct otherwise. Both end in the same
@@ -622,7 +630,7 @@ export class MateuTableCrud extends LitElement {
         // the filters would run against one page instead of the collection, and slicing an already
         // sliced page would empty every page after the first.
         const serverPaged = totalPathOf(src) != null
-        const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = src.proxy
+        const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = resolveRestSource(src)?.proxy
             ? new Promise((resolve) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {

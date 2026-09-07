@@ -1,4 +1,5 @@
 import { customElement, property, query, state } from "lit/decorators.js";
+import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
@@ -240,6 +241,26 @@ export class MateuTable extends LitElement {
         return text;
     };
 
+    /**
+     * A row click leaves for the record's own route.
+     *
+     * <p>Resolved through the grid's `getEventContext`, the documented way to say which row a click
+     * landed on. `activeItem` looked like the natural hook and is not: it stays null here, so an
+     * `active-item-changed` listener never hears an ordinary click and the row simply would not
+     * respond, with nothing on screen to say why.
+     */
+    private navigateToRowRoute(event: MouseEvent) {
+        const grid = this.shadowRoot?.querySelector('vaadin-grid') as any
+        const item = grid?.getEventContext?.(event)?.item
+        if (!item || isGroupRow(item)) return
+        // A click on something that acts on its own — a button, a link, a checkbox — belongs to that
+        // control, not to the row.
+        const path = event.composedPath() as HTMLElement[]
+        if (path.some(el => el?.tagName && /^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(el.tagName))) return
+        const route = rowRouteOf(this.metadata?.rowRoute, item, this.state, this.data)
+        if (route) navigateToRoute(this, route)
+    }
+
     render():TemplateResult {
 
         const listing = this.data[this.id] as ListingData | undefined
@@ -314,19 +335,14 @@ export class MateuTable extends LitElement {
                         }
                     }}"
                     @active-item-changed="${ifDefined((this.metadata?.detailPath && !this.metadata?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
-                        if (this.metadata?.detailPath) {
-                            const row = event.detail.value
-                            if (row && isGroupRow(row)) {
-                                // clicks on group marker rows never open the row detail
-                                return
-                            }
-                            if (row) {
-                                this.detailsOpenedItems = [row]
-                            } else {
-                                this.detailsOpenedItems = []
-                            }
+                        const row = event.detail.value
+                        if (row && isGroupRow(row)) {
+                            // clicks on group marker rows never open the row detail
+                            return
                         }
+                        this.detailsOpenedItems = row ? [row] : []
                     }:undefined)}"
+                    @click="${ifDefined(this.metadata?.rowRoute?(event: MouseEvent) => this.navigateToRowRoute(event):undefined)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
                     ${ifDefined(this.metadata?.detailPath?gridRowDetailsRenderer<any>((item) => html`${renderComponent(
                                                     this, 

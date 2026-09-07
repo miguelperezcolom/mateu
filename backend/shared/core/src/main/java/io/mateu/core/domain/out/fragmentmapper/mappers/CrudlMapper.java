@@ -131,6 +131,7 @@ public class CrudlMapper {
             .vaadinGridCellPadding(crudl.vaadinGridCellPadding())
             .gridStyle(crudl.gridStyle())
             .detailPath(crudl.detailPath())
+            .rowRoute(crudl.rowRoute())
             .onRowSelectionChangedActionId(crudl.onRowSelectionChangedActionId())
             .contentHeight(crudl.contentHeight())
             .initialPage(crudl.initialPage())

@@ -8,8 +8,17 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: People
-gridLayout: masterDetail
 pageSize: 20
+# A row is the entrance to the record, not the whole of it: clicking one goes to its own URL, which
+# is shareable and survives a reload — which `masterDetail` never was.
+rowRoute: people/${row.id}
+toolbar:
+  - type: Button
+    label: New character
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: people/new
 searchable: true
 filters:
   - type: FormField

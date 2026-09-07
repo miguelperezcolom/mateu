@@ -1,4 +1,5 @@
 import {customElement, property} from "lit/decorators.js";
+import { resolveRestSource } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
 import './mateu-map'
@@ -531,7 +532,13 @@ export class MateuComponent extends ComponentElement {
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via the
         // reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
         // @RestData source; any other id is a @RestAction method — hence the source kind.
-        if (rest.source?.proxy) {
+        //
+        // Whether a call is proxied is read off the RESOLVED source, not the declared one: a surface
+        // that names a catalogue entry by `ref` carries nothing but the name, and proxying is a fact
+        // about the endpoint, declared once in the catalogue. Reading the flag before resolving sent
+        // every by-ref call down the direct path — where `${secret.X}` does not exist, so the header
+        // travelled as its own placeholder and the endpoint answered 401.
+        if (resolveRestSource(rest.source)?.proxy) {
             const kind = actionId === '__restdata__' ? 'data' : 'action'
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {

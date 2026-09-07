@@ -54,7 +54,24 @@
     },
     "required" : [ "sources" ]
   }, {
-    "$ref" : "#/$defs/Component"
+    "allOf" : [ {
+      "$ref" : "#/$defs/Component"
+    }, {
+      "type" : "object",
+      "properties" : {
+        "modelView" : {
+          "type" : "string",
+          "description" : "Fully-qualified class of the view model this definition binds to. Omit it on a definition shared by several routes — naming one means it can only ever serve that class. The route entry's `viewModel` is the place for the binding."
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Action"
+          },
+          "description" : "Actions this page exposes. An action carrying a `restAction` is run by the CLIENT against the declared endpoint — no view model and no server round trip — so a Button naming its id can create, update or delete a record."
+        }
+      }
+    } ]
   } ],
   "$defs" : {
     "AccordionLayout" : {
@@ -3491,6 +3508,9 @@
         "detailPath" : {
           "type" : "string"
         },
+        "rowRoute" : {
+          "type" : "string"
+        },
         "onRowSelectionChangedActionId" : {
           "type" : "string"
         },
@@ -5802,6 +5822,105 @@
     "RestSourceProvenance" : {
       "type" : "string",
       "enum" : [ "auto", "generate", "existing" ]
+    },
+    "Action" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
+        },
+        "validationRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationRequired" : {
+          "type" : "boolean"
+        },
+        "rowsSelectedRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationTexts" : {
+          "$ref" : "#/$defs/ConfirmationTexts"
+        },
+        "modalStyle" : {
+          "type" : "string"
+        },
+        "modalTitle" : {
+          "type" : "string"
+        },
+        "customEvent" : {
+          "$ref" : "#/$defs/CustomEvent"
+        },
+        "href" : {
+          "type" : "string"
+        },
+        "js" : {
+          "type" : "string"
+        },
+        "sse" : {
+          "type" : "boolean"
+        },
+        "fieldsToValidate" : {
+          "type" : "string"
+        },
+        "bubble" : {
+          "type" : "boolean"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        },
+        "idempotent" : {
+          "type" : "boolean"
+        },
+        "restAction" : {
+          "$ref" : "#/$defs/RestAction"
+        }
+      }
+    },
+    "ConfirmationTexts" : {
+      "type" : "object",
+      "properties" : {
+        "title" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "confirmationText" : {
+          "type" : "string"
+        },
+        "denialText" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CustomEvent" : {
+      "type" : "object",
+      "properties" : {
+        "eventName" : {
+          "type" : "string"
+        },
+        "detail" : { }
+      }
+    },
+    "RestAction" : {
+      "type" : "object",
+      "properties" : {
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "successMessage" : {
+          "type" : "string"
+        },
+        "resultPath" : {
+          "type" : "string"
+        }
+      }
     }
   }
 }
