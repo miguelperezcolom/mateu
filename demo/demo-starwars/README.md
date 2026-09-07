@@ -7,9 +7,15 @@ holds end to end.
 ## What it demonstrates
 
 A complete Mateu application — mount, app shell, pages and its REST source catalogue — authored
-**entirely as data** under `src/main/resources/specs/ui/`, reading live data from the public
-[Star Wars API](https://swapi.info). The only Java is `StarwarsApplication`, a Spring Boot `main`
+**entirely as data** under `src/main/resources/specs/ui/`, reading live data from
+[swapi.ec1.mateu.io](https://swapi.ec1.mateu.io) ([swapi-service](https://github.com/miguelperezcolom/swapi-service)),
+a writable clone of the Star Wars API. The only Java is `StarwarsApplication`, a Spring Boot `main`
 that boots the server; it declares nothing about the UI.
+
+> It used to read the public `swapi.info` mirror. That mirror is **static** — it ignores query
+> parameters (`?search=luke` returns all 82 people) — so every condition had to be evaluated in the
+> browser over the whole collection. Against a real backend the search, the filters, the sort and the
+> pager are answered by the **server**, which is what a listing does in an actual application.
 
 ```
 specs/ui/
@@ -23,26 +29,33 @@ specs/ui/
 ```
 
 Each page is a `type: Listing` with a `rowsSource: { ref: … }`. The browser resolves the ref against
-the catalogue, fetches the endpoint directly (swapi.info sends `Access-Control-Allow-Origin: *`, so no
-proxy is needed), and each column reads its field by id. No server search action, no view model.
+the catalogue and fetches the endpoint directly (the service sends `Access-Control-Allow-Origin: *`,
+so no proxy is needed); each column reads its field by id. No server search action, no view model.
+
+**The conditions travel to the server.** A source's url carries them through `${state.…}`
+interpolation — the free-text search, each declared filter, the range bounds, the page and the sort —
+and the entry declares `totalPath: totalElements`. That declaration is also the signal that the
+server already searched, filtered and paged, so the renderer shows the page it was given instead of
+re-filtering and re-slicing it. A blank parameter is ignored by the API, so an untouched filter costs
+nothing.
+
+**References show up as names.** The service serves `homeworldName` beside `homeworldId`, so the
+People table has a Homeworld column without a request per row — a thing a static mirror of
+URL-shaped references cannot give you.
 
 **Search criteria** — each listing declares `searchable: true` and a `filters:` list, as data like
 everything else: a text filter, a `multiSelect` (People's gender, Films' director) and a range
-(`numberRange` on height/diameter, `dateRange` on release date). swapi.info is a **static mirror**
-that ignores query parameters — `?search=luke` returns all 82 people, verified — so the conditions
-are evaluated over the fetched rows by the renderer, which is what a listing reading somebody else's
-endpoint has to do when there is no `CrudStore.find` to ask. Point `sources.yaml` at an endpoint that
-does filter server-side and its url can carry `${searchText}` instead, with no change to the pages.
+(`numberRange` on height/diameter, `dateRange` on release date). A multi-select reaches the API as
+one comma-joined parameter, which it reads as an OR.
 
 **Person detail** — the People page is a `gridLayout: masterDetail` listing: clicking a person shows
 their full record in the detail pane, entirely from the already-fetched rows (no re-fetch, no id).
-This is the fully-declarative detail that swapi.info's shape allows: its list rows carry no numeric
-id — only a `url` and `name` — so a re-fetch-by-id route is not expressible in pure YAML here.
 
-> A separate URL-addressable detail route (a page bound to a `data:` source that fetches one record)
-> is the natural next step, but it currently surfaces two framework gaps on the **definition-only**
-> (no view model) path: a route's `data:` source is not wired there, and query params do not reach
-> page state. Tracked as a follow-up; master-detail is the working detail today.
+> A separate URL-addressable detail route — a page bound to a `data:` source that fetches one record
+> from `/api/people/{id}` — is the natural next step, and the backend no longer stands in its way:
+> every row now carries a numeric `id`, which the swapi.info mirror never had. What is left is the
+> framework side of the **definition-only** (no view model) path. Not attempted here; master-detail
+> is the working detail today.
 
 This is the concrete pay-off of two recent pieces: **DSL-app enumeration** (a mount announced with no
 class) and the **REST source catalogue** (`sources.yaml`).
@@ -56,9 +69,8 @@ mvn -s ../../settings.xml spring-boot:run     # → http://localhost:8600
 
 Open <http://localhost:8600> and click People / Planets / Films.
 
-> The Star Wars API is a free, community-run service and is sometimes slow or down. When it is
-> unreachable the listings render their chrome (title, search, columns) but stay empty — that is the
-> API, not Mateu.
+> When the API is unreachable the listings render their chrome (title, search, columns) but stay
+> empty — that is the API, not Mateu.
 
 ## How it is validated
 
@@ -73,3 +85,7 @@ Open <http://localhost:8600> and click People / Planets / Films.
   cd demo/demo-starwars && mvn -s ../../settings.xml spring-boot:run   # keep running
   cd e2e && node starwars-probe.mjs
   ```
+
+  The fixtures answer the **paged envelope** and apply the query string themselves, so the checks
+  also pin that the renderer takes the server's total and renders the page as given — the total is
+  deliberately not the length of the array it was handed.

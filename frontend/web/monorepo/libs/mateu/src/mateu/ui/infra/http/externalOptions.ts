@@ -1,6 +1,6 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
-import { pathOfField, resolveRestSource } from './restSourceCatalogue.ts'
+import { pathOfField, resolveRestSource, totalPathOf } from './restSourceCatalogue.ts'
 
 /**
  * Client-side consumption of an arbitrary (non-Mateu) REST endpoint for a field's select options —
@@ -112,7 +112,8 @@ export async function fetchExternalOptions(
 /**
  * Fetch a listing's rows from its {@link RestDataSource}, mapping each JSON item into a row keyed by
  * column id (see {@link mapItemsToRows}). `resolve` interpolates the url/headers/body — pass the
- * shared `interpolate` so `${searchText}`/`${page}`/`${size}` reach a server-side endpoint.
+ * shared `interpolate` so `${state.searchText}`/`${state.page}`/`${state.size}` reach a server-side
+ * endpoint.
  */
 export async function fetchExternalRows(
     source: RestDataSource,
@@ -125,4 +126,39 @@ export async function fetchExternalRows(
     // Each column is read by the path the SOURCE maps its id to, which is how a nested response
     // field reaches a flat column: a column id cannot itself be `customer.name`.
     return mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+}
+
+/**
+ * The same fetch, for a source whose SERVER does the searching, filtering and paging.
+ *
+ * <p>The difference that matters is the total: a page of rows cannot say how many rows matched, so
+ * without it a client has to fetch everything to render a pager — which is the whole reason the
+ * endpoint was asked to page in the first place. A source declares where the total lives with
+ * `totalPath`, and that declaration is also the SIGNAL that the server already applied the
+ * conditions, so the caller must not re-apply them over the page it got back.
+ *
+ * Returns a null total when the response does not carry one, so the caller can fall back rather than
+ * render a pager over a number that is not there.
+ */
+export async function fetchExternalPage(
+    source: RestDataSource,
+    columnIds: string[],
+    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    fetchImpl: typeof fetch = fetch,
+): Promise<{ rows: Record<string, unknown>[]; total: number | null }> {
+    const json = await fetchExternalJson(source, resolve, fetchImpl)
+    return pageOf(json, source, columnIds)
+}
+
+/** Shapes an already-fetched response into rows + total. Shared by the direct and proxied paths. */
+export function pageOf(
+    json: unknown,
+    source: RestDataSource,
+    columnIds: string[],
+): { rows: Record<string, unknown>[]; total: number | null } {
+    const resolved = resolveRestSource(source)
+    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    const raw = getByPath(json, totalPathOf(source))
+    const total = typeof raw === 'number' ? raw : Number(raw)
+    return { rows, total: Number.isFinite(total) ? total : null }
 }

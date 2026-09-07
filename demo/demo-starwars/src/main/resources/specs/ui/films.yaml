@@ -1,6 +1,7 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: Films
+pageSize: 20
 searchable: true
 filters:
   - type: FormField
@@ -18,18 +19,19 @@ filters:
       - value: Richard Marquand
         label: Richard Marquand
   - type: FormField
-    id: release_date
+    id: releaseDate
     label: Released
     stereotype: dateRange
 rowsSource:
   ref: swapi-films
 columns:
   - type: GridColumn
-    id: episode_id
+    id: episodeId
     label: Episode
   - type: GridColumn
     id: title
     label: Title
+    identifier: true
   - type: GridColumn
     id: director
     label: Director
@@ -37,5 +39,5 @@ columns:
     id: producer
     label: Producer
   - type: GridColumn
-    id: release_date
+    id: releaseDate
     label: Released

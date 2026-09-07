@@ -9,8 +9,9 @@ import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
-import { fetchExternalRows, mapItemsToRows } from '@infra/http/externalOptions.ts'
+import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows } from '@infra/http/restRowFilters.ts'
+import { totalPathOf } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -597,39 +598,60 @@ export class MateuTableCrud extends LitElement {
         }))
     }
 
-    // Fetch the listing's rows from its external REST endpoint and shape them into the page the
-    // renderer expects (one object per row keyed by column id). The free-text search, the DECLARED
-    // FILTERS and pagination are applied IN MEMORY over the fetched rows — a listing reading
-    // somebody else's endpoint has no `CrudStore.find` to ask, so without this its filter bar would
-    // be decoration. (The interpolated url also carries ${searchText}/${page}/${size}, so an
-    // endpoint that does support server-side search/paging gets them too and simply returns less.)
+    /**
+     * Fetch the listing's rows from its external REST endpoint and shape them into the page the
+     * renderer expects (one object per row keyed by column id). There are two modes, and the SOURCE
+     * decides which by whether it declares a `totalPath`:
+     *
+     * - without it, the endpoint is assumed to answer the whole collection (a static mirror, say),
+     *   so the free-text search, the declared filters and the paging are applied here over the
+     *   fetched rows — a listing reading somebody else's endpoint has no `CrudStore.find` to ask,
+     *   and without this its filter bar would be decoration;
+     * - with it, the endpoint searched, filtered and paged already: its url carries the conditions
+     *   through `${state.…}` interpolation, and the total it reports is what the pager needs, since
+     *   a page of rows cannot say how many rows matched.
+     */
     private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
         const columnIds = this.cols.map(c => c.id).filter(Boolean)
         const src = metadata.rowsSource!
-        // Proxy mode: route the fetch through the Mateu server (no CORS, secrets injected
-        // server-side) via the reserved __restfetch__ action; direct otherwise. Both resolve to the
-        // same rows array, then in-memory search/paginate below.
-        const rowsPromise: Promise<Record<string, unknown>[]> = src.proxy
+        // Proxy mode routes the fetch through the Mateu server (no CORS, secrets injected
+        // server-side) via the reserved __restfetch__ action; direct otherwise. Both end in the same
+        // shape.
+        // A source that declares where the total lives is saying the SERVER searched, filtered and
+        // paged — its url carries the conditions. Re-applying them here would be wrong twice over:
+        // the filters would run against one page instead of the collection, and slicing an already
+        // sliced page would empty every page after the first.
+        const serverPaged = totalPathOf(src) != null
+        const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = src.proxy
             ? new Promise((resolve) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: 'rows', _sourceId: this.id },
-                        callback: (uiIncrement: any) => resolve(mapItemsToRows(uiIncrement?.appData?.['_restfetch'], src.itemsPath, columnIds)),
+                        callback: (uiIncrement: any) => resolve(pageOf(uiIncrement?.appData?.['_restfetch'], src, columnIds)),
                         callbackonly: true
                     },
                     bubbles: true,
                     composed: true
                 }))
             })
-            : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
-        rowsPromise
-            .then((rows) => {
-                const filtered = filterExternalRows(rows, columnIds, metadata.filters, this.state)
-                const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
+            : serverPaged
+                ? fetchExternalPage(src, columnIds, (t) => interpolate(t, this.state, this.data))
+                : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
+                    .then((rows) => ({ rows, total: null }))
+        pagePromise
+            .then(({ rows, total }) => {
                 const page = Number((this.state as any)?.page ?? 0)
-                const content = filtered.slice(page * size, page * size + size)
-                const listing = { page: { totalElements: filtered.length, pageSize: size, pageNumber: page, content } }
+                // The server's total is only trusted when the server actually paged; otherwise the
+                // count has to come from what survived filtering here.
+                const serverAnswered = serverPaged && total != null
+                const filtered = serverAnswered
+                    ? rows
+                    : filterExternalRows(rows, columnIds, metadata.filters, this.state)
+                const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
+                const content = serverAnswered ? filtered : filtered.slice(page * size, page * size + size)
+                const totalElements = serverAnswered ? (total as number) : filtered.length
+                const listing = { page: { totalElements, pageSize: size, pageNumber: page, content } }
                 this._restRows = { key: MateuTableCrud._initKeyOf(this.component), listing }
                 this.data = { ...this.data, [this.id]: listing }
                 this.requestUpdate()
