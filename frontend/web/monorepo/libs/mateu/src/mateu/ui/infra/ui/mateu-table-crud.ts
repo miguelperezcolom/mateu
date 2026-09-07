@@ -629,10 +629,9 @@ export class MateuTableCrud extends LitElement {
                 const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
                 const page = Number((this.state as any)?.page ?? 0)
                 const content = filtered.slice(page * size, page * size + size)
-                this.data = {
-                    ...this.data,
-                    [this.id]: { page: { totalElements: filtered.length, pageSize: size, pageNumber: page, content } }
-                }
+                const listing = { page: { totalElements: filtered.length, pageSize: size, pageNumber: page, content } }
+                this._restRows = { key: MateuTableCrud._initKeyOf(this.component), listing }
+                this.data = { ...this.data, [this.id]: listing }
                 this.requestUpdate()
                 callback?.()
             })
@@ -657,7 +656,36 @@ export class MateuTableCrud extends LitElement {
         this.handleSearchRequested(undefined)
     }
 
-    private _initializedForComponentId: string | undefined = undefined
+    private _initializedForKey: string | undefined = undefined
+
+    // What "a different listing" means for the one-time init below. The component id alone cannot
+    // say it: the server names EVERY listing that does not declare an id "crud" (CrudlMapper), so
+    // two YAML-authored screens — People and Planets — arrive under the same id, and navigating
+    // from one to the other looked like the same listing re-rendering. The external source is
+    // what actually distinguishes them, and it is exactly what the init has to act on, so it is
+    // part of the key.
+    private static _initKeyOf(component: ClientSideComponent | undefined): string | undefined {
+        if (!component) return undefined
+        const src = (component.metadata as Crud)?.rowsSource
+        return `${component.id}|${src ? (src.ref ?? src.url ?? '') : ''}`
+    }
+
+    // Rows fetched CLIENT-SIDE from an external source are kept here as well as in `data`, because
+    // `data` is a property the PARENT owns: after a navigation the shell re-renders and pushes its
+    // own (empty) data down, and it does so both before AND after the fetch resolves — so rows that
+    // no server response will ever bring back were being wiped, depending on which render landed
+    // last. That is what made a listing show up empty some of the time. They are re-applied only
+    // while the key still matches, so the previous screen's rows never surface under this one.
+    private _restRows: { key: string | undefined; listing: any } | undefined = undefined
+
+    protected willUpdate(_changedProperties: PropertyValues) {
+        super.willUpdate(_changedProperties)
+        if (!_changedProperties.has("data")) return
+        if (this.data?.[this.id] != undefined) return
+        const kept = this._restRows
+        if (!kept || kept.key !== MateuTableCrud._initKeyOf(this.component)) return
+        this.data = { ...this.data, [this.id]: kept.listing }
+    }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
@@ -680,12 +708,12 @@ export class MateuTableCrud extends LitElement {
         // on the component around it, so the only thing this element sees is that nobody has
         // answered for its id yet.
         if (this.data?.[this.id] != undefined) this.endLoading()
-        else if (this.loadingSince == undefined && this._initializedForComponentId != undefined
+        else if (this.loadingSince == undefined && this._initializedForKey != undefined
             && !this.awaitingRows) this.beginLoading()
         if (_changedProperties.has("component")) {
-            const componentId = this.component?.id
-            if (componentId !== this._initializedForComponentId) {
-                this._initializedForComponentId = componentId
+            const initKey = MateuTableCrud._initKeyOf(this.component)
+            if (initKey !== this._initializedForKey) {
+                this._initializedForKey = initKey
                 const metadata = this.component?.metadata as Crud
                 const defaultPage = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
                 this.state = this._initStateFromUrl(metadata, {
