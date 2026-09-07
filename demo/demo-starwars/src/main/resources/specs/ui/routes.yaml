@@ -8,6 +8,16 @@ routes:
     definition: app.yaml
   - route: people
     definition: people.yaml
+
+  # Create comes BEFORE the parameterised sibling so `people/new` is not read as an id.
+  - route: people/new
+    definition: person-new.yaml
+
+  # One record. `data:` names the source that fetches it; the id comes from the path, and the
+  # source's url interpolates it as ${state.id}.
+  - route: people/:id
+    definition: person.yaml
+    data: swapi-person
   - route: planets
     definition: planets.yaml
   - route: films

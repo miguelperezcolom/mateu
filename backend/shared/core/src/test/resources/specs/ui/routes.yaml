@@ -32,6 +32,12 @@ routes:
   - route: about
     definition: about.yaml
 
+  # A definition-only page that declares its own actions: the write half of the DSL.
+  - route: yaml-write
+    definition: yaml-write.yaml
+    state:
+      name: Leia
+
   # A parameterised route, and a static sibling that must not be swallowed by it.
   - route: orders/:id
     viewModel: com.acme.OrderDetail

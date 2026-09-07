@@ -27,6 +27,7 @@ public class ActionInstanceCreator {
   private final YamlUidlLoader yamlUidlLoader;
   private final YamlAppLoader yamlAppLoader;
   private final RouteRegistry routeRegistry;
+  private final RestSourceRegistry restSourceRegistry;
 
   Mono<?> createInstance(RunActionCommand command) {
     log.info("createInstance {}", command);
@@ -56,7 +57,17 @@ public class ActionInstanceCreator {
       return Mono.just(UIIncrementDto.builder().build());
     }
 
-    if (command.serverSideType() != null && !command.serverSideType().isEmpty()) {
+    // A definition-only page has no class to re-instantiate: what it IS lives in its YAML, and the
+    // wire's serverSideType is only the wrapper's name. Rebuilding it by type would produce a
+    // record
+    // with null components — no declared actions, no catalogue — so the round trip that a write
+    // needs
+    // (the client asks the server to make the proxied call) would answer for a page that no longer
+    // knows anything about itself. Re-resolve it from the route instead, which is where the truth
+    // is.
+    if (command.serverSideType() != null
+        && !command.serverSideType().isEmpty()
+        && !SeededYamlPage.class.getName().equals(command.serverSideType())) {
       return instantiateWithKnownType(command);
     }
 
@@ -124,7 +135,7 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
-      return Mono.justOrEmpty(seedBareLayout(spec.layout(), command));
+      return Mono.justOrEmpty(seedBareLayout(spec.layout(), spec.actions(), command));
     }
     return createInstanceAndPostHydrate(spec.modelView(), command);
   }
@@ -137,15 +148,29 @@ public class ActionInstanceCreator {
    * into the state and wrap the layout as a {@link SeededYamlPage} so the mapping emits that state
    * and the {@code __restdata__} OnLoad the resolver stashed on the request; otherwise the bare
    * layout is returned unchanged (a plain static page).
+   *
+   * <p>Declared {@code actions:} are a second reason to wrap: they have to reach the wire, and a
+   * bare layout carries none. A page that declares one is therefore never "plain static", even when
+   * its route seeds nothing.
    */
-  private Object seedBareLayout(io.mateu.uidl.fluent.Component layout, RunActionCommand command) {
+  private Object seedBareLayout(
+      io.mateu.uidl.fluent.Component layout,
+      java.util.List<io.mateu.uidl.fluent.Action> actions,
+      RunActionCommand command) {
     if (layout == null) {
       return null;
     }
+    var declaredActions =
+        actions == null ? java.util.List.<io.mateu.uidl.fluent.Action>of() : actions;
     var pathOnly = stripQuery(command.route());
     var match = routeRegistry.match(pathOnly).orElse(null);
     if (match == null || match.entry() == null) {
-      return layout; // no registry entry (e.g. convention-only page) → nothing to seed
+      // No registry entry (e.g. a convention-only page): nothing to seed, but declared actions
+      // still have to travel.
+      return declaredActions.isEmpty()
+          ? layout
+          : new SeededYamlPage(
+              layout, command.componentState(), declaredActions, restSourceRegistry.catalog());
     }
     var entry = match.entry();
     var httpRequest = command.httpRequest();
@@ -159,7 +184,7 @@ public class ActionInstanceCreator {
             || !entry.defaultParams().isEmpty()
             || !entry.fixedParams().isEmpty()
             || hasQueryParams;
-    if (!seeds) {
+    if (!seeds && declaredActions.isEmpty()) {
       return layout; // a static page: keep the bare-layout shape (unchanged wire)
     }
     var resolved =
@@ -167,7 +192,7 @@ public class ActionInstanceCreator {
     var state =
         RouteSegmentUtils.addParameterValues(
             command.componentState(), pathOnly, resolved, httpRequest);
-    return new SeededYamlPage(layout, state);
+    return new SeededYamlPage(layout, state, declaredActions, restSourceRegistry.catalog());
   }
 
   private static String stripQuery(String route) {

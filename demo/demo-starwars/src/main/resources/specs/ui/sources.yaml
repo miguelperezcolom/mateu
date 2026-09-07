@@ -84,3 +84,52 @@ sources:
         ?? '')}&hyperdriveRating_from=${state.hyperdriveRating_from ?? ''}&hyperdriveRating_to=${state.hyperdriveRating_to ?? ''}
       itemsPath: content
     totalPath: totalElements
+
+  # ── one record, and the three writes ─────────────────────────────────────────
+  # The reads are direct from the browser (the API is open for GET). The writes go through the
+  # PROXY: the key lives in ${secret.SWAPI_WRITE_KEY}, which the SERVER resolves from a
+  # SecretsProvider bean or, with none registered, from its environment — so it never reaches a
+  # browser and never enters this repository. A direct write could not do that: the client
+  # interpolator has no `secret` scope, by design.
+
+  - name: swapi-person
+    description: One character by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+
+  - name: swapi-person-create
+    description: Create a character
+    source:
+      url: https://swapi.ec1.mateu.io/api/people
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","height":"${state.height}","mass":"${state.mass}",
+        "hairColor":"${state.hairColor}","eyeColor":"${state.eyeColor}",
+        "birthYear":"${state.birthYear}","gender":"${state.gender}"}
+
+  - name: swapi-person-update
+    description: Replace a character
+    source:
+      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: >-
+        {"name":"${state.name}","height":"${state.height}","mass":"${state.mass}",
+        "hairColor":"${state.hairColor}","eyeColor":"${state.eyeColor}",
+        "birthYear":"${state.birthYear}","gender":"${state.gender}"}
+
+  - name: swapi-person-delete
+    description: Delete a character
+    source:
+      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}

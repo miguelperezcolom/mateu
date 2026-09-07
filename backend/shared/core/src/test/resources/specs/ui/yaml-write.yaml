@@ -1,0 +1,31 @@
+# A definition-only page that WRITES. No modelView, so there is no Java class anywhere behind it:
+# the button names an action the definition declares, and the action carries the REST call the
+# client makes itself.
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: Name
+    - type: Button
+      id: save-button
+      label: Save
+      actionId: save
+actions:
+  - id: save
+    restAction:
+      source:
+        url: https://example.test/api/people
+        method: POST
+        body: '{"name":"${state.name}"}'
+      successMessage: Saved
+      resultPath: ""
+  - id: remove
+    restAction:
+      source:
+        url: https://example.test/api/people/${state.id}
+        method: DELETE
+        proxy: true
+        headers:
+          X-Api-Key: ${secret.WRITE_KEY}
+      successMessage: Deleted

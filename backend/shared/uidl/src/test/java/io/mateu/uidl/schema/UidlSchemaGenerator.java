@@ -455,12 +455,48 @@ public final class UidlSchemaGenerator {
     sourcesProps.set("sources", sourceList);
     sourcesEnvelope.putArray("required").add("sources");
 
+    // Add Action (and RestAction, RestDataSource… under it) to the shared $defs. A definition may
+    // declare `actions:` beside its layout, which is what lets a page with NO view model call a
+    // REST
+    // endpoint: the client runs an action's `restAction` without a round trip, and this is where a
+    // classless page says it has one.
+    var actionGen = new UidlSchemaGenerator();
+    actionGen.defineValueRecord(io.mateu.uidl.fluent.Action.class);
+    actionGen.defs.forEach(defs::set);
+
+    var actionList = MAPPER.createObjectNode().put("type", "array");
+    actionList.putObject("items").put("$ref", "#/$defs/Action");
+
+    // A page definition IS a component, and may carry three keys of its own beside it. `allOf`
+    // rather than extra properties on the component: the component branch is a oneOf over 116
+    // shapes, and naming the extras separately keeps them out of every one of them.
+    var pageDefinition = MAPPER.createObjectNode();
+    var pageAllOf = pageDefinition.putArray("allOf");
+    pageAllOf.addObject().put("$ref", "#/$defs/Component");
+    var pageExtras = pageAllOf.addObject().put("type", "object");
+    var pageProps = pageExtras.putObject("properties");
+    pageProps
+        .putObject("modelView")
+        .put("type", "string")
+        .put(
+            "description",
+            "Fully-qualified class of the view model this definition binds to. Omit it on a"
+                + " definition shared by several routes — naming one means it can only ever serve"
+                + " that class. The route entry's `viewModel` is the place for the binding.");
+    pageProps.set("actions", actionList);
+    ((ObjectNode) pageProps.get("actions"))
+        .put(
+            "description",
+            "Actions this page exposes. An action carrying a `restAction` is run by the CLIENT"
+                + " against the declared endpoint — no view model and no server round trip — so a"
+                + " Button naming its id can create, update or delete a record.");
+
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);
     oneOf.add(routesEnvelope);
     oneOf.add(entryList.deepCopy()); // a bare list of route entries
     oneOf.add(sourcesEnvelope);
-    oneOf.add(MAPPER.createObjectNode().put("$ref", "#/$defs/Component")); // app shell / page
+    oneOf.add(pageDefinition); // app shell / page
     root.set("oneOf", oneOf);
 
     root.put("$id", "https://mateu.io/uidl/specs-schema.json");
