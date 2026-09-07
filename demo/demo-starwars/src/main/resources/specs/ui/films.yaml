@@ -1,6 +1,26 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: Films
+searchable: true
+filters:
+  - type: FormField
+    id: title
+    label: Title
+  - type: FormField
+    id: director
+    label: Director
+    stereotype: multiSelect
+    options:
+      - value: George Lucas
+        label: George Lucas
+      - value: Irvin Kershner
+        label: Irvin Kershner
+      - value: Richard Marquand
+        label: Richard Marquand
+  - type: FormField
+    id: release_date
+    label: Released
+    stereotype: dateRange
 rowsSource:
   ref: swapi-films
 columns:

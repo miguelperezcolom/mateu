@@ -160,6 +160,53 @@ try {
     )
   }
 
+  // The declared filters (people.yaml) are evaluated over the fetched rows: swapi.info is a static
+  // mirror that ignores `?search=`, so a listing reading it has nobody to ask and the conditions the
+  // filter bar collects have to be applied client-side or the bar is decoration. Driving the state
+  // directly is the same path the bar takes — it writes `<id>`, `<id>_from` and `<id>_to`.
+  await page.goto(`${BASE}/people`, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+
+  const applyFilters = (patch) =>
+    page.evaluate((values) => {
+      let el = null
+      const walk = (r) => {
+        const f = r.querySelector('mateu-table-crud')
+        if (f) el = f
+        r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+      }
+      walk(document)
+      if (!el) return false
+      el.state = { ...el.state, ...values }
+      el.handleSearchRequested(undefined)
+      return true
+    }, patch)
+
+  const rowNames = () =>
+    page.evaluate(() => {
+      let el = null
+      const walk = (r) => {
+        const f = r.querySelector('mateu-table-crud')
+        if (f) el = f
+        r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+      }
+      walk(document)
+      return (el?.data?.[el.id]?.page?.content ?? []).map((row) => row.name)
+    })
+
+  for (const c of [
+    { what: 'free text searches the visible columns', patch: { searchText: 'sky' }, expected: ['Luke Skywalker'] },
+    { what: 'a multi-select filter takes any picked value', patch: { searchText: '', gender: ['female'] }, expected: ['Leia Organa'] },
+    { what: 'a number range compares numerically, not as text', patch: { gender: [], height_from: '200' }, expected: ['Darth Vader'] },
+    { what: 'both ends of a range apply together', patch: { height_from: '150', height_to: '175' }, expected: ['Luke Skywalker', 'Leia Organa'] },
+    { what: 'text and filters combine — every condition holds', patch: { height_from: '', height_to: '', searchText: 'Skywalker', gender: ['male'] }, expected: ['Luke Skywalker'] },
+  ]) {
+    await applyFilters(c.patch)
+    await page.waitForTimeout(1500)
+    const got = await rowNames()
+    check(`filters: ${c.what}`, JSON.stringify(got) === JSON.stringify(c.expected), `got ${JSON.stringify(got)}`)
+  }
+
   await page.close()
 } finally {
   await browser.close()
