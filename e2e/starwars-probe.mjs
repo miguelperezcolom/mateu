@@ -44,10 +44,14 @@ const browser = await chromium.launch()
 try {
   const page = await browser.newPage()
   // Answer each SWAPI collection from a local fixture — deterministic, no live-host dependency.
+  // `fetched` records which collections were actually asked for, so a check can assert that a
+  // screen went and got ITS OWN rows rather than merely rendering someone else's.
+  const fetched = []
   for (const key of Object.keys(FIXTURES)) {
-    await page.route(`**/swapi.info/api/${key}**`, (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FIXTURES[key]) }),
-    )
+    await page.route(`**/swapi.info/api/${key}**`, (route) => {
+      fetched.push(key)
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FIXTURES[key]) })
+    })
   }
 
   const deepText = () =>
@@ -114,6 +118,47 @@ try {
     selected.name === 'Luke Skywalker' && selected.hair === 'blond',
     JSON.stringify(selected),
   )
+
+  // Navigating by MENU CLICK, which is not the same path as a URL load: the shell stays mounted and
+  // re-points the listing element in place. Every YAML listing arrives under the same component id
+  // ("crud" — CrudlMapper's fallback for a listing that declares none), so an element reused across
+  // two screens can look like the same listing re-rendering and skip fetching the new source. That
+  // is invisible to the URL-load cases above, and it left every screen after the first one empty.
+  await page.goto(BASE, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+
+  const clickMenu = (label) =>
+    page.evaluate((wanted) => {
+      const found = []
+      const walk = (r) =>
+        r.querySelectorAll('*').forEach((e) => {
+          if ((e.textContent || '').trim() === wanted && e.children.length === 0) found.push(e)
+          e.shadowRoot && walk(e.shadowRoot)
+        })
+      walk(document)
+      if (!found.length) return false
+      found[0].click()
+      return true
+    }, label)
+
+  for (const c of [
+    { label: 'Planets', route: 'planets', rows: 2, needle: 'Tatooine' },
+    { label: 'Films', route: 'films', rows: 2, needle: 'A New Hope' },
+    { label: 'People', route: 'people', rows: 3, needle: 'Luke Skywalker' },
+  ]) {
+    fetched.length = 0
+    const clicked = await clickMenu(c.label)
+    await page.waitForTimeout(4000)
+    const text = await deepText()
+    const len = await gridLen()
+    const path = new URL(page.url()).pathname
+    check(`menu "${c.label}" navigates to /${c.route}`, clicked && path === `/${c.route}`, `clicked=${clicked} url=${path}`)
+    check(
+      `menu "${c.label}" fetches its own source and renders "${c.needle}"`,
+      text.includes(c.needle) && len === c.rows && fetched.includes(c.route),
+      `rows=${len}/${c.rows} fetched=[${fetched}]`,
+    )
+  }
 
   await page.close()
 } finally {

@@ -43,7 +43,9 @@ const crud = (over: Record<string, any> = {}) => ({
     // Enough of a listing for updated() to walk its component-changed branch; none of it is
     // what these assertions are about.
     component: { id: 'c2', metadata: { initialPage: 0, pageSize: 10 } },
-    _initializedForComponentId: 'c2',
+    // The init guard keys off id + external source, not the id alone (two YAML listings share the
+    // id "crud"), so the stub has to look already-initialised under that same key.
+    _initializedForKey: 'c2|',
     state: {},
     _initStateFromUrl: (_metadata: unknown, state: any) => state,
     _filterIds: () => [] as string[],
