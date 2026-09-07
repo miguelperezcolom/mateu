@@ -1,6 +1,19 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: Planets
+searchable: true
+filters:
+  - type: FormField
+    id: name
+    label: Name
+  - type: FormField
+    id: climate
+    label: Climate
+  - type: FormField
+    id: diameter
+    label: Diameter (km)
+    dataType: integer
+    stereotype: numberRange
 rowsSource:
   ref: swapi-planets
 columns:

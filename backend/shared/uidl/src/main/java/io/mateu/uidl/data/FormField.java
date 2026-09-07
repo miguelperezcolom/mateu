@@ -58,6 +58,18 @@ public record FormField(
   }
 
   @Override
+  // A YAML-authored field declares only what it needs, so these two arrive null on a `filters:`
+  // entry that says nothing about them — and every mapper reads them by `.name()`. GridColumn
+  // already defends the same two; FormField did not, so a filter without a `dataType` answered the
+  // whole screen with a NullPointerException.
+  public FieldDataType dataType() {
+    return dataType != null ? dataType : FieldDataType.string;
+  }
+
+  public FieldStereotype stereotype() {
+    return stereotype != null ? stereotype : FieldStereotype.regular;
+  }
+
   public List<Option> options() {
     return options != null ? options : List.of();
   }

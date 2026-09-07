@@ -10,6 +10,7 @@ import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
 import { fetchExternalRows, mapItemsToRows } from '@infra/http/externalOptions.ts'
+import { filterExternalRows } from '@infra/http/restRowFilters.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -597,9 +598,11 @@ export class MateuTableCrud extends LitElement {
     }
 
     // Fetch the listing's rows from its external REST endpoint and shape them into the page the
-    // renderer expects (one object per row keyed by column id). Free-text search and pagination are
-    // applied IN MEMORY over the fetched rows (the interpolated url also carries ${searchText}/
-    // ${page}/${size}, so an endpoint that supports server-side search/paging gets them too).
+    // renderer expects (one object per row keyed by column id). The free-text search, the DECLARED
+    // FILTERS and pagination are applied IN MEMORY over the fetched rows — a listing reading
+    // somebody else's endpoint has no `CrudStore.find` to ask, so without this its filter bar would
+    // be decoration. (The interpolated url also carries ${searchText}/${page}/${size}, so an
+    // endpoint that does support server-side search/paging gets them too and simply returns less.)
     private _fetchRowsFromRest = (metadata: Crud, callback: (() => void) | undefined) => {
         const columnIds = this.cols.map(c => c.id).filter(Boolean)
         const src = metadata.rowsSource!
@@ -622,10 +625,7 @@ export class MateuTableCrud extends LitElement {
             : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
         rowsPromise
             .then((rows) => {
-                const q = String((this.state as any)?.searchText ?? '').trim().toLowerCase()
-                const filtered = q
-                    ? rows.filter(r => columnIds.some(id => String(r[id] ?? '').toLowerCase().includes(q)))
-                    : rows
+                const filtered = filterExternalRows(rows, columnIds, metadata.filters, this.state)
                 const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
                 const page = Number((this.state as any)?.page ?? 0)
                 const content = filtered.slice(page * size, page * size + size)

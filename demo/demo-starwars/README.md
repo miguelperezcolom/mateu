@@ -26,6 +26,14 @@ Each page is a `type: Listing` with a `rowsSource: { ref: … }`. The browser re
 the catalogue, fetches the endpoint directly (swapi.info sends `Access-Control-Allow-Origin: *`, so no
 proxy is needed), and each column reads its field by id. No server search action, no view model.
 
+**Search criteria** — each listing declares `searchable: true` and a `filters:` list, as data like
+everything else: a text filter, a `multiSelect` (People's gender, Films' director) and a range
+(`numberRange` on height/diameter, `dateRange` on release date). swapi.info is a **static mirror**
+that ignores query parameters — `?search=luke` returns all 82 people, verified — so the conditions
+are evaluated over the fetched rows by the renderer, which is what a listing reading somebody else's
+endpoint has to do when there is no `CrudStore.find` to ask. Point `sources.yaml` at an endpoint that
+does filter server-side and its url can carry `${searchText}` instead, with no change to the pages.
+
 **Person detail** — the People page is a `gridLayout: masterDetail` listing: clicking a person shows
 their full record in the detail pane, entirely from the already-fetched rows (no re-fetch, no id).
 This is the fully-declarative detail that swapi.info's shape allows: its list rows carry no numeric
