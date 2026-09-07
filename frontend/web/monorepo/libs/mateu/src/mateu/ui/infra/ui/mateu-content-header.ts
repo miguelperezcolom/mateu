@@ -13,6 +13,7 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
+import { navigateToRoute } from './rowRoute'
 
 export { possiblyHtml } from './interpolation'
 
@@ -114,10 +115,18 @@ export class MateuContentHeader extends LitElement {
         if (overflowing && this._overflowN < this._secCount) this._overflowN += 1
     }
 
-    handleButtonClick = (actionId: string) => {
+    handleButtonClick = (button: Button) => {
         this._overflowOpen = false
+        // A header button (a back chevron, a "New") carrying a route NAVIGATES on the client instead
+        // of running a server action — so a pure-DSL page reaches its sibling screens with no view
+        // model behind it. The `${state.x}` template is resolved against the page state.
+        const route = button.route ? interpolate(button.route, this.state, this.data) : undefined
+        if (route && !route.includes('${')) {
+            navigateToRoute(this, route)
+            return
+        }
         this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: { actionId },
+            detail: { actionId: button.actionId },
             bubbles: true,
             composed: true
         }))
@@ -139,7 +148,7 @@ export class MateuContentHeader extends LitElement {
                 data-action-id="${button.id}"
                 title="${label}"
                 aria-label="${label}"
-                @click="${() => this.handleButtonClick(button.actionId)}">
+                @click="${() => this.handleButtonClick(button)}">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor"
                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -153,7 +162,7 @@ export class MateuContentHeader extends LitElement {
         // Renderers with their own design system (Redwood, SLDS…) provide the button through
         // the renderToolbarButton hook; the Vaadin default stays here.
         const custom = componentRenderer.get()?.renderToolbarButton?.(
-            button, label, () => this.handleButtonClick(button.actionId))
+            button, label, () => this.handleButtonClick(button))
         if (custom) {
             return custom
         }
@@ -162,7 +171,7 @@ export class MateuContentHeader extends LitElement {
         return html`
         <button class="mtb ${neutralButtonClass(button)}"
                 data-action-id="${button.id}"
-                @click="${() => this.handleButtonClick(button.actionId)}"
+                @click="${() => this.handleButtonClick(button)}"
                 ?disabled="${button.disabled}"
         >${label}</button>
     `
@@ -193,7 +202,7 @@ export class MateuContentHeader extends LitElement {
                                 ${menu.map(b => html`
                                     <button class="overflow-item" ?disabled="${b.disabled}"
                                             data-action-id="${b.actionId}"
-                                            @click="${() => this.handleButtonClick(b.actionId)}">${this.evalLabel(b.label)}</button>
+                                            @click="${() => this.handleButtonClick(b)}">${this.evalLabel(b.label)}</button>
                                 `)}
                             </div>
                         ` : nothing}

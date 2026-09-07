@@ -1,8 +1,7 @@
-# READ-ONLY view of one record (route planets/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# EDIT form for one record (route planets/:id/edit) — editable + Save/Delete, < back to the view.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-title: ${state.name}
+title: Edit ${state.name}
 subtitle: Planet
 toolbar:
 - type: Button
@@ -10,13 +9,7 @@ toolbar:
   label: Back
   actionable:
     type: RouteLink
-    route: planets
-- type: Button
-  label: Edit
-  buttonStyle: primary
-  actionable:
-    type: RouteLink
-    route: planets/${state.id}/edit
+    route: planets/${state.id}
 content:
 - type: FormLayout
   content:
@@ -24,41 +17,56 @@ content:
     id: name
     label: Name
     required: true
-    readOnly: true
   - type: FormField
     id: climate
     label: Climate
-    readOnly: true
   - type: FormField
     id: terrain
     label: Terrain
-    readOnly: true
   - type: FormField
     id: gravity
     label: Gravity
-    readOnly: true
   - type: FormField
     id: diameter
     label: Diameter (km)
     dataType: integer
-    readOnly: true
   - type: FormField
     id: population
     label: Population
     dataType: number
-    readOnly: true
   - type: FormField
     id: rotationPeriod
     label: Rotation period (h)
     dataType: integer
-    readOnly: true
   - type: FormField
     id: orbitalPeriod
     label: Orbital period (d)
     dataType: integer
-    readOnly: true
   - type: FormField
     id: surfaceWater
     label: Surface water (%)
     dataType: number
-    readOnly: true
+buttons:
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
+- type: Button
+  label: Delete
+  actionId: delete
+  color: error
+actions:
+- id: save
+  validationRequired: true
+  restAction:
+    source:
+      ref: swapi-planet-update
+    successMessage: Saved
+- id: delete
+  confirmationRequired: true
+  confirmationTexts:
+    message: This deletes the record. It comes back on the next restart of the API.
+  restAction:
+    source:
+      ref: swapi-planet-delete
+    successMessage: Deleted

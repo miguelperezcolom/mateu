@@ -1,8 +1,7 @@
-# READ-ONLY view of one record (route films/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# EDIT form for one record (route films/:id/edit) — editable + Save/Delete, < back to the view.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-title: ${state.title}
+title: Edit ${state.title}
 subtitle: Film
 toolbar:
 - type: Button
@@ -10,13 +9,7 @@ toolbar:
   label: Back
   actionable:
     type: RouteLink
-    route: films
-- type: Button
-  label: Edit
-  buttonStyle: primary
-  actionable:
-    type: RouteLink
-    route: films/${state.id}/edit
+    route: films/${state.id}
 content:
 - type: FormLayout
   content:
@@ -24,26 +17,44 @@ content:
     id: title
     label: Title
     required: true
-    readOnly: true
   - type: FormField
     id: episodeId
     label: Episode
     dataType: integer
-    readOnly: true
   - type: FormField
     id: director
     label: Director
-    readOnly: true
   - type: FormField
     id: producer
     label: Producer
-    readOnly: true
   - type: FormField
     id: releaseDate
     label: Released
     dataType: date
-    readOnly: true
   - type: FormField
     id: openingCrawl
     label: Opening crawl
-    readOnly: true
+buttons:
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
+- type: Button
+  label: Delete
+  actionId: delete
+  color: error
+actions:
+- id: save
+  validationRequired: true
+  restAction:
+    source:
+      ref: swapi-film-update
+    successMessage: Saved
+- id: delete
+  confirmationRequired: true
+  confirmationTexts:
+    message: This deletes the record. It comes back on the next restart of the API.
+  restAction:
+    source:
+      ref: swapi-film-delete
+    successMessage: Deleted

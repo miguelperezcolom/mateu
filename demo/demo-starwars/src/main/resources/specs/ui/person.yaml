@@ -1,70 +1,32 @@
-# A record page with NO Java class behind it: the route's `data:` fetches the record into the page
-# state, the fields bind to that state by id, and the buttons name actions this file declares — each
-# carrying the REST call the client makes itself.
-#
-# Detail and edit are the same screen on purpose. Splitting them would need a third route and a way
-# to carry the id into a link; one editable page is the smaller thing that actually works, and it is
-# what a record page usually is.
+# The READ-ONLY view of one character (route people/:id). The route's `data:` fetches the record
+# into the page state; the fields show it, read-only. The header carries the way back (a < chevron
+# before the title) and the way in to editing (Edit → people/:id/edit) — buttons that NAVIGATE
+# because their actionable is a RouteLink, no view model behind the screen.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: ${state.name}
 subtitle: Character
-content:
-  - type: FormLayout
-    content:
-      - type: FormField
-        id: name
-        label: Name
-        required: true
-      - type: FormField
-        id: gender
-        label: Gender
-      - type: FormField
-        id: birthYear
-        label: Birth year
-      - type: FormField
-        id: height
-        label: Height (cm)
-        dataType: integer
-      - type: FormField
-        id: mass
-        label: Mass (kg)
-        dataType: number
-      - type: FormField
-        id: hairColor
-        label: Hair
-      - type: FormField
-        id: eyeColor
-        label: Eyes
-      - type: FormField
-        id: homeworldName
-        label: Homeworld
-        readOnly: true
-buttons:
+toolbar:
   - type: Button
-    label: Save
-    actionId: save
-    buttonStyle: primary
-  - type: Button
-    label: Delete
-    actionId: delete
-  - type: Button
-    label: Back to the list
+    actionId: backToList        # a back id renders as a < chevron before the title
+    label: Back to People
     actionable:
       type: RouteLink
       route: people
-actions:
-  - id: save
-    validationRequired: true
-    restAction:
-      source:
-        ref: swapi-person-update
-      successMessage: Saved
-  - id: delete
-    confirmationRequired: true
-    confirmationTexts:
-      message: This deletes the character. It comes back on the next restart of the API.
-    restAction:
-      source:
-        ref: swapi-person-delete
-      successMessage: Deleted
+  - type: Button
+    label: Edit
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: people/${state.id}/edit
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, readOnly: true}
+      - {type: FormField, id: gender, label: Gender, readOnly: true}
+      - {type: FormField, id: birthYear, label: Birth year, readOnly: true}
+      - {type: FormField, id: height, label: Height (cm), dataType: integer, readOnly: true}
+      - {type: FormField, id: mass, label: Mass (kg), dataType: number, readOnly: true}
+      - {type: FormField, id: hairColor, label: Hair, readOnly: true}
+      - {type: FormField, id: eyeColor, label: Eyes, readOnly: true}
+      - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true}
