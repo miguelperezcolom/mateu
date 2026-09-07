@@ -132,6 +132,46 @@ the one-to-one case.
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
   `viewModel` and `view_model`. User docs: `doc/.../java-ui-definition/route-registry.md`.
 
+### Writing from YAML — `actions:` on a definition (2026-09-07)
+
+A definition-only page (a route with `definition:` and no `viewModel:`) can now **write**. The whole
+mechanism already existed and was wired end to end — a `fluent.Action` carries a `restAction`, the
+wire carries it, `mateu-component.handleRestAction` runs it against the endpoint with **no server
+round trip** — but only a Java `@RestAction` method could attach one. The door is **`actions:` beside
+`layout:`** in the definition (not on the route: an action belongs to the SCREEN, and a definition
+serving two routes must not repeat it). `YamlUidlLoader.actionsOf` parses it; `SeededYamlPage`
+supplies it.
+
+- **`SeededYamlPage` returns the DECLARED actions, never the `ActionSupplier` default `"*"`** — that
+  wildcard tells the client every action is claimed and dispatched to the server, exactly wrong for a
+  page with no server behind it. It is also a **`RestSourceSupplier`**, which is what makes a write
+  safe: the proxy resolves a source by asking the instance, a classless page had nothing to answer
+  with, and **proxy is the ONLY channel that injects `${secret.KEY}`** (`RunActionUseCase.resolveSecret`
+  → a `SecretsProvider` bean, else `System.getenv`) — so an API key can stay off the browser.
+- **`proxy` must be read off the RESOLVED source, not the declared one.** A surface naming a catalogue
+  entry by `ref` carries only the name, so a by-ref proxied call looked direct: it ran in the browser,
+  where the interpolator has no `secret` scope, and the key travelled as its own placeholder → 401.
+  Fixed on the server (`SeededYamlPage.resolved`) and the client (`handleRestAction`, `mateu-table-crud`).
+- **A definition-only page is rebuilt from its ROUTE, not from the wire's `serverSideType`** — by type
+  it comes back with null components (no actions, no catalogue) and the proxy round trip NPEs.
+- **`UserTrigger` had no polymorphic mixin**: `toolbar:`/`buttons:` were advertised by the generated
+  schema and rejected by Jackson, so the whole definition failed to parse and the page answered
+  `"Not found."` — indistinguishable from a route that was never declared. The schema and
+  `YamlUidlMapperFactory` have to agree on what is authorable.
+- **GOTCHA: `dataType: decimal` does not exist** (integer, string, number, date, time, dateTime, bool,
+  array, file, status, money, component, menu, range, action, actionGroup). An unparseable definition
+  does not report itself — same silent `"Not found."`.
+- **`Listing.rowRoute`** (`people/${row.id}`) is the way IN to a record: a listing without a view model
+  could only offer `gridLayout: masterDetail`, a pane painted from the fetched row — not addressable,
+  not shareable, gone on reload. It navigates with the shared `route-changed`+`navigate-to-requested`
+  pair, resolves the clicked row through **`grid.getEventContext(event)`** (`activeItem` stays null on
+  an ordinary click, so an `active-item-changed` listener never hears one), and `rowRouteFields` adds
+  the template's fields to the fetched row — a row carries only its visible columns, and nobody wants
+  an id column. Demo: `demo/demo-starwars` (`person.yaml`, `person-new.yaml`), a full CRUD with no Java
+  beyond the Spring Boot main, against `swapi.ec1.mateu.io` (github.com/miguelperezcolom/swapi-service,
+  a writable clone: H2 in memory re-seeded at boot, reads open, writes behind `X-Api-Key`).
+  Tests: `YamlDeclaredActionsSyncTest`.
+
 ### REST source catalogue (`specs/ui/sources.yaml`) — 2026-08-19
 
 A **named endpoint**, declared once, that any surface references instead of repeating its URL:
