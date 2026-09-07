@@ -520,6 +520,15 @@ export class MateuComponent extends ComponentElement {
     handleRestAction = (rest: RestActionDto, actionId?: string) => {
         // Merge the fetched object (at resultPath) into the form state and toast — shared by the
         // direct and proxy paths, so a @RestAction/@RestData behaves the same either way.
+        // Toast + navigate on success. Shared by the single-call path (after the response merges)
+        // and the bulk path (once, after every row). A successRoute still holding ${ (an id the
+        // response never supplied) is left alone; pointed back at the listing it reloads it.
+        const announce = () => {
+            const msg = interpolate(rest.successMessage, this.state, this.data)
+            if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
+            const route = interpolate(rest.successRoute, this.state, this.data)
+            if (route && !route.includes('${')) navigateToRoute(this, route)
+        }
         const applyResult = (json: unknown) => {
             if (rest.resultPath != null) {
                 const merged = getByPath(json, rest.resultPath)
@@ -527,25 +536,52 @@ export class MateuComponent extends ComponentElement {
                     this.state = { ...this.state, ...(merged as Record<string, unknown>) }
                 }
             }
-            const msg = interpolate(rest.successMessage, this.state, this.data)
-            if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
-            // Navigate on success (e.g. an edit form's Save → its read-only view). Interpolated with
-            // the merged response already applied, so ${state.id} of a just-created record resolves.
-            // A template still carrying ${ (an id the response never supplied) is left alone.
-            const route = interpolate(rest.successRoute, this.state, this.data)
-            if (route && !route.includes('${')) navigateToRoute(this, route)
+            announce()
         }
-        // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via the
-        // reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
-        // @RestData source; any other id is a @RestAction method — hence the source kind.
-        //
+        const onError = (e: unknown) => {
+            console.warn('mateu: rest action failed', e)
+            showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+        }
         // Whether a call is proxied is read off the RESOLVED source, not the declared one: a surface
         // that names a catalogue entry by `ref` carries nothing but the name, and proxying is a fact
         // about the endpoint, declared once in the catalogue. Reading the flag before resolving sent
         // every by-ref call down the direct path — where `${secret.X}` does not exist, so the header
         // travelled as its own placeholder and the endpoint answered 401.
-        if (resolveRestSource(rest.source)?.proxy) {
-            const kind = actionId === '__restdata__' ? 'data' : 'action'
+        const isProxy = !!resolveRestSource(rest.source)?.proxy
+        const kind = actionId === '__restdata__' ? 'data' : 'action'
+
+        // Bulk: run the call once per checked row (crud_selected_items). For a PROXY source the loop
+        // runs server-side (one __restfetch__ with _forEachSelectedRow — one round trip, the secret
+        // stays on the server, and the client's write-exclusivity guard would otherwise drop all but
+        // the first of N identical actions). For a DIRECT source the browser loops: a raw fetch does
+        // not pass through that guard, so the calls can run concurrently. Either way, announce once.
+        if (rest.forEachSelectedRow) {
+            const rows = (this.state['crud_selected_items'] as Record<string, unknown>[] | undefined) ?? []
+            if (!rows.length) { this.notify('You first need to select some rows'); return }
+            if (isProxy) {
+                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: '__restfetch__',
+                        parameters: { _sourceKind: kind, _sourceId: actionId, _forEachSelectedRow: true },
+                        callback: () => announce(),
+                        callbackonly: true
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+                return
+            }
+            Promise.all(rows.map(row =>
+                fetchExternalJson(rest.source, (t: string | undefined) => interpolate(t, { ...this.state, ...row }, this.data))))
+                .then(() => announce())
+                .catch(onError)
+            return
+        }
+
+        // Single call. Proxy mode routes through the Mateu server (no CORS, secrets injected
+        // server-side) via the reserved __restfetch__ action; the __restdata__ (screen-load) id
+        // resolves the class @RestData source, any other id is a @RestAction method.
+        if (isProxy) {
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: '__restfetch__',
@@ -561,10 +597,7 @@ export class MateuComponent extends ComponentElement {
         const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
         fetchExternalJson(rest.source, resolve)
             .then(applyResult)
-            .catch((e) => {
-                console.warn('mateu: rest action failed', e)
-                showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
-            })
+            .catch(onError)
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {

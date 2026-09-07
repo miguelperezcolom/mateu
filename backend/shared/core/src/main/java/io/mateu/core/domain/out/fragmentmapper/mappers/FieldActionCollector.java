@@ -180,7 +180,8 @@ final class FieldActionCollector {
         source,
         a.successMessage().isEmpty() ? null : a.successMessage(),
         a.resultPath().isEmpty() ? null : a.resultPath(),
-        a.successRoute().isEmpty() ? null : a.successRoute());
+        a.successRoute().isEmpty() ? null : a.successRoute(),
+        a.forEachSelectedRow());
   }
 
   private static String getConstrainedFieldNames(Field listField) {

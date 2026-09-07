@@ -17,6 +17,13 @@ package io.mateu.dtos;
  *     merges nothing (fire-and-toast)
  * @param successRoute a route the client navigates to after a 2xx (interpolated against the state,
  *     with the merged response already applied); blank stays on the page
+ * @param forEachSelectedRow when true, the call runs once per selected listing row ({@code
+ *     crud_selected_items}), each row as the interpolation scope — a per-id endpoint becomes a bulk
+ *     operation over the checked rows
  */
 public record RestActionDto(
-    RestDataSourceDto source, String successMessage, String resultPath, String successRoute) {}
+    RestDataSourceDto source,
+    String successMessage,
+    String resultPath,
+    String successRoute,
+    boolean forEachSelectedRow) {}

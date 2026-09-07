@@ -8,6 +8,15 @@ package io.mateu.uidl.data;
  * successful call — interpolated against the form state (with the merged response already applied),
  * so an edit form's Save can land on {@code people/${state.id}}, its own read-only view. The action
  * counterpart of {@code @RestOptions}/{@code @RestListing}.
+ *
+ * <p>When {@code forEachSelectedRow} is true the call is run ONCE PER SELECTED ROW of the listing
+ * (the {@code crud_selected_items} of the component state), with that row as the interpolation
+ * scope — so a per-id endpoint like {@code DELETE people/${state.id}} becomes a bulk delete of the
+ * checked rows. Pair it with {@code successRoute} pointing back at the listing to reload it.
  */
 public record RestAction(
-    RestDataSource source, String successMessage, String resultPath, String successRoute) {}
+    RestDataSource source,
+    String successMessage,
+    String resultPath,
+    String successRoute,
+    boolean forEachSelectedRow) {}

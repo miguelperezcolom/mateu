@@ -38,6 +38,10 @@ routes:
     state:
       name: Leia
 
+  # A definition-only Listing whose Delete acts on the SELECTED rows (bulk restAction).
+  - route: bulk-list
+    definition: bulk-list.yaml
+
   # A parameterised route, and a static sibling that must not be swallowed by it.
   - route: orders/:id
     viewModel: com.acme.OrderDetail

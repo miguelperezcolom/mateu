@@ -5919,6 +5919,12 @@
         },
         "resultPath" : {
           "type" : "string"
+        },
+        "successRoute" : {
+          "type" : "string"
+        },
+        "forEachSelectedRow" : {
+          "type" : "boolean"
         }
       }
     }

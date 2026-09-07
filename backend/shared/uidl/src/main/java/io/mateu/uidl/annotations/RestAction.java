@@ -75,6 +75,14 @@ public @interface RestAction {
   String successRoute() default "";
 
   /**
+   * Run the call ONCE PER SELECTED ROW of the listing ({@code crud_selected_items}), each row as
+   * the interpolation scope — so a per-id endpoint like {@code DELETE .../people/${state.id}}
+   * becomes a bulk delete of the checked rows. Pair with {@link #successRoute()} back at the
+   * listing to reload it. Default false.
+   */
+  boolean forEachSelectedRow() default false;
+
+  /**
    * Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser: no CORS, and
    * {@code ${secret.X}} auth is injected server-side from a {@code SecretsProvider}. Default false.
    */

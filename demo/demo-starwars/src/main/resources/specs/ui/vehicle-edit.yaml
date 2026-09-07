@@ -57,10 +57,6 @@ buttons:
   label: Save
   actionId: save
   buttonStyle: primary
-- type: Button
-  label: Delete
-  actionId: delete
-  color: error
 actions:
 - id: save
   validationRequired: true
@@ -69,11 +65,3 @@ actions:
       ref: swapi-vehicle-update
     successMessage: Saved
     successRoute: vehicles/${state.id}
-- id: delete
-  confirmationRequired: true
-  confirmationTexts:
-    message: This deletes the record. It comes back on the next restart of the API.
-  restAction:
-    source:
-      ref: swapi-vehicle-delete
-    successMessage: Deleted

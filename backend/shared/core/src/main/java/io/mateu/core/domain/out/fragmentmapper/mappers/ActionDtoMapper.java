@@ -45,7 +45,11 @@ final class ActionDtoMapper {
     }
     var sourceDto = FieldMapper.mapRestDataSource(restAction.source());
     return new io.mateu.dtos.RestActionDto(
-        sourceDto, restAction.successMessage(), restAction.resultPath(), restAction.successRoute());
+        sourceDto,
+        restAction.successMessage(),
+        restAction.resultPath(),
+        restAction.successRoute(),
+        restAction.forEachSelectedRow());
   }
 
   private static ConfirmationTextsDto mapConfirmationTexts(ConfirmationTexts confirmationTexts) {

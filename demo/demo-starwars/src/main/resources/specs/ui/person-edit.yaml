@@ -28,10 +28,6 @@ buttons:
     label: Save
     actionId: save
     buttonStyle: primary
-  - type: Button
-    label: Delete
-    actionId: delete
-    color: error
 actions:
   - id: save
     validationRequired: true
@@ -41,11 +37,3 @@ actions:
       successMessage: Saved
       # After saving, land on the record's own read-only view.
       successRoute: people/${state.id}
-  - id: delete
-    confirmationRequired: true
-    confirmationTexts:
-      message: This deletes the character. It comes back on the next restart of the API.
-    restAction:
-      source:
-        ref: swapi-person-delete
-      successMessage: Deleted

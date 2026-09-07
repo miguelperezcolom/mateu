@@ -92,7 +92,7 @@ final class RestDataSupport {
             .build();
     // resultPath stays as declared: blank means "merge the whole response object" (getByPath with
     // an empty path is identity on the frontend), a path narrows to that sub-object.
-    return new RestAction(source, null, a.resultPath(), null);
+    return new RestAction(source, null, a.resultPath(), null, false);
   }
 
   /**
@@ -101,6 +101,6 @@ final class RestDataSupport {
    * frontend).
    */
   static RestAction restActionOf(RestDataSource source) {
-    return new RestAction(source, null, "", null);
+    return new RestAction(source, null, "", null, false);
   }
 }

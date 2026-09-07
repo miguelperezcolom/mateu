@@ -6,6 +6,13 @@ title: Vehicles
 pageSize: 20
 # A row is the entrance to the record: its own URL, shareable and surviving a reload.
 rowRoute: vehicles/${row.id}
+# Check rows and Delete them in the listing (bulk), instead of one at a time from the edit form.
+rowsSelectionEnabled: true
+toolbar:
+  - type: Button
+    label: Delete selected
+    color: error
+    actionId: delete-selected
 searchable: true
 filters:
   - type: FormField
@@ -44,3 +51,17 @@ columns:
   - type: GridColumn
     id: costInCredits
     label: Cost (credits)
+# Delete acts on the CHECKED rows: forEachSelectedRow runs the per-id delete once per selection
+# (server-side, since it carries a secret), then successRoute reloads the listing.
+actions:
+  - id: delete-selected
+    rowsSelectedRequired: true
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the selected records. They come back on the next restart of the API.
+    restAction:
+      forEachSelectedRow: true
+      source:
+        ref: swapi-vehicle-delete
+      successMessage: Deleted
+      successRoute: vehicles
