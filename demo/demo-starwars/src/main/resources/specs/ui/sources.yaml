@@ -51,3 +51,36 @@ sources:
         ?? '')}&releaseDate_from=${state.releaseDate_from ?? ''}&releaseDate_to=${state.releaseDate_to ?? ''}
       itemsPath: content
     totalPath: totalElements
+
+  - name: swapi-species
+    description: Sentient and non-sentient species
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/species?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&classification=${encodeURIComponent(state.classification
+        ?? '')}&averageLifespan_from=${state.averageLifespan_from ?? ''}&averageLifespan_to=${state.averageLifespan_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: swapi-vehicles
+    description: Craft without hyperdrive
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/vehicles?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&vehicleClass=${encodeURIComponent(state.vehicleClass
+        ?? '')}&costInCredits_from=${state.costInCredits_from ?? ''}&costInCredits_to=${state.costInCredits_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: swapi-starships
+    description: Craft with hyperdrive
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/starships?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&starshipClass=${encodeURIComponent(state.starshipClass
+        ?? '')}&hyperdriveRating_from=${state.hyperdriveRating_from ?? ''}&hyperdriveRating_to=${state.hyperdriveRating_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements

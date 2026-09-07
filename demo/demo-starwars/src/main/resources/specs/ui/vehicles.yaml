@@ -1,0 +1,44 @@
+# `vehicleClass` is a plain text filter, not a select: the data holds "wheeled walker" and "assault
+# walker" as well as "walker", so the API matches it by containment and "walker" finds all three.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Vehicles
+pageSize: 20
+searchable: true
+filters:
+  - type: FormField
+    id: name
+    label: Name
+  - type: FormField
+    id: vehicleClass
+    label: Class
+  - type: FormField
+    id: costInCredits
+    label: Cost (credits)
+    dataType: integer
+    stereotype: numberRange
+rowsSource:
+  ref: swapi-vehicles
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+    identifier: true
+  - type: GridColumn
+    id: model
+    label: Model
+  - type: GridColumn
+    id: manufacturer
+    label: Manufacturer
+  - type: GridColumn
+    id: vehicleClass
+    label: Class
+  - type: GridColumn
+    id: crew
+    label: Crew
+  - type: GridColumn
+    id: passengers
+    label: Passengers
+  - type: GridColumn
+    id: costInCredits
+    label: Cost (credits)

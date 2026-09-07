@@ -37,6 +37,18 @@ const ROWS = {
     { id: 1, episodeId: 4, title: 'A New Hope', director: 'George Lucas', producer: 'Gary Kurtz', releaseDate: '1977-05-25' },
     { id: 2, episodeId: 5, title: 'The Empire Strikes Back', director: 'Irvin Kershner', producer: 'Gary Kurtz', releaseDate: '1980-05-17' },
   ],
+  species: [
+    { id: 1, name: 'Wookiee', classification: 'mammal', designation: 'sentient', language: 'Shyriiwook', averageHeight: 210, averageLifespan: 400, homeworldId: 14, homeworldName: 'Kashyyyk' },
+    { id: 2, name: 'Droid', classification: 'artificial', designation: 'sentient', language: 'n/a', averageHeight: null, averageLifespan: null },
+  ],
+  vehicles: [
+    { id: 1, name: 'AT-AT', model: 'All Terrain Armored Transport', manufacturer: 'Kuat Drive Yards', vehicleClass: 'assault walker', crew: '5', passengers: 40, costInCredits: null },
+    { id: 2, name: 'Snowspeeder', model: 't-47 airspeeder', manufacturer: 'Incom corporation', vehicleClass: 'airspeeder', crew: '2', passengers: 0, costInCredits: null },
+  ],
+  starships: [
+    { id: 1, name: 'Millennium Falcon', model: 'YT-1300 light freighter', manufacturer: 'Corellian Engineering Corporation', starshipClass: 'Light freighter', hyperdriveRating: 0.5, mglt: 75, passengers: 6 },
+    { id: 2, name: 'X-wing', model: 'T-65 X-wing', manufacturer: 'Incom Corporation', starshipClass: 'Starfighter', hyperdriveRating: 1.0, mglt: 100, passengers: 0 },
+  ],
 }
 
 /**
@@ -53,6 +65,12 @@ const envelope = (key, url) => {
   if (gender.length) rows = rows.filter(r => gender.includes(r.gender))
   const from = q.get('height_from')
   if (from) rows = rows.filter(r => Number(r.height) >= Number(from))
+  for (const field of ['vehicleClass', 'starshipClass']) {
+    const wanted = (q.get(field) ?? '').toLowerCase()
+    if (wanted) rows = rows.filter(r => String(r[field] ?? '').toLowerCase().includes(wanted))
+  }
+  const classification = (q.get('classification') ?? '').split(',').filter(Boolean)
+  if (classification.length) rows = rows.filter(r => classification.includes(r.classification))
   return { content: rows, totalElements: rows.length, totalPages: 1, page: 0, size: 20 }
 }
 
@@ -103,10 +121,16 @@ try {
       return el?.data?.[el.id]?.page?.content?.length ?? 0
     })
 
+  // All six collections the service publishes — the app is only complete if every one of them is
+  // reachable and mapped, and a page that renders its chrome with no rows looks identical to a
+  // working one until you count.
   const cases = [
     { route: 'people', rows: 3, needle: 'Luke Skywalker' },
     { route: 'planets', rows: 2, needle: 'Tatooine' },
     { route: 'films', rows: 2, needle: 'A New Hope' },
+    { route: 'species', rows: 2, needle: 'Wookiee' },
+    { route: 'vehicles', rows: 2, needle: 'Snowspeeder' },
+    { route: 'starships', rows: 2, needle: 'Millennium Falcon' },
   ]
 
   for (const c of cases) {
@@ -170,6 +194,9 @@ try {
   for (const c of [
     { label: 'Planets', route: 'planets', rows: 2, needle: 'Tatooine' },
     { label: 'Films', route: 'films', rows: 2, needle: 'A New Hope' },
+    { label: 'Species', route: 'species', rows: 2, needle: 'Wookiee' },
+    { label: 'Vehicles', route: 'vehicles', rows: 2, needle: 'Snowspeeder' },
+    { label: 'Starships', route: 'starships', rows: 2, needle: 'Millennium Falcon' },
     { label: 'People', route: 'people', rows: 3, needle: 'Luke Skywalker' },
   ]) {
     fetched.length = 0

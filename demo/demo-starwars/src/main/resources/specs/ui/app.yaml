@@ -3,7 +3,7 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: AppShell
 title: Star Wars
-subtitle: A Mateu app authored entirely in YAML, powered by the public Star Wars API
+subtitle: A Mateu app authored entirely in YAML, over a Star Wars API that searches, filters and pages
 variant: MENU_ON_TOP
 menu:
   - type: RouteLink
@@ -18,3 +18,15 @@ menu:
     label: Films
     route: films
     icon: vaadin:film
+  - type: RouteLink
+    label: Species
+    route: species
+    icon: vaadin:group
+  - type: RouteLink
+    label: Vehicles
+    route: vehicles
+    icon: vaadin:car
+  - type: RouteLink
+    label: Starships
+    route: starships
+    icon: vaadin:rocket

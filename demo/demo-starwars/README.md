@@ -22,11 +22,17 @@ specs/ui/
   starwars.ui.yaml   # the mount (type: UI) — served at "/"
   app.yaml           # the app shell (type: AppShell) — title, subtitle, top menu
   routes.yaml        # each URL bound to a page definition (no viewModel — no Java behind them)
-  sources.yaml       # the REST source catalogue — each SWAPI endpoint, named once
+  sources.yaml       # the REST source catalogue — each endpoint, named once
   people.yaml        # a type: Listing whose rows come from the `swapi-people` source
   planets.yaml       # …from `swapi-planets`
   films.yaml         # …from `swapi-films`
+  species.yaml       # …and the other three collections the service publishes
+  vehicles.yaml
+  starships.yaml
 ```
+
+**All six collections**, because the app is only a fair sample of the service if it shows the whole
+of it: People (82), Planets (60), Species (37), Vehicles (39), Starships (36) and Films (6).
 
 Each page is a `type: Listing` with a `rowsSource: { ref: … }`. The browser resolves the ref against
 the catalogue and fetches the endpoint directly (the service sends `Access-Control-Allow-Origin: *`,
@@ -45,8 +51,13 @@ URL-shaped references cannot give you.
 
 **Search criteria** — each listing declares `searchable: true` and a `filters:` list, as data like
 everything else: a text filter, a `multiSelect` (People's gender, Films' director) and a range
-(`numberRange` on height/diameter, `dateRange` on release date). A multi-select reaches the API as
-one comma-joined parameter, which it reads as an OR.
+(`numberRange` on height/diameter/lifespan/cost/hyperdrive, `dateRange` on release date). A
+multi-select reaches the API as one comma-joined parameter, which it reads as an OR.
+
+Vehicle and starship **class** are plain text filters, not selects, and that is a modelling decision
+rather than a shortcut: the data holds "wheeled walker" and "assault walker" as well as "walker", and
+both casings of "starfighter", so the API matches them by containment and one word finds the family.
+Species **classification** is a closed set of single words, so it is a multi-select matched exactly.
 
 **Person detail** — the People page is a `gridLayout: masterDetail` listing: clicking a person shows
 their full record in the detail pane, entirely from the already-fetched rows (no re-fetch, no id).
@@ -76,8 +87,8 @@ Open <http://localhost:8600> and click People / Planets / Films.
 
 - **Unit (in CI):** `YamlUidlLoaderTest.parsesAListingBoundToAnExternalSourceByRef` pins that a
   `type: Listing` with a `rowsSource` ref deserialises — the authoring surface an app like this needs.
-- **End-to-end:** `e2e/starwars-probe.mjs` drives this app in a real browser and asserts the three
-  listings render rows mapped from the source. It **intercepts** the SWAPI endpoints and answers them
+- **End-to-end:** `e2e/starwars-probe.mjs` drives this app in a real browser and asserts all six
+  listings render rows mapped from the source, by URL and by menu click alike. It **intercepts** the SWAPI endpoints and answers them
   from local fixtures, so it validates *our* pipeline (mount → shell → listing → source → fetch →
   mapping → grid) deterministically, without depending on the live API's uptime:
 

@@ -1,0 +1,66 @@
+# Species carry a reference to their homeworld, so the table shows the planet's NAME straight from
+# the row — the same payoff as People's Homeworld column.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Species
+pageSize: 20
+searchable: true
+filters:
+  - type: FormField
+    id: name
+    label: Name
+  - type: FormField
+    id: classification
+    label: Classification
+    stereotype: multiSelect
+    options:
+      - value: mammal
+        label: Mammal
+      - value: mammals
+        label: Mammals
+      - value: amphibian
+        label: Amphibian
+      - value: reptile
+        label: Reptile
+      - value: reptilian
+        label: Reptilian
+      - value: insectoid
+        label: Insectoid
+      - value: gastropod
+        label: Gastropod
+      - value: artificial
+        label: Artificial
+      - value: sentient
+        label: Sentient
+      - value: unknown
+        label: Unknown
+  - type: FormField
+    id: averageLifespan
+    label: Lifespan (years)
+    dataType: integer
+    stereotype: numberRange
+rowsSource:
+  ref: swapi-species
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+    identifier: true
+  - type: GridColumn
+    id: classification
+    label: Classification
+  - type: GridColumn
+    id: designation
+    label: Designation
+  - type: GridColumn
+    id: homeworldName
+    label: Homeworld
+  - type: GridColumn
+    id: language
+    label: Language
+  - type: GridColumn
+    id: averageHeight
+    label: Height (cm)
+  - type: GridColumn
+    id: averageLifespan
+    label: Lifespan (years)
