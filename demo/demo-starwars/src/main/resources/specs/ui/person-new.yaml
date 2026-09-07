@@ -3,6 +3,13 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: New character
+toolbar:
+  - type: Button
+    actionId: backToList        # a back id renders as a < chevron before the title
+    label: Back to People
+    actionable:
+      type: RouteLink
+      route: people
 content:
   - type: FormLayout
     content:
@@ -36,11 +43,6 @@ buttons:
     label: Create
     actionId: create
     buttonStyle: primary
-  - type: Button
-    label: Back to the list
-    actionable:
-      type: RouteLink
-      route: people
 actions:
   - id: create
     validationRequired: true

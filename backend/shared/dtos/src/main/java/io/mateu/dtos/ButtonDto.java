@@ -20,5 +20,12 @@ public record ButtonDto(
     Object parameters,
     String shortcut,
     boolean separatorBefore,
-    List<ButtonDto> children)
+    List<ButtonDto> children,
+    /**
+     * A route this button NAVIGATES to on the client, instead of running an action on the server —
+     * the button counterpart of a listing's {@code rowRoute} or a menu {@code RouteLink}. Set from
+     * a {@code RouteLink} actionable; the client interpolates {@code ${state.x}} against the page
+     * state and dispatches the shell's navigate pair. A plain action button leaves it null.
+     */
+    String route)
     implements ComponentMetadataDto {}

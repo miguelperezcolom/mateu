@@ -36,12 +36,25 @@ public class ButtonMapper {
             .shortcut(button.shortcut())
             .parameters(mapParameters(button.parameters()))
             .separatorBefore(button.separatorBefore())
+            .route(routeOf(button))
             .build(),
         button.id() != null ? button.id() : UUID.randomUUID().toString(),
         List.of(),
         button.style(),
         button.cssClasses(),
         null);
+  }
+
+  /**
+   * A button whose {@code actionable} is a {@code RouteLink} NAVIGATES on the client — the button
+   * form of a menu link — instead of running a server action. The route travels on the wire (with
+   * its {@code ${state.x}} template intact, interpolated in the browser), so the same "New"/"Edit"/
+   * "Back" button works on a pure-DSL page with no view model behind it.
+   */
+  private static String routeOf(Button button) {
+    return button.actionable() instanceof io.mateu.uidl.data.RouteLink routeLink
+        ? routeLink.route()
+        : null;
   }
 
   private static Object mapParameters(Object parameters) {

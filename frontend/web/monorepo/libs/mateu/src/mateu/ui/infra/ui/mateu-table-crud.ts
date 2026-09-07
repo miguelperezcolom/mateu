@@ -11,7 +11,7 @@ import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from
 import { interpolate } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows } from '@infra/http/restRowFilters.ts'
-import { rowRouteFields } from '@infra/ui/rowRoute.ts'
+import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
 import { resolveRestSource, totalPathOf } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
@@ -766,14 +766,23 @@ export class MateuTableCrud extends LitElement {
 
     evalLabel = (raw: string) => interpolate(raw, this.state, this.data)
 
-    handleToolbarButtonClick = (actionId: string) => {
-        if (actionId === 'import') {
+    handleToolbarButtonClick = (button: Button) => {
+        // A toolbar button carrying a route NAVIGATES on the client (a "New" that goes to a create
+        // page, say) instead of running a server action — the same door a rowRoute opens. The
+        // `${state.x}` template is resolved against the listing state; a still-unresolved one is left
+        // off so we never navigate to a literal placeholder.
+        const route = button.route ? interpolate(button.route, this.state, this.data) : undefined
+        if (route && !route.includes('${')) {
+            navigateToRoute(this, route)
+            return
+        }
+        if (button.actionId === 'import') {
             this.showImportDialog = true
             return
         }
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
-                actionId,
+                actionId: button.actionId,
             },
             bubbles: true,
             composed: true
@@ -802,7 +811,7 @@ export class MateuTableCrud extends LitElement {
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
         const renderToolbarButton = (button: Button): TemplateResult => {
             const custom = componentRenderer.get()?.renderToolbarButton?.(
-                button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button.actionId))
+                button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button))
             if (custom) {
                 return custom
             }
@@ -813,7 +822,7 @@ export class MateuTableCrud extends LitElement {
                 <button class="crud-btn ${neutralButtonClass(button)}"
                         data-action-id="${button.id}"
                         theme="${buttonTheme(button) || nothing}"
-                        @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                        @click="${() => this.handleToolbarButtonClick(button)}"
                 >${this.evalLabel(button.label)}</button>
             `
         }
@@ -1262,7 +1271,7 @@ export class MateuTableCrud extends LitElement {
                                     data-action-id="${button.id}"
                                     title="${this.evalLabel(button.label)}"
                                     aria-label="${this.evalLabel(button.label)}"
-                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}">
+                                    @click="${() => this.handleToolbarButtonClick(button)}">
                                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor"
                                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

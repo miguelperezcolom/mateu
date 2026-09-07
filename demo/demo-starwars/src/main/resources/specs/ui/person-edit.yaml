@@ -1,0 +1,49 @@
+# The EDIT form for one character (route people/:id/edit). Same `data:` fetch as the view, but the
+# fields are editable and the footer carries Save/Delete (each a REST call the client makes itself).
+# The header's < chevron goes back to the read-only view.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Edit ${state.name}
+subtitle: Character
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to ${state.name}
+    actionable:
+      type: RouteLink
+      route: people/${state.id}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, required: true}
+      - {type: FormField, id: gender, label: Gender}
+      - {type: FormField, id: birthYear, label: Birth year}
+      - {type: FormField, id: height, label: Height (cm), dataType: integer}
+      - {type: FormField, id: mass, label: Mass (kg), dataType: number}
+      - {type: FormField, id: hairColor, label: Hair}
+      - {type: FormField, id: eyeColor, label: Eyes}
+      - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true}
+buttons:
+  - type: Button
+    label: Save
+    actionId: save
+    buttonStyle: primary
+  - type: Button
+    label: Delete
+    actionId: delete
+    color: error
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        ref: swapi-person-update
+      successMessage: Saved
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the character. It comes back on the next restart of the API.
+    restAction:
+      source:
+        ref: swapi-person-delete
+      successMessage: Deleted

@@ -121,9 +121,21 @@ public class FormMapper {
           .buttonStyle(resolveStyle(button))
           .size(resolveSize(button))
           .separatorBefore(button.separatorBefore())
+          .route(routeOf(button))
           .build();
     }
     return null;
+  }
+
+  /**
+   * A button whose {@code actionable} is a {@code RouteLink} NAVIGATES on the client — the button
+   * form of a menu link (a listing's "New", a record's "Back to the list") — instead of running a
+   * server action. The route travels on the wire with its {@code ${state.x}} template intact.
+   */
+  private static String routeOf(Button button) {
+    return button.actionable() instanceof io.mateu.uidl.data.RouteLink routeLink
+        ? routeLink.route()
+        : null;
   }
 
   static ButtonDto mapToButtonDto(Button button) {

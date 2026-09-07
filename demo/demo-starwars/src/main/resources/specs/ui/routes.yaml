@@ -13,10 +13,15 @@ routes:
   - route: people/new
     definition: person-new.yaml
 
-  # One record. `data:` names the source that fetches it; the id comes from the path, and the
-  # source's url interpolates it as ${state.id}.
+  # One record, read-only. `data:` names the source that fetches it; the id comes from the path, and
+  # the source's url interpolates it as ${state.id}.
   - route: people/:id
     definition: person.yaml
+    data: swapi-person
+
+  # The edit form for that record — same fetch, editable, Save/Delete.
+  - route: people/:id/edit
+    definition: person-edit.yaml
     data: swapi-person
   - route: planets
     definition: planets.yaml
@@ -24,11 +29,17 @@ routes:
   - route: planets/:id
     definition: planet.yaml
     data: swapi-planet
+  - route: planets/:id/edit
+    definition: planet-edit.yaml
+    data: swapi-planet
   - route: films
     definition: films.yaml
 
   - route: films/:id
     definition: film.yaml
+    data: swapi-film
+  - route: films/:id/edit
+    definition: film-edit.yaml
     data: swapi-film
   - route: species
     definition: species.yaml
@@ -36,15 +47,24 @@ routes:
   - route: species/:id
     definition: species-record.yaml
     data: swapi-species-record
+  - route: species/:id/edit
+    definition: species-record-edit.yaml
+    data: swapi-species-record
   - route: vehicles
     definition: vehicles.yaml
 
   - route: vehicles/:id
     definition: vehicle.yaml
     data: swapi-vehicle
+  - route: vehicles/:id/edit
+    definition: vehicle-edit.yaml
+    data: swapi-vehicle
   - route: starships
     definition: starships.yaml
 
   - route: starships/:id
     definition: starship.yaml
+    data: swapi-starship
+  - route: starships/:id/edit
+    definition: starship-edit.yaml
     data: swapi-starship

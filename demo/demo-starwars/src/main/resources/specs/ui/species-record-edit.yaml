@@ -1,8 +1,7 @@
-# READ-ONLY view of one record (route species/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# EDIT form for one record (route species/:id/edit) — editable + Save/Delete, < back to the view.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-title: ${state.name}
+title: Edit ${state.name}
 subtitle: Species
 toolbar:
 - type: Button
@@ -10,13 +9,7 @@ toolbar:
   label: Back
   actionable:
     type: RouteLink
-    route: species
-- type: Button
-  label: Edit
-  buttonStyle: primary
-  actionable:
-    type: RouteLink
-    route: species/${state.id}/edit
+    route: species/${state.id}
 content:
 - type: FormLayout
   content:
@@ -24,42 +17,57 @@ content:
     id: name
     label: Name
     required: true
-    readOnly: true
   - type: FormField
     id: classification
     label: Classification
-    readOnly: true
   - type: FormField
     id: designation
     label: Designation
-    readOnly: true
   - type: FormField
     id: language
     label: Language
-    readOnly: true
   - type: FormField
     id: averageHeight
     label: Average height (cm)
     dataType: integer
-    readOnly: true
   - type: FormField
     id: averageLifespan
     label: Average lifespan (y)
     dataType: integer
-    readOnly: true
   - type: FormField
     id: skinColors
     label: Skin colours
-    readOnly: true
   - type: FormField
     id: hairColors
     label: Hair colours
-    readOnly: true
   - type: FormField
     id: eyeColors
     label: Eye colours
-    readOnly: true
   - type: FormField
     id: homeworldName
     label: Homeworld
     readOnly: true
+buttons:
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
+- type: Button
+  label: Delete
+  actionId: delete
+  color: error
+actions:
+- id: save
+  validationRequired: true
+  restAction:
+    source:
+      ref: swapi-species-update
+    successMessage: Saved
+- id: delete
+  confirmationRequired: true
+  confirmationTexts:
+    message: This deletes the record. It comes back on the next restart of the API.
+  restAction:
+    source:
+      ref: swapi-species-delete
+    successMessage: Deleted

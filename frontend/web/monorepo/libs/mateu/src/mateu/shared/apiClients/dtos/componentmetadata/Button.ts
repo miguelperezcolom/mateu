@@ -21,4 +21,9 @@ export default interface Button extends ComponentMetadata {
     separatorBefore: boolean
     children: Button[]
 
+    /** A route this button NAVIGATES to on the client (from a RouteLink actionable), instead of
+     * running a server action — the button form of a menu link. `${state.x}` is interpolated against
+     * the page state at click time. Null on a plain action button. */
+    route?: string
+
 }

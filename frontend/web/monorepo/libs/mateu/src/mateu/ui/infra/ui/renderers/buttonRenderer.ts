@@ -5,17 +5,34 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { formatShortcut } from "@infra/ui/shortcuts.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { navigateToRoute } from "@infra/ui/rowRoute.ts";
 
 export const handleButtonClick = (event: Event, button: Button) => {
-    const actionId = (event.currentTarget as HTMLElement).dataset.actionId
-    event.currentTarget?.dispatchEvent(new CustomEvent('action-requested', {
+    const el = event.currentTarget as HTMLElement
+    // A button carrying a route NAVIGATES on the client (the button form of a menu link), rather
+    // than running a server action. The template was interpolated at render (data-route); an
+    // unresolved one is left off, so we never navigate to a literal "${state.id}".
+    const route = el.dataset.route
+    if (route) {
+        navigateToRoute(el, route)
+        return
+    }
+    el.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
-            actionId,
+            actionId: el.dataset.actionId,
             parameters: button.parameters
         },
         bubbles: true,
         composed: true
     }))
+}
+
+/** The button's route with `${state.x}` resolved against the page state — undefined when it has no
+ * route or the template did not fully resolve (so we never navigate somewhere nobody declared). */
+export const resolvedRoute = (metadata: Button, state?: ComponentState, data?: ComponentData): string | undefined => {
+    if (!metadata.route) return undefined
+    const route = interpolate(metadata.route, state, data)
+    return (!route || route.includes('${')) ? undefined : route
 }
 
 /*
@@ -63,6 +80,7 @@ export const renderButton = (component: ClientSideComponent, state?: ComponentSt
     return html`<button
             id="${component.id}"
             data-action-id="${metadata.actionId}"
+            data-route="${resolvedRoute(metadata, state, data) ?? nothing}"
             @click="${(e:any) => handleButtonClick(e, metadata)}"
             style="${themeStyle(metadata)}${component.style}"
             class="${component.cssClasses}"

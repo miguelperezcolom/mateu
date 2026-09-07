@@ -1,22 +1,15 @@
-# READ-ONLY view of one record (route starships/:id). Header: < back + Edit; fields read-only.
-# No Java — the buttons NAVIGATE via their RouteLink actionable.
+# EDIT form for one record (route vehicles/:id/edit) — editable + Save/Delete, < back to the view.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
-title: ${state.name}
-subtitle: Starship
+title: Edit ${state.name}
+subtitle: Vehicle
 toolbar:
 - type: Button
   actionId: backToList
   label: Back
   actionable:
     type: RouteLink
-    route: starships
-- type: Button
-  label: Edit
-  buttonStyle: primary
-  actionable:
-    type: RouteLink
-    route: starships/${state.id}/edit
+    route: vehicles/${state.id}
 content:
 - type: FormLayout
   content:
@@ -24,59 +17,62 @@ content:
     id: name
     label: Name
     required: true
-    readOnly: true
   - type: FormField
     id: model
     label: Model
-    readOnly: true
   - type: FormField
     id: manufacturer
     label: Manufacturer
-    readOnly: true
   - type: FormField
-    id: starshipClass
+    id: vehicleClass
     label: Class
-    readOnly: true
   - type: FormField
     id: crew
     label: Crew
-    readOnly: true
   - type: FormField
     id: passengers
     label: Passengers
     dataType: integer
-    readOnly: true
   - type: FormField
     id: costInCredits
     label: Cost (credits)
     dataType: number
-    readOnly: true
   - type: FormField
     id: length
     label: Length (m)
     dataType: number
-    readOnly: true
   - type: FormField
     id: cargoCapacity
     label: Cargo capacity
     dataType: number
-    readOnly: true
   - type: FormField
     id: consumables
     label: Consumables
-    readOnly: true
-  - type: FormField
-    id: hyperdriveRating
-    label: Hyperdrive rating
-    dataType: number
-    readOnly: true
-  - type: FormField
-    id: mglt
-    label: MGLT
-    dataType: integer
-    readOnly: true
   - type: FormField
     id: maxAtmospheringSpeed
     label: Max speed
     dataType: integer
-    readOnly: true
+buttons:
+- type: Button
+  label: Save
+  actionId: save
+  buttonStyle: primary
+- type: Button
+  label: Delete
+  actionId: delete
+  color: error
+actions:
+- id: save
+  validationRequired: true
+  restAction:
+    source:
+      ref: swapi-vehicle-update
+    successMessage: Saved
+- id: delete
+  confirmationRequired: true
+  confirmationTexts:
+    message: This deletes the record. It comes back on the next restart of the API.
+  restAction:
+    source:
+      ref: swapi-vehicle-delete
+    successMessage: Deleted
