@@ -1,0 +1,44 @@
+# Same as vehicles plus what makes a starship one: the hyperdrive rating (lower is faster), filtered
+# as a range over a decimal.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Starships
+pageSize: 20
+searchable: true
+filters:
+  - type: FormField
+    id: name
+    label: Name
+  - type: FormField
+    id: starshipClass
+    label: Class
+  - type: FormField
+    id: hyperdriveRating
+    label: Hyperdrive rating
+    dataType: number
+    stereotype: numberRange
+rowsSource:
+  ref: swapi-starships
+columns:
+  - type: GridColumn
+    id: name
+    label: Name
+    identifier: true
+  - type: GridColumn
+    id: model
+    label: Model
+  - type: GridColumn
+    id: manufacturer
+    label: Manufacturer
+  - type: GridColumn
+    id: starshipClass
+    label: Class
+  - type: GridColumn
+    id: hyperdriveRating
+    label: Hyperdrive
+  - type: GridColumn
+    id: mglt
+    label: MGLT
+  - type: GridColumn
+    id: passengers
+    label: Passengers

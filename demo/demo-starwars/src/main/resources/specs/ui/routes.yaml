@@ -12,3 +12,9 @@ routes:
     definition: planets.yaml
   - route: films
     definition: films.yaml
+  - route: species
+    definition: species.yaml
+  - route: vehicles
+    definition: vehicles.yaml
+  - route: starships
+    definition: starships.yaml

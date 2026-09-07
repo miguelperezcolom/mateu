@@ -1,6 +1,7 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: Planets
+pageSize: 20
 searchable: true
 filters:
   - type: FormField
@@ -20,6 +21,7 @@ columns:
   - type: GridColumn
     id: name
     label: Name
+    identifier: true
   - type: GridColumn
     id: climate
     label: Climate

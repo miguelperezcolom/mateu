@@ -1,13 +1,16 @@
 /**
  * Star Wars DSL-app probe — validates example 1 of the progressive example suite: a 100%-DSL Mateu
- * app (NO Java @UI class) that renders listings over an existing external API.
+ * app (NO Java @UI class) that renders listings over an external API.
  *
  * It boots against the running demo (demo/demo-starwars on :8600) and asserts the three YAML-authored
- * listings render rows mapped from a named REST source. The external endpoints (swapi.info) are
- * INTERCEPTED and answered from local fixtures, so the probe validates OUR pipeline — YAML mount →
- * app shell → `type: Listing` with a rowsSource ref → source catalogue → external fetch → row
- * mapping → grid — deterministically, without depending on the Star Wars API's (famously flaky)
- * uptime. Run the demo pointed at the real API for a live view; the probe pins the mechanism.
+ * listings render rows mapped from a named REST source. The external endpoints are INTERCEPTED and
+ * answered from local fixtures, so the probe validates OUR pipeline — YAML mount → app shell →
+ * `type: Listing` with a rowsSource ref → source catalogue → external fetch → row mapping → grid —
+ * deterministically, without depending on a live host's uptime.
+ *
+ * The demo points at swapi.ec1.mateu.io, a writable clone that searches, filters and pages on the
+ * SERVER, so the fixtures answer the paged envelope (`content` + `totalElements`) and the checks
+ * below assert the page is rendered as given — not re-filtered or re-sliced in the browser.
  *
  *   cd demo/demo-starwars && mvn -s ../../settings.xml spring-boot:run   # or java -jar target/*.jar
  *   cd e2e && node starwars-probe.mjs
@@ -18,20 +21,57 @@ import { chromium } from 'playwright'
 
 const BASE = process.env.BASE ?? 'http://localhost:8600'
 
-const FIXTURES = {
+// The rows as the service serves them: camelCase, typed numbers, and the homeworld's NAME beside
+// its id — the whole point of a backend that knows about references.
+const ROWS = {
   people: [
-    { name: 'Luke Skywalker', gender: 'male', birth_year: '19BBY', height: '172', mass: '77', hair_color: 'blond', eye_color: 'blue' },
-    { name: 'Leia Organa', gender: 'female', birth_year: '19BBY', height: '150', mass: '49', hair_color: 'brown', eye_color: 'brown' },
-    { name: 'Darth Vader', gender: 'male', birth_year: '41.9BBY', height: '202', mass: '136', hair_color: 'none', eye_color: 'yellow' },
+    { id: 1, name: 'Luke Skywalker', gender: 'male', birthYear: '19BBY', height: 172, mass: 77, hairColor: 'blond', eyeColor: 'blue', homeworldId: 1, homeworldName: 'Tatooine' },
+    { id: 2, name: 'Leia Organa', gender: 'female', birthYear: '19BBY', height: 150, mass: 49, hairColor: 'brown', eyeColor: 'brown', homeworldId: 2, homeworldName: 'Alderaan' },
+    { id: 3, name: 'Darth Vader', gender: 'male', birthYear: '41.9BBY', height: 202, mass: 136, hairColor: 'none', eyeColor: 'yellow', homeworldId: 1, homeworldName: 'Tatooine' },
   ],
   planets: [
-    { name: 'Tatooine', climate: 'arid', terrain: 'desert', population: '200000', diameter: '10465' },
-    { name: 'Hoth', climate: 'frozen', terrain: 'tundra, ice caves', population: 'unknown', diameter: '7200' },
+    { id: 1, name: 'Tatooine', climate: 'arid', terrain: 'desert', population: 200000, diameter: 10465 },
+    { id: 2, name: 'Hoth', climate: 'frozen', terrain: 'tundra, ice caves', population: null, diameter: 7200 },
   ],
   films: [
-    { episode_id: 4, title: 'A New Hope', director: 'George Lucas', producer: 'Gary Kurtz', release_date: '1977-05-25' },
-    { episode_id: 5, title: 'The Empire Strikes Back', director: 'Irvin Kershner', producer: 'Gary Kurtz', release_date: '1980-05-17' },
+    { id: 1, episodeId: 4, title: 'A New Hope', director: 'George Lucas', producer: 'Gary Kurtz', releaseDate: '1977-05-25' },
+    { id: 2, episodeId: 5, title: 'The Empire Strikes Back', director: 'Irvin Kershner', producer: 'Gary Kurtz', releaseDate: '1980-05-17' },
   ],
+  species: [
+    { id: 1, name: 'Wookiee', classification: 'mammal', designation: 'sentient', language: 'Shyriiwook', averageHeight: 210, averageLifespan: 400, homeworldId: 14, homeworldName: 'Kashyyyk' },
+    { id: 2, name: 'Droid', classification: 'artificial', designation: 'sentient', language: 'n/a', averageHeight: null, averageLifespan: null },
+  ],
+  vehicles: [
+    { id: 1, name: 'AT-AT', model: 'All Terrain Armored Transport', manufacturer: 'Kuat Drive Yards', vehicleClass: 'assault walker', crew: '5', passengers: 40, costInCredits: null },
+    { id: 2, name: 'Snowspeeder', model: 't-47 airspeeder', manufacturer: 'Incom corporation', vehicleClass: 'airspeeder', crew: '2', passengers: 0, costInCredits: null },
+  ],
+  starships: [
+    { id: 1, name: 'Millennium Falcon', model: 'YT-1300 light freighter', manufacturer: 'Corellian Engineering Corporation', starshipClass: 'Light freighter', hyperdriveRating: 0.5, mglt: 75, passengers: 6 },
+    { id: 2, name: 'X-wing', model: 'T-65 X-wing', manufacturer: 'Incom Corporation', starshipClass: 'Starfighter', hyperdriveRating: 1.0, mglt: 100, passengers: 0 },
+  ],
+}
+
+/**
+ * Answers like the service does: the conditions in the query string are applied HERE, and the
+ * response is the paged envelope. A total larger than the rows returned is deliberate — it is what
+ * proves the renderer takes the server's count instead of counting the array it was handed.
+ */
+const envelope = (key, url) => {
+  const q = new URL(url).searchParams
+  let rows = ROWS[key]
+  const search = (q.get('search') ?? '').toLowerCase()
+  if (search) rows = rows.filter(r => Object.values(r).some(v => String(v ?? '').toLowerCase().includes(search)))
+  const gender = (q.get('gender') ?? '').split(',').filter(Boolean)
+  if (gender.length) rows = rows.filter(r => gender.includes(r.gender))
+  const from = q.get('height_from')
+  if (from) rows = rows.filter(r => Number(r.height) >= Number(from))
+  for (const field of ['vehicleClass', 'starshipClass']) {
+    const wanted = (q.get(field) ?? '').toLowerCase()
+    if (wanted) rows = rows.filter(r => String(r[field] ?? '').toLowerCase().includes(wanted))
+  }
+  const classification = (q.get('classification') ?? '').split(',').filter(Boolean)
+  if (classification.length) rows = rows.filter(r => classification.includes(r.classification))
+  return { content: rows, totalElements: rows.length, totalPages: 1, page: 0, size: 20 }
 }
 
 const results = []
@@ -47,10 +87,14 @@ try {
   // `fetched` records which collections were actually asked for, so a check can assert that a
   // screen went and got ITS OWN rows rather than merely rendering someone else's.
   const fetched = []
-  for (const key of Object.keys(FIXTURES)) {
-    await page.route(`**/swapi.info/api/${key}**`, (route) => {
+  for (const key of Object.keys(ROWS)) {
+    await page.route(`**/api/${key}**`, (route) => {
       fetched.push(key)
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FIXTURES[key]) })
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(envelope(key, route.request().url())),
+      })
     })
   }
 
@@ -77,10 +121,16 @@ try {
       return el?.data?.[el.id]?.page?.content?.length ?? 0
     })
 
+  // All six collections the service publishes — the app is only complete if every one of them is
+  // reachable and mapped, and a page that renders its chrome with no rows looks identical to a
+  // working one until you count.
   const cases = [
     { route: 'people', rows: 3, needle: 'Luke Skywalker' },
     { route: 'planets', rows: 2, needle: 'Tatooine' },
     { route: 'films', rows: 2, needle: 'A New Hope' },
+    { route: 'species', rows: 2, needle: 'Wookiee' },
+    { route: 'vehicles', rows: 2, needle: 'Snowspeeder' },
+    { route: 'starships', rows: 2, needle: 'Millennium Falcon' },
   ]
 
   for (const c of cases) {
@@ -111,11 +161,11 @@ try {
     )
     if (!cell) return { err: 'no row cell' }
     cell.click()
-    return { name: el.selectedItem?.name, hair: el.selectedItem?.hair_color }
+    return { name: el.selectedItem?.name, hair: el.selectedItem?.hairColor, home: el.selectedItem?.homeworldName }
   })
   check(
-    'People master-detail: clicking a person selects their full record',
-    selected.name === 'Luke Skywalker' && selected.hair === 'blond',
+    'People master-detail: clicking a person selects their full record, reference included',
+    selected.name === 'Luke Skywalker' && selected.hair === 'blond' && selected.home === 'Tatooine',
     JSON.stringify(selected),
   )
 
@@ -144,6 +194,9 @@ try {
   for (const c of [
     { label: 'Planets', route: 'planets', rows: 2, needle: 'Tatooine' },
     { label: 'Films', route: 'films', rows: 2, needle: 'A New Hope' },
+    { label: 'Species', route: 'species', rows: 2, needle: 'Wookiee' },
+    { label: 'Vehicles', route: 'vehicles', rows: 2, needle: 'Snowspeeder' },
+    { label: 'Starships', route: 'starships', rows: 2, needle: 'Millennium Falcon' },
     { label: 'People', route: 'people', rows: 3, needle: 'Luke Skywalker' },
   ]) {
     fetched.length = 0
@@ -160,10 +213,10 @@ try {
     )
   }
 
-  // The declared filters (people.yaml) are evaluated over the fetched rows: swapi.info is a static
-  // mirror that ignores `?search=`, so a listing reading it has nobody to ask and the conditions the
-  // filter bar collects have to be applied client-side or the bar is decoration. Driving the state
-  // directly is the same path the bar takes — it writes `<id>`, `<id>_from` and `<id>_to`.
+  // The declared filters (people.yaml) travel to the SERVER in the url, through the `${state.…}`
+  // interpolation in sources.yaml, and the page that comes back is rendered as given. Driving the
+  // state directly is the same path the filter bar takes — it writes `<id>`, `<id>_from` and
+  // `<id>_to`, and a multi-select as a list.
   await page.goto(`${BASE}/people`, { waitUntil: 'load' })
   await page.waitForTimeout(3000)
 
@@ -197,9 +250,9 @@ try {
   for (const c of [
     { what: 'free text searches the visible columns', patch: { searchText: 'sky' }, expected: ['Luke Skywalker'] },
     { what: 'a multi-select filter takes any picked value', patch: { searchText: '', gender: ['female'] }, expected: ['Leia Organa'] },
-    { what: 'a number range compares numerically, not as text', patch: { gender: [], height_from: '200' }, expected: ['Darth Vader'] },
-    { what: 'both ends of a range apply together', patch: { height_from: '150', height_to: '175' }, expected: ['Luke Skywalker', 'Leia Organa'] },
-    { what: 'text and filters combine — every condition holds', patch: { height_from: '', height_to: '', searchText: 'Skywalker', gender: ['male'] }, expected: ['Luke Skywalker'] },
+    { what: 'a number range reaches the server as a bound', patch: { gender: [], height_from: '200' }, expected: ['Darth Vader'] },
+    { what: 'a multi-select travels as one comma-joined parameter', patch: { height_from: '', gender: ['male', 'female'] }, expected: ['Luke Skywalker', 'Leia Organa', 'Darth Vader'] },
+    { what: 'text and filters combine — every condition holds', patch: { searchText: 'Skywalker', gender: ['male'] }, expected: ['Luke Skywalker'] },
   ]) {
     await applyFilters(c.patch)
     await page.waitForTimeout(1500)

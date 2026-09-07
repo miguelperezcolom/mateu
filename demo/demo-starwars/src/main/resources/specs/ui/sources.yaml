@@ -1,19 +1,86 @@
-# The REST source catalogue: each external endpoint named ONCE, referenced by the pages. swapi.info
-# serves each collection as a plain JSON array of full objects (no envelope), so no itemsPath is
-# needed — the response IS the row array — and it sends `Access-Control-Allow-Origin: *`, so the
-# browser fetches it directly (no backend proxy). These are somebody else's endpoints (absolute url →
-# provenance inferred as `existing`): documented and consumed, never generated.
+# The REST source catalogue: each external endpoint named ONCE, referenced by the pages.
+#
+# These point at https://swapi.ec1.mateu.io — a WRITABLE clone of the Star Wars API
+# (github.com/miguelperezcolom/swapi-service), not the public swapi.info mirror. The mirror is
+# static: it ignores query parameters and accepts no writes, so every condition had to be evaluated
+# in the browser over the whole collection. This one answers them.
+#
+# `itemsPath` (inside the request) and `totalPath` (on the ENTRY — where the total lives is a fact
+# about the endpoint, not about one call to it) read the paged envelope. Declaring the total is also
+# what tells the renderer the SERVER did the searching, filtering and paging, so it renders the page
+# it was given instead of re-filtering and re-slicing it.
+#
+# The url carries the conditions through `${state.…}` interpolation: the free-text search, each
+# declared filter, the range bounds, the page and the sort. A blank parameter is ignored by the API,
+# so an untouched filter costs nothing. Values are URL-encoded at the point of use — a name with a
+# space or a `&` would otherwise break the query string.
+#
+# Reads need no credentials (the API is open for GET); writing needs its `X-Api-Key` header.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
 sources:
+
   - name: swapi-people
     description: Characters of the Star Wars saga
     source:
-      url: https://swapi.info/api/people
+      url: >-
+        https://swapi.ec1.mateu.io/api/people?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&gender=${encodeURIComponent(state.gender
+        ?? '')}&height_from=${state.height_from ?? ''}&height_to=${state.height_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
   - name: swapi-planets
     description: Planets of the Star Wars galaxy
     source:
-      url: https://swapi.info/api/planets
+      url: >-
+        https://swapi.ec1.mateu.io/api/planets?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&climate=${encodeURIComponent(state.climate
+        ?? '')}&diameter_from=${state.diameter_from ?? ''}&diameter_to=${state.diameter_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
   - name: swapi-films
     description: The Star Wars films
     source:
-      url: https://swapi.info/api/films
+      url: >-
+        https://swapi.ec1.mateu.io/api/films?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&title=${encodeURIComponent(state.title ?? '')}&director=${encodeURIComponent(state.director
+        ?? '')}&releaseDate_from=${state.releaseDate_from ?? ''}&releaseDate_to=${state.releaseDate_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: swapi-species
+    description: Sentient and non-sentient species
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/species?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&classification=${encodeURIComponent(state.classification
+        ?? '')}&averageLifespan_from=${state.averageLifespan_from ?? ''}&averageLifespan_to=${state.averageLifespan_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: swapi-vehicles
+    description: Craft without hyperdrive
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/vehicles?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&vehicleClass=${encodeURIComponent(state.vehicleClass
+        ?? '')}&costInCredits_from=${state.costInCredits_from ?? ''}&costInCredits_to=${state.costInCredits_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: swapi-starships
+    description: Craft with hyperdrive
+    source:
+      url: >-
+        https://swapi.ec1.mateu.io/api/starships?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
+        ?? '')}&name=${encodeURIComponent(state.name ?? '')}&starshipClass=${encodeURIComponent(state.starshipClass
+        ?? '')}&hyperdriveRating_from=${state.hyperdriveRating_from ?? ''}&hyperdriveRating_to=${state.hyperdriveRating_to ?? ''}
+      itemsPath: content
+    totalPath: totalElements

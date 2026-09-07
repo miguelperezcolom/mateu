@@ -1,16 +1,15 @@
-# A Listing whose rows come from a named external source. `gridLayout: masterDetail` turns it into a
-# list + detail: clicking a person shows their full record in the right pane — entirely from the
-# already-fetched rows, no re-fetch and no id needed (swapi.info rows carry no numeric id). The name
-# column is the identifier, so the selected row is tracked by name.
+# A Listing whose rows come from a named external source — now a real backend, so the search bar,
+# every filter, the sort and the pager are answered by the SERVER over all 82 rows, not by the
+# browser over what it happened to fetch. `gridLayout: masterDetail` turns it into a list + detail:
+# clicking a person shows their full record in the right pane from the row already on screen.
+#
+# `homeworldName` is the payoff of a backend that knows about references: the row carries the
+# planet's name alongside its id, so the table shows where someone is from without a request per row.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
 type: Listing
 title: People
 gridLayout: masterDetail
-# Search criteria, declared as data like everything else. swapi.info is a STATIC mirror: it answers
-# the whole collection and ignores `?search=` (verified — 82 people either way), so the conditions
-# are evaluated over the fetched rows. That is the renderer's job for any listing reading somebody
-# else's endpoint; point `sources.yaml` at an endpoint that does filter server-side and the url can
-# carry ${searchText} instead, with no change here.
+pageSize: 20
 searchable: true
 filters:
   - type: FormField
@@ -26,7 +25,11 @@ filters:
       - value: female
         label: Female
       - value: n/a
-        label: Droid / n/a
+        label: Droid (n/a)
+      - value: none
+        label: None
+      - value: hermaphrodite
+        label: Hermaphrodite
   - type: FormField
     id: height
     label: Height (cm)
@@ -40,10 +43,13 @@ columns:
     label: Name
     identifier: true
   - type: GridColumn
+    id: homeworldName
+    label: Homeworld
+  - type: GridColumn
     id: gender
     label: Gender
   - type: GridColumn
-    id: birth_year
+    id: birthYear
     label: Birth year
   - type: GridColumn
     id: height
@@ -52,8 +58,8 @@ columns:
     id: mass
     label: Mass (kg)
   - type: GridColumn
-    id: hair_color
+    id: hairColor
     label: Hair
   - type: GridColumn
-    id: eye_color
+    id: eyeColor
     label: Eyes
