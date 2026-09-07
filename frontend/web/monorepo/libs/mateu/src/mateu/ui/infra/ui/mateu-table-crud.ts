@@ -780,9 +780,14 @@ export class MateuTableCrud extends LitElement {
             this.showImportDialog = true
             return
         }
+        // Carry the current row selection up with the action. The crud tracks selection in its own
+        // state, which the enclosing mateu-component (where the action's rowsSelectedRequired gate,
+        // a bulk restAction and the componentState sent to the server all live) otherwise never
+        // sees — so a "Delete selected" would report "select some rows" over a real selection.
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: button.actionId,
+                parameters: { crud_selected_items: this.state['crud_selected_items'] ?? [] }
             },
             bubbles: true,
             composed: true

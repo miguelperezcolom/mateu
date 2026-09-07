@@ -412,6 +412,15 @@ export class MateuComponent extends ComponentElement {
             e.preventDefault()
             e.stopPropagation()
 
+            // A listing toolbar action (e.g. a bulk delete) carries the crud's current row selection.
+            // Absorb it into this component's state BEFORE the rowsSelectedRequired gate, the bulk
+            // restAction and resolveComponentState run — the crud tracks selection in its own,
+            // detached state, so without this the gate wrongly reports "select some rows" and the
+            // server would receive an empty selection.
+            if (Array.isArray((detail.parameters as any)?.crud_selected_items)) {
+                this.state = { ...this.state, crud_selected_items: (detail.parameters as any).crud_selected_items }
+            }
+
             const serverSideComponent = this.component as ServerSideComponent
             // the EXACT action wins over a wildcard: an sse/background/confirmation flag on the
             // declared action must not be shadowed by a catch-all '*' listed before it
