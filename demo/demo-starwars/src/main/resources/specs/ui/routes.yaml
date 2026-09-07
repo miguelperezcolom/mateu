@@ -20,11 +20,31 @@ routes:
     data: swapi-person
   - route: planets
     definition: planets.yaml
+
+  - route: planets/:id
+    definition: planet.yaml
+    data: swapi-planet
   - route: films
     definition: films.yaml
+
+  - route: films/:id
+    definition: film.yaml
+    data: swapi-film
   - route: species
     definition: species.yaml
+
+  - route: species/:id
+    definition: species-record.yaml
+    data: swapi-species-record
   - route: vehicles
     definition: vehicles.yaml
+
+  - route: vehicles/:id
+    definition: vehicle.yaml
+    data: swapi-vehicle
   - route: starships
     definition: starships.yaml
+
+  - route: starships/:id
+    definition: starship.yaml
+    data: swapi-starship

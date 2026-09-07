@@ -133,3 +133,130 @@ sources:
       proxy: true
       headers:
         X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+
+  - name: swapi-planet
+    description: One planet by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+
+  - name: swapi-planet-update
+    description: Replace a planet
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","climate":"${state.climate}","terrain":"${state.terrain}","gravity":"${state.gravity}","diameter":"${state.diameter}","population":"${state.population}","rotationPeriod":"${state.rotationPeriod}","orbitalPeriod":"${state.orbitalPeriod}","surfaceWater":"${state.surfaceWater}"}'
+
+  - name: swapi-planet-delete
+    description: Delete a planet
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+
+  - name: swapi-film
+    description: One film by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+
+  - name: swapi-film-update
+    description: Replace a film
+    source:
+      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"title":"${state.title}","episodeId":"${state.episodeId}","director":"${state.director}","producer":"${state.producer}","releaseDate":"${state.releaseDate}","openingCrawl":"${state.openingCrawl}"}'
+
+  - name: swapi-film-delete
+    description: Delete a film
+    source:
+      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+
+  # NOT `swapi-species`: a species is its own plural and the LISTING owns that name. A duplicate
+  # replaces it silently, and the listing starts asking for /api/species/undefined.
+  - name: swapi-species-record
+    description: One species by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+
+  - name: swapi-species-update
+    description: Replace a species
+    source:
+      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}"}'
+
+  - name: swapi-species-delete
+    description: Delete a species
+    source:
+      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+
+  - name: swapi-vehicle
+    description: One vehicle by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+
+  - name: swapi-vehicle-update
+    description: Replace a vehicle
+    source:
+      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","model":"${state.model}","manufacturer":"${state.manufacturer}","vehicleClass":"${state.vehicleClass}","crew":"${state.crew}","passengers":"${state.passengers}","costInCredits":"${state.costInCredits}","length":"${state.length}","cargoCapacity":"${state.cargoCapacity}","consumables":"${state.consumables}","maxAtmospheringSpeed":"${state.maxAtmospheringSpeed}"}'
+
+  - name: swapi-vehicle-delete
+    description: Delete a vehicle
+    source:
+      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+
+  - name: swapi-starship
+    description: One starship by id
+    source:
+      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+
+  - name: swapi-starship-update
+    description: Replace a starship
+    source:
+      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+      method: PUT
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","model":"${state.model}","manufacturer":"${state.manufacturer}","starshipClass":"${state.starshipClass}","crew":"${state.crew}","passengers":"${state.passengers}","costInCredits":"${state.costInCredits}","length":"${state.length}","cargoCapacity":"${state.cargoCapacity}","consumables":"${state.consumables}","hyperdriveRating":"${state.hyperdriveRating}","mglt":"${state.mglt}","maxAtmospheringSpeed":"${state.maxAtmospheringSpeed}"}'
+
+  - name: swapi-starship-delete
+    description: Delete a starship
+    source:
+      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+      method: DELETE
+      proxy: true
+      headers:
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}

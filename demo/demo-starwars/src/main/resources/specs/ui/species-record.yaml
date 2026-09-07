@@ -1,0 +1,71 @@
+# A record page with no Java class behind it. Named `species-record` and not `species` because a
+# species is its own plural: that filename is the LISTING's.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Species
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: name
+        label: Name
+        required: true
+      - type: FormField
+        id: classification
+        label: Classification
+      - type: FormField
+        id: designation
+        label: Designation
+      - type: FormField
+        id: language
+        label: Language
+      - type: FormField
+        id: averageHeight
+        label: Average height (cm)
+        dataType: integer
+      - type: FormField
+        id: averageLifespan
+        label: Average lifespan (y)
+        dataType: integer
+      - type: FormField
+        id: skinColors
+        label: Skin colours
+      - type: FormField
+        id: hairColors
+        label: Hair colours
+      - type: FormField
+        id: eyeColors
+        label: Eye colours
+      - type: FormField
+        id: homeworldName
+        label: Homeworld
+        readOnly: true
+buttons:
+  - type: Button
+    label: Save
+    actionId: save
+    buttonStyle: primary
+  - type: Button
+    label: Delete
+    actionId: delete
+  - type: Button
+    label: Back to the list
+    actionable:
+      type: RouteLink
+      route: species
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        ref: swapi-species-update
+      successMessage: Saved
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the record. It comes back on the next restart of the API.
+    restAction:
+      source:
+        ref: swapi-species-delete
+      successMessage: Deleted

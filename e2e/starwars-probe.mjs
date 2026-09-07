@@ -57,6 +57,9 @@ const ROWS = {
  * proves the renderer takes the server's count instead of counting the array it was handed.
  */
 const envelope = (key, url) => {
+  // A record route asks for /api/<collection>/<id> and expects the bare object, not a page.
+  const byId = new URL(url).pathname.match(new RegExp(`/api/${key}/(\\d+)$`))
+  if (byId) return ROWS[key].find(r => String(r.id) === byId[1]) ?? null
   const q = new URL(url).searchParams
   let rows = ROWS[key]
   const search = (q.get('search') ?? '').toLowerCase()
@@ -142,32 +145,42 @@ try {
     check(`/${c.route} mapped every fixture row into the grid`, len === c.rows, `${len}/${c.rows}`)
   }
 
-  // People is a master-detail listing: clicking a person shows their full record in the detail
-  // pane, entirely from the already-fetched rows (no re-fetch, no id).
+  // A row is the entrance to the record: the identifier column is a real anchor, and following it
+  // lands on a page with its own URL. That URL is the point — a masterDetail pane showed the same
+  // record and could be neither shared nor reloaded.
   await page.goto(`${BASE}/people`, { waitUntil: 'load' })
   await page.waitForTimeout(3000)
-  const selected = await page.evaluate(() => {
-    let el = null
+  const anchor = await page.evaluate(() => {
+    let a = null
     const walk = (r) => {
-      const f = r.querySelector('mateu-table-crud')
-      if (f) el = f
+      r.querySelectorAll('a').forEach((x) => { if ((x.textContent || '').trim() === 'Luke Skywalker') a = x })
       r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
     }
     walk(document)
-    if (!el) return { err: 'no table-crud' }
-    const root = el.shadowRoot || el
-    const cell = [...root.querySelectorAll('*')].find(
-      (n) => /Luke Skywalker/.test(n.textContent) && n.children.length === 0,
-    )
-    if (!cell) return { err: 'no row cell' }
-    cell.click()
-    return { name: el.selectedItem?.name, hair: el.selectedItem?.hairColor, home: el.selectedItem?.homeworldName }
+    if (!a) return null
+    const rect = a.getBoundingClientRect()
+    return { href: a.getAttribute('href'), x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
   })
-  check(
-    'People master-detail: clicking a person selects their full record, reference included',
-    selected.name === 'Luke Skywalker' && selected.hair === 'blond' && selected.home === 'Tatooine',
-    JSON.stringify(selected),
-  )
+  check('the identifier column is a link to the record', anchor?.href === '/people/1', JSON.stringify(anchor?.href))
+
+  if (anchor) {
+    await page.mouse.click(anchor.x, anchor.y)
+    await page.waitForTimeout(3000)
+    const landed = await page.evaluate(() => {
+      const buttons = []
+      const walk = (r) => {
+        r.querySelectorAll('vaadin-button').forEach((x) => buttons.push((x.textContent || '').trim()))
+        r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+      }
+      walk(document)
+      return buttons
+    })
+    check(
+      'following it opens the record page, with the actions its YAML declares',
+      new URL(page.url()).pathname === '/people/1' && landed.includes('Save') && landed.includes('Delete'),
+      `url=${new URL(page.url()).pathname} botones=${JSON.stringify(landed)}`,
+    )
+  }
 
   // Navigating by MENU CLICK, which is not the same path as a URL load: the shell stays mounted and
   // re-points the listing element in place. Every YAML listing arrives under the same component id

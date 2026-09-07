@@ -1,0 +1,58 @@
+# A record page with no Java class behind it: the route's `data:` fetches the record into the page
+# state, the fields bind to it by id, and the buttons name the actions declared below.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.title}
+subtitle: Film
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: title
+        label: Title
+        required: true
+      - type: FormField
+        id: episodeId
+        label: Episode
+        dataType: integer
+      - type: FormField
+        id: director
+        label: Director
+      - type: FormField
+        id: producer
+        label: Producer
+      - type: FormField
+        id: releaseDate
+        label: Released
+        dataType: date
+      - type: FormField
+        id: openingCrawl
+        label: Opening crawl
+buttons:
+  - type: Button
+    label: Save
+    actionId: save
+    buttonStyle: primary
+  - type: Button
+    label: Delete
+    actionId: delete
+  - type: Button
+    label: Back to the list
+    actionable:
+      type: RouteLink
+      route: films
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        ref: swapi-film-update
+      successMessage: Saved
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the record. It comes back on the next restart of the API.
+    restAction:
+      source:
+        ref: swapi-film-delete
+      successMessage: Deleted
