@@ -4,6 +4,8 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Listing
 title: Starships
 pageSize: 20
+# A row is the entrance to the record: its own URL, shareable and surviving a reload.
+rowRoute: starships/${row.id}
 searchable: true
 filters:
   - type: FormField

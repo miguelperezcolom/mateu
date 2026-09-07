@@ -1,0 +1,84 @@
+# A record page with no Java class behind it: the route's `data:` fetches the record into the page
+# state, the fields bind to it by id, and the buttons name the actions declared below.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Starship
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: name
+        label: Name
+        required: true
+      - type: FormField
+        id: model
+        label: Model
+      - type: FormField
+        id: manufacturer
+        label: Manufacturer
+      - type: FormField
+        id: starshipClass
+        label: Class
+      - type: FormField
+        id: crew
+        label: Crew
+      - type: FormField
+        id: passengers
+        label: Passengers
+        dataType: integer
+      - type: FormField
+        id: costInCredits
+        label: Cost (credits)
+        dataType: number
+      - type: FormField
+        id: length
+        label: Length (m)
+        dataType: number
+      - type: FormField
+        id: cargoCapacity
+        label: Cargo capacity
+        dataType: number
+      - type: FormField
+        id: consumables
+        label: Consumables
+      - type: FormField
+        id: hyperdriveRating
+        label: Hyperdrive rating
+        dataType: number
+      - type: FormField
+        id: mglt
+        label: MGLT
+        dataType: integer
+      - type: FormField
+        id: maxAtmospheringSpeed
+        label: Max speed
+        dataType: integer
+buttons:
+  - type: Button
+    label: Save
+    actionId: save
+    buttonStyle: primary
+  - type: Button
+    label: Delete
+    actionId: delete
+  - type: Button
+    label: Back to the list
+    actionable:
+      type: RouteLink
+      route: starships
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        ref: swapi-starship-update
+      successMessage: Saved
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the record. It comes back on the next restart of the API.
+    restAction:
+      source:
+        ref: swapi-starship-delete
+      successMessage: Deleted

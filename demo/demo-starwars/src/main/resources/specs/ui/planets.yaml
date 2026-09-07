@@ -2,6 +2,8 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: Listing
 title: Planets
 pageSize: 20
+# A row is the entrance to the record: its own URL, shareable and surviving a reload.
+rowRoute: planets/${row.id}
 searchable: true
 filters:
   - type: FormField

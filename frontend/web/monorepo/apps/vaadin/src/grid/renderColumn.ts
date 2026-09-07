@@ -1,4 +1,5 @@
 import { numericCommitValue } from '@components/fieldValue'
+import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
 import { interpolate } from "@infra/ui/interpolation.ts";
@@ -450,5 +451,28 @@ export const columnRenderer = (item: any,
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
     const cellValue = item[vaadinColumn.path!]
+    // A listing that declares a rowRoute makes its IDENTIFIER column the way in, as a real anchor.
+    // The row itself is clickable too, but a click target you cannot see is not an affordance: this
+    // is the visible one, and being an <a> it also focuses with the keyboard, opens in a new tab and
+    // shows where it goes — none of which a click handler on a row can offer.
+    const rowRoute = (container as any)?.metadata?.rowRoute
+    if (column.identifier && rowRoute) {
+        const route = rowRouteOf(rowRoute, item, state, data)
+        if (route) {
+            const href = '/' + route.replace(/^\/+/, '')
+            return html`<a href="${href}" title="${cellValue}"
+                @click="${(e: MouseEvent) => {
+                    // Let the browser have the gestures that mean "somewhere else": a modified click
+                    // and a middle click are the user asking for a new tab, and the href is real.
+                    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                    e.preventDefault()
+                    navigateToRoute(container, route)
+                }}"
+                style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
+                @mouseover="${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline' }}"
+                @mouseout="${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none' }}"
+            >${cellValue}</a>`
+        }
+    }
     return html`<span title="${cellValue}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${cellValue}</span>`
 }

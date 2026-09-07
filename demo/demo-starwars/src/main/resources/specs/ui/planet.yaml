@@ -1,0 +1,70 @@
+# A record page with no Java class behind it: the route's `data:` fetches the record into the page
+# state, the fields bind to it by id, and the buttons name the actions declared below.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Planet
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: name
+        label: Name
+        required: true
+      - type: FormField
+        id: climate
+        label: Climate
+      - type: FormField
+        id: terrain
+        label: Terrain
+      - type: FormField
+        id: gravity
+        label: Gravity
+      - type: FormField
+        id: diameter
+        label: Diameter (km)
+        dataType: integer
+      - type: FormField
+        id: population
+        label: Population
+        dataType: number
+      - type: FormField
+        id: rotationPeriod
+        label: Rotation period (h)
+        dataType: integer
+      - type: FormField
+        id: orbitalPeriod
+        label: Orbital period (d)
+        dataType: integer
+      - type: FormField
+        id: surfaceWater
+        label: Surface water (%)
+        dataType: number
+buttons:
+  - type: Button
+    label: Save
+    actionId: save
+    buttonStyle: primary
+  - type: Button
+    label: Delete
+    actionId: delete
+  - type: Button
+    label: Back to the list
+    actionable:
+      type: RouteLink
+      route: planets
+actions:
+  - id: save
+    validationRequired: true
+    restAction:
+      source:
+        ref: swapi-planet-update
+      successMessage: Saved
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      message: This deletes the record. It comes back on the next restart of the API.
+    restAction:
+      source:
+        ref: swapi-planet-delete
+      successMessage: Deleted
