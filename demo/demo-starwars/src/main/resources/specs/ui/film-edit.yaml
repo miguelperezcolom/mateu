@@ -50,6 +50,7 @@ actions:
     source:
       ref: swapi-film-update
     successMessage: Saved
+    successRoute: films/${state.id}
 - id: delete
   confirmationRequired: true
   confirmationTexts:

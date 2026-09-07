@@ -76,6 +76,7 @@ actions:
     source:
       ref: swapi-starship-update
     successMessage: Saved
+    successRoute: starships/${state.id}
 - id: delete
   confirmationRequired: true
   confirmationTexts:

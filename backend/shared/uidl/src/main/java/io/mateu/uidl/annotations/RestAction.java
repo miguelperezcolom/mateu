@@ -68,6 +68,13 @@ public @interface RestAction {
   String resultPath() default "";
 
   /**
+   * A route the client navigates to after a 2xx (interpolated against the form state, with the
+   * merged response already applied) — so a Save that persisted a record can land on its own
+   * read-only view (e.g. {@code people/${state.id}}). Blank stays on the page.
+   */
+  String successRoute() default "";
+
+  /**
    * Fetch through the Mateu SERVER (proxy mode) instead of directly from the browser: no CORS, and
    * {@code ${secret.X}} auth is injected server-side from a {@code SecretsProvider}. Default false.
    */

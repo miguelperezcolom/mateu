@@ -40,6 +40,7 @@ import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadat
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolate, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {navigateToRoute} from "@infra/ui/rowRoute.ts";
 import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
@@ -528,6 +529,11 @@ export class MateuComponent extends ComponentElement {
             }
             const msg = interpolate(rest.successMessage, this.state, this.data)
             if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
+            // Navigate on success (e.g. an edit form's Save → its read-only view). Interpolated with
+            // the merged response already applied, so ${state.id} of a just-created record resolves.
+            // A template still carrying ${ (an id the response never supplied) is left alone.
+            const route = interpolate(rest.successRoute, this.state, this.data)
+            if (route && !route.includes('${')) navigateToRoute(this, route)
         }
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via the
         // reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class

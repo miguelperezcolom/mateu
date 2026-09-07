@@ -15,5 +15,8 @@ package io.mateu.dtos;
  * @param successMessage a toast shown on a 2xx response (interpolated); blank shows none
  * @param resultPath a dot path to the object in the response to merge into the form state; blank
  *     merges nothing (fire-and-toast)
+ * @param successRoute a route the client navigates to after a 2xx (interpolated against the state,
+ *     with the merged response already applied); blank stays on the page
  */
-public record RestActionDto(RestDataSourceDto source, String successMessage, String resultPath) {}
+public record RestActionDto(
+    RestDataSourceDto source, String successMessage, String resultPath, String successRoute) {}

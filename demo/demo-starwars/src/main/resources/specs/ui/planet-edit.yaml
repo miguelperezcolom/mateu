@@ -62,6 +62,7 @@ actions:
     source:
       ref: swapi-planet-update
     successMessage: Saved
+    successRoute: planets/${state.id}
 - id: delete
   confirmationRequired: true
   confirmationTexts:

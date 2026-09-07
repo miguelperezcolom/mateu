@@ -68,6 +68,7 @@ actions:
     source:
       ref: swapi-vehicle-update
     successMessage: Saved
+    successRoute: vehicles/${state.id}
 - id: delete
   confirmationRequired: true
   confirmationTexts:

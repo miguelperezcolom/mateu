@@ -63,6 +63,7 @@ actions:
     source:
       ref: swapi-species-update
     successMessage: Saved
+    successRoute: species/${state.id}
 - id: delete
   confirmationRequired: true
   confirmationTexts:
