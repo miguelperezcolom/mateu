@@ -50,6 +50,7 @@ actions:
       source:
         ref: swapi-person-create
       successMessage: Created
-      # The response is the created record, id included, so merging it into the state turns this
-      # form into the record's own page without a second request.
+      # The response is the created record, id included, so merging it into the state lets the
+      # client navigate straight to the new record's own read-only view.
       resultPath: ""
+      successRoute: people/${state.id}

@@ -20,6 +20,9 @@ actions:
         body: '{"name":"${state.name}"}'
       successMessage: Saved
       resultPath: ""
+      # After a successful save the client navigates to the record's own read-only view; ${state.id}
+      # resolves from the merged response.
+      successRoute: people/${state.id}
   - id: remove
     restAction:
       source:

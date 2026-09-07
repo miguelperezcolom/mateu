@@ -59,6 +59,9 @@ class YamlDeclaredActionsSyncTest {
     // was built.
     assertThat(save.restAction().source().body()).contains("${state.name}");
     assertThat(save.restAction().successMessage()).isEqualTo("Saved");
+    // A successRoute is a TEMPLATE too, resolved after the response merges — so a just-saved
+    // record's id lands the client on its own read-only view.
+    assertThat(save.restAction().successRoute()).isEqualTo("people/${state.id}");
   }
 
   @Test

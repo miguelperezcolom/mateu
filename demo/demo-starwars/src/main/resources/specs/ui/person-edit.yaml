@@ -39,6 +39,8 @@ actions:
       source:
         ref: swapi-person-update
       successMessage: Saved
+      # After saving, land on the record's own read-only view.
+      successRoute: people/${state.id}
   - id: delete
     confirmationRequired: true
     confirmationTexts:

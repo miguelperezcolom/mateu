@@ -179,7 +179,8 @@ final class FieldActionCollector {
     return new io.mateu.uidl.data.RestAction(
         source,
         a.successMessage().isEmpty() ? null : a.successMessage(),
-        a.resultPath().isEmpty() ? null : a.resultPath());
+        a.resultPath().isEmpty() ? null : a.resultPath(),
+        a.successRoute().isEmpty() ? null : a.successRoute());
   }
 
   private static String getConstrainedFieldNames(Field listField) {
