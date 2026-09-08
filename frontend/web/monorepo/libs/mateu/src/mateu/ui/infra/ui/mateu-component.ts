@@ -551,6 +551,19 @@ export class MateuComponent extends ComponentElement {
             console.warn('mateu: rest action failed', e)
             showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
         }
+        // A proxied call reports failure on appData._restfetchError ({status, message}) instead of on
+        // _restfetch — the server no longer swallows an upstream 4xx/5xx into an empty body that reads
+        // as success. So a failed write surfaces an error toast and never merges or navigates; onOk
+        // runs only when the call actually succeeded.
+        const handleProxyResult = (uiIncrement: any, onOk: (json: unknown) => void) => {
+            const err = uiIncrement?.appData?.['_restfetchError']
+            if (err) {
+                const status = typeof err?.status === 'number' && err.status > 0 ? ` (HTTP ${err.status})` : ''
+                showToast({ text: `Request failed${status}`, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+                return
+            }
+            onOk(uiIncrement?.appData?.['_restfetch'])
+        }
         // Whether a call is proxied is read off the RESOLVED source, not the declared one: a surface
         // that names a catalogue entry by `ref` carries nothing but the name, and proxying is a fact
         // about the endpoint, declared once in the catalogue. Reading the flag before resolving sent
@@ -572,7 +585,7 @@ export class MateuComponent extends ComponentElement {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: kind, _sourceId: actionId, _forEachSelectedRow: true },
-                        callback: () => announce(),
+                        callback: (uiIncrement: any) => handleProxyResult(uiIncrement, () => announce()),
                         callbackonly: true
                     },
                     bubbles: true,
@@ -595,7 +608,7 @@ export class MateuComponent extends ComponentElement {
                 detail: {
                     actionId: '__restfetch__',
                     parameters: { _sourceKind: kind, _sourceId: actionId },
-                    callback: (uiIncrement: any) => applyResult(uiIncrement?.appData?.['_restfetch']),
+                    callback: (uiIncrement: any) => handleProxyResult(uiIncrement, applyResult),
                     callbackonly: true
                 },
                 bubbles: true,

@@ -206,6 +206,9 @@ public class RunActionUseCase {
   // JSON body rides back on appData._restfetch; the renderer maps it exactly as in direct mode.
   public static final String RESTFETCH_ACTION = "__restfetch__";
   public static final String RESTFETCH_KEY = "_restfetch";
+  // A proxied call that failed rides back here instead of on _restfetch, so the renderer shows the
+  // error rather than treating an empty body as success. {status, message} — status 0 = transport.
+  public static final String RESTFETCH_ERROR_KEY = "_restfetchError";
 
   private static final java.net.http.HttpClient REST_HTTP =
       java.net.http.HttpClient.newBuilder()
@@ -250,30 +253,72 @@ public class RunActionUseCase {
     // server-side, needs a single round trip, and sidesteps the client's write-exclusivity guard
     // (which would otherwise drop all but the first of N identical `__restfetch__` actions).
     if (Boolean.parseBoolean(String.valueOf(params.get("_forEachSelectedRow")))) {
-      var rows = state.get("crud_selected_items");
-      if (rows instanceof java.util.List<?> list) {
-        for (var row : list) {
-          var rowState = new java.util.LinkedHashMap<String, Object>(state);
-          if (row instanceof java.util.Map<?, ?> map) {
-            map.forEach((k, v) -> rowState.put(String.valueOf(k), v));
-          }
-          performRestCall(source, rowState);
+      var list =
+          state.get("crud_selected_items") instanceof java.util.List<?> l ? l : java.util.List.of();
+      int failed = 0;
+      RestProxyException firstError = null;
+      for (var row : list) {
+        var rowState = new java.util.LinkedHashMap<String, Object>(state);
+        if (row instanceof java.util.Map<?, ?> map) {
+          map.forEach((k, v) -> rowState.put(String.valueOf(k), v));
         }
+        try {
+          performRestCall(source, rowState);
+        } catch (RestProxyException e) {
+          failed++;
+          if (firstError == null) {
+            firstError = e;
+          }
+        }
+      }
+      if (failed > 0) {
+        // A failed row must not read as success: surface it rather than reload as if all deleted.
+        return restFetchError(
+            firstError.status,
+            failed + " of " + list.size() + " failed" + statusSuffix(firstError.status));
       }
       // The rows are gone; the client reloads the listing via successRoute, so no body is needed.
       return UIIncrementDto.builder()
           .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))
           .build();
     }
+    try {
+      return UIIncrementDto.builder()
+          .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(source, state)))
+          .build();
+    } catch (RestProxyException e) {
+      return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
+    }
+  }
+
+  /** A proxied REST call that failed: a >=400 upstream status, or a transport error (status 0). */
+  private static final class RestProxyException extends RuntimeException {
+    final int status;
+
+    RestProxyException(int status, String message) {
+      super(message);
+      this.status = status;
+    }
+  }
+
+  private static String statusSuffix(int status) {
+    return status > 0 ? " (HTTP " + status + ")" : "";
+  }
+
+  private static UIIncrementDto restFetchError(int status, String message) {
     return UIIncrementDto.builder()
-        .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(source, state)))
+        .appData(
+            java.util.Map.of(
+                RESTFETCH_ERROR_KEY, java.util.Map.of("status", status, "message", message)))
         .build();
   }
 
   /**
    * One proxied REST call: interpolate the resolved source's url/headers/body against {@code state}
-   * (with {@code ${secret.X}} resolved server-side) and send it, returning the parsed JSON response
-   * (an empty map on any failure). The single unit both the single-fetch and bulk paths reuse.
+   * (with {@code ${secret.X}} resolved server-side) and send it, returning the parsed JSON
+   * response. Throws {@link RestProxyException} on a >=400 status or a transport failure — the
+   * caller decides how to surface it, rather than an empty body being mistaken for success. The
+   * single unit both the single-fetch and bulk paths reuse.
    */
   private Object performRestCall(
       io.mateu.uidl.data.RestDataSource source, java.util.Map<String, Object> state) {
@@ -309,12 +354,15 @@ public class RunActionUseCase {
       var response =
           REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
       if (response.statusCode() >= 400) {
-        throw new RuntimeException("HTTP " + response.statusCode());
+        throw new RestProxyException(response.statusCode(), "HTTP " + response.statusCode());
       }
       return REST_MAPPER.readValue(response.body(), Object.class);
+    } catch (RestProxyException e) {
+      log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
+      throw e;
     } catch (Exception e) {
       log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
-      return java.util.Map.of();
+      throw new RestProxyException(0, e.getMessage());
     }
   }
 
