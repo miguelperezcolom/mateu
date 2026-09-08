@@ -139,6 +139,17 @@ sources:
     source:
       url: https://swapi.ec1.mateu.io/api/planets/${state.id}
 
+  - name: swapi-planet-create
+    description: Create a planet
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","climate":"${state.climate}","terrain":"${state.terrain}","gravity":"${state.gravity}","diameter":"${state.diameter}","population":"${state.population}","rotationPeriod":"${state.rotationPeriod}","orbitalPeriod":"${state.orbitalPeriod}","surfaceWater":"${state.surfaceWater}"}'
+
   - name: swapi-planet-update
     description: Replace a planet
     source:
@@ -163,6 +174,17 @@ sources:
     description: One film by id
     source:
       url: https://swapi.ec1.mateu.io/api/films/${state.id}
+
+  - name: swapi-film-create
+    description: Create a film
+    source:
+      url: https://swapi.ec1.mateu.io/api/films
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"title":"${state.title}","episodeId":"${state.episodeId}","director":"${state.director}","producer":"${state.producer}","releaseDate":"${state.releaseDate}","openingCrawl":"${state.openingCrawl}"}'
 
   - name: swapi-film-update
     description: Replace a film
@@ -191,6 +213,17 @@ sources:
     source:
       url: https://swapi.ec1.mateu.io/api/species/${state.id}
 
+  - name: swapi-species-create
+    description: Create a species
+    source:
+      url: https://swapi.ec1.mateu.io/api/species
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}"}'
+
   - name: swapi-species-update
     description: Replace a species
     source:
@@ -216,6 +249,17 @@ sources:
     source:
       url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
 
+  - name: swapi-vehicle-create
+    description: Create a vehicle
+    source:
+      url: https://swapi.ec1.mateu.io/api/vehicles
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","model":"${state.model}","manufacturer":"${state.manufacturer}","vehicleClass":"${state.vehicleClass}","crew":"${state.crew}","passengers":"${state.passengers}","costInCredits":"${state.costInCredits}","length":"${state.length}","cargoCapacity":"${state.cargoCapacity}","consumables":"${state.consumables}","maxAtmospheringSpeed":"${state.maxAtmospheringSpeed}"}'
+
   - name: swapi-vehicle-update
     description: Replace a vehicle
     source:
@@ -240,6 +284,17 @@ sources:
     description: One starship by id
     source:
       url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+
+  - name: swapi-starship-create
+    description: Create a starship
+    source:
+      url: https://swapi.ec1.mateu.io/api/starships
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.SWAPI_WRITE_KEY}
+      body: '{"name":"${state.name}","model":"${state.model}","manufacturer":"${state.manufacturer}","starshipClass":"${state.starshipClass}","crew":"${state.crew}","passengers":"${state.passengers}","costInCredits":"${state.costInCredits}","length":"${state.length}","cargoCapacity":"${state.cargoCapacity}","consumables":"${state.consumables}","hyperdriveRating":"${state.hyperdriveRating}","mglt":"${state.mglt}","maxAtmospheringSpeed":"${state.maxAtmospheringSpeed}"}'
 
   - name: swapi-starship-update
     description: Replace a starship

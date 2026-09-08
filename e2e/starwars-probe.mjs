@@ -177,7 +177,7 @@ try {
     })
     check(
       'following it opens the record page, with the actions its YAML declares',
-      new URL(page.url()).pathname === '/people/1' && landed.includes('Save') && landed.includes('Delete'),
+      new URL(page.url()).pathname === '/people/1' && landed.includes('Edit'),
       `url=${new URL(page.url()).pathname} botones=${JSON.stringify(landed)}`,
     )
   }
@@ -271,6 +271,113 @@ try {
     await page.waitForTimeout(1500)
     const got = await rowNames()
     check(`filters: ${c.what}`, JSON.stringify(got) === JSON.stringify(c.expected), `got ${JSON.stringify(got)}`)
+  }
+
+  // Enter on the search box, and the filter bar's own event path. Both go through
+  // `mateu-table-crud.search`, which is NOT the method the checks above drive: those call
+  // `handleSearchRequested` directly, one layer below what a user touches — which is exactly why
+  // they stayed green while `search` dispatched a server action a definition-only page has nobody
+  // to answer, and the screen did not react to Enter at all.
+  await page.goto(`${BASE}/people`, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+
+  const searchBox = await page.evaluate(() => {
+    let input = null
+    const walk = (r) => {
+      r.querySelectorAll('input').forEach((x) => {
+        if (!input && (x.placeholder || '').toLowerCase().includes('search')) input = x
+      })
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    if (!input) return null
+    const rect = input.getBoundingClientRect()
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+  })
+  check('the listing has a search box', !!searchBox)
+
+  if (searchBox) {
+    await page.mouse.click(searchBox.x, searchBox.y)
+    await page.keyboard.type('sky')
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(2500)
+    const names = await rowNames()
+    check('Enter in the search box runs the search', JSON.stringify(names) === JSON.stringify(['Luke Skywalker']), JSON.stringify(names))
+  }
+
+  // The filter bar reaches the crud through this pair; driving it is what a chip or a checked
+  // option does.
+  await page.evaluate(() => {
+    let bar = null
+    const walk = (r) => {
+      const f = r.querySelector('mateu-filter-bar')
+      if (f) bar = f
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    // clear the keyword the Enter check left behind, or this asks for female Skywalkers
+    bar?.dispatchEvent(new CustomEvent('value-changed', { detail: { fieldId: 'searchText', value: '' }, bubbles: true, composed: true }))
+    bar?.dispatchEvent(new CustomEvent('value-changed', { detail: { fieldId: 'gender', value: ['female'] }, bubbles: true, composed: true }))
+    bar?.dispatchEvent(new CustomEvent('search-requested', { detail: {}, bubbles: true, composed: true }))
+  })
+  await page.waitForTimeout(2500)
+  check('the filter bar runs the search too', JSON.stringify(await rowNames()) === JSON.stringify(['Leia Organa']), JSON.stringify(await rowNames()))
+
+  // Selecting a row. The grid tells its rows apart by `_rowNumber`, an identity the SERVER stamps on
+  // the rows it produces — rows fetched from an endpoint had none, so every row read as the SAME row
+  // and checking one showed all twenty checked. The selection underneath was right; the screen was
+  // what lied, which is why counting `selectedItems` alone would never have caught it.
+  await page.goto(`${BASE}/people`, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+
+  const checkboxes = () =>
+    page.evaluate(() => {
+      const boxes = []
+      const walk = (r) => {
+        r.querySelectorAll('vaadin-checkbox').forEach((x) => {
+          if (x.getBoundingClientRect().width > 0) boxes.push({ checked: !!x.checked, indeterminate: !!x.indeterminate })
+        })
+        r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+      }
+      walk(document)
+      return boxes
+    })
+
+  const firstRowBox = await page.evaluate(() => {
+    const boxes = []
+    const walk = (r) => {
+      r.querySelectorAll('vaadin-checkbox').forEach((x) => { if (x.getBoundingClientRect().width > 0) boxes.push(x) })
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    if (boxes.length < 2) return null
+    const rect = boxes[1].getBoundingClientRect()   // [0] is the select-all in the header
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, total: boxes.length }
+  })
+  check('the listing offers a checkbox per row', (firstRowBox?.total ?? 0) > 2, `${firstRowBox?.total} casillas`)
+
+  if (firstRowBox) {
+    await page.mouse.click(firstRowBox.x, firstRowBox.y)
+    await page.waitForTimeout(1200)
+    const boxes = await checkboxes()
+    // exactly one ROW checked; the select-all goes indeterminate, which is what a partial selection
+    // is supposed to look like
+    const rowsChecked = boxes.filter((b) => b.checked && !b.indeterminate).length
+    const selected = await page.evaluate(() => {
+      let el = null
+      const walk = (r) => {
+        const f = r.querySelector('mateu-table-crud')
+        if (f) el = f
+        r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+      }
+      walk(document)
+      return (el?.state?.crud_selected_items ?? []).length
+    })
+    check(
+      'selecting ONE row checks one row, not all of them',
+      rowsChecked === 1 && selected === 1,
+      `marcadas=${rowsChecked} seleccionadas=${selected} de ${boxes.length} casillas`,
+    )
   }
 
   await page.close()

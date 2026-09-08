@@ -10,6 +10,12 @@ rowRoute: starships/${row.id}
 rowsSelectionEnabled: true
 toolbar:
   - type: Button
+    label: New starship
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: starships/new
+  - type: Button
     label: Delete selected
     color: error
     actionId: delete-selected

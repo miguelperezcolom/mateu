@@ -26,6 +26,10 @@ routes:
   - route: planets
     definition: planets.yaml
 
+  # Create comes BEFORE the parameterised sibling so `planets/new` is not read as an id.
+  - route: planets/new
+    definition: planet-new.yaml
+
   - route: planets/:id
     definition: planet.yaml
     data: swapi-planet
@@ -34,6 +38,10 @@ routes:
     data: swapi-planet
   - route: films
     definition: films.yaml
+
+  # Create comes BEFORE the parameterised sibling so `films/new` is not read as an id.
+  - route: films/new
+    definition: film-new.yaml
 
   - route: films/:id
     definition: film.yaml
@@ -44,6 +52,10 @@ routes:
   - route: species
     definition: species.yaml
 
+  # Create comes BEFORE the parameterised sibling so `species/new` is not read as an id.
+  - route: species/new
+    definition: species-new.yaml
+
   - route: species/:id
     definition: species-record.yaml
     data: swapi-species-record
@@ -53,6 +65,10 @@ routes:
   - route: vehicles
     definition: vehicles.yaml
 
+  # Create comes BEFORE the parameterised sibling so `vehicles/new` is not read as an id.
+  - route: vehicles/new
+    definition: vehicle-new.yaml
+
   - route: vehicles/:id
     definition: vehicle.yaml
     data: swapi-vehicle
@@ -61,6 +77,10 @@ routes:
     data: swapi-vehicle
   - route: starships
     definition: starships.yaml
+
+  # Create comes BEFORE the parameterised sibling so `starships/new` is not read as an id.
+  - route: starships/new
+    definition: starship-new.yaml
 
   - route: starships/:id
     definition: starship.yaml
