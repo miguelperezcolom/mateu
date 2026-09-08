@@ -8,6 +8,12 @@ rowRoute: films/${row.id}
 rowsSelectionEnabled: true
 toolbar:
   - type: Button
+    label: New film
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: films/new
+  - type: Button
     label: Delete selected
     color: error
     actionId: delete-selected

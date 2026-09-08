@@ -1,4 +1,5 @@
 import {customElement, property} from "lit/decorators.js";
+import { jsonSafe } from '@infra/http/jsonTemplate.ts'
 import { resolveRestSource } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
@@ -617,7 +618,9 @@ export class MateuComponent extends ComponentElement {
             return
         }
         const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
-        fetchExternalJson(rest.source, resolve)
+        // The same resolver over a json-escaped copy of the state, for the body of a JSON request.
+        const resolveJson = (t: string | undefined) => interpolate(t, jsonSafe(this.state), jsonSafe(this.data))
+        fetchExternalJson(rest.source, resolve, undefined, resolveJson)
             .then(applyResult)
             .catch(onError)
     }

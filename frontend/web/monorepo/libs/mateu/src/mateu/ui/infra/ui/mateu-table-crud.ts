@@ -476,6 +476,15 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: metadata.pageSize, page: 0, crud_selected_items: [] }
         this._syncStateToUrl(metadata)
+        // This is what the filter bar calls — Enter on the search box, a chip added or removed,
+        // Apply on a range. A listing reading an external endpoint has no server `search` action to
+        // dispatch to (a definition-only page has no view model at all), so the request went nowhere
+        // and the screen simply did not react. The rows come from the endpoint, exactly as they do
+        // on the first load and on every page change.
+        if (metadata.rowsSource) {
+            this._fetchRowsFromRest(metadata, undefined)
+            return
+        }
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',

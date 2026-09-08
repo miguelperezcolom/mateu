@@ -8,6 +8,12 @@ rowRoute: planets/${row.id}
 rowsSelectionEnabled: true
 toolbar:
   - type: Button
+    label: New planet
+    buttonStyle: primary
+    actionable:
+      type: RouteLink
+      route: planets/new
+  - type: Button
     label: Delete selected
     color: error
     actionId: delete-selected

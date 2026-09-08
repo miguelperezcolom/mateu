@@ -344,10 +344,18 @@ public class RunActionUseCase {
           && !"HEAD".equals(method)
           && source.body() != null
           && !source.body().isBlank()) {
+        // The values go into the body ESCAPED when the request declares JSON: a name with a quote
+        // or a description with a newline would otherwise close the string early and the endpoint
+        // would answer 400 with nothing on screen to say why. Only the values — the template's own
+        // punctuation is what gives the body its shape.
+        var escape =
+            TemplateInterpolator.declaresJson(source.headers())
+                ? (java.util.function.UnaryOperator<String>) TemplateInterpolator::jsonEscape
+                : java.util.function.UnaryOperator.<String>identity();
         builder.method(
             method,
             java.net.http.HttpRequest.BodyPublishers.ofString(
-                TemplateInterpolator.interpolate(source.body(), state, secrets)));
+                TemplateInterpolator.interpolate(source.body(), state, secrets, escape)));
       } else {
         builder.method(method, java.net.http.HttpRequest.BodyPublishers.noBody());
       }

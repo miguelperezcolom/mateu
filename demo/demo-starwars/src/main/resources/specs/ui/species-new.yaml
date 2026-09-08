@@ -1,0 +1,62 @@
+# CREATE form (species/new) — the edit form minus the id, pointing at the POST source. Nothing
+# about it is a special "create mode": it is a form whose action happens to be a create.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New species
+toolbar:
+- type: Button
+  actionId: backToList
+  label: Back
+  actionable:
+    type: RouteLink
+    route: species
+content:
+- type: FormLayout
+  content:
+  - type: FormField
+    autofocus: true
+    id: name
+    label: Name
+    required: true
+  - type: FormField
+    id: classification
+    label: Classification
+  - type: FormField
+    id: designation
+    label: Designation
+  - type: FormField
+    id: language
+    label: Language
+  - type: FormField
+    id: averageHeight
+    label: Average height (cm)
+    dataType: integer
+  - type: FormField
+    id: averageLifespan
+    label: Average lifespan (y)
+    dataType: integer
+  - type: FormField
+    id: skinColors
+    label: Skin colours
+  - type: FormField
+    id: hairColors
+    label: Hair colours
+  - type: FormField
+    id: eyeColors
+    label: Eye colours
+buttons:
+- type: Button
+  label: Create
+  actionId: create
+  buttonStyle: primary
+actions:
+- id: create
+  validationRequired: true
+  restAction:
+    source:
+      ref: swapi-species-create
+    successMessage: Created
+    # The response carries the created record, id included, so merging it lets the client land on
+    # the new record's own read-only view.
+    resultPath: ""
+    successRoute: species/${state.id}

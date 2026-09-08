@@ -1,5 +1,6 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
+import { declaresJson } from './jsonTemplate.ts'
 import { pathOfField, resolveRestSource, totalPathOf } from './restSourceCatalogue.ts'
 
 /**
@@ -70,11 +71,18 @@ export function mapItemsToRows(
 
 /** Interpolate the url/headers/body of a {@link RestDataSource} and fetch it — the shared leg of the
  * options, rows and action fetches. `resolve` interpolates `${state.x}` templates (pass the shared
- * `interpolate`); defaults to identity for tests. Throws on a non-2xx response. */
+ * `interpolate`); defaults to identity for tests. Throws on a non-2xx response.
+ *
+ * `resolveJson` is the same resolver with its VALUES json-escaped, used for the body when the
+ * request declares JSON: a name with a quote or a description with a newline would otherwise close
+ * the string early and the endpoint would answer 400, with nothing on screen to say why. Callers
+ * that have a state to interpolate should pass it; without it the body is resolved unescaped, which
+ * is what a non-JSON body wants. */
 export async function fetchExternalJson(
     declared: RestDataSource,
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
     fetchImpl: typeof fetch = fetch,
+    resolveJson?: (tpl: string | undefined) => string | undefined,
 ): Promise<unknown> {
     // A descriptor may name a catalogue entry instead of carrying a url. Resolving HERE covers every
     // surface at once — options, rows and actions all come through this function.
@@ -88,7 +96,10 @@ export async function fetchExternalJson(
     // secure store) for this DIRECT fetch — merged last so it wins over any declared header.
     Object.assign(headers, await externalAuthHeaders({ url, method }))
     const init: RequestInit = { method, headers }
-    if (method !== 'GET' && method !== 'HEAD' && source.body) init.body = resolve(source.body) ?? source.body
+    if (method !== 'GET' && method !== 'HEAD' && source.body) {
+        const forBody = (resolveJson && declaresJson(headers)) ? resolveJson : resolve
+        init.body = forBody(source.body) ?? source.body
+    }
     const res = await fetchImpl(url, init)
     if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`)
     return res.json()

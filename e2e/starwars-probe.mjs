@@ -177,7 +177,7 @@ try {
     })
     check(
       'following it opens the record page, with the actions its YAML declares',
-      new URL(page.url()).pathname === '/people/1' && landed.includes('Save') && landed.includes('Delete'),
+      new URL(page.url()).pathname === '/people/1' && landed.includes('Edit'),
       `url=${new URL(page.url()).pathname} botones=${JSON.stringify(landed)}`,
     )
   }
@@ -272,6 +272,56 @@ try {
     const got = await rowNames()
     check(`filters: ${c.what}`, JSON.stringify(got) === JSON.stringify(c.expected), `got ${JSON.stringify(got)}`)
   }
+
+  // Enter on the search box, and the filter bar's own event path. Both go through
+  // `mateu-table-crud.search`, which is NOT the method the checks above drive: those call
+  // `handleSearchRequested` directly, one layer below what a user touches — which is exactly why
+  // they stayed green while `search` dispatched a server action a definition-only page has nobody
+  // to answer, and the screen did not react to Enter at all.
+  await page.goto(`${BASE}/people`, { waitUntil: 'load' })
+  await page.waitForTimeout(3000)
+
+  const searchBox = await page.evaluate(() => {
+    let input = null
+    const walk = (r) => {
+      r.querySelectorAll('input').forEach((x) => {
+        if (!input && (x.placeholder || '').toLowerCase().includes('search')) input = x
+      })
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    if (!input) return null
+    const rect = input.getBoundingClientRect()
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+  })
+  check('the listing has a search box', !!searchBox)
+
+  if (searchBox) {
+    await page.mouse.click(searchBox.x, searchBox.y)
+    await page.keyboard.type('sky')
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(2500)
+    const names = await rowNames()
+    check('Enter in the search box runs the search', JSON.stringify(names) === JSON.stringify(['Luke Skywalker']), JSON.stringify(names))
+  }
+
+  // The filter bar reaches the crud through this pair; driving it is what a chip or a checked
+  // option does.
+  await page.evaluate(() => {
+    let bar = null
+    const walk = (r) => {
+      const f = r.querySelector('mateu-filter-bar')
+      if (f) bar = f
+      r.querySelectorAll('*').forEach((e) => e.shadowRoot && walk(e.shadowRoot))
+    }
+    walk(document)
+    // clear the keyword the Enter check left behind, or this asks for female Skywalkers
+    bar?.dispatchEvent(new CustomEvent('value-changed', { detail: { fieldId: 'searchText', value: '' }, bubbles: true, composed: true }))
+    bar?.dispatchEvent(new CustomEvent('value-changed', { detail: { fieldId: 'gender', value: ['female'] }, bubbles: true, composed: true }))
+    bar?.dispatchEvent(new CustomEvent('search-requested', { detail: {}, bubbles: true, composed: true }))
+  })
+  await page.waitForTimeout(2500)
+  check('the filter bar runs the search too', JSON.stringify(await rowNames()) === JSON.stringify(['Leia Organa']), JSON.stringify(await rowNames()))
 
   await page.close()
 } finally {
