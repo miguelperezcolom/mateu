@@ -380,6 +380,13 @@ try {
     )
   }
 
+  // NOT covered here, and it cannot be: deleting the selected rows goes through the PROXY, so the
+  // DELETE is issued by the SERVER. `page.route` only intercepts what the BROWSER asks for, so a
+  // fixture cannot answer it and the call would reach the live API. The two failures that path had
+  // are pinned where they actually live: an empty 204 body counted as a failed row is
+  // RunActionUseCaseEmptyBodyTest, and the refresh-instead-of-navigate when the successRoute names
+  // the current screen is exercised against the live API by hand.
+
   await page.close()
 } finally {
   await browser.close()

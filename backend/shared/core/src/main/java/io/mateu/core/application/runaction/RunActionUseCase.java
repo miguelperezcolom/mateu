@@ -364,7 +364,7 @@ public class RunActionUseCase {
       if (response.statusCode() >= 400) {
         throw new RestProxyException(response.statusCode(), "HTTP " + response.statusCode());
       }
-      return REST_MAPPER.readValue(response.body(), Object.class);
+      return parseBody(response.body());
     } catch (RestProxyException e) {
       log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
       throw e;
@@ -372,6 +372,22 @@ public class RunActionUseCase {
       log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
       throw new RestProxyException(0, e.getMessage());
     }
+  }
+
+  /**
+   * What a proxied response's body becomes.
+   *
+   * <p>An empty body is a legitimate success, not something to parse: <b>204 No Content</b> is
+   * exactly what a DELETE answers. Feeding "" to the mapper threw, and on the bulk path a throw is
+   * counted as a failed row — so a delete that had deleted everything asked of it reported "1 of 1
+   * failed", with the rows already gone and the screen saying they were not. Malformed JSON still
+   * fails: an empty body is the exception, not a blanket amnesty.
+   */
+  static Object parseBody(String body) throws java.io.IOException {
+    if (body == null || body.isBlank()) {
+      return java.util.Map.of();
+    }
+    return REST_MAPPER.readValue(body, Object.class);
   }
 
   /** A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment. */

@@ -537,7 +537,16 @@ export class MateuComponent extends ComponentElement {
             const msg = interpolate(rest.successMessage, this.state, this.data)
             if (msg) showToast({ text: msg, variant: 'success', position: 'bottomEnd', duration: 3000 }, this)
             const route = interpolate(rest.successRoute, this.state, this.data)
-            if (route && !route.includes('${')) navigateToRoute(this, route)
+            if (!route || route.includes('${')) return
+            // Landing on the route you are ALREADY on is the common case for a delete — the listing
+            // sends you back to itself. Navigation sees no change and does nothing, so the row you
+            // just deleted stays on screen, which reads as "it did not work". Re-run the listing's
+            // search instead: same intent, and it is the only one of the two that refreshes.
+            if (this.sameRoute(route)) {
+                this.refreshListing()
+                return
+            }
+            navigateToRoute(this, route)
         }
         const applyResult = (json: unknown) => {
             if (rest.resultPath != null) {
@@ -623,6 +632,30 @@ export class MateuComponent extends ComponentElement {
         fetchExternalJson(rest.source, resolve, undefined, resolveJson)
             .then(applyResult)
             .catch(onError)
+    }
+
+    /** Whether a route names the screen already on display. */
+    private sameRoute(route: string) {
+        const strip = (r: string) => r.replace(/^\/+/, '').replace(/\/+$/, '').split('?')[0]
+        return strip(route) === strip(window.location.pathname)
+    }
+
+    /**
+     * Re-runs the search of the listing inside this component, if there is one. Reached through the
+     * DOM rather than an event because the crud is a DESCENDANT: an event dispatched here bubbles
+     * away from it, and the listener that would catch it sits on the filter bar below.
+     */
+    private refreshListing() {
+        let crud: any = null
+        const walk = (root: ParentNode) => {
+            const found = (root as Element).querySelector?.('mateu-table-crud')
+            if (found) crud = found
+            ;(root as Element).querySelectorAll?.('*').forEach(el => {
+                if ((el as any).shadowRoot) walk((el as any).shadowRoot)
+            })
+        }
+        walk(this.renderRoot as unknown as ParentNode)
+        crud?.search?.()
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
