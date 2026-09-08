@@ -657,7 +657,20 @@ export class MateuTableCrud extends LitElement {
                 : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
                     .then((rows) => ({ rows, total: null }))
         pagePromise
-            .then(({ rows, total }) => {
+            .then(({ rows: fetched, total }) => {
+                // A grid tells its rows apart by `_rowNumber` — the identity the SERVER stamps on the
+                // rows it produces. Rows fetched from an external endpoint never had one, so every
+                // row's id was `undefined`, the grid read them all as the SAME row, and selecting one
+                // showed all twenty as selected (the selection itself was right; what lied was the
+                // screen). Prefer the identifier column, which is stable across pages; fall back to
+                // the position, which is at least unique within the page.
+                const identifier = this.cols.find(c => c.identifier)?.id
+                const rows = fetched.map((row, index) => ({
+                    ...row,
+                    _rowNumber: identifier != null && row[identifier] != null
+                        ? String(row[identifier])
+                        : `_row:${index}`,
+                }))
                 const page = Number((this.state as any)?.page ?? 0)
                 // The server's total is only trusted when the server actually paged; otherwise the
                 // count has to come from what survived filtering here.
