@@ -145,3 +145,36 @@ imposed. What it does not do today:
 - **Cursor or offset paging**: `${searchText}`, `${page}` and `${size}` interpolate, but there is no
   arithmetic, so `offset = page × size` cannot be expressed.
 - **A 200 carrying an error** in its body; only a non-2xx status is treated as failure.
+
+### Why it stops there
+
+What the catalogue gives you is **selection, not transformation**. A path says *where* a value is;
+nothing says what to make of it. That is a deliberate stopping point rather than an oversight, and
+the reason is worth knowing before you reach for a way past it.
+
+**Whatever normalises a response has to work on BOTH legs.** A source is fetched in one of two
+places: the browser (direct) or the server (`proxy: true` — which is what keeps an API key out of the
+browser and sidesteps CORS). A mechanism that only exists on one leg means the same source behaves
+differently depending on a flag the author set for an unrelated reason, and the two halves drift.
+Every defect this area has produced has had that shape: the `proxy` flag read from the declared
+source instead of the resolved one, and JSON body values escaped on one side and not the other.
+
+Three ways past it, in the order they are worth trying:
+
+1. **A mapping expression instead of a bare path.** `${…}` interpolation already exists on both legs
+   (`TemplateInterpolator` server-side, `interpolate` client-side), so extending `fields` from
+   `customer.name` to `${row.first} ${row.last}` costs no new machinery and stays symmetric. It
+   covers most of what is missing above: joining, formatting, defaults.
+2. **A transform registered by the host app** — the shape `registerExternalAuthProvider` already has
+   for headers. Real code, no build step, but **client-side only**: a proxied source would be
+   unnormalised, so this suits an app that does not proxy.
+3. **A web worker supplied by the developer.** What it buys over (2) is genuine isolation — third-
+   party code with no reach into the DOM or app state — and parsing off the main thread. It costs a
+   JS file to serve, version and allow through the CSP, and it is client-side only, so a proxied
+   source would need an equivalent server-side adapter or it stops agreeing with itself.
+
+None of this is implemented. If your API is under your control, the cheapest fix is usually not here
+at all: **have the endpoint serve the shape the screen needs**. `demo-starwars` is the worked example
+— it uses only `itemsPath` and `totalPath`, no `fields` at all, because the service it reads
+denormalises on the way out (`homeworldName` beside `homeworldId`). That is also why it is not
+evidence that the mapping is sufficient: it never exercises the gap.

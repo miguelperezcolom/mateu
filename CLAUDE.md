@@ -212,6 +212,28 @@ environment without a rebuild.
 - Tests: `RestSourceRegistryTest` (12), `restSourceCatalogue.test.ts` (12). User docs:
   `doc/.../java-ui-definition/rest-source-catalogue.md`.
 
+### Response shaping: what a source can and cannot normalise (2026-09-08)
+
+A `RestDataSource` gives **selection, not transformation**: `itemsPath`, `totalPath`, `fields`
+(name → dot path), `valuePath`/`labelPath`, `resultPath` all say WHERE a value is; nothing says what
+to make of it. Not covered: non-JSON responses, value transformation (formatting, units, joining),
+offset paging (`${page}`/`${size}` interpolate but there is no arithmetic), and a 200 carrying an
+error. A `body:` is likewise a hand-written template — its VALUES are json-escaped when the request
+declares JSON (`TemplateInterpolator.jsonEscape` / `jsonTemplate.ts`), never the template itself.
+
+**The constraint on any way past it: it has to work on BOTH legs** — the direct (browser) fetch and
+the proxied (server) one. Every defect in this area has been the two disagreeing: the `proxy` flag
+read off the DECLARED source rather than the resolved one, escaping added on one side only. So a
+client-only normaliser (a host-registered transform, or a developer-supplied **web worker** — both
+considered, neither implemented) leaves a proxied source unnormalised unless a server-side
+equivalent ships with it. The cheap symmetric option, if it is ever needed, is to extend `fields`
+from a bare path to a `${…}` expression: that interpolator already exists on both sides.
+
+When the API is yours, the cheapest fix is not here at all — **have the endpoint serve the shape the
+screen needs**. `demo-starwars` uses only `itemsPath`/`totalPath` and no `fields`, because
+swapi-service denormalises on the way out; which is also why it is no evidence the mapping suffices.
+Reasoning written up in `doc/.../java-ui-definition/rest-source-catalogue.md` ("Why it stops there").
+
 ### Derived API contract and server generator (2026-08-19)
 
 The declaration derives TWO artifacts: the UI, and the contract the server behind it must satisfy.
