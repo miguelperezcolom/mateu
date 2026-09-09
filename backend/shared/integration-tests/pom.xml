@@ -31,7 +31,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.5.0</version>
+            <version>6.0.1</version>
         </dependency>
     </dependencies>
 </project>
