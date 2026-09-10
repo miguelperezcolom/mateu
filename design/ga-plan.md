@@ -97,6 +97,23 @@ Prioridad de remediación:
    **Decisión pendiente del mantenedor:** ¿mergeo la oleada segura (grupos + P0) tras verde local, o
    prefieres revisarlos? (mergear/pushear es acción externa: no lo hago sin tu OK.)
 
+**Oleada segura ejecutada (D1, 2026-09-09→10)** — rama `ga/d1-honesty`, sin push, diff = pom micronaut
++ 3 `package-lock.json`:
+- [x] **P0 backend:** `micronaut.core.version` 4.9.9 → **4.10.22** (parchea el DoS de `micronaut-context`);
+      `micronaut-core` **compila** OK.
+- [x] **doc:** `npm audit fix` → **6 → 0** vulnerabilidades (incluida la critical).
+- [x] **react-native:** `npm audit fix` → **40 → 27** (arregladas las 13 no-rompedoras; las 27 restantes
+      exigen major de Expo/RN → **P1/D5**).
+- [x] **monorepo:** `npm audit fix` → **46 → 41**; `npm ci` + `libs/mateu build` **verdes** (el renderer
+      GA no se rompe). CI usa `npm ci` sobre `package-lock.json`, así que ése es el lockfile autoritativo.
+- [ ] **P0 critical restante:** `form-data` (2×) bajo el paquete **deprecado `request`** en una workspace
+      de apps/*. Fix limpio no-rompedor = override acotado en el `package.json` raíz:
+      `"overrides": { "request": { "form-data": "^2.5.6" } }`. Requiere `npm install` COMPLETO del
+      monorepo (baja el tooling Oracle de redwood) + rebuild para verificar → **hacerlo en D5**.
+- [ ] **Higiene:** el monorepo tiene DOS lockfiles (`package-lock.json` + `yarn.lock`); CI solo usa el
+      primero. `yarn.lock` es cruft y es la causa de los duplicados "monorepo, monorepo" en las alertas
+      → **borrarlo** (decisión del mantenedor; elimina ~la mitad del ruido de alertas).
+
 ### E — Pasada de documentación · **P0**
 - [ ] Getting-started ejecutable por productor (Java/.NET/Python) y por renderer (vaadin/VB/RN/IntelliJ).
 - [ ] Auditar que las 332 páginas no contradigan la matriz honesta (grep de renderers retirados).
