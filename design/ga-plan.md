@@ -61,8 +61,13 @@ Server (de la tabla de `parity.md`):
 - [ ] Import wizard 🟡 y component adapters 🟡: mantener 🟡 con su nota (diferencia de contrato, no gap).
 
 Renderers (promesa amplia):
-- [ ] **P0** REST source catalogue en consumidores nativos: **React Native** e **IntelliJ** aún no
-      hacen el lookup por `ref` (memoria `project_external_endpoints` + nota en CLAUDE.md) → cerrarlo.
+- [x] **P0** REST source catalogue en consumidores nativos (D2, 2026-09-10): **React Native** e
+      **IntelliJ** ya resuelven `optionsSource`/`rowsSource` por `ref` contra el catálogo del App
+      (`AppDto.restSources`), leyendo `proxy`/`itemsPath`/`valuePath`/`labelPath` de la fuente
+      **resuelta** (mismo contrato que el web; evita el bug proxy-desde-declarada). RN: `restFetch.ts`
+      `registerRestSources`/`resolveRestSource` + registro en `MateuViewController` (tsc limpio + 5
+      checks de lógica pura verdes). IntelliJ: `RestFetch.kt` + registro en `AppContext` (compila).
+      Pendiente probe e2e contra starwars :8600 (expo web / renderProbe) → verificación D5.
 - [ ] **P1** VB/Redwood: consumir REST sources (hoy ref-native) → cerrar o documentar como ref-native.
 - [ ] **P1** Multi-select contra `optionsSource`: las ramas `multiSelect`/`combobox` de `mateu-field`
       no leen `optionsSource` (encontrado hoy en swapi) → soportarlo, o documentar el límite.
