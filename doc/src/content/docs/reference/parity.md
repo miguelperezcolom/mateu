@@ -222,5 +222,10 @@ Redwood/VB line.**
 `frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
 bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
 
+**Tooling (preview, not part of the supported matrix).** The visual editor (`apps/visual-editor`)
+and its VS Code host (`frontend/app/vscode-extension`) are authoring tooling shipped as *preview* —
+they consume the wire like any renderer but are not covered by the GA support promise above. The
+Figma design-to-code pipeline is preview for the same reason.
+
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).
