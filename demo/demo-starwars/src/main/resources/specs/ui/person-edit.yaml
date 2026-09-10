@@ -22,7 +22,14 @@ content:
       - {type: FormField, id: mass, label: Mass (kg), dataType: number}
       - {type: FormField, id: hairColor, label: Hair}
       - {type: FormField, id: eyeColor, label: Eyes}
-      - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true}
+      # Was a read-only name; now an editable combo. The record's `homeworldId` seeds it (the route's
+      # `data:` fetched it), the choices come from swapi-planet-options, and Save sends the picked id.
+      - type: FormField
+        id: homeworldId
+        label: Homeworld
+        stereotype: select
+        optionsSource:
+          ref: swapi-planet-options
 buttons:
   - type: Button
     label: Save
