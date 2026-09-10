@@ -130,8 +130,11 @@ Escalera de autoría, dominio Star Wars. Puertos 8600–8605. Cada uno: módulo 
 README + verificado en navegador; registrar en `demo/pom.xml`.
 - [x] **Example 1** — `demo-starwars` (8600): 100% YAML sobre API externa, read+write, combos de
       referencia (homeworld→planeta). **Hecho y verificado.**
-- [ ] **Example 2** — code-first: primer `@UI` + `AutoCrud` en memoria (8601). *pom ya creado.*
-- [ ] **Example 3** — formularios ricos: wizard + zones/tabs/secciones + tipos de campo (8602).
+- [x] **Example 2** — `demo-starwars-2-code-first` (8601): primer `@UI` + `AutoCrud<Character>` en
+      memoria; listado + form seccionado + enum/stepper + validación. **Verificado en navegador.**
+- [x] **Example 3** — `demo-starwars-3-forms` (8602): shell `@App` con menú a un **Wizard** (paso
+      zonado en 2 columnas, progreso STEPS) y un form con **tabs** + tipos de campo (textarea, stars,
+      toggle, date, money, radios). **Verificado en navegador.**
 - [ ] **Example 4** — arquetipos + app shell: dashboard, listados, command center, navegación (8603).
 - [ ] **Example 5** — federación: shell + módulos (8604).
 - [ ] **Example 6** — static bundle a CDN, sin backend (8605), sobre el patrón de `demo-static-bundle`.
