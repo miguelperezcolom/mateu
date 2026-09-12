@@ -200,10 +200,13 @@ jobs:
         with:
           python-version: '3.12'
 
+      # The tests import the packages from the source tree (sys.path), so install the DEPENDENCIES,
+      # not the editable package — `pip install -e .` fails on the flat multi-package layout. pyyaml
+      # is a runtime dep (pyproject) missing from requirements.txt, so add it explicitly.
       - name: Python tests
         run: |
           cd backend/python
-          pip install -e . pytest
+          pip install -r requirements.txt pyyaml
           python -m pytest tests/ -q
 
       - name: Set up .NET
