@@ -78,9 +78,21 @@ Renderers (promesa amplia):
       no leen `optionsSource` (encontrado hoy en swapi) → soportarlo, o documentar el límite.
 
 ### C — Mecanismo de paridad (§2 + §4) · **P1** (seed, no exhaustivo)
-- [ ] **Corpus de conformidad compartido**: extraer los goldens per-port a N fixtures declarativos
-      equivalentes en los 3 lenguajes → payloads golden versionados en un artefacto propio que
-      **cada port ejecuta en su CI**. Objetivo semana: montar el corpus + primer lote + cablearlo.
+> **Hallazgo D4 (2026-09-12):** el corpus **ya existía y estaba implementado** (`conformance/` desde
+> 2026-08-12: README con normalización, `cases/{simple-form,page-header}` con `expected.json`, y los
+> TRES runners `WireConformanceTest.java` / `test_wire_conformance.py` / `WireConformanceTests.cs`,
+> con xfails para divergencias conocidas). Estado local: **Java verde · Python 4 passed/2 xfailed ·
+> .NET 6 passed.** El gap real no era construirlo sino que **NO se ejecutaba en CI** — y, peor,
+> `run_tests.yml` construye TODO el backend con `-DskipTests` y **no invoca `pytest` ni `dotnet
+> test`**, así que ninguna de las ~990 pruebas de core ni los goldens de los ports corren en CI. El
+> mecanismo estaba construido pero desconectado.
+- [x] **Corpus de conformidad compartido** — ya existía. **Cableado en CI (D4):** nuevo job
+      `conformance` en `run_tests.yml` que corre los 3 runners (Java reference + Python + .NET) en cada
+      push. YAML validado; invocaciones verificadas verdes localmente (pendiente: 1 run real de CI).
+- [ ] **P0 destapado — ninguna suite de backend/ports corre en CI.** El job de conformidad gatea el
+      wire, pero core (990), .NET y Python siguen fuera de CI (`-DskipTests`). Decisión del mantenedor:
+      ¿habilitamos las suites completas en CI (lento/posible flaky, pero es "CI verde en la superficie
+      soportada" de verdad) o solo el corpus por ahora? → llevar a D5/D6.
 - [ ] **Contrato de renderer** documentado: qué DTOs pintar, qué `commands` honrar, qué eventos
       emitir, qué plan de fetch ejecutar, obligatorio vs opcional + **niveles de conformidad**.
 - [ ] Apuntar la suite e2e compartida a **renderers** (al menos vaadin + un segundo), no solo backends.

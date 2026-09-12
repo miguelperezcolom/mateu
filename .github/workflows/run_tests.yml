@@ -165,3 +165,47 @@ jobs:
           path: e2e/playwright-report/
           retention-days: 7
 
+  # Wire-conformance corpus: the shared fixtures under conformance/ that every producer must match
+  # (conformance/README.md). The runners existed but ran only locally — the rest of run_tests.yml
+  # builds the backend with -DskipTests and never invokes pytest or dotnet test, so a port could
+  # drift from the wire with every check still green. This job is the gate: Java (the reference),
+  # Python and .NET each build their equivalent fixtures and assert the same golden.
+  conformance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      # Install the reactor artifacts to the local repo (shared/core's conformance test needs them);
+      # tests are skipped here — the conformance run is the next step.
+      - name: Build backend
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
+
+      - name: Java wire conformance (the reference)
+        run: mvn -B -pl shared/core test -Dtest=WireConformanceTest --file backend/pom.xml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python wire conformance
+        run: |
+          cd backend/python
+          pip install -e . pytest
+          python -m pytest tests/test_wire_conformance.py -q
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: .NET wire conformance
+        run: cd backend/dotnet && dotnet test --filter WireConformance
+
