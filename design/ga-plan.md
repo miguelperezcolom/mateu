@@ -212,11 +212,26 @@ README + verificado en navegador; registrar en `demo/pom.xml`.
       para que el catálogo mande (+ test `RestProxySyncTest`). Afectaba a todo by-ref, vivo y estático.
 
 ### G — Release engineering · **P0**
-- [ ] Congelar `master` para features (solo fixes) a partir de D5.
-- [ ] Ensayo: cortar **`v3.0.0-RC1`** por el pipeline real, verificar artefactos en Central y que un
-      proyecto nuevo (mateu-scaffold) resuelve `0.0.1-MATEU`→`3.0.0-RC1` y arranca.
-- [ ] Changelog de GA (resumen de la línea alpha) + notas de release.
-- [ ] Cortar **`v3.0.0`** (`gh release create v3.0.0 …`), verificar publicación y anuncio.
+- [x] **Freeze de master** declarado (D5) — fix-only a GA.
+- [x] **Borrador de notas de release** listo: `design/release-notes-3.0.0.md` (qué es GA, superficie
+      soportada, edges honestos, migración alpha→GA). El TEXTO de la política de estabilidad semver es
+      decisión del mantenedor (dejado conservador).
+- [ ] **Cortar RC1 y GA** — acción EXTERNA del mantenedor (publica a Central). Runbook:
+
+**Runbook de release (cómo funciona el pipeline).** `buid-and-publish.yml` dispara en `release:
+published`; para un tag `vX` toma `RELEASE_VERSION = tag sin la 'v'`, un `sed` sustituye
+`0.0.1-MATEU`→esa versión en todos los poms de `backend/`, y `mvn -Dmaven.test.skip deploy` publica a
+Maven Central (genera javadoc/sources — el javadoc de release funciona, 327 alphas lo prueban). El
+release se construye del **commit del tag**.
+
+1. **PRERREQUISITO: mergear el PR #480 a master.** El release tagea master; sin merge, publicaría master
+   SIN todo el trabajo de la rama. (Antes de mergear: confirmar el run verde de `backend-tests` — hecho.)
+2. **RC1:** `gh release create v3.0.0-RC1 --title "Mateu v3.0.0-RC1" --notes-file design/release-notes-3.0.0.md --prerelease`
+   → publica `io.mateu:*:3.0.0-RC1` a Central.
+3. **Verificar RC1:** artefactos en Central; un proyecto nuevo (mateu-scaffold, o un `demo/demo-starwars-2`
+   apuntando a `3.0.0-RC1` en vez de `0.0.1-MATEU`) resuelve deps y arranca.
+4. **GA:** `gh release create v3.0.0 --title "Mateu v3.0.0" --notes-file design/release-notes-3.0.0.md`
+   → publica `3.0.0`. Verificar publicación + anuncio.
 
 ---
 
