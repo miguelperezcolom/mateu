@@ -198,15 +198,21 @@ describe('willUpdate keeps what the user typed', () => {
     })
 
     it('restores an edited field when the parent re-binds its older copy', () => {
-        const el = edited({ state: { leadName: 'aaayhyyhyyhy', crudChrome: 'back to list' } })
-        // Lit has already assigned the parent's copy; what we typed travels in the changed map.
-        el.willUpdate(new Map([['state', { leadName: 'the name just typed', crudChrome: 'back to list' }]]) as any)
+        // The parent's stale copy is what Lit has assigned (el.state); our own edit is _lastOwnState.
+        const el = edited({
+            state: { leadName: 'aaayhyyhyyhy', crudChrome: 'back to list' },
+            _lastOwnState: { leadName: 'the name just typed', crudChrome: 'back to list' },
+        })
+        el.willUpdate(new Map([['state', { leadName: 'aaayhyyhyyhy', crudChrome: 'back to list' }]]) as any)
         expect(el.state.leadName).toBe('the name just typed')
     })
 
     it('takes the parent value for everything the user did not touch', () => {
-        const el = edited({ state: { leadName: 'stale', crudChrome: 'back to list', status: 'Confirmed' } })
-        el.willUpdate(new Map([['state', { leadName: 'typed', crudChrome: 'gone', status: 'Pending' }]]) as any)
+        const el = edited({
+            state: { leadName: 'stale', crudChrome: 'back to list', status: 'Confirmed' },
+            _lastOwnState: { leadName: 'typed' },
+        })
+        el.willUpdate(new Map([['state', { leadName: 'stale', crudChrome: 'back to list', status: 'Confirmed' }]]) as any)
         expect(el.state.leadName).toBe('typed')
         expect(el.state.crudChrome).toBe('back to list')
         expect(el.state.status).toBe('Confirmed')
@@ -238,23 +244,18 @@ describe('willUpdate keeps what the user typed', () => {
         expect(el.state.leadName).toBe('NORMALISED BY THE SERVER')
     })
 
-    it('keeps defending a field the server only echoes back unchanged', () => {
-        // A cleared filter: the user removed a chip (value -> ''), the listing re-searched, and the
-        // search response echoed the same empty value. Dropping the field from the edited set on an
-        // unchanged echo left the next stale `.state` re-bind from the parent free to restore the
-        // pre-clear value — the filter chip reappeared even though the filter was already gone.
-        // Only an echo that actually CHANGES the value hands authority back to the server.
-        const el = componentElement({
-            component: serverSide('Processes'),
-            state: { searchText: '' },
+    it('keeps a cleared field cleared when the parent re-binds the pre-clear value', () => {
+        // The bug this guards: clearing an edited field (a filter chip's ✕) set the value to '',
+        // but the parent re-bound the pre-clear value on top. Restoring `changed.get('state')` there
+        // — the value before the re-bind, which is the STALE pre-clear one — resurrected what the
+        // user had just removed, so the filter chip came back. The element's own last commit is the
+        // clear, and that is what must win.
+        const el = edited({
             _locallyEdited: new Set(['searchText']),
+            state: { searchText: 'chip-alpha' },   // parent's stale re-bind (pre-clear value)
+            _lastOwnState: { searchText: '' },      // our own last commit: the clear
         })
-        el.applyFragment({
-            targetComponentId: 'target',
-            action: UIFragmentAction.Replace,
-            state: { searchText: '' },
-        } as unknown as UIFragment)
-        expect(el._locallyEdited.has('searchText')).toBe(true)
+        el.willUpdate(new Map([['state', { searchText: 'chip-alpha' }]]) as any)
         expect(el.state.searchText).toBe('')
     })
 

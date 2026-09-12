@@ -206,16 +206,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 // a local edit of the same field stops being defended from here on. Without this,
                 // willUpdate would keep re-applying the value the user typed over the one the
                 // server just sent, and a server-computed field could never change on screen.
-                //
-                // But only when the server actually CHANGES the value. A search response echoes the
-                // filter values back unchanged — including a filter the user just cleared — and
-                // dropping the field's defence on that echo let the next stale `.state` re-bind from
-                // the parent resurrect the pre-clear value: the filter chip reappeared though the
-                // filter was already gone. An unchanged echo is not the server overriding the edit,
-                // so the field stays defended until the server genuinely says something different.
-                Object.keys(fragment.state).forEach(key => {
-                    if (fragment.state![key] !== this.state?.[key]) this._locallyEdited.delete(key)
-                })
+                Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
                 this.state = { ...this.state, ...fragment.state }
             }
             this._lastOwnState = this.state
@@ -319,13 +310,20 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         if (viewChanged || !changed.has('state') || this._locallyEdited.size === 0) return
         // Our own change (a fragment merge, or the keystroke that just happened) is authoritative.
         if (this.state === this._lastOwnState) return
-        const previous = changed.get('state') as Record<string, any> | undefined
-        if (!previous) return
+        // Restore each edited field to the value THIS element last committed — `_lastOwnState`, its
+        // own authoritative copy — NOT to `changed.get('state')` (the value before the parent's
+        // re-bind). The two agree for an ordinary edit, but they INVERT when the user CLEARS an
+        // already-edited field: the parent re-binds the pre-clear value on top, so `changed` holds
+        // the stale value while `_lastOwnState` holds the clear. Restoring `changed` there brought
+        // back the value the user had just removed — a cleared filter's chip reappeared. Restoring
+        // `_lastOwnState` keeps the clear.
+        const own = this._lastOwnState as Record<string, any> | undefined
+        if (!own) return
         let restored: Record<string, any> | undefined
         this._locallyEdited.forEach(fieldId => {
-            if (fieldId in previous && previous[fieldId] !== this.state?.[fieldId]) {
+            if (own[fieldId] !== this.state?.[fieldId]) {
                 restored = restored ?? { ...this.state }
-                restored[fieldId] = previous[fieldId]
+                restored[fieldId] = own[fieldId]
             }
         })
         if (restored) this.state = restored
