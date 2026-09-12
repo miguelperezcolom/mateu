@@ -194,14 +194,42 @@ public class AppMenuResolver {
 
   private Mono<?> tryRemoteMenusForRoute(
       AppShell app, RunActionCommand command, HttpRequest httpRequest) {
-    return reactor.core.publisher.Flux.fromIterable(app.menu())
-        .filter(item -> item instanceof RemoteMenu)
-        .cast(RemoteMenu.class)
+    return reactor.core.publisher.Flux.fromIterable(remoteMenusIn(app.menu()))
         .concatMap(
             remoteMenu ->
                 remoteMenuHandler.tryResolveRoute(
                     remoteMenu, command.route(), app, httpRequest, command))
         .next();
+  }
+
+  /**
+   * Every {@link RemoteMenu} in the tree, at whatever depth it sits. A shell that groups its remote
+   * sections under one entry — "Admin", holding Workflow, Forms and Worker — nests them below an
+   * ordinary {@link Menu}, so a deep link into one of them (a reloaded or bookmarked {@code
+   * /workflow/processes}) was never offered to the remote that owns it: this looked at the top
+   * level only, found nothing, and let the route fall through to the shell as "Not found". The
+   * frontend's menu completion already descends the same way (see {@code
+   * ConnectedElement.getRemoteMenus}).
+   *
+   * <p>A RemoteMenu is NOT descended into: whatever it has underneath is the remote app's to
+   * declare, and it has not answered yet.
+   */
+  private static List<RemoteMenu> remoteMenusIn(List<Actionable> menu) {
+    if (menu == null) {
+      return List.of();
+    }
+    return menu.stream()
+        .flatMap(
+            option -> {
+              if (option instanceof RemoteMenu remoteMenu) {
+                return java.util.stream.Stream.of(remoteMenu);
+              }
+              if (option instanceof Menu group) {
+                return remoteMenusIn(group.submenu()).stream();
+              }
+              return java.util.stream.Stream.empty();
+            })
+        .toList();
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
