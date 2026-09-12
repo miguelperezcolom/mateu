@@ -5,6 +5,9 @@
 > pipeline que ya existe (`.github/workflows/buid-and-publish.yml` → Maven Central).
 > **Estado del plan:** vivo. Marca `[x]` al cerrar. Prioridades: **P0** bloquea GA · **P1** objetivo ·
 > **P2** stretch (primero en caer si vamos tarde).
+> **🧊 FEATURE FREEZE declarado (D5, 2026-09-12):** master pasa a **fix-only** hasta la GA. Siguen
+> permitidos: material de GA (demos de la serie), documentación, cableado de CI/tests y correcciones.
+> NO features nuevas de framework ni superficie de anotaciones/wire nueva.
 
 ## Alcance de la promesa (lo que la GA declara "soportado")
 
@@ -73,9 +76,14 @@ Renderers (promesa amplia):
       `registerRestSources`/`resolveRestSource` + registro en `MateuViewController` (tsc limpio + 5
       checks de lógica pura verdes). IntelliJ: `RestFetch.kt` + registro en `AppContext` (compila).
       Pendiente probe e2e contra starwars :8600 (expo web / renderProbe) → verificación D5.
-- [ ] **P1** VB/Redwood: consumir REST sources (hoy ref-native) → cerrar o documentar como ref-native.
-- [ ] **P1** Multi-select contra `optionsSource`: las ramas `multiSelect`/`combobox` de `mateu-field`
-      no leen `optionsSource` (encontrado hoy en swapi) → soportarlo, o documentar el límite.
+- [x] **P1 (D5, documentado):** VB/Redwood consume REST sources **ref-native** (no el catálogo
+      compartido) por diseño — su transporte no comparte core con los web. Documentado en `parity.md`
+      ("Fetch-plan edges").
+- [x] **P1 (D5, documentado):** Multi-select contra `optionsSource` — el combo **simple** sí resuelve
+      `optionsSource` (caso de referencia común); el multi-valor (`multiSelect`/`listBox`/`combobox`)
+      lee `options` estáticas o `search-<field>` remoto, no `optionsSource`. Cruza 3 ramas de widget en
+      un fichero de 2600 líneas → **diferido** (nicho: referencia uno-a-muchos a catálogo externo), no
+      medio-cableado. Documentado en `parity.md`.
 
 ### C — Mecanismo de paridad (§2 + §4) · **P1** (seed, no exhaustivo)
 > **Hallazgo D4 (2026-09-12):** el corpus **ya existía y estaba implementado** (`conformance/` desde
@@ -95,9 +103,14 @@ Renderers (promesa amplia):
       **Python `pytest tests/`** (298 + 2 xfailed) y **.NET `dotnet test`** (299) — cada una incluye su
       runner de conformidad. Las tres verificadas verdes localmente. Pendiente: 1 run real de CI + decidir
       si extender a los adapters (hoy cubiertos por e2e) y arreglar el javadoc de core.
-- [ ] **Contrato de renderer** documentado: qué DTOs pintar, qué `commands` honrar, qué eventos
-      emitir, qué plan de fetch ejecutar, obligatorio vs opcional + **niveles de conformidad**.
-- [ ] Apuntar la suite e2e compartida a **renderers** (al menos vaadin + un segundo), no solo backends.
+- [x] **Contrato de renderer** — YA EXISTE (D5, hallazgo estilo D4): `doc/.../design-systems/
+      renderer-contract.md` (qué pintar, commands, eventos, plan de fetch, obligatorio vs opcional +
+      **niveles de conformidad** core/standard/full) + `bring-your-own-design-system.md`, y el harness
+      `e2e/conformance.{sh,mjs}` + `conformance-fixtures.json` + `RENDERER-VERIFICATION.md`.
+- [x] **e2e→renderer** — YA EXISTE: `conformance.sh --renderer <name>` cablea un dev server al SUT y
+      escribe `conformance-report/<renderer>/report.md` con el nivel alcanzado. **Hallazgo (como el
+      corpus):** NO está en CI. Renderer-conformance en CI necesita backend + renderer servido (más
+      pesado; el job e2e ya cubre vaadin vía Playwright) → decisión de si cablearlo → D6.
 - [ ] Hacer que la fila ✅ de la matriz **se verifique** desde el corpus (§3.2), aunque sea parcial.
 
 ### D — Tests / CI verde y seguridad · **P0**

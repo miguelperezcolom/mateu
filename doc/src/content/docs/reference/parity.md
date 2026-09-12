@@ -252,5 +252,19 @@ and its VS Code host (`frontend/app/vscode-extension`) are authoring tooling shi
 they consume the wire like any renderer but are not covered by the GA support promise above. The
 Figma design-to-code pipeline is preview for the same reason.
 
+**Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
+`rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
+is honoured with two edges:
+
+- **Multi-value `optionsSource`.** Vaadin resolves `optionsSource` on a single-select field (the
+  common reference case — a record pointing at one other entity). A **multi-value** field
+  (`multiSelect`/`listBox`/`combobox` — a record pointing at *many*) reads static `options` or a
+  remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
+  catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
+  than half-wired.
+- **VB/Redwood REST sources.** The Redwood/VB line resolves REST sources **by ref natively** and does
+  not consume the shared catalogue the way the Vaadin/native renderers do — by design for now (its
+  transport shares no core with the web renderers).
+
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).
