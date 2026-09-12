@@ -169,10 +169,18 @@ Prioridad de remediación:
       son `provided`, la vuln no se shippea). **Lección: validar en CI, no solo local.**
 
 ### E — Pasada de documentación · **P0**
-- [ ] Getting-started ejecutable por productor (Java/.NET/Python) y por renderer (vaadin/VB/RN/IntelliJ).
-- [ ] Auditar que las 332 páginas no contradigan la matriz honesta (grep de renderers retirados).
-- [ ] Nota de versión / migración alpha→GA + política de estabilidad del wire.
-- [ ] README de cada demo de la serie (auto-documentación, como Example 1).
+- [x] **README índice de la serie progresiva** (`demo/README.md`, D6): escalera Ex1–6 (qué añade cada
+      uno, puerto, módulo, run) + índice del resto de demos. Antes no había README en `demo/`.
+- [x] **Coherencia docs vs matriz honesta — verificada limpia (D6):** grep de renderers retirados en
+      las 332 páginas → todo honesto: `design-systems/index.md` lista solo Vaadin+Redwood/VB y dice que
+      4 se retiraron; `sapui5.md` tiene banner `:::danger[Retired renderer]`; el resto son menciones
+      históricas ("se eliminaron junto con esos renderers"). Sin cambios necesarios (patrón D1/D4/D5).
+- [x] README de cada demo de la serie — cada módulo Ex1–6 ya trae el suyo.
+- [ ] **Nota de versión/migración alpha→GA + política de estabilidad del wire** → llevada al runbook de
+      release (G): el TEXTO de la política de estabilidad semver es decisión del mantenedor; no lo
+      autoredacto como promesa pública. Borrador de changelog + migración preparado en G.
+- [ ] Getting-started ejecutable por productor/renderer — YA EXISTE (manuales por lenguaje +
+      `design-systems/*` + `java-create-your-project/*`); no re-crear.
 
 ### F — Serie progresiva de demos (material de GA) · **P1**
 Escalera de autoría, dominio Star Wars. Puertos 8600–8605. Cada uno: módulo Maven ejecutable +
