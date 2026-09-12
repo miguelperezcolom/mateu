@@ -97,8 +97,10 @@ Renderers (promesa amplia):
 > test`**, así que ninguna de las ~990 pruebas de core ni los goldens de los ports corren en CI. El
 > mecanismo estaba construido pero desconectado.
 - [x] **Corpus de conformidad compartido** — ya existía. **Cableado en CI (D4):** nuevo job
-      `conformance` en `run_tests.yml` que corre los 3 runners (Java reference + Python + .NET) en cada
-      push. YAML validado; invocaciones verificadas verdes localmente (pendiente: 1 run real de CI).
+      `backend-tests` en `run_tests.yml`. **CONFIRMADO VERDE EN EL RUNNER (2026-09-12, run 34692587953):**
+      Build backend + Java core 1030+gate + Python 298 + .NET 299, todo ✓ — junto a e2e/frontend-lib/
+      bundle-freshness. Requirió 2 fixes destapados por el propio CI: revertir el bump micronaut
+      (NullMarked) y instalar deps Python por `requirements.txt`+pyyaml (no `pip install -e .`).
 - [x] **P0 destapado — RESUELTO (2026-09-12):** el job (renombrado `backend-tests`) corre ahora las
       SUITES COMPLETAS en cada push: **Java core `verify`** (1030 tests + gate JaCoCo; `-Dmaven.javadoc.skip`
       porque `verify` disparaba el javadoc-jar del pom padre, que falla en core — issue preexistente),
