@@ -238,6 +238,26 @@ describe('willUpdate keeps what the user typed', () => {
         expect(el.state.leadName).toBe('NORMALISED BY THE SERVER')
     })
 
+    it('keeps defending a field the server only echoes back unchanged', () => {
+        // A cleared filter: the user removed a chip (value -> ''), the listing re-searched, and the
+        // search response echoed the same empty value. Dropping the field from the edited set on an
+        // unchanged echo left the next stale `.state` re-bind from the parent free to restore the
+        // pre-clear value — the filter chip reappeared even though the filter was already gone.
+        // Only an echo that actually CHANGES the value hands authority back to the server.
+        const el = componentElement({
+            component: serverSide('Processes'),
+            state: { searchText: '' },
+            _locallyEdited: new Set(['searchText']),
+        })
+        el.applyFragment({
+            targetComponentId: 'target',
+            action: UIFragmentAction.Replace,
+            state: { searchText: '' },
+        } as unknown as UIFragment)
+        expect(el._locallyEdited.has('searchText')).toBe(true)
+        expect(el.state.searchText).toBe('')
+    })
+
     it('does not carry an edit across a change of view in a reused element', () => {
         const el = edited({
             state: { leadName: 'stale' },
