@@ -164,6 +164,31 @@ adopts the stored version then bumps) and the notification inbox
 `_notifications-list`/`_notifications-read` with ids list or `"all"`) landed on .NET and Python,
 each pinned by golden-JSON tests mirroring the Java sync suites.
 
+### Deliberately Java-only (not oversights)
+
+A short list of rows above is `—`/`❌` on the ports **by design**, not because they are pending. They
+are called out here so a reader choosing .NET or Python for GA knows exactly what is and is not on
+offer — the honest edge of the "same wire" promise.
+
+- **Proxy mode for views with no annotation to read** (`RestSourceSupplier`). The ports resolve a
+  proxy source by *reflecting the routed type's annotations* (`ResolveRestSource(type, kind, id)` /
+  `resolve_rest_source(cls, …)`) and never instantiate the view for `__restfetch__`. The feature
+  this row describes is a view that assembles its sources *at runtime* and declares them
+  programmatically — and it is the SSRF-sensitive path (the server must take the endpoint from its
+  own state, never the request). Half-porting that is worse than not porting it, so on the ports
+  proxy mode stays annotation-driven. Annotation-declared proxy sources (`[RestOptions(Proxy=true)]`
+  etc.) work fully on all three.
+- **In-page orchestration behaviours** — `@GroupAction` group-header buttons + synthesized group
+  summaries for custom listings, wide-field auto-colspan, the inline-grid "+" append row, and
+  multi-state embedded islands. These are render/interaction refinements layered on the Java
+  orchestrators, not wire-surface primitives; the declarative surface they sit on (grouping,
+  aggregates, grids, inline editing) is at full parity. They remain Java-only until the shared
+  conformance corpus (see the GA plan) makes porting them mechanical rather than manual.
+
+The sustainable fix for this edge is not the maintainer porting each one by hand — it is the shared
+wire-conformance corpus that every port runs in its own CI, so a gap fails loudly and its owner
+closes it. That is tracked as a GA workstream.
+
 ## Renderers
 
 Every renderer speaks the same wire; the depth of widget support varies.
@@ -221,6 +246,25 @@ Redwood/VB line.**
 
 `frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
 bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
+
+**Tooling (preview, not part of the supported matrix).** The visual editor (`apps/visual-editor`)
+and its VS Code host (`frontend/app/vscode-extension`) are authoring tooling shipped as *preview* —
+they consume the wire like any renderer but are not covered by the GA support promise above. The
+Figma design-to-code pipeline is preview for the same reason.
+
+**Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
+`rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
+is honoured with two edges:
+
+- **Multi-value `optionsSource`.** Vaadin resolves `optionsSource` on a single-select field (the
+  common reference case — a record pointing at one other entity). A **multi-value** field
+  (`multiSelect`/`listBox`/`combobox` — a record pointing at *many*) reads static `options` or a
+  remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
+  catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
+  than half-wired.
+- **VB/Redwood REST sources.** The Redwood/VB line resolves REST sources **by ref natively** and does
+  not consume the shared catalogue the way the Vaadin/native renderers do — by design for now (its
+  transport shares no core with the web renderers).
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

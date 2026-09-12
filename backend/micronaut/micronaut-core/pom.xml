@@ -16,7 +16,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- aligned with the micronaut platform version used by the demos, so the generated
-         bean definitions match the runtime that consumes them -->
+         bean definitions match the runtime that consumes them.
+         NOTE: a lone bump of this to 4.10.22 (to clear the dependabot TimeConverterRegistrar DoS
+         alert) breaks the build — micronaut-context 4.10.22 references io.micronaut.core.annotation
+         .NullMarked, absent from the 4.9.x micronaut AP/core-annotation the rest of the platform
+         still resolves (NoClassDefFoundError at compile). These deps are `provided` scope, so the
+         vuln is not shipped to consumers (they supply their own micronaut runtime) — the alert is
+         low-risk here. Clearing it properly needs a COORDINATED micronaut platform bump, out of
+         scope for GA; kept at 4.9.9 so the build stays green. -->
     <micronaut.core.version>4.9.9</micronaut.core.version>
     <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
   </properties>

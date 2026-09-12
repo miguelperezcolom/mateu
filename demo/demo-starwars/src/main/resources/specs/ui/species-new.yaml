@@ -21,6 +21,13 @@ content:
   - type: FormField
     id: classification
     label: Classification
+  # A combo referencing a planet: choices from swapi-planet-options (value = id, label = name).
+  - type: FormField
+    id: homeworldId
+    label: Homeworld
+    stereotype: select
+    optionsSource:
+      ref: swapi-planet-options
   - type: FormField
     id: designation
     label: Designation

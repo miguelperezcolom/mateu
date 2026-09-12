@@ -104,6 +104,40 @@ should.
 This is the concrete pay-off of two recent pieces: **DSL-app enumeration** (a mount announced with no
 class) and the **REST source catalogue** (`sources.yaml`).
 
+## References as combos
+
+A record does not only *show* a reference as a name — it can *pick* one. The character and species
+forms turn `homeworldId` into a **combo of planets**: a `select` field whose choices come from a
+named options source.
+
+```yaml
+# a form field that references another entity
+- type: FormField
+  id: homeworldId
+  label: Homeworld
+  stereotype: select
+  optionsSource: {ref: swapi-planet-options}
+```
+```yaml
+# sources.yaml — the options source, fetched ONCE and mapped whole
+- name: swapi-planet-options
+  source:
+    url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+    itemsPath: content
+    valuePath: id            # what the record stores
+    labelPath: name          # what the user sees
+```
+
+Unlike the listing sources, an options source asks for the whole (small) collection in one call and
+lets the renderer filter the choices in the browser — no paging, no search interpolation. The field
+stores the planet's **id**, and the write body sends exactly that (`"homeworldId":"${state.homeworldId}"`),
+so the reference round-trips as data with, still, no Java. On the read-only view the same reference
+comes back the other way, as `homeworldName`.
+
+> **Single reference only.** A one-to-many reference (a character's films, species, vehicles) would be
+> a multi-select against the same kind of source — the renderer does not yet read an `optionsSource`
+> on a `multiSelect`/`combobox` field, so those stay out of scope until that gap is closed.
+
 ## Run it
 
 ```bash

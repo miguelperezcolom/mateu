@@ -1,6 +1,6 @@
 import { evaluateExpression, interpolate } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
-import { externalAuthHeaders } from './restFetch';
+import { externalAuthHeaders, registerRestSources } from './restFetch';
 import { announce } from '../a11y/a11y';
 
 type Json = Record<string, any>;
@@ -663,6 +663,9 @@ export class MateuViewController {
     // A bare App shell answering a MENU navigation (route resolved through the app class):
     // don't render the chrome — follow its home route to the actual content.
     const meta = (component['metadata'] as Json) ?? {};
+    // The app shell carries the REST source catalogue (AppDto.restSources); register it so a surface
+    // that references a source by `ref` can resolve it — before the home-route hop below returns.
+    if (meta['type'] === 'App' && meta['restSources'] !== undefined) registerRestSources(meta['restSources']);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
       const homeRoute = str(meta['homeRoute']);
       const homeConsumed = str(meta['homeConsumedRoute']);
@@ -685,6 +688,7 @@ export class MateuViewController {
         const first = children[0] as Json;
         const firstMeta = (first['metadata'] as Json) ?? {};
         const firstIsApp = first['type'] === 'ClientSide' && firstMeta['type'] === 'App';
+        if (firstMeta['type'] === 'App' && firstMeta['restSources'] !== undefined) registerRestSources(firstMeta['restSources']);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
           const homeRoute = str(firstMeta['homeRoute']);
