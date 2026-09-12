@@ -206,7 +206,16 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 // a local edit of the same field stops being defended from here on. Without this,
                 // willUpdate would keep re-applying the value the user typed over the one the
                 // server just sent, and a server-computed field could never change on screen.
-                Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
+                //
+                // But only when the server actually CHANGES the value. A search response echoes the
+                // filter values back unchanged — including a filter the user just cleared — and
+                // dropping the field's defence on that echo let the next stale `.state` re-bind from
+                // the parent resurrect the pre-clear value: the filter chip reappeared though the
+                // filter was already gone. An unchanged echo is not the server overriding the edit,
+                // so the field stays defended until the server genuinely says something different.
+                Object.keys(fragment.state).forEach(key => {
+                    if (fragment.state![key] !== this.state?.[key]) this._locallyEdited.delete(key)
+                })
                 this.state = { ...this.state, ...fragment.state }
             }
             this._lastOwnState = this.state
