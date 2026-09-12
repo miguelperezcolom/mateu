@@ -165,12 +165,13 @@ jobs:
           path: e2e/playwright-report/
           retention-days: 7
 
-  # Wire-conformance corpus: the shared fixtures under conformance/ that every producer must match
-  # (conformance/README.md). The runners existed but ran only locally — the rest of run_tests.yml
-  # builds the backend with -DskipTests and never invokes pytest or dotnet test, so a port could
-  # drift from the wire with every check still green. This job is the gate: Java (the reference),
-  # Python and .NET each build their equivalent fixtures and assert the same golden.
-  conformance:
+  # Backend + port test suites — including the shared wire-conformance corpus (conformance/README.md).
+  # Until now the rest of run_tests.yml built the whole backend with -DskipTests and never invoked
+  # pytest or dotnet test, so ~1000 core tests, the .NET/Python golden suites AND the conformance
+  # corpus all ran only on whoever remembered — a port could drift from the wire with every check
+  # still green. This job runs them. All three are green as of this change (Java core 1030, Python
+  # 298 + 2 xfailed, .NET 299); each suite includes its wire-conformance runner.
+  backend-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -182,30 +183,34 @@ jobs:
           java-version: 21
           distribution: zulu
 
-      # Install the reactor artifacts to the local repo (shared/core's conformance test needs them);
-      # tests are skipped here — the conformance run is the next step.
+      # Install the reactor artifacts to the local repo first, then run core's suite with the JaCoCo
+      # coverage gate (`verify`). Core is where the ~1000 unit tests + the Java conformance runner
+      # live; the adapters are exercised end to end by the e2e job above.
       - name: Build backend
         run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
-      - name: Java wire conformance (the reference)
-        run: mvn -B -pl shared/core test -Dtest=WireConformanceTest --file backend/pom.xml
+      # javadoc is skipped: `verify` otherwise triggers the parent pom's javadoc jar, which fails to
+      # generate on core (a pre-existing doclint issue) and is not what this gate is for — the gate is
+      # the test suite + JaCoCo coverage check.
+      - name: Java core tests + coverage gate
+        run: mvn -B -pl shared/core verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Python wire conformance
+      - name: Python tests
         run: |
           cd backend/python
           pip install -e . pytest
-          python -m pytest tests/test_wire_conformance.py -q
+          python -m pytest tests/ -q
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: .NET wire conformance
-        run: cd backend/dotnet && dotnet test --filter WireConformance
+      - name: .NET tests
+        run: cd backend/dotnet && dotnet test
 

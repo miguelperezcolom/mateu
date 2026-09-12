@@ -89,10 +89,12 @@ Renderers (promesa amplia):
 - [x] **Corpus de conformidad compartido** — ya existía. **Cableado en CI (D4):** nuevo job
       `conformance` en `run_tests.yml` que corre los 3 runners (Java reference + Python + .NET) en cada
       push. YAML validado; invocaciones verificadas verdes localmente (pendiente: 1 run real de CI).
-- [ ] **P0 destapado — ninguna suite de backend/ports corre en CI.** El job de conformidad gatea el
-      wire, pero core (990), .NET y Python siguen fuera de CI (`-DskipTests`). Decisión del mantenedor:
-      ¿habilitamos las suites completas en CI (lento/posible flaky, pero es "CI verde en la superficie
-      soportada" de verdad) o solo el corpus por ahora? → llevar a D5/D6.
+- [x] **P0 destapado — RESUELTO (2026-09-12):** el job (renombrado `backend-tests`) corre ahora las
+      SUITES COMPLETAS en cada push: **Java core `verify`** (1030 tests + gate JaCoCo; `-Dmaven.javadoc.skip`
+      porque `verify` disparaba el javadoc-jar del pom padre, que falla en core — issue preexistente),
+      **Python `pytest tests/`** (298 + 2 xfailed) y **.NET `dotnet test`** (299) — cada una incluye su
+      runner de conformidad. Las tres verificadas verdes localmente. Pendiente: 1 run real de CI + decidir
+      si extender a los adapters (hoy cubiertos por e2e) y arreglar el javadoc de core.
 - [ ] **Contrato de renderer** documentado: qué DTOs pintar, qué `commands` honrar, qué eventos
       emitir, qué plan de fetch ejecutar, obligatorio vs opcional + **niveles de conformidad**.
 - [ ] Apuntar la suite e2e compartida a **renderers** (al menos vaadin + un segundo), no solo backends.
