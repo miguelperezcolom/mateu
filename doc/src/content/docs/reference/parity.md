@@ -164,6 +164,31 @@ adopts the stored version then bumps) and the notification inbox
 `_notifications-list`/`_notifications-read` with ids list or `"all"`) landed on .NET and Python,
 each pinned by golden-JSON tests mirroring the Java sync suites.
 
+### Deliberately Java-only (not oversights)
+
+A short list of rows above is `—`/`❌` on the ports **by design**, not because they are pending. They
+are called out here so a reader choosing .NET or Python for GA knows exactly what is and is not on
+offer — the honest edge of the "same wire" promise.
+
+- **Proxy mode for views with no annotation to read** (`RestSourceSupplier`). The ports resolve a
+  proxy source by *reflecting the routed type's annotations* (`ResolveRestSource(type, kind, id)` /
+  `resolve_rest_source(cls, …)`) and never instantiate the view for `__restfetch__`. The feature
+  this row describes is a view that assembles its sources *at runtime* and declares them
+  programmatically — and it is the SSRF-sensitive path (the server must take the endpoint from its
+  own state, never the request). Half-porting that is worse than not porting it, so on the ports
+  proxy mode stays annotation-driven. Annotation-declared proxy sources (`[RestOptions(Proxy=true)]`
+  etc.) work fully on all three.
+- **In-page orchestration behaviours** — `@GroupAction` group-header buttons + synthesized group
+  summaries for custom listings, wide-field auto-colspan, the inline-grid "+" append row, and
+  multi-state embedded islands. These are render/interaction refinements layered on the Java
+  orchestrators, not wire-surface primitives; the declarative surface they sit on (grouping,
+  aggregates, grids, inline editing) is at full parity. They remain Java-only until the shared
+  conformance corpus (see the GA plan) makes porting them mechanical rather than manual.
+
+The sustainable fix for this edge is not the maintainer porting each one by hand — it is the shared
+wire-conformance corpus that every port runs in its own CI, so a gap fails loudly and its owner
+closes it. That is tracked as a GA workstream.
+
 ## Renderers
 
 Every renderer speaks the same wire; the depth of widget support varies.

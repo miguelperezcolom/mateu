@@ -52,13 +52,18 @@ Todo lo que quede fuera de la promesa se **documenta honestamente** (matriz + ma
 
 ### B — Cierre / aplazamiento de gaps concretos · **P0/P1**
 Server (de la tabla de `parity.md`):
-- [ ] **P1** `RestSourceSupplier` proxy sin anotación: .NET ❌ / Python ❌ → portar, o documentar como
-      Java-only-preview (REST/proxy es feature de cabecera → preferimos portar).
-- [ ] **P1** `@GroupAction` y group-summaries sintetizadas para `Listing`s: — en ports → portar o documentar.
-- [ ] **P2** layoutDelta en ports (visual builder) → queda preview.
-- [ ] **Documentar como Java-only** (el backlog los llama "in-page orchestration, not wire surface"):
-      wide-field auto-colspan, inline-grid "+", islas embebidas multi-estado.
-- [ ] Import wizard 🟡 y component adapters 🟡: mantener 🟡 con su nota (diferencia de contrato, no gap).
+- [x] **P1 (D3, decidido documentar):** `RestSourceSupplier` proxy sin anotación → **Java-only por
+      diseño**. Los ports resuelven la fuente proxy reflejando las anotaciones del TIPO ruteado y no
+      instancian la vista en `__restfetch__`; además es el camino sensible a SSRF (fuentes ensambladas
+      en runtime). Documentado con justificación en `parity.md` ("Deliberately Java-only"). El proxy
+      por anotación (`[RestOptions(Proxy=true)]`…) sí está a paridad.
+- [x] **P1 (D3, decidido documentar):** `@GroupAction` + group-summaries sintetizadas + wide-field
+      auto-colspan + inline-grid "+" + islas embebidas multi-estado → **in-page orchestration, no
+      wire-surface**; la superficie declarativa donde se apoyan (grouping/aggregates/grids/inline) sí
+      está a paridad. Documentado. El fix sostenible es el corpus de conformidad (D4), no portar a mano.
+      *(Reversa disponible: `@GroupAction` es portable —lista de botones + dispatch con `_groupValue`—
+      si el mantenedor lo quiere en la promesa; el riesgo estaba en el dispatch/retorno.)*
+- [x] Import wizard 🟡 y component adapters 🟡: se mantienen 🟡 con su nota (diferencia de contrato).
 
 Renderers (promesa amplia):
 - [x] **P0** REST source catalogue en consumidores nativos (D2, 2026-09-10): **React Native** e
@@ -135,7 +140,13 @@ README + verificado en navegador; registrar en `demo/pom.xml`.
 - [x] **Example 3** — `demo-starwars-3-forms` (8602): shell `@App` con menú a un **Wizard** (paso
       zonado en 2 columnas, progreso STEPS) y un form con **tabs** + tipos de campo (textarea, stars,
       toggle, date, money, radios). **Verificado en navegador.**
-- [ ] **Example 4** — arquetipos + app shell: dashboard, listados, command center, navegación (8603).
+- [x] **Example 4** — `demo-starwars-4-app` (8603): shell `@App(commandCenter=true)` con menú a un
+      **Dashboard** (scoreboard de 4 MetricCards + panel de barras + panel de tarta) y un CRUD de
+      planetas. **Verificado en navegador.** **Hallazgo:** un shell `@App` POJO reflejado NO hace
+      default de home al primer menú (devuelve `_no_home_route` → raíz vacía); el default parece ser
+      solo de apps YAML (`YamlAppLoader.firstNavigableRoute`). Workaround: implementar
+      `HomeRouteSupplier`. **Candidato a bug de GA** — verificar si otros shells Java (VbHome,
+      ShowcaseApp) también tienen raíz vacía, y si el default debería aplicar al POJO reflejado.
 - [ ] **Example 5** — federación: shell + módulos (8604).
 - [ ] **Example 6** — static bundle a CDN, sin backend (8605), sobre el patrón de `demo-static-bundle`.
 
