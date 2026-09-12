@@ -1,0 +1,21 @@
+# The REST source catalogue — every endpoint this bundle consumes, named once and referenced by the
+# screen. All of them are EXTERNAL (the Star Wars API), so there is nothing for the derived contract
+# to generate: this bundle owns no backend. The catalogue travels in manifest.json, so re-pointing the
+# deployment at another environment is an edit of this table rather than a rebuild.
+sources:
+
+  - name: swapi-planets
+    description: Star Wars planets, as select options (id → name)
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
+  - name: swapi-people
+    description: Star Wars characters, as select options (id → name)
+    source:
+      url: https://swapi.ec1.mateu.io/api/people?size=1000&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name

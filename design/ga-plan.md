@@ -177,7 +177,12 @@ README + verificado en navegador; registrar en `demo/pom.xml`.
 - [x] **Example 5** — `demo-starwars-5-federation` (8604): federación build-time — reactor con dos
       módulos `@UI` independientes (`characters-ui`, `planets-ui`, indexer AP) agregados por un
       `shell-app` (framework AP que lee sus índices `ui-registrations`). **Verificado en navegador.**
-- [ ] **Example 6** — static bundle a CDN, sin backend (8605), sobre el patrón de `demo-static-bundle`.
+- [x] **Example 6** — `demo-starwars-6-static-bundle` (8605): capstone. `mvn -Pbundle package` →
+      SPA estática (index.html + manifest.json + assets) servida **sin backend**; datos vivos de swapi
+      client-side. **Verificado sin backend** (python http.server). **Bug de framework encontrado y
+      arreglado:** un `@RestOptions` by-`ref` filtraba los defaults `valuePath/labelPath` sobre el
+      catálogo (selects con labels en blanco) — `FieldMetadataExtractor` ahora los deja en blanco
+      para que el catálogo mande (+ test `RestProxySyncTest`). Afectaba a todo by-ref, vivo y estático.
 
 ### G — Release engineering · **P0**
 - [ ] Congelar `master` para features (solo fixes) a partir de D5.
