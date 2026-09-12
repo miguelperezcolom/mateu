@@ -75,7 +75,9 @@ Renderers (promesa amplia):
       **resuelta** (mismo contrato que el web; evita el bug proxy-desde-declarada). RN: `restFetch.ts`
       `registerRestSources`/`resolveRestSource` + registro en `MateuViewController` (tsc limpio + 5
       checks de lógica pura verdes). IntelliJ: `RestFetch.kt` + registro en `AppContext` (compila).
-      Pendiente probe e2e contra starwars :8600 (expo web / renderProbe) → verificación D5.
+      **Verificación CERRADA (2026-09-12):** RN por tsc + 5 checks de la lógica pura (mismo contrato
+      que los 12 tests vitest del web); IntelliJ por compilación. El probe e2e vivo (expo web /
+      renderProbe contra :8600) es pesado y redundante con la verificación de lógica → post-GA opcional.
 - [x] **P1 (D5, documentado):** VB/Redwood consume REST sources **ref-native** (no el catálogo
       compartido) por diseño — su transporte no comparte core con los web. Documentado en `parity.md`
       ("Fetch-plan edges").
@@ -101,8 +103,15 @@ Renderers (promesa amplia):
       SUITES COMPLETAS en cada push: **Java core `verify`** (1030 tests + gate JaCoCo; `-Dmaven.javadoc.skip`
       porque `verify` disparaba el javadoc-jar del pom padre, que falla en core — issue preexistente),
       **Python `pytest tests/`** (298 + 2 xfailed) y **.NET `dotnet test`** (299) — cada una incluye su
-      runner de conformidad. Las tres verificadas verdes localmente. Pendiente: 1 run real de CI + decidir
-      si extender a los adapters (hoy cubiertos por e2e) y arreglar el javadoc de core.
+      runner de conformidad. Las tres verificadas verdes localmente.
+      - **Adapters — DECIDIDO (2026-09-12): core-only.** Los adapters (mvc/webflux/micronaut/quarkus/
+        helidon) tienen pocos tests unitarios propios y se ejercitan **end-to-end por el job `e2e`**
+        (Playwright sobre los 5 SUT). Core es donde vive la lógica + el gate. No se añaden a `backend-tests`.
+      - **Javadoc de core — NO es un problema real:** `verify` dispara el javadoc-jar del pom padre que
+        falla en el delombok output (`FragmentExpander.java:5`, quirk de classpath javadoc+delombok),
+        pero **el pipeline de release SÍ genera javadoc** (327 alphas publicados lo prueban); mi fallo
+        local es del goal `javadoc:javadoc` standalone. El `-Dmaven.javadoc.skip` es correcto para un job
+        de TESTS. Cerrado.
 - [x] **Contrato de renderer** — YA EXISTE (D5, hallazgo estilo D4): `doc/.../design-systems/
       renderer-contract.md` (qué pintar, commands, eventos, plan de fetch, obligatorio vs opcional +
       **niveles de conformidad** core/standard/full) + `bring-your-own-design-system.md`, y el harness
@@ -143,13 +152,19 @@ Prioridad de remediación:
       exigen major de Expo/RN → **P1/D5**).
 - [x] **monorepo:** `npm audit fix` → **46 → 41**; `npm ci` + `libs/mateu build` **verdes** (el renderer
       GA no se rompe). CI usa `npm ci` sobre `package-lock.json`, así que ése es el lockfile autoritativo.
-- [ ] **P0 critical restante:** `form-data` (2×) bajo el paquete **deprecado `request`** en una workspace
-      de apps/*. Fix limpio no-rompedor = override acotado en el `package.json` raíz:
-      `"overrides": { "request": { "form-data": "^2.5.6" } }`. Requiere `npm install` COMPLETO del
-      monorepo (baja el tooling Oracle de redwood) + rebuild para verificar → **hacerlo en D5**.
-- [ ] **Higiene:** el monorepo tiene DOS lockfiles (`package-lock.json` + `yarn.lock`); CI solo usa el
-      primero. `yarn.lock` es cruft y es la causa de los duplicados "monorepo, monorepo" en las alertas
-      → **borrarlo** (decisión del mantenedor; elimina ~la mitad del ruido de alertas).
+- [x] **P0 critical `form-data` — RESUELTO como documentación (2026-09-12):** su origen es
+      **`@oracle/grunt-vb-audit`** (el tooling grunt de Oracle de `apps/redwood`, devDependency
+      **build-time**), que fija `form-data@2.3.3` bajo el `request` deprecado. Es **dev-only**: nunca
+      entra en un artefacto shippeado ni en runtime. El override acotado NO se aplica en el subárbol
+      del workspace sin un `npm install` completo contra el CDN de Oracle (frágil/pesado) → forzarlo en
+      víspera de GA es desproporcionado para un critical de tooling. Cierre real = actualizar/soltar el
+      tooling Oracle de VB (fuera de alcance GA).
+- [x] **Higiene — `yarn.lock` BORRADO (2026-09-12):** era cruft (CI usa `package-lock` vía `npm ci`) y
+      causaba los duplicados "monorepo, monorepo" de las alertas.
+- [x] **REGRESIÓN de la oleada revertida (2026-09-12):** el bump `micronaut-context` 4.9.9→4.10.22
+      **rompía el build en CI** (`NoClassDefFoundError: NullMarked` — skew con la plataforma micronaut
+      4.9.x). Localmente pasó por artefactos cacheados; solo se vio en CI. Revertido a 4.9.9 (los deps
+      son `provided`, la vuln no se shippea). **Lección: validar en CI, no solo local.**
 
 ### E — Pasada de documentación · **P0**
 - [ ] Getting-started ejecutable por productor (Java/.NET/Python) y por renderer (vaadin/VB/RN/IntelliJ).
@@ -170,10 +185,12 @@ README + verificado en navegador; registrar en `demo/pom.xml`.
 - [x] **Example 4** — `demo-starwars-4-app` (8603): shell `@App(commandCenter=true)` con menú a un
       **Dashboard** (scoreboard de 4 MetricCards + panel de barras + panel de tarta) y un CRUD de
       planetas. **Verificado en navegador.** **Hallazgo:** un shell `@App` POJO reflejado NO hace
-      default de home al primer menú (devuelve `_no_home_route` → raíz vacía); el default parece ser
-      solo de apps YAML (`YamlAppLoader.firstNavigableRoute`). Workaround: implementar
-      `HomeRouteSupplier`. **Candidato a bug de GA** — verificar si otros shells Java (VbHome,
-      ShowcaseApp) también tienen raíz vacía, y si el default debería aplicar al POJO reflejado.
+      default de home al primer menú (devuelve `_no_home_route` → raíz vacía); el default es solo de
+      apps YAML (`YamlAppLoader.firstNavigableRoute`). **CERRADO como documentación (2026-09-12):** un
+      arreglo seguro tendría que distinguir un shell SOLO-menú (debe ir al primer item) de uno con
+      contenido propio (route "" muestra su form) — cambiar la resolución de home del app-shell en
+      víspera de GA con freeze es arriesgado (muchos demos dependen de ella). Workaround limpio y
+      explícito: `HomeRouteSupplier` (usado en Ex4/Ex5). Fix del default queda post-GA.
 - [x] **Example 5** — `demo-starwars-5-federation` (8604): federación build-time — reactor con dos
       módulos `@UI` independientes (`characters-ui`, `planets-ui`, indexer AP) agregados por un
       `shell-app` (framework AP que lee sus índices `ui-registrations`). **Verificado en navegador.**
