@@ -159,7 +159,9 @@ README + verificado en navegador; registrar en `demo/pom.xml`.
       solo de apps YAML (`YamlAppLoader.firstNavigableRoute`). Workaround: implementar
       `HomeRouteSupplier`. **Candidato a bug de GA** — verificar si otros shells Java (VbHome,
       ShowcaseApp) también tienen raíz vacía, y si el default debería aplicar al POJO reflejado.
-- [ ] **Example 5** — federación: shell + módulos (8604).
+- [x] **Example 5** — `demo-starwars-5-federation` (8604): federación build-time — reactor con dos
+      módulos `@UI` independientes (`characters-ui`, `planets-ui`, indexer AP) agregados por un
+      `shell-app` (framework AP que lee sus índices `ui-registrations`). **Verificado en navegador.**
 - [ ] **Example 6** — static bundle a CDN, sin backend (8605), sobre el patrón de `demo-static-bundle`.
 
 ### G — Release engineering · **P0**

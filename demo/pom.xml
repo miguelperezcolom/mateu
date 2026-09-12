@@ -23,6 +23,7 @@
     <module>demo-starwars-2-code-first</module>
     <module>demo-starwars-3-forms</module>
     <module>demo-starwars-4-app</module>
+    <module>demo-starwars-5-federation</module>
     <module>demo-vaadin-webflux</module>
     <module>demo-vaadin-mvc</module>
     <module>demo-vaadin-quarkus</module>
