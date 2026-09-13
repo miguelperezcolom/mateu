@@ -4,6 +4,8 @@ using Mateu.Core;
 using Mateu.Dtos;
 using Mateu.Uidl;
 using Xunit;
+using Range = System.ComponentModel.DataAnnotations.RangeAttribute;
+using Required = System.ComponentModel.DataAnnotations.RequiredAttribute;
 
 namespace Mateu.Tests;
 
@@ -175,6 +177,204 @@ public class ConformanceAppInCode : IAppSupplier
     };
 }
 
+// Bean-validation constraints: [Required] sets the wire's required flag. .NET reads no numeric
+// range ([Range] compiles but the mapper ignores it) and the wire has no ValidationDto, so the
+// component-level validations Java derives from the constraints are a documented port gap.
+// NOTE: the usings are ALIASES on purpose — a plain `using System.ComponentModel.DataAnnotations;`
+// would make the existing [Timestamp(...)] fixture ambiguous (that namespace has its own
+// TimestampAttribute → CS0104).
+[UI("conformance/validation"), Title("Validated form")]
+public class ConformanceValidatedForm
+{
+    [Required] public string? Name { get; set; } = "Ada";
+
+    [Required] public string? Email { get; set; } = "ada@example.com";
+
+    [Range(18, 99)] public int Age { get; set; } = 36;
+}
+
+// The stereotype vocabulary: slider/stars on ints, password/textarea on strings.
+[UI("conformance/stereotypes"), Title("Stereotypes")]
+public class ConformanceStereotypes
+{
+    [Stereotype("slider")]
+    public int Volume { get; set; } = 50;
+
+    [Stereotype("stars")]
+    public int Rating { get; set; } = 4;
+
+    [Password]
+    public string? Secret { get; set; } = "hunter2";
+
+    [Stereotype("textarea")]
+    public string? Notes { get; set; } = "Some longer text";
+}
+
+/// <summary>A remote reference field: [Lookup] renders a combobox whose options come from the
+/// field's search-&lt;fieldId&gt; action (stereotype combobox + remoteCoordinates on the wire); the
+/// pre-set value's display label rides in the fragment data as &lt;fieldId&gt;-label, resolved
+/// through the view's own ILookupLabelSupplier.</summary>
+[UI("conformance/lookup"), Title("Lookup")]
+public class ConformanceLookup : ILookupLabelSupplier
+{
+    [Lookup] public string Supplier { get; set; } = "a2";
+
+    public string? Label(string fieldName, object id) => "a2".Equals(id) ? "Acme" : null;
+}
+
+/// <summary>A [TreeSelect] field: stereotype treeSelect, the leavesOnly flag as treeLeavesOnly,
+/// and a hierarchical option set — the options carry their CHILDREN on the wire.</summary>
+[UI("conformance/tree-select"), Title("Tree select")]
+public class ConformanceTreeSelect : IOptionsSupplier
+{
+    [TreeSelect(leavesOnly: true)]
+    public string? Zone { get; set; } = "";
+
+    public IReadOnlyList<Option> Options(string fieldName) =>
+        fieldName == "zone"
+            ? [
+                new Option("es", "Spain", [new Option("mca", "Mallorca"), new Option("men", "Menorca")]),
+                new Option("pt", "Portugal"),
+            ]
+            : [];
+}
+
+// The fluent Notice: a compact themed inline banner, composed as a component tree — the one
+// shape all three servers share (the declarative @Notice String-field marker is Java-only).
+[UI("conformance/notice"), Title("Notice")]
+public class ConformanceNotice : IComponentTreeSupplier
+{
+    public IComponent Component() => new Notice("2 complaints pending")
+    {
+        Theme = "warning", ActionLabel = "Review", ActionId = "review", Slim = true,
+    };
+}
+
+/// <summary>A [BulletedList] collection property renders as a plain read-only bulleted list
+/// (stereotype bulletedList).</summary>
+[UI("conformance/bulleted-list"), Title("Bulleted list")]
+public class ConformanceBulletedList
+{
+    [BulletedList]
+    public List<string> Preferences { get; set; } = ["Extra pillow", "High floor", "Sea view"];
+}
+
+/// <summary>An [AppContext] enum property on the app class becomes a header context selector
+/// (contextSelectors): fieldName from the camelCased property, label from the attribute, options
+/// from the enum constants (value = constant name, label = humanized). Mirrors the Java
+/// ContextApp fixture — enum members are lowercase on purpose so the option values match Java's
+/// enum constants ("palma", not "Palma"); the [App] title + shell stand in for Java's @Menu leaf.</summary>
+[UI("conformance/app-context"), App("Context app")]
+public class ConformanceContextApp : IAppSupplier
+{
+    [AppContext("Hotel")]
+    public ConformanceHotel Hotel { get; set; } = ConformanceHotel.palma;
+
+    public AppShell GetApp() => new("Context app", new List<MenuItemDto>
+    {
+        new("Home", "/a", ""),
+    })
+    {
+        HomeRoute = "/a",
+        Variant = "TABS",
+    };
+}
+
+public enum ConformanceHotel { palma, madrid }
+
+/// <summary>App header actions: the app class implements IAppActionsSupplier and its actions
+/// travel on the app metadata as contextActions — a plain button (actionId + label + icon) and a
+/// dropdown (null actionId, children) whose children are the only dispatching leaves.</summary>
+[UI("conformance/app-header-actions"), App("Header actions")]
+public class ConformanceHeaderActions : IAppActionsSupplier
+{
+    // Mirrors Java's `@Menu String home = "/"`: a void return carries no [UI] route, so the entry
+    // maps to route "/" with label "Home", like the other two servers.
+    [MenuItem("Home")]
+    public void Home() { }
+
+    public IReadOnlyList<AppHeaderAction> AppActions() =>
+    [
+        new("sync", "Sync now", "vaadin:refresh"),
+        AppHeaderAction.Menu("Export", "vaadin:download",
+            [new("exportPdf", "As PDF"), new("exportExcel", "As Excel")]),
+    ];
+
+    public Message Sync() => new("Synced");
+}
+
+/// <summary>[Toc] forces the sticky sections index: the page carries toc=true.</summary>
+[UI("conformance/toc"), Title("Long document"), Toc]
+public class ConformanceToc
+{
+    [Section("Overview")]
+    public string? Summary { get; set; } = "All good";
+
+    [Section("Details")]
+    public string? Detail { get; set; } = "Everything";
+
+    [Section("Contact")]
+    public string? Phone { get; set; } = "+34 600 000 000";
+
+    [Section("History")]
+    public string? History { get; set; } = "Created 2026";
+
+    [Section("Notes")]
+    public string? Notes { get; set; } = "None";
+}
+
+public class ConformanceGuestRow
+{
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
+}
+
+/// <summary>A list of nested rows becomes a grid: columns from the row type, [OnRowSelected]
+/// the click.</summary>
+[UI("conformance/grid-field"), Title("Guest grid")]
+public class ConformanceGridField
+{
+    [OnRowSelected("onSel")]
+    public List<ConformanceGuestRow> Guests { get; set; } =
+        [new() { Name = "Alice", Age = 34 }, new() { Name = "Bob", Age = 29 }];
+
+    public void OnSel(ConformanceGuestRow row) { }
+}
+
+/// <summary>The StatusList front-office component: labelled status rows — a chip row and an action row.</summary>
+[UI("conformance/status-list"), Title("Status list")]
+public class ConformanceStatusList : IComponentTreeSupplier
+{
+    public IComponent Component() => new StatusList
+    {
+        Id = "statusList",
+        Items =
+        [
+            new StatusItem
+            {
+                Id = "ses", Icon = "✓", Title = "Traveller report",
+                Description = "Sent automatically on check-in",
+                Status = "Automatic", StatusColor = "success",
+            },
+            new StatusItem
+            {
+                Id = "key", Icon = "🔑", Title = "Encode key card",
+                Description = "Digital key add-on",
+                ActionLabel = "Encode", ActionId = "encodeKey",
+            },
+        ],
+    };
+}
+
+// [Compact]: high-density mode — the page component carries the compact style marker.
+[UI("conformance/compact"), Title("Compact page"), Compact]
+public class ConformanceCompact
+{
+    public string? Name { get; set; } = "Ada";
+
+    public string? Email { get; set; } = "ada@example.com";
+}
+
 /// <summary>
 /// The .NET half of the shared wire conformance corpus (see <c>conformance/README.md</c>).
 ///
@@ -261,6 +461,18 @@ public class WireConformanceTests
         { "small-enum-radio", typeof(ConformanceSmallEnumRadio) },
         { "dashboard", typeof(ConformanceDashboard) },
         { "app-in-code", typeof(ConformanceAppInCode) },
+        { "validation", typeof(ConformanceValidatedForm) },
+        { "stereotypes", typeof(ConformanceStereotypes) },
+        { "lookup", typeof(ConformanceLookup) },
+        { "tree-select", typeof(ConformanceTreeSelect) },
+        { "notice", typeof(ConformanceNotice) },
+        { "bulleted-list", typeof(ConformanceBulletedList) },
+        { "app-context", typeof(ConformanceContextApp) },
+        { "app-header-actions", typeof(ConformanceHeaderActions) },
+        { "toc", typeof(ConformanceToc) },
+        { "grid-field", typeof(ConformanceGridField) },
+        { "status-list", typeof(ConformanceStatusList) },
+        { "compact", typeof(ConformanceCompact) },
     };
 
     [Theory, MemberData(nameof(Cases))]

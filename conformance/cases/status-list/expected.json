@@ -1,0 +1,30 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "items" : [ {
+            "description" : "Sent automatically on check-in",
+            "icon" : "✓",
+            "status" : "Automatic",
+            "statusColor" : "success",
+            "title" : "Traveller report"
+          }, {
+            "actionId" : "encodeKey",
+            "actionLabel" : "Encode",
+            "description" : "Digital key add-on",
+            "icon" : "🔑",
+            "title" : "Encode key card"
+          } ],
+          "type" : "StatusList"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide"
+    }
+  } ]
+}

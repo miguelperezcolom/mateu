@@ -1,0 +1,88 @@
+{
+  "commands" : [ {
+    "data" : "Tree select",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "zone",
+                        "label" : "Zone",
+                        "options" : [ {
+                          "children" : [ {
+                            "label" : "Mallorca",
+                            "value" : "mca"
+                          }, {
+                            "label" : "Menorca",
+                            "value" : "men"
+                          } ],
+                          "label" : "Spain",
+                          "value" : "es"
+                        }, {
+                          "label" : "Portugal",
+                          "value" : "pt"
+                        } ],
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "treeSelect",
+                        "treeLeavesOnly" : true,
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Tree select form",
+          "pageType" : "form",
+          "title" : "Tree select",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ]
+}

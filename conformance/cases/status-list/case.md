@@ -1,0 +1,7 @@
+# status-list
+
+Pins the StatusList front-office component on the wire: a fluent component whose metadata (type "StatusList") carries labelled rows, each StatusItem with id/icon/title/description plus either a status chip (status + statusColor) or a small action button (actionLabel + actionId, dispatched with {_item: id}). The two rows deliberately exercise both right-hand variants, which are what the front-office screens (incidents lists, check-in side-effects checklists) depend on. All three backends declare it through their ComponentTreeSupplier idiom, so the case also pins how a fluent component tree reaches the wire in each port.
+
+## Known divergence
+
+The item rows themselves should compare equal (Java's extra StatusItem members — actionLabel2/3, actionIcon*, lines — and StatusList's columns/itemHeadingLevel sit at their defaults, which normalisation drops), but the ENVELOPE around the tree will likely diverge: Java renders a ComponentTreeSupplier bare, with the interface's default container style "max-width:900px;margin: auto;" and no mateu-page wrapper, while the .NET/Python ports render the tree as the content of their standard page envelope (title in page metadata, scalar state seeded into initialData). Same structural divergence family as the existing dashboard case (also a ComponentTreeSupplier path) — expect the ports to xfail on the wrapper, not on the StatusList metadata.

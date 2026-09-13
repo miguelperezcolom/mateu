@@ -1,0 +1,7 @@
+# notice
+
+**Pins:** the `Notice` component — the compact themed inline banner — on the wire: a `NoticeDto`/`NoticeMetadata` carrying `text`, the `theme` tint ("warning"), the optional right-aligned action (`actionLabel` + `actionId`, dispatched through the standard action mechanism) and the `slim` tight-variant flag. Declared as a fluent `Notice` in a component-tree view because that is the one shape all three servers share: the declarative `@Notice` String-field marker (which emits the text as a `${state.<field>}` template) is Java-only, with no .NET attribute or Python marker counterpart. Worth pinning because the notice is the standard in-form status strip (used across the front-office demos) and its member names/casing (`actionLabel` vs `action_label`, `slim`) must agree across the three mappers (`NoticeMapper`, `ComponentMapper.cs`, `mapper.py`) for any renderer to tint and wire the action correctly.
+
+## Known divergence
+
+Structural, both ports — the same tree-supplier envelope divergence already documented on the dashboard case: Java's ComponentTreeSupplierMapper emits ServerSide → Notice directly (an archetype/tree page gets no Page wrapper in Java), while both .NET (ReflectionMapper builds a PageMetadataDto around the composed tree) and Python (mapper wraps ServerSide → Page → Notice) insert a Page component carrying the title between the ServerSide envelope and the Notice. Expect both ports to xfail on the envelope altitude even though the Notice metadata members (text/theme/actionLabel/actionId/slim) agree member-wise.

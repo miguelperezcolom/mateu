@@ -1,0 +1,21 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "actionId" : "review",
+          "actionLabel" : "Review",
+          "slim" : true,
+          "text" : "2 complaints pending",
+          "theme" : "warning",
+          "type" : "Notice"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ]
+}

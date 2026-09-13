@@ -1,0 +1,3 @@
+# tree-select
+
+Pins the hierarchical select on the wire: a @TreeSelect field must emit stereotype "treeSelect", carry the leavesOnly intent as treeLeavesOnly, and attach a NESTED option set (OptionDto.children) supplied by the view's OptionsSupplier. The children list is the load-bearing part — a port that flattens the hierarchy or drops the leavesOnly flag renders a plain dropdown where groups become selectable, which is a silent behaviour change no per-port test would catch. All three backends already claim this feature (TreeSelectSyncTest, .NET CaptureForm, Python test_capture_and_tree_fields_on_the_wire), so the corpus turns three private assertions into one shared spec.

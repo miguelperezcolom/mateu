@@ -1,0 +1,135 @@
+{
+  "commands" : [ {
+    "data" : "Stereotypes",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "integer",
+                        "fieldId" : "volume",
+                        "label" : "Volume",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "slider",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "integer",
+                        "fieldId" : "rating",
+                        "label" : "Rating",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "stars",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "secret",
+                        "label" : "Secret",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "password",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 2,
+                        "dataType" : "string",
+                        "fieldId" : "notes",
+                        "label" : "Notes",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "textarea",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Stereotypes",
+          "pageType" : "form",
+          "title" : "Stereotypes",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "notes" : "Some longer text",
+        "rating" : 4,
+        "secret" : "hunter2",
+        "volume" : 50
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "notes" : "Some longer text",
+      "rating" : 4,
+      "secret" : "hunter2",
+      "volume" : 50
+    }
+  } ]
+}

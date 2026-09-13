@@ -1,0 +1,7 @@
+# lookup
+
+Pins the remote reference field: a String field marked @Lookup must reach the wire as stereotype "combobox" with remoteCoordinates carrying the field's "search-supplier" action — that pair is the whole contract the renderer's search-as-you-type combo is built on. It also pins the pre-set-value label resolution: the view implements the LookupLabelSupplier idiom (identical in all three languages) and the display label for the initial id must ride in the fragment data as "supplier-label", so the user never sees the raw id. Worth pinning because the search-action wiring is exactly where the ports already diverge structurally from Java (advertised action entry, embedded options Page), and the corpus is how that divergence stays visible and decidable instead of buried in three suites.
+
+## Known divergence
+
+Two structural gaps, both on the search-action wiring side. (1) Java advertises the lookup's search action as an explicit entry in the component's actions array (FieldActionCollector adds Action{id:"search-supplier"}); .NET and Python route any "search-*" actionId by prefix in their SyncHandlers and advertise no such action, so the ports' actions list is missing that entry. (2) For the pre-set value, Java's LookupFieldDataWriter writes BOTH data["supplier-label"]="Acme" AND a full embedded options page under data["supplier"] (a Page{content:[{value:"a2",label:"Acme"}], size:1, ...}); the ports' LookupLabels/lookup_labels emit only the "supplier-label" entry. Both ports will therefore xfail against the Java-generated golden until aligned.

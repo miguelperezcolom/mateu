@@ -1,0 +1,84 @@
+{
+  "commands" : [ {
+    "data" : "Header actions",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "contextActions" : [ {
+          "actionId" : "sync",
+          "icon" : "vaadin:refresh",
+          "label" : "Sync now"
+        }, {
+          "children" : [ {
+            "actionId" : "exportPdf",
+            "label" : "As PDF"
+          }, {
+            "actionId" : "exportExcel",
+            "label" : "As Excel"
+          } ],
+          "icon" : "vaadin:download",
+          "label" : "Export"
+        } ],
+        "homeConsumedRoute" : "/conformance/app-header-actions",
+        "homeRoute" : "_no_home_route",
+        "homeServerSideType" : "io.mateu.core.application.WireConformanceTest$HeaderActionsApp",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-header-actions",
+          "label" : "Home",
+          "path" : "/home",
+          "route" : "/conformance/app-header-actions/home",
+          "uriPrefix" : "/conformance/app-header-actions",
+          "visible" : true
+        } ],
+        "requiredCapabilities" : [ "header-actions", "rest-sources" ],
+        "restSources" : [ {
+          "description" : "ISO country codes",
+          "name" : "countries",
+          "provenance" : "existing",
+          "source" : {
+            "labelPath" : "name.common",
+            "method" : "GET",
+            "url" : "https://restcountries.com/v3.1/all?fields=cca2,name",
+            "valuePath" : "cca2"
+          }
+        }, {
+          "description" : "The orders a screen lists",
+          "fields" : {
+            "customerName" : "customer.name"
+          },
+          "name" : "orders",
+          "provenance" : "generate",
+          "source" : {
+            "itemsPath" : "data",
+            "labelPath" : "label",
+            "method" : "GET",
+            "url" : "/api/orders?since=${state.since}",
+            "valuePath" : "value"
+          },
+          "totalPath" : "meta.total"
+        }, {
+          "name" : "invoices",
+          "provenance" : "generate",
+          "source" : {
+            "itemsPath" : "items",
+            "labelPath" : "label",
+            "method" : "GET",
+            "url" : "https://api.example.com/invoices",
+            "valuePath" : "value"
+          }
+        } ],
+        "rootRoute" : "/conformance/app-header-actions",
+        "route" : "/conformance/app-header-actions",
+        "title" : "Header actions",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ]
+}

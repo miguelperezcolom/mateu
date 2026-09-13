@@ -7,12 +7,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard;
 import io.mateu.core.testutil.TestMateu;
+import io.mateu.uidl.annotations.AppContext;
 import io.mateu.uidl.annotations.AutoLayout;
 import io.mateu.uidl.annotations.Banner;
+import io.mateu.uidl.annotations.BulletedList;
+import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.KPI;
+import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.OnRowSelected;
 import io.mateu.uidl.annotations.Overline;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.PlainText;
@@ -25,25 +30,43 @@ import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.annotations.Text;
 import io.mateu.uidl.annotations.Timestamp;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Toc;
+import io.mateu.uidl.annotations.TreeSelect;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
+import io.mateu.uidl.data.AppHeaderAction;
 import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MetricTrend;
+import io.mateu.uidl.data.Notice;
+import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.StatusItem;
+import io.mateu.uidl.data.StatusList;
 import io.mateu.uidl.data.TextSize;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.AppActionsSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
+import io.mateu.uidl.interfaces.OptionsSupplier;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
@@ -276,6 +299,266 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * Bean-validation constraints on the wire: {@code @NotEmpty}/{@code @NotNull} set the field's
+   * {@code required} flag, and all four constraints also travel as component-level {@code
+   * validations} entries carrying the client-side condition and message.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation")
+  @Title("Validated form")
+  public static class ValidatedForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotNull public String email = "ada@example.com";
+
+    @Min(18)
+    @Max(99)
+    public int age = 36;
+  }
+
+  /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/stereotypes")
+  @Title("Stereotypes")
+  public static class Stereotypes {
+    @Stereotype(FieldStereotype.slider)
+    public int volume = 50;
+
+    @Stereotype(FieldStereotype.stars)
+    public int rating = 4;
+
+    @Stereotype(FieldStereotype.password)
+    public String secret = "hunter2";
+
+    @Stereotype(FieldStereotype.textarea)
+    public String notes = "Some longer text";
+  }
+
+  /**
+   * A remote reference field: {@code @Lookup} renders a combobox whose options come from the
+   * field's {@code search-<fieldId>} action (stereotype combobox + remoteCoordinates on the wire);
+   * the pre-set value's display label rides in the fragment data as {@code <fieldId>-label},
+   * resolved through the view's own {@link LookupLabelSupplier}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/lookup")
+  @Title("Lookup")
+  public static class LookupForm implements LookupLabelSupplier {
+    @Lookup public String supplier = "a2";
+
+    @Override
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+      return "a2".equals(id) ? "Acme" : null;
+    }
+  }
+
+  /**
+   * A @TreeSelect field: stereotype treeSelect, the leavesOnly flag as treeLeavesOnly, and a
+   * hierarchical option set — the options carry their CHILDREN on the wire.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/tree-select")
+  @Title("Tree select")
+  public static class TreeSelectForm implements OptionsSupplier {
+
+    @TreeSelect(leavesOnly = true)
+    public String zone = "";
+
+    @Override
+    public List<Option> options(String fieldName, HttpRequest httpRequest) {
+      return List.of(
+          new Option(
+              "es", "Spain", List.of(new Option("mca", "Mallorca"), new Option("men", "Menorca"))),
+          new Option("pt", "Portugal"));
+    }
+  }
+
+  /**
+   * The fluent Notice: a compact themed inline banner (text + theme tint + right-aligned action +
+   * slim flag), composed as a component tree — the one shape all three servers share (the
+   * declarative {@code @Notice} String-field marker is Java-only).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/notice")
+  @Title("Notice")
+  public static class NoticePage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      // no container styling: the ports' tree suppliers declare none, and the Java default
+      // ("max-width:900px;margin: auto;") is a Java-only envelope member the case is not about
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return Notice.builder()
+          .text("2 complaints pending")
+          .theme("warning")
+          .actionLabel("Review")
+          .actionId("review")
+          .slim(true)
+          .build();
+    }
+  }
+
+  /**
+   * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
+   * bulletedList).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/bulleted-list")
+  @Title("Bulleted list")
+  public static class BulletedListPage {
+    @BulletedList
+    public List<String> preferences = List.of("Extra pillow", "High floor", "Sea view");
+  }
+
+  /**
+   * An {@code @AppContext} enum field on the app class becomes a header context selector
+   * (AppDto.contextSelectors): fieldName from the field, label from the annotation, options from
+   * the enum constants (value = constant name, label = humanized). The {@code @Menu} leaf makes the
+   * class an APP so the sync answers the App fragment; its annotation is fully qualified because
+   * this file already imports the fluent {@code io.mateu.uidl.data.Menu}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-context")
+  @Title("Context app")
+  public static class ContextApp {
+
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+
+    @AppContext(label = "Hotel")
+    public Hotel hotel;
+
+    public enum Hotel {
+      palma,
+      madrid
+    }
+  }
+
+  /**
+   * App header actions: the app class implements {@link AppActionsSupplier} and its actions travel
+   * on the app metadata as contextActions — a plain button (actionId + label + icon) and a dropdown
+   * (null actionId, children) whose children are the only dispatching leaves.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-header-actions")
+  @Title("Header actions")
+  public static class HeaderActionsApp implements AppActionsSupplier {
+
+    // FQN on purpose: the runner already imports io.mateu.uidl.data.Menu (AppInCode), which would
+    // clash with the annotation. A @Menu member is what classifies the class as an app.
+    @io.mateu.uidl.annotations.Menu String home = "/";
+
+    @Override
+    public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
+      return List.of(
+          new AppHeaderAction("sync", "Sync now", "vaadin:refresh"),
+          AppHeaderAction.menu(
+              "Export",
+              "vaadin:download",
+              List.of(
+                  new AppHeaderAction("exportPdf", "As PDF"),
+                  new AppHeaderAction("exportExcel", "As Excel"))));
+    }
+
+    public Message sync() {
+      return new Message("Synced");
+    }
+  }
+
+  /** {@code @Toc} forces the sticky sections index: the page carries {@code toc=true}. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/toc")
+  @Title("Long document")
+  @Toc
+  public static class TocPage {
+    @Section("Overview")
+    public String summary = "All good";
+
+    @Section("Details")
+    public String detail = "Everything";
+
+    @Section("Contact")
+    public String phone = "+34 600 000 000";
+
+    @Section("History")
+    public String history = "Created 2026";
+
+    @Section("Notes")
+    public String notes = "None";
+  }
+
+  /** A list of nested rows becomes a grid: columns from the row type, @OnRowSelected the click. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/grid-field")
+  @Title("Guest grid")
+  public static class GridField {
+    @OnRowSelected("onSel")
+    public List<GuestRow> guests =
+        new ArrayList<>(List.of(new GuestRow("Alice", 34), new GuestRow("Bob", 29)));
+
+    public void onSel(GuestRow row) {}
+
+    public static class GuestRow {
+      public String name = "";
+      public int age = 0;
+
+      public GuestRow() {}
+
+      public GuestRow(String name, int age) {
+        this.name = name;
+        this.age = age;
+      }
+    }
+  }
+
+  /** The StatusList front-office component: labelled status rows — a chip row and an action row. */
+  @UI("/conformance/status-list")
+  @Title("Status list")
+  public static class StatusListPage implements ComponentTreeSupplier {
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return StatusList.builder()
+          .id("statusList")
+          .items(
+              List.of(
+                  StatusItem.builder()
+                      .id("ses")
+                      .icon("✓")
+                      .title("Traveller report")
+                      .description("Sent automatically on check-in")
+                      .status("Automatic")
+                      .statusColor("success")
+                      .build(),
+                  StatusItem.builder()
+                      .id("key")
+                      .icon("🔑")
+                      .title("Encode key card")
+                      .description("Digital key add-on")
+                      .actionLabel("Encode")
+                      .actionId("encodeKey")
+                      .build()))
+          .build();
+    }
+  }
+
+  /**
+   * {@code @Compact}: the high-density preset lands on the page style (marker {@code
+   * --mateu-compact:1}).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/compact")
+  @Title("Compact page")
+  @Compact
+  public static class CompactPage {
+    public String name = "Ada";
+    public String email = "ada@example.com";
+  }
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -290,7 +573,19 @@ class WireConformanceTest {
           "static-view",
           "small-enum-radio",
           "dashboard",
-          "app-in-code");
+          "app-in-code",
+          "validation",
+          "stereotypes",
+          "lookup",
+          "tree-select",
+          "notice",
+          "bulleted-list",
+          "app-context",
+          "app-header-actions",
+          "toc",
+          "grid-field",
+          "status-list",
+          "compact");
 
   static TestMateu mateu;
 
@@ -310,7 +605,19 @@ class WireConformanceTest {
             StaticAbout.class,
             SmallEnumRadio.class,
             DashboardPage.class,
-            AppInCode.class);
+            AppInCode.class,
+            ValidatedForm.class,
+            Stereotypes.class,
+            LookupForm.class,
+            TreeSelectForm.class,
+            NoticePage.class,
+            BulletedListPage.class,
+            ContextApp.class,
+            HeaderActionsApp.class,
+            TocPage.class,
+            GridField.class,
+            StatusListPage.class,
+            CompactPage.class);
   }
 
   @AfterAll

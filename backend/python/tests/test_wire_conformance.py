@@ -23,6 +23,9 @@ from mateu_uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  #
 from typing import Annotated  # noqa: E402
 from datetime import date  # noqa: E402
 from enum import Enum  # noqa: E402
+from mateu_dtos import Option  # noqa: E402
+from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
+from mateu_uidl.components import Notice, StatusItem, StatusList  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_dtos import MenuItem  # noqa: E402
 from mateu_uidl import AppShell, AppSupplier, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
@@ -176,6 +179,218 @@ class AppInCode(AppSupplier):
         )
 
 
+@ui("/conformance/validation")
+@title("Validated form")
+class ValidatedForm:
+    """Bean-validation constraints: ``Required()`` sets the wire's required flag. Python has no
+    min/max marker and its wire has no component-level ``validations`` member, so the range on
+    ``age`` and the validation entries Java derives from the constraints are a documented gap."""
+
+    name: Annotated[str, Required()] = "Ada"
+    email: Annotated[str, Required()] = "ada@example.com"
+    age: int = 36
+
+
+@ui("/conformance/stereotypes")
+@title("Stereotypes")
+class Stereotypes:
+    """The stereotype vocabulary: slider/stars on ints, password/textarea on strings."""
+
+    volume: Annotated[int, Stereotype("slider")] = 50
+    rating: Annotated[int, Stereotype("stars")] = 4
+    secret: Annotated[str, Password()] = "hunter2"
+    notes: Annotated[str, Stereotype("textarea")] = "Some longer text"
+
+
+@ui("/conformance/lookup")
+@title("Lookup")
+class LookupForm(LookupLabelSupplier):
+    """A remote reference field: Lookup() renders a combobox whose options come from the field's
+    search-<fieldId> action (stereotype combobox + remoteCoordinates on the wire); the pre-set
+    value's display label rides in the fragment data as <fieldId>-label, resolved through the
+    view's own LookupLabelSupplier."""
+
+    supplier: Annotated[str, Lookup()] = "a2"
+
+    def label(self, field_name: str, id) -> str | None:
+        return "Acme" if id == "a2" else None
+
+
+@ui("/conformance/tree-select")
+@title("Tree select")
+class TreeSelectForm:
+    """A TreeSelect field: stereotype treeSelect, the leavesOnly flag, and nested options."""
+
+    zone: Annotated[str, TreeSelect(leaves_only=True)] = ""
+
+    def options(self, field_name):
+        if field_name == "zone":
+            return [
+                Option(
+                    value="es",
+                    label="Spain",
+                    children=[
+                        Option(value="mca", label="Mallorca"),
+                        Option(value="men", label="Menorca"),
+                    ],
+                ),
+                Option(value="pt", label="Portugal"),
+            ]
+        return []
+
+
+@ui("/conformance/notice")
+@title("Notice")
+class NoticePage(ComponentTreeSupplier):
+    """The fluent Notice: a compact themed inline banner, composed as a component tree — the one
+    shape all three servers share (the declarative @Notice String-field marker is Java-only)."""
+
+    def component(self):
+        return Notice(
+            text="2 complaints pending",
+            theme="warning",
+            action_label="Review",
+            action_id="review",
+            slim=True,
+        )
+
+
+@ui("/conformance/bulleted-list")
+@title("Bulleted list")
+class BulletedListPage:
+    """A BulletedList() collection field renders as a plain read-only <ul> (stereotype bulletedList)."""
+
+    preferences: Annotated[list[str], BulletedList()] = ["Extra pillow", "High floor", "Sea view"]
+
+
+class Hotel(str, Enum):
+    palma = "palma"
+    madrid = "madrid"
+
+
+@ui("/conformance/app-context")
+@app("Context app")
+class ContextApp(AppSupplier):
+    """An @app_context member of the app class becomes a header context selector
+    (contextSelectors): fieldName from the method, label from the decorator, options from the
+    Enum return annotation (value = member name, label = humanized) — mirrors the Java
+    ContextApp, whose @Menu leaf this port declares through the AppSupplier shell."""
+
+    @app_context("Hotel")
+    def hotel(self) -> Hotel:
+        return Hotel.palma
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="Context app",
+            variant="TABS",
+            home_route="/a",
+            menu=[MenuItem(label="Home", route="/a", server_side_type="")],
+        )
+
+
+@ui("/conformance/app-header-actions")
+@app("Header actions")
+class HeaderActionsApp(AppActionsSupplier):
+    """App header actions: contextActions on the app metadata — a plain button and a dropdown
+    (null action_id, children) whose children are the only dispatching leaves."""
+
+    # No return annotation on purpose: the entry maps to route "/" with label "Home", mirroring
+    # Java's `@Menu String home = "/"`.
+    @menu_item("Home")
+    def home(self):
+        return None
+
+    def app_actions(self) -> list[AppHeaderAction]:
+        return [
+            AppHeaderAction("sync", "Sync now", "vaadin:refresh"),
+            AppHeaderAction.menu(
+                "Export",
+                "vaadin:download",
+                [
+                    AppHeaderAction("exportPdf", "As PDF"),
+                    AppHeaderAction("exportExcel", "As Excel"),
+                ],
+            ),
+        ]
+
+    def sync(self) -> Message:
+        return Message("Synced")
+
+
+@ui("/conformance/toc")
+@title("Long document")
+@toc
+class TocPage:
+    """@toc forces the sticky sections index: the page carries toc=true."""
+
+    summary: Annotated[str, Section("Overview")] = "All good"
+    detail: Annotated[str, Section("Details")] = "Everything"
+    phone: Annotated[str, Section("Contact")] = "+34 600 000 000"
+    history: Annotated[str, Section("History")] = "Created 2026"
+    notes: Annotated[str, Section("Notes")] = "None"
+
+
+class GuestRow:
+    name: str = ""
+    age: int = 0
+
+
+@ui("/conformance/grid-field")
+@title("Guest grid")
+class GridField:
+    """A list of nested rows becomes a grid: columns from the row type, OnRowSelected the click."""
+
+    guests: Annotated[list[GuestRow], OnRowSelected("onSel")] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        a = GuestRow()
+        a.name, a.age = "Alice", 34
+        b = GuestRow()
+        b.name, b.age = "Bob", 29
+        self.guests = [a, b]
+
+    def on_sel(self, row: GuestRow):
+        pass
+
+
+@ui("/conformance/status-list")
+@title("Status list")
+class StatusListPage(ComponentTreeSupplier):
+    """The StatusList front-office component: labelled status rows — a chip row and an action row."""
+
+    def component(self):
+        return StatusList(
+            id="statusList",
+            items=(
+                StatusItem(
+                    id="ses",
+                    icon="✓",
+                    title="Traveller report",
+                    description="Sent automatically on check-in",
+                    status="Automatic",
+                    status_color="success",
+                ),
+                StatusItem(
+                    id="key",
+                    icon="🔑",
+                    title="Encode key card",
+                    description="Digital key add-on",
+                    action_label="Encode",
+                    action_id="encodeKey",
+                ),
+            ),
+        )
+
+
+@ui("/conformance/compact")
+@title("Compact page")
+@compact
+class CompactPage:
+    name: str = "Ada"
+    email: str = "ada@example.com"
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -220,7 +435,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage)]
 
 
 @pytest.mark.parametrize("case,view", CASES)

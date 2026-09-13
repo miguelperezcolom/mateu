@@ -6,12 +6,25 @@ producers (Java / .NET / Python)". Written for the GA decision. Companion to
 
 ## What was done
 
-- Expanded the shared wire-conformance corpus from **2 to 13 cases** (batch 1): `tabs`, `zones`,
+- Expanded the shared wire-conformance corpus from **2 to 25 cases** (batches 1–2): `tabs`, `zones`,
   `money-field`, `banner`, `fab`, `separator-text`, `client-rules`, `static-view`,
-  `small-enum-radio`, `dashboard`, `app-in-code`. Each is one fixture declared identically in the
-  three backends; `expected.json` is generated from the Java reference and frozen. Designed by a
-  Fable multi-agent workflow (one agent per feature, grounded in real repo usage), integrated and
-  verified across the three runners.
+  `small-enum-radio`, `dashboard`, `app-in-code`, `validation`, `stereotypes`, `lookup`,
+  `tree-select`, `notice`, `bulleted-list`, `app-context`, `app-header-actions`, `toc`, `grid-field`,
+  `status-list`, `compact`. Each is one fixture declared identically in the three backends;
+  `expected.json` is generated from the Java reference and frozen. Designed by Fable multi-agent
+  workflows (one agent per feature, grounded in real repo usage), integrated and verified across the
+  three runners (Java green; ports xfail/soft-pass on byte divergence, by design).
+- **Fixed a real matrix hole found by the corpus** (#1 below): a boolean field now renders as a
+  checkbox on every renderer whichever backend served it.
+- **Sharpened the normaliser**: `serverSideType` and `targetComponentId` are now volatile. Both are
+  cross-producer noise by construction (a language-specific class FQN; a generated routing id), and
+  comparing them made every case diverge on those members alone.
+- Ran a **semantic-essentials diagnostic** (field id / label / dataType / stereotype / component
+  type / actions, in document order — the invariants the README says to keep) across Java golden vs
+  Python actual vs .NET actual (the latter dumped from the .NET runner). **12 of 25 cases agree on
+  essentials outright**; the rest cluster into the small known set below (dominant: the section
+  wrapper #5, then bool/boolean [now fixed], money-plainText #3, KPI-hoist #2, and minor dataType/
+  action edges — `bulletedList` array-vs-string, action advertising).
 - **Sharpened the normaliser**: `serverSideType` and `targetComponentId` are now volatile. Both are
   cross-producer noise by construction (a language-specific class FQN; a generated routing id), and
   comparing them made every case diverge on those members alone.
@@ -38,7 +51,7 @@ is what it revealed.
 
 | # | Divergence | Java (reference) | Both ports | Severity | Fix location |
 |---|---|---|---|---|---|
-| 1 | **`bool` vs `boolean`** field dataType | `bool` | `boolean` | **Low** (frontend already tolerates both) | Python `mateu_core/mapper.py:2004,2921`; .NET `ReflectionMapper.cs:1309,1719` |
+| 1 | **`bool` vs `boolean`** field dataType — **FIXED at the renderer** | `bool` | `boolean` | **Resolved** — both the Vaadin and the neutral renderer now accept either, so a boolean renders as a checkbox on any renderer × any backend (the wire values still differ; converge later if desired at Python `mateu_core/mapper.py:2004,2921` / .NET `ReflectionMapper.cs:1309,1719`) | done (`mateu-field.ts`, `neutralFieldRenderer.ts`) |
 | 2 | **`@KPI` hoisting** | field hoisted out of the body into the header | kept as an ordinary body field | **Medium** (visible: KPI in header vs body). .NET `[Kpi]` is class/method-level, cannot even mark a field | port KPI extraction + `FormFieldFilter` equivalent |
 | 3 | **money in plain-text context** | dataType upgraded to `money` (so the read-only value formats) | stays `number` | **Low-Med** (read-only money renders unformatted on the ports) | Python/.NET stereotype→dataType upgrade in the plainText branch |
 | 4 | **`@Text(size)` sized component** | rendered as a `Text` component | no declarative Text field marker → stays an ordinary field | **Low** | ports: add a declarative Text field marker (or accept the gap) |
