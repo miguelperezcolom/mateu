@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.mateu.demo</groupId>
+        <artifactId>demo-starwars-5-federation</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>characters-ui</artifactId>
+    <packaging>jar</packaging>
+    <name>characters-ui</name>
+    <description>A framework-agnostic @UI module (only io.mateu:uidl + mvc-core for AutoCrud). The
+        indexer AP writes META-INF/mateu/ui-registrations so a downstream app can generate its
+        controllers without the sources.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
+
+    <dependencies>
+        <!-- mvc-core brings AutoCrud + the uidl API; a pure-form module needs only io.mateu:uidl. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mvc-core</artifactId>
+            <version>${mateu.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-indexer</artifactId>
+            <version>${mateu.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-indexer</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

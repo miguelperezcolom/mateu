@@ -341,6 +341,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // map each JSON item into a row object keyed by column id and feed it through applyData.
     val rowsSource = metadata.path("rowsSource")
     if (rowsSource.isObject) {
+        // Resolve a catalogue `ref` so url, itemsPath and the proxy flag come from the resolved source.
+        val rowsResolved = RestFetch.resolveRestSource(rowsSource)
         val columnIds = metadata.arr("columns")
             .map { it.path("metadata").text("id", it.text("id")) }
             .filter { it.isNotBlank() }
@@ -351,9 +353,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             try {
                 // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
                 // server-side); direct fetch otherwise. Both resolve to the same JSON.
-                val json = if (rowsSource.path("proxy").asBoolean(false)) ctx.fetchViaProxy("rows", crudId)
+                val json = if (rowsResolved.path("proxy").asBoolean(false)) ctx.fetchViaProxy("rows", crudId)
                            else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
-                val arr = RestFetch.valueAtPath(json, rowsSource.text("itemsPath"))
+                val arr = RestFetch.valueAtPath(json, rowsResolved.text("itemsPath"))
                 val content = mapper.createArrayNode()
                 if (arr != null && arr.isArray) for (item in arr) {
                     val rowNode = mapper.createObjectNode()

@@ -43,10 +43,13 @@ content:
   - type: FormField
     id: eyeColors
     label: Eye colours
+  # Was a read-only name; now an editable combo seeded by the record's homeworldId.
   - type: FormField
-    id: homeworldName
+    id: homeworldId
     label: Homeworld
-    readOnly: true
+    stereotype: select
+    optionsSource:
+      ref: swapi-planet-options
 buttons:
 - type: Button
   label: Save

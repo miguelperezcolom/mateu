@@ -27,7 +27,7 @@ import {
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
 import { interpolate } from '../core/expressions';
-import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '../core/restFetch';
+import { fetchExternalJson, mapItemsToOptions, resolveRestSource, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
@@ -634,16 +634,19 @@ function RestOptionsField({ source, fieldId, state, appState, value, editable, o
   const controller = useViewController();
   const [options, setOptions] = useState<FetchedOption[]>([]);
   const resolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState });
-  const url = resolve(source.url);
+  // Resolve a catalogue `ref` (if any) so the url, the mapping paths and the proxy flag all come
+  // from the resolved source — a by-ref surface carries none of its own.
+  const resolved = resolveRestSource(source as Record<string, unknown>);
+  const url = resolve(resolved.url);
   useEffect(() => {
     let cancelled = false;
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToOptions.
-    const jsonPromise = source.proxy
+    const jsonPromise = resolved.proxy
       ? controller.fetchViaProxy('options', fieldId)
-      : fetchExternalJson(source, resolve);
+      : fetchExternalJson(source as Record<string, unknown>, resolve);
     jsonPromise
-      .then((json) => { if (!cancelled) setOptions(mapItemsToOptions(json, source.itemsPath, source.valuePath, source.labelPath)); })
+      .then((json) => { if (!cancelled) setOptions(mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath)); })
       .catch((e) => console.warn('mateu: external options fetch failed', e));
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

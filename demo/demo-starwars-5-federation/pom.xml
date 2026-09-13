@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-starwars-5-federation</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>demo-starwars-5-federation</name>
+    <description>Example 5 of the progressive Star Wars suite: build-time federation. Two independent,
+        framework-agnostic @UI modules (characters-ui, planets-ui) composed by one shell app at build
+        time — one deployment, several independently-authored modules.</description>
+
+    <modules>
+        <module>characters-ui</module>
+        <module>planets-ui</module>
+        <module>shell-app</module>
+    </modules>
+
+</project>

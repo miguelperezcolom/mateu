@@ -206,6 +206,16 @@ public class FieldMetadataExtractor {
         headers.put(h.substring(0, i).trim(), h.substring(i + 1).trim());
       }
     }
+    // When the field references a catalogue source by `ref`, the mapping paths must come from that
+    // entry — so leave them BLANK here rather than baking in the annotation defaults
+    // ("value"/"label"),
+    // which are not blank and would win over the catalogue in resolveRestSource (url/itemsPath
+    // already
+    // default to blank and resolve correctly; only valuePath/labelPath had non-blank defaults). An
+    // explicitly-set mapping path still overrides, exactly as for an inline url.
+    var byRef = a.source() != null && !a.source().isBlank();
+    var valuePath = byRef && "value".equals(a.valuePath()) ? "" : a.valuePath();
+    var labelPath = byRef && "label".equals(a.labelPath()) ? "" : a.labelPath();
     return io.mateu.uidl.data.RestDataSource.builder()
         .ref(a.source())
         .url(a.url())
@@ -213,8 +223,8 @@ public class FieldMetadataExtractor {
         .headers(headers)
         .body(a.body())
         .itemsPath(a.itemsPath())
-        .valuePath(a.valuePath())
-        .labelPath(a.labelPath())
+        .valuePath(valuePath)
+        .labelPath(labelPath)
         .proxy(a.proxy())
         .build();
   }

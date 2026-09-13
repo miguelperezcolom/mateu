@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { interpolate } from '../core/expressions';
-import { fetchExternalJson, mapItemsToRows } from '../core/restFetch';
+import { fetchExternalJson, mapItemsToRows, resolveRestSource } from '../core/restFetch';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
 import { theme } from '../theme';
@@ -144,24 +144,26 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // `search` action. Declarative listings get no server OnLoad trigger, so self-fetch on mount (and
   // when the interpolated url changes); free-text search filters the fetched rows in memory.
   const rowsSource = metadata['rowsSource'] as
-    | { url: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string; proxy?: boolean }
+    | { url?: string; ref?: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string; proxy?: boolean }
     | undefined;
+  // Resolve a catalogue `ref` so the url, itemsPath and proxy flag come from the resolved source.
+  const rowsResolved = rowsSource ? (resolveRestSource(rowsSource as Record<string, unknown>) as typeof rowsSource) : undefined;
   const columnIds = columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId).filter(Boolean) as string[];
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
-  const rowsUrl = rowsSource ? restResolve(rowsSource.url) : '';
+  const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
   const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
   useEffect(() => {
-    if (!rowsSource) return;
+    if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
-    const jsonPromise = rowsSource.proxy
+    const jsonPromise = rowsResolved.proxy
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
       : fetchExternalJson(rowsSource, restResolve);
     jsonPromise
       .then((json) => {
         if (cancelled) return;
-        const rows = mapItemsToRows(json, rowsSource.itemsPath, columnIds) as Record<string, unknown>[];
+        const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds) as Record<string, unknown>[];
         setRestRows(rows);
         setLiveData({ page: { content: rows, totalElements: rows.length, pageSize: rows.length, pageNumber: 0 } });
       })

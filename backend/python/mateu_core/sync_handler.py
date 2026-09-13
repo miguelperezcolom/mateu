@@ -141,9 +141,10 @@ class SyncHandler:
         self.mapper = ReflectionMapper(translator, identity_provider)
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
-        #: The mount's authored route registry (specs/ui/routes.yaml). Shared with the spec loader
-        #: so both see one table.
-        self.routes = RouteRegistry()
+        #: The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
+        #: contributed in code by RouteEntrySupplier subclasses (discovered by the MateuRegistry).
+        #: Shared with the spec loader so both see one table.
+        self.routes = RouteRegistry(supplied=getattr(registry, "supplied_routes", None))
         self.yaml_specs = YamlSpecLoader(registry=self.routes)
         #: The route entry matched for the request in flight, whose appState/data/appData seeds are
         #: applied on the response side (mirrors Java's HttpRequest _route* attributes).

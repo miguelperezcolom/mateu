@@ -85,6 +85,22 @@ sources:
       itemsPath: content
     totalPath: totalElements
 
+  # ── option sources for the reference combos ──────────────────────────────────
+  # A combo that references another entity reads its choices from one of these. Unlike the listing
+  # sources above, an OPTIONS source is fetched ONCE and mapped whole (the renderer filters the
+  # choices in the browser), so it asks for the entire small collection in a single call — no paging,
+  # no search interpolation — and declares how to turn each item into a choice: `valuePath` is the id
+  # stored on the record, `labelPath` the text shown. A field references it by name with
+  # `optionsSource: { ref: swapi-planet-options }`; the id it stores is what the write body sends.
+
+  - name: swapi-planet-options
+    description: Every planet as a choice (id → name) for a homeworld combo
+    source:
+      url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+      itemsPath: content
+      valuePath: id
+      labelPath: name
+
   # ── one record, and the three writes ─────────────────────────────────────────
   # The reads are direct from the browser (the API is open for GET). The writes go through the
   # PROXY: the key lives in ${secret.SWAPI_WRITE_KEY}, which the SERVER resolves from a
@@ -109,7 +125,8 @@ sources:
       body: >-
         {"name":"${state.name}","height":"${state.height}","mass":"${state.mass}",
         "hairColor":"${state.hairColor}","eyeColor":"${state.eyeColor}",
-        "birthYear":"${state.birthYear}","gender":"${state.gender}"}
+        "birthYear":"${state.birthYear}","gender":"${state.gender}",
+        "homeworldId":"${state.homeworldId}"}
 
   - name: swapi-person-update
     description: Replace a character
@@ -123,7 +140,8 @@ sources:
       body: >-
         {"name":"${state.name}","height":"${state.height}","mass":"${state.mass}",
         "hairColor":"${state.hairColor}","eyeColor":"${state.eyeColor}",
-        "birthYear":"${state.birthYear}","gender":"${state.gender}"}
+        "birthYear":"${state.birthYear}","gender":"${state.gender}",
+        "homeworldId":"${state.homeworldId}"}
 
   - name: swapi-person-delete
     description: Delete a character
@@ -222,7 +240,7 @@ sources:
       headers:
         Content-Type: application/json
         X-Api-Key: ${secret.SWAPI_WRITE_KEY}
-      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}"}'
+      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}","homeworldId":"${state.homeworldId}"}'
 
   - name: swapi-species-update
     description: Replace a species
@@ -233,7 +251,7 @@ sources:
       headers:
         Content-Type: application/json
         X-Api-Key: ${secret.SWAPI_WRITE_KEY}
-      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}"}'
+      body: '{"name":"${state.name}","classification":"${state.classification}","designation":"${state.designation}","language":"${state.language}","averageHeight":"${state.averageHeight}","averageLifespan":"${state.averageLifespan}","skinColors":"${state.skinColors}","hairColors":"${state.hairColors}","eyeColors":"${state.eyeColors}","homeworldId":"${state.homeworldId}"}'
 
   - name: swapi-species-delete
     description: Delete a species

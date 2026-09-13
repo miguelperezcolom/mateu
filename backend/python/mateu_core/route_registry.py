@@ -13,7 +13,7 @@ server class behind it at all — which is what a statically deployed screen is.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -234,6 +234,47 @@ class RouteTable:
         return best
 
 
+class RouteEntrySupplier:
+    """Implemented by a class that contributes entries to the app's route registry IN CODE, rather
+    than declaring them in ``routes.yaml`` — for routes that come from configuration, a database, or
+    that differ per environment. The programmatic half of the authored side of the two-producer route
+    table, the Python mirror of Java's ``RouteEntrySupplier`` and .NET's ``IRouteEntrySupplier``.
+
+    A decorator can only express the one-to-one case (one class, one route). A :class:`RouteEntry`
+    built here expresses the full model the YAML can — a route binding a definition, a view model and
+    pinned parameters independently, one definition serving several routes, and a route with NO view
+    model at all. (Python's ``RouteEntry`` has no nested ``children``: author flat entries and set
+    :attr:`RouteEntry.parent` yourself, the same shape the YAML flattens to.)
+
+    Discovered across the sources handed to :class:`~mateu_core.registry.MateuRegistry` (like the
+    ``@ui`` views) and instantiated with a no-arg constructor. The entries join the AUTHORED half and
+    are consulted by resolution; an entry in ``routes.yaml`` for the same route still wins, so the
+    order is ``routes.yaml > this supplier > decorator-derived``.
+    """
+
+    def routes(self) -> list[RouteEntry]:
+        raise NotImplementedError
+
+
+def flatten(entries) -> list[RouteEntry]:
+    """Normalize a set of code-authored entries into the table's absolute-route shape (routes and
+    parents stripped of leading/trailing slashes). A supplier authors absolute routes — it is not
+    tied to a mount — so no base path is applied. The object-level twin of the YAML path's
+    :func:`_flatten_node`; Python's :class:`RouteEntry` carries no nested ``children`` to expand."""
+    out: list[RouteEntry] = []
+    for entry in entries or []:
+        if entry is None:
+            continue
+        out.append(
+            replace(
+                entry,
+                route=_normalize(entry.route),
+                parent=_normalize(entry.parent) if entry.has_parent() else entry.parent,
+            )
+        )
+    return out
+
+
 @dataclass(frozen=True)
 class AppRef:
     """An app a deployment contributes: a mount root, with the class that backs it (``None`` for a
@@ -254,13 +295,19 @@ class RouteRegistry:
 
     FILE = "routes.yaml"
 
-    def __init__(self, directory: str | None = None) -> None:
+    def __init__(
+        self, directory: str | None = None, supplied: "list[RouteEntry] | None" = None
+    ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
+        # Code-authored routes join the authored side UNDER the YAML (routes.yaml wins on collision).
+        self._supplied = RouteTable(tuple(flatten(supplied or [])))
         self._authored: RouteTable | None = None
 
     def authored(self) -> RouteTable:
+        """routes.yaml merged OVER the code-supplied routes, so YAML wins the last-mile override and
+        the code supplier still wins over the decorator-derived views."""
         if self._authored is None:
-            self._authored = self._load()
+            self._authored = self._load().merged_over(self._supplied)
         return self._authored
 
     def match(self, path: str | None) -> Match | None:

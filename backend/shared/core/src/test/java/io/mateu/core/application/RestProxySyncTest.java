@@ -36,11 +36,26 @@ class RestProxySyncTest {
     String direct;
   }
 
+  @SuppressWarnings("unused")
+  @UI("/restref")
+  @Title("Rest ref")
+  public static class RefForm {
+    // By ref, no explicit mapping paths: the catalogue must supply them, so the wire must leave
+    // valuePath/labelPath BLANK rather than baking in the annotation defaults ("value"/"label"),
+    // which would win over the catalogue in resolveRestSource.
+    @RestOptions(source = "cities")
+    String byRef;
+
+    // Explicit mapping paths on a by-ref source still travel — the surface overrides the catalogue.
+    @RestOptions(source = "cities", valuePath = "code", labelPath = "town")
+    String byRefExplicit;
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ProxyForm.class, DirectForm.class);
+    mateu = TestMateu.withUis(ProxyForm.class, DirectForm.class, RefForm.class);
   }
 
   @AfterAll
@@ -65,6 +80,26 @@ class RestProxySyncTest {
     var direct =
         fields.stream().filter(f -> "direct".equals(f.fieldId())).findFirst().orElseThrow();
     assertThat(direct.optionsSource().proxy()).isFalse();
+  }
+
+  @Test
+  void byRefOptionsSourceLeavesMappingPathsBlankSoTheCatalogueWins() {
+    var increment = mateu.sync("/restref");
+    var fields = new java.util.ArrayList<io.mateu.dtos.FormFieldDto>();
+    FieldKindsSyncTest.walk(
+        increment.fragments().get(0).component(), io.mateu.dtos.FormFieldDto.class, fields);
+
+    var byRef = fields.stream().filter(f -> "byRef".equals(f.fieldId())).findFirst().orElseThrow();
+    assertThat(byRef.optionsSource().ref()).isEqualTo("cities");
+    // the annotation defaults ("value"/"label") must NOT leak — blank lets the catalogue supply
+    // them
+    assertThat(byRef.optionsSource().valuePath()).isBlank();
+    assertThat(byRef.optionsSource().labelPath()).isBlank();
+
+    var explicit =
+        fields.stream().filter(f -> "byRefExplicit".equals(f.fieldId())).findFirst().orElseThrow();
+    assertThat(explicit.optionsSource().valuePath()).isEqualTo("code");
+    assertThat(explicit.optionsSource().labelPath()).isEqualTo("town");
   }
 
   @Test

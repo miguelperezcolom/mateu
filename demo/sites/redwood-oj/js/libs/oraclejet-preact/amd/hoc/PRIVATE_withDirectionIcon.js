@@ -1,2 +1,0 @@
-define(['exports', '../withDirectionIcon-2bb38763', 'preact/jsx-runtime', '../useUser-988f7da2', 'preact/hooks', '../LayerHost-7d4aa6d3', '../index-f7ad24df', 'preact', 'preact/compat', '../UNSAFE_Layer/themes/LayerHostStyles.css', 'css!./../LayerHostStyles.styles.css'], (function(e,t,s,r,c,o,i,a,n,d,y){"use strict";e.withDirectionIcon=t.withDirectionIcon,Object.defineProperty(e,"__esModule",{value:!0})}));
-//# sourceMappingURL=PRIVATE_withDirectionIcon.js.map

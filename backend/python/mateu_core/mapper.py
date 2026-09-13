@@ -135,6 +135,7 @@ from mateu_dtos import (
 from mateu_uidl import (
     Aggregate,
     AppActionsSupplier,
+    AppSupplier,
     Aside,
     PeerNavigationSupplier,
     Timestamp,
@@ -155,6 +156,7 @@ from mateu_uidl import (
     FileUpload,
     Foldout,
     GlobalSearchSupplier,
+    MenuSupplier,
     GroupBy,
     HeaderBadge,
     HeroSearch,
@@ -416,31 +418,41 @@ class ReflectionMapper:
     # ── App shell ──────────────────────────────────────────────────────────────
     def map_app(self, cls, request_base_url: str | None = None) -> ClientSideComponent:
         app_title = getattr(cls, "__mateu_app__")
-        # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
-        # folder appears where its first entry was declared); ungrouped entries stay leaves.
-        items = []
-        folders: dict[str, MenuItem] = {}
-        for n, f in methods_with(cls, "__mateu_menu_item__"):
-            if not for_current_audience(getattr(f, "__mateu_audience__", None)):
-                continue
-            entry = self.map_menu_item(n, f)
-            group = getattr(f, "__mateu_menu_group__", "")
-            if not group:
-                items.append(entry)
-            elif group in folders:
-                folders[group].submenus.append(entry)
-            else:
-                folder = MenuItem(label=self.T(group), route="", server_side_type="", submenus=[entry])
-                folders[group] = folder
-                items.append(folder)
-        # @remote_menu entries: federated options — the frontend fetches the remote backend's
-        # menu itself and mounts its views (no server-side proxying).
-        for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
-            items.append(MenuItem(
-                label=self.T(label), route=route, server_side_type="",
-                consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
-            ))
-        variant = self.variant_of(cls, items)
+        # An app can compose its shell + menu IN CODE — a menu (or whole shell) computed at request
+        # time, overriding the static decorators: AppSupplier returns the shell (chrome + menu),
+        # MenuSupplier just the menu (mirrors Java's AppSupplier/MenuSupplier). Whatever the shell
+        # leaves None falls back to the @app decorator / the derived menu below.
+        shell = cls().get_app() if issubclass(cls, AppSupplier) else None
+        if shell is not None:
+            items = list(shell.menu or [])
+        elif issubclass(cls, MenuSupplier):
+            items = list(cls().menu() or [])
+        else:
+            # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
+            # folder appears where its first entry was declared); ungrouped entries stay leaves.
+            items = []
+            folders: dict[str, MenuItem] = {}
+            for n, f in methods_with(cls, "__mateu_menu_item__"):
+                if not for_current_audience(getattr(f, "__mateu_audience__", None)):
+                    continue
+                entry = self.map_menu_item(n, f)
+                group = getattr(f, "__mateu_menu_group__", "")
+                if not group:
+                    items.append(entry)
+                elif group in folders:
+                    folders[group].submenus.append(entry)
+                else:
+                    folder = MenuItem(label=self.T(group), route="", server_side_type="", submenus=[entry])
+                    folders[group] = folder
+                    items.append(folder)
+            # @remote_menu entries: federated options — the frontend fetches the remote backend's
+            # menu itself and mounts its views (no server-side proxying).
+            for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
+                items.append(MenuItem(
+                    label=self.T(label), route=route, server_side_type="",
+                    consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
+                ))
+        variant = shell.variant if (shell and shell.variant) else self.variant_of(cls, items)
         home = items[0] if items else None
         sse_url = getattr(cls, "__mateu_ai_sse__", None)
         context_selectors = self.map_context_selectors(cls)
@@ -452,10 +464,11 @@ class ReflectionMapper:
             or getattr(cls, "__mateu_app_chromeless__", False)
         )
         meta = AppMetadata(
-            title=self.T(app_title),
+            title=self.T(shell.title if (shell and shell.title) else app_title),
+            subtitle=shell.subtitle if shell else None,
             variant=variant,
             menu=items,
-            home_route=home.route if home else "",
+            home_route=shell.home_route if (shell and shell.home_route) else (home.route if home else ""),
             home_consumed_route=home.consumed_route if home else "",
             home_base_url=request_base_url or "",
             home_server_side_type=home.server_side_type if home else "",

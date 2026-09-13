@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.ui.ComponentRenderer
+import io.mateu.ijp.ui.RestFetch
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -841,6 +842,13 @@ class AppContext(val session: AppSession) {
         val component = fragment.path("component")
         val state = fragment.path("state")
         val data = fragment.path("data")
+
+        // The app shell carries the REST source catalogue (AppDto.restSources); register it so a
+        // surface that references a source by `ref` can resolve it (top-level App, or the App child
+        // of a mediator ServerSide wrapper).
+        val appMeta = component.path("metadata").takeIf { it.text("type") == "App" }
+            ?: component.path("children").path(0).path("metadata").takeIf { it.text("type") == "App" }
+        if (appMeta != null && appMeta.has("restSources")) RestFetch.registerRestSources(appMeta.path("restSources"))
 
         // Overlay fragments (action Add + Drawer/Dialog component) stack over the page instead of
         // replacing it — shown as a side panel anchored to the IDE window.

@@ -148,13 +148,45 @@ public sealed class RouteRegistry
 
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
     private readonly string _dir;
+    private readonly RouteTable _supplied;
     private RouteTable? _authored;
 
-    public RouteRegistry(string? dir = null)
-        => _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
-                      ?? Path.Combine("specs", "ui");
+    public RouteRegistry(string? dir = null, IReadOnlyList<RouteEntry>? supplied = null)
+    {
+        _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
+                   ?? Path.Combine("specs", "ui");
+        // Code-authored routes join the authored side UNDER the YAML (routes.yaml wins on collision).
+        _supplied = new RouteTable(Flatten(supplied ?? []));
+    }
 
-    public RouteTable Authored() => _authored ??= Load();
+    /// <summary>The authored half: routes.yaml merged OVER the code-supplied routes, so YAML wins the
+    /// last-mile override and the code supplier still wins over the attribute-derived views.</summary>
+    public RouteTable Authored() => _authored ??= Load().MergedOver(_supplied);
+
+    /// <summary>Flattens code-authored entries (and their nested <c>Children</c>) into flat ABSOLUTE
+    /// entries, the object-tree twin of <see cref="FlattenNode"/> for the YAML path: a child's route
+    /// is composed relative to its parent and carries the parent's absolute route as <c>Parent</c>.
+    /// A supplier authors absolute routes (it is not tied to a mount), so no base path is applied.</summary>
+    public static List<RouteEntry> Flatten(IEnumerable<RouteEntry> entries)
+    {
+        var flat = new List<RouteEntry>();
+        foreach (var entry in entries)
+            if (entry is not null)
+                FlattenEntry(entry, null, "", flat);
+        return flat;
+    }
+
+    private static void FlattenEntry(RouteEntry node, string? parent, string prefix, List<RouteEntry> flat)
+    {
+        var relative = Normalize(node.Route);
+        var full = prefix.Length == 0 ? relative
+            : relative.Length == 0 ? prefix
+            : prefix + "/" + relative;
+        flat.Add(node with { Route = full, Parent = parent, Children = null });
+        if (node.Children is not null)
+            foreach (var child in node.Children)
+                FlattenEntry(child, full, full, flat);
+    }
 
     public RouteMatch? Match(string? path) => Authored().Match(path);
 

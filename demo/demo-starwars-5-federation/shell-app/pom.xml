@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Spring Boot parent (the reactor parent is the aggregator, so declare Boot directly). -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>starwars-5-shell-app</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>starwars-5-shell-app</name>
+    <description>The shell: composes characters-ui and planets-ui by Maven dependency into one
+        deployment. The framework AP reads each module's META-INF/mateu/ui-registrations index and
+        generates their controllers; the shell's own @App menus them together.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
+
+    <dependencies>
+        <!-- The two independent UI modules, composed at build time. -->
+        <dependency>
+            <groupId>io.mateu.demo</groupId>
+            <artifactId>characters-ui</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu.demo</groupId>
+            <artifactId>planets-ui</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mvc-core</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-mvc</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                        <!-- Each UI module on the AP classpath, so the framework AP reads its index
+                             and generates controllers for its @UI classes. -->
+                        <path>
+                            <groupId>io.mateu.demo</groupId>
+                            <artifactId>characters-ui</artifactId>
+                            <version>1.0-SNAPSHOT</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu.demo</groupId>
+                            <artifactId>planets-ui</artifactId>
+                            <version>1.0-SNAPSHOT</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

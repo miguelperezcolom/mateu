@@ -276,6 +276,41 @@ layout:
 A definition that *does* declare `modelView:` keeps it, and it wins over the entry's — so every YAML
 page that works today is unaffected.
 
+## Authoring routes in code
+
+The authored half has two producers of its own: the YAML (`routes.yaml` and the `type: UI` mounts),
+and **code** — a `RouteEntrySupplier` bean returning `List<RouteEntry>`. It is the programmatic twin
+of the [REST source catalogue supplier](/java-ui-definition/rest-source-catalogue/), for routes that
+come from configuration, a database, or that differ per environment. A supplied entry expresses the
+full model the YAML can — a route binding a definition, a view model and pinned parameters
+independently, one definition serving several routes, and a route with **no view model at all**.
+
+```java
+@Service
+public class TenantRoutes implements RouteEntrySupplier {
+  @Override public List<RouteEntry> routes() {
+    return List.of(
+        RouteEntry.of("orders", "com.acme.Orders"),
+        // The case an annotation cannot express: two routes over one screen, each pinning a scope.
+        new RouteEntry("orders/pending", null, "com.acme.Orders", Map.of("status", "pending"), Map.of()),
+        // A viewModel-less route: a definition plus client-side data.
+        new RouteEntry("about", "about.yaml", null, Map.of(), Map.of()));
+  }
+}
+```
+
+**Precedence: `routes.yaml` > code supplier > annotation-derived.** An entry in `routes.yaml` for the
+same route still wins — the last-mile override that re-points a deployment without a rebuild — and a
+supplied entry replaces an annotation-derived one for the same route outright. Like every server-side
+supplier, it builds its entries from what the *server* holds, never from the request.
+
+**Parity.** `RouteEntrySupplier` (Java, a bean), `IRouteEntrySupplier` (.NET) and `RouteEntrySupplier`
+(Python) all feed the authored table with the same precedence; the ports discover implementers by
+scanning the assemblies/modules rather than a bean container. (Python's `RouteEntry` carries no nested
+`children`, so a Python supplier authors flat entries with `parent` set — the same shape the YAML
+flattens to.) App shells and their menus are likewise code-authorable — see
+[App shells in code](/java-user-manual/build/navigation-and-menus/#app-shells-and-menus-in-code).
+
 ## Static deployments
 
 The authored table travels in the [static bundle](/java-user-manual/build/static-bundle/)'s

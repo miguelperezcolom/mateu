@@ -79,9 +79,62 @@ export function mapItemsToRows(json: unknown, itemsPath: string | undefined, col
   });
 }
 
+// ── REST source catalogue (resolution by `ref`) ─────────────────────────────
+// The app ships a catalogue of named endpoints (AppDto.restSources); a surface may reference an
+// entry by `ref` instead of inlining the url + mapping paths. This is the RN analogue of the web's
+// libs/mateu restSourceCatalogue.ts: register the catalogue when the App metadata arrives, then
+// resolve a `ref` to the entry's fields (the surface's own declared fields still win).
+let catalogue: Record<string, Json> = {};
+
+/** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */
+export function registerRestSources(sources: unknown): void {
+  const map: Record<string, Json> = {};
+  if (Array.isArray(sources)) {
+    for (const entry of sources) {
+      const name = (entry as Json)?.['name'];
+      if (typeof name === 'string' && name) map[name] = entry as Json;
+    }
+  }
+  catalogue = map;
+}
+
+/** The catalogue entry for a name, or undefined. */
+export function getRestSource(ref?: string): Json | undefined {
+  return ref ? catalogue[ref] : undefined;
+}
+
+const blank = (s: unknown): boolean => s == null || s === '';
+
+/** If `source` names a catalogue entry by `ref`, merge the entry's `source` fields under the
+ *  surface's own (the surface wins where it declares a value). A source without a `ref` — or a ref
+ *  the catalogue does not know — is returned untouched. Mirrors libs/mateu's `resolveRestSource`,
+ *  including reading `proxy` off the RESOLVED source (a by-ref surface carries no proxy of its own). */
+export function resolveRestSource(source: Json): Json {
+  const ref = source?.['ref'];
+  if (!ref) return source;
+  const from = getRestSource(String(ref))?.['source'] as Json | undefined;
+  if (!from) {
+    console.warn(`mateu: no REST source named "${ref}" in the app's catalogue`);
+    return source;
+  }
+  const srcHeaders = source['headers'] as Json | undefined;
+  return {
+    ...source,
+    url: blank(source['url']) ? from['url'] : source['url'],
+    method: blank(source['method']) ? from['method'] : source['method'],
+    headers: srcHeaders && Object.keys(srcHeaders).length > 0 ? srcHeaders : from['headers'],
+    body: blank(source['body']) ? from['body'] : source['body'],
+    itemsPath: blank(source['itemsPath']) ? from['itemsPath'] : source['itemsPath'],
+    valuePath: blank(source['valuePath']) ? from['valuePath'] : source['valuePath'],
+    labelPath: blank(source['labelPath']) ? from['labelPath'] : source['labelPath'],
+    proxy: source['proxy'] || from['proxy'],
+  };
+}
+
 /** Interpolate url/headers/body of a RestDataSource and fetch it. `resolve` runs `${state.x}`
- *  interpolation. Throws on a non-2xx response. */
-export async function fetchExternalJson(source: Json, resolve: (t: unknown) => string): Promise<unknown> {
+ *  interpolation. Resolves a `ref` against the catalogue first. Throws on a non-2xx response. */
+export async function fetchExternalJson(declared: Json, resolve: (t: unknown) => string): Promise<unknown> {
+  const source = resolveRestSource(declared);
   const url = resolve(source['url']);
   const method = String(source['method'] ?? 'GET').toUpperCase();
   const headers: Record<string, string> = {};

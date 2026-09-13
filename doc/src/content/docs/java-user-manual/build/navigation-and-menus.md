@@ -239,6 +239,42 @@ public class UserEditorPage {}
 
 ---
 
+## App shells and menus in code
+
+The whole shell — chrome and menu — can be composed **in code** instead of with `@App`/`@Menu`,
+computed at request time so the menu can depend on the user, configuration or a database. Implement
+`AppSupplier` on the `@UI` class and return a fluent `AppShell`; or implement `MenuSupplier` to
+compose just the menu and keep the rest of the shell declarative.
+
+```java
+@UI("/back-office")
+public class BackOffice implements AppSupplier {
+  @Override public AppShell getApp(HttpRequest request) {
+    return AppShell.builder()
+        .title("Back office")
+        .variant(AppVariant.HAMBURGUER_MENU)
+        .homeRoute("/back-office/home")
+        .menu(List.of(
+            new RouteLink("/back-office/home", "Home"),
+            new Menu("/back-office/reports", "Reports", List.of(
+                new RouteLink("/back-office/reports/sales", "Sales"))),
+            // A leaf can also RUN a rule instead of navigating:
+            new RuleLink("Approve", List.of(Rule.builder().actionId("approve").build()))))
+        .build();
+  }
+}
+```
+
+The menu is a `List<Actionable>`, so both leaf kinds compose — a `RouteLink`/`ContentLink` that
+navigates and a `RuleLink` that runs client-side rules (the [route-or-rule leaf](#a-leaf-is-a-route-or-a-rule)) —
+plus `Menu` sub-trees and `RemoteMenu` federated entries.
+
+**Parity.** `AppSupplier`/`MenuSupplier` (Java), `IAppSupplier`/`IMenuSupplier` + `AppShell` (.NET)
+and `AppSupplier`/`MenuSupplier` + `AppShell` (Python) all compose the shell + menu in code,
+overriding the static declarations; a field the shell leaves unset falls back to the declared
+`@App`/`[App]`/`@app` value. Routes are likewise code-authorable — see the
+[route registry](/java-ui-definition/route-registry/#authoring-routes-in-code).
+
 ## Mental model
 
 - `@Menu` field type determines what kind of entry is generated
