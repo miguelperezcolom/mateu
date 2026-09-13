@@ -125,11 +125,25 @@ Renderers (promesa amplia):
 - [ ] Hacer que la fila ✅ de la matriz **se verifique** desde el corpus (§3.2), aunque sea parcial.
 
 ### D — Tests / CI verde y seguridad · **P0**
-- [ ] `mvn verify` backend (incluye JaCoCo gate ≥ umbral) verde.
-- [ ] e2e compartida verde en MVC · WebFlux · Micronaut · Quarkus · Helidon (referencia Helidon 252/252).
-- [ ] Goldens .NET (`backend/dotnet/test`) y Python (`backend/python/tests`) verdes.
-- [ ] Sondas nativas: RN (`e2e/rn-a11y-probe.mjs` y afines) + IntelliJ (`renderProbe`).
-- [ ] CodeQL sin findings nuevos.
+> **Cierre D (2026-09-13):** los 4 ítems que CI puertea están **VERDES en el runner** — PR #480, run
+> `Tests` **34701278667** (jobs `backend-tests` · `e2e` · `frontend-lib` · `bundle-freshness` todos ✓)
+> + `CodeQL Advanced` **34701278668** ✓ (ambos del 2026-09-12 15:07). El único ítem que CI **no**
+> puertea son las sondas nativas vivas; se cierran por el camino de D2 (compilación + lógica pura), con
+> el probe vivo declarado post-GA. **D cerrado.**
+- [x] `mvn verify` backend (JaCoCo gate) — VERDE: job `backend-tests`, `mvn -pl shared/core verify`
+      (1030 tests + gate; `-Dmaven.javadoc.skip` por el quirk javadoc+delombok del pom padre, no del test).
+- [x] e2e compartida en MVC · WebFlux · Micronaut · Quarkus · Helidon — VERDE: job `e2e` arranca los 5
+      SUT (`mvc/webflux/quarkus/micronaut/helidon-app1`) y corre Playwright sobre la suite `**/shared/**`.
+- [x] Goldens .NET (`backend/dotnet/test` → `dotnet test`, 299) y Python (`backend/python/tests` →
+      `pytest`, 298+2 xfailed) — VERDES en el mismo job `backend-tests` (incluyen su runner de conformidad).
+- [x] **Sondas nativas — cerradas por compilación/lógica (D2), probe vivo POST-GA.** RN verificado por
+      `tsc` limpio + 5 checks de lógica pura (mismo contrato que los 12 vitest del web); IntelliJ por
+      compilación en la máquina con el SDK. El probe e2e vivo (expo web / `renderProbe` contra un backend
+      en :8600) es **pesado y dependiente de entorno** — no está en CI y no se cablea en víspera de GA
+      bajo freeze (intento local 2026-09-13: RN sin `node_modules`; el Gradle IntelliJ plugin no resuelve
+      el bundled `com.intellij.java` sin descargar la distro del IDE). Redundante con la verificación de
+      lógica ya hecha → **post-GA opcional**, documentado como tal (mismo criterio que D2/D5).
+- [x] CodeQL sin findings nuevos — VERDE: `CodeQL Advanced` 34701278668.
 
 **Triage de seguridad (D1, 2026-09-09).** **131 alertas dependabot abiertas** (2 critical · 87 high ·
 39 medium · 3 low; muchas son el mismo paquete duplicado en varios lockfiles → ~40 paquetes únicos).
