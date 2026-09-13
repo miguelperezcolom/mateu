@@ -156,6 +156,25 @@ class CapabilityListingSyncTest {
     }
   }
 
+  public record BookFilters(String title) {}
+
+  @UI("/smart-books")
+  public static class SmartBooks
+      implements Listing<Book>,
+          Searchable,
+          io.mateu.uidl.interfaces.Filterable<BookFilters>,
+          Navigable<Book, String> {
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      return all();
+    }
+
+    @Override
+    public Book view(String id, HttpRequest httpRequest) {
+      return BOOKS.stream().filter(book -> book.id().equals(id)).findFirst().orElseThrow();
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
@@ -168,7 +187,8 @@ class CapabilityListingSyncTest {
             EditableBooks.class,
             CreatableBooks.class,
             DeletableBooks.class,
-            BulkBooks.class);
+            BulkBooks.class,
+            SmartBooks.class);
   }
 
   @AfterAll
@@ -272,6 +292,21 @@ class CapabilityListingSyncTest {
                 .componentState(Map.of())
                 .build());
     assertThat(String.valueOf(detail)).contains("El Quijote");
+  }
+
+  // ── Searchable + Filterable + Navigable together ──────────────────────────
+
+  @Test
+  void aNavigableListingStillDeclaresItsSearchBoxAndFilters() {
+    // Promoting a listing to the CRUD mediator (because it is Navigable) must NOT drop the search
+    // box or the filter bar it also declares. Both travel from the same CapabilityCrud, whatever
+    // interaction capabilities are added alongside them.
+    var crudl = listingOf(load(SmartBooks.class, "/smart-books"));
+    assertThat(crudl.searchable()).isTrue();
+    assertThat(crudl.filters()).isNotEmpty();
+    assertThat(crudl.filters().stream().map(io.mateu.dtos.FormFieldDto::fieldId)).contains("title");
+    // and the interaction capability is still there
+    assertThat(firstColumnActionId(crudl)).isEqualTo("view");
   }
 
   // ── + Editable (sin Navigable) ────────────────────────────────────────────
