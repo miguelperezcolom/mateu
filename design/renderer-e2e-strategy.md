@@ -40,17 +40,28 @@ any renderer in CI (the producer×renderer cell is untested — see `conformance
 
 ## The plan (phased, honest about effort)
 
-**Phase 0 — foundation (prerequisite for everything).** Rewrite the shared specs to
-renderer-agnostic selectors: `getByRole`/`getByLabel`/`getByText` + a small set of stable
-`data-mateu-*` hooks emitted by every renderer (page title, menu item, field by fieldId, grid row,
-action button). One spec then expresses one behaviour independent of the design system. This is the
-lever that makes multi-renderer e2e affordable instead of N×. Prove each rewritten spec still green
-on Vaadin.
+**Phase 0 — foundation (prerequisite for everything). ✅ DONE (2026-09-13).** A renderer-agnostic
+smoke suite exists at `e2e/tests/renderer/smoke.spec.ts` and runs as the `renderer-vaadin` Playwright
+project (baseURL :8080 = mvc-app1). Five behaviours, all by SEMANTIC selectors (`getByRole` /
+accessible name / visible text / page title), no `vaadin-*` tags: a page renders with its title +
+content, routing resolves incl. SPA sub-routes, the app menu is navigable, form fields render
+(including a **checkbox** for a boolean — the exact bool/boolean hole the corpus surfaced), and a
+listing shows its rows. **5/5 green on Vaadin.** The same file is pointed at another renderer by
+adding a project with a different baseURL — that is the whole point of the agnostic selectors.
+- Two real findings while writing it: (a) standalone `@UI` pages (not under an `@App` shell) expose
+  **no `main` landmark** (only app-shell pages do) — a small a11y gap worth closing; (b) the Vaadin
+  listing exposes `role=treegrid` (not `grid`/`table`) — the agnostic selector accepts all three.
 
-**Phase 1 — second web renderer (VB/Redwood).** Add a Playwright project pointing at a served VB
-build of the SUT; run the agnostic specs. Surfaces the real VB functional gaps (the corpus already
-shows the wire differs; this shows whether the VB renderer *handles* it). Gated by the grunt build
-being reproducible in CI.
+**Phase 1 — second web renderer (VB/Redwood). ⚠️ HARNESS BUILT, RENDER ENV-GATED (2026-09-13).**
+Recipe that works: `cp e2e/sut/apps/mvc-app1 → mvc-app-vb`, swap the frontend dependency
+`io.mateu:vaadin-lit` → `io.mateu:redwood` in its pom, set a free port. It **builds, boots, and serves
+the VB shell**, and the browser **reaches Oracle's JET CDN** (`static.oracle.com/cdn/jet/…`, 4
+requests, 0 failed). BUT the VB visual-runtime **does not paint the screen headless**: after 6 s the
+`<mateu-ui>` transport has 0 children, the body is empty, and there are **0 ARIA roles** in the whole
+document. So the agnostic specs all fail — not because VB lacks the features, but because VB does not
+render at all in headless chromium here. **VB e2e is therefore gated on making the VB/JET bootstrap
+complete headless** (timing, the visual-runtime's AMD/JET init, possibly a `vb-serve`-style dev host
+rather than the static `_index.html` markers), not on the specs. That work is Phase 1 proper.
 
 **Phase 2 — React Native (expo-web).** Add a Playwright project against expo-web of the RN app pointed
 at the SUT; run the agnostic specs that apply (forms, routing, menus, CRUD). Native-only surfaces
@@ -79,10 +90,19 @@ renderer (or a port) fails on its own when it regresses.
 - The cheapest first real win is **Phase 0 + Phase 1** (agnostic specs + VB), because both are web and
   Playwright-drivable. Recommend starting there, with the maintainer choosing renderer priority.
 
+## Progress (2026-09-13)
+
+- **Phase 0 done and green** — the renderer-agnostic smoke suite exists and passes on Vaadin (5/5),
+  wired as the `renderer-vaadin` CI project. This is the reusable lever for every other renderer.
+- **Phase 1 attempted, render env-gated** — the VB SUT harness works (builds/boots/serves/reaches the
+  Oracle CDN) but the VB visual-runtime does not render headless, so VB functional e2e is blocked on
+  the bootstrap, not the specs (concrete evidence above, upgrading the earlier "env-fragile" guess).
+- **Phases 2–4 not started** — RN (expo-web), IntelliJ (renderProbe, SDK env-gated), and the
+  producer×renderer cell remain, per the plan.
+
 ## What was NOT done (and why)
 
-Not started tonight: the actual harnesses. Building three env-fragile serving paths (grunt, expo,
-IntelliJ SDK) unattended overnight would most likely yield a half-working matrix that *reads* like
-coverage without being it — the exact dishonesty this GA effort exists to prevent. The producer-axis
-conformance work (25-case corpus, essentials diagnosis, the bool/boolean matrix fix) was completed and
-committed instead; this document scopes the renderer axis for a maintainer-directed next session.
+The three native/second-renderer serving paths (VB headless bootstrap, expo, IntelliJ SDK) are
+env-gated and would, if forced unattended overnight, yield a half-working matrix that *reads* like
+coverage without being it — the exact dishonesty this GA effort exists to prevent. Phase 0 (the
+agnostic foundation) is done and verified; the rest is scoped here for a maintainer-directed session.
