@@ -27,6 +27,16 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             declared.Length == 0 || (held is not null && declared.Any(held.Contains));
     }
 
+    /// <summary>[Compact] high-density style — the exact CSS-var payload Java's StyleConstants.COMPACT
+    /// carries (tighter form/card spacing + Lumo sizes), ending with the --mateu-compact:1 marker.</summary>
+    private const string CompactStyle =
+        ";--vaadin-form-layout-row-spacing:0.2rem;--vaadin-form-layout-label-spacing:0.05rem;"
+        + "--vaadin-card-padding:0.2rem 0.7rem;--vaadin-card-gap:0.15rem;--lumo-size-xl:2.2rem;"
+        + "--lumo-size-l:1.8rem;--lumo-size-m:1.35rem;--lumo-size-s:1.2rem;--lumo-size-xs:1.05rem;"
+        + "--lumo-space-xl:0.9rem;--lumo-space-l:0.45rem;--lumo-space-m:0.3rem;--lumo-space-s:0.18rem;"
+        + "--lumo-space-xs:0.1rem;--lumo-line-height-m:1.15;--mateu-label-font-size:var(--lumo-font-size-xs);"
+        + "--mateu-label-padding-bottom:1px;--mateu-label-line-height:1.1;--mateu-compact:1;";
+
     /// <summary>The audience projection active for the request being handled (the appState value
     /// under "audience", i.e. the [AppContext] selector named audience); null → no projection.
     /// AsyncLocal because the mapper is shared by the singleton SyncHandler across requests.</summary>
@@ -49,6 +59,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
         // [Timestamp] properties render as the header "last updated" text, never as form fields.
         && member.Find<Mateu.Uidl.TimestampAttribute>() == null
+        // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
+        && member.Find<KpiAttribute>() == null
         // [Aside] properties render in the ContentLayout aside slot, not the form body.
         && member.Find<Mateu.Uidl.AsideAttribute>() == null;
 
@@ -317,12 +329,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .ToList();
         var buttons = buttonMethods.Select(MapButton).ToList();
         var fabs = Fabs(type);
-        // Both [Button] and [Fab] methods are server-side actions the renderer can invoke; a
-        // [RestAction] button carries the client-side REST descriptor on its action.
+        // [Button] methods are server-side actions the renderer can invoke; a [RestAction] button
+        // carries the client-side REST descriptor on its action. A [Fab]'s action is NOT advertised
+        // in the component actions list — it travels only on the page metadata's fabs (Java parity:
+        // the fab golden carries no component.actions).
         var actions = buttonMethods.Select(m =>
                 WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
                     type, Naming.CamelCase(m.Name)))
-            .Concat(fabs.Select(f => WithActionOptions(new ActionDto(f.ActionId), type, f.ActionId))).ToList();
+            .ToList();
         // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
         actions.AddRange(EditableProperties(type)
             .Select(p => p.Find<OnRowSelectedAttribute>())
@@ -371,8 +385,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 null, true), "welcome-banner", []));
 
         var compact = type.Find<CompactAttribute>() != null;
+        // pageTitle is the humanized class name; title is the declared [Title] (falling back to the
+        // same). Java derives pageTitle from the class, so a class whose [Title] differs from its
+        // name emits two distinct header strings (mirrors ReflectionPageMapper).
         var pageMeta = new PageMetadataDto(
-            title, title, OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
+            title, T(Naming.Humanize(type.Name)),
+            OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
         {
             Toc = type.Find<TocAttribute>()?.Value,
             PageWidth = PageWidthOf(type, instance),
@@ -387,7 +405,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
         };
         var page = new ClientSideComponentDto(
-            pageMeta, null, content, compact ? "--mateu-compact:1" : null, null, null);
+            pageMeta, null, content, compact ? CompactStyle : null, null, null);
 
         var (triggers, emits) = EventsOf(type);
         var initialData = new Dictionary<string, object?>();
@@ -415,6 +433,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 }];
             }
         }
+        else if (tree is null)
+        {
+            // A plain reflected form: its fields' values ARE the view's state. Seed them into
+            // initialData (and, via FragmentResponse, the fragment state) so they round-trip through
+            // componentState — Java emits both, identical, instead of a per-field initialValue
+            // (mirrors ReflectionUiIncrementMapper). Header-hoisted fields ([Kpi]/[Timestamp]) still
+            // carry state, so they are seeded too even though they leave the form body. The
+            // conformance normaliser drops default values (false / 0 / "" / empty), so an untouched
+            // field simply does not appear.
+            foreach (var kv in InitialDataOf(type, instance)) initialData[kv.Key] = kv.Value;
+        }
         // [RestData]: fetch the screen's initial data client-side on load — a synthetic __restdata__
         // action carrying the REST descriptor plus an OnLoad trigger that fires it (reuses the
         // [RestAction] fetch+merge path; silent load, so no success message).
@@ -435,10 +464,36 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             EmitsName = emits,
             ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,
             Rules = MapRules(type, instance),
+            Validations = MapValidations(type),
             PageWidth = PageWidthOf(type, instance),
             PageType = PageTypeOf(type),
             StaticView = type.Find<StaticViewAttribute>() != null,
         };
+    }
+
+    /// <summary>Client-side field validations from the bean-validation constraints (mirrors Java's
+    /// ConstraintValidationMapper): [Required] → the field must be truthy ("Cannot be empty");
+    /// [Range(min,max)] → two bounds ("Must be at least/at most N"). Emitted in field-declaration
+    /// order.</summary>
+    private static List<ValidationDto> MapValidations(Type type)
+    {
+        var validations = new List<ValidationDto>();
+        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
+        {
+            var fieldId = Naming.CamelCase(p.Name);
+            if (p.GetCustomAttributes(inherit: true)
+                    .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute))
+                validations.Add(new ValidationDto($"state['{fieldId}']", fieldId, "Cannot be empty"));
+            if (p.GetCustomAttributes(inherit: true)
+                    .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range)
+            {
+                validations.Add(new ValidationDto(
+                    $"state['{fieldId}'] >= {range.Minimum}", fieldId, $"Must be at least {range.Minimum}"));
+                validations.Add(new ValidationDto(
+                    $"state['{fieldId}'] <= {range.Maximum}", fieldId, $"Must be at most {range.Maximum}"));
+            }
+        }
+        return validations;
     }
 
     /// <summary>Client-side rules of a view (mirrors Java's RuleMapper.createRules): [Disabled]
@@ -584,9 +639,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         };
         var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
             FormCards(element, entity, readOnly: mode == "view"));
+        // The entity's field values ARE the form state: seed them into initialData (and, via
+        // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values
+        // no longer ride as per-field initialValue (Java parity).
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), crudType.FullName!, route, [page],
-            new Dictionary<string, object?>(), [], [], null, null, null)
+            InitialDataOf(element, entity), [], [], null, null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
@@ -602,8 +660,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
         var props = EditableProperties(type).Where(Visible).ToList();
+        // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
+        // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
         if (props.Any(p => p.Find<TabAttribute>() != null))
-            return [TabLayout(type, props, instance, readOnly)];
+            return [SectionCardOfBody((ClientSideComponentDto)TabLayout(type, props, instance, readOnly))];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
         var sectionZones = new List<string>();
@@ -643,8 +703,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (type.Find<FoldedLayoutAttribute>() != null && sections.Count > 1)
             return [new ClientSideComponentDto(
                 new HorizontalLayoutMetadataDto { Spacing = true }, null,
-                sections.Select(s => (ComponentDto)SectionCard(
-                    s.Title, MapFields(s.Props, instance, readOnly), formType: type, props: s.Props)).ToList(),
+                sections.Select((s, i) => (ComponentDto)SectionCard(
+                    s.Title, MapFields(s.Props, instance, readOnly),
+                    sectionAttrs[i], type, s.Props, titled: true)).ToList(),
                 null, null, null)];
 
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
@@ -656,9 +717,16 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             && LayoutInference.BuildFoldPlan(type, sections[0].Title, sections[0].Props, readOnly) is { } plan)
             return [FoldedCard(type, plan, instance)];
 
-        return sections.Select((s, i) => (ComponentDto)SectionCard(
+        // Several stacked sections carry their titles (each an <h3> inside its Card) and sit in a
+        // full-width VerticalLayout; a single section is untitled (Java parity).
+        var titled = sections.Count > 1;
+        var cards = sections.Select((s, i) => (ComponentDto)SectionCard(
             s.Title, MapFields(s.Props, instance, readOnly),
-            sectionAttrs[i], type, s.Props)).ToList();
+            sectionAttrs[i], type, s.Props, titled)).ToList();
+        if (titled)
+            return [new ClientSideComponentDto(
+                new VerticalLayoutMetadataDto { Spacing = true }, null, cards, "width: 100%;", null, null)];
+        return cards;
     }
 
     /// <summary>Distributes sections into the [Zone] columns and lays them out side by side —
@@ -677,7 +745,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         ComponentDto CardOf(int i) =>
             SectionCard(sections[i].Title,
                 MapFields(sections[i].Props, instance, readOnly),
-                sectionAttrs[i], type, sections[i].Props);
+                sectionAttrs[i], type, sections[i].Props, titled: true);
 
         // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
         // line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
@@ -725,11 +793,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             tabs[^1].props.Add(p);
             tabs[^1].fields.Add(MapField(p, instance, readOnly));
         }
-        // The tab selected on first render is the first one flagged Open, else the first tab.
-        var activeIndex = Math.Max(0, tabs.FindIndex(tb => tb.open));
+        // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
+        // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
         var columns = FormColumns(type);
         var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
-            new TabMetadataDto(T(tb.name)) { Active = i == activeIndex }, null,
+            new TabMetadataDto(T(tb.name)) { Active = tb.open }, null,
             [Client(new FormLayoutMetadataDto
             {
                 MaxColumns = columns,
@@ -740,7 +808,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GroupRelationship = "alternative",
             Adaptable = LayoutInference.Enabled(type),
         };
-        return Client(meta, "_tabs", tabComps);
+        return Client(meta, "_tabs", tabComps) with { Style = "width: 100%;" };
     }
 
     /// <summary>The sections-to-tabs inference presentation: one tab per section, labeled with the
@@ -788,12 +856,19 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return Client(new CardMetadataDto(div), "fieldId", []);
     }
 
-    /// <summary>KPI cards from [Kpi] methods (the title is the attribute, the value is the call result).</summary>
-    private static List<KpiDto> Kpis(Type type, object instance) =>
-        type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+    /// <summary>KPI cards for the page header (mirrors Java's PageMetadataExtractor.getKpis): from
+    /// [Kpi] methods (the title is the attribute, the value is the call result) AND from [Kpi]
+    /// properties (the property value is the text; the property is hoisted out of the form body).</summary>
+    private static List<KpiDto> Kpis(Type type, object instance)
+    {
+        var fromFields = EditableProperties(type)
+            .Where(p => p.Find<KpiAttribute>() != null)
+            .Select(p => new KpiDto(p.Find<KpiAttribute>()!.Title, p.GetValue(instance)?.ToString() ?? ""));
+        var fromMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Find<KpiAttribute>() != null && m.GetParameters().Length == 0)
-            .Select(m => new KpiDto(m.Find<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""))
-            .ToList();
+            .Select(m => new KpiDto(m.Find<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""));
+        return fromFields.Concat(fromMethods).ToList();
+    }
 
     /// <summary>Floating action buttons from [Fab] methods (the method name is the action id).</summary>
     private static List<FabDto> Fabs(Type type) =>
@@ -802,7 +877,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .Select(m =>
             {
                 var a = m.Find<FabAttribute>()!;
-                return new FabDto(a.Icon, Naming.CamelCase(m.Name)) { Label = a.Label, Order = a.Order };
+                return new FabDto(a.Icon, Naming.CamelCase(m.Name))
+                {
+                    Label = a.Label, Order = a.Order, ButtonStyle = "primary",
+                };
             })
             .OrderBy(f => f.Order)
             .ToList();
@@ -813,7 +891,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
     private ClientSideComponentDto SectionCard(
         string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null,
-        Type? formType = null, IReadOnlyList<PropertyInfo>? props = null)
+        Type? formType = null, IReadOnlyList<PropertyInfo>? props = null, bool titled = false)
     {
         var columns = FormColumns(formType);
         // [Section(PropertyList = true)]: every data field becomes a read-only property row
@@ -829,6 +907,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             {
                 MaxColumns = columns,
                 LabelsAside = LabelsAsideInference.LabelsAside(props ?? [], columns, formType, T),
+                // [Compact] tightens the responsive minimum column width so more columns fit
+                // (mirrors Java's PageFormBuilder compact columnWidth).
+                ColumnWidth = formType?.Find<CompactAttribute>() != null ? "7em" : null,
             }, null, FormRows(fields, columns));
         // [Section(Frameless = true)]: no card wrapper, no padding — the content sits bare
         // (mirrors Java's @Section(frameless=true)).
@@ -837,11 +918,46 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             {
                 Style = "flex: 1; min-width: 0; width:100%;",
             };
-        if (title is not null)
-            return Client(new FormSectionMetadataDto(title), null, [body]);
-        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [body]);
-        var div = Client(new DivMetadataDto(), "fieldId", [vlayout]);
-        return Client(new CardMetadataDto(div), "fieldId", []);
+        // A titled section (one of several stacked or zoned sections) carries its title as an <h3>
+        // Text inside the Card, and the Card takes the flex style (mirrors Java's SectionFormRenderer
+        // when the section has a heading).
+        if (titled && !string.IsNullOrWhiteSpace(title))
+        {
+            var heading = Client(new TextMetadataDto(T(title!)) { Container = "h3" }, null, []) with
+            {
+                Style = " flex: 1; margin: 0;",
+            };
+            var inner = Client(new VerticalLayoutMetadataDto(), null, [body]) with
+            {
+                Style = "width: 100%;",
+            };
+            var content = Client(new VerticalLayoutMetadataDto(), null, [heading, inner]);
+            return Client(new CardMetadataDto(content), null, []) with
+            {
+                CssClasses = "mateu-section",
+                Style = "flex: 1; min-width: 0; width:100%;",
+            };
+        }
+        // A single untitled section maps to an outlined Card carrying the "mateu-section" marker
+        // class; its body nests under metadata.content as Div → VerticalLayout → body (mirrors Java's
+        // SectionFormRenderer / CardMapper). The section TITLE does not travel as a FormSection — the
+        // golden simple sections carry no title member on the Card.
+        return SectionCardOfBody(body);
+    }
+
+    /// <summary>Wraps an arbitrary body component in an untitled mateu-section Card
+    /// (Card → Div → VerticalLayout → body) — the shape a plain form section AND a tabbed form use.</summary>
+    private static ClientSideComponentDto SectionCardOfBody(ClientSideComponentDto body)
+    {
+        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [body]) with
+        {
+            Style = "width: 100%;",
+        };
+        var div = Client(new DivMetadataDto(), null, [vlayout]) with
+        {
+            Style = "flex: 1; min-width: 0; width:100%;",
+        };
+        return Client(new CardMetadataDto(div), null, []) with { CssClasses = "mateu-section" };
     }
 
     /// <summary>If <paramref name="type"/> derives from Crud&lt;T&gt;, returns T; else null.</summary>
@@ -1144,9 +1260,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var title = T(listingType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(formType.Name));
         var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
             FormCards(formType, entity, readOnly));
+        // The entity's field values ride in initialData / the fragment state (Java parity), so a
+        // detail/edit/create form arrives prefilled.
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), listingType.FullName!, route, [page],
-            new Dictionary<string, object?>(), [], [], null, null, null)
+            InitialDataOf(formType, entity), [], [], null, null, null)
         {
             Rules = MapRules(formType, entity),
             PageType = PageTypeOf(listingType),
@@ -1427,10 +1545,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                       && supplier.Options(fieldId) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
             : t.IsEnum
-                ? Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
+                // value AND label are the constant name (Java's OptionsBuilder uses the enum
+                // constant name for both, not a humanized label).
+                ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
                 : new List<OptionDto>();
-        var value = p.GetValue(instance);
-
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
         var plainText = p.Find<PlainTextAttribute>() != null
                         || p.DeclaringType?.Find<PlainTextAttribute>() != null;
@@ -1441,15 +1559,20 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var readOnlyByPermission =
             !Authorized(p.Find<ReadOnlyUnlessAttribute>())
             || (p.DeclaringType is { } owner && !Authorized(owner.Find<ReadOnlyUnlessAttribute>()));
-        var meta = new FormFieldMetadataDto(fieldId, InferDataType(t, p), label)
+        var meta = new FormFieldMetadataDto(fieldId, InferDataType(t, p, plainText), label)
         {
             Stereotype = stereotype,
             Required = required,
-            ReadOnly = readOnly || plainText || readOnlyByPermission,
+            // A plain-text field carries the "plainText" stereotype, not a readOnly flag — Java does
+            // not set readOnly on it (the money-field golden's plainText total has no readOnly).
+            ReadOnly = readOnly || readOnlyByPermission,
             Multiline = multiline,
             Options = options,
             TreeLeavesOnly = p.Find<TreeSelectAttribute>()?.LeavesOnly ?? false,
-            InitialValue = FormatValue(value),
+            // An integer field shows the +/- step buttons; a textarea spans both columns (Java
+            // parity). initialValue is NOT emitted per field — the values ride in initialData/state.
+            StepButtonsVisible = t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long),
+            Colspan = stereotype == "textarea" ? 2 : 1,
             Link = LinkOf(p, instance),
             // [Lookup]: the combo box loads its options remotely through the field's
             // search-<fieldId> action (answered from the view's IOptionsSupplier).
@@ -1633,6 +1756,39 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         _ => value.ToString(),
     };
 
+    /// <summary>A form's field values as the initialData/state map (fieldId → value): a grid property
+    /// travels as its list of row dicts, everything else as its typed value. Java emits these on the
+    /// component's initialData and the fragment state, instead of a per-field initialValue.</summary>
+    private Dictionary<string, object?> InitialDataOf(Type type, object instance)
+    {
+        var data = new Dictionary<string, object?>();
+        foreach (var p in EditableProperties(type))
+        {
+            // Fields hidden from the caller ([EyesOnly] / [Audience] projection) must not leak their
+            // value into the state either. Header-hoisted fields ([Kpi]/[Timestamp]) DO carry state.
+            if (!Authorized(p.Find<EyesOnlyAttribute>()) || !ForCurrentAudience(p)
+                || p.Find<Mateu.Uidl.AsideAttribute>() != null)
+                continue;
+            data[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
+                ? GridRows(p, rowType, instance)
+                : InitialValueOf(p.GetValue(instance));
+        }
+        return data;
+    }
+
+    /// <summary>The value as it rides in initialData/state: native JSON types are preserved (a bool
+    /// stays a bool, an int stays an int) so the wire matches Java; dates serialize ISO and enums as
+    /// their constant name; a list (grid rows, [BulletedList]) travels as-is. Java emits the typed
+    /// value here, NOT a stringified one.</summary>
+    private static object? InitialValueOf(object? value) => value switch
+    {
+        null => null,
+        DateOnly d => d.ToString("yyyy-MM-dd"),
+        DateTime dt => dt.ToString("yyyy-MM-dd"),
+        Enum e => e.ToString(),
+        _ => value,
+    };
+
     /// <summary>
     /// Copies the method's [ActionOptions] onto the action heading to the client. The action id is
     /// the camel-cased method name, so the declaring method is found by matching that back.
@@ -1685,6 +1841,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     {
         var rows = new List<ComponentDto>();
         var pending = new List<ComponentDto>();
+        var used = 0; // columns consumed by the pending row (fields carry a colspan)
         foreach (var field in fields)
         {
             // A separator always takes a full row of its own (its data-colspan spans the columns).
@@ -1694,15 +1851,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 {
                     rows.Add(Client(new FormRowMetadataDto(), null, pending));
                     pending = new List<ComponentDto>();
+                    used = 0;
                 }
                 rows.Add(Client(new FormRowMetadataDto(), null, [field]));
                 continue;
             }
-            pending.Add(field);
-            if (pending.Count == maxColumns)
+            var span = field.Metadata is FormFieldMetadataDto ff ? Math.Max(1, ff.Colspan) : 1;
+            // A field that would overflow the row's remaining columns starts a new row (a colspan=2
+            // field — e.g. a textarea — thus always lands on its own row). Mirrors Java's
+            // FormLayoutBuilder.buildRows.
+            if (pending.Count > 0 && used + span > maxColumns)
             {
                 rows.Add(Client(new FormRowMetadataDto(), null, pending));
                 pending = new List<ComponentDto>();
+                used = 0;
+            }
+            pending.Add(field);
+            used += span;
+            if (used >= maxColumns)
+            {
+                rows.Add(Client(new FormRowMetadataDto(), null, pending));
+                pending = new List<ComponentDto>();
+                used = 0;
             }
         }
         if (pending.Count > 0)
@@ -1713,13 +1883,19 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
 
-    private static string InferDataType(Type t, PropertyInfo? p = null) => t switch
+    private static string InferDataType(Type t, PropertyInfo? p = null, bool plainText = false)
     {
-        _ when t.IsEnum => "string",
-        _ when t == typeof(bool) => "boolean",
-        _ when t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long) => "integer",
-        _ when t == typeof(float) || t == typeof(double) || t == typeof(decimal) => "number",
-        _ when t == typeof(DateOnly) || t == typeof(DateTime) => "date",
-        _ => "string",
-    };
+        // A list-of-values field (e.g. [BulletedList]) is an array on the wire (Java parity).
+        if (t.IsGenericType && typeof(System.Collections.IEnumerable).IsAssignableFrom(t) && t != typeof(string))
+            return "array";
+        if (t.IsEnum) return "string";
+        if (t == typeof(bool)) return "bool";
+        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)) return "integer";
+        if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
+            // A money field in a plain-text context upgrades its dataType to "money" so the renderer
+            // formats it as currency (Java's FieldTypeMapper money branch).
+            return p?.Find<MoneyAttribute>() != null && plainText ? "money" : "number";
+        if (t == typeof(DateOnly) || t == typeof(DateTime)) return "date";
+        return "string";
+    }
 }

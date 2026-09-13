@@ -77,8 +77,9 @@ def test_next_calendar_month_re_fetches_showing_only_the_new_months_event():
                     serverSideType=f"{__name__}.TeamCalendar", initiatorComponentId="ux_main")
     )
     j = render(inc)
-    # the grid's month AND the seeded componentState both move (the state round-trips)
-    assert j.count('"month":"2026-03-01"') == 2
+    # the new month appears in the grid AND in BOTH state channels (the component initialData and
+    # the fragment state now carry the view's state, Java parity) — grid + initialData + state = 3.
+    assert j.count('"month":"2026-03-01"') == 3
     assert "Kickoff" in j
     assert "Releasev3" not in j
     assert "Boardmeeting" not in j

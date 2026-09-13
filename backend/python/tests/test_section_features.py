@@ -164,10 +164,19 @@ def test_property_list_section_marks_its_fields_as_read_only_property_rows():
 # ── Frameless sections ──────────────────────────────────────────────────────────
 def test_frameless_section_emits_no_section_card_while_the_others_keep_theirs():
     tree = component_tree(FramelessForm)
-    titles = [c["metadata"]["title"] for c in all_metadata(tree, "FormSection")]
+    # A @Section now maps to an outlined Card carrying its title as an <h3> Text (not a FormSection);
+    # the frameless section emits no Card, so only "Datos" is a titled section card.
+    titles = [
+        c["metadata"]["text"]
+        for c in all_metadata(tree, "Text")
+        if c["metadata"].get("container") == "h3"
+    ]
     assert titles == ["Datos"]
-    # the frameless section's field still travels
-    assert field(tree, "aviso")["initialValue"] == "sin marco"
+    assert len(all_metadata(tree, "Card")) == 1
+    # the frameless section's field still travels — its value rides in the component initialData
+    # (Java parity: reflected fields carry no per-field initialValue).
+    assert field(tree, "aviso") is not None
+    assert tree["initialData"]["aviso"] == "sin marco"
 
 
 # ── Bulleted lists ──────────────────────────────────────────────────────────────

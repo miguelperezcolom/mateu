@@ -1539,7 +1539,15 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto FragmentResponse(string title, ComponentDto component, RunActionRqDto rq, object? data = null) =>
         UIIncrementDto.Of(
             commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), null, data, "Replace", null)]);
+            // The fragment's state mirrors the component's initialData (a view's seeded field values):
+            // Java emits both, identical (mirrors ReflectionUiIncrementMapper). A grid/list value and
+            // a scalar all ride here, so the client round-trips them through componentState.
+            fragments: [new UIFragmentDto(Target(rq), StampOrStripStructure(component, rq), StateOf(component), data, "Replace", null)]);
+
+    private static object? StateOf(ComponentDto component) =>
+        component is ServerSideComponentDto { InitialData: IReadOnlyDictionary<string, object?> data and { Count: > 0 } }
+            ? data
+            : null;
 
     /// <summary>Decorates a resolved route's increment with the route entry's APP-SCOPE seeds. State
     /// and params were already folded into componentState (RouteMatch.Params). Here:

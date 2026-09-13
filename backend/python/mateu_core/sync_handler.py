@@ -1825,10 +1825,16 @@ class SyncHandler:
 
     def fragment_response(self, title: str, component, rq: RunActionRq | None = None, data=None) -> UIIncrement:
         t = self.target(rq)
+        # The field values ride BOTH in the component's initialData and in the fragment state (Java
+        # parity): the renderer seeds its state from the fragment, the initialData survives a
+        # structure-cache hit that strips the component. Read it BEFORE stamping (which may drop it).
+        state = None
+        if isinstance(component, ServerSideComponent) and component.initial_data:
+            state = dict(component.initial_data)
         component = self._stamp_or_strip_structure(component, rq)
         return UIIncrement.of(
             commands=[UICommand(target_component_id=t, type="SetWindowTitle", data=title)],
-            fragments=[UIFragment(target_component_id=t, component=component, data=data, action="Replace")],
+            fragments=[UIFragment(target_component_id=t, component=component, state=state, data=data, action="Replace")],
         )
 
     @staticmethod

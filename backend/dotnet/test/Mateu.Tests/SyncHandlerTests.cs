@@ -881,8 +881,9 @@ public class SyncHandlerTests
         var inc = Handler().Handle(new RunActionRqDto { Route = "seeded", ConsumedRoute = "seeded" });
         var json = Render(inc);
 
-        // State seeded into componentState → the field arrives prefilled.
-        Assert.Contains("\"initialValue\":\"seeded\"", json);
+        // State seeded into componentState → the field arrives prefilled. The value now rides in
+        // the component's initialData / the fragment state (Java parity), not a per-field initialValue.
+        Assert.Contains("\"status\":\"seeded\"", json);
         // AppState merged UNDER the client's app state and emitted on the increment.
         Assert.Contains("\"appState\":{\"hotel\":\"berlin\"}", json);
         // Data → the __restdata__ client-side load path (action + OnLoad trigger), ref-only source.
@@ -2187,7 +2188,9 @@ public class SyncHandlerTests
 
         Assert.Contains("\"actionId\":\"cancel-view\"", json);
         Assert.Contains("\"actionId\":\"edit\"", json);
-        Assert.Contains("\"initialValue\":\"Alpha\"", json); // prefilled from Get("1")
+        // The entity value rides in the component initialData / fragment state (Java parity), not a
+        // per-field initialValue.
+        Assert.Contains("\"Alpha\"", json); // prefilled from Get("1")
         Assert.Contains("\"readOnly\":true", json);
     }
 
@@ -2292,9 +2295,9 @@ public class SyncHandlerTests
         Assert.Contains("\"stereotype\":\"money\"", json);
         Assert.Contains("\"stereotype\":\"plainText\"", json);
 
-        // KPIs and FABs.
+        // KPIs and FABs. (The KPI value rides under "text" with a "KPIDto" discriminator, Java parity.)
         Assert.Contains("\"title\":\"Tickets\"", json);
-        Assert.Contains("\"value\":\"42\"", json);
+        Assert.Contains("\"text\":\"42\"", json);
         Assert.Contains("\"icon\":\"plus\"", json);
         Assert.Contains("\"actionId\":\"add\"", json);
 
@@ -2360,7 +2363,7 @@ public class SyncHandlerTests
         Assert.Contains("\"fieldId\":\"total\",\"dataType\":\"number\",\"label\":\"Total\",\"stereotype\":\"numberRange\"", json);
         // strings and bools keep the single-value widget
         Assert.Contains("\"fieldId\":\"guest\",\"dataType\":\"string\",\"label\":\"Guest\",\"stereotype\":\"regular\"", json);
-        Assert.Contains("\"fieldId\":\"paid\",\"dataType\":\"boolean\",\"label\":\"Paid\",\"stereotype\":\"regular\"", json);
+        Assert.Contains("\"fieldId\":\"paid\",\"dataType\":\"bool\",\"label\":\"Paid\",\"stereotype\":\"regular\"", json);
     }
 
     private static UIIncrementDto SearchBookings(Dictionary<string, object?> state)

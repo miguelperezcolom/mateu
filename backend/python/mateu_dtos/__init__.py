@@ -145,6 +145,11 @@ class FormLayoutMetadata(Wire):
     type: Literal["FormLayout"] = "FormLayout"
     max_columns: int = 2
     auto_responsive: bool = True
+    #: Whether fields expand to fill the column width (Java's FormLayoutDto.expandColumns).
+    expand_columns: bool = True
+    #: The minimum responsive column width (Java's FormLayoutDto.columnWidth); "7em" in compact
+    #: mode, None (renderer default) otherwise.
+    column_width: str | None = None
     #: Where the field labels sit: True = a label column aside (left of) each field row instead
     #: of labels on top (mirrors FormLayoutDto.labelsAside). An explicit
     #: ``@form_layout(labels_aside=...)`` wins; otherwise inferred from the form's shape.
@@ -170,6 +175,15 @@ class FormFieldMetadata(Wire):
     required: bool = False
     read_only: bool = False
     colspan: int = 1
+    #: Number of columns the option list lays out in (Java's FormFieldDto.optionsColumns, always 1
+    #: here); emitted so the normalised wire matches the reference.
+    options_columns: int = 1
+    #: Slider stereotype upper bound (Java's FormFieldDto.sliderMax, default 100).
+    slider_max: int = 100
+    #: Whether an integer field shows the +/- step buttons (Java's FormFieldDto.stepButtonsVisible).
+    step_buttons_visible: bool = False
+    #: A per-field initial value. Reflected forms do NOT set this (their values ride in the
+    #: component initialData / fragment state, Java parity); only a fluent FormField may carry one.
     initial_value: Any | None = None
     options: list["Option"] = Field(default_factory=list)
     multiline: bool = False
@@ -290,6 +304,9 @@ class ProgressBarMetadata(Wire):
 class TextMetadata(Wire):
     type: Literal["Text"] = "Text"
     text: str
+    #: The HTML container element the text renders in (e.g. "h3" for a section title, "p" for a
+    #: paragraph); None lets the renderer pick (mirrors TextDto.container).
+    container: str | None = None
     #: Font size: xl | l | m | s | xs. m (or None) applies nothing.
     size: str | None = None
     #: Drops the container's block margins (margin-block-start/end: 0).
@@ -1355,8 +1372,10 @@ class MenuItem(Wire):
 
 
 class Kpi(Wire):
+    # The wire discriminator is "KPIDto" and the value member is "text" (mirrors Java's KPIDto).
+    type: Literal["KPIDto"] = "KPIDto"
     title: str
-    value: str
+    text: str
     icon: str | None = None
     color: str | None = None
 
@@ -1366,6 +1385,8 @@ class Fab(Wire):
     action_id: str
     label: str | None = None
     order: int = 0
+    #: The button emphasis (Java's FabDto.buttonStyle, "primary" for a FAB).
+    button_style: str = "primary"
 
 
 class PeerNav(Wire):
