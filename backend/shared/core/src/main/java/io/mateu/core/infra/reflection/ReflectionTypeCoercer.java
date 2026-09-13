@@ -11,8 +11,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 final class ReflectionTypeCoercer {
 
@@ -80,15 +82,22 @@ final class ReflectionTypeCoercer {
     } else if (Class.class.equals(type)) {
       return forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
-      var list = new ArrayList();
-      ((List<Object>) data)
-          .forEach(
-              item ->
-                  list.add(
-                      item instanceof Map<?, ?> map
-                          ? factory.newInstance(genericType, (Map<String, Object>) map, httpRequest)
-                          : item));
-      return list;
+      // The value may already be a Set (a multi-select filter that FilterStateAssembler hydrated
+      // into
+      // a typed Set) or a List (a JSON array from the wire) — accept either, and never assume List.
+      // And PRODUCE the collection the target field actually declares: a Set<Enum> filter field
+      // must
+      // receive a Set, not an ArrayList, or the record constructor throws.
+      Collection<?> source = data instanceof Collection<?> collection ? collection : List.of(data);
+      Collection<Object> out =
+          Set.class.isAssignableFrom(type) ? new LinkedHashSet<>() : new ArrayList<>();
+      source.forEach(
+          item ->
+              out.add(
+                  item instanceof Map<?, ?> map
+                      ? factory.newInstance(genericType, (Map<String, Object>) map, httpRequest)
+                      : item));
+      return out;
     } else if (data instanceof Map map) {
       if (Amount.class.equals(type)) {
         return new Amount(
