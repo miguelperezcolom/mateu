@@ -63,5 +63,20 @@ export default defineConfig({
       },
       testMatch: '**/federation/**/*.spec.ts',
     },
+    {
+      // Renderer-agnostic smoke suite (Phase 0). Runs against the VAADIN renderer served by
+      // mvc-app1 (:8080). The same specs are meant to be pointed at other renderers by adding a
+      // project with a different baseURL — see design/renderer-e2e-strategy.md.
+      name: 'renderer-vaadin',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8080',
+      },
+      testMatch: '**/renderer/**/*.spec.ts',
+    },
+    // A `renderer-vb` project (baseURL :8090, an mvc-app-vb SUT with the io.mateu:redwood frontend)
+    // is NOT wired here yet: the VB shell serves and reaches Oracle's JET CDN, but its visual-runtime
+    // does not paint the screen headless (0 rendered nodes after 6s). See
+    // design/renderer-e2e-strategy.md (Phase 1) for the recipe + finding.
   ],
 });
