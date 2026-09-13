@@ -189,8 +189,10 @@ public sealed class LinkToAttribute(string href) : Attribute
 }
 
 // ── Page-level features ────────────────────────────────────────────────────────
-/// <summary>A KPI card in the page header. Put on a method returning the value.</summary>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+/// <summary>A KPI card in the page header. Put on a method returning the value, or on a property
+/// whose value becomes the KPI text (the property is then hoisted out of the form body — Java's
+/// field-level @KPI parity).</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = true)]
 public sealed class KpiAttribute(string title) : Attribute
 {
     public string Title { get; } = title;

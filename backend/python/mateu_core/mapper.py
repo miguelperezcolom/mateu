@@ -137,6 +137,7 @@ from mateu_uidl import (
     AppActionsSupplier,
     AppSupplier,
     Aside,
+    kpi as KpiMarker,
     PeerNavigationSupplier,
     Timestamp,
     Audience,
@@ -350,6 +351,19 @@ def crud_element_type(cls) -> type | None:
     return None
 
 
+#: The compact-mode CSS custom-property overrides (mirrors Java's StyleConstants.COMPACT),
+#: applied on the page container; the leading ";" and the "--mateu-compact:1" marker are part of it.
+COMPACT_STYLE = (
+    ";--vaadin-form-layout-row-spacing:0.2rem;--vaadin-form-layout-label-spacing:0.05rem;"
+    "--vaadin-card-padding:0.2rem 0.7rem;--vaadin-card-gap:0.15rem;"
+    "--lumo-size-xl:2.2rem;--lumo-size-l:1.8rem;--lumo-size-m:1.35rem;--lumo-size-s:1.2rem;"
+    "--lumo-size-xs:1.05rem;--lumo-space-xl:0.9rem;--lumo-space-l:0.45rem;--lumo-space-m:0.3rem;"
+    "--lumo-space-s:0.18rem;--lumo-space-xs:0.1rem;--lumo-line-height-m:1.15;"
+    "--mateu-label-font-size:var(--lumo-font-size-xs);--mateu-label-padding-bottom:1px;"
+    "--mateu-label-line-height:1.1;--mateu-compact:1;"
+)
+
+
 def format_value(value) -> Any:
     if value is None:
         return None
@@ -404,9 +418,18 @@ class ReflectionMapper:
         # Timestamp() fields render as the header "last updated" text, never as form fields.
         if f.has(Timestamp):
             return False
+        # kpi() fields are hoisted into the page header (page.metadata.kpis), never form fields.
+        if f.has(KpiMarker):
+            return False
         # Aside() fields render in the ContentLayout aside slot, not the form body.
         if f.has(Aside):
             return False
+        return self._permitted(f)
+
+    def _permitted(self, f) -> bool:
+        """Whether a field is permitted for the current caller/audience — the SECURITY gate only
+        (EyesOnly + Audience). A field that fails this must never reach the wire, not even in
+        initialData/state; the header-hoist exclusions (KPI/Timestamp/Aside) are separate."""
         return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
     def T(self, s: str) -> str:
@@ -690,12 +713,14 @@ class ReflectionMapper:
         buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)
         # A @rest_action button carries the client-side REST descriptor on its action.
+        # FAB actions are NOT advertised in the component's actions list (Java parity — the FAB
+        # carries its own actionId and the renderer dispatches it directly).
         actions = [
             with_action_options(
                 Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
             )
             for (n, f), b in zip(button_methods, buttons)
-        ] + [with_action_options(Action(id=f.action_id), cls, f.action_id) for f in fabs]
+        ]
         # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
         for f in view_fields(cls):
             on_row = f.marker(OnRowSelected)
@@ -723,7 +748,11 @@ class ReflectionMapper:
                 Action(id=a) for a in self.collect_action_ids(tree) if a not in known
             ]
         else:
-            children = self.wrap_aside(cls, instance, self.form_cards(cls, instance))
+            # Compact mode tightens the form: the FormLayout's minimum column width drops to 7em.
+            compact_cw = "7em" if class_flag(cls, "__mateu_compact__", False) else None
+            children = self.wrap_aside(
+                cls, instance, self.form_cards(cls, instance, column_width=compact_cw)
+            )
 
         # @welcome_banner: the Redwood "Welcome Banner" element is a plain HeroSection
         # prepended to the page content (mirrors Java's ReflectionPageMapper).
@@ -746,7 +775,9 @@ class ReflectionMapper:
         page_type = page_type_of(cls)
         page_meta = PageMetadata(
             title=title,
-            page_title=title,
+            # pageTitle is the humanized class name (the derived page identity); title is the
+            # declared @title. They coincide when the class name humanizes to the @title (Java parity).
+            page_title=humanize(cls.__name__),
             subtitle=self._opt_t(class_flag(cls, "__mateu_subtitle__", None)),
             toolbar=[],
             buttons=buttons,
@@ -766,7 +797,7 @@ class ReflectionMapper:
         page = ClientSideComponent(
             metadata=page_meta,
             children=children,
-            style="--mateu-compact:1" if compact else None,
+            style=COMPACT_STYLE if compact else None,
         )
         triggers, emits = self.events_of(cls)
         # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
@@ -798,6 +829,8 @@ class ReflectionMapper:
                         "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
                     }
                 ]
+        else:
+            initial_data = self.form_initial_data(cls, instance)
         # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
         # reserved __restfetch__ action so the renderer can route the fetch through the server (which
         # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
@@ -1715,7 +1748,9 @@ class ReflectionMapper:
             a = getattr(fn, "__mateu_banner__")
             ret = getattr(instance, name)()
             desc = ret if isinstance(ret, str) else None
-            out.append(Banner(theme=a.theme.value, title=a.title, description=desc))
+            # Java's declarative @Banner does not emit hasIcon (the DTO default is True, but the
+            # reference omits it → false to the renderer); match that so the wire is identical.
+            out.append(Banner(theme=a.theme.value, title=a.title, description=desc, has_icon=False))
         return out
 
     def badges(self, cls, instance) -> list[Badge]:
@@ -1733,10 +1768,19 @@ class ReflectionMapper:
 
     def kpis(self, cls, instance) -> list[Kpi]:
         out = []
+        # Method KPIs (@kpi on a method): the method's return value is the KPI text.
         for name, fn in methods_with(cls, "__mateu_kpi__"):
             title = getattr(fn, "__mateu_kpi__")
             value = getattr(instance, name)()
-            out.append(Kpi(title=title, value="" if value is None else str(value)))
+            out.append(Kpi(title=title, text="" if value is None else str(value)))
+        # Field KPIs (kpi() as a field marker): the field's value is the KPI text; the field is
+        # hoisted out of the form body (see visible()).
+        for f in view_fields(cls):
+            marker = f.marker(KpiMarker)
+            if marker is None:
+                continue
+            value = getattr(instance, f.name, None)
+            out.append(Kpi(title=marker.title, text="" if value is None else str(value)))
         return out
 
     def peer_nav(self, instance) -> "PeerNav | None":
@@ -2203,7 +2247,8 @@ class ReflectionMapper:
         )
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
-            initial_data={}, actions=[], triggers=[],
+            # The entity's field values ride in initialData / fragment state (Java parity).
+            initial_data=self.form_initial_data(element, entity), actions=[], triggers=[],
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),
@@ -2272,11 +2317,43 @@ class ReflectionMapper:
         )
         return [self.client(meta, "content", children)]
 
-    def form_cards(self, cls, instance, read_only: bool = False) -> list:
+    def form_initial_data(self, cls, instance) -> dict:
+        """The field values of a form view as one ``{fieldId: value}`` map (Java parity: the values
+        ride here and in the fragment state, NOT as a per-field initialValue). Native JSON types are
+        kept (int/bool as-is, Decimal → float, dates ISO, enums by name); a grid field yields a list
+        of row maps. Every declared data field is seeded, including those hoisted out of the body
+        (KPI/Timestamp)."""
+        initial_data: dict = {}
+        for f in view_fields(cls):
+            # A security-hidden field (EyesOnly unauthorized / Audience mismatch) must not reach the
+            # wire at all — not even in state. Header-hoisted fields (KPI/Timestamp) still do.
+            if not self._permitted(f):
+                continue
+            row_type = self.grid_row_type(f)
+            if row_type is not None:
+                initial_data[camel_case(f.name)] = [
+                    {
+                        camel_case(c.name): _row_cell(getattr(item, c.name, None))
+                        for c in view_fields(row_type)
+                    }
+                    for item in (getattr(instance, f.name, None) or [])
+                ]
+                continue
+            value = getattr(instance, f.name, None)
+            if value is None or isinstance(value, (str, int, float, bool, Decimal, date, datetime, Enum)):
+                cell = _row_cell(value)
+                if isinstance(cell, Decimal):
+                    cell = float(cell)
+                initial_data[camel_case(f.name)] = cell
+        return initial_data
+
+    def form_cards(self, cls, instance, read_only: bool = False, column_width: str | None = None) -> list:
         read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
         fields = [f for f in view_fields(cls) if self.visible(f)]
         if any(f.has(Tab) for f in fields):
-            return [self.tab_layout(cls, fields, instance, read_only)]
+            # A tabbed form is wrapped in the same outlined section Card as a plain section (the
+            # TabLayout nests under Div → VerticalLayout → TabLayout).
+            return [self._section_card_wrapper(self.tab_layout(cls, fields, instance, read_only))]
 
         # Group the declared fields into sections (title None = synthetic/unnamed section).
         sections: list[tuple[str | None, list]] = []
@@ -2322,7 +2399,7 @@ class ReflectionMapper:
                 children=[
                     self.section_card(
                         t, self.map_fields(fs, instance, read_only),
-                        labels_aside=aside, max_columns=max_columns,
+                        labels_aside=aside, max_columns=max_columns, titled=True,
                     )
                     for t, fs in sections
                 ],
@@ -2335,13 +2412,24 @@ class ReflectionMapper:
         if plan is not None:
             return [self.folded_card(plan[0], plan[1], instance, read_only)]
 
-        return [
+        # Several stacked sections carry their titles (each an <h3> inside its Card) and sit in a
+        # full-width VerticalLayout; a single section is untitled (Java parity).
+        titled = len(sections) > 1
+        cards = [
             self.section_card(
                 t, self.map_fields(fs, instance, read_only), section_markers[i],
-                labels_aside=aside, max_columns=max_columns,
+                labels_aside=aside, max_columns=max_columns, titled=titled,
+                column_width=column_width,
             )
             for i, (t, fs) in enumerate(sections)
         ]
+        if titled:
+            return [ClientSideComponent(
+                metadata=VerticalLayoutMetadata(spacing=True),
+                children=cards,
+                style="width: 100%;",
+            )]
+        return cards
 
     def tab_layout(self, cls, fields, instance, read_only: bool) -> ClientSideComponent:
         tabs: list[tuple[str, bool, list]] = []
@@ -2355,25 +2443,25 @@ class ReflectionMapper:
                 # pair.first().open() rule); fields before any Tab fall into the default group.
                 tabs.append((current, tb.open if tb is not None else False, []))
             tabs[-1][2].append(self.map_field(f, instance, read_only))
-        # The tab selected on first render is the first one flagged open, else the first tab.
-        active_index = next((i for i, t in enumerate(tabs) if t[1]), 0)
+        # A tab is marked active ONLY when it declares @Tab(open=True); the renderer defaults to
+        # the first tab otherwise, so Java does not emit active on the default-selected tab.
         comps = []
-        for i, (nm, _open, fs) in enumerate(tabs):
+        for i, (nm, is_open, fs) in enumerate(tabs):
             form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fs))
             comps.append(
                 self.client(
-                    TabMetadata(label=self.T(nm), active=i == active_index), None, [form_layout]
+                    TabMetadata(label=self.T(nm), active=bool(is_open)), None, [form_layout]
                 )
             )
         # Developer-declared tabs always carry the group semantics; they are adaptable (renderers
         # may degrade them, e.g. to an accordion) only when the class opted into auto-layout.
-        return self.client(
-            TabLayoutMetadata(
+        return ClientSideComponent(
+            metadata=TabLayoutMetadata(
                 group_relationship="alternative",
                 adaptable=layout_inference.enabled(cls),
             ),
-            None,
-            comps,
+            children=comps,
+            style="width: 100%;",
         )
 
     # ── Layout inference (the @auto_layout decision table, see layout_inference) ─
@@ -2479,6 +2567,7 @@ class ReflectionMapper:
                 title,
                 self.map_fields(fields, instance, read_only),
                 section_markers[i],
+                titled=True,
             )
 
         def column(cards, width: str) -> ClientSideComponent:
@@ -2518,6 +2607,8 @@ class ReflectionMapper:
         section: Section | None = None,
         labels_aside: bool = False,
         max_columns: int = 2,
+        titled: bool = False,
+        column_width: str | None = None,
     ) -> ClientSideComponent:
         # Section(property_list=True): every data field becomes a read-only property row (label
         # left / value right, divider between rows), stacked full-width — so the body is a plain
@@ -2531,7 +2622,9 @@ class ReflectionMapper:
             )
         else:
             body = self.client(
-                FormLayoutMetadata(max_columns=max_columns, labels_aside=labels_aside),
+                FormLayoutMetadata(
+                    max_columns=max_columns, labels_aside=labels_aside, column_width=column_width
+                ),
                 None,
                 self.form_rows(fields, max_columns),
             )
@@ -2543,11 +2636,57 @@ class ReflectionMapper:
                 children=[body],
                 style="flex: 1; min-width: 0; width:100%;",
             )
-        if title is not None:
-            return self.client(FormSectionMetadata(title=title), None, [body])
-        vlayout = self.client(VerticalLayoutMetadata(), None, [body])
-        div = self.client(DivMetadata(), "fieldId", [vlayout])
-        return self.client(CardMetadata(content=div), "fieldId", [])
+        # A titled section (one of several stacked/zoned sections) carries its title as an <h3>
+        # Text inside the Card, and the Card itself takes the flex style.
+        if titled and title:
+            return self._titled_section_card(title, body)
+        return self._section_card_wrapper(body)
+
+    def _titled_section_card(self, title: str, body: ClientSideComponent) -> ClientSideComponent:
+        # Card(mateu-section, flex style) → VerticalLayout → [Text h3 title, VerticalLayout(width
+        # 100%) → <body>] (mirrors Java's SectionFormRenderer when the section has a heading).
+        heading = ClientSideComponent(
+            metadata=TextMetadata(text=self.T(title), container="h3"),
+            style=" flex: 1; margin: 0;",
+        )
+        inner = ClientSideComponent(
+            metadata=VerticalLayoutMetadata(),
+            children=[body],
+            style="width: 100%;",
+        )
+        content = ClientSideComponent(
+            metadata=VerticalLayoutMetadata(),
+            children=[heading, inner],
+        )
+        return ClientSideComponent(
+            metadata=CardMetadata(content=content),
+            children=[],
+            css_classes="mateu-section",
+            style="flex: 1; min-width: 0; width:100%;",
+        )
+
+    @staticmethod
+    def _section_card_wrapper(body: ClientSideComponent) -> ClientSideComponent:
+        # A @Section maps to an outlined Card carrying the "mateu-section" marker class; its body
+        # is nested under metadata.content as Div → VerticalLayout → <body> (mirrors Java's
+        # SectionFormRenderer / CardMapper). The section TITLE does not travel as a FormSection —
+        # it lives on the card in Java; here it is not re-emitted (the golden sections carry no
+        # title member on the Card).
+        vlayout = ClientSideComponent(
+            metadata=VerticalLayoutMetadata(),
+            children=[body],
+            style="width: 100%;",
+        )
+        div = ClientSideComponent(
+            metadata=DivMetadata(),
+            children=[vlayout],
+            style="flex: 1; min-width: 0; width:100%;",
+        )
+        return ClientSideComponent(
+            metadata=CardMetadata(content=div),
+            children=[],
+            css_classes="mateu-section",
+        )
 
     @staticmethod
     def _as_property_row(field: ClientSideComponent) -> ClientSideComponent:
@@ -2576,18 +2715,26 @@ class ReflectionMapper:
     def form_rows(self, fields, max_columns: int = 2) -> list:
         rows = []
         pending = []
+        used = 0  # columns consumed by the pending row (fields carry a colspan)
         for field in fields:
             # A separator always takes a full row of its own (data-colspan spans the columns).
             if isinstance(field.metadata, SeparatorMetadata):
                 if pending:
                     rows.append(self.client(FormRowMetadata(), None, pending))
-                    pending = []
+                    pending, used = [], 0
                 rows.append(self.client(FormRowMetadata(), None, [field]))
                 continue
-            pending.append(field)
-            if len(pending) == max_columns:
+            span = getattr(field.metadata, "colspan", 1) or 1
+            # A field that would overflow the row's remaining columns starts a new row (a colspan=2
+            # field thus always lands on its own row). Mirrors Java's FormLayoutBuilder.buildRows.
+            if pending and used + span > max_columns:
                 rows.append(self.client(FormRowMetadata(), None, pending))
-                pending = []
+                pending, used = [], 0
+            pending.append(field)
+            used += span
+            if used >= max_columns:
+                rows.append(self.client(FormRowMetadata(), None, pending))
+                pending, used = [], 0
         if pending:
             rows.append(self.client(FormRowMetadata(), None, pending))
         return rows
@@ -2634,12 +2781,6 @@ class ReflectionMapper:
                     if editable else None
                 ),
             )))
-        rows = []
-        for item in getattr(instance, f.name, None) or []:
-            rows.append({
-                camel_case(c.name): _row_cell(getattr(item, c.name, None))
-                for c in view_fields(row_type)
-            })
         on_row = f.marker(OnRowSelected)
         meta = FormFieldMetadata(
             field_id=field_id,
@@ -2649,7 +2790,7 @@ class ReflectionMapper:
             read_only=read_only,
             columns=columns,
             item_id_path="_rowNumber",
-            initial_value=rows,
+            # Grid rows ride in the component initialData / fragment state, not as an initialValue.
             on_item_selection_action_id=camel_case(on_row.value) if on_row else None,
             row_selection_shortcut=on_row.shortcut if on_row and on_row.shortcut else None,
         )
@@ -2667,8 +2808,10 @@ class ReflectionMapper:
         # selects); enums keep contributing their constants
         options = self._supplied_options(instance, field_id)
         if not options:
+            # Enum options: value AND label are the member name (Java's OptionsBuilder uses the
+            # constant name for both, not a humanized label).
             options = (
-                [Option(value=m.name, label=humanize(m.name)) for m in t] if is_enum(t) else []
+                [Option(value=m.name, label=m.name) for m in t] if is_enum(t) else []
             )
         value = getattr(instance, f.name, None)
 
@@ -2680,15 +2823,20 @@ class ReflectionMapper:
 
         meta = FormFieldMetadata(
             field_id=field_id,
-            data_type=self.infer_data_type(t, f),
+            data_type=self.infer_data_type(t, f, plain),
             label=label,
             stereotype=stereotype,
             required=required,
-            read_only=read_only or plain,
+            # A plain-text field is read-only by RENDERING (the "plainText" stereotype), so Java
+            # does not also set the readOnly flag — only an explicit read-only context/marker does.
+            read_only=read_only,
             multiline=multiline,
             options=options,
             tree_leaves_only=bool(getattr(f.marker(TreeSelect), "leaves_only", False)) if f.has(TreeSelect) else False,
-            initial_value=format_value(value),
+            # An integer field shows the +/- step buttons; a textarea spans both columns (Java
+            # parity). initialValue is NOT emitted per field — the values ride in initialData/state.
+            step_buttons_visible=(t is int),
+            colspan=2 if stereotype == "textarea" else 1,
             link=self.link_of(f, instance),
             # Lookup(): the combo box loads its options remotely through the field's
             # search-<fieldId> action (answered from the view's options(field_name) method).
@@ -2914,14 +3062,21 @@ class ReflectionMapper:
             return "textarea"
         return "regular"
 
-    def infer_data_type(self, t, f=None) -> str:
+    def infer_data_type(self, t, f=None, plain: bool = False) -> str:
+        # A list-of-values field (e.g. BulletedList) is an array on the wire (Java parity).
+        if get_origin(t) is list:
+            return "array"
         if is_enum(t):
             return "string"
         if t is bool:
-            return "boolean"
+            return "bool"
         if t is int:
             return "integer"
         if t in (float, Decimal):
+            # A money field in a plain-text context upgrades its dataType to "money" so the
+            # renderer formats it as currency (Java's FieldTypeMapper money branch).
+            if f is not None and f.has(Money) and plain:
+                return "money"
             return "number"
         if t in (date, datetime):
             return "date"

@@ -2305,8 +2305,12 @@ def test_a_route_state_seed_binds_onto_the_view(tmp_path):
     # registry level in test_route_registry).
     h = _seeded_handler(tmp_path)
     inc = h.handle(RunActionRq(route="seeded", consumed_route="seeded"))
-    field = _find_form_field(inc.fragments[0].component, "tab")
-    assert field is not None and field.metadata.initial_value == "summary"
+    frag = inc.fragments[0]
+    # The field itself is present; its value rides in the component initialData / fragment state
+    # (Java parity — reflected fields no longer carry a per-field initialValue).
+    assert _find_form_field(frag.component, "tab") is not None
+    assert frag.component.initial_data.get("tab") == "summary"
+    assert frag.state.get("tab") == "summary"
 
 
 def _find_form_field(component, field_id):

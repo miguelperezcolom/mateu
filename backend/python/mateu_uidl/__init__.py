@@ -1180,12 +1180,18 @@ def menu_item(arg=None, group: str = ""):
     return _maybe_bare(arg, "__mateu_menu_item__", lambda label: label or True)
 
 
-def kpi(title_: str):
-    def deco(fn):
-        fn.__mateu_kpi__ = title_
-        return fn
+class kpi:
+    """A KPI: usable BOTH as a method decorator (``@kpi("Amount")``) and as a field marker
+    (``Annotated[str, kpi("Amount")]``). As a decorator it stamps ``__mateu_kpi__`` on the method;
+    as a marker its instance is found in the field's Annotated metadata. Either way the field/method
+    value becomes a header KPI and is hoisted out of the form body (Java parity)."""
 
-    return deco
+    def __init__(self, title_: str):
+        self.title = title_
+
+    def __call__(self, fn):
+        fn.__mateu_kpi__ = self.title
+        return fn
 
 
 def fab(icon: str, label: str | None = None, order: int = 0):

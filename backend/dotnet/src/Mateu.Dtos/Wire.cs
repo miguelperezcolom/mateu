@@ -106,6 +106,10 @@ public record ServerSideComponentDto(
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
 
+    /// <summary>Client-side field validations derived from the bean-validation constraints
+    /// ([Required]/[Range]…), re-evaluated on every state change (mirrors io.mateu.dtos.ValidationDto).</summary>
+    public IReadOnlyList<ValidationDto> Validations { get; init; } = [];
+
     /// <summary>The view is declared [StaticView]: its full response never varies, so the client
     /// caches it for the session and skips the round-trip on return visits (mirrors
     /// io.mateu.dtos.ServerSideComponentDto.staticView). A developer promise; false unless declared.</summary>
@@ -117,6 +121,10 @@ public record ServerSideComponentDto(
     /// the client reuses its cache. (Mirrors io.mateu.dtos.ServerSideComponentDto.structureHash.)</summary>
     public string? StructureHash { get; init; }
 }
+
+/// <summary>A client-side field validation (mirrors io.mateu.dtos.ValidationDto): Condition is a
+/// JS-ish predicate over the live state; when it is falsy the field is invalid and Message shows.</summary>
+public record ValidationDto(string Condition, string FieldId, string Message);
 
 /// <summary>A client-side rule (mirrors io.mateu.dtos.RuleDto): when Filter evaluates truthy the
 /// renderer applies Action — e.g. SetDataValue of FieldAttribute (hidden, disabled, required…) to
@@ -636,16 +644,23 @@ public record TabMetadataDto(string Label) : ComponentMetadataDto
     public string? Shortcut { get; init; }
 }
 
-public record KpiDto(string Title, string Value)
+/// <summary>A KPI card in the page header (mirrors Java's io.mateu.dtos.KPIDto). The wire carries a
+/// "type":"KPIDto" discriminator and the value under "text".</summary>
+public record KpiDto(string Title, string Text)
 {
-    public string? Icon { get; init; }
-    public string? Color { get; init; }
+    public string Type => "KPIDto";
+    public string? Style { get; init; }
+    public string? CssClasses { get; init; }
 }
 
 public record FabDto(string Icon, string ActionId)
 {
     public string? Label { get; init; }
     public int Order { get; init; }
+
+    /// <summary>The button emphasis; a FAB is a primary action by default (mirrors Java's
+    /// FabDto.buttonStyle).</summary>
+    public string? ButtonStyle { get; init; }
 }
 
 public record HorizontalLayoutMetadataDto : ComponentMetadataDto
@@ -669,6 +684,10 @@ public record TextMetadataDto(string Text) : ComponentMetadataDto
 
     /// <summary>Drops the container's block margins (margin-block-start/end: 0).</summary>
     public bool NoMargins { get; init; }
+
+    /// <summary>The HTML container element (e.g. "h3" for a section heading); null = the renderer's
+    /// default. Mirrors Java's TextDto.container.</summary>
+    public string? Container { get; init; }
 }
 
 /// <summary>A horizontal divider line (&lt;hr&gt;); data-colspan in Attributes makes it span the
@@ -902,7 +921,7 @@ public record PageMetadataDto(
 /// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>
 public record BannerDto(string Theme, string? Title, string? Description)
 {
-    public bool HasIcon { get; init; } = true;
+    public bool HasIcon { get; init; }
     public bool HasCloseButton { get; init; }
     public int TimeoutSeconds { get; init; }
 }
@@ -936,6 +955,14 @@ public record FormLayoutMetadataDto : ComponentMetadataDto
     public int MaxColumns { get; init; } = 2;
     public bool AutoResponsive { get; init; } = true;
 
+    /// <summary>Columns grow to fill the available width (mirrors Java's FormLayout.expandColumns).
+    /// True by default; the normaliser keeps it because it is non-default.</summary>
+    public bool ExpandColumns { get; init; } = true;
+
+    /// <summary>The minimum responsive column width (mirrors Java's FormLayout.columnWidth); a
+    /// [Compact] page tightens it to "7em". Null = the renderer's default.</summary>
+    public string? ColumnWidth { get; init; }
+
     /// <summary>Whether the field labels sit aside (to the left of the field, in a 10rem column)
     /// instead of on top — the dense backoffice data-entry idiom. Resolved server-side: the
     /// explicit [FormLayout(LabelsAside = …)] wins, else inferred from the form's shape
@@ -952,6 +979,19 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public bool Required { get; init; }
     public bool ReadOnly { get; init; }
     public int Colspan { get; init; } = 1;
+
+    /// <summary>Number of columns the options widget lays out in (mirrors Java's
+    /// FormFieldDto.optionsColumns). 1 by default.</summary>
+    public int OptionsColumns { get; init; } = 1;
+
+    /// <summary>Upper bound for a slider-stereotype field (mirrors Java's FormFieldDto.sliderMax).
+    /// 100 by default.</summary>
+    public int SliderMax { get; init; } = 100;
+
+    /// <summary>Whether an integer field shows the +/- step buttons (mirrors Java's
+    /// FormFieldDto.stepButtonsVisible). True for integer fields.</summary>
+    public bool StepButtonsVisible { get; init; }
+
     public object? InitialValue { get; init; }
     public IReadOnlyList<OptionDto> Options { get; init; } = [];
     public bool Multiline { get; init; }

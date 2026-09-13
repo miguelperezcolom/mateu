@@ -124,13 +124,21 @@ public class SectionFeatureTests
     public void Frameless_section_emits_no_section_card_while_the_others_keep_theirs()
     {
         var root = RenderView(typeof(FramelessForm));
-        var sectionTitles = Objects(root)
-            .Where(o => o.TryGetProperty("type", out var t) && t.GetString() == "FormSection")
-            .Select(o => o.GetProperty("title").GetString())
+        // A titled section is now an outlined Card (cssClasses "mateu-section") carrying its title as
+        // an <h3> Text inside — not a FormSection (Java parity). The frameless section is a bare Div.
+        var sectionHeadings = Objects(root)
+            .Where(o => o.TryGetProperty("metadata", out var m)
+                        && m.TryGetProperty("type", out var t) && t.GetString() == "Text"
+                        && m.TryGetProperty("container", out var c) && c.GetString() == "h3")
+            .Select(o => o.GetProperty("metadata").GetProperty("text").GetString())
             .ToList();
-        Assert.Equal(["Datos"], sectionTitles);
-        // the frameless section's field still travels
-        Assert.Equal("sin marco", Field(root, "aviso").GetProperty("initialValue").GetString());
+        Assert.Equal(["Datos"], sectionHeadings);
+        // exactly one section Card (the frameless one carries no mateu-section marker)
+        Assert.Single(Objects(root)
+            .Where(o => o.TryGetProperty("cssClasses", out var c) && c.GetString() == "mateu-section"));
+        // the frameless section's field still travels, its value in the component initialData / state
+        Assert.Equal("sin marco", root.GetProperty("fragments")[0]
+            .GetProperty("component").GetProperty("initialData").GetProperty("aviso").GetString());
     }
 
     [Fact]
