@@ -1,0 +1,7 @@
+# separator-text
+
+Pins the section-decoration surface: a `@Section(propertyList=true)` must turn every data field of the section into a read-only property row (`propertyRow`+`readOnly` on the FormField, stacked in a stretch VerticalLayout instead of a responsive FormLayout), `@SeparatorBefore` must emit a `Separator` component in its own form row (with the `data-colspan` attribute) above the annotated field, and Java's `@Text(size=xl)` must emit a sized `Text` component instead of an input. These three travel through the section grouper and form-layout builder — the code paths most recently mirrored into the ports (2026-07-15) and therefore most likely to drift. The text-size member is deliberately included even though the ports can only declare it fluently: the corpus exists to make exactly that kind of surface gap visible rather than hidden in three separate suites.
+
+## Known divergence
+
+Both ports lack Java's declarative @Text field marker (their Text component is fluent-only, usable only from a ComponentTreeSupplier), so `titular` will arrive as a plain FormField instead of a sized Text component — an expected xfail in both .NET and Python. Additionally, Python's known section-shape divergence (documented on the simple-form case: how section cards wrap the form) applies here too, since this fixture is section-heavy; the property-list transformation itself (propertyRow/readOnly flags, Separator row) is expected to match.

@@ -1,0 +1,7 @@
+# banner
+
+Pins the declarative page-banner channel: a @Banner-annotated method must surface on the wire as an entry in the page metadata's banners list (PageDto.banners), carrying the declared theme ("INFO") and title ("Heads up") plus the method's String return value as the banner description. This is distinct from action-returned banners (UIIncrementDto.banners) and from toasts, and it is the channel every renderer reads to paint the strip below the page header — so if a port drops the theme, misplaces the list, or fails to invoke the method for the description, every themed notice in a ported app silently disappears. Worth pinning because the banner mapping lives in three unrelated code paths (Java PageMapper, .NET ReflectionMapper.Banners, Python mapper.banners) with no shared contract until now.
+
+## Known divergence
+
+Both ports will carry an extra `hasIcon: true` on the banner that the Java golden does not have: Java's PageMapper.mapToBannerDto hardcodes hasIcon=false for @Banner banners (dropped by the normaliser as a default), while .NET's BannerDto (Wire.cs) and Python's Banner dto both DEFAULT hasIcon to true and their mappers (ReflectionMapper.cs ~line 474, mapper.py ~line 1718) never override it. Expect .NET and Python to xfail on that one member until the ports set hasIcon=false when mapping declared banners (or the default is aligned). Theme ("INFO"), title and the method-derived description are emitted identically by all three.

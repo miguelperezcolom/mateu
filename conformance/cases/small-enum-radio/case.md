@@ -1,0 +1,7 @@
+# small-enum-radio
+
+Pins the small-enum layout-inference rule on the wire: under @AutoLayout, an enum field with <= 4 constants (RADIO_MAX_OPTIONS) is emitted with stereotype "radio" instead of the default "select", together with its full options list. The rule is deliberately gated — a bare enum field stays a dropdown — so the fixture carries the class-level auto-layout marker in all three languages; without the gate this case would be indistinguishable from simple-form's Colour field. The threshold and the rule itself are TRIplicated (Java LayoutInference.java, .NET LayoutInference.cs, Python layout_inference.py), which is exactly the kind of lockstep constant that drifts silently, and the option values/labels derived from enum constant names are a second axis the ports can quietly disagree on.
+
+## Known divergence
+
+The enum constant names are declared identically (SMALL/MEDIUM/LARGE) so option VALUES should match, but each backend derives the option LABELS from the constant name independently (humanization/capitalization is not shared code), so a port may emit e.g. "Small" where Java emits "SMALL" — same latent risk simple-form's Colour options carry. On top of that, the usual per-port envelope differences apply (serverSideType is the port's own type name; Python's known section/page-shape divergence from simple-form likely recurs here). Any of these surfaces as the documented xfail, which is the corpus doing its job.

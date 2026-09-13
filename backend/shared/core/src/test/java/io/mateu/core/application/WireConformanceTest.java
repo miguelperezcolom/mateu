@@ -5,18 +5,68 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard;
 import io.mateu.core.testutil.TestMateu;
+import io.mateu.uidl.annotations.AppContext;
+import io.mateu.uidl.annotations.AutoLayout;
+import io.mateu.uidl.annotations.Banner;
+import io.mateu.uidl.annotations.BulletedList;
+import io.mateu.uidl.annotations.Compact;
+import io.mateu.uidl.annotations.Disabled;
+import io.mateu.uidl.annotations.Fab;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.KPI;
+import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.OnRowSelected;
 import io.mateu.uidl.annotations.Overline;
+import io.mateu.uidl.annotations.Panel;
+import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.SeparatorBefore;
+import io.mateu.uidl.annotations.StaticView;
+import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Subtitle;
+import io.mateu.uidl.annotations.Tab;
+import io.mateu.uidl.annotations.Text;
 import io.mateu.uidl.annotations.Timestamp;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Toc;
+import io.mateu.uidl.annotations.TreeSelect;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.annotations.Zone;
+import io.mateu.uidl.annotations.Zones;
+import io.mateu.uidl.data.AppHeaderAction;
+import io.mateu.uidl.data.BannerTheme;
+import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.MetricCard;
+import io.mateu.uidl.data.MetricTrend;
+import io.mateu.uidl.data.Notice;
+import io.mateu.uidl.data.Option;
+import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.data.StatusItem;
+import io.mateu.uidl.data.StatusList;
+import io.mateu.uidl.data.TextSize;
+import io.mateu.uidl.fluent.AppShell;
+import io.mateu.uidl.fluent.AppSupplier;
+import io.mateu.uidl.fluent.AppVariant;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.AppActionsSupplier;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
+import io.mateu.uidl.interfaces.OptionsSupplier;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
@@ -71,13 +121,503 @@ class WireConformanceTest {
     public String notes = "";
   }
 
-  private static final List<String> CASES = List.of("simple-form", "page-header");
+  /** Consecutive fields under the same @Tab label group into one tab of a TabLayout strip. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/tabs")
+  @Title("Tabs")
+  public static class Tabs {
+    @Tab("General")
+    public String name = "Ada";
+
+    @Tab("General")
+    public String email = "ada@example.com";
+
+    @Tab("Details")
+    public String role = "Analyst";
+
+    @Tab("Details")
+    public String city = "London";
+  }
+
+  /** Zoned layout: sections distributed into side-by-side columns with flex-basis widths. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/zones")
+  @Title("Zoned form")
+  @Zones({@Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%")})
+  public static class ZonedForm {
+    @Section(value = "Main", zone = "left")
+    public String name = "Ada";
+
+    @Section(value = "Side", zone = "right")
+    public String notes = "Quiet";
+  }
+
+  /**
+   * Money intent on the wire: an editable money field keeps the numeric dataType and carries the
+   * intent as the stereotype; a plain-text money field keeps the dense plainText stereotype and the
+   * intent moves to dataType money.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/money-field")
+  @Title("Money field")
+  public static class MoneyField {
+    @Stereotype(FieldStereotype.money)
+    public BigDecimal price = new BigDecimal("1250.5");
+
+    @PlainText
+    @Stereotype(FieldStereotype.money)
+    public BigDecimal total = new BigDecimal("99.5");
+  }
+
+  /** A page-level themed banner: @Banner on a method, the String return as description. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/banner")
+  @Title("Banner page")
+  public static class BannerPage {
+    public String name = "Ada";
+
+    @Banner(theme = BannerTheme.INFO, title = "Heads up")
+    public String info() {
+      return "Something to note";
+    }
+  }
+
+  /** A floating action button: a {@code @Fab} method becomes an entry in the page's fabs. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/fab")
+  @Title("Fab page")
+  public static class FabPage {
+    public String name = "Ada";
+
+    // NOTE: the label attribute is ignored on this path — the wire label comes from the
+    // capitalised method name (or @Label), so the method is named to yield "Add".
+    @Fab(icon = "vaadin:plus", label = "Add")
+    public void add() {}
+  }
+
+  /** Section decorations: property-list rows, a separator above a field, a sized text. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/separator-text")
+  @Title("Guest file")
+  public static class SeparatorText {
+    @Section(value = "Documento", propertyList = true)
+    public String documento = "12345678X";
+
+    public String nombre = "María";
+
+    @Section("Contacto")
+    public String telefono = "+34 600 000 000";
+
+    @SeparatorBefore public String email = "maria@example.com";
+
+    @Text(size = TextSize.xl)
+    public String titular = "Bienvenida";
+  }
+
+  /** Client-side rules: @Disabled and @Hidden(expr) travel as SetDataValue rules. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/client-rules")
+  @Title("Client rules")
+  public static class ClientRules {
+    // Declared before the @Hidden field on purpose: Java emits all disabled rules before the
+    // hidden ones, the ports emit per field in declaration order — this order makes them agree.
+    @Disabled public String code = "X-1";
+
+    public boolean special = false;
+
+    @Hidden("!state.special")
+    public String nickname = "";
+  }
+
+  /**
+   * The {@code @StaticView} promise: the full response — structure and data — is a
+   * session-cacheable constant, and the wire component must say so ({@code staticView=true}).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/static-view")
+  @Title("About")
+  @StaticView
+  public static class StaticAbout {
+    public String heading = "This page never changes";
+  }
+
+  /**
+   * Small-enum inference: under {@code @AutoLayout} an enum with <= 4 constants renders as radio
+   * buttons (stereotype "radio"), not a dropdown — with its options on the wire.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/small-enum-radio")
+  @Title("Small enum radio")
+  @AutoLayout
+  public static class SmallEnumRadio {
+    public Size size = Size.MEDIUM;
+
+    public enum Size {
+      SMALL,
+      MEDIUM,
+      LARGE
+    }
+  }
+
+  /** The Dashboard archetype: MetricCards group into a Scoreboard band, @Panel tiles the grid. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/dashboard")
+  @Title("Ops dashboard")
+  public static class DashboardPage extends Dashboard {
+    public MetricCard revenue =
+        MetricCard.builder()
+            .title("Revenue")
+            .value("1.2")
+            .unit("M€")
+            .trend(MetricTrend.up)
+            .trendLabel("+8%")
+            .build();
+
+    public MetricCard occupancy = MetricCard.builder().title("Occupancy").value("87%").build();
+
+    @Panel(title = "Notes", subtitle = "Today")
+    public io.mateu.uidl.data.Text notes = new io.mateu.uidl.data.Text("All systems nominal");
+  }
+
+  /** An app whose shell and its whole menu are composed IN CODE via {@link AppSupplier}. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-in-code")
+  @Title("App in code")
+  public static class AppInCode implements AppSupplier {
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      return AppShell.builder()
+          .title("App in code")
+          .homeRoute("/a")
+          .variant(AppVariant.MENU_ON_TOP)
+          .menu(
+              List.of(
+                  new RouteLink("/a", "A"),
+                  new Menu("/g", "G", List.of(new RouteLink("/g/x", "X")))))
+          .build();
+    }
+  }
+
+  /**
+   * Bean-validation constraints on the wire: {@code @NotEmpty}/{@code @NotNull} set the field's
+   * {@code required} flag, and all four constraints also travel as component-level {@code
+   * validations} entries carrying the client-side condition and message.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/validation")
+  @Title("Validated form")
+  public static class ValidatedForm {
+    @NotEmpty public String name = "Ada";
+
+    @NotNull public String email = "ada@example.com";
+
+    @Min(18)
+    @Max(99)
+    public int age = 36;
+  }
+
+  /** The stereotype vocabulary: slider/stars on ints, password/textarea on strings. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/stereotypes")
+  @Title("Stereotypes")
+  public static class Stereotypes {
+    @Stereotype(FieldStereotype.slider)
+    public int volume = 50;
+
+    @Stereotype(FieldStereotype.stars)
+    public int rating = 4;
+
+    @Stereotype(FieldStereotype.password)
+    public String secret = "hunter2";
+
+    @Stereotype(FieldStereotype.textarea)
+    public String notes = "Some longer text";
+  }
+
+  /**
+   * A remote reference field: {@code @Lookup} renders a combobox whose options come from the
+   * field's {@code search-<fieldId>} action (stereotype combobox + remoteCoordinates on the wire);
+   * the pre-set value's display label rides in the fragment data as {@code <fieldId>-label},
+   * resolved through the view's own {@link LookupLabelSupplier}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/lookup")
+  @Title("Lookup")
+  public static class LookupForm implements LookupLabelSupplier {
+    @Lookup public String supplier = "a2";
+
+    @Override
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+      return "a2".equals(id) ? "Acme" : null;
+    }
+  }
+
+  /**
+   * A @TreeSelect field: stereotype treeSelect, the leavesOnly flag as treeLeavesOnly, and a
+   * hierarchical option set — the options carry their CHILDREN on the wire.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/tree-select")
+  @Title("Tree select")
+  public static class TreeSelectForm implements OptionsSupplier {
+
+    @TreeSelect(leavesOnly = true)
+    public String zone = "";
+
+    @Override
+    public List<Option> options(String fieldName, HttpRequest httpRequest) {
+      return List.of(
+          new Option(
+              "es", "Spain", List.of(new Option("mca", "Mallorca"), new Option("men", "Menorca"))),
+          new Option("pt", "Portugal"));
+    }
+  }
+
+  /**
+   * The fluent Notice: a compact themed inline banner (text + theme tint + right-aligned action +
+   * slim flag), composed as a component tree — the one shape all three servers share (the
+   * declarative {@code @Notice} String-field marker is Java-only).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/notice")
+  @Title("Notice")
+  public static class NoticePage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      // no container styling: the ports' tree suppliers declare none, and the Java default
+      // ("max-width:900px;margin: auto;") is a Java-only envelope member the case is not about
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return Notice.builder()
+          .text("2 complaints pending")
+          .theme("warning")
+          .actionLabel("Review")
+          .actionId("review")
+          .slim(true)
+          .build();
+    }
+  }
+
+  /**
+   * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
+   * bulletedList).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/bulleted-list")
+  @Title("Bulleted list")
+  public static class BulletedListPage {
+    @BulletedList
+    public List<String> preferences = List.of("Extra pillow", "High floor", "Sea view");
+  }
+
+  /**
+   * An {@code @AppContext} enum field on the app class becomes a header context selector
+   * (AppDto.contextSelectors): fieldName from the field, label from the annotation, options from
+   * the enum constants (value = constant name, label = humanized). The {@code @Menu} leaf makes the
+   * class an APP so the sync answers the App fragment; its annotation is fully qualified because
+   * this file already imports the fluent {@code io.mateu.uidl.data.Menu}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-context")
+  @Title("Context app")
+  public static class ContextApp {
+
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+
+    @AppContext(label = "Hotel")
+    public Hotel hotel;
+
+    public enum Hotel {
+      palma,
+      madrid
+    }
+  }
+
+  /**
+   * App header actions: the app class implements {@link AppActionsSupplier} and its actions travel
+   * on the app metadata as contextActions — a plain button (actionId + label + icon) and a dropdown
+   * (null actionId, children) whose children are the only dispatching leaves.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-header-actions")
+  @Title("Header actions")
+  public static class HeaderActionsApp implements AppActionsSupplier {
+
+    // FQN on purpose: the runner already imports io.mateu.uidl.data.Menu (AppInCode), which would
+    // clash with the annotation. A @Menu member is what classifies the class as an app.
+    @io.mateu.uidl.annotations.Menu String home = "/";
+
+    @Override
+    public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
+      return List.of(
+          new AppHeaderAction("sync", "Sync now", "vaadin:refresh"),
+          AppHeaderAction.menu(
+              "Export",
+              "vaadin:download",
+              List.of(
+                  new AppHeaderAction("exportPdf", "As PDF"),
+                  new AppHeaderAction("exportExcel", "As Excel"))));
+    }
+
+    public Message sync() {
+      return new Message("Synced");
+    }
+  }
+
+  /** {@code @Toc} forces the sticky sections index: the page carries {@code toc=true}. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/toc")
+  @Title("Long document")
+  @Toc
+  public static class TocPage {
+    @Section("Overview")
+    public String summary = "All good";
+
+    @Section("Details")
+    public String detail = "Everything";
+
+    @Section("Contact")
+    public String phone = "+34 600 000 000";
+
+    @Section("History")
+    public String history = "Created 2026";
+
+    @Section("Notes")
+    public String notes = "None";
+  }
+
+  /** A list of nested rows becomes a grid: columns from the row type, @OnRowSelected the click. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/grid-field")
+  @Title("Guest grid")
+  public static class GridField {
+    @OnRowSelected("onSel")
+    public List<GuestRow> guests =
+        new ArrayList<>(List.of(new GuestRow("Alice", 34), new GuestRow("Bob", 29)));
+
+    public void onSel(GuestRow row) {}
+
+    public static class GuestRow {
+      public String name = "";
+      public int age = 0;
+
+      public GuestRow() {}
+
+      public GuestRow(String name, int age) {
+        this.name = name;
+        this.age = age;
+      }
+    }
+  }
+
+  /** The StatusList front-office component: labelled status rows — a chip row and an action row. */
+  @UI("/conformance/status-list")
+  @Title("Status list")
+  public static class StatusListPage implements ComponentTreeSupplier {
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return StatusList.builder()
+          .id("statusList")
+          .items(
+              List.of(
+                  StatusItem.builder()
+                      .id("ses")
+                      .icon("✓")
+                      .title("Traveller report")
+                      .description("Sent automatically on check-in")
+                      .status("Automatic")
+                      .statusColor("success")
+                      .build(),
+                  StatusItem.builder()
+                      .id("key")
+                      .icon("🔑")
+                      .title("Encode key card")
+                      .description("Digital key add-on")
+                      .actionLabel("Encode")
+                      .actionId("encodeKey")
+                      .build()))
+          .build();
+    }
+  }
+
+  /**
+   * {@code @Compact}: the high-density preset lands on the page style (marker {@code
+   * --mateu-compact:1}).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/compact")
+  @Title("Compact page")
+  @Compact
+  public static class CompactPage {
+    public String name = "Ada";
+    public String email = "ada@example.com";
+  }
+
+  private static final List<String> CASES =
+      List.of(
+          "simple-form",
+          "page-header",
+          "tabs",
+          "zones",
+          "money-field",
+          "banner",
+          "fab",
+          "separator-text",
+          "client-rules",
+          "static-view",
+          "small-enum-radio",
+          "dashboard",
+          "app-in-code",
+          "validation",
+          "stereotypes",
+          "lookup",
+          "tree-select",
+          "notice",
+          "bulleted-list",
+          "app-context",
+          "app-header-actions",
+          "toc",
+          "grid-field",
+          "status-list",
+          "compact");
 
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(SimpleForm.class, PageHeader.class);
+    mateu =
+        TestMateu.withUis(
+            SimpleForm.class,
+            PageHeader.class,
+            Tabs.class,
+            ZonedForm.class,
+            MoneyField.class,
+            BannerPage.class,
+            FabPage.class,
+            SeparatorText.class,
+            ClientRules.class,
+            StaticAbout.class,
+            SmallEnumRadio.class,
+            DashboardPage.class,
+            AppInCode.class,
+            ValidatedForm.class,
+            Stereotypes.class,
+            LookupForm.class,
+            TreeSelectForm.class,
+            NoticePage.class,
+            BulletedListPage.class,
+            ContextApp.class,
+            HeaderActionsApp.class,
+            TocPage.class,
+            GridField.class,
+            StatusListPage.class,
+            CompactPage.class);
   }
 
   @AfterAll
@@ -107,7 +647,8 @@ class WireConformanceTest {
    * corpus report noise, and a check that reports noise gets ignored — so they are dropped on both
    * sides rather than argued about.
    */
-  private static final Set<String> VOLATILE = Set.of("id", "structureHash", "generatedAt");
+  private static final Set<String> VOLATILE =
+      Set.of("id", "structureHash", "generatedAt", "serverSideType", "targetComponentId");
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {
@@ -152,7 +693,14 @@ class WireConformanceTest {
 
   private static JsonNode actual(String route) {
     var increment = mateu.sync("/conformance/" + route);
-    return normalise(MAPPER.valueToTree(increment));
+    // Round-trip through text so a BigDecimal (DecimalNode) and the same value read back from the
+    // golden (DoubleNode) compare equal: they serialise to the identical "1250.5", and it is that
+    // serialised form the corpus pins — not Jackson's in-memory numeric node type.
+    try {
+      return normalise(MAPPER.readTree(MAPPER.writeValueAsString(increment)));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test

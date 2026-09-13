@@ -1,0 +1,139 @@
+{
+  "commands" : [ {
+    "data" : "Guest grid",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "validationRequired" : true
+      }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { }, { }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { }, { }, {
+        "validationRequired" : true
+      }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { }, { }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { }, { } ],
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 2,
+                        "columns" : [ {
+                          "metadata" : {
+                            "autoWidth" : true,
+                            "dataType" : "string",
+                            "label" : "Name",
+                            "stereotype" : "regular",
+                            "type" : "GridColumn"
+                          },
+                          "type" : "ClientSide"
+                        }, {
+                          "metadata" : {
+                            "autoWidth" : true,
+                            "dataType" : "string",
+                            "label" : "Age",
+                            "stereotype" : "regular",
+                            "type" : "GridColumn"
+                          },
+                          "type" : "ClientSide"
+                        }, {
+                          "metadata" : {
+                            "actionId" : "guests_select",
+                            "dataType" : "string",
+                            "stereotype" : "button",
+                            "text" : "Edit",
+                            "type" : "GridColumn",
+                            "width" : "3rem"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "dataType" : "array",
+                        "fieldId" : "guests",
+                        "formColumns" : 2,
+                        "formPosition" : "right",
+                        "itemIdPath" : "_rowNumber",
+                        "label" : "Guests",
+                        "minHeightWhenDetailVisible" : "16rem;",
+                        "onItemSelectionActionId" : "onSel",
+                        "optionsColumns" : 1,
+                        "stereotype" : "grid",
+                        "style" : "min-width: 10rem; width: 100%;",
+                        "type" : "FormField"
+                      },
+                      "style" : "min-width: 10rem; width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Grid field",
+          "pageType" : "form",
+          "title" : "Guest grid",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "guests" : [ {
+          "age" : 34,
+          "name" : "Alice"
+        }, {
+          "age" : 29,
+          "name" : "Bob"
+        } ]
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "guests" : [ {
+        "age" : 34,
+        "name" : "Alice"
+      }, {
+        "age" : 29,
+        "name" : "Bob"
+      } ]
+    }
+  } ]
+}

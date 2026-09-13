@@ -728,7 +728,10 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'string') return this.renderStringField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'number') return this.renderNumberField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'integer') return this.renderIntegerField(fieldId, value, label, labelText)
-        if (this.field?.dataType == 'bool') return this.renderBoolField(fieldId, value, label, labelText)
+        // Java emits dataType 'bool', the .NET/Python ports emit 'boolean' — accept both, so a
+        // boolean field renders as a checkbox whichever backend served it (see design/conformance-findings.md).
+        if (this.field?.dataType == 'bool' || this.field?.dataType == 'boolean')
+            return this.renderBoolField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'dateRange') return this.renderDateRangeField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'date') return this.renderDateField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'dateTime') return this.renderDateTimeField(fieldId, value, label, labelText)
@@ -855,7 +858,7 @@ export class MateuField extends LitElement {
                 ><img src="${valueToDisplay}" id="${this.field.fieldId}_img" style="${this.field.style}">
                 </vaadin-custom-field>`
             }
-            if ('bool' == this.field.dataType) {
+            if ('bool' == this.field.dataType || 'boolean' == this.field.dataType) {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"

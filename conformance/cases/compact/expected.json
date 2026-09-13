@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "Compact page",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,8 +18,20 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "name",
+                        "label" : "Name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "email",
+                        "label" : "Email",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
@@ -34,6 +46,7 @@
                   } ],
                   "metadata" : {
                     "autoResponsive" : true,
+                    "columnWidth" : "7em",
                     "expandColumns" : true,
                     "maxColumns" : 2,
                     "type" : "FormLayout"
@@ -58,32 +71,25 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
-          } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Compact page",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "Compact page",
           "type" : "Page"
         },
+        "style" : ";--vaadin-form-layout-row-spacing:0.2rem;--vaadin-form-layout-label-spacing:0.05rem;--vaadin-card-padding:0.2rem 0.7rem;--vaadin-card-gap:0.15rem;--lumo-size-xl:2.2rem;--lumo-size-l:1.8rem;--lumo-size-m:1.35rem;--lumo-size-s:1.2rem;--lumo-size-xs:1.05rem;--lumo-space-xl:0.9rem;--lumo-space-l:0.45rem;--lumo-space-m:0.3rem;--lumo-space-s:0.18rem;--lumo-space-xs:0.1rem;--lumo-line-height-m:1.15;--mateu-label-font-size:var(--lumo-font-size-xs);--mateu-label-padding-bottom:1px;--mateu-label-line-height:1.1;--mateu-compact:1;",
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
+        "email" : "ada@example.com",
+        "name" : "Ada"
       },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
     },
     "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
+      "email" : "ada@example.com",
+      "name" : "Ada"
     }
   } ]
 }

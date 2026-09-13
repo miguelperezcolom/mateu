@@ -1,11 +1,12 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "Lookup",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
     "action" : "Replace",
     "component" : {
+      "actions" : [ { }, { } ],
       "children" : [ {
         "children" : [ {
           "cssClasses" : "mateu-section",
@@ -18,11 +19,14 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "supplier",
+                        "label" : "Supplier",
                         "optionsColumns" : 1,
+                        "remoteCoordinates" : {
+                          "action" : "search-supplier"
+                        },
                         "sliderMax" : 100,
-                        "stereotype" : "regular",
+                        "stereotype" : "combobox",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -58,32 +62,34 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
-          } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Lookup form",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "Lookup",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
+        "supplier" : "a2"
       },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
     },
+    "data" : {
+      "supplier" : {
+        "content" : [ {
+          "label" : "Acme",
+          "value" : "a2"
+        } ],
+        "pageSize" : 1,
+        "searchSignature" : "Acme",
+        "totalElements" : 1
+      },
+      "supplier-label" : "Acme"
+    },
     "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
+      "supplier" : "a2"
     }
   } ]
 }

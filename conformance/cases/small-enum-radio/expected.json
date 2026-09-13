@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "Small enum radio",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,11 +18,21 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "size",
+                        "label" : "Size",
+                        "options" : [ {
+                          "label" : "SMALL",
+                          "value" : "SMALL"
+                        }, {
+                          "label" : "MEDIUM",
+                          "value" : "MEDIUM"
+                        }, {
+                          "label" : "LARGE",
+                          "value" : "LARGE"
+                        } ],
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
-                        "stereotype" : "regular",
+                        "stereotype" : "radio",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -58,32 +68,22 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
-          } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Small enum radio",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "Small enum radio",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
+        "size" : "MEDIUM"
       },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
     },
     "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
+      "size" : "MEDIUM"
     }
   } ]
 }

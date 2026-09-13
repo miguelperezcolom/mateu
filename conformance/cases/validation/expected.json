@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Simple form",
+    "data" : "Validated form",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -21,12 +21,32 @@
                         "fieldId" : "name",
                         "label" : "Name",
                         "optionsColumns" : 1,
+                        "required" : true,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
                     }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "email",
+                        "label" : "Email",
+                        "optionsColumns" : 1,
+                        "required" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "integer",
@@ -36,64 +56,6 @@
                         "sliderMax" : 100,
                         "stepButtonsVisible" : true,
                         "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    } ],
-                    "metadata" : {
-                      "type" : "FormRow"
-                    },
-                    "type" : "ClientSide"
-                  }, {
-                    "children" : [ {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "bool",
-                        "fieldId" : "active",
-                        "label" : "Active",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    }, {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "date",
-                        "fieldId" : "birthDate",
-                        "label" : "Birth date",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    } ],
-                    "metadata" : {
-                      "type" : "FormRow"
-                    },
-                    "type" : "ClientSide"
-                  }, {
-                    "children" : [ {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "string",
-                        "fieldId" : "colour",
-                        "label" : "Colour",
-                        "options" : [ {
-                          "label" : "red",
-                          "value" : "red"
-                        }, {
-                          "label" : "green",
-                          "value" : "green"
-                        }, {
-                          "label" : "blue",
-                          "value" : "blue"
-                        } ],
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "select",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -129,30 +91,42 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "pageTitle" : "Simple form",
+          "pageTitle" : "Validated form",
           "pageType" : "form",
-          "subtitle" : "Every basic field kind",
-          "title" : "Simple form",
+          "title" : "Validated form",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "active" : true,
         "age" : 36,
-        "birthDate" : "1815-12-10",
-        "colour" : "green",
+        "email" : "ada@example.com",
         "name" : "Ada"
       },
       "pageType" : "form",
       "route" : "_empty",
-      "type" : "ServerSide"
+      "type" : "ServerSide",
+      "validations" : [ {
+        "condition" : "state['name']",
+        "fieldId" : "name",
+        "message" : "Cannot be empty"
+      }, {
+        "condition" : "state['email']",
+        "fieldId" : "email",
+        "message" : "Cannot be empty"
+      }, {
+        "condition" : "state['age'] >= 18",
+        "fieldId" : "age",
+        "message" : "Must be at least 18"
+      }, {
+        "condition" : "state['age'] <= 99",
+        "fieldId" : "age",
+        "message" : "Must be at most 99"
+      } ]
     },
     "state" : {
-      "active" : true,
       "age" : 36,
-      "birthDate" : "1815-12-10",
-      "colour" : "green",
+      "email" : "ada@example.com",
       "name" : "Ada"
     }
   } ]

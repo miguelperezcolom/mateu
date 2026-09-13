@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Simple form",
+    "data" : "Client rules",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,8 +18,8 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "name",
-                        "label" : "Name",
+                        "fieldId" : "code",
+                        "label" : "Code",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
@@ -27,42 +27,11 @@
                       },
                       "type" : "ClientSide"
                     }, {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "integer",
-                        "fieldId" : "age",
-                        "label" : "Age",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stepButtonsVisible" : true,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    } ],
-                    "metadata" : {
-                      "type" : "FormRow"
-                    },
-                    "type" : "ClientSide"
-                  }, {
-                    "children" : [ {
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "bool",
-                        "fieldId" : "active",
-                        "label" : "Active",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    }, {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "date",
-                        "fieldId" : "birthDate",
-                        "label" : "Birth date",
+                        "fieldId" : "special",
+                        "label" : "Special",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
@@ -79,21 +48,11 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "colour",
-                        "label" : "Colour",
-                        "options" : [ {
-                          "label" : "red",
-                          "value" : "red"
-                        }, {
-                          "label" : "green",
-                          "value" : "green"
-                        }, {
-                          "label" : "blue",
-                          "value" : "blue"
-                        } ],
+                        "fieldId" : "nickname",
+                        "label" : "Nickname",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
-                        "stereotype" : "select",
+                        "stereotype" : "regular",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -129,31 +88,37 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "pageTitle" : "Simple form",
+          "pageTitle" : "Client rules",
           "pageType" : "form",
-          "subtitle" : "Every basic field kind",
-          "title" : "Simple form",
+          "title" : "Client rules",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "active" : true,
-        "age" : 36,
-        "birthDate" : "1815-12-10",
-        "colour" : "green",
-        "name" : "Ada"
+        "code" : "X-1"
       },
       "pageType" : "form",
       "route" : "_empty",
+      "rules" : [ {
+        "action" : "SetDataValue",
+        "expression" : "true",
+        "fieldAttribute" : "disabled",
+        "fieldName" : "code",
+        "filter" : "true",
+        "result" : "Continue"
+      }, {
+        "action" : "SetDataValue",
+        "expression" : "!state.special",
+        "fieldAttribute" : "hidden",
+        "fieldName" : "nickname",
+        "filter" : "true",
+        "result" : "Continue"
+      } ],
       "type" : "ServerSide"
     },
     "state" : {
-      "active" : true,
-      "age" : 36,
-      "birthDate" : "1815-12-10",
-      "colour" : "green",
-      "name" : "Ada"
+      "code" : "X-1"
     }
   } ]
 }

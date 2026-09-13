@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "Fab page",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,8 +18,8 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "name",
+                        "label" : "Name",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
@@ -58,32 +58,28 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
+          "fabs" : [ {
+            "actionId" : "add",
+            "buttonStyle" : "primary",
+            "icon" : "vaadin:plus",
+            "label" : "Add"
           } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Fab page",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "Fab page",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
+        "name" : "Ada"
       },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
     },
     "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
+      "name" : "Ada"
     }
   } ]
 }

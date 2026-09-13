@@ -1,0 +1,64 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "validationRequired" : true
+      }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { }, { }, {
+        "validationRequired" : true
+      }, { }, { }, { }, { } ],
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "metadata" : {
+              "title" : "Revenue",
+              "trend" : "up",
+              "trendLabel" : "+8%",
+              "type" : "MetricCard",
+              "unit" : "M€",
+              "value" : "1.2"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "title" : "Occupancy",
+              "type" : "MetricCard",
+              "value" : "87%"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "Scoreboard"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "All systems nominal",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "colSpan" : 1,
+            "rowSpan" : 1,
+            "subtitle" : "Today",
+            "title" : "Notes",
+            "type" : "DashboardPanel"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "DashboardLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "dashboard",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ]
+}

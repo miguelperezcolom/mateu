@@ -1,0 +1,80 @@
+{
+  "commands" : [ {
+    "data" : "Context app",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "contextSelectors" : [ {
+          "fieldName" : "hotel",
+          "label" : "Hotel",
+          "options" : [ {
+            "label" : "Palma",
+            "value" : "palma"
+          }, {
+            "label" : "Madrid",
+            "value" : "madrid"
+          } ]
+        } ],
+        "homeConsumedRoute" : "/conformance/app-context",
+        "homeRoute" : "_no_home_route",
+        "homeServerSideType" : "io.mateu.core.application.WireConformanceTest$ContextApp",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-context",
+          "label" : "Home",
+          "path" : "/home",
+          "route" : "/conformance/app-context/home",
+          "uriPrefix" : "/conformance/app-context",
+          "visible" : true
+        } ],
+        "requiredCapabilities" : [ "context-selectors", "rest-sources" ],
+        "restSources" : [ {
+          "description" : "ISO country codes",
+          "name" : "countries",
+          "provenance" : "existing",
+          "source" : {
+            "labelPath" : "name.common",
+            "method" : "GET",
+            "url" : "https://restcountries.com/v3.1/all?fields=cca2,name",
+            "valuePath" : "cca2"
+          }
+        }, {
+          "description" : "The orders a screen lists",
+          "fields" : {
+            "customerName" : "customer.name"
+          },
+          "name" : "orders",
+          "provenance" : "generate",
+          "source" : {
+            "itemsPath" : "data",
+            "labelPath" : "label",
+            "method" : "GET",
+            "url" : "/api/orders?since=${state.since}",
+            "valuePath" : "value"
+          },
+          "totalPath" : "meta.total"
+        }, {
+          "name" : "invoices",
+          "provenance" : "generate",
+          "source" : {
+            "itemsPath" : "items",
+            "labelPath" : "label",
+            "method" : "GET",
+            "url" : "https://api.example.com/invoices",
+            "valuePath" : "value"
+          }
+        } ],
+        "rootRoute" : "/conformance/app-context",
+        "route" : "/conformance/app-context",
+        "title" : "Context app",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ]
+}

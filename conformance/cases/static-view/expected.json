@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "About",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,8 +18,8 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "heading",
+                        "label" : "Heading",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
@@ -58,32 +58,23 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
-          } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Static about",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "About",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
+        "heading" : "This page never changes"
       },
       "pageType" : "form",
       "route" : "_empty",
+      "staticView" : true,
       "type" : "ServerSide"
     },
     "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
+      "heading" : "This page never changes"
     }
   } ]
 }

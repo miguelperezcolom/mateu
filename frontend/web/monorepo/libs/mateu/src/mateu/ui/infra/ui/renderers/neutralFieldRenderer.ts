@@ -39,7 +39,7 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
     let control
     if (readOnly || stereotype === 'plainText') {
         control = html`<div style="padding:.4rem 0;">${String(value ?? '')}</div>`
-    } else if (dataType === 'boolean' || stereotype === 'checkbox' || stereotype === 'badge') {
+    } else if (dataType === 'boolean' || dataType === 'bool' || stereotype === 'checkbox' || stereotype === 'badge') {
         control = html`<input type="checkbox" ?checked="${!!value}" ?disabled="${disabled}" @change="${onInput(field)}">`
     } else if (options && options.length) {
         control = html`

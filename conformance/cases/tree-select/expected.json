@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Requisition 4471",
+    "data" : "Tree select",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -18,11 +18,26 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "notes",
-                        "label" : "Notes",
+                        "fieldId" : "zone",
+                        "label" : "Zone",
+                        "options" : [ {
+                          "children" : [ {
+                            "label" : "Mallorca",
+                            "value" : "mca"
+                          }, {
+                            "label" : "Menorca",
+                            "value" : "men"
+                          } ],
+                          "label" : "Spain",
+                          "value" : "es"
+                        }, {
+                          "label" : "Portugal",
+                          "value" : "pt"
+                        } ],
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
-                        "stereotype" : "regular",
+                        "stereotype" : "treeSelect",
+                        "treeLeavesOnly" : true,
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -58,32 +73,16 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "kpis" : [ {
-            "text" : "1,240 €",
-            "title" : "Amount",
-            "type" : "KPIDto"
-          } ],
-          "overline" : "Requisitions",
-          "pageTitle" : "Page header",
+          "pageTitle" : "Tree select form",
           "pageType" : "form",
-          "subtitle" : "Pending approval",
-          "timestamp" : "Last updated 2026-07-20 12:00",
-          "title" : "Requisition 4471",
+          "title" : "Tree select",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
-      "initialData" : {
-        "amount" : "1,240 €",
-        "updatedAt" : "2026-07-20 12:00"
-      },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
-    },
-    "state" : {
-      "amount" : "1,240 €",
-      "updatedAt" : "2026-07-20 12:00"
     }
   } ]
 }

@@ -1,6 +1,6 @@
 {
   "commands" : [ {
-    "data" : "Simple form",
+    "data" : "Stereotypes",
     "type" : "SetWindowTitle"
   } ],
   "fragments" : [ {
@@ -17,12 +17,13 @@
                     "children" : [ {
                       "metadata" : {
                         "colspan" : 1,
-                        "dataType" : "string",
-                        "fieldId" : "name",
-                        "label" : "Name",
+                        "dataType" : "integer",
+                        "fieldId" : "volume",
+                        "label" : "Volume",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
-                        "stereotype" : "regular",
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "slider",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -30,42 +31,12 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "integer",
-                        "fieldId" : "age",
-                        "label" : "Age",
+                        "fieldId" : "rating",
+                        "label" : "Rating",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
                         "stepButtonsVisible" : true,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    } ],
-                    "metadata" : {
-                      "type" : "FormRow"
-                    },
-                    "type" : "ClientSide"
-                  }, {
-                    "children" : [ {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "bool",
-                        "fieldId" : "active",
-                        "label" : "Active",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    }, {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "date",
-                        "fieldId" : "birthDate",
-                        "label" : "Birth date",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
+                        "stereotype" : "stars",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -79,21 +50,29 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "colour",
-                        "label" : "Colour",
-                        "options" : [ {
-                          "label" : "red",
-                          "value" : "red"
-                        }, {
-                          "label" : "green",
-                          "value" : "green"
-                        }, {
-                          "label" : "blue",
-                          "value" : "blue"
-                        } ],
+                        "fieldId" : "secret",
+                        "label" : "Secret",
                         "optionsColumns" : 1,
                         "sliderMax" : 100,
-                        "stereotype" : "select",
+                        "stereotype" : "password",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 2,
+                        "dataType" : "string",
+                        "fieldId" : "notes",
+                        "label" : "Notes",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "textarea",
                         "type" : "FormField"
                       },
                       "type" : "ClientSide"
@@ -129,31 +108,28 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "pageTitle" : "Simple form",
+          "pageTitle" : "Stereotypes",
           "pageType" : "form",
-          "subtitle" : "Every basic field kind",
-          "title" : "Simple form",
+          "title" : "Stereotypes",
           "type" : "Page"
         },
         "type" : "ClientSide"
       } ],
       "initialData" : {
-        "active" : true,
-        "age" : 36,
-        "birthDate" : "1815-12-10",
-        "colour" : "green",
-        "name" : "Ada"
+        "notes" : "Some longer text",
+        "rating" : 4,
+        "secret" : "hunter2",
+        "volume" : 50
       },
       "pageType" : "form",
       "route" : "_empty",
       "type" : "ServerSide"
     },
     "state" : {
-      "active" : true,
-      "age" : 36,
-      "birthDate" : "1815-12-10",
-      "colour" : "green",
-      "name" : "Ada"
+      "notes" : "Some longer text",
+      "rating" : 4,
+      "secret" : "hunter2",
+      "volume" : 50
     }
   } ]
 }
