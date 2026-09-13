@@ -190,7 +190,7 @@ public class WireConformanceTests
 
     /// <summary>Values servers legitimately disagree on. Dropped rather than argued about — a corpus
     /// that reports noise gets ignored.</summary>
-    private static readonly HashSet<string> Volatile_ = ["id", "structureHash", "generatedAt"];
+    private static readonly HashSet<string> Volatile_ = ["id", "structureHash", "generatedAt", "serverSideType", "targetComponentId"];
 
     /// <summary>Mirrors the Java and Python normalisers: drop volatile and DEFAULT members, sort
     /// keys. "Absent" and "at its default" are the same thing to a renderer.</summary>

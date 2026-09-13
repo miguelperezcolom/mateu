@@ -70,7 +70,6 @@
       },
       "pageType" : "form",
       "route" : "_empty",
-      "serverSideType" : "io.mateu.core.application.WireConformanceTest$StaticAbout",
       "staticView" : true,
       "type" : "ServerSide"
     },

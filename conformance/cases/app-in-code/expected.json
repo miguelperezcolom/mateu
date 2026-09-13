@@ -12,7 +12,6 @@
           "label" : "A",
           "path" : "/a",
           "route" : "/conformance/app-in-code/a",
-          "serverSideType" : "io.mateu.core.application.WireConformanceTest$AppInCode",
           "uriPrefix" : "/conformance/app-in-code",
           "visible" : true
         }, {
@@ -20,13 +19,11 @@
           "label" : "G",
           "path" : "/g",
           "route" : "/conformance/app-in-code/g",
-          "serverSideType" : "io.mateu.core.application.WireConformanceTest$AppInCode",
           "submenus" : [ {
             "consumedRoute" : "/conformance/app-in-code",
             "label" : "X",
             "path" : "/g/g/x",
             "route" : "/conformance/app-in-code/g/g/x",
-            "serverSideType" : "io.mateu.core.application.WireConformanceTest$AppInCode",
             "uriPrefix" : "/conformance/app-in-code",
             "visible" : true
           } ],
@@ -71,7 +68,6 @@
           }
         } ],
         "rootRoute" : "/conformance/app-in-code",
-        "serverSideType" : "io.mateu.core.application.WireConformanceTest$AppInCode",
         "title" : "App in code",
         "totalMenuOptions" : 3,
         "type" : "App",

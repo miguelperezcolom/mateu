@@ -340,7 +340,8 @@ class WireConformanceTest {
    * corpus report noise, and a check that reports noise gets ignored — so they are dropped on both
    * sides rather than argued about.
    */
-  private static final Set<String> VOLATILE = Set.of("id", "structureHash", "generatedAt");
+  private static final Set<String> VOLATILE =
+      Set.of("id", "structureHash", "generatedAt", "serverSideType", "targetComponentId");
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {

@@ -115,7 +115,6 @@
         "filter" : "true",
         "result" : "Continue"
       } ],
-      "serverSideType" : "io.mateu.core.application.WireConformanceTest$ClientRules",
       "type" : "ServerSide"
     },
     "state" : {

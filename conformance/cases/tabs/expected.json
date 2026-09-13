@@ -146,7 +146,6 @@
       },
       "pageType" : "form",
       "route" : "_empty",
-      "serverSideType" : "io.mateu.core.application.WireConformanceTest$Tabs",
       "type" : "ServerSide"
     },
     "state" : {

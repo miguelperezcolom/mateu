@@ -196,7 +196,6 @@
       },
       "pageType" : "form",
       "route" : "_empty",
-      "serverSideType" : "io.mateu.core.application.WireConformanceTest$SeparatorText",
       "type" : "ServerSide"
     },
     "state" : {

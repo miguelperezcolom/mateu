@@ -180,7 +180,7 @@ MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
 #: than argued about — a corpus that reports noise gets ignored.
-VOLATILE = {"id", "structureHash", "generatedAt"}
+VOLATILE = {"id", "structureHash", "generatedAt", "serverSideType", "targetComponentId"}
 
 
 def _is_default(value) -> bool:

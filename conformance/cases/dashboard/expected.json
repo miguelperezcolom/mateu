@@ -58,7 +58,6 @@
       } ],
       "pageType" : "dashboard",
       "route" : "_empty",
-      "serverSideType" : "io.mateu.core.application.WireConformanceTest$DashboardPage",
       "type" : "ServerSide"
     }
   } ]
