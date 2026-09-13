@@ -15,8 +15,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
 
     private readonly ReflectionMapper _mapper = new(translator, identity);
-    /// <summary>The mount's authored route registry (specs/ui/routes.yaml).</summary>
-    private readonly RouteRegistry _routes = new();
+    /// <summary>The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
+    /// contributed in code by IRouteEntrySupplier implementers (discovered by the MateuRegistry).</summary>
+    private readonly RouteRegistry _routes = new(supplied: registry.SuppliedRoutes);
 
     /// <summary>The loader builds its OWN registry: a field initialiser cannot reference another
     /// instance field, and routes.yaml is a small file each side parses once and caches, so sharing

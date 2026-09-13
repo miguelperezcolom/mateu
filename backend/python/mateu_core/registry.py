@@ -22,6 +22,10 @@ class MateuRegistry:
         self._by_route: dict[str, type] = {}
         self._by_name: dict[str, type] = {}
         self.app_type: type | None = None
+        # Routes contributed IN CODE by RouteEntrySupplier subclasses found among the sources,
+        # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
+        # (routes.yaml wins over them). Mirrors .NET's MateuRegistry.SuppliedRoutes.
+        self.supplied_routes: list = []
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -36,6 +40,21 @@ class MateuRegistry:
         if "__mateu_ui__" in cls.__dict__:
             self._by_route[normalize(cls.__dict__["__mateu_ui__"])] = cls
             self._by_name[type_name(cls)] = cls
+        self._register_route_supplier(cls)
+
+    def _register_route_supplier(self, cls: type) -> None:
+        """A RouteEntrySupplier subclass contributes its routes to the code-authored half. A broken
+        or non-instantiable supplier must not take route discovery down — it is skipped."""
+        from .route_registry import RouteEntrySupplier, flatten
+
+        if not (isinstance(cls, type) and issubclass(cls, RouteEntrySupplier)) or cls is RouteEntrySupplier:
+            return
+        try:
+            entries = cls().routes()
+            if entries:
+                self.supplied_routes.extend(flatten(entries))
+        except Exception:
+            pass
 
     def resolve(self, server_side_type: str | None, route: str | None) -> type | None:
         if server_side_type and server_side_type in self._by_name:

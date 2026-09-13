@@ -530,6 +530,42 @@ class GlobalSearchSupplier:
         raise NotImplementedError
 
 
+@dataclass
+class AppShell:
+    """A code-composed app shell: the chrome and the menu an :class:`AppSupplier` returns. The
+    lightweight Python counterpart of Java's fluent ``AppShell`` — the fields the port's app
+    metadata carries. A ``None`` field is not authored: the mapper falls back to the ``@app``
+    decorator (or, for the variant, the auto heuristic) and to the first menu item for the home
+    route. ``menu`` is a list of ``mateu_dtos.MenuItem`` composed in code (both leaf kinds: a route
+    link with ``route`` set, a rule link with ``rules`` set, plus submenus)."""
+
+    title: str | None = None
+    menu: list = dataclass_field(default_factory=list)
+    subtitle: str | None = None
+    variant: str | None = None
+    home_route: str | None = None
+
+
+class MenuSupplier:
+    """Implemented by the ``@app`` class to compose its navigation menu IN CODE at request time,
+    instead of (or in addition to) the static ``@menu_item``/``@remote_menu`` decorators — for a
+    menu that depends on the user, configuration, or a database. Returns the menu tree as
+    ``mateu_dtos.MenuItem`` s. The Python analogue of Java's ``MenuSupplier``."""
+
+    def menu(self) -> list:
+        raise NotImplementedError
+
+
+class AppSupplier:
+    """Implemented by the ``@app`` class to compose the WHOLE app shell IN CODE — its chrome and its
+    menu — instead of the ``@app``/``@menu_item`` decorators. Returns an :class:`AppShell`; fields
+    it leaves ``None`` fall back to the decorator / the derived menu. The Python analogue of Java's
+    ``AppSupplier``."""
+
+    def get_app(self) -> AppShell:
+        raise NotImplementedError
+
+
 @dataclass(frozen=True)
 class Lookup:
     """A remote, search-as-you-type reference field: renders a combo box whose options come from
@@ -1618,6 +1654,7 @@ __all__ = [
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
+    "AppShell", "AppSupplier", "MenuSupplier",
 ]
 
 

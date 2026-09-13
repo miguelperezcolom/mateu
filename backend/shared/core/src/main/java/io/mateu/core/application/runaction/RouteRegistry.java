@@ -7,6 +7,8 @@ import io.mateu.core.application.runaction.MountRegistry.Mount;
 import io.mateu.uidl.data.RestDataSource;
 import io.mateu.uidl.data.RouteEntry;
 import io.mateu.uidl.data.RouteTable;
+import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.interfaces.RouteEntrySupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.InputStream;
@@ -73,9 +75,14 @@ public class RouteRegistry {
 
   /**
    * The authored half alone (absolute routes across all mounts), cached. Route resolution consults
-   * only this one: the derived half is what the {@code RoutedClassProvider}s already carry, and
-   * they carry it better (they also serve the CRUD sub-routes). The merged {@link #table()} is what
-   * the static bundle ships, where there are no providers to ask.
+   * only this one: the derived (annotation) half is what the {@code RoutedClassProvider}s already
+   * carry, and they carry it better (they also serve the CRUD sub-routes). The merged {@link
+   * #table()} is what the static bundle ships, where there are no providers to ask.
+   *
+   * <p>The authored half has two producers of its own — data ({@code routes.yaml} and the {@code
+   * type: UI} mounts) and code (a {@link RouteEntrySupplier} bean) — merged so that <b>YAML wins
+   * over the code supplier</b>, the last-mile override that re-points a deployment without a
+   * rebuild.
    */
   public RouteTable authored() {
     var loaded = authored;
@@ -83,7 +90,9 @@ public class RouteRegistry {
       synchronized (this) {
         loaded = authored;
         if (loaded == null) {
-          loaded = authoredFrom(classLoader());
+          var cl = classLoader();
+          var yaml = authoredFrom(cl); // also populates `mounts`
+          loaded = yaml.mergedOver(suppliedFrom(cl));
           authored = loaded;
         }
       }
@@ -192,15 +201,79 @@ public class RouteRegistry {
   RouteTable load(ClassLoader classLoader) {
     var cl = classLoader == null ? RouteRegistry.class.getClassLoader() : classLoader;
     var derived = derivedFrom(cl);
+    var supplied = suppliedFrom(cl);
     var authoredTable = authoredFrom(cl);
-    var merged = authoredTable.mergedOver(derived);
+    // Precedence: routes.yaml > code supplier > annotation-derived.
+    var merged = authoredTable.mergedOver(supplied.mergedOver(derived));
     log.info(
-        "Route registry: {} entries ({} derived from annotations, {} authored across {} mount(s))",
+        "Route registry: {} entries ({} derived from annotations, {} supplied in code, {} authored"
+            + " across {} mount(s))",
         merged.routes().size(),
         derived.routes().size(),
+        supplied.routes().size(),
         authoredTable.routes().size(),
         mounts == null ? 0 : mounts.size());
     return merged;
+  }
+
+  /**
+   * The code-authored half: the entries contributed by {@link RouteEntrySupplier} beans. A supplier
+   * builds full {@link RouteEntry} objects — the same rich model {@code routes.yaml} authors, view
+   * models optional — so, unlike the annotation index, its routes join the AUTHORED side and are
+   * consulted by resolution. Routes are ABSOLUTE (a supplier is not tied to a mount); a nested
+   * {@code children} tree is flattened exactly like the YAML one, each child carrying its parent's
+   * absolute route. Never fails — a missing or throwing provider yields no routes, not an outage.
+   */
+  RouteTable suppliedFrom(ClassLoader classLoader) {
+    try {
+      var beans = MateuBeanProvider.getBeans(RouteEntrySupplier.class);
+      if (beans == null) {
+        return RouteTable.empty();
+      }
+      var entries = new ArrayList<RouteEntry>();
+      for (var bean : beans) {
+        var contributed = bean.routes();
+        if (contributed == null) {
+          continue;
+        }
+        for (var entry : contributed) {
+          if (entry != null && entry.route() != null) {
+            flattenEntry(entry, null, "", entries);
+          }
+        }
+      }
+      return new RouteTable(entries);
+    } catch (Throwable t) {
+      log.debug("Route registry: no route supplier beans available ({})", t.toString());
+      return RouteTable.empty();
+    }
+  }
+
+  /**
+   * Flattens one code-authored entry and its nested {@code children} into flat absolute entries,
+   * the object-tree twin of {@link #flattenNode} for the YAML path: a child's route is composed
+   * relative to its parent and carries the parent's absolute route as {@link RouteEntry#parent}.
+   */
+  private void flattenEntry(
+      RouteEntry node, String parentRoute, String prefix, List<RouteEntry> out) {
+    var relative = normalize(node.route());
+    var full = prefix.isEmpty() ? relative : relative.isEmpty() ? prefix : prefix + "/" + relative;
+    out.add(
+        new RouteEntry(
+            full,
+            node.definition(),
+            node.viewModel(),
+            node.fixedParams(),
+            node.defaultParams(),
+            parentRoute,
+            null,
+            node.state(),
+            node.appState(),
+            node.data(),
+            node.appData()));
+    for (var child : node.children()) {
+      flattenEntry(child, full, full, out);
+    }
   }
 
   /**

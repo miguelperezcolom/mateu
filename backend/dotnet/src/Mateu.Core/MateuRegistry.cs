@@ -12,10 +12,16 @@ public sealed class MateuRegistry
 
     public Type? AppType { get; }
 
+    /// <summary>The routes contributed IN CODE by <see cref="IRouteEntrySupplier"/> implementers found
+    /// in the scanned assemblies, already flattened to absolute entries. Fed to the RouteRegistry as
+    /// the code-authored half (routes.yaml wins over them).</summary>
+    public IReadOnlyList<RouteEntry> SuppliedRoutes { get; }
+
     public MateuRegistry(params Assembly[] assemblies)
     {
         var asms = assemblies.Length > 0 ? assemblies : [Assembly.GetEntryAssembly()!];
         _assemblies = asms;
+        var supplied = new List<RouteEntry>();
         foreach (var asm in asms)
         foreach (var type in asm.GetTypes())
         {
@@ -24,11 +30,26 @@ public sealed class MateuRegistry
                 AppType = type;
                 _byName[type.FullName!] = type;
             }
+            if (typeof(IRouteEntrySupplier).IsAssignableFrom(type)
+                && type is { IsAbstract: false, IsInterface: false }
+                && type.GetConstructor(Type.EmptyTypes) is not null)
+            {
+                try
+                {
+                    var entries = ((IRouteEntrySupplier)Activator.CreateInstance(type)!).Routes();
+                    if (entries is not null) supplied.AddRange(RouteRegistry.Flatten(entries));
+                }
+                catch
+                {
+                    // a broken supplier must not take route discovery down — skip it.
+                }
+            }
             var ui = type.GetCustomAttribute<UIAttribute>();
             if (ui is null) continue;
             _byRoute[Normalize(ui.Route)] = type;
             _byName[type.FullName!] = type;
         }
+        SuppliedRoutes = supplied;
     }
 
     /// <summary>Resolves the type for a request: by serverSideType, else by route, else the app shell at root.</summary>

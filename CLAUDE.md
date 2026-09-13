@@ -116,6 +116,21 @@ the one-to-one case.
   the entry outright. Only the authored half short-circuits `DefaultRoutedClassResolver.resolve`: the
   derived half is what the `RoutedClassProvider`s already carry, and they also serve the CRUD
   sub-routes (`/new`, `/{id}/edit`).
+- **Authored also has a CODE producer (`RouteEntrySupplier`, 2026-09-13).** A `RouteEntrySupplier`
+  bean returns `List<RouteEntry>` — the programmatic twin of `RestSourceCatalogSupplier` for routes,
+  so the full rich model (viewModel-less/definition-only routes, pinned params, one definition serving
+  N routes) is authorable in code, not only in YAML. It joins the **authored** side (so resolution
+  consults it), merged so **`routes.yaml` > code supplier > derived-annotations**; `RouteRegistry`
+  discovers it via `MateuBeanProvider.getBeans` and `suppliedFrom` flattens `children`. **App shells +
+  menus are likewise code-authorable** — Java already had `AppSupplier`/`MenuSupplier` (+ fluent
+  `AppShell`); pinned by `AppSupplierSyncTest`. Full parity: .NET `IRouteEntrySupplier`/`IAppSupplier`/
+  `IMenuSupplier` + `AppShell` (discovered by scanning assemblies in `MateuRegistry`; `RouteRegistry`
+  ctor takes `supplied`), Python `RouteEntrySupplier`/`AppSupplier`/`MenuSupplier` + `AppShell`
+  (scanned in `MateuRegistry`; Python's `RouteEntry` has NO `children` — suppliers author flat entries
+  with `parent` set). The ports' suppliers are parameterless (the port idiom, like `IAppActionsSupplier`),
+  not request-scoped. Tests: `RouteEntrySupplierSyncTest`/`AppSupplierSyncTest` (Java, 7),
+  `CodeAuthoringTests` (.NET, 7), `test_code_authoring.py` (Python, 7). Docs:
+  `route-registry.md#authoring-routes-in-code`, `navigation-and-menus.md#app-shells-and-menus-in-code`.
 - **Routes are RELATIVE to the mount**, so two federated domains can each have an `orders` screen.
 - **Parameter precedence** — identical on the server, in `libs/mateu` and in the VB core, because
   route resolution also runs in the browser: `fixed > client state > path > query > defaults`.
