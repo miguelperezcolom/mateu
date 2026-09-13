@@ -4131,6 +4131,9 @@
         },
         "condition" : {
           "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
         }
       }
     },
@@ -4153,6 +4156,9 @@
         },
         "timeoutMillis" : {
           "type" : "integer"
+        },
+        "background" : {
+          "type" : "boolean"
         }
       }
     },

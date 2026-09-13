@@ -375,7 +375,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     } else {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
-                                actionId: onloadTrigger.actionId
+                                actionId: onloadTrigger.actionId,
+                                background: onloadTrigger.background
                             },
                             bubbles: true,
                             composed: true
@@ -395,6 +396,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: onloadTrigger.actionId,
+                    background: onloadTrigger.background,
                     callbackToken
                 },
                 bubbles: true,

@@ -402,6 +402,9 @@ export class MateuComponent extends ComponentElement {
             callbackonly: boolean,
             initiatorComponentId: string,
             callbackToken: string,
+            // A trigger (OnLoad/OnSuccess) can force the call to run as a silent background refresh
+            // even when the action itself is not declared background — a status poll wants no veil.
+            background?: boolean,
             _originElement?: Element
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
@@ -718,7 +721,8 @@ export class MateuComponent extends ComponentElement {
         callback: (() => void) | undefined,
         callbackonly: boolean,
         initiatorComponentId: string,
-        callbackToken: string
+        callbackToken: string,
+        background?: boolean
     }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
@@ -770,8 +774,10 @@ export class MateuComponent extends ComponentElement {
 
         // Double-submit guard + local busy state. A `background` action (autosave, polling) is
         // invisible by design and must never dim a control nor block its own next run, so it
-        // opts out entirely.
-        if (!action?.background) {
+        // opts out entirely. A trigger (OnLoad/OnSuccess poll) can force background even when the
+        // action itself is not declared background — a status re-fetch should refresh in silence.
+        const background = detail.background ?? action?.background
+        if (!background) {
             // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
             // second POST of a write means a second row; a second read means fresher data. Worse,
             // blocking them would break type-ahead: while the search for "ma" is in flight the
@@ -807,7 +813,7 @@ export class MateuComponent extends ComponentElement {
                 serverSideComponentRoute: serverSideComponent.route,
                 initiatorComponentId: detail.initiatorComponentId??serverSideComponent.id,
                 initiator: this,
-                background: action?.background,
+                background,
                 sse: action?.sse,
                 timeoutMillis: action?.timeoutMillis,
                 idempotent: action?.idempotent,
@@ -837,6 +843,7 @@ export class MateuComponent extends ComponentElement {
                                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                     detail: {
                                         actionId: trigger.actionId,
+                                        background: trigger.background,
                                         callbackToken
                                     },
                                     bubbles: true,
@@ -846,7 +853,8 @@ export class MateuComponent extends ComponentElement {
                         } else {
                             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                 detail: {
-                                    actionId: trigger.actionId
+                                    actionId: trigger.actionId,
+                                    background: trigger.background
                                 },
                                 bubbles: true,
                                 composed: true
