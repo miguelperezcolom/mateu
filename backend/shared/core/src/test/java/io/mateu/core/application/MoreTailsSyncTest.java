@@ -77,6 +77,30 @@ class MoreTailsSyncTest {
     }
   }
 
+  // ── background (silent refresh) polling triggers ────────────────────────────
+
+  @SuppressWarnings("unused")
+  @UI("/polling")
+  public static class PollingForm implements TriggersSupplier {
+    String status = "RUNNING";
+
+    @Action
+    void refresh(HttpRequest httpRequest) {}
+
+    @Override
+    public List<Trigger> triggers(HttpRequest httpRequest) {
+      return List.of(
+          // a status poll that re-fetches in silence: no loading veil on each tick
+          new OnLoadTrigger("refresh", 2000, 1, null, true),
+          OnSuccessTrigger.builder()
+              .actionId("refresh")
+              .calledActionId("refresh")
+              .timeoutMillis(2000)
+              .background(true)
+              .build());
+    }
+  }
+
   // ── buttons with confirmation / row-selection flags ─────────────────────────
 
   @SuppressWarnings("unused")
@@ -121,7 +145,11 @@ class MoreTailsSyncTest {
   static void boot() {
     mateu =
         TestMateu.withUis(
-            OrdersViewModel.class, MonitoredForm.class, DangerForm.class, QuirksForm.class);
+            OrdersViewModel.class,
+            MonitoredForm.class,
+            PollingForm.class,
+            DangerForm.class,
+            QuirksForm.class);
   }
 
   @AfterAll
@@ -198,6 +226,38 @@ class MoreTailsSyncTest {
               var onSuccess = (io.mateu.dtos.OnSuccessTriggerDto) trigger;
               assertThat(onSuccess.calledActionId()).isEqualTo("persist");
             });
+  }
+
+  @Test
+  void backgroundPollingTriggersCarryTheBackgroundFlagOnTheWire() {
+    var component = server(mateu.sync("/polling"));
+    // OnLoad poll marked background → the wire says so, so the frontend refreshes without the veil
+    assertThat(component.triggers())
+        .anySatisfy(
+            trigger -> {
+              assertThat(trigger).isInstanceOf(io.mateu.dtos.OnLoadTriggerDto.class);
+              var onLoad = (io.mateu.dtos.OnLoadTriggerDto) trigger;
+              assertThat(onLoad.actionId()).isEqualTo("refresh");
+              assertThat(onLoad.background()).isTrue();
+            });
+    assertThat(component.triggers())
+        .anySatisfy(
+            trigger -> {
+              assertThat(trigger).isInstanceOf(io.mateu.dtos.OnSuccessTriggerDto.class);
+              var onSuccess = (io.mateu.dtos.OnSuccessTriggerDto) trigger;
+              assertThat(onSuccess.background()).isTrue();
+            });
+  }
+
+  @Test
+  void ordinaryTriggersStayForegroundOnTheWire() {
+    // the MonitoredForm's OnLoad/OnSuccess declare no background → false, so the veil still shows
+    var component = server(mateu.sync("/monitored"));
+    assertThat(component.triggers())
+        .filteredOn(trigger -> trigger instanceof io.mateu.dtos.OnLoadTriggerDto)
+        .allSatisfy(
+            trigger ->
+                assertThat(((io.mateu.dtos.OnLoadTriggerDto) trigger).background()).isFalse());
   }
 
   // ── action confirmation flags ───────────────────────────────────────────────

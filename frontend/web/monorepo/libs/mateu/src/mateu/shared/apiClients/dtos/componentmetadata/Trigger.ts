@@ -13,5 +13,7 @@ export default interface Trigger {
     // For OnCustomEvent triggers: where to listen and, for COMPONENT scope, the source to match.
     source?: 'DOCUMENT' | 'COMPONENT' | 'SELF'
     from?: string
+    // OnLoad/OnSuccess: run the triggered action as a silent background refresh (no loading veil).
+    background?: boolean
 
 }

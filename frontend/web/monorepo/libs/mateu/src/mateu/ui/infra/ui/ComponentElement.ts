@@ -209,7 +209,26 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
                 this.state = { ...this.state, ...fragment.state }
             }
-            this._lastOwnState = this.state
+            // `_lastOwnState` is the value THIS element last committed — the authority
+            // _keepEditedFieldValues restores an edited field to when the parent re-binds `.state`
+            // with an older copy. Adopting `this.state` wholesale poisons it: a fragment that does
+            // NOT carry a field the user is still editing (a data-only search response, a poll of a
+            // sibling widget) runs here while `this.state` may already hold a STALE parent re-bind
+            // of that field — captured as "our own", the defence then resurrects the pre-edit value
+            // on the next render (a removed search/filter chip reappearing on a self-refreshing
+            // page). Keep the edited field's own last value for anything the fragment did not speak
+            // about; the server's own words (fragment.state) still win.
+            const priorOwn = this._lastOwnState
+            let nextOwn = this.state
+            if (priorOwn) {
+                this._locallyEdited.forEach(fieldId => {
+                    const carried = fragment.state != null && fieldId in fragment.state
+                    if (!carried && nextOwn[fieldId] !== priorOwn[fieldId]) {
+                        nextOwn = { ...nextOwn, [fieldId]: priorOwn[fieldId] }
+                    }
+                })
+            }
+            this._lastOwnState = nextOwn
 
             if (fragment.data) {
                 for (const key in fragment.data) {
@@ -310,13 +329,20 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         if (viewChanged || !changed.has('state') || this._locallyEdited.size === 0) return
         // Our own change (a fragment merge, or the keystroke that just happened) is authoritative.
         if (this.state === this._lastOwnState) return
-        const previous = changed.get('state') as Record<string, any> | undefined
-        if (!previous) return
+        // Restore each edited field to the value THIS element last committed — `_lastOwnState`, its
+        // own authoritative copy — NOT to `changed.get('state')` (the value before the parent's
+        // re-bind). The two agree for an ordinary edit, but they INVERT when the user CLEARS an
+        // already-edited field: the parent re-binds the pre-clear value on top, so `changed` holds
+        // the stale value while `_lastOwnState` holds the clear. Restoring `changed` there brought
+        // back the value the user had just removed — a cleared filter's chip reappeared. Restoring
+        // `_lastOwnState` keeps the clear.
+        const own = this._lastOwnState as Record<string, any> | undefined
+        if (!own) return
         let restored: Record<string, any> | undefined
         this._locallyEdited.forEach(fieldId => {
-            if (fieldId in previous && previous[fieldId] !== this.state?.[fieldId]) {
+            if (own[fieldId] !== this.state?.[fieldId]) {
                 restored = restored ?? { ...this.state }
-                restored[fieldId] = previous[fieldId]
+                restored[fieldId] = own[fieldId]
             }
         })
         if (restored) this.state = restored
@@ -349,7 +375,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                     } else {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
-                                actionId: onloadTrigger.actionId
+                                actionId: onloadTrigger.actionId,
+                                background: onloadTrigger.background
                             },
                             bubbles: true,
                             composed: true
@@ -369,6 +396,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: onloadTrigger.actionId,
+                    background: onloadTrigger.background,
                     callbackToken
                 },
                 bubbles: true,

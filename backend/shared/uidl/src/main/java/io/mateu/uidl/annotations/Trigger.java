@@ -23,4 +23,11 @@ public @interface Trigger {
   String propertyName() default "";
 
   String eventName() default "";
+
+  /**
+   * Run the triggered action as a silent background refresh — no loading veil, no busy affordance.
+   * For {@code OnLoad}/{@code OnSuccess} status polls that re-fetch a screen in place; leave false
+   * (the default) for a first-load fetch that should show the veil.
+   */
+  boolean background() default false;
 }
