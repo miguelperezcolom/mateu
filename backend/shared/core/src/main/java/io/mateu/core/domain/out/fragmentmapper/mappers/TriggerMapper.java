@@ -29,7 +29,11 @@ public class TriggerMapper {
                         switch (trigger) {
                           case OnLoadTrigger t ->
                               new OnLoadTrigger(
-                                  t.actionId(), t.timeoutMillis(), t.times(), t.condition());
+                                  t.actionId(),
+                                  t.timeoutMillis(),
+                                  t.times(),
+                                  t.condition(),
+                                  t.background());
                           case OnCustomEventTrigger t ->
                               new OnCustomEventTrigger(
                                   t.actionId(), t.eventName(), t.condition(), t.source(), t.from());
@@ -38,7 +42,8 @@ public class TriggerMapper {
                                   t.actionId(),
                                   t.calledActionId(),
                                   t.condition(),
-                                  t.timeoutMillis());
+                                  t.timeoutMillis(),
+                                  t.background());
                           case OnErrorTrigger t ->
                               new OnErrorTrigger(t.actionId(), t.calledActionId(), t.condition());
                           case OnValueChangeTrigger t ->
@@ -107,6 +112,7 @@ public class TriggerMapper {
               .calledActionId(annotation.calledActionId())
               .condition(annotation.condition())
               .timeoutMillis(annotation.timeoutMillis())
+              .background(annotation.background())
               .build();
       case OnError ->
           OnErrorTrigger.builder()
@@ -126,6 +132,7 @@ public class TriggerMapper {
               .condition(annotation.condition())
               .timeoutMillis(annotation.timeoutMillis())
               .times(annotation.times())
+              .background(annotation.background())
               .build();
     };
   }
@@ -152,12 +159,14 @@ public class TriggerMapper {
             String actionId,
             String calledActionId,
             String condition,
-            int timeoutMillis)) {
+            int timeoutMillis,
+            boolean background)) {
       return OnSuccessTriggerDto.builder()
           .actionId(actionId)
           .calledActionId(calledActionId)
           .condition(condition)
           .timeoutMillis(timeoutMillis)
+          .background(background)
           .build();
     }
     if (trigger
@@ -183,6 +192,7 @@ public class TriggerMapper {
           .timeoutMillis(onLoadTrigger.timeoutMillis())
           // was a duplicated .timeoutMillis(...) — times never reached the wire (always 0)
           .times(onLoadTrigger.times())
+          .background(onLoadTrigger.background())
           .build();
     }
     throw new RuntimeException("not supported trigger: " + trigger.getClass().getName());
