@@ -37,6 +37,144 @@ public class ConformancePageHeader
     public string? Notes { get; set; } = "";
 }
 
+[UI("conformance/tabs"), Title("Tabs")]
+public class ConformanceTabs
+{
+    [Tab("General")]
+    public string? Name { get; set; } = "Ada";
+
+    [Tab("General")]
+    public string? Email { get; set; } = "ada@example.com";
+
+    [Tab("Details")]
+    public string? Role { get; set; } = "Analyst";
+
+    [Tab("Details")]
+    public string? City { get; set; } = "London";
+}
+
+// Zoned layout: sections distributed into side-by-side columns with flex-basis widths.
+// (.NET declares zones as repeatable [Zone] attributes rather than Java's @Zones container —
+// declaration syntax only, same semantics on the wire.)
+[UI("conformance/zones"), Title("Zoned form")]
+[Zone("left", "64%"), Zone("right", "36%")]
+public class ConformanceZonedForm
+{
+    [Section("Main", Zone = "left")]
+    public string? Name { get; set; } = "Ada";
+
+    [Section("Side", Zone = "right")]
+    public string? Notes { get; set; } = "Quiet";
+}
+
+[UI("conformance/money-field"), Title("Money field")]
+public class ConformanceMoneyField
+{
+    [Money]
+    public decimal Price { get; set; } = 1250.5m;
+
+    [PlainText, Money]
+    public decimal Total { get; set; } = 99.5m;
+}
+
+[UI("conformance/banner"), Title("Banner page")]
+public class ConformanceBanner
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Banner(BannerTheme.Info, "Heads up")]
+    public string Info() => "Something to note";
+}
+
+[UI("conformance/fab"), Title("Fab page")]
+public class ConformanceFab
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Fab("vaadin:plus", "Add")]
+    public Message Add() => new("Added");
+}
+
+/// <summary>Section decorations: property-list rows, a separator above a field, a sized text.</summary>
+[UI("conformance/separator-text"), Title("Guest file")]
+public class ConformanceSeparatorText
+{
+    [Section("Documento", PropertyList = true)]
+    public string? Documento { get; set; } = "12345678X";
+
+    public string? Nombre { get; set; } = "María";
+
+    [Section("Contacto")]
+    public string? Telefono { get; set; } = "+34 600 000 000";
+
+    [SeparatorBefore]
+    public string? Email { get; set; } = "maria@example.com";
+
+    // NOTE: Java renders this as a sized @Text(size = xl) component. .NET has no declarative
+    // [Text] field marker (the Text component is fluent-only), so the field travels as an
+    // ordinary form field here — a port difference worth recording rather than papering over.
+    public string? Titular { get; set; } = "Bienvenida";
+}
+
+[UI("conformance/client-rules"), Title("Client rules")]
+public class ConformanceClientRules
+{
+    // Declared before the [Hidden] property on purpose: Java emits all disabled rules before the
+    // hidden ones, the ports emit per field in declaration order — this order makes them agree.
+    [Disabled] public string? Code { get; set; } = "X-1";
+
+    public bool Special { get; set; }
+
+    [Hidden("!state.special")] public string? Nickname { get; set; } = "";
+}
+
+[UI("conformance/static-view"), Title("About"), StaticView]
+public class ConformanceStaticAbout
+{
+    public string? Heading { get; set; } = "This page never changes";
+}
+
+// Small-enum inference: under [AutoLayout] an enum with <= 4 constants renders as radio buttons
+// (stereotype "radio"), not a dropdown — with its options on the wire.
+[UI("conformance/small-enum-radio"), Title("Small enum radio"), AutoLayout]
+public class ConformanceSmallEnumRadio
+{
+    public ConformanceSize Size { get; set; } = ConformanceSize.MEDIUM;
+}
+
+public enum ConformanceSize { SMALL, MEDIUM, LARGE }
+
+[UI("conformance/dashboard"), Title("Ops dashboard")]
+public class ConformanceDashboard : Dashboard
+{
+    public MetricCard Revenue { get; } = new()
+    {
+        Title = "Revenue", Value = "1.2", Unit = "M€", Trend = MetricTrend.Up, TrendLabel = "+8%",
+    };
+
+    public MetricCard Occupancy { get; } = new() { Title = "Occupancy", Value = "87%" };
+
+    [Panel(Title = "Notes", Subtitle = "Today")]
+    public Text Notes { get; } = new("All systems nominal");
+}
+
+/// <summary>An app whose shell and its whole menu are composed IN CODE via IAppSupplier —
+/// mirrors the Java AppInCode fixture. The [App] title doubles as the window title (the .NET
+/// analogue of Java's @Title on the AppSupplier class).</summary>
+[UI("conformance/app-in-code"), App("App in code")]
+public class ConformanceAppInCode : IAppSupplier
+{
+    public AppShell GetApp() => new("App in code", new List<MenuItemDto>
+    {
+        new("A", "/a", ""),
+        new("G", "/g", "") { Submenus = new List<MenuItemDto> { new("X", "/g/x", "") } },
+    })
+    {
+        HomeRoute = "/a",
+        Variant = "MENU_ON_TOP",
+    };
+}
+
 /// <summary>
 /// The .NET half of the shared wire conformance corpus (see <c>conformance/README.md</c>).
 ///
@@ -112,6 +250,17 @@ public class WireConformanceTests
     {
         { "simple-form", typeof(ConformanceSimpleForm) },
         { "page-header", typeof(ConformancePageHeader) },
+        { "tabs", typeof(ConformanceTabs) },
+        { "zones", typeof(ConformanceZonedForm) },
+        { "money-field", typeof(ConformanceMoneyField) },
+        { "banner", typeof(ConformanceBanner) },
+        { "fab", typeof(ConformanceFab) },
+        { "separator-text", typeof(ConformanceSeparatorText) },
+        { "client-rules", typeof(ConformanceClientRules) },
+        { "static-view", typeof(ConformanceStaticAbout) },
+        { "small-enum-radio", typeof(ConformanceSmallEnumRadio) },
+        { "dashboard", typeof(ConformanceDashboard) },
+        { "app-in-code", typeof(ConformanceAppInCode) },
     };
 
     [Theory, MemberData(nameof(Cases))]

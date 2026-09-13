@@ -1,0 +1,210 @@
+{
+  "commands" : [ {
+    "data" : "Guest file",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Documento",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "documento",
+                        "label" : "Documento",
+                        "optionsColumns" : 1,
+                        "propertyRow" : true,
+                        "readOnly" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "nombre",
+                        "label" : "Nombre",
+                        "optionsColumns" : 1,
+                        "propertyRow" : true,
+                        "readOnly" : true,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "horizontalAlignment" : "STRETCH",
+                      "type" : "VerticalLayout"
+                    },
+                    "style" : "width: 100%;",
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;",
+            "type" : "ClientSide"
+          }, {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Contacto",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "telefono",
+                          "label" : "Telefono",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "attributes" : {
+                            "data-colspan" : "2"
+                          },
+                          "type" : "Separator"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "email",
+                          "label" : "Email",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      }, {
+                        "metadata" : {
+                          "container" : "p",
+                          "size" : "xl",
+                          "text" : "${state.titular}",
+                          "type" : "Text"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 2,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;",
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "spacing" : true,
+            "type" : "VerticalLayout"
+          },
+          "style" : "width: 100%;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Separator text",
+          "pageType" : "form",
+          "title" : "Guest file",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "documento" : "12345678X",
+        "email" : "maria@example.com",
+        "nombre" : "María",
+        "telefono" : "+34 600 000 000",
+        "titular" : "Bienvenida"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$SeparatorText",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "documento" : "12345678X",
+      "email" : "maria@example.com",
+      "nombre" : "María",
+      "telefono" : "+34 600 000 000",
+      "titular" : "Bienvenida"
+    }
+  } ]
+}

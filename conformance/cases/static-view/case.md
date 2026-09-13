@@ -1,0 +1,3 @@
+# static-view
+
+Pins that the @StaticView class marker reaches the wire as the component envelope's staticView=true flag. This flag is the client's whole-session response cache contract: a port that drops it silently loses the skip-the-round-trip optimisation, and one that emits it spuriously would freeze dynamic pages at their first rendering for the rest of the session. Because the corpus normaliser drops false/default members, only a true value ever survives comparison — so this case is the only way the corpus can see the flag at all. The fixture is deliberately a single-field constant page, the exact shape the annotation is documented for (a static about/help screen).

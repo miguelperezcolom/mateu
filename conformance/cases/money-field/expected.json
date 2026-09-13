@@ -1,0 +1,94 @@
+{
+  "commands" : [ {
+    "data" : "Money field",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "number",
+                        "fieldId" : "price",
+                        "label" : "Price",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "money",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "money",
+                        "fieldId" : "total",
+                        "label" : "Total",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "plainText",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Money field",
+          "pageType" : "form",
+          "title" : "Money field",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "price" : 1250.5,
+        "total" : 99.5
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$MoneyField",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "price" : 1250.5,
+      "total" : 99.5
+    }
+  } ]
+}

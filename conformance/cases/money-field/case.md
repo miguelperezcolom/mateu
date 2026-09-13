@@ -1,0 +1,7 @@
+# money-field
+
+**Pins:** how money intent travels on the wire for a numeric field — a contract deliberately split across two members. An editable `BigDecimal` declared money keeps `dataType: "number"` (the money editor takes a plain number) and carries the intent as `stereotype: "money"`; the same declaration in a plain-text context flips to `stereotype: "plainText"` (dense read-only rendering) and the formatting intent moves to `dataType: "money"`. Worth pinning because a two-channel contract is exactly what a port implements halfway: the stereotype half is easy to copy, the dataType upgrade in plain-text context is easy to miss — and both ports miss it today, so this case makes that gap visible instead of leaving each renderer to discover unformatted amounts on read-only screens.
+
+## Known divergence
+
+Both ports diverge on the plain-text member: Java upgrades it to dataType "money" (FieldTypeMapper.getDataType's money+plainText branch) while .NET and Python emit dataType "number" — neither InferDataType (ReflectionMapper.cs) nor infer_data_type (mapper.py) has a money branch, so in plain-text context the formatting intent is lost (stereotype becomes "plainText" in all three, correctly). The editable field agrees in all three (dataType "number", stereotype "money"). On top of that, the pre-existing whole-corpus divergences apply: Python's structural section nesting and initialValue-on-FormField members (documented at simple-form), and .NET's "boolean"-vs-"bool" naming does not arise here (no boolean field).

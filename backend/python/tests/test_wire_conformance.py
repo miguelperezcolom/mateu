@@ -23,6 +23,10 @@ from mateu_uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  #
 from typing import Annotated  # noqa: E402
 from datetime import date  # noqa: E402
 from enum import Enum  # noqa: E402
+from decimal import Decimal  # noqa: E402
+from mateu_dtos import MenuItem  # noqa: E402
+from mateu_uidl import AppShell, AppSupplier, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
+from mateu_uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
 
 
 class Colour(str, Enum):
@@ -50,6 +54,126 @@ class PageHeader:
     amount: Annotated[str, kpi("Amount")] = "1,240 €"
     updated_at: Annotated[str, Timestamp("Last updated")] = "2026-07-20 12:00"
     notes: str = ""
+
+
+@ui("/conformance/tabs")
+@title("Tabs")
+class Tabs:
+    name: Annotated[str, Tab("General")] = "Ada"
+    email: Annotated[str, Tab("General")] = "ada@example.com"
+    role: Annotated[str, Tab("Details")] = "Analyst"
+    city: Annotated[str, Tab("Details")] = "London"
+
+
+@ui("/conformance/zones")
+@title("Zoned form")
+@zones(("left", "64%"), ("right", "36%"))
+class ZonedForm:
+    name: Annotated[str, Section("Main", zone="left")] = "Ada"
+    notes: Annotated[str, Section("Side", zone="right")] = "Quiet"
+
+
+@ui("/conformance/money-field")
+@title("Money field")
+class MoneyField:
+    price: Annotated[Decimal, Money()] = Decimal("1250.5")
+    total: Annotated[Decimal, Money(), PlainText()] = Decimal("99.5")
+
+
+@ui("/conformance/banner")
+@title("Banner page")
+class BannerPage:
+    name: str = "Ada"
+
+    @banner(BannerTheme.INFO, "Heads up")
+    def info(self) -> str:
+        return "Something to note"
+
+
+@ui("/conformance/fab")
+@title("Fab page")
+class FabPage:
+    name: str = "Ada"
+
+    @fab("vaadin:plus", "Add")
+    def add(self) -> Message:
+        return Message("Added")
+
+
+@ui("/conformance/separator-text")
+@title("Guest file")
+class SeparatorText:
+    """Section decorations: property-list rows, a separator above a field, a sized text."""
+
+    documento: Annotated[str, Section("Documento", property_list=True)] = "12345678X"
+    nombre: str = "María"
+    telefono: Annotated[str, Section("Contacto")] = "+34 600 000 000"
+    email: Annotated[str, SeparatorBefore()] = "maria@example.com"
+    # Java renders this as a sized @Text(size=xl) component; Python has no declarative Text
+    # field marker (fluent-only), so it travels as an ordinary form field — a documented gap.
+    titular: str = "Bienvenida"
+
+
+@ui("/conformance/client-rules")
+@title("Client rules")
+class ClientRules:
+    # Declared before the Hidden field on purpose: Java emits all disabled rules before the
+    # hidden ones, the ports emit per field in declaration order — this order makes them agree.
+    code: Annotated[str, Disabled()] = "X-1"
+    special: bool = False
+    nickname: Annotated[str, Hidden("!state.special")] = ""
+
+
+@ui("/conformance/static-view")
+@title("About")
+@static_view
+class StaticAbout:
+    heading: str = "This page never changes"
+
+
+class Size(Enum):
+    SMALL = 1
+    MEDIUM = 2
+    LARGE = 3
+
+
+@ui("/conformance/small-enum-radio")
+@title("Small enum radio")
+@auto_layout
+class SmallEnumRadio:
+    size: Size = Size.MEDIUM
+
+
+@ui("/conformance/dashboard")
+@title("Ops dashboard")
+class DashboardPage(Dashboard):
+    revenue: MetricCard = MetricCard(
+        title="Revenue", value="1.2", unit="M€", trend=MetricTrend.up, trend_label="+8%"
+    )
+    occupancy: MetricCard = MetricCard(title="Occupancy", value="87%")
+    notes: Annotated[Text, Panel("Notes", subtitle="Today")] = Text(text="All systems nominal")
+
+
+@ui("/conformance/app-in-code")
+@app("App in code")
+class AppInCode(AppSupplier):
+    """An app whose shell and its whole menu are composed IN CODE via AppSupplier."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="App in code",
+            variant="MENU_ON_TOP",
+            home_route="/a",
+            menu=[
+                MenuItem(label="A", route="/a", server_side_type=""),
+                MenuItem(
+                    label="G",
+                    route="/g",
+                    server_side_type="",
+                    submenus=[MenuItem(label="X", route="/g/x", server_side_type="")],
+                ),
+            ],
+        )
 
 
 MODULE = sys.modules[__name__]
@@ -96,7 +220,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode)]
 
 
 @pytest.mark.parametrize("case,view", CASES)

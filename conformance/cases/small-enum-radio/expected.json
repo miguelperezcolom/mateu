@@ -1,0 +1,90 @@
+{
+  "commands" : [ {
+    "data" : "Small enum radio",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "size",
+                        "label" : "Size",
+                        "options" : [ {
+                          "label" : "SMALL",
+                          "value" : "SMALL"
+                        }, {
+                          "label" : "MEDIUM",
+                          "value" : "MEDIUM"
+                        }, {
+                          "label" : "LARGE",
+                          "value" : "LARGE"
+                        } ],
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "radio",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Small enum radio",
+          "pageType" : "form",
+          "title" : "Small enum radio",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "size" : "MEDIUM"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$SmallEnumRadio",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "size" : "MEDIUM"
+    }
+  } ]
+}

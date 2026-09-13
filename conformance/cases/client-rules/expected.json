@@ -1,0 +1,125 @@
+{
+  "commands" : [ {
+    "data" : "Client rules",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "code",
+                        "label" : "Code",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "bool",
+                        "fieldId" : "special",
+                        "label" : "Special",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "nickname",
+                        "label" : "Nickname",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Client rules",
+          "pageType" : "form",
+          "title" : "Client rules",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "code" : "X-1"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "rules" : [ {
+        "action" : "SetDataValue",
+        "expression" : "true",
+        "fieldAttribute" : "disabled",
+        "fieldName" : "code",
+        "filter" : "true",
+        "result" : "Continue"
+      }, {
+        "action" : "SetDataValue",
+        "expression" : "!state.special",
+        "fieldAttribute" : "hidden",
+        "fieldName" : "nickname",
+        "filter" : "true",
+        "result" : "Continue"
+      } ],
+      "serverSideType" : "io.mateu.core.application.WireConformanceTest$ClientRules",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "code" : "X-1"
+    }
+  } ]
+}
