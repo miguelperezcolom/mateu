@@ -209,7 +209,26 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
                 this.state = { ...this.state, ...fragment.state }
             }
-            this._lastOwnState = this.state
+            // `_lastOwnState` is the value THIS element last committed — the authority
+            // _keepEditedFieldValues restores an edited field to when the parent re-binds `.state`
+            // with an older copy. Adopting `this.state` wholesale poisons it: a fragment that does
+            // NOT carry a field the user is still editing (a data-only search response, a poll of a
+            // sibling widget) runs here while `this.state` may already hold a STALE parent re-bind
+            // of that field — captured as "our own", the defence then resurrects the pre-edit value
+            // on the next render (a removed search/filter chip reappearing on a self-refreshing
+            // page). Keep the edited field's own last value for anything the fragment did not speak
+            // about; the server's own words (fragment.state) still win.
+            const priorOwn = this._lastOwnState
+            let nextOwn = this.state
+            if (priorOwn) {
+                this._locallyEdited.forEach(fieldId => {
+                    const carried = fragment.state != null && fieldId in fragment.state
+                    if (!carried && nextOwn[fieldId] !== priorOwn[fieldId]) {
+                        nextOwn = { ...nextOwn, [fieldId]: priorOwn[fieldId] }
+                    }
+                })
+            }
+            this._lastOwnState = nextOwn
 
             if (fragment.data) {
                 for (const key in fragment.data) {
