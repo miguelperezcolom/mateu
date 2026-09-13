@@ -14,6 +14,7 @@ const componentElement = (over: Record<string, any> = {}) => ({
     state: {} as Record<string, any>,
     data: {} as Record<string, any>,
     _locallyEdited: new Set<string>(),
+    _lastOwnState: undefined as Record<string, any> | undefined,
     callbackToken: '',
     requestUpdate: () => {},
     registerCustomEventListeners: () => {},
@@ -82,6 +83,51 @@ describe('applyFragment', () => {
 
         expect(el.state.crudChrome).toBe('back to list')
         expect(el.data.rows).toEqual([1])
+    })
+
+    it('does not adopt a stale re-bind of an edited field as its own on a state-less fragment', () => {
+        // The reproduction from a self-refreshing page (eventconductor's Processes listing: a
+        // sibling widget polls every couple of seconds, re-rendering the parent, which re-binds the
+        // listing's `.state` with its older copy). The user removed the search chip — _lastOwnState
+        // holds the clear ('') — but a poll had already re-bound the pre-clear 'a' into this.state.
+        // A data-only search response then reaches applyFragment: adopting this.state wholesale as
+        // `_lastOwnState` captured that stale 'a' as "our own", and from then on
+        // _keepEditedFieldValues "restored" 'a' on every render — the removed chip reappeared though
+        // the search already ignored it. The fix keeps the edited field's own last value for
+        // anything the fragment did not carry.
+        const el = componentElement({
+            component: serverSide('Processes'),
+            state: { searchText: 'a', crudChrome: 'x' },        // stale parent re-bind sitting here
+            _lastOwnState: { searchText: '', crudChrome: 'x' },  // our own last commit: the clear
+            _locallyEdited: new Set(['searchText']),
+        })
+        el.applyFragment({
+            targetComponentId: 'target',
+            action: UIFragmentAction.Replace,
+            data: { crud: { page: { content: [1] } } },
+        } as unknown as UIFragment)
+        // the edited field the fragment did not carry keeps our own cleared value, not the stale one
+        expect(el._lastOwnState!.searchText).toBe('')
+        // and a field the server DID speak about (none here) or chrome we never edited is unaffected
+        expect(el._lastOwnState!.crudChrome).toBe('x')
+    })
+
+    it('still lets the server override an edited field it carries', () => {
+        // The other side of the same coin: when the fragment DOES carry the edited field, the
+        // server is authoritative — _lastOwnState must take the server's value, not preserve ours.
+        const el = componentElement({
+            component: serverSide('Processes'),
+            state: { searchText: 'NORMALISED' },
+            _lastOwnState: { searchText: 'typed' },
+            _locallyEdited: new Set(['searchText']),
+        })
+        el.applyFragment({
+            targetComponentId: 'target',
+            action: UIFragmentAction.Replace,
+            state: { searchText: 'NORMALISED' },
+        } as unknown as UIFragment)
+        expect(el._lastOwnState!.searchText).toBe('NORMALISED')
+        expect(el._locallyEdited.has('searchText')).toBe(false)
     })
 
     it('ignores a fragment aimed at another component', () => {
