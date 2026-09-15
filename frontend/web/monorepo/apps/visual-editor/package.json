@@ -16,11 +16,11 @@
   "dependencies": {
     "lit": "^3.3.1",
     "mateu": "*",
-    "yaml": "^2.5.1"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "typescript": "~7.0.2",
-    "vite": "^8.1.5",
+    "vite": "^8.3.0",
     "vitest": "^3.2.4"
   }
 }
