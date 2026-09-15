@@ -24,8 +24,8 @@
          vuln is not shipped to consumers (they supply their own micronaut runtime) — the alert is
          low-risk here. Clearing it properly needs a COORDINATED micronaut platform bump, out of
          scope for GA; kept at 4.9.9 so the build stays green. -->
-    <micronaut.core.version>4.9.9</micronaut.core.version>
-    <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
+    <micronaut.core.version>5.2.1</micronaut.core.version>
+    <micronaut.serialization.version>3.1.1</micronaut.serialization.version>
   </properties>
 
   <dependencies>
@@ -95,18 +95,18 @@
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
-      <version>4.6.2</version>
+      <version>5.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
-      <version>5.11.4</version>
+      <version>6.1.3</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.4</version>
+      <version>6.1.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
