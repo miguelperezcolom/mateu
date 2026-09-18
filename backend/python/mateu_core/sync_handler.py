@@ -66,6 +66,7 @@ from mateu_uidl import (
     Selector,
     SortSpec,
     Step,
+    FlowStep,
     TodoList,
     Version,
     Wizard,
@@ -1824,6 +1825,18 @@ class SyncHandler:
             if result.target_component_id == "ux_main" and rq is not None:
                 result = result.model_copy(update={"target_component_id": self.target(rq)})
             return UIIncrement.of(commands=[result])
+        # A flow Step (coherence-plan #3) is behavior: lower it to its wire command. v0 verbs are
+        # 1:1 with a UICommand, so a returned Step (or a list of Steps/commands) becomes commands.
+        if isinstance(result, FlowStep):
+            return self.map_result(result.to_command(), rq)
+        if isinstance(result, list) and result and all(isinstance(s, (FlowStep, UICommand)) for s in result):
+            commands = []
+            for s in result:
+                cmd = s.to_command() if isinstance(s, FlowStep) else s
+                if cmd.target_component_id == "ux_main" and rq is not None:
+                    cmd = cmd.model_copy(update={"target_component_id": self.target(rq)})
+                commands.append(cmd)
+            return UIIncrement.of(commands=commands)
         return UIIncrement.of()
 
     # ── Helpers ──────────────────────────────────────────────────────────────────

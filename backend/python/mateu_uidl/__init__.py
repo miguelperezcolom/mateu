@@ -1668,7 +1668,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
@@ -2183,3 +2183,85 @@ class DataManagement(ComponentTreeSupplier):
         )
         content.append(self.gantt_view() if gantt else self.grid_view())
         return fluent.VerticalLayout(id="data-management", spacing=True, content=tuple(content))
+
+
+# ── Flow steps (coherence-plan #3, Phase 2) ──────────────────────────────────
+# The flow-step model: an action is a confirmable sequence of steps, and every v0 verb lowers 1:1
+# to an existing UICommand, so a flow built from these runs on the CURRENT wire with no renderer
+# change (mirrors io.mateu.uidl.fluent.Step in Java). The UICommand is built lazily to avoid a
+# module-level dependency on mateu_dtos.
+@dataclass(frozen=True)
+class FlowStep:
+    """Base class for the v0 flow verbs. Subclasses implement ``to_command()``."""
+
+    def to_command(self):
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class Navigate(FlowStep):
+    """Navigate to a route."""
+
+    route: str
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand(target_component_id="ux_main", type="NavigateTo", data=self.route)
+
+
+@dataclass(frozen=True)
+class Emit(FlowStep):
+    """Emit a named event on the app event bus (refinement R1), optionally with a payload."""
+
+    event: str
+    payload: object | None = None
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand.dispatch_event(self.event, self.payload)
+
+
+@dataclass(frozen=True)
+class CloseOverlay(FlowStep):
+    """Close the top overlay, optionally emitting a named result event as it closes."""
+
+    event: str | None = None
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand.close_modal(self.event)
+
+
+@dataclass(frozen=True)
+class RunAction(FlowStep):
+    """Run a server action by id (the 'call the server' verb — needs a backend)."""
+
+    action_id: str
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand(target_component_id="ux_main", type="RunAction", data={"actionId": self.action_id})
+
+
+@dataclass(frozen=True)
+class MarkClean(FlowStep):
+    """Mark the current view clean (e.g. after a save) — suppresses the unsaved-changes guard."""
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand(target_component_id="ux_main", type="MarkAsClean", data=None)
+
+
+@dataclass(frozen=True)
+class MarkDirty(FlowStep):
+    """Mark the current view dirty — arms the unsaved-changes navigation guard."""
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return UICommand(target_component_id="ux_main", type="MarkAsDirty", data=None)
