@@ -764,9 +764,9 @@ export class MateuTableCrud extends LitElement {
             && !this.awaitingRows) this.beginLoading()
         if (_changedProperties.has("component")) {
             const initKey = MateuTableCrud._initKeyOf(this.component)
+            const metadata = this.component?.metadata as Crud
             if (initKey !== this._initializedForKey) {
                 this._initializedForKey = initKey
-                const metadata = this.component?.metadata as Crud
                 const defaultPage = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
                 this.state = this._initStateFromUrl(metadata, {
                     ...this.state,
@@ -782,8 +782,38 @@ export class MateuTableCrud extends LitElement {
                 if (urlHasNonDefault || metadata.rowsSource) {
                     this.handleSearchRequested(undefined)
                 }
+            } else {
+                // A re-render pushed a fresh server state (the search response's own state), which
+                // does not carry the applied filters — so the bar would show no chip even though
+                // the server still filtered, because it read them off the URL. Put back any filter
+                // the pushed state dropped, from the URL, which _syncStateToUrl keeps as the source
+                // of truth. Only MISSING values are restored, so in-progress input is never clobbered
+                // and a cleared filter (gone from the URL too) stays cleared.
+                const restored = this._restoreUrlFiltersIfMissing(metadata, this.state)
+                if (restored !== this.state) this.state = restored
             }
         }
+    }
+
+    /**
+     * Re-applies to {@code base} only those URL filter values it is missing (undefined/null/empty),
+     * so a server re-render that dropped them shows as an applied filter again — without overwriting
+     * anything the state already carries. Returns {@code base} unchanged (same reference) when there
+     * is nothing to restore, so it never forces a needless render.
+     */
+    private _restoreUrlFiltersIfMissing(metadata: Crud, base: Record<string, any>): Record<string, any> {
+        const params = new URLSearchParams(window.location.search)
+        const filterIds = this._filterIds(metadata)
+        let result = base
+        params.forEach((value, key) => {
+            if (!filterIds.has(key)) return
+            const current = result[key]
+            if (current === undefined || current === null || current === '') {
+                if (result === base) result = { ...base }
+                result[key] = value
+            }
+        })
+        return result
     }
 
     evalLabel = (raw: string) => interpolate(raw, this.state, this.data)

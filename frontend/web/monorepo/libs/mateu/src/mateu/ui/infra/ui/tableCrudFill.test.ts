@@ -48,6 +48,10 @@ const crud = (over: Record<string, any> = {}) => ({
     _initializedForKey: 'c2|',
     state: {},
     _initStateFromUrl: (_metadata: unknown, state: any) => state,
+    // The component-changed branch re-applies URL filters on a re-render of an already-initialised
+    // listing; the stub is already-initialised, so this now runs. A no-op keeps these fill tests
+    // about the fill.
+    _restoreUrlFiltersIfMissing: (_metadata: unknown, state: any) => state,
     _filterIds: () => [] as string[],
     handleSearchRequested: vi.fn(),
     ...over,
