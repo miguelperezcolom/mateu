@@ -476,6 +476,16 @@ class ReflectionMapper:
                     consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
                 ))
         variant = shell.variant if (shell and shell.variant) else self.variant_of(cls, items)
+        # Routes are RELATIVE to the mount: prefix every menu route with the app's mount base path,
+        # and stamp each option with its bare path, its consumedRoute and its uriPrefix (all the
+        # mount). Mirrors Java's AppMenuDtoBuilder.buildMenu — a submenu nests under its parent's
+        # path (so an "/g/x" leaf under a "/g" parent becomes "/g/g/x").
+        mount_raw = normalize(getattr(cls, "__mateu_ui__", ""))
+        # The mount base path (Java's appRoute): "" for a root-mounted app, "/x/y" otherwise. A
+        # root app must NOT become "/" or every route below it would gain a leading double slash.
+        mount = "/" + mount_raw if mount_raw else ""
+        app_ssn = type_name(cls)
+        items = self._apply_mount_routing(items, mount, app_ssn)
         home = items[0] if items else None
         sse_url = getattr(cls, "__mateu_ai_sse__", None)
         context_selectors = self.map_context_selectors(cls)
@@ -486,15 +496,28 @@ class ReflectionMapper:
             getattr(cls, "__mateu_app_command_center__", False)
             or getattr(cls, "__mateu_app_chromeless__", False)
         )
+        # The home route: an AppSupplier shell that sets one wins (app-in-code → "/a"); a reflected
+        # @Menu-field app declares no explicit home, so it is "_no_home_route" (Java parity — the
+        # home defaults to the first menu item, but the wire's homeRoute stays the sentinel).
+        home_route = (
+            shell.home_route if (shell and shell.home_route) else "_no_home_route"
+        )
+        # A reflected (@menu_item-method) app carries its own mount as the wire's `route`; an
+        # AppSupplier shell leaves it None (AppShell has no route). Mirrors AppDto.route.
+        app_route = mount if shell is None else None
         meta = AppMetadata(
             title=self.T(shell.title if (shell and shell.title) else app_title),
             subtitle=shell.subtitle if shell else None,
             variant=variant,
             menu=items,
-            home_route=shell.home_route if (shell and shell.home_route) else (home.route if home else ""),
-            home_consumed_route=home.consumed_route if home else "",
+            route=app_route,
+            root_route=mount,
+            total_menu_options=self._total_menu_options(items),
+            home_route=home_route,
+            # The home always lives under the mount and is served by the app class itself.
+            home_consumed_route=mount,
             home_base_url=request_base_url or "",
-            home_server_side_type=home.server_side_type if home else "",
+            home_server_side_type=app_ssn,
             server_side_type=type_name(cls),
             sse_url=sse_url,
             context_selectors=context_selectors,
@@ -524,6 +547,65 @@ class ReflectionMapper:
             ),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
+
+    @staticmethod
+    def _prepend(app_route: str, path: str) -> str:
+        """Join a mount/parent prefix with a relative path, mirroring Java's
+        AppMenuDtoBuilder.prepend (strip a trailing slash on the prefix, a leading slash on the path)."""
+        prefix = app_route[:-1] if app_route.endswith("/") else app_route
+        suffix = path[1:] if path.startswith("/") else path
+        return prefix + "/" + suffix
+
+    def _apply_mount_routing(self, items, mount: str, app_ssn: str, prefix: str = ""):
+        """Re-stamp menu options relative to the mount (mirrors Java's AppMenuDtoBuilder.buildMenu).
+        Each option gets its bare ``path`` (prefix + its declared route), its absolute ``route``
+        (mount + path), its ``consumed_route`` and ``uri_prefix`` (the mount) and the app's
+        server-side type. A remote (@remote_menu) option keeps its own route/base_url verbatim.
+        Submenus nest under their parent's path."""
+        out = []
+        for item in items:
+            if getattr(item, "remote", False):
+                # Federated entry: the frontend owns its routing; leave it verbatim.
+                out.append(item)
+                continue
+            if item.rules:
+                # A rule leaf does not navigate: keep its (empty) route verbatim, do not mount it.
+                out.append(item)
+                continue
+            if not (item.route or ""):
+                # A folder with no route of its own (a pure grouping node): it does not navigate, so
+                # keep its route empty and just nest its children under the mount.
+                out.append(
+                    item.model_copy(
+                        update={
+                            "submenus": self._apply_mount_routing(
+                                item.submenus, mount, app_ssn, prefix
+                            )
+                        }
+                    )
+                )
+                continue
+            path = self._prepend(prefix, item.route)
+            out.append(
+                item.model_copy(
+                    update={
+                        "path": path,
+                        "route": mount + path,
+                        "consumed_route": mount,
+                        "uri_prefix": mount,
+                        "server_side_type": app_ssn,
+                        "submenus": self._apply_mount_routing(
+                            item.submenus, mount, app_ssn, path
+                        ),
+                    }
+                )
+            )
+        return out
+
+    def _total_menu_options(self, items) -> int:
+        """The number of options across the whole (flattened) menu tree — a folder counts as one
+        option plus its children (mirrors Java's AppMappingUtils.totalMenuOptions)."""
+        return sum(1 + self._total_menu_options(i.submenus) for i in items)
 
     def _required_capabilities(
         self,
@@ -642,7 +724,14 @@ class ReflectionMapper:
             return MenuItem(
                 label=self.T(label), route="", server_side_type="", rules=rules
             )
-        route = "/" + normalize(getattr(view_type, "__mateu_ui__", "")) if view_type else "/"
+        # A @menu_item bound to a view uses that view's mount as its route; a @menu_item with no
+        # return type is a bare leaf whose route is derived from the METHOD NAME (mirrors Java's
+        # @Menu field, whose path is "/" + fieldName — the field VALUE is not the path).
+        route = (
+            "/" + normalize(getattr(view_type, "__mateu_ui__", ""))
+            if view_type
+            else "/" + name
+        )
         label = (
             marker
             if isinstance(marker, str)
@@ -740,13 +829,24 @@ class ReflectionMapper:
         # content exactly like an archetype's fluent tree — its FormField ids bind to the
         # instance's state (seeded into initialData below), its Button actionIds (collected below)
         # route back to the instance's methods.
+        # A ComponentTreeSupplier view (and the archetypes built on it) renders its tree DIRECTLY
+        # as the fragment component — no Page wrapper, no page metadata, no SetWindowTitle command
+        # (Java parity). A YAML layout_override, by contrast, is a reflected page and keeps the
+        # Page wrapper.
+        is_tree_supplier = isinstance(instance, ComponentTreeSupplier)
         tree = layout_override if layout_override is not None else self.component_tree(instance)
         if tree is not None:
             children = [self.map_component(tree)]
-            known = {a.id for a in actions}
-            actions += [
-                Action(id=a) for a in self.collect_action_ids(tree) if a not in known
-            ]
+            # A YAML layout_override page collects its buttons' actionIds into the ServerSide's
+            # actions (they route back to the ModelView's methods). A ComponentTreeSupplier does
+            # NOT: Java's ComponentTreeSupplierMapper never harvests action ids from the tree — a
+            # component's own actionId (e.g. an archetype's selectCollectionItem) is dispatched
+            # directly and routed by reflection, so it never appears in ServerSide.actions.
+            if not is_tree_supplier:
+                known = {a.id for a in actions}
+                actions += [
+                    Action(id=a) for a in self.collect_action_ids(tree) if a not in known
+                ]
         else:
             # Compact mode tightens the form: the FormLayout's minimum column width drops to 7em.
             compact_cw = "7em" if class_flag(cls, "__mateu_compact__", False) else None
@@ -794,11 +894,20 @@ class ReflectionMapper:
                 class_flag(cls, "__mateu_title_placeholder__", None)
             ),
         )
-        page = ClientSideComponent(
-            metadata=page_meta,
-            children=children,
-            style=COMPACT_STYLE if compact else None,
-        )
+        if is_tree_supplier:
+            # The tree is the fragment component: the ServerSide holds the mapped tree children
+            # directly and carries the supplier's own container style (Java's
+            # ComponentTreeSupplier.style(), default "max-width:900px;margin: auto;").
+            server_children = children
+            server_style = instance.style()
+        else:
+            page = ClientSideComponent(
+                metadata=page_meta,
+                children=children,
+                style=COMPACT_STYLE if compact else None,
+            )
+            server_children = [page]
+            server_style = None
         triggers, emits = self.events_of(cls)
         # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
         if rest_data_desc is not None:
@@ -840,7 +949,8 @@ class ReflectionMapper:
             id=_id(),
             server_side_type=type_name(cls),
             route=route,
-            children=[page],
+            children=server_children,
+            style=server_style,
             initial_data=initial_data,
             actions=actions,
             triggers=triggers,
@@ -1576,8 +1686,14 @@ class ReflectionMapper:
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Text):
+            # Java's Text.container() defaults to "div" when unset, so a fluent Text always carries
+            # container:"div" on the wire (a non-empty default the conformance normaliser keeps).
             return self._fluent_client(
-                TextMetadata(text=self.T(c.text), size=c.size, no_margins=c.no_margins), c)
+                TextMetadata(
+                    text=self.T(c.text), container="div", size=c.size, no_margins=c.no_margins
+                ),
+                c,
+            )
         if isinstance(c, fluent.Separator):
             return self._fluent_client(SeparatorMetadata(), c)
         if isinstance(c, fluent.Anchor):

@@ -17,6 +17,12 @@ public interface IComponent
 public interface IComponentTreeSupplier
 {
     IComponent Component();
+
+    /// <summary>The container style wrapped around the supplied tree. Mirrors Java's
+    /// ComponentTreeSupplier.style() default ("max-width:900px;margin: auto;") — the envelope
+    /// carries it on the ServerSideComponent, NOT a Page wrapper. Override to null for an
+    /// unconstrained tree (the archetypes that compose their own full-width layout do).</summary>
+    string? Style => "max-width:900px;margin: auto;";
 }
 
 /// <summary>Base for fluent components: id + style + css classes.</summary>

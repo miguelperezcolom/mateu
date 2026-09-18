@@ -17,6 +17,10 @@ public abstract class Dashboard : IComponentTreeSupplier
     protected virtual int Columns => 0;
 
     public IComponent Component() => ArchetypeComposers.ComposeDashboard(this, Columns);
+
+    /// <summary>The dashboard composes its own full-width grid, so it drops the tree-supplier's
+    /// centered envelope. (Java parity: Dashboard.style() returns null.)</summary>
+    public string? Style => null;
 }
 
 /// <summary>Declarative Redwood-style foldout page: the first component property without [Panel] is

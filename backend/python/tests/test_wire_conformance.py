@@ -245,6 +245,11 @@ class NoticePage(ComponentTreeSupplier):
     """The fluent Notice: a compact themed inline banner, composed as a component tree — the one
     shape all three servers share (the declarative @Notice String-field marker is Java-only)."""
 
+    def style(self) -> str | None:
+        # Mirrors the Java NoticePage, which overrides style() to null: no container envelope,
+        # the case is about the Notice, not the default "max-width:900px;margin: auto;".
+        return None
+
     def component(self):
         return Notice(
             text="2 complaints pending",
@@ -270,23 +275,20 @@ class Hotel(str, Enum):
 
 @ui("/conformance/app-context")
 @app("Context app")
-class ContextApp(AppSupplier):
+class ContextApp:
     """An @app_context member of the app class becomes a header context selector
     (contextSelectors): fieldName from the method, label from the decorator, options from the
-    Enum return annotation (value = member name, label = humanized) — mirrors the Java
-    ContextApp, whose @Menu leaf this port declares through the AppSupplier shell."""
+    Enum return annotation (value = member name, label = humanized). A reflected (@menu_item-method)
+    app, mirroring Java's ContextApp whose `@Menu String home` leaf makes it an app: its menu leaf's
+    path derives from the method name ("/home") and its home route is "_no_home_route"."""
 
     @app_context("Hotel")
     def hotel(self) -> Hotel:
         return Hotel.palma
 
-    def get_app(self) -> AppShell:
-        return AppShell(
-            title="Context app",
-            variant="TABS",
-            home_route="/a",
-            menu=[MenuItem(label="Home", route="/a", server_side_type="")],
-        )
+    @menu_item("Home")
+    def home(self):
+        return None
 
 
 @ui("/conformance/app-header-actions")
