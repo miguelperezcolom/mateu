@@ -11,6 +11,7 @@ import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.data.PageBanners;
 import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.fluent.Step;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
 import java.net.URL;
@@ -37,6 +38,7 @@ final class FragmentListMapper {
         || instance instanceof PageBanner
         || instance instanceof PageBanners
         || instance instanceof UICommand
+        || instance instanceof Step
         || instance instanceof URI
         || instance instanceof URL) {
       return List.of();
@@ -52,6 +54,7 @@ final class FragmentListMapper {
                       && !(object instanceof PageBanner)
                       && !(object instanceof PageBanners)
                       && !(object instanceof UICommand)
+                      && !(object instanceof Step)
                       && !(object instanceof URI)
                       && !(object instanceof URL))
           .map(

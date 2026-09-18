@@ -7,6 +7,7 @@ import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UICommandTypeDto;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
+import io.mateu.uidl.fluent.Step;
 import io.mateu.uidl.interfaces.CommandSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
@@ -74,11 +75,20 @@ public class CommandMapper {
     if (instance instanceof UICommand command) {
       result.add(mapCommand(targetComponentId, command));
     }
+    // A flow Step is behavior returned from a method: lower it to its wire command (coherence-plan
+    // #3). v0 verbs are 1:1 with a UICommand, so a returned Step (or a list of them) becomes
+    // commands on the increment — the flow model made live, additively.
+    if (instance instanceof Step step) {
+      result.add(mapCommand(targetComponentId, step.toCommand()));
+    }
     if (instance instanceof Collection<?> collection) {
       result.addAll(
           collection.stream()
-              .filter(o -> o instanceof UICommand)
-              .map(command -> mapCommand(targetComponentId, (UICommand) command))
+              .filter(o -> o instanceof UICommand || o instanceof Step)
+              .map(
+                  o ->
+                      mapCommand(
+                          targetComponentId, o instanceof Step s ? s.toCommand() : (UICommand) o))
               .toList());
     }
     return result;
