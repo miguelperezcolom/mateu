@@ -28,7 +28,14 @@ public record Action(
     /**
      * Client-side REST call instead of a server dispatch (@RestAction); null for normal actions.
      */
-    io.mateu.uidl.data.RestAction restAction) {
+    io.mateu.uidl.data.RestAction restAction,
+    /**
+     * A declared client-side flow (coherence-plan #3): the {@link Step}s this action runs WITHOUT a
+     * server round-trip. Every v0 verb lowers 1:1 to an existing wire command, so an action built
+     * with {@code .steps(...)} runs on the current wire with no renderer change. Null/empty for a
+     * normal server-dispatched action.
+     */
+    java.util.List<Step> steps) {
 
   /**
    * The fluent action declared by an {@code @Action} annotation.
