@@ -525,6 +525,61 @@ path lives) + resolves #1.
 
 ---
 
+## Idea #13 — Business components: reusable BOUND compositions, first-class in DATA
+
+**Origin:** business components — e.g. an "agency selector": a dropdown field fed from a specific
+endpoint. Is it sufficiently resolved?
+
+**What it is (key distinction, do NOT conflate with #14):** a business component is a **reusable, BOUND
+composition of EXISTING components** (a shape + a data source + optional behavior), named. There is
+**no new rendering** → it is **pure data, ports for free, runs with no backend** (#1). An agency
+selector is a `dropdown + source(agencies)`, NOT a custom component.
+
+**What exists today (the code path):**
+- **Semantic (composed) annotations** — exactly this: `@Lookup(search=…) @RestOptions(source="agencies")
+  @interface AgencyId {}`, then `@AgencyId String agencyId`. A reusable business field type.
+- **REST source catalogue** (`@RestSource`/`sources.yaml`): the endpoint named once, referenced by the
+  business component.
+
+**The gap:** the **DATA/DSL equivalent**. Reuse currently lives in an annotation (code). In the
+JSON/no-backend world (#1) and the **visual builder** (#12), you want a **named component definition in
+a catalogue** — `AgencySelector = { dropdown, source: agencies }` — referenced by name.
+**Resolution:** a business component must be first-class in BOTH **code** (semantic annotation) AND
+**data** (a catalogue entry) — one concept. It is reuse + inference, portable for free.
+
+**Status:** captured. Code path exists (semantic annotations + source catalogue); the gap is making it
+first-class **in data** (a named, referenceable component definition), for #1 + #12.
+
+## Idea #14 — Custom components: genuinely new rendering = the per-renderer escape hatch
+
+**Origin:** custom components.
+
+**What it is:** a **genuinely NEW component type** (new rendering Mateu doesn't ship). Unlike a business
+component, this **does not port for free** — each renderer must know how to paint it.
+
+**What exists today:**
+- **`ComponentAdapter<T>`** — adapts a domain object into a tree of **existing** components (composition
+  + state round-trip). Works when the "custom" thing is composed of known pieces.
+- **`MicroFrontend`** — embeds an external UI island. Heavy but works.
+- Renderers have `SUPPORTED_TYPES` + the `<mateu-unsupported>` placeholder (graceful degradation).
+
+**The gap:** a **new component TYPE** (new visual) the developer **registers per renderer** (a web
+component / a native view), which Mateu emits in the tree and which **degrades gracefully** where not
+provided. Today the renderer is **closed** to new types short of a fork. **Resolution:** custom
+component = **declare the type + its props/slots in the model; provide a per-renderer renderer for the
+platforms you target; `<mateu-unsupported>`/fallback elsewhere.** The **explicit, relegated escape
+hatch** — same principle as `run-js` (#3) and the arbitrary cell (#6).
+
+**The distinction, one line:** *Business component = reusable BOUND composition of existing pieces →
+data, ports for free, no backend. Custom component = a NEW piece with its own rendering → per-renderer
+escape hatch, does NOT port for free.* (Avoid: treating the agency selector as "custom" and paying
+per-renderer code when it's a business component.)
+
+**Status:** captured. Composition path exists (`ComponentAdapter`); the real extensibility gap is the
+**new-rendering path** (per-renderer registration + degradation), which carries the multi-renderer tax.
+
+---
+
 ## Ideas backlog
 
 _(next ideas land here as they come)_
