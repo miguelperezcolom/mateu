@@ -992,3 +992,28 @@ public sealed class PanelAttribute : Attribute
     /// <summary>Whether the panel starts folded out (foldout pages).</summary>
     public bool Open { get; set; } = true;
 }
+
+// ── Flow steps (coherence-plan #3, Phase 2) ──────────────────────────────────
+// The flow-step model: an action is a confirmable sequence of steps, and every v0 verb lowers 1:1
+// to an existing UICommand, so a flow built from these runs on the CURRENT wire with no renderer
+// change (mirrors io.mateu.uidl.fluent.Step in Java). The lowering to a wire command lives in the
+// handler (Mateu.Core sees Mateu.Dtos; this project does not), so the verbs are pure data here.
+public abstract record FlowStep;
+
+/// <summary>Navigate to a route.</summary>
+public sealed record Navigate(string Route) : FlowStep;
+
+/// <summary>Emit a named event on the app event bus (refinement R1), optionally with a payload.</summary>
+public sealed record Emit(string Event, object? Payload = null) : FlowStep;
+
+/// <summary>Close the top overlay, optionally emitting a named result event as it closes.</summary>
+public sealed record CloseOverlay(string? Event = null) : FlowStep;
+
+/// <summary>Run a server action by id (the "call the server" verb — needs a backend).</summary>
+public sealed record RunAction(string ActionId) : FlowStep;
+
+/// <summary>Mark the current view clean (e.g. after a save) — suppresses the unsaved-changes guard.</summary>
+public sealed record MarkClean : FlowStep;
+
+/// <summary>Mark the current view dirty — arms the unsaved-changes navigation guard.</summary>
+public sealed record MarkDirty : FlowStep;

@@ -1546,8 +1546,28 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             UIIncrementDto.Of(commands: [new UICommandDto(rq is null ? "ux_main" : Target(rq), "NavigateTo", route)]),
         UICommandDto cmd => UIIncrementDto.Of(commands:
             [cmd.TargetComponentId == "ux_main" && rq is not null ? cmd with { TargetComponentId = Target(rq) } : cmd]),
+        // A flow Step (coherence-plan #3) is behavior: lower it to its wire command. v0 verbs are
+        // 1:1 with a UICommand, so a returned Step (or a list of them) becomes commands.
+        FlowStep step => UIIncrementDto.Of(commands: [Retarget(StepToCommand(step), rq)]),
+        IEnumerable<FlowStep> steps => UIIncrementDto.Of(commands:
+            steps.Select(s => Retarget(StepToCommand(s), rq)).ToList()),
         _ => UIIncrementDto.Of(),
     };
+
+    /// <summary>Lowers a v0 flow Step to the wire command it produces (mirrors Java Step.toCommand).</summary>
+    private static UICommandDto StepToCommand(FlowStep step) => step switch
+    {
+        Navigate n => new UICommandDto("ux_main", "NavigateTo", n.Route),
+        Emit e => UICommandDto.DispatchEvent(e.Event, e.Payload),
+        CloseOverlay c => c.Event is null ? UICommandDto.CloseModal() : UICommandDto.CloseModal(c.Event),
+        RunAction r => new UICommandDto("ux_main", "RunAction", new Dictionary<string, object?> { ["actionId"] = r.ActionId }),
+        MarkClean => new UICommandDto("ux_main", "MarkAsClean", null),
+        MarkDirty => new UICommandDto("ux_main", "MarkAsDirty", null),
+        _ => throw new InvalidOperationException($"Unknown flow step {step.GetType().Name}"),
+    };
+
+    private static UICommandDto Retarget(UICommandDto cmd, RunActionRqDto? rq) =>
+        cmd.TargetComponentId == "ux_main" && rq is not null ? cmd with { TargetComponentId = Target(rq) } : cmd;
 
     private static BannerDto BannerOf(PageBanner b) =>
         new(b.Theme.ToString().ToUpperInvariant(), b.Title, b.Description);

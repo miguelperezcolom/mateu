@@ -53,5 +53,29 @@ Everything is a component · inferred by default, explicit as override · one mo
 ## Status
 
 - Plan captured (`coherence-plan.md`, merged). Execution scaffolding up (this doc + tasks #8–#16).
-- **Next:** Phase 1, first PR — audit the ~15 behavior annotations + the `FragmentListMapper` return
-  dispatch, then introduce the unified trigger→action model additively (aliases), with tests.
+- **Phase 1 (behavior core): done.** trigger→action already existed (fluent `Trigger` refs an
+  `Action` by id; `Action` carries confirm + effects); #4 default "unrecognized return → render as
+  UI" already implemented via the `FragmentListMapper` fallback and pinned by
+  `ReturnRendersAsUiSyncTest`. R1 (abstract event bus) is the existing `@SubscribeTo`/`@Emits` pair.
+- **Phase 2 (flow language v0): in progress.**
+  - The `Step` value model landed (#503): a sealed set of v0 verbs (`Navigate`, `Emit`,
+    `CloseOverlay`, `RunAction`, `MarkClean`, `MarkDirty`), each lowering 1:1 to an existing
+    `UICommand` (`StepTest`). Bounded on purpose — not a programming language.
+  - The `Step` model is now **live as a return type across all three backends** (#504): a ModelView
+    method may return a `Step` or `List<Step>`; each lowers to its wire command; a returned step is
+    behavior, not a view (no fragment). Java (`CommandMapper`/`FragmentListMapper` +
+    `StepReturnSyncTest`), Python (`mateu_uidl.FlowStep` + verbs, `map_result` +
+    `test_a_list_of_steps…`/`test_a_single_step…`), .NET (`Mateu.Uidl.FlowStep` + verbs,
+    `SyncHandler.MapResult`/`StepToCommand` + two facts). NOTE the ports name the base `FlowStep`,
+    not `Step`, because both already have a wizard-step `Step` in their single flat namespace; Java
+    keeps `Step` because it lives in its own `io.mateu.uidl.fluent` package.
+  - **Deferred (documented fork): the flow conformance corpus.** The wire corpus harness only does a
+    route LOAD (`mateu.sync`), not an action invocation, so a flow case would need all three runners
+    extended to invoke-and-compare-commands. For v0 every verb is exactly one existing command, so
+    the three parallel unit-test pairs already pin identical semantics; a byte-level corpus adds
+    signal only once the flow model grows PAST 1:1-command verbs (branch/forEach/set/validate), when
+    a client-side interpreter exists and divergence is actually possible. Build the corpus (and the
+    interpreter it guards) then, not now.
+  - **Next in Phase 2:** wire `steps` onto the fluent `Action` (`{confirm?, steps[]}`) so a flow can
+    be *declared* on an action, not only returned from a method — then grow the verb set as demand
+    pulls it.
