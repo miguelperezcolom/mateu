@@ -124,6 +124,18 @@ public class ActionOptionsForm
     [Button] public Message Save() => new("saved");
 }
 
+[UI("step-return"), Title("Step return")]
+public class StepReturnForm
+{
+    public string? Name { get; set; } = "n";
+
+    // A ModelView method may return a flow Step (or a list of them); each lowers to its wire
+    // command (coherence-plan #3, Phase 2 — port parity with Java).
+    [Button] public List<FlowStep> DoFlow() => new() { new Navigate("/next"), new Emit("done", new { ok = true }) };
+
+    [Button] public FlowStep Single() => new MarkClean();
+}
+
 [UI("amounts"), Title("Amounts")]
 public class AmountsForm
 {
@@ -1068,6 +1080,35 @@ public class SyncHandlerTests
             Assert.Equal("Hello Ann!", Assert.Single(acted.Messages).Text);
         }
         finally { File.Delete(file); }
+    }
+
+    [Fact]
+    public void A_list_of_steps_is_lowered_to_commands_and_produces_no_fragment()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "step-return",
+            ActionId = "doFlow",
+            ServerSideType = "Mateu.Tests.StepReturnForm",
+            ComponentState = new(),
+        });
+        Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/next");
+        Assert.Contains(inc.Commands, c => c.Type == "DispatchEvent");
+        Assert.Empty(inc.Fragments);
+    }
+
+    [Fact]
+    public void A_single_step_is_lowered_to_its_command()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "step-return",
+            ActionId = "single",
+            ServerSideType = "Mateu.Tests.StepReturnForm",
+            ComponentState = new(),
+        });
+        Assert.Equal("MarkAsClean", Assert.Single(inc.Commands).Type);
+        Assert.Empty(inc.Fragments);
     }
 
     [Fact]

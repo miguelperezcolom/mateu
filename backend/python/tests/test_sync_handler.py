@@ -21,8 +21,11 @@ from mateu_uidl import (  # noqa: E402
     AppActionsSupplier,
     AppHeaderAction,
     BannerTheme,
+    Emit,
     GroupBy,
     Disabled,
+    MarkClean,
+    Navigate,
     Hidden,
     PageBanner,
     PageWidth,
@@ -153,6 +156,23 @@ class ActionOptionsForm:
     @button()
     def save(self):
         return None
+
+
+@ui("step-return")
+@title("Step return")
+class StepReturnForm:
+    """A ModelView method may return a flow Step (or a list of them); each lowers to its wire
+    command (coherence-plan #3, Phase 2 — port parity with Java)."""
+
+    name: str | None = "n"
+
+    @button()
+    def do_flow(self):
+        return [Navigate("/next"), Emit("done", {"ok": True})]
+
+    @button()
+    def single(self):
+        return MarkClean()
 
 
 @ui("amounts")
@@ -956,6 +976,36 @@ def test_initial_load_form_with_required_field_and_button():
     assert '"dataType": "string"' in j
     assert '"required": true' in j
     assert '"greet"' in j
+
+
+def test_a_list_of_steps_is_lowered_to_commands_and_produces_no_fragment():
+    inc = handler().handle(
+        RunActionRq(
+            route="step-return",
+            action_id="doFlow",
+            server_side_type=_name(StepReturnForm),
+            component_state={},
+        )
+    )
+    types = [c.type for c in inc.commands]
+    assert "NavigateTo" in types
+    assert "DispatchEvent" in types
+    nav = next(c for c in inc.commands if c.type == "NavigateTo")
+    assert nav.data == "/next"
+    assert inc.fragments == []
+
+
+def test_a_single_step_is_lowered_to_its_command():
+    inc = handler().handle(
+        RunActionRq(
+            route="step-return",
+            action_id="single",
+            server_side_type=_name(StepReturnForm),
+            component_state={},
+        )
+    )
+    assert [c.type for c in inc.commands] == ["MarkAsClean"]
+    assert inc.fragments == []
 
 
 def test_greet_action_returns_hello_from_state():
