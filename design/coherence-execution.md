@@ -53,5 +53,32 @@ Everything is a component · inferred by default, explicit as override · one mo
 ## Status
 
 - Plan captured (`coherence-plan.md`, merged). Execution scaffolding up (this doc + tasks #8–#16).
-- **Next:** Phase 1, first PR — audit the ~15 behavior annotations + the `FragmentListMapper` return
-  dispatch, then introduce the unified trigger→action model additively (aliases), with tests.
+- **Phase 1 (behavior core): done.** trigger→action already existed (fluent `Trigger` refs an
+  `Action` by id; `Action` carries confirm + effects); #4 default "unrecognized return → render as
+  UI" already implemented via the `FragmentListMapper` fallback (pinned by `ReturnRendersAsUiSyncTest`);
+  R1 (abstract event bus) is the existing `@SubscribeTo`/`@Emits` pair.
+- **Phase 2 (flow language v0): in progress.**
+  - `Step` value model (#503): sealed v0 verbs (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
+    `MarkClean`, `MarkDirty`), each lowering 1:1 to an existing `UICommand` (`StepTest`). Bounded on
+    purpose — not a programming language.
+  - **Returned flow** (#504): a ModelView method may return a `Step`/`List<Step>`; each lowers to its
+    wire command; a returned step is behavior, not a view. **Full parity** Java (`CommandMapper`/
+    `FragmentListMapper`), Python (`FlowStep`), .NET (`FlowStep`) with unit tests. One server
+    round-trip (the method runs, then the commands apply).
+  - **Declared flow** (this PR): a fluent `Action` carries `steps`, lowered on the server to
+    `ActionDto.commands` (reuses `UICommandDto` — no new wire family, no schema regen); the frontend
+    runs them with its existing command applier via the pure `runDeclaredFlow` helper, **no server
+    round-trip**. Java + web (`ActionFlowSyncTest`, `actionFlow.test.ts`).
+  - **Documented fork — declared-flow authoring on the ports.** The user-visible capability (run a
+    flow) has full parity via the RETURNED flow (#504, all three backends). The zero-round-trip
+    DECLARED-on-action variant is Java + web for now because the ports have no fluent Action-with-
+    steps authoring surface (their actions are attribute/decorator methods; a structured `steps`
+    list does not fit an attribute). A port developer reaches the same OUTCOME today by RETURNING a
+    flow (one round-trip). Giving the ports the zero-round-trip authoring path is a follow-up that
+    needs a fluent `ActionsSupplier` surface — a capability add, not a wire mirror, so it is not
+    smuggled in as a dead `commands` field on the port DTOs.
+  - **Deferred — the flow conformance corpus** waits until the flow model grows past 1:1-command
+    verbs: the corpus harness only does a route load, and for v0 the parallel unit tests already pin
+    identical semantics.
+  - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
+    forEach), each with the interpreter + corpus once divergence becomes possible.
