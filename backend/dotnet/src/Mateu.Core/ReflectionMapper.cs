@@ -174,14 +174,39 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 }));
         }
         var variant = !string.IsNullOrWhiteSpace(shell?.Variant) ? shell!.Variant! : VariantOf(app, items);
+
+        // The mount base path — the app class's [UI] route. Java's route registry prefixes every
+        // menu leaf with the mount (a leaf "/a" under mount "/conformance/app-in-code" resolves to
+        // "/conformance/app-in-code/a"): the same app can be mounted twice and its "orders" screen
+        // stays distinct (AppMenuDtoBuilder.buildMenu + prepend). We re-derive path/route/
+        // consumedRoute/uriPrefix here so both the AppSupplier and the [MenuItem]/[RemoteMenu]
+        // branches converge on the same wire shape.
+        // An empty [UI] route means the app is mounted at the root — Java's appRoute is then "" (not
+        // "/"), so a leaf "/things" stays "/things" and does not become "//things".
+        var mount = appType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "";
+        var appRoute = mount.Length == 0 ? "" : "/" + mount;
+        items = PrefixMenu(items, appRoute, "");
+
         var home = items.FirstOrDefault();
+        // homeRoute: an AppSupplier declares it on its shell (verbatim, mount-RELATIVE — Java keeps
+        // "/a", only the menu leaves are mount-prefixed); a declaratively-mapped app has none, so
+        // Java's HomeRouteResolver answers "_no_home_route". homeConsumedRoute/homeServerSideType/
+        // rootRoute all resolve to the mount + the app class (AppHomeRouteResolver).
+        var isAppSupplier = shell is not null;
+        var homeRoute = !string.IsNullOrWhiteSpace(shell?.HomeRoute) ? shell!.HomeRoute!
+            : isAppSupplier ? home?.Path ?? "" : "_no_home_route";
         var meta = new AppMetadataDto(T(shell?.Title ?? app.Title), variant, items)
         {
             Subtitle = shell?.Subtitle,
-            HomeRoute = !string.IsNullOrWhiteSpace(shell?.HomeRoute) ? shell!.HomeRoute! : home?.Route ?? "",
-            HomeConsumedRoute = home?.ConsumedRoute ?? "",
+            HomeRoute = homeRoute,
+            HomeConsumedRoute = appRoute,
             HomeBaseUrl = requestBaseUrl ?? "",
-            HomeServerSideType = home?.ServerSideType ?? "",
+            HomeServerSideType = appType.FullName!,
+            RootRoute = appRoute,
+            // Only a declaratively-mapped app carries the mount as its `route` (ReflectionAppMapper
+            // sets it); an AppSupplier leaves its shell route unset → the field stays absent.
+            Route = isAppSupplier ? null : appRoute,
+            TotalMenuOptions = TotalMenuOptions(items),
             ServerSideType = appType.FullName!,
             SseUrl = appType.Find<AIAttribute>()?.Sse,
             ContextSelectors = MapContextSelectors(appType),
@@ -196,6 +221,44 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         };
         return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
     }
+
+    /// <summary>Prefixes a menu tree with the mount base path, matching Java's
+    /// AppMenuDtoBuilder.buildMenu: each leaf's <c>Path</c> is the accumulated mount-relative route
+    /// (a submenu child re-prepends the parent's raw path, so an "X" under "/g" declared "/g/x"
+    /// becomes "/g/g/x"), and <c>Route</c> is the mount-prefixed absolute route. Every leaf carries
+    /// <c>ConsumedRoute</c>/<c>UriPrefix</c> = the mount so the client can strip the prefix back off.
+    /// A [RemoteMenu] entry keeps its own federated route/consumedRoute/serverSideType.</summary>
+    private static List<MenuItemDto> PrefixMenu(IEnumerable<MenuItemDto> items, string appRoute, string prefix) =>
+        items.Select(item =>
+        {
+            if (item.Remote) return item with { UriPrefix = item.Path };
+            // A rule leaf (a menu entry that RUNS client-side rules instead of navigating) carries no
+            // route — leave it alone so it stays route-less after prefixing.
+            if (item.Rules.Count > 0) return item;
+            var raw = item.Route ?? "";
+            var path = Prepend(prefix, raw);
+            return item with
+            {
+                Path = path,
+                Route = appRoute + path,
+                ConsumedRoute = appRoute,
+                UriPrefix = appRoute,
+                Submenus = PrefixMenu(item.Submenus, appRoute, prefix + raw),
+            };
+        }).ToList();
+
+    /// <summary>Joins a prefix and a path with a single slash (Java's AppMenuDtoBuilder.prepend).</summary>
+    private static string Prepend(string prefix, string path)
+    {
+        var p = prefix.EndsWith('/') ? prefix[..^1] : prefix;
+        var s = path.StartsWith('/') ? path[1..] : path;
+        return p + "/" + s;
+    }
+
+    /// <summary>Total number of menu options, submenus counted recursively (Java's
+    /// AppMappingUtils.totalMenuOptions).</summary>
+    private static int TotalMenuOptions(IReadOnlyList<MenuItemDto> menu) =>
+        menu.Sum(option => 1 + TotalMenuOptions(option.Submenus));
 
     /// <summary>The capability tokens this app requires from its host renderer: the app-scoped
     /// features it actually declares (DERIVED from the metadata just built, so the developer never
@@ -289,7 +352,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // this one. (Mirrors Java's MenuEntryMapper Rule/List<Rule> → RuleLink → MenuOptionDto.rules.)
         if (MenuRules(m) is { } rules)
             return new MenuItemDto(T(label), "", "") { Rules = rules };
-        var route = "/" + (viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
+        // A [MenuItem] method that RETURNS a view carries that view's [UI] route; a void one (the
+        // analogue of Java's `@Menu String home` field / a nav-only method) derives its route from
+        // the MEMBER NAME — Java's MenuEntryMapper uses "/" + method.getName(). The mount prefix is
+        // applied later in PrefixMenu, so this is the mount-relative path.
+        var uiRoute = viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/');
+        var route = string.IsNullOrEmpty(uiRoute) ? "/" + Naming.CamelCase(m.Name) : "/" + uiRoute;
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
 
@@ -361,6 +429,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             : PageInference.ComposesWelcome(type)
                 ? ArchetypeComposers.ComposeWelcome(instance, type.Find<TitleAttribute>()?.Value, null, null)
                 : null);
+        // A ComponentTreeSupplier view (an archetype, or an [AutoPage]-inferred dashboard/welcome)
+        // is NOT a page: Java emits the supplied tree DIRECTLY as the ServerSideComponent's child,
+        // with the supplier's own style() and NO Page wrapper / no SetWindowTitle — see
+        // ViewTypeClassifier.isPage. A YAML-bound modelView (layoutOverride) DOES keep its page
+        // (it is a reflected @UI class, only its layout is authored), so it is excluded here.
+        var treeSupplierView = tree is not null && layoutOverride is null;
         if (tree is not null)
         {
             content = [ComponentMapper.Map(tree)];
@@ -404,8 +478,25 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Overline = OptT(type.Find<OverlineAttribute>()?.Value),
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),
         };
-        var page = new ClientSideComponentDto(
-            pageMeta, null, content, compact ? CompactStyle : null, null, null);
+        // The tree-supplier's children ARE the supplied tree (Page-less); a reflected form wraps its
+        // content in a Page. The container style comes from the supplier for a tree view (Java's
+        // ComponentTreeSupplier.style(), default "max-width:900px;margin: auto;", null for the
+        // archetypes that compose their own full-width layout), and from [Compact] for a form.
+        var treeStyle = instance is IComponentTreeSupplier supplierStyle ? supplierStyle.Style : null;
+        List<ComponentDto> children;
+        string? containerStyle;
+        if (treeSupplierView)
+        {
+            children = content;
+            containerStyle = treeStyle;
+        }
+        else
+        {
+            var page = new ClientSideComponentDto(
+                pageMeta, null, content, compact ? CompactStyle : null, null, null);
+            children = [page];
+            containerStyle = null;
+        }
 
         var (triggers, emits) = EventsOf(type);
         var initialData = new Dictionary<string, object?>();
@@ -459,7 +550,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             actions.Add(new ActionDto("__restfetch__"));
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,
-            [page], initialData, actions, triggers, null, null, null)
+            children, initialData, actions, triggers, containerStyle, null, null)
         {
             EmitsName = emits,
             ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,

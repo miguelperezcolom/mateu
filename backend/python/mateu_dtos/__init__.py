@@ -25,6 +25,9 @@ class AppMetadata(Wire):
     variant: str
     menu: list["MenuItem"] = Field(default_factory=list)
     layout: str = "SINGLE_SLOT"
+    #: The app's own mount route (mirrors AppDto.route). A reflected (@Menu-field) app carries it;
+    #: an AppSupplier shell that does not set one leaves it None.
+    route: str | None = None
     home_route: str = ""
     home_consumed_route: str = ""
     #: The backend's public base URL — the shell loads its home content against it (mirrors
@@ -33,6 +36,9 @@ class AppMetadata(Wire):
     home_server_side_type: str = ""
     server_side_type: str = ""
     root_route: str = ""
+    #: The number of menu options across the whole (flattened) menu tree (mirrors
+    #: AppDto.totalMenuOptions).
+    total_menu_options: int = 0
     subtitle: str | None = None
     login_url: str | None = None
     logout_url: str | None = None
@@ -1355,6 +1361,11 @@ class MenuItem(Wire):
     route: str
     server_side_type: str
     consumed_route: str = ""
+    #: The bare route relative to the mount (what the app declared, e.g. "/a"); ``route`` is the
+    #: absolute route (mount + path). Mirrors MenuOptionDto.path.
+    path: str = ""
+    #: The mount base path this option lives under (mirrors MenuOptionDto.uriPrefix).
+    uri_prefix: str = ""
     action_id: str | None = None
     separator: bool = False
     visible: bool = True

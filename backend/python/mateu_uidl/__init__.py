@@ -1567,6 +1567,11 @@ class ComponentTreeSupplier:
     def component(self):
         raise NotImplementedError
 
+    def style(self) -> str | None:
+        """The container style of the tree envelope. Java's ``ComponentTreeSupplier`` defaults
+        to ``"max-width:900px;margin: auto;"``; a view returns ``None`` for no envelope styling."""
+        return "max-width:900px;margin: auto;"
+
 
 class LinkSupplier:
     """Implemented by a view to attach a navigation link icon to fields at runtime (an
@@ -1589,6 +1594,9 @@ class Dashboard(ComponentTreeSupplier):
 
     Override :meth:`columns` to fix the column count (0 = auto-fit)."""
 
+    def style(self) -> str | None:
+        return None
+
     def columns(self) -> int:
         return 0
 
@@ -1597,6 +1605,9 @@ class Foldout(ComponentTreeSupplier):
     """Declarative Redwood-style foldout page: the first component field without ``Panel`` is the
     always-visible overview; ``Panel(title, subtitle, icon, open)`` fields are lateral fold-out
     panels."""
+
+    def style(self) -> str | None:
+        return None
 
     def header_title(self) -> str | None:
         """Big heading of the header band above the columns (RDS "overview title"). Defaults to
@@ -1629,6 +1640,9 @@ class ItemOverview(ComponentTreeSupplier):
     (left, sticky); ``Panel(title)`` fields become tabs on the right. Override
     :meth:`panel_width` to change the key-info panel width."""
 
+    def style(self) -> str | None:
+        return None
+
     def panel_width(self) -> str:
         return "22rem"
 
@@ -1637,6 +1651,9 @@ class Welcome(ComponentTreeSupplier):
     """Welcome page: ``Button`` fields become call-to-action buttons inside a centered hero;
     ``Panel(title)`` component fields become highlight tiles on a grid below. Override
     :meth:`hero_title` / :meth:`hero_subtitle` / :meth:`hero_image` for the hero chrome."""
+
+    def style(self) -> str | None:
+        return None
 
     def hero_title(self) -> str | None:
         return None
@@ -2030,6 +2047,9 @@ class GanttPage(ComponentTreeSupplier):
     #: The inbound request of the current render/action (set by the sync handler).
     http_request = None
 
+    def style(self) -> str | None:
+        return None
+
     def tasks(self, http_request):
         """The bars of the scheduling canvas — a list of ``GanttTask``."""
         raise NotImplementedError
@@ -2113,6 +2133,9 @@ class DataManagement(ComponentTreeSupplier):
 
     #: Full-width dense page; ``@page_width`` on the subclass overrides.
     __mateu_page_width__ = "fullWidth"
+
+    def style(self) -> str | None:
+        return None
 
     #: The active view: "grid" (default) or "gantt". Bound from componentState (no underscore so it
     #: is seeded into initialData and round-trips).

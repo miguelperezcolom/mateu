@@ -36,6 +36,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    AppSupplier,
     DataManagement,
     GanttPage,
     Aggregate,
@@ -1503,8 +1504,16 @@ class SyncHandler:
     # ── Plain views ─────────────────────────────────────────────────────────────
     def render_app(self, app_type, rq: RunActionRq | None = None, request_base_url: str | None = None) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
+        # A reflected (@menu_item-method) app is a @UI-annotated instance → CommandMapper's isPage
+        # is true → it emits SetWindowTitle. An AppSupplier app renders from a fluent AppShell (not
+        # a @UI page) → isPage is false → NO SetWindowTitle command (Java parity).
+        commands = (
+            []
+            if issubclass(app_type, AppSupplier)
+            else [UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))]
+        )
         return UIIncrement.of(
-            commands=[UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))],
+            commands=commands,
             fragments=[UIFragment(target_component_id=self.target(rq), component=self.mapper.map_app(app_type, request_base_url), action="Replace")],
         )
 
@@ -1577,11 +1586,16 @@ class SyncHandler:
 
     def render(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
+        # A ComponentTreeSupplier view (and the archetypes on it) renders its tree directly with no
+        # Page wrapper and NO SetWindowTitle command — Java parity. A YAML layout_override is a
+        # reflected page and keeps both.
+        tree_supplier = layout_override is None and isinstance(instance, ComponentTreeSupplier)
         return self.fragment_response(
             self.title(type_),
             self.mapper.map_view(type_, instance, route, layout_override),
             rq,
             self.lookup_labels(type_, instance, instance),
+            with_title_command=not tree_supplier,
         )
 
     # ── Visual-builder live preview ────────────────────────────────────────────
@@ -1823,7 +1837,9 @@ class SyncHandler:
         frontend's top ux id is "_ux" — Java echoes the initiator the same way)."""
         return (rq.initiator_component_id if rq else None) or "ux_main"
 
-    def fragment_response(self, title: str, component, rq: RunActionRq | None = None, data=None) -> UIIncrement:
+    def fragment_response(
+        self, title: str, component, rq: RunActionRq | None = None, data=None, with_title_command: bool = True
+    ) -> UIIncrement:
         t = self.target(rq)
         # The field values ride BOTH in the component's initialData and in the fragment state (Java
         # parity): the renderer seeds its state from the fragment, the initialData survives a
@@ -1832,8 +1848,15 @@ class SyncHandler:
         if isinstance(component, ServerSideComponent) and component.initial_data:
             state = dict(component.initial_data)
         component = self._stamp_or_strip_structure(component, rq)
+        # A ComponentTreeSupplier view emits no SetWindowTitle command (Java parity — the tree is
+        # the whole fragment; there is no Page to name the window from).
+        commands = (
+            [UICommand(target_component_id=t, type="SetWindowTitle", data=title)]
+            if with_title_command
+            else []
+        )
         return UIIncrement.of(
-            commands=[UICommand(target_component_id=t, type="SetWindowTitle", data=title)],
+            commands=commands,
             fragments=[UIFragment(target_component_id=t, component=component, state=state, data=data, action="Replace")],
         )
 

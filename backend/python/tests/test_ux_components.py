@@ -840,9 +840,13 @@ def render(view_cls) -> dict:
 def page_children(doc) -> list:
     component = doc["fragments"][0]["component"]
     assert component["type"] == "ServerSide"
-    page = component["children"][0]
-    assert page["metadata"]["type"] == "Page"
-    return page["children"]
+    first = component["children"][0]
+    # A ComponentTreeSupplier view (Dashboard/Foldout/archetypes/fluent trees) renders its tree
+    # DIRECTLY under the ServerSide — no Page wrapper, no SetWindowTitle (Java parity). A reflected
+    # @UI form view still wraps its content in a Page. Return the content children either way.
+    if first.get("metadata", {}).get("type") == "Page":
+        return first["children"]
+    return component["children"]
 
 
 def find(children, meta_type):
@@ -901,20 +905,13 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     # Other component fields land on the grid as-is.
     assert note["metadata"]["type"] == "Text"
 
-    # The MetricCard drill-in action is advertised and dispatches to the method.
+    # The MetricCard drill-in action rides on the MetricCard's own actionId (openRevenue above),
+    # NOT in the ServerSide.actions list — a ComponentTreeSupplier does not harvest its tree's
+    # action ids into the envelope (Java parity: ComponentTreeSupplierMapper never does). It is
+    # still routed by reflection when dispatched.
     component = doc["fragments"][0]["component"]
-    assert {
-        "id": "openRevenue",
-        "validationRequired": True,
-        "confirmationRequired": False,
-        "rowsSelectedRequired": False,
-        "bubble": False,
-        # No per-action transport knobs declared: the client's own timeout applies and the
-        # action is never re-sent on its own.
-        "timeoutMillis": 0,
-        "idempotent": False,
-        "restAction": None,
-    } in component["actions"]
+    action_ids = [a["id"] for a in (component["actions"] or [])]
+    assert "openRevenue" not in action_ids
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )
@@ -1263,10 +1260,12 @@ def test_component_tree_supplier_emits_planning_board():
         "moveActionId": "moveBooking",
         "selectActionId": "openBooking",
     }
-    # The board's action ids are advertised so the renderer routes them back.
-    action_ids = [a["id"] for a in doc["fragments"][0]["component"]["actions"]]
-    assert "moveBooking" in action_ids
-    assert "openBooking" in action_ids
+    # The board's action ids live on the PlanningBoard component (moveActionId/selectActionId
+    # above), NOT in the ServerSide.actions envelope — a ComponentTreeSupplier does not harvest
+    # its tree's action ids (Java parity). The renderer dispatches them off the component itself.
+    action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
+    assert "moveBooking" not in action_ids
+    assert "openBooking" not in action_ids
 
 
 def test_foldout_archetype_slots_overview_and_panels():
@@ -1286,10 +1285,12 @@ def test_foldout_archetype_slots_overview_and_panels():
     assert foldout["metadata"]["navigation"]["parentActionId"] == "goParent"
     assert foldout["metadata"]["navigation"]["previousActionId"] == "prev"
     assert foldout["metadata"]["navigation"]["nextActionId"] == "next"
-    # Overview edit affordance: actionId on the wire and advertised.
+    # Overview edit affordance: actionId on the wire (on the FoldoutLayout's own metadata).
     assert foldout["metadata"]["overviewEditActionId"] == "editOverview"
-    action_ids = [a["id"] for a in doc["fragments"][0]["component"]["actions"]]
-    assert {"goParent", "prev", "next", "editOverview"} <= set(action_ids)
+    # These action ids live on the FoldoutLayout/navigation, NOT in the ServerSide.actions
+    # envelope — a ComponentTreeSupplier does not harvest its tree's action ids (Java parity).
+    action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
+    assert not ({"goParent", "prev", "next", "editOverview"} & set(action_ids))
     overview, p0, p1 = foldout["children"]
     assert overview["slot"] == "overview"
     assert overview["metadata"]["text"] == "Booking ABC123"
@@ -1357,10 +1358,13 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
     (skeleton,) = loading_tile["children"]
     assert skeleton["metadata"] == {"type": "Skeleton", "variant": "card", "count": 3}
 
-    # CTA and EmptyState actions advertised; the CTA dispatches to the method.
+    # The CTA and EmptyState action ids live on their own components (the HeroSection button and
+    # the EmptyState's actionId above), NOT in the ServerSide.actions envelope — a
+    # ComponentTreeSupplier does not harvest its tree's action ids (Java parity). The CTA still
+    # dispatches to the method, routed by reflection.
     component = doc["fragments"][0]["component"]
-    action_ids = [a["id"] for a in component["actions"]]
-    assert "getStarted" in action_ids and "create" in action_ids
+    action_ids = [a["id"] for a in (component["actions"] or [])]
+    assert "getStarted" not in action_ids and "create" not in action_ids
     inc = handler().handle(
         RunActionRq(action_id="getStarted", server_side_type=type_name(WelcomeDemo))
     )

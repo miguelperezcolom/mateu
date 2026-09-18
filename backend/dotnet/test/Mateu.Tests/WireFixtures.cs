@@ -247,6 +247,10 @@ public class NoticePage : IComponentTreeSupplier
     {
         Theme = "warning", ActionLabel = "Review", ActionId = "review", Slim = true,
     };
+
+    // No container styling: the ports' tree suppliers declare none. The Java default
+    // ("max-width:900px;margin: auto;") is an envelope member this case is not about.
+    public string? Style => null;
 }
 
 /// <summary>A [BulletedList] collection property renders as a plain read-only bulleted list
@@ -262,21 +266,17 @@ public class BulletedListPage
 /// (contextSelectors): fieldName from the camelCased property, label from the attribute, options
 /// from the enum constants (value = constant name, label = humanized). Mirrors the Java
 /// ContextApp fixture — enum members are lowercase on purpose so the option values match Java's
-/// enum constants ("palma", not "Palma"); the [App] title + shell stand in for Java's @Menu leaf.</summary>
+/// enum constants ("palma", not "Palma"). A [MenuItem] member named Home stands in for Java's
+/// `@Menu String home` leaf: it CLASSIFIES the class as a (declarative) app, so homeRoute resolves
+/// to "_no_home_route" and the leaf's path derives from the member name → "/home".</summary>
 [UI("conformance/app-context"), App("Context app")]
-public class ContextApp : IAppSupplier
+public class ContextApp
 {
     [AppContext("Hotel")]
     public ConformanceHotel Hotel { get; set; } = ConformanceHotel.palma;
 
-    public AppShell GetApp() => new("Context app", new List<MenuItemDto>
-    {
-        new("Home", "/a", ""),
-    })
-    {
-        HomeRoute = "/a",
-        Variant = "TABS",
-    };
+    [MenuItem("Home")]
+    public void Home() { }
 }
 
 public enum ConformanceHotel { palma, madrid }
@@ -287,8 +287,9 @@ public enum ConformanceHotel { palma, madrid }
 [UI("conformance/app-header-actions"), App("Header actions")]
 public class HeaderActionsApp : IAppActionsSupplier
 {
-    // Mirrors Java's `@Menu String home = "/"`: a void return carries no [UI] route, so the entry
-    // maps to route "/" with label "Home", like the other two servers.
+    // Mirrors Java's `@Menu String home` leaf: a void return carries no [UI] route, so the entry's
+    // path derives from the member name → "/home" (label "Home"), and the @Menu member classifies
+    // the class as a declarative app (homeRoute "_no_home_route").
     [MenuItem("Home")]
     public void Home() { }
 

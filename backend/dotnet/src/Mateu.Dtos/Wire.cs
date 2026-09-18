@@ -799,6 +799,16 @@ public record AppMetadataDto(
     public string HomeServerSideType { get; init; } = "";
     public string ServerSideType { get; init; } = "";
     public string RootRoute { get; init; } = "";
+
+    /// <summary>The mount's absolute base path — set for a declaratively-mapped app (the mount is
+    /// its [UI] route); null for an AppSupplier that leaves its shell route unset. (Mirrors
+    /// io.mateu.dtos.AppDto.route.)</summary>
+    public string? Route { get; init; }
+
+    /// <summary>Total number of menu options, submenus counted recursively. (Mirrors
+    /// io.mateu.dtos.AppDto.totalMenuOptions.)</summary>
+    public int TotalMenuOptions { get; init; }
+
     public string? Subtitle { get; init; }
     public string? LoginUrl { get; init; }
     public string? LogoutUrl { get; init; }
@@ -855,6 +865,15 @@ public record AppHeaderActionDto(
 public record MenuItemDto(string Label, string Route, string ServerSideType)
 {
     public string ConsumedRoute { get; init; } = "";
+
+    /// <summary>The leaf's route RELATIVE to the mount (the bare "/a"); <see cref="Route"/> is the
+    /// mount-prefixed absolute route. (Mirrors io.mateu.dtos.MenuOptionDto.path.)</summary>
+    public string? Path { get; init; }
+
+    /// <summary>The mount base path this option lives under — carried on every leaf so the client
+    /// can strip it back off. (Mirrors io.mateu.dtos.MenuOptionDto.uriPrefix.)</summary>
+    public string? UriPrefix { get; init; }
+
     public string? ActionId { get; init; }
     public bool Separator { get; init; }
     public bool Visible { get; init; } = true;

@@ -1443,12 +1443,21 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         var app = _mapper.MapApp(appType, requestBaseUrl);
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
-        // fetches it once into the app-data store, shared across routes. The .NET port's mount model
-        // is method-based (no route↔mount linkage), so we emit the appData of any authored route,
-        // matching Java's AppDto.appDataSource wire field. (The .NET shell has no source catalogue,
-        // so a ref-only source travels on the wire but is not resolved server-side here.)
+        // fetches it once into the app-data store, shared across routes. Java attaches it only from
+        // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount
+        // linkage, so we scope by the mount base path — an authored route whose absolute route
+        // falls under this app's [UI] mount. (The .NET shell has no source catalogue, so a ref-only
+        // source travels on the wire but is not resolved server-side here.)
+        var mount = appType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "";
+        var appMount = mount.Length == 0 ? "" : "/" + mount;
         if (app is { Metadata: AppMetadataDto meta }
-            && _routes.Authored().Routes.Select(r => r.AppData).FirstOrDefault(d => d is not null) is { } appData)
+            && _routes.Authored().Routes
+                // A root-mounted app (empty mount) owns every route; a mounted app owns only the
+                // routes under its base path — so a different mount's appData does not leak in.
+                .Where(r => appMount.Length == 0
+                            || ("/" + r.Route.TrimStart('/')).StartsWith(appMount + "/", StringComparison.Ordinal)
+                            || "/" + r.Route.TrimStart('/') == appMount)
+                .Select(r => r.AppData).FirstOrDefault(d => d is not null) is { } appData)
         {
             // app-data is derived from AppDataSource, pinned only here — add the token and keep the
             // list sorted + deduped (mirrors AppMapper's TreeSet derivation).
@@ -1458,16 +1467,27 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             };
             app = app with { Metadata = meta with { AppDataSource = appData, RequiredCapabilities = caps.ToList() } };
         }
+        // SetWindowTitle rides for a DECLARATIVE app (the @UI-annotated app class is a page —
+        // ViewTypeClassifier.isPage) but NOT for an AppSupplier: there the root load resolves to
+        // the AppShell fluent object, which is not a page, so Java emits no title command.
+        var isAppSupplier = typeof(IAppSupplier).IsAssignableFrom(appType);
         return UIIncrementDto.Of(
-            commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
+            commands: isAppSupplier ? [] : [new UICommandDto(Target(rq), "SetWindowTitle", title)],
             fragments: [new UIFragmentDto(Target(rq), app, null, null, "Replace", null)]);
     }
 
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride = null)
     {
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
+        // A ComponentTreeSupplier view (an archetype, or an [AutoPage]-inferred dashboard/welcome) is
+        // NOT a page: Java's ViewTypeClassifier.isPage returns false for it, so no SetWindowTitle
+        // command rides the increment. A YAML-bound modelView (layoutOverride) stays a page.
+        var isPage = layoutOverride is not null
+                     || (instance is not IComponentTreeSupplier
+                         && !PageInference.ComposesDashboard(type)
+                         && !PageInference.ComposesWelcome(type));
         return FragmentResponse(Title(type), _mapper.MapView(type, instance, route, layoutOverride), rq,
-            LookupLabels(type, instance, instance));
+            LookupLabels(type, instance, instance), emitWindowTitle: isPage);
     }
 
     private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq)
@@ -1536,9 +1556,12 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static string Title(Type type) =>
         type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
 
-    private static UIIncrementDto FragmentResponse(string title, ComponentDto component, RunActionRqDto rq, object? data = null) =>
+    private static UIIncrementDto FragmentResponse(
+        string title, ComponentDto component, RunActionRqDto rq, object? data = null, bool emitWindowTitle = true) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
+            // SetWindowTitle rides only for a PAGE (a reflected @UI form). A ComponentTreeSupplier
+            // view is not the window — Java omits the command (ViewTypeClassifier.isPage → false).
+            commands: emitWindowTitle ? [new UICommandDto(Target(rq), "SetWindowTitle", title)] : [],
             // The fragment's state mirrors the component's initialData (a view's seeded field values):
             // Java emits both, identical (mirrors ReflectionUiIncrementMapper). A grid/list value and
             // a scalar all ride here, so the client round-trips them through componentState.
