@@ -3,8 +3,12 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ConfirmationTextsDto;
 import io.mateu.dtos.CustomEventDto;
+import io.mateu.dtos.UICommandDto;
+import io.mateu.dtos.UICommandTypeDto;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
+import io.mateu.uidl.fluent.Step;
+import java.util.List;
 
 final class ActionDtoMapper {
 
@@ -35,7 +39,27 @@ final class ActionDtoMapper {
         .timeoutMillis(action.timeoutMillis())
         .idempotent(action.idempotent())
         .restAction(mapRestAction(action.restAction()))
+        .commands(mapSteps(action.steps()))
         .build();
+  }
+
+  /**
+   * Lowers a declared flow (fluent {@code Action.steps}) to the wire commands the client runs
+   * without a server round-trip. Null when there is no flow, so a normal action carries no commands
+   * member. targetComponentId is left null: the frontend applies each command on the component that
+   * fired the action.
+   */
+  private static List<UICommandDto> mapSteps(List<Step> steps) {
+    if (steps == null || steps.isEmpty()) {
+      return null;
+    }
+    return steps.stream()
+        .map(Step::toCommand)
+        .map(
+            command ->
+                new UICommandDto(
+                    null, UICommandTypeDto.valueOf(command.type().name()), command.data()))
+        .toList();
   }
 
   private static io.mateu.dtos.RestActionDto mapRestAction(

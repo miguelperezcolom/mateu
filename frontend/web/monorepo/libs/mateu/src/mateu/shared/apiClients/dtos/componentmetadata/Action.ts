@@ -1,5 +1,6 @@
 import ConfirmationTexts from "./ConfirmationTexts";
 import RestActionDto from "./RestActionDto.ts";
+import UICommand from "../UICommand.ts";
 
 export default interface Action {
 
@@ -31,4 +32,9 @@ export default interface Action {
     /** @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
      *  Mateu server (fetch + toast + optional state merge). Absent for normal actions. */
     restAction?: RestActionDto | undefined
+    /** A declared client-side flow (coherence-plan #3): the wire commands this action runs WITHOUT
+     *  a server round-trip. Lowered from the fluent Action.steps on the server — every v0 verb is
+     *  one existing command — so mateu-component applies them with its own command applier. Absent
+     *  for a normal server-dispatched action. */
+    commands?: UICommand[] | undefined
 }

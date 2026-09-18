@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.With;
 
@@ -39,4 +40,11 @@ public record ActionDto(
     String shortcut,
     int timeoutMillis,
     boolean idempotent,
-    RestActionDto restAction) {}
+    RestActionDto restAction,
+    /**
+     * A declared client-side flow (coherence-plan #3): the wire commands this action runs WITHOUT a
+     * server round-trip. Lowered from the fluent {@code Action.steps} — every v0 verb is one
+     * existing {@link UICommandDto} — so the frontend applies them with the command applier it
+     * already has. Null/empty for a normal server-dispatched action.
+     */
+    List<UICommandDto> commands) {}

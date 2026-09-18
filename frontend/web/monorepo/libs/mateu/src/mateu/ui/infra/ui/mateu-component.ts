@@ -47,6 +47,7 @@ import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestA
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
+import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
@@ -753,6 +754,14 @@ export class MateuComponent extends ComponentElement {
         }
 
         if (action && (action.js || action.customEvent)) {
+            return
+        }
+
+        // A declared client-side flow (coherence-plan #3): the action carries wire commands lowered
+        // from its fluent steps. Every v0 verb is one existing command, so we run them with the
+        // command applier we already have — no server round-trip. Applied on THIS component (the
+        // one that fired the action); a null targetComponentId means "the firing component".
+        if (runDeclaredFlow(action, command => this.applyCommand(command))) {
             return
         }
 
