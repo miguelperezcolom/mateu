@@ -24,7 +24,10 @@ const META = {
     },
 }
 
-const crud = (over: Record<string, any> = {}) => ({
+// `: any` — the helper stands in for a MateuTableCrud instance whose `state` is an open bag the
+// tests read arbitrary filter keys off (`state.status`, `state.searchText`); inferring the literal
+// `{}` for `state` makes `tsc` reject those reads (TS2339) and breaks the lib build.
+const crud = (over: Record<string, any> = {}): any => ({
     measureFill: vi.fn(),
     trimOverflow: vi.fn(),
     requestUpdate: vi.fn(),
