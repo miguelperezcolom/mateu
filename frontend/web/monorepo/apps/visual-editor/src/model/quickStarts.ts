@@ -53,6 +53,33 @@ export function turnIntoListing(doc: PageDoc): PageDoc {
     return { ...doc, layout, delta: undefined }
 }
 
+/**
+ * Wire an action: add a `Button` bound to `actionId`, and give the action a home —
+ *   - a **bound** page (has `modelView`): the id references an `@Action`; nothing else is scaffolded
+ *     (create the method with the IDE "Create in ViewModel" quick-fix / the Sync panel),
+ *   - a **classless** page: also declare a page-level `actions:` entry with a `restAction` stub (a
+ *     placeholder URL to edit), so the button actually does something with no backend class.
+ */
+export function wireAction(doc: PageDoc, label: string, actionId: string): PageDoc {
+    const root = asContainer(clone(doc.layout))
+    root.content = [...(root.content ?? []), { type: 'Button', label: label || actionId, actionId }]
+    let next: PageDoc = { ...doc, layout: root }
+    if (!next.modelView) {
+        const rest = { ...(next.rest ?? {}) } as Record<string, unknown>
+        const actions = Array.isArray(rest.actions) ? [...(rest.actions as unknown[])] : []
+        const has = actions.some((a) => (a as Record<string, unknown>)?.id === actionId)
+        if (!has) {
+            actions.push({
+                id: actionId,
+                restAction: { source: { url: 'https://api.example.com/resource', method: 'POST' }, successMessage: 'Done' },
+            })
+            rest.actions = actions
+            next = { ...next, rest }
+        }
+    }
+    return next
+}
+
 // --- helpers ---
 
 function clone<T>(v: T): T {

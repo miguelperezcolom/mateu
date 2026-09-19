@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing } from './quickStarts'
-import { parsePage } from './pageModel'
+import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './quickStarts'
+import { parsePage, serializePage } from './pageModel'
+import { parse } from 'yaml'
 
 const page = (yaml: string) => parsePage(yaml)
 
@@ -47,5 +48,27 @@ describe('quickStarts', () => {
         const empty = turnIntoListing(page('type: VerticalLayout\ncontent: []\n'))
         expect((empty.layout as any).columns).toEqual([{ type: 'GridColumn', id: 'name', label: 'Name' }])
         expect(turnIntoListing(empty)).toBe(empty) // already a listing → unchanged
+    })
+
+    it('wireAction on a classless page adds a Button and a REST action stub', () => {
+        const doc = wireAction(page('type: VerticalLayout\ncontent: []\n'), 'Save', 'save')
+        const button = (doc.layout.content ?? [])[0] as any
+        expect(button).toMatchObject({ type: 'Button', label: 'Save', actionId: 'save' })
+        // classless → a page-level action is declared so the button does something
+        const out = parse(serializePage(doc))
+        expect(out.actions[0]).toMatchObject({ id: 'save' })
+        expect(out.actions[0].restAction.source.method).toBe('POST')
+    })
+
+    it('wireAction on a bound page adds only the Button (the @Action lives in the ViewModel)', () => {
+        const doc = wireAction(page('modelView: com.acme.V\nlayout:\n  type: VerticalLayout\n  content: []\n'), 'Save', 'save')
+        expect((doc.layout.content ?? [])[0]).toMatchObject({ type: 'Button', actionId: 'save' })
+        expect(doc.rest?.actions).toBeUndefined() // no page-level action scaffolded when bound
+    })
+
+    it('wireAction does not duplicate an already-declared classless action', () => {
+        const first = wireAction(page('type: VerticalLayout\ncontent: []\n'), 'Save', 'save')
+        const second = wireAction(first, 'Save again', 'save')
+        expect((second.rest!.actions as unknown[]).length).toBe(1)
     })
 })
