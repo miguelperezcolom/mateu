@@ -276,6 +276,52 @@ release se construye del **commit del tag**.
 ## Anti-objetivos (explícitos)
 
 - No terminar los items estratégicos del backlog (renderer marketplace, wire como spec versionada
-  aparte) — solo **arrancar** el mecanismo.
+  aparte) — solo **arrancar** el mecanismo. *(ACTUALIZACIÓN 2026-09-19: el "wire como spec versionada"
+  se adelantó parcialmente vía R2 —ver addendum— porque la defensa de arquitectura de referencia de Riu
+  lo pedía; sigue pendiente el "renderer marketplace".)*
 - No resucitar los renderers retirados. No prometer Figma como GA.
 - No añadir anotaciones nuevas para tapar gaps (cada anotación es deuda contra la tesis de inferencia).
+
+---
+
+## Addendum (2026-09-19): cierre de gaps de arquitectura de referencia (R1/R2/R3)
+
+El ADR `design/riu-reference-architecture-defense.md` (defensa de Mateu como arquitectura de referencia
+de frontales corporativos de Riu) destapó, con verificación adversaria, **tres gaps que bloquean la GA**.
+Su cierre (lo que depende de nosotros) está **mergeado en master vía PR #531** (`b75c73e74`), con **CI
+verde** (`backend-tests` Java+Python+.NET, `e2e` en los 5 frameworks). Plan detallado en
+`design/riu-gap-closure-plan.md`. Los tres gaps se identificaron y priorizaron con un barrido competitivo
++ 5 refutadores adversarios (matriz de 15 ejes en el ADR §6).
+
+### R2 · Portabilidad verificable — ✅ COMPLETO
+Vuelve verificable (no retórica) la promesa "la definición es un activo portable":
+- **Wire versionado:** `UIIncrementDto.wireVersion = "3.0"` en Java/.NET/Python (aditivo — compatible con
+  el freeze); 25 goldens de conformidad regenerados; 5 schemas uidl con `"version":"3.0"` (sin tocar los
+  `$id`/URLs). Verificado: Java conformance 3/3, `UidlSchemaTest` 12/12, Python verde, .NET en CI.
+- **Spec pública + semántica de derivación:** `doc/.../reference/wire-specification.md`.
+- **Renderer de referencia Core** cero-dependencias: `frontend/reference-renderer/` (+ tutorial),
+  **verificado en navegador**. Es la prueba concreta del "contrato de renderer" (refuerza el flujo C).
+- **Portabilidad/salida + licencia:** `mateu-about/portability-and-exit.md`, `NOTICE`,
+  `Directory.Build.props`, `license` en package.json → **Apache 2.0** declarada consistentemente.
+
+### R3 · Gobernanza / continuidad — ✅ (nuestro lado)
+`doc/.../mateu-about/governance-and-continuity.md`: riesgo honesto (bus factor), qué cambia la IA
+(adopción=baja / stewardship=media) y el **paquete de 6 mitigaciones** (fork-readiness, ≥2 stewards que
+juzguen el core, guía de invariantes, charter de soporte, auditoría externa…). **Pendiente = decisiones
+organizativas de Riu** (quiénes son los stewards, modelo de soporte, quién financia la auditoría).
+
+### R1 · Diseño / marca de Riu — ✅ (primer incremento, verificado)
+Capa de **design tokens de Riu** (`frontend/reference-renderer/riu-theme.css`, Amaranto #D2232A + Oro
+#CA9C4E, mapeada a variables Lumo → tematiza el renderer Vaadin de producción); demo **default⇄Riu**
+verificada en navegador (capturas en `doc/public/images/docs/branding/`); guía
+`doc/.../design-systems/branding-and-design-tokens.md` con playbook de escape hatches + guardrail de
+alcance. **Pendiente = assets de Riu** (webfont + logo) para la demo medida sobre vaadin-lit.
+
+### Higiene de CI
+- **Cloudflare Pages retirado** (integración externa redundante que fallaba en 0 s en cada PR; mateu.io
+  lo sirve Netlify). Verificado: ya no postea checks. CI del repo limpio de ese rojo.
+
+### Qué NO cambia esto
+La GA propiamente (cortar **RC1 → v3.0.0** a Maven Central) sigue siendo **acción externa del mantenedor**
+(runbook en el flujo G). R1/R2/R3 **suben la percepción de madurez y cierran la historia de honestidad**
+que la GA declara, pero no sustituyen el corte de release.
