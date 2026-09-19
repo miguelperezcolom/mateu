@@ -41,7 +41,10 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             if (!msg || typeof msg !== 'object') return
             if (msg.type === 'ready') {
                 webview.postMessage({ type: 'init', yaml: document.getText(), baseUrl: `http://127.0.0.1:${port}`, path: relativeSpecsUiPath(document.uri) })
-            } else if (msg.type === 'save' && typeof msg.yaml === 'string') {
+            } else if ((msg.type === 'contentChanged' || msg.type === 'save') && typeof msg.yaml === 'string') {
+                // The web bundle posts `contentChanged` on every edit (see hostBridge.ts); `save` is
+                // kept as an alias for parity with the IntelliJ host. Applying the edit marks the
+                // document dirty so VSCode's native Ctrl+S / save-all writes it to disk.
                 if (document.getText() === msg.yaml) return
                 savingFromWebview = true
                 const edit = new vscode.WorkspaceEdit()
@@ -66,6 +69,15 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
     /** The bundle's index.html, rewritten for the webview: CSP, the host baseUrl, and the entry asset. */
     private buildHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, port: number): string {
         const indexPath = vscode.Uri.joinPath(mediaRoot, 'index.html')
+        // The web bundle is copied into media/ by `npm run copy:web`; the dir is gitignored, so a fresh
+        // checkout has none. Fail with an actionable message instead of a raw ENOENT that blanks the panel.
+        if (!fs.existsSync(indexPath.fsPath)) {
+            return `<!doctype html><html><body style="font-family: var(--vscode-font-family); padding: 2rem; color: var(--vscode-foreground)">
+                <h3>Mateu Visual Editor bundle not found</h3>
+                <p>The web bundle is missing at <code>media/</code>. Build and copy it, then reopen this editor:</p>
+                <pre style="padding:.75rem;background:var(--vscode-textCodeBlock-background);border-radius:4px">cd frontend/app/vscode-extension &amp;&amp; npm run copy:web</pre>
+            </body></html>`
+        }
         let html = fs.readFileSync(indexPath.fsPath, 'utf8')
 
         // Rewrite the entry module src (./assets/index-*.js) to a webview resource URI. Its lazy
