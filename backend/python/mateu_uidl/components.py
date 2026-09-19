@@ -132,7 +132,12 @@ class DashboardPanel(Component):
 
 @dataclass(frozen=True)
 class DashboardLayout(Component):
-    """A responsive grid of dashboard tiles. ``columns=0`` lets the renderer auto-fit."""
+    """A responsive grid of dashboard tiles. ``columns=0`` lets the renderer auto-fit.
+
+    Deprecated (coherence-plan #9): prefer :class:`ResponsiveGrid` — N columns become N fill tracks
+    (0 → auto-fit), tiles carry their own spans. As of Phase 4 no archetype produces a
+    DashboardLayout (Dashboard + Welcome compose a ResponsiveGrid); retained for direct authoring.
+    """
 
     items: tuple[Component, ...] = ()
     columns: int = 0
@@ -268,7 +273,12 @@ class ContentLayout(Component):
     """Redwood-style content page layout: the uniform slot grammar (main / aside / footer) shared by
     the page archetypes. Region contents travel as slotted children (main-N / aside-N / footer-N);
     the aside sits beside main (side by ``aside_position``, width by ``aside_width``, optionally
-    ``aside_sticky``) and stacks under it when narrow; the footer spans full width below."""
+    ``aside_sticky``) and stacks under it when narrow; the footer spans full width below.
+
+    Deprecated (coherence-plan #7/#9): prefer a :class:`ResponsiveGrid` named-slot template (with
+    ``sticky_areas`` for a pinned region) — the same "main aside" grammar on the ONE grid. As of
+    Phase 4 no archetype/mechanism produces a ContentLayout; retained for direct authoring.
+    """
 
     main: tuple[Component, ...] = ()
     aside: tuple[Component, ...] = ()

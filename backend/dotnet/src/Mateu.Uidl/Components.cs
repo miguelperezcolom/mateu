@@ -88,7 +88,10 @@ public sealed record DashboardPanel : ComponentBase
 }
 
 /// <summary>A responsive grid of dashboard tiles. Columns 0 (default) lets the renderer pick a
-/// responsive column count.</summary>
+/// responsive column count.
+/// <para>Deprecated (coherence-plan #9): prefer <see cref="ResponsiveGrid"/> — N columns become N
+/// fill tracks (0 → auto-fit), tiles carry their own spans. As of Phase 4 no archetype produces a
+/// DashboardLayout (Dashboard + Welcome compose a ResponsiveGrid); retained for direct authoring.</para></summary>
 public sealed record DashboardLayout : ComponentBase
 {
     public int Columns { get; init; }
@@ -190,7 +193,10 @@ public sealed record FoldoutLayout : ComponentBase
 /// shared by the page archetypes. Region contents travel as slotted children (main-N / aside-N /
 /// footer-N); the aside sits beside main (side by <see cref="AsidePosition"/>, width by
 /// <see cref="AsideWidth"/>, optionally <see cref="AsideSticky"/>) and stacks under it when narrow;
-/// the footer spans full width below.</summary>
+/// the footer spans full width below.
+/// <para>Deprecated (coherence-plan #7/#9): prefer a <see cref="ResponsiveGrid"/> named-slot
+/// template (with StickyAreas for a pinned region) — the same "main aside" grammar on the ONE grid.
+/// As of Phase 4 no archetype/mechanism produces a ContentLayout; retained for direct authoring.</para></summary>
 public sealed record ContentLayout : ComponentBase
 {
     public IReadOnlyList<IComponent> Main { get; init; } = [];
