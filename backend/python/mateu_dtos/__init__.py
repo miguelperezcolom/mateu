@@ -18,6 +18,11 @@ class Wire(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
+# Current wire protocol version. Bumped only on a breaking (major) wire change; additions within a
+# major are backward compatible and do not change it. Mirrors io.mateu.dtos.UIIncrementDto.WIRE_VERSION.
+WIRE_VERSION = "3.0"
+
+
 # ── Component metadata (discriminated on "type") ───────────────────────────────
 class AppMetadata(Wire):
     type: Literal["App"] = "App"
@@ -1552,6 +1557,10 @@ class UIIncrement(Wire):
     append_banners: bool = False
     app_data: Any | None = None
     app_state: Any | None = None
+    # Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive within a major
+    # version; a consumer may read it to guard against a mismatched producer. Defaults so every
+    # response carries it (serialized as "wireVersion" by the camelCase alias generator).
+    wire_version: str = WIRE_VERSION
 
     @staticmethod
     def of(commands=None, messages=None, fragments=None, banners=None, append_banners=False) -> "UIIncrement":

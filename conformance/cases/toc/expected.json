@@ -328,5 +328,6 @@
       "phone" : "+34 600 000 000",
       "summary" : "All good"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

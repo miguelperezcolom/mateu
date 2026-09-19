@@ -184,6 +184,14 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   "Wire an action" quick start (button → declared action), model-editing quick starts in an IDE host (create
   the field/@Action, the §G sync), AI-assisted scaffolds, and (editor tree friction) selecting INTO a
   `Slotted` child (renders/round-trips fine; deep-edited via YAML for now).
+- **Phase 5 — Layout ↔ ViewModel sync: STARTED (the web-editor reconciliation half).** A **Sync panel**
+  shows the structural diff between the page and the bound view model's contract (pure, tested
+  `model/viewModelSync.ts`): **in the model, not on the page** → per-member **"Add to page"** (a `FormField`
+  / an action `Button`), and **on the page, not in the model** (dangling `FormField.id`/`actionId`) → flagged
+  as *create in the ViewModel (IDE)*. 99 vitest + tsc + build. **Remaining in Phase 5:** the code-writing
+  half — **"Create in ViewModel"** as an **IntelliJ quick-fix** off the existing binding annotator (edits
+  Java/.NET/Python source → IDE-only, Kotlin plugin work), and the `modelView:` picker upgrade (a dropdown
+  from `projectIndex.viewModels`; the Quick Start prompt covers it for now).
 - **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
-  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; contextual Quick Starts;
-  remaining Phase-1 hardening; finish Phase 2 (data mocking).
+  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; the IntelliJ
+  "Create in ViewModel" quick-fix; remaining Phase-1 hardening; finish Phase 2 (data mocking).

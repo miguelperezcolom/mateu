@@ -1,6 +1,7 @@
 {
   "$schema" : "http://json-schema.org/draft-07/schema#",
   "$id" : "https://mateu.io/uidl/sources-schema.json",
+  "version" : "3.0",
   "title" : "Mateu REST source catalogue",
   "description" : "JSON Schema for a mount's REST source catalogue — the endpoints the UI consumes, each named once so any surface can reference it instead of repeating its URL. `provenance` decides whether the derived API contract generates a server for it. GENERATED from RestSourceEntry by UidlSchemaGenerator — do not edit by hand.",
   "oneOf" : [ {
