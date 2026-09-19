@@ -144,8 +144,10 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   gained a `copyVisualEditor` Gradle task (`npm run copy` in the web app) wired into `processResources` —
   up-to-date aware (skipped when the web source is unchanged) and skipped-with-a-warning when the web
   workspace isn't installed, so a plugin-only build is never blocked. Validated by a Gradle dry-run (task
-  ordered before `processResources`) + VSCode `tsc`.
-  **Remaining:** GUI live-run (human-in-the-loop) + the VSCode proxy's https branch.
+  ordered before `processResources`) + VSCode `tsc`. **Fourth pass — VSCode proxy `https`**: the loopback
+  proxy picked `http.request` only, so an `https://` `mateu.baseUrl` failed silently; it now selects the
+  client by scheme (443/80 default port). **Phase 1 hardening is complete.**
+  **Remaining:** only the **GUI live-run** (human-in-the-loop) of both hosts against demo-starwars :8600.
 - **Phase 2 — Preview source: DONE (contract/binding scope; web editor, build + 84 vitest green + tsc).**
   Pure model `apps/visual-editor/src/model/previewSource.ts` (8 tests) — modes `remote`/`local`/`mock`/
   `client` + `renderBaseUrl`/`rendersClientSide`/`contractFixtureFor`/`fixtureAsMembers` + fixture helpers
