@@ -141,9 +141,14 @@ Everything is a component · inferred by default, explicit as override · one mo
      (`modelView` marked `deprecated`); the internal Java field/var names stay `modelView` (not
      user-facing — cosmetic churn avoided). `YamlModelViewSyncTest` pins that both keys bind
      identically. **Follow-up:** the visual editor still WRITES `modelView:` — have it emit the
-     canonical `viewModel:` (frontend-only; deferred to avoid colliding with the active editor work).
-  2. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
-  3. **`definition` → `Layout`** (pending) — name the layout crisply; keep `definition` as alias.
+     canonical `viewModel:`. (Landed on master via the visual-editor thread's `viewModelSync.ts`.)
+  2. **`definition` → `layout`** (#535): the routes.yaml layout-file key. `layout:` is canonical,
+     `definition:` a deprecated alias (`layout` wins). Full tri-backend parity (Java/.NET/Python all
+     read `layout` → fall back to `definition`); the RouteEntry field / wire key stays `definition`
+     (routes.yaml is parsed manually, so no wire change); schema advertises `layout` (canonical) +
+     `definition` (deprecated) in routes-schema + specs-schema. A `help` route authored with `layout:`
+     binds identically to `definition:`, pinned in all three.
+  3. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
   4. **retire "page" as an authoring term**, keep it as the wire artifact only (pending).
   5. **R2 (App ≠ its Home Screen)** (pending) — remove the "@UI class is both app and home"
      conflation so the home is just another Screen; `AppShell` already carries the home reference.
