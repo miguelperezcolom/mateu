@@ -11,6 +11,7 @@ import {
     fixturedViewModels, setContractFixture, removeContractFixture, parseContractFixtures,
 } from './model/previewSource'
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
+import { TEMPLATES, StarterTemplate } from './model/templates'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
@@ -88,6 +89,15 @@ export class MateuVisualEditor extends LitElement {
             border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
         .triggers-panel input { flex: 1; min-width: 8rem; }
         .triggers-panel .del { border: none; background: none; color: #b91c1c; cursor: pointer; }
+        .templates-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.5rem; }
+        .templates-panel .tp-head { font-weight: 600; color: #374151; }
+        .templates-panel .tg-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .templates-panel .tg-card { width: 12rem; border: 1px solid #e3e5e8; border-radius: 6px;
+            background: #fff; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .templates-panel .tg-label { font-weight: 600; color: #1f2937; }
+        .templates-panel .tg-desc { color: #6b7280; flex: 1; }
+        .templates-panel .tg-card button { align-self: flex-start; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -98,6 +108,7 @@ export class MateuVisualEditor extends LitElement {
     @state() private selectedPath: NodePath | null = null
     @state() private showSource = false
     @state() private showTriggers = false
+    @state() private showTemplates = false
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -196,6 +207,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.modeBadge()}
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
@@ -222,6 +234,7 @@ export class MateuVisualEditor extends LitElement {
                     <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                    .clientRender=${rendersClientSide(this.previewSource)} .selectedPath=${this.selectedPath}></editor-canvas>
                     <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
+                    ${this.showTemplates ? this.renderTemplateGallery() : ''}
                     ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
@@ -505,6 +518,42 @@ export class MateuVisualEditor extends LitElement {
      */
     private notifyChanged() {
         this.host.onContentChanged?.(this.currentYaml())
+    }
+
+    // --- new from template (Phase 6) ---
+
+    /** The starter-template gallery: a card per template with a "Use" button. */
+    private renderTemplateGallery() {
+        return html`
+            <div class="templates-panel">
+                <div class="tp-head">Start from a template — a skeleton you then edit</div>
+                <div class="tg-grid">
+                    ${TEMPLATES.map((t) => html`
+                        <div class="tg-card">
+                            <div class="tg-label">${t.label}</div>
+                            <div class="tg-desc">${t.description}</div>
+                            <button @click=${() => this.applyTemplate(t)}>Use</button>
+                        </div>`)}
+                </div>
+            </div>`
+    }
+
+    /** Replace the current page with a template's layout (keeping the model binding, if any). */
+    private applyTemplate(t: StarterTemplate) {
+        if (this.pageHasContent() && !window.confirm(`Replace the current page with the "${t.label}" template?`)) return
+        const fresh = parsePage(t.yaml)
+        // Keep the page's data binding + declared write-half; only the layout is templated.
+        this.doc = { ...fresh, modelView: this.doc?.modelView ?? fresh.modelView }
+        this.selectedPath = null
+        this.showTemplates = false
+        this.refreshContract()
+        this.notifyChanged()
+    }
+
+    /** True when the current page already holds something a template would overwrite. */
+    private pageHasContent(): boolean {
+        const c = this.doc?.layout?.content
+        return Array.isArray(c) ? c.length > 0 : !!this.doc?.layout && this.doc.layout.type !== 'VerticalLayout'
     }
 
     // --- page-level triggers (on-load / on-event / on-value-change → an action) ---

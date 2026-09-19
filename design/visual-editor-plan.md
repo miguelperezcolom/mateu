@@ -170,6 +170,17 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   save. Verified: 1062 core tests + UidlSchemaTest (12) + `YamlDeclaredTriggersSyncTest` (4) green; frontend
   88 vitest + tsc + build. **Remaining in Phase 3:** the `steps` flow editor (blocked on the coherence
   handoff) and authoring behaviour on buttons/actions (not just menus).
+- **Phase 6 — Quick Starts & templates: STARTED (new-from-template).** Its coherence-Phase-4 dependency
+  landed (#523/#524: `ResponsiveGrid` + `gridTemplateAreas` + `Slotted` named slots). Delivered: a
+  **starter-template gallery** (`model/templates.ts`, `Templates` toolbar button) with 5 curated,
+  renderer-neutral/classless starters — Form, Listing, Two-columns, Dashboard, and a **Named-slot template**
+  that showcases the coherence Phase 4 primitive (ResponsiveGrid + `Slotted`). Picking one replaces the
+  layout (keeping any model binding), with a confirm when the page isn't empty. Each template is pinned to
+  parse + round-trip by `templates.test.ts`. 91 vitest + tsc + build. **Remaining in Phase 6:** contextual
+  **Quick Starts** ("Turn into listing / Add data / Wire an action") that rewrite the current YAML (+ the
+  model when in an IDE), AI-assisted where it adds value; and (editor tree friction) selecting INTO a
+  `Slotted` child (its `content` is a single component, not the editor's array — renders/round-trips fine,
+  deep-edited via YAML for now).
 - **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
-  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; remaining Phase-1
-  hardening; finish Phase 2 (data mocking).
+  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; contextual Quick Starts;
+  remaining Phase-1 hardening; finish Phase 2 (data mocking).
