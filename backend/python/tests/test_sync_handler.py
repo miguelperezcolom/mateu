@@ -236,6 +236,14 @@ class R2App(AppSupplier):
         )
 
 
+# An app declared with the SINGLE @app(route="/x") decorator (coherence-plan #5) — no separate @ui.
+@app("App via app route", route="/approute")
+class AppViaAppRoute:
+    @menu_item("Screen")
+    def screen(self) -> R2Screen:
+        return R2Screen()
+
+
 class Thing:
     id: str = ""
     name: Annotated[str, Required()] = ""
@@ -1068,6 +1076,15 @@ def test_app_shell_menu():
     assert "Test App" in j
     assert "Things" in j
     assert '"/things"' in j
+
+
+def test_app_route_declares_an_app_and_its_route_in_one_decorator():
+    # coherence-plan #5, Python parity: @app(route="/approute") with NO @ui resolves at /approute
+    # and renders as an app.
+    inc = handler().handle(RunActionRq(route="/approute", consumed_route=""))
+    meta = inc.fragments[0].component.metadata
+    assert meta.title == "App via app route"
+    assert meta.server_side_type == _name(AppViaAppRoute)
 
 
 def test_r2_a_home_that_resolves_to_a_distinct_screen_is_typed_with_that_screens_class():

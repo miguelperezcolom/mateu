@@ -148,7 +148,7 @@ Everything is a component · inferred by default, explicit as override · one mo
      (routes.yaml is parsed manually, so no wire change); schema advertises `layout` (canonical) +
      `definition` (deprecated) in routes-schema + specs-schema. A `help` route authored with `layout:`
      binds identically to `definition:`, pinned in all three.
-  3. **`@UI`/`@App` → one "App" concept — Java DONE (additive alias).** `@App(route = "/shop")`
+  3. **`@UI`/`@App` → one "App" concept — DONE end-to-end (#549 Java, #550 ports).** `@App(route = "/shop")`
      declares BOTH that a class is an app AND its base path (design: `design/ui-app-reconciliation.md`,
      go-full approved). `@UI` stays the generic router; `@App(route)` wins when both are present; a
      value-less `@App` (chrome only) is unchanged — nothing that works today breaks. Wired through
@@ -156,11 +156,19 @@ Everything is a component · inferred by default, explicit as override · one mo
      (`MateuUIAnnotationProcessor` + the indexer now treat `@App(route)` as a routed class and
      generate its controller, deduped when a class carries both); the **runtime** route resolution
      (`RouteAnnotations.routeOf` + `RouteAnnotationMatcher`; `ViewTypeClassifier.isApp` recognises the
-     `@App` annotation). Verified: full core suite **1072 green**, `AppRouteSyncTest` (resolves +
-     renders + two-paths rule), and **end-to-end on a live SUT** — a real `@App(route = "/appdemo")`
-     app (no `@UI`) is served (`type: App`, `serverSideType = AppRouteDemo`) via the AP-generated
-     controller, with a new e2e (`app-route.spec.ts`). **PENDING (ports):** mirror on .NET
-     (`[App(Route = "/x")]`) and Python (`@app(route="/x")`) — reflective, lower risk.
+     `@App` annotation). Two non-obvious defects the design's "per-adapter risk" flag predicted, both
+     found and fixed with browser verification: (i) `UISourceFileGenerator.createIndexController`
+     hardcoded a dead `indexHtmlPath` default (`/index/index.html`) that only `@UI`'s annotation
+     default (`/static/_index.html`) ever overrode — so an `@App`-only class served a nonexistent SPA
+     index and never booted; defaults now match `@UI`'s. (ii) `AppHomeRouteResolver` types the home
+     fragment by resolving the home route, and `RouteAnnotationMatcher.matches` only resolves a home
+     route that lives UNDER the app's own mount — the fixture's cross-mount home was a test bug, not a
+     product one (its own home Screen `AppRouteHomeScreen @UI("/appdemo/screen")` resolves cleanly).
+     Verified: full core suite **1072 green**, `AppRouteSyncTest` (resolves + renders + two-paths rule),
+     and the `app-route.spec.ts` e2e **passing in a real browser** — a real `@App(route = "/appdemo")`
+     app (no `@UI`) is served (`<title>App route demo</title>`, `baseUrl="/appdemo"`) and mounts its
+     distinct home Screen. **Ports DONE (#550):** .NET (`[App(Route = "/x")]`) and Python
+     (`@app(route="/x")`) register by `app.Route ?? ui.Route` — reflective, no AP; .NET 385, Python 378.
   4. **retire "page" as an authoring term** (pending) — "page" is not an authoring keyword (only the
      wire artifact `PageDto`/`PageView`), so this is docs terminology; folded into Phase 9's rebuild.
   5. **R2 (App ≠ its Home Screen)** — split into (a) done, (b) pending, because unlike slices 1–2 it
