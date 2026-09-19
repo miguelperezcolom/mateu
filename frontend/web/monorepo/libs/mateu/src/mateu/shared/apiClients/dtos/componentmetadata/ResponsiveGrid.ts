@@ -9,4 +9,7 @@ export default interface ResponsiveGrid {
     /** Optional per-child column span, aligned with the children; a child with span N occupies N
      *  tracks (a full-width band uses a large span). */
     colSpans?: number[] | undefined
+    /** Responsive breakpoint: a CSS length below which the grid (its container) collapses to one
+     *  column. Absent = never collapse. */
+    stackBelow?: string | undefined
 }

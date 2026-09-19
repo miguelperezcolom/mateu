@@ -26,6 +26,7 @@ public class ResponsiveGridMapper {
             .gridTemplateColumns(grid.gridTemplateColumns())
             .gap(grid.gap())
             .colSpans(grid.colSpans())
+            .stackBelow(grid.stackBelow())
             .build(),
         grid.id(),
         grid.content() != null

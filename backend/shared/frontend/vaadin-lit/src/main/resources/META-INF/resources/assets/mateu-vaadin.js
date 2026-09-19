@@ -2024,12 +2024,22 @@ ${i}
         >
             ${t.children?.map(t=>N(e,t,n,r,i,a,o))}
         </mateu-foldout>
-    `},ki=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,l=s.gap??`var(--lumo-space-m, 1rem)`,u=s.colSpans??[];return w`
-        <div class="mateu-responsive-grid ${t.cssClasses??``}"
-             style="display: grid; grid-template-columns: ${c}; gap: ${l}; align-items: start; ${t.style??``}"
-             slot="${t.slot??v}"
-        >
-            ${t.children?.map((t,s)=>{let c=u[s],l=N(e,t,n,r,i,a,o);return c&&c>1?w`<div style="grid-column: span ${c}; min-width: 0;">${l}</div>`:l})}
+    `},ki=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,l=s.gap??`var(--lumo-space-m, 1rem)`,u=s.colSpans??[],d=`display: grid; grid-template-columns: ${c}; gap: ${l}; align-items: start; ${t.style??``}`,f=t.children?.map((t,s)=>{let c=u[s],l=N(e,t,n,r,i,a,o);return c&&c>1?w`<div style="grid-column: span ${c}; min-width: 0;">${l}</div>`:l});if(!s.stackBelow)return w`
+            <div class="mateu-responsive-grid ${t.cssClasses??``}"
+                 style="${d}"
+                 slot="${t.slot??v}"
+            >${f}</div>
+        `;let p=t.id??`mateu-grid`;return w`
+        <div style="container-type: inline-size;" slot="${t.slot??v}">
+            <style>
+                @container (max-width: ${s.stackBelow}) {
+                    .mateu-responsive-grid[data-grid-id="${p}"] { grid-template-columns: 1fr !important; }
+                }
+            </style>
+            <div class="mateu-responsive-grid ${t.cssClasses??``}"
+                 data-grid-id="${p}"
+                 style="${d}"
+            >${f}</div>
         </div>
     `},Ai=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children??[],l=e=>c.filter(t=>(t.slot??``).startsWith(e)),u=l(`main-`),d=l(`aside-`),f=l(`footer-`),p=s.asideWidth&&s.asideWidth.trim()?s.asideWidth:`32%`,ee=s.asidePosition===`start`,m=s.asideSticky!==!1,te=t=>t.map(t=>N(e,t,n,r,i,a,o)),ne=w`
         <div class="mateu-content-main"

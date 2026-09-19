@@ -67,6 +67,20 @@ test.describe('layout sizing (fill / hug)', () => {
     expect(grid.columns.trim().split(/\s+/).length).toBe(3);
   });
 
+  test('@Zones consolidates onto the responsive grid (#9): ratio tracks that stack on narrow', async ({ page }) => {
+    await page.goto('/zones');
+    await expect(page.locator('mateu-ux').first()).toBeAttached({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    // The zoned row is now a ResponsiveGrid (display:grid), not a flex row.
+    const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      return { display: cs.display, cols: cs.gridTemplateColumns };
+    });
+    expect(grid.display).toBe('grid');
+    // two zone tracks (60%/40%) → two resolved px tracks on a wide viewport.
+    expect(grid.cols.trim().split(/\s+/).length).toBe(2);
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });

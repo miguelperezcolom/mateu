@@ -11,5 +11,6 @@ import lombok.Builder;
  * spanning child with {@code grid-column: span N}.
  */
 @Builder
-public record ResponsiveGridDto(String gridTemplateColumns, String gap, List<Integer> colSpans)
+public record ResponsiveGridDto(
+    String gridTemplateColumns, String gap, List<Integer> colSpans, String stackBelow)
     implements ComponentMetadataDto {}

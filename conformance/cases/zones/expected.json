@@ -71,7 +71,7 @@
               "spacing" : true,
               "type" : "VerticalLayout"
             },
-            "style" : "flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
+            "style" : "min-width: 0;",
             "type" : "ClientSide"
           }, {
             "children" : [ {
@@ -136,15 +136,15 @@
               "spacing" : true,
               "type" : "VerticalLayout"
             },
-            "style" : "flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);",
+            "style" : "min-width: 0;",
             "type" : "ClientSide"
           } ],
           "metadata" : {
-            "spacing" : true,
-            "type" : "HorizontalLayout",
-            "wrap" : true
+            "gridTemplateColumns" : "64% 36%",
+            "stackBelow" : "40rem",
+            "type" : "ResponsiveGrid"
           },
-          "style" : "width: 100%; align-items: flex-start;",
+          "style" : "width: 100%; align-items: start;",
           "type" : "ClientSide"
         } ],
         "metadata" : {

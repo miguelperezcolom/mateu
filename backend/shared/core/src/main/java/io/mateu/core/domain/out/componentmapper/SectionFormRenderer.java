@@ -409,7 +409,13 @@ final class SectionFormRenderer {
     return VerticalLayout.builder().spacing(true).style("width: 100%;").content(blocks).build();
   }
 
-  /** Turns a run of zoned sections into one side-by-side {@link HorizontalLayout} of columns. */
+  /**
+   * Turns a run of zoned sections into one {@link ResponsiveGrid} of columns (coherence-plan #9):
+   * each zone is a grid track sized from its {@link Zone#width()} ({@code fixed(width)}, or {@code
+   * fill} when no width is declared), so the ratio holds on wide viewports; {@code stackBelow}
+   * makes the grid collapse to a single column on narrow ones (via a container query) — replacing
+   * the old flex-wrap with the responsive grid while keeping the same responsive behaviour.
+   */
   private static void flushZonedRow(
       List<Section> pendingZoned, Zones zones, List<Component> blocks, Ctx ctx) {
     if (pendingZoned.isEmpty()) {
@@ -421,52 +427,50 @@ final class SectionFormRenderer {
     }
 
     List<Component> columns = new ArrayList<>();
+    List<GridTrack> tracks = new ArrayList<>();
     for (Zone zone : zones.value()) {
       var zoneSections = sectionsByZone.remove(zone.name());
       if (zoneSections == null || zoneSections.isEmpty()) {
         continue;
       }
-      columns.add(zoneColumn(zoneSections, widthStyle(zone.width()), ctx));
+      columns.add(zoneColumn(zoneSections, ctx));
+      tracks.add(track(zone.width()));
     }
 
     if (!sectionsByZone.isEmpty()) {
       var leftover = new ArrayList<Section>();
       sectionsByZone.values().forEach(leftover::addAll);
-      columns.add(zoneColumn(leftover, widthStyle(""), ctx));
+      columns.add(zoneColumn(leftover, ctx));
+      tracks.add(GridTrack.fill());
     }
 
     blocks.add(
-        HorizontalLayout.builder()
-            .spacing(true)
-            // Responsive: when a column can't keep a usable width (see widthStyle's min-width),
-            // it wraps below the previous one and, thanks to flex-grow, fills the full row.
-            .wrap(true)
-            .style("width: 100%; align-items: flex-start;")
-            .content(columns)
-            .build());
+        new ResponsiveGrid(
+            "zoned-row-" + blocks.size(),
+            tracks,
+            null,
+            columns,
+            null,
+            // Below this container width the zones stack (the old flex-wrap point was
+            // ~20rem/column).
+            "40rem",
+            "width: 100%; align-items: start;"));
     pendingZoned.clear();
   }
 
-  private static Component zoneColumn(List<Section> zoneSections, String widthStyle, Ctx ctx) {
+  private static Component zoneColumn(List<Section> zoneSections, Ctx ctx) {
     return VerticalLayout.builder()
         .spacing(true)
-        .style(widthStyle)
+        .style("min-width: 0;")
         .content(renderSections(zoneSections, ctx))
         .build();
   }
 
   /**
-   * Zone columns are growable AND shrinkable around a flex-basis of the declared width MINUS the
-   * row's spacing gap: with {@code flex-wrap} the line breaks are computed from the hypothetical
-   * (basis) sizes, so a plain {@code 62% + 38% + gap > 100%} would wrap immediately (or, without
-   * wrap, overflow past the full-width bands' right edge — the old {@code flex: 0 0 62%} bug). The
-   * min-width sets the responsive wrap point: a column squeezed under it drops below the previous
-   * one and, thanks to flex-grow, fills the full row.
+   * A zone's grid track: its declared width as a {@code fixed} track, or {@code fill} when blank.
    */
-  private static String widthStyle(String width) {
-    return width == null || width.isBlank()
-        ? "flex: 1 1 12rem; min-width: min(20rem, 100%);"
-        : "flex: 1 1 calc(" + width + " - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);";
+  private static GridTrack track(String width) {
+    return width == null || width.isBlank() ? GridTrack.fill() : GridTrack.fixed(width);
   }
 
   private static Component buildTitleRow(
