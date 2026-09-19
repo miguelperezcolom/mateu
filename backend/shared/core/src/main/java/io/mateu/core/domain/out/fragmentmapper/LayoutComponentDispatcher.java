@@ -21,6 +21,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.FullWidthMapper.ma
 import static io.mateu.core.domain.out.fragmentmapper.mappers.HeroSectionMapper.mapHeroSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.HorizontalLayoutMapper.mapHorizontalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MasterDetailLayoutMapper.mapMasterDetailLayoutToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ResponsiveGridMapper.mapResponsiveGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScrollerMapper.mapScrollerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SplitLayoutMapper.mapSplitLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TabLayoutMapper.mapTabLayoutToDto;
@@ -103,6 +104,10 @@ final class LayoutComponentDispatcher {
     if (component instanceof DashboardLayout dashboardLayout) {
       return mapDashboardLayoutToDto(
           dashboardLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof ResponsiveGrid responsiveGrid) {
+      return mapResponsiveGridToDto(
+          responsiveGrid, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof DashboardPanel dashboardPanel) {
       return mapDashboardPanelToDto(
