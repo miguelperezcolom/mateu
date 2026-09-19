@@ -22,7 +22,10 @@ public static class ComponentMapper
         DashboardLayout d => Dto(d, new DashboardLayoutMetadataDto(d.Columns), d.Items.Select(Map)),
 
         ResponsiveGrid g => Dto(g,
-            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow), g.Content.Select(Map)),
+            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow, g.GridTemplateAreas),
+            g.Content.Select(Map)),
+
+        Slotted sl => Map(sl.SlotContent) with { Slot = sl.Slot },
 
         FoldoutLayout f => MapFoldout(f),
 
@@ -298,6 +301,7 @@ public static class ComponentMapper
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
             case DashboardLayout d: foreach (var i in d.Items) Collect(i, ids); break;
             case ResponsiveGrid g: foreach (var i in g.Content) Collect(i, ids); break;
+            case Slotted sl when sl.SlotContent is not null: Collect(sl.SlotContent, ids); break;
             case ContentLayout cl:
                 foreach (var i in cl.Main) Collect(i, ids);
                 foreach (var i in cl.Aside) Collect(i, ids);

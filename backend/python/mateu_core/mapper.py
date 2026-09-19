@@ -1181,15 +1181,24 @@ class ReflectionMapper:
                 [self.map_component(i) for i in c.items],
             )
         if isinstance(c, fluent.ResponsiveGrid):
+            children = []
+            for i in c.content:
+                if isinstance(i, fluent.Slotted):
+                    child = self.map_component(i.content)
+                    child.slot = i.slot
+                else:
+                    child = self.map_component(i)
+                children.append(child)
             return self._fluent_client(
                 ResponsiveGridMetadata(
                     grid_template_columns=c.grid_template_columns(),
                     gap=c.gap,
                     col_spans=list(c.col_spans) or None,
                     stack_below=c.stack_below,
+                    grid_template_areas=c.grid_template_areas,
                 ),
                 c,
-                [self.map_component(i) for i in c.content],
+                children,
             )
         if isinstance(c, fluent.FoldoutLayout):
             children = []

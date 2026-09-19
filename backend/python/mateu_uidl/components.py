@@ -179,6 +179,9 @@ class ResponsiveGrid(Component):
     col_spans: tuple[int, ...] = ()
     #: Responsive breakpoint: a CSS length below which the grid collapses to one column.
     stack_below: str | None = None
+    #: Named-slot template (coherence-plan #7): a CSS grid-template-areas string. When set, children
+    #: are :class:`Slotted` wrappers placed by area name — a Screen = Template + slots.
+    grid_template_areas: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -186,6 +189,21 @@ class ResponsiveGrid(Component):
     def grid_template_columns(self) -> str | None:
         """The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem")."""
         return " ".join(t.css for t in self.columns) if self.columns else None
+
+    @staticmethod
+    def template(id: str | None, areas: str, slotted: "tuple[Slotted, ...] | list[Slotted]") -> "ResponsiveGrid":
+        """A Screen = Template + slots (coherence-plan #7): a grid whose layout is ``areas`` and whose
+        children are placed by slot name. Mirrors io.mateu.uidl.data.ResponsiveGrid.template."""
+        return ResponsiveGrid(id=id, grid_template_areas=areas, content=tuple(slotted))
+
+
+@dataclass(frozen=True)
+class Slotted(Component):
+    """Wraps a component and places it in a named grid area of a :class:`ResponsiveGrid` template.
+    Mirrors io.mateu.uidl.data.Slotted."""
+
+    slot: str = ""
+    content: Component | None = None
 
 
 @dataclass(frozen=True)

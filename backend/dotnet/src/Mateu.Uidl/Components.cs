@@ -128,11 +128,23 @@ public sealed record ResponsiveGrid : ComponentBase
     /// <summary>Responsive breakpoint: a CSS length below which the grid collapses to one column.
     /// Null = never collapse.</summary>
     public string? StackBelow { get; init; }
+    /// <summary>Named-slot template (coherence-plan #7): a CSS grid-template-areas string. When set,
+    /// children are <see cref="Slotted"/> wrappers placed by area name — a Screen = Template + slots.</summary>
+    public string? GridTemplateAreas { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>
         Columns.Count == 0 ? null : string.Join(" ", Columns.Select(t => t.ToCss()));
+
+    /// <summary>A Screen = Template + slots (coherence-plan #7): a grid whose layout is
+    /// <paramref name="areas"/> and whose children are placed by slot name.</summary>
+    public static ResponsiveGrid Template(string? id, string areas, IReadOnlyList<IComponent> slotted) =>
+        new() { Id = id, GridTemplateAreas = areas, Content = slotted };
 }
+
+/// <summary>Wraps a component and places it in a named grid area of a <see cref="ResponsiveGrid"/>
+/// template. Mirrors io.mateu.uidl.data.Slotted.</summary>
+public sealed record Slotted(string Slot, IComponent SlotContent) : ComponentBase;
 
 // ── Foldout ────────────────────────────────────────────────────────────────────
 

@@ -856,7 +856,7 @@ def find(children, meta_type):
 def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     doc = render(SalesDashboard)
     (layout,) = page_children(doc)
-    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None}
+    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None}
 
     scoreboard, panel, note = layout["children"]
 
