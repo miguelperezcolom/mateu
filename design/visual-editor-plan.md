@@ -176,11 +176,14 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   renderer-neutral/classless starters — Form, Listing, Two-columns, Dashboard, and a **Named-slot template**
   that showcases the coherence Phase 4 primitive (ResponsiveGrid + `Slotted`). Picking one replaces the
   layout (keeping any model binding), with a confirm when the page isn't empty. Each template is pinned to
-  parse + round-trip by `templates.test.ts`. 91 vitest + tsc + build. **Remaining in Phase 6:** contextual
-  **Quick Starts** ("Turn into listing / Add data / Wire an action") that rewrite the current YAML (+ the
-  model when in an IDE), AI-assisted where it adds value; and (editor tree friction) selecting INTO a
-  `Slotted` child (its `content` is a single component, not the editor's array — renders/round-trips fine,
-  deep-edited via YAML for now).
+  parse + round-trip by `templates.test.ts`. **Contextual Quick Starts: DONE** — a `Quick Start` panel with
+  three one-click scaffolds backed by pure, tested ops in `model/quickStarts.ts`: **Bind data source**
+  (set `modelView`, then load its contract), **Lay out fields from data** (data-first — append a `FormField`
+  per contract member, honouring the mock preview source), and **Turn into listing** (replace the page with
+  a `Listing` whose columns come from its fields). 96 vitest + tsc + build. **Remaining in Phase 6:** a
+  "Wire an action" quick start (button → declared action), model-editing quick starts in an IDE host (create
+  the field/@Action, the §G sync), AI-assisted scaffolds, and (editor tree friction) selecting INTO a
+  `Slotted` child (renders/round-trips fine; deep-edited via YAML for now).
 - **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
   coherence thread closes the classless-`steps` gap → then the `steps` flow editor; contextual Quick Starts;
   remaining Phase-1 hardening; finish Phase 2 (data mocking).

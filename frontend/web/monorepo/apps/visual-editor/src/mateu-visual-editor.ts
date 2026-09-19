@@ -12,6 +12,8 @@ import {
 } from './model/previewSource'
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { TEMPLATES, StarterTemplate } from './model/templates'
+import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing } from './model/quickStarts'
+import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
@@ -98,6 +100,12 @@ export class MateuVisualEditor extends LitElement {
         .templates-panel .tg-label { font-weight: 600; color: #1f2937; }
         .templates-panel .tg-desc { color: #6b7280; flex: 1; }
         .templates-panel .tg-card button { align-self: flex-start; }
+        .quickstart-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
+        .quickstart-panel .tp-head { font-weight: 600; color: #374151; }
+        .quickstart-panel .qs-row { display: flex; align-items: center; gap: 0.5rem; }
+        .quickstart-panel .qs-row button { min-width: 12rem; text-align: left; }
+        .quickstart-panel .qs-hint { color: #9ca3af; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -109,6 +117,7 @@ export class MateuVisualEditor extends LitElement {
     @state() private showSource = false
     @state() private showTriggers = false
     @state() private showTemplates = false
+    @state() private showQuickStarts = false
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -208,6 +217,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
@@ -235,6 +245,7 @@ export class MateuVisualEditor extends LitElement {
                                    .clientRender=${rendersClientSide(this.previewSource)} .selectedPath=${this.selectedPath}></editor-canvas>
                     <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                     ${this.showTemplates ? this.renderTemplateGallery() : ''}
+                    ${this.showQuickStarts ? this.renderQuickStarts() : ''}
                     ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
@@ -554,6 +565,67 @@ export class MateuVisualEditor extends LitElement {
     private pageHasContent(): boolean {
         const c = this.doc?.layout?.content
         return Array.isArray(c) ? c.length > 0 : !!this.doc?.layout && this.doc.layout.type !== 'VerticalLayout'
+    }
+
+    // --- contextual Quick Starts (Phase 6) ---
+
+    /** The Quick Start panel: one-click higher-altitude scaffolds, contextual to the page. */
+    private renderQuickStarts() {
+        const bound = this.boundViewModel()
+        return html`
+            <div class="quickstart-panel">
+                <div class="tp-head">Quick Starts — one-click scaffolds</div>
+                <div class="qs-row">
+                    <button @click=${this.qsBindData}>Bind data source…</button>
+                    <span class="qs-hint">${bound ? `bound to ${bound}` : 'not bound'}</span>
+                </div>
+                <div class="qs-row">
+                    <button @click=${this.qsScaffoldFields} ?disabled=${!bound}>Lay out fields from data</button>
+                    <span class="qs-hint">${bound ? 'append a field per data-source member' : 'bind a data source first'}</span>
+                </div>
+                <div class="qs-row">
+                    <button @click=${this.qsTurnIntoListing} ?disabled=${this.doc?.layout?.type === 'Listing'}>Turn into listing</button>
+                    <span class="qs-hint">replace the page with a table (columns from its fields)</span>
+                </div>
+            </div>`
+    }
+
+    private qsTurnIntoListing = () => {
+        this.doc = turnIntoListing(this.doc!)
+        this.selectedPath = null
+        this.showQuickStarts = false
+        this.notifyChanged()
+    }
+
+    private qsBindData = async () => {
+        const vms = this.project?.viewModels ?? []
+        const vm = window.prompt(`Data source — model view FQN${vms.length ? ` (e.g. ${vms[0]})` : ''}:`, this.doc?.modelView ?? '')
+        if (vm == null) return
+        this.doc = bindDataSource(this.doc!, vm)
+        this.lastContractVm = undefined
+        this.refreshContract()
+        if (this.doc.modelView) {
+            const fields = await this.inferredFieldsFor(this.doc.modelView)
+            if (fields && this.doc) this.doc = { ...this.doc, inferred: fields }
+        }
+        this.notifyChanged()
+    }
+
+    private qsScaffoldFields = async () => {
+        const vm = this.boundViewModel()
+        if (!vm) { window.alert('Bind a data source first.'); return }
+        const fields = this.doc?.inferred ?? (await this.inferredFieldsFor(vm))
+        if (!fields?.length) { window.alert('No fields found for this data source.'); return }
+        this.doc = scaffoldFieldsFromContract(this.doc!, fields)
+        this.showQuickStarts = false
+        this.notifyChanged()
+    }
+
+    /** The data source's fields, from a mock fixture when in mock mode, else the backend contract. */
+    private async inferredFieldsFor(vm: string): Promise<InferredField[] | null> {
+        const fixture = contractFixtureFor(this.previewSource, vm)
+        if (fixture) return fixture.fields ?? []
+        return fetchInferredFields(this.previewSource.baseUrl, vm, this)
     }
 
     // --- page-level triggers (on-load / on-event / on-value-change → an action) ---
