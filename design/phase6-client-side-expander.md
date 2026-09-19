@@ -109,6 +109,23 @@ at once — no .NET/Python port (those are backends; the whole point is *no* bac
 core (`apps/redwood/poc`) has its own transport; a VB twin of the expander is a later, optional
 increment (VB is ref-native for sources and does not consume them yet).
 
+**Browser-e2e finding — deep-linking a sub-route in bundle mode renders the app HOME, not the
+sub-route (blocks the naive e2e; needs in-app navigation).** The exporter→manifest→expander data
+path is proven end to end: `BundleDefinitionsTest` (server ships the raw definition), the
+`expandDefinition`/`bundleExpander` vitest suites (client expands it), and — with REAL Maven tooling
+— `mvn -Pbundle` on `demo-static-bundle` produces a `manifest.json` whose `definitions` carries the
+authored layout. In a real browser the served bundle boots (assets + manifest 200, `mateu-ui`
+mounts). BUT a **direct URL load of a sub-route** (`/info`, and even the pre-rendered `/about`)
+renders the ROOT app's HOME content, not the sub-route — a pre-existing app-shell/bundle-mode
+deep-link behaviour, independent of the expander (it reproduces on a pre-rendered route too). So the
+browser e2e that proves the expander must drive **in-app navigation** — a menu leaf pointing at the
+definition-only route, clicked — rather than a deep link, OR the bundle-mode deep-link path must
+first be taught to load the addressed sub-route into the content slot. That is the next increment,
+and it needs a **CI-wired static-serving Playwright project** (build the bundle → serve the static
+dir with SPA fallback → navigate), since the e2e config has no `webServer` and starts SUTs by hand.
+Until then the expander is verified by unit/integration goldens on both sides + the real-manifest
+build, not yet by an in-browser render.
+
 **Golden strategy — render-parity, not byte-parity (corrected after the first golden).** The first
 golden (`about.yaml` → its increment) revealed the crux: the server fills **per-type defaults** when
 it maps a fluent node to the wire (`VerticalLayout` gains `spacing:false`; `Text` gains
