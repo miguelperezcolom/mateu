@@ -13,6 +13,7 @@ import {
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing } from './model/quickStarts'
+import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
@@ -106,6 +107,18 @@ export class MateuVisualEditor extends LitElement {
         .quickstart-panel .qs-row { display: flex; align-items: center; gap: 0.5rem; }
         .quickstart-panel .qs-row button { min-width: 12rem; text-align: left; }
         .quickstart-panel .qs-hint { color: #9ca3af; }
+        .sync-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.5rem; }
+        .sync-panel .tp-head { font-weight: 600; color: #374151; }
+        .sync-panel .qs-hint { color: #9ca3af; }
+        .sync-panel .sync-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .sync-panel .sync-sub { font-weight: 600; color: #4b5563; font-size: 11px; }
+        .sync-panel .sync-row { display: flex; align-items: center; gap: 0.4rem; }
+        .sync-panel .sync-row code { background: #eef1f4; border-radius: 4px; padding: 0.05rem 0.3rem; }
+        .sync-panel .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
+            padding: 0.05rem 0.35rem; background: #e8eefe; color: #3a4bb3; }
+        .sync-panel .tag.a { background: #e6f4f4; color: #0f766e; }
+        .sync-panel .tag.warn { background: #fdecec; color: #b91c1c; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -118,6 +131,7 @@ export class MateuVisualEditor extends LitElement {
     @state() private showTriggers = false
     @state() private showTemplates = false
     @state() private showQuickStarts = false
+    @state() private showSync = false
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -218,6 +232,7 @@ export class MateuVisualEditor extends LitElement {
                     <span class="spacer"></span>
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showSync = !this.showSync)}>Sync</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
@@ -246,6 +261,7 @@ export class MateuVisualEditor extends LitElement {
                     <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                     ${this.showTemplates ? this.renderTemplateGallery() : ''}
                     ${this.showQuickStarts ? this.renderQuickStarts() : ''}
+                    ${this.showSync ? this.renderSync() : ''}
                     ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
@@ -626,6 +642,50 @@ export class MateuVisualEditor extends LitElement {
         const fixture = contractFixtureFor(this.previewSource, vm)
         if (fixture) return fixture.fields ?? []
         return fetchInferredFields(this.previewSource.baseUrl, vm, this)
+    }
+
+    // --- Layout ↔ ViewModel sync (Phase 5, §G) ---
+
+    /** The reconciliation panel: what the page binds vs what the model declares, with the fixes per side. */
+    private renderSync() {
+        if (!this.doc) return ''
+        const vm = this.boundViewModel()
+        if (!vm) {
+            return html`<div class="sync-panel"><div class="tp-head">Sync with ViewModel</div>
+                <div class="qs-hint">This page isn't bound to a data source. Use <b>Quick Start → Bind data source</b> first.</div></div>`
+        }
+        const diff = diffAgainstContract(this.doc, this.contract)
+        return html`
+            <div class="sync-panel">
+                <div class="tp-head">Sync with ${vm}</div>
+                ${isInSync(diff) ? html`<div class="qs-hint">In sync — everything the page binds is declared, and vice-versa.</div>` : ''}
+                ${diff.unusedFields.length || diff.unusedActions.length ? html`
+                    <div class="sync-group">
+                        <div class="sync-sub">In the model, not on the page</div>
+                        ${diff.unusedFields.map((id) => html`<div class="sync-row"><span class="tag f">field</span><code>${id}</code><button @click=${() => this.syncAddField(id)}>Add to page</button></div>`)}
+                        ${diff.unusedActions.map((id) => html`<div class="sync-row"><span class="tag a">action</span><code>${id}</code><button @click=${() => this.syncAddAction(id)}>Add button</button></div>`)}
+                    </div>` : ''}
+                ${diff.missingFields.length || diff.missingActions.length ? html`
+                    <div class="sync-group">
+                        <div class="sync-sub">On the page, not in the model — create in the ViewModel <span class="qs-hint">(in an IDE)</span></div>
+                        ${diff.missingFields.map((id) => html`<div class="sync-row"><span class="tag f warn">field</span><code>${id}</code></div>`)}
+                        ${diff.missingActions.map((id) => html`<div class="sync-row"><span class="tag a warn">action</span><code>${id}</code></div>`)}
+                    </div>` : ''}
+            </div>`
+    }
+
+    private syncAddField(id: string) {
+        this.doc = scaffoldFieldsFromContract(this.doc!, [{ id }])
+        this.notifyChanged()
+    }
+
+    private syncAddAction(actionId: string) {
+        const doc = this.doc!
+        const layout = structuredClone(doc.layout)
+        const root = Array.isArray(layout.content) ? layout : { type: 'VerticalLayout', content: [layout] }
+        root.content = [...(root.content ?? []), { type: 'Button', label: actionId, actionId }]
+        this.doc = { ...doc, layout: root }
+        this.notifyChanged()
     }
 
     // --- page-level triggers (on-load / on-event / on-value-change → an action) ---
