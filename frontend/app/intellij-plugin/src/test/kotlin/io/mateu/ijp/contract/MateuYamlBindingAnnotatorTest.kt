@@ -2,6 +2,8 @@ package io.mateu.ijp.contract
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 /**
@@ -143,6 +145,42 @@ class MateuYamlBindingAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     val warnings = infos.bindingWarnings()
     assertContainsElements(warnings, "secret", "internalHelper")
     assertDoesntContain(warnings, "name", "save")
+  }
+
+  private fun customerViewClass() =
+    JavaPsiFacade.getInstance(project).findClass("demo.CustomerView", GlobalSearchScope.allScope(project))!!
+
+  fun testCreateFieldQuickFixAddsTheFieldWithTheDeclaredType() {
+    myFixture.addClass(customerView)
+    myFixture.configureByText(
+      "page.yaml",
+      """
+      modelView: demo.CustomerView
+      layout:
+        type: FormField
+        id: emai<caret>l
+        dataType: number
+      """.trimIndent(),
+    )
+    myFixture.launchAction(myFixture.findSingleIntention("Create field 'email' in CustomerView"))
+    val field = customerViewClass().findFieldByName("email", false)
+    assertNotNull("the field should be created", field)
+    assertEquals("Double", field!!.type.presentableText) // dataType: number → Double
+  }
+
+  fun testCreateActionQuickFixAddsTheMethod() {
+    myFixture.addClass(customerView)
+    myFixture.configureByText(
+      "page.yaml",
+      """
+      modelView: demo.CustomerView
+      layout:
+        type: Button
+        actionId: refr<caret>esh
+      """.trimIndent(),
+    )
+    myFixture.launchAction(myFixture.findSingleIntention("Create action 'refresh' in CustomerView"))
+    assertTrue("the method should be created", customerViewClass().findMethodsByName("refresh", false).isNotEmpty())
   }
 
   fun testContractFlagsDataTypeMismatch() {
