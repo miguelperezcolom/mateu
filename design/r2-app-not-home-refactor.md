@@ -74,3 +74,36 @@ the `r2_*` tripwires + a browser check, as its own reviewed PR — it is the con
 of R2. **Defer the sentinel collapse (step 3)** until step 1 is proven, because that is where the
 regression risk concentrates. Hold for maintainer go/no-go on step 1's wire change (it moves
 conformance goldens and a frontend-visible value).
+
+## Findings from the implementation spike (post "go-full" decision)
+
+Digging into the code to do the full refactor surfaced two things that **change the scope** — pinned
+here before anyone writes the change:
+
+1. **`_page` is load-bearing infrastructure — KEEP it, do not "collapse" it.** `_page` is the
+   home-**fragment** route suffix: the app shell fetches its content slot as a *separate* request
+   (`ComponentFragmentMapper`: "a home route the frontend fetches separately with the `_page` suffix";
+   frontend `chooseAppServerSideType` uses it on initial load). That separate content-slot fetch **is**
+   R2's target model ("the App renders chrome + a content slot that mounts the home Screen"). So
+   `_page` should STAY; the conflation is only that the slot is *typed as the app class*. Only
+   **`_no_home_route`** (the "no explicit home → defer to first menu item" marker) is conflation cruft.
+
+2. **The core change needs a route→class resolver threaded through two un-DI'd static app-mapper
+   paths.** `homeServerSideType` is decided in `AppHomeRouteResolver.getHomeServerSideType` (used by
+   `AppMapper`, for `AppShell`s) and `HomeRouteResolver.getHomeServerSideType` (used by
+   `ReflectionAppMapper`, for instances) — both **static utilities with no injected
+   `RoutedClassResolver`**. Typing the home fragment as the home route's class requires passing a
+   resolver into these static methods (or moving the resolution up to the injected caller). Real
+   plumbing across the two parallel app-build paths that must stay byte-identical.
+
+3. **Empirical blast-radius baseline (green today):** `AppSyncTest` (9, incl. the 3 `r2_*` tripwires),
+   `AppMenuResolver*`, `RemoteMenu*DeepLinkSyncTest` (3 files), `ViewTypeClassifier*`,
+   `AppSupplierSyncTest`, `AppContextSyncTest` — **28 tests**. The implementation must keep these green
+   (bar the deliberate `r2_*` flips) + regenerate conformance goldens.
+
+**Refined "full R2":** **(i)** thread the resolver so the home fragment is typed as the home Screen's
+class (the real conflation removal), **(ii)** collapse **only** `_no_home_route` (not `_page`) at its
+source (`HomeRouteResolver.getHomeRoute` → first menu item), auditing its ~8 reader sites, **(iii)**
+tri-backend parity + regenerated goldens + a browser-verified multi-screen home load. This rewires the
+two core app-build paths, so it lands as its own single-purpose PR with the 28-test suite + goldens as
+the gate — not a tail-of-session edit.
