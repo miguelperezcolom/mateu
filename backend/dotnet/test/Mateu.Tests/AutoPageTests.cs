@@ -86,7 +86,7 @@ public class AutoPageTests
     [Fact]
     public void Auto_page_class_with_metric_cards_composes_the_dashboard_archetype()
     {
-        Assert.NotEmpty(OfType<DashboardLayoutMetadataDto>("inferred-dashboard"));
+        Assert.NotEmpty(OfType<ResponsiveGridMetadataDto>("inferred-dashboard"));
 
         var scoreboard = Assert.Single(OfType<ScoreboardMetadataDto>("inferred-dashboard"));
         var titles = scoreboard.Children!
@@ -135,14 +135,14 @@ public class AutoPageTests
     [Fact]
     public void AutoPage_false_opts_out_keeping_the_plain_form()
     {
-        Assert.Empty(OfType<DashboardLayoutMetadataDto>("plain-metrics"));
+        Assert.Empty(OfType<ResponsiveGridMetadataDto>("plain-metrics"));
         Assert.Empty(OfType<ScoreboardMetadataDto>("plain-metrics"));
     }
 
     [Fact]
     public void Without_any_annotation_the_shape_composes_by_default()
     {
-        Assert.NotEmpty(OfType<DashboardLayoutMetadataDto>("default-metrics"));
+        Assert.NotEmpty(OfType<ResponsiveGridMetadataDto>("default-metrics"));
         Assert.NotEmpty(OfType<ScoreboardMetadataDto>("default-metrics"));
     }
 }
