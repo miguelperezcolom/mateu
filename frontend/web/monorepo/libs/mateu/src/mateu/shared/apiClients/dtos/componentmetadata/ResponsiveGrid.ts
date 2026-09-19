@@ -15,4 +15,7 @@ export default interface ResponsiveGrid {
     /** Named-slot template (coherence-plan #7): a CSS grid-template-areas value; a child whose slot
      *  matches an area name is placed there. Absent = children flow into the column tracks. */
     gridTemplateAreas?: string | undefined
+    /** Named areas pinned with position:sticky while the rest of the grid scrolls (coherence-plan
+     *  #7): a child whose slot is listed here gets a sticky wrapper. Absent/empty = none. */
+    stickyAreas?: string[] | undefined
 }

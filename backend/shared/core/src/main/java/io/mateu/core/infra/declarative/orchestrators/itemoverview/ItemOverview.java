@@ -5,8 +5,9 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.Card;
-import io.mateu.uidl.data.ContentAsidePosition;
-import io.mateu.uidl.data.ContentLayout;
+import io.mateu.uidl.data.GridTrack;
+import io.mateu.uidl.data.ResponsiveGrid;
+import io.mateu.uidl.data.Slotted;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.fluent.Component;
@@ -71,18 +72,27 @@ public abstract class ItemOverview implements ComponentTreeSupplier {
       }
       tabs.add(new Tab(!panel.title().isEmpty() ? panel.title() : getLabel(field), component));
     }
-    List<Component> aside = new ArrayList<>();
-    if (keyInfo != null) {
-      // The sticky/width chrome now belongs to the ContentLayout aside slot, so the Card is bare.
-      aside.add(Card.builder().id("key-info").content(keyInfo).build());
+    var tabLayout = TabLayout.builder().id("item-tabs").tabs(tabs).build();
+    if (keyInfo == null) {
+      // Degenerate: no key-info panel → just the tabs (no two-region template to build).
+      return tabLayout;
     }
-    return ContentLayout.builder()
-        .id(id())
-        .aside(aside)
-        .main(List.of(TabLayout.builder().id("item-tabs").tabs(tabs).build()))
-        .asidePosition(ContentAsidePosition.start)
-        .asideWidth(panelWidth())
-        .asideSticky(true)
-        .build();
+    // The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+    // "keyinfo tabs" template whose fixed-width key-info column is pinned (a sticky slot) beside
+    // the
+    // free-space tabbed column — replacing the bespoke sticky ContentLayout. Layout (the areas and
+    // which one sticks) is separated from content (the slots).
+    return new ResponsiveGrid(
+        id(),
+        List.of(GridTrack.fixed(panelWidth()), GridTrack.fill()),
+        null,
+        List.of(
+            new Slotted("keyinfo", Card.builder().id("key-info").content(keyInfo).build()),
+            new Slotted("tabs", tabLayout)),
+        null,
+        "48rem",
+        "\"keyinfo tabs\"",
+        List.of("keyinfo"),
+        null);
   }
 }

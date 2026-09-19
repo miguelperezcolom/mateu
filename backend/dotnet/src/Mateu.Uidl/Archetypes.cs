@@ -119,15 +119,24 @@ public abstract class ItemOverview : IComponentTreeSupplier
             }
             tabs.Add(new TabPanel(Archetypes.TitleOf(panel, p), component));
         }
-        var content = new List<IComponent>();
-        if (keyInfo is not null)
-            content.Add(new Card
-            {
-                Id = "key-info", Content = keyInfo,
-                Style = $"flex: 0 0 {PanelWidth}; align-self: flex-start; position: sticky; top: 1rem;",
-            });
-        content.Add(new TabLayout { Id = "item-tabs", Tabs = tabs, Style = "flex: 1; min-width: 0;" });
-        return new HorizontalLayout { Id = Archetypes.IdOf(this), Spacing = true, Content = content };
+        var tabLayout = new TabLayout { Id = "item-tabs", Tabs = tabs };
+        if (keyInfo is null) return tabLayout;
+        // The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+        // "keyinfo tabs" template whose fixed-width key-info column is pinned (a sticky slot) beside
+        // the free-space tabbed column — replacing the bespoke sticky HorizontalLayout.
+        return new ResponsiveGrid
+        {
+            Id = Archetypes.IdOf(this),
+            Columns = [GridTrack.Fixed(PanelWidth), GridTrack.Fill()],
+            StackBelow = "48rem",
+            GridTemplateAreas = "\"keyinfo tabs\"",
+            StickyAreas = ["keyinfo"],
+            Content =
+            [
+                new Slotted("keyinfo", new Card { Id = "key-info", Content = keyInfo }),
+                new Slotted("tabs", tabLayout),
+            ],
+        };
     }
 }
 

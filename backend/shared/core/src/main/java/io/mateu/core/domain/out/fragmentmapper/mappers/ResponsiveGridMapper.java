@@ -30,6 +30,7 @@ public class ResponsiveGridMapper {
             .colSpans(grid.colSpans())
             .stackBelow(grid.stackBelow())
             .gridTemplateAreas(grid.gridTemplateAreas())
+            .stickyAreas(grid.stickyAreas())
             .build(),
         grid.id(),
         grid.content() != null

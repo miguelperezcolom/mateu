@@ -37,16 +37,25 @@ public record ResponsiveGrid(
      * flows into the implicit overflow (the plan's "fixed skeleton + overflow area" default).
      */
     String gridTemplateAreas,
+    /**
+     * Named areas (coherence-plan #7) that should be pinned with {@code position: sticky} while the
+     * rest of the grid scrolls — e.g. a key-info panel beside a long tabbed region. A slot whose
+     * name is listed here gets a sticky wrapper (top offset applied by the renderer); the sticky
+     * region is a property of the TEMPLATE, not of the content dropped into it. Null/empty =
+     * nothing sticky. This is what lets a two-region screen template replace the bespoke sticky
+     * ContentLayout.
+     */
+    List<String> stickyAreas,
     String style)
     implements Component {
 
   public ResponsiveGrid(String id, List<GridTrack> columns, List<Component> content) {
-    this(id, columns, null, content, null, null, null, null);
+    this(id, columns, null, content, null, null, null, null, null);
   }
 
   public ResponsiveGrid(
       String id, List<GridTrack> columns, String gap, List<Component> content, String style) {
-    this(id, columns, gap, content, null, null, null, style);
+    this(id, columns, gap, content, null, null, null, null, style);
   }
 
   public ResponsiveGrid(
@@ -56,7 +65,7 @@ public record ResponsiveGrid(
       List<Component> content,
       List<Integer> colSpans,
       String style) {
-    this(id, columns, gap, content, colSpans, null, null, style);
+    this(id, columns, gap, content, colSpans, null, null, null, style);
   }
 
   public ResponsiveGrid(
@@ -67,7 +76,19 @@ public record ResponsiveGrid(
       List<Integer> colSpans,
       String stackBelow,
       String style) {
-    this(id, columns, gap, content, colSpans, stackBelow, null, style);
+    this(id, columns, gap, content, colSpans, stackBelow, null, null, style);
+  }
+
+  public ResponsiveGrid(
+      String id,
+      List<GridTrack> columns,
+      String gap,
+      List<Component> content,
+      List<Integer> colSpans,
+      String stackBelow,
+      String gridTemplateAreas,
+      String style) {
+    this(id, columns, gap, content, colSpans, stackBelow, gridTemplateAreas, null, style);
   }
 
   /**
@@ -76,7 +97,7 @@ public record ResponsiveGrid(
    * tracks unless given.
    */
   public static ResponsiveGrid template(String id, String areas, List<Component> slotted) {
-    return new ResponsiveGrid(id, null, null, slotted, null, null, areas, null);
+    return new ResponsiveGrid(id, null, null, slotted, null, null, areas, null, null);
   }
 
   /**

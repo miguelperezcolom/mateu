@@ -4866,6 +4866,12 @@
         "gridTemplateAreas" : {
           "type" : "string"
         },
+        "stickyAreas" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
         "style" : {
           "type" : "string"
         }

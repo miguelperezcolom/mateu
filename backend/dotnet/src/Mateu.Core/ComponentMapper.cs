@@ -22,7 +22,7 @@ public static class ComponentMapper
         DashboardLayout d => Dto(d, new DashboardLayoutMetadataDto(d.Columns), d.Items.Select(Map)),
 
         ResponsiveGrid g => Dto(g,
-            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow, g.GridTemplateAreas),
+            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow, g.GridTemplateAreas, g.StickyAreas),
             g.Content.Select(Map)),
 
         Slotted sl => Map(sl.SlotContent) with { Slot = sl.Slot },
