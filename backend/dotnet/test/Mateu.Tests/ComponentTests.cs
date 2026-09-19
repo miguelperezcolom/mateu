@@ -1100,6 +1100,24 @@ public class ComponentTests
     }
 
     [Fact]
+    public void ResponsiveGrid_resolves_its_tracks_to_a_css_grid_template()
+    {
+        // coherence-plan #9: hug→auto, fill→1fr, fixed→len; children travel as component children.
+        var dto = ComponentMapper.Map(new ResponsiveGrid
+        {
+            Id = "grid",
+            Columns = [GridTrack.Hug(), GridTrack.Fill(), GridTrack.Fixed("15rem")],
+            Gap = "1rem",
+            Content = [new Text("A"), new Text("B"), new Text("C")],
+        });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"gridTemplateColumns\":\"auto 1fr 15rem\"", json);
+        Assert.Contains("\"gap\":\"1rem\"", json);
+        Assert.Equal(3, dto.Children.Count);
+    }
+
+    [Fact]
     public void Anchor_emits_text_url_and_target()
     {
         var dto = ComponentMapper.Map(new Anchor("Open the docs", "https://mateu.io/docs") { Target = "_blank" });

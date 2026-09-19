@@ -145,6 +145,45 @@ class DashboardLayout(Component):
 
 
 @dataclass(frozen=True)
+class GridTrack:
+    """A track (column) of a :class:`ResponsiveGrid` — its size IS the #8 sizing intent (hug=auto,
+    fill=1fr, fixed=len). ``css`` is the resolved CSS grid track size. Mirrors
+    io.mateu.uidl.data.GridTrack."""
+
+    css: str
+
+    @staticmethod
+    def hug() -> "GridTrack":
+        return GridTrack("auto")
+
+    @staticmethod
+    def fill() -> "GridTrack":
+        return GridTrack("1fr")
+
+    @staticmethod
+    def fixed(length: str) -> "GridTrack":
+        return GridTrack(length)
+
+
+@dataclass(frozen=True)
+class ResponsiveGrid(Component):
+    """One responsive grid — THE general layout foundation (coherence-plan #9). Children are placed
+    on a CSS grid whose column tracks are sized with the #8 vocabulary. Mirrors
+    io.mateu.uidl.data.ResponsiveGrid."""
+
+    columns: tuple[GridTrack, ...] = ()
+    gap: str | None = None
+    content: tuple[Component, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def grid_template_columns(self) -> str | None:
+        """The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem")."""
+        return " ".join(t.css for t in self.columns) if self.columns else None
+
+
+@dataclass(frozen=True)
 class FoldoutPanel(Component):
     """One lateral panel of a :class:`FoldoutLayout`; ``open`` controls the initial state."""
 

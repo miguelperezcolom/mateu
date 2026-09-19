@@ -28,6 +28,7 @@ from mateu_dtos import (
     ContentLayoutMetadata,
     CustomTrigger,
     DashboardLayoutMetadata,
+    ResponsiveGridMetadata,
     DashboardPanelMetadata,
     DialogMetadata,
     DivMetadata,
@@ -1172,6 +1173,12 @@ class ReflectionMapper:
                 DashboardLayoutMetadata(columns=c.columns),
                 c,
                 [self.map_component(i) for i in c.items],
+            )
+        if isinstance(c, fluent.ResponsiveGrid):
+            return self._fluent_client(
+                ResponsiveGridMetadata(grid_template_columns=c.grid_template_columns(), gap=c.gap),
+                c,
+                [self.map_component(i) for i in c.content],
             )
         if isinstance(c, fluent.FoldoutLayout):
             children = []
