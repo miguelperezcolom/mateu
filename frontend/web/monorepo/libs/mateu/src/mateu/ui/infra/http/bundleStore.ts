@@ -7,6 +7,7 @@
 import { setRestSourceCatalogue } from './restSourceCatalogue.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
+import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 
 interface BundleEntry {
     route: string
@@ -44,6 +45,12 @@ interface BundleManifest {
     // what the source names its surfaces reference actually point at — and, being one table in one
     // file, it is what makes re-pointing a deployment an edit rather than a rebuild.
     sources?: { sources?: RestSourceEntry[] }
+    // SPECS MODE (Phase 6, #1): the raw authored definitions, keyed by the file name a route entry's
+    // `definition` names (e.g. "about.yaml"). When present, a definition-only route (a `definition`,
+    // no `viewModel`) is expanded to the wire IN THE BROWSER by the client-side expander instead of
+    // being pre-rendered at build time — so editing a definition and refreshing shows it, with no
+    // backend and no export step. A `viewModel` route cannot be expanded client-side and is skipped.
+    definitions?: Record<string, DefinitionSpec>
 }
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
@@ -56,6 +63,8 @@ let templates: BundleTemplate[] = []
 let pending: Promise<void> | undefined
 // The mount's authored route registry, as shipped in the manifest.
 let routeEntries: RouteEntry[] = []
+// Specs mode: raw authored definitions keyed by file name (see BundleManifest.definitions).
+let definitions: Record<string, DefinitionSpec> = {}
 
 /** The `:name` segments of a route pattern, in order. */
 const paramNamesOf = (route: string): string[] =>
@@ -159,6 +168,7 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             increments = map
             templates = tpls
             routeEntries = manifest.routes?.routes ?? []
+            definitions = manifest.definitions ?? {}
             setRestSourceCatalogue(manifest.sources?.sources)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
@@ -171,9 +181,11 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
  *  backend before the bundle is ready. Resolves immediately when no bundle is being loaded. */
 export const awaitBundle = (): Promise<void> => pending ?? Promise.resolve()
 
-/** True once a non-empty bundle has been loaded (exact routes or :param templates). */
+/** True once a non-empty bundle has been loaded (exact routes, :param templates, or — specs mode —
+ *  raw definitions to expand client-side). */
 export const hasBundle = (): boolean =>
     (increments !== undefined && increments.size > 0) || templates.length > 0
+    || Object.keys(definitions).length > 0
 
 /**
  * The pre-rendered increment for a route's sync path, or undefined (→ fall back to the backend).
@@ -212,14 +224,32 @@ export const matchBundledTemplate = (syncPath: string): UIIncrement | undefined 
     return undefined
 }
 
+/**
+ * SPECS MODE (Phase 6, #1): expand a definition-only route to the wire IN THE BROWSER. When the
+ * route entry names a `definition` the manifest shipped raw, and it is client-expandable (a layout,
+ * no `viewModel`), the client-side expander turns it into an increment — no pre-render, no backend.
+ * The registry's parameters are applied on the way out, exactly like a pre-rendered increment.
+ * undefined when there is no matching definition or it needs a backend (a `viewModel` route).
+ */
+export const getExpandedIncrement = (syncPath: string): UIIncrement | undefined => {
+    const match = matchRouteEntry(syncPath)
+    const name = match?.entry.definition
+    if (!name) return undefined
+    const spec = definitions[name]
+    if (!spec || !isClientExpandable(spec)) return undefined
+    return applyRouteParams(syncPath, expandDefinition(spec, match!.entry.route))
+}
+
 /** Test hook: seed/clear the in-memory bundle directly. */
 export const __setBundleForTests = (
     m: Map<string, UIIncrement> | undefined,
     t: BundleTemplate[] = [],
     r: RouteEntry[] = [],
+    d: Record<string, DefinitionSpec> = {},
 ): void => {
     increments = m
     templates = t
     routeEntries = r
+    definitions = d
     pending = undefined
 }

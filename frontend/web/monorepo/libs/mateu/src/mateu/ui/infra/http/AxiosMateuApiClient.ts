@@ -7,7 +7,7 @@ import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
-import {awaitBundle, getBundledIncrement, hasBundle, matchBundledTemplate, toSyncPath} from "@infra/http/bundleStore.ts";
+import {awaitBundle, getBundledIncrement, getExpandedIncrement, hasBundle, matchBundledTemplate, toSyncPath} from "@infra/http/bundleStore.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -222,8 +222,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
             await awaitBundle()
             if (hasBundle()) {
                 // exact match first, then a :param template (e.g. orders/42 → the orders/:id
-                // template, with the extracted params injected into the structure's state/data)
-                const bundled = getBundledIncrement(toSyncPath(route)) ?? matchBundledTemplate(toSyncPath(route))
+                // template, with the extracted params injected into the structure's state/data),
+                // then — specs mode (Phase 6) — a definition-only route expanded client-side.
+                const bundled = getBundledIncrement(toSyncPath(route))
+                    ?? matchBundledTemplate(toSyncPath(route))
+                    ?? getExpandedIncrement(toSyncPath(route))
                 if (bundled) {
                     // The exporter had no initiatorComponentId, so the pre-rendered fragments carry
                     // a null target. The client only applies fragments whose targetComponentId is a
