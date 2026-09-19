@@ -125,6 +125,9 @@ public sealed record ResponsiveGrid : ComponentBase
     /// <summary>Optional per-child column span, aligned with Content: a child with span N occupies N
     /// tracks (a full-width band uses a large span).</summary>
     public IReadOnlyList<int>? ColSpans { get; init; }
+    /// <summary>Responsive breakpoint: a CSS length below which the grid collapses to one column.
+    /// Null = never collapse.</summary>
+    public string? StackBelow { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>

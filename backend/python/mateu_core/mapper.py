@@ -1186,6 +1186,7 @@ class ReflectionMapper:
                     grid_template_columns=c.grid_template_columns(),
                     gap=c.gap,
                     col_spans=list(c.col_spans) or None,
+                    stack_below=c.stack_below,
                 ),
                 c,
                 [self.map_component(i) for i in c.content],
@@ -2712,34 +2713,36 @@ class ReflectionMapper:
                 titled=True,
             )
 
-        def column(cards, width: str) -> ClientSideComponent:
-            # Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
-            # line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
-            # min-width sets the responsive wrap point (mirrors Java's widthStyle).
-            style = (
-                f"flex: 1 1 calc({width} - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"
-                if width
-                else "flex: 1 1 12rem; min-width: min(20rem, 100%);"
-            )
+        def column(cards) -> ClientSideComponent:
+            # Consolidated onto the one responsive grid (coherence-plan #9): the grid track sizes the
+            # column, so the column is a bare VerticalLayout (mirrors Java's zoneColumn).
             return ClientSideComponent(
-                metadata=VerticalLayoutMetadata(spacing=True), children=list(cards), style=style,
+                metadata=VerticalLayoutMetadata(spacing=True), children=list(cards),
+                style="min-width: 0;",
             )
 
         columns = []
+        tracks: list[str] = []
         remaining = list(range(len(sections)))
         for name, width in declared_zones:
             mine = [i for i in remaining if section_zones[i] == name]
             if not mine:
                 continue
             remaining = [i for i in remaining if i not in mine]
-            columns.append(column((card_of(i) for i in mine), width))
+            columns.append(column(card_of(i) for i in mine))
+            tracks.append(width if width else "1fr")
         if remaining:
-            columns.append(column((card_of(i) for i in remaining), ""))
+            columns.append(column(card_of(i) for i in remaining))
+            tracks.append("1fr")
 
+        # Zone widths become grid tracks; stack_below collapses the row to one column on narrow
+        # containers (mirrors Java's flushZonedRow — the old flex-wrap point was ~20rem/column).
         return ClientSideComponent(
-            metadata=HorizontalLayoutMetadata(spacing=True, wrap=True),
+            metadata=ResponsiveGridMetadata(
+                grid_template_columns=" ".join(tracks), stack_below="40rem"
+            ),
             children=columns,
-            style="width: 100%; align-items: flex-start;",
+            style="width: 100%; align-items: start;",
         )
 
     def section_card(

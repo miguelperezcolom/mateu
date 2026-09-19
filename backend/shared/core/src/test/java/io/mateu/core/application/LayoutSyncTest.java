@@ -15,6 +15,7 @@ import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
 import io.mateu.dtos.HorizontalLayoutDto;
 import io.mateu.dtos.PageDto;
+import io.mateu.dtos.ResponsiveGridDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.dtos.TabLayoutDto;
@@ -400,7 +401,7 @@ class LayoutSyncTest {
   void zonesLayOutSectionColumnsSideBySide() {
     var page = page(mateu.sync("/layout/zones"));
     var row = (ClientSideComponentDto) page.children().get(0);
-    assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
+    assertThat(row.metadata()).isInstanceOf(ResponsiveGridDto.class);
     // left + right + trailing leftover column
     assertThat(row.children()).hasSize(3);
     assertThat(row.children())
@@ -411,19 +412,18 @@ class LayoutSyncTest {
   }
 
   @Test
-  void zoneWidthsBecomeFlexBasisStyles() {
+  void zoneWidthsBecomeGridTracks() {
     var page = page(mateu.sync("/layout/zones"));
     var row = (ClientSideComponentDto) page.children().get(0);
-    // The row wraps: a column squeezed under its min-width drops below the previous one.
-    assertThat(((io.mateu.dtos.HorizontalLayoutDto) row.metadata()).wrap()).isTrue();
-    var columns = row.children();
-    // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the line
-    // breaks are computed from the basis, so 60% + 40% + gap would wrap or overflow);
-    // min-width sets the responsive wrap point.
-    assertThat(columns.get(0).style()).contains("flex: 1 1 calc(60%").contains("min-width: min(");
-    assertThat(columns.get(1).style()).contains("flex: 1 1 calc(40%");
-    // the leftover column has no fixed width — it grows
-    assertThat(columns.get(2).style()).contains("flex: 1");
+    // Consolidated onto the one responsive grid (coherence-plan #9): each zone's declared width is
+    // a
+    // grid track (60%/40%), the leftover column is a fill track, and stackBelow collapses the row
+    // to
+    // a single column on narrow containers (replacing the old flex-wrap, same responsive
+    // behaviour).
+    var grid = (ResponsiveGridDto) row.metadata();
+    assertThat(grid.gridTemplateColumns()).isEqualTo("60% 40% 1fr");
+    assertThat(grid.stackBelow()).isEqualTo("40rem");
   }
 
   @Test
@@ -448,7 +448,7 @@ class LayoutSyncTest {
   void consecutiveUntitledSectionsInDifferentZonesStaySeparate() {
     var page = page(mateu.sync("/layout/zones-untitled"));
     var row = (ClientSideComponentDto) page.children().get(0);
-    assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
+    assertThat(row.metadata()).isInstanceOf(ResponsiveGridDto.class);
     // left column + right column — the two untitled sections did NOT merge into one
     assertThat(row.children()).hasSize(2);
     assertThat(
@@ -473,10 +473,10 @@ class LayoutSyncTest {
     var band = stack.children().get(0);
     assertThat(collectMetadata(band, TextDto.class).stream().map(TextDto::text))
         .contains("Cabecera");
-    assertThat(collectMetadata(band, HorizontalLayoutDto.class)).isEmpty();
+    assertThat(collectMetadata(band, ResponsiveGridDto.class)).isEmpty();
 
     var row = (ClientSideComponentDto) stack.children().get(1);
-    assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
+    assertThat(row.metadata()).isInstanceOf(ResponsiveGridDto.class);
     assertThat(row.children()).hasSize(2);
   }
 

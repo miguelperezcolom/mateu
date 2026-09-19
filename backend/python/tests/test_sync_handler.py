@@ -1500,16 +1500,13 @@ def test_zones_lay_sections_out_as_side_by_side_columns():
     inc = handler().handle(RunActionRq(route="zoned", consumed_route="zoned"))
     j = render(inc)
 
-    # A horizontal row of vertical columns…
-    assert '"type": "HorizontalLayout"' in j
-    assert "width: 100%; align-items: flex-start;" in j
-    # …declared zones grow/shrink around their width minus the spacing gap (with flex-wrap the
-    # line breaks come from the basis) and carry the responsive wrap point; the unzoned section
-    # falls into a flexible column…
-    assert "flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);" in j
-    assert "flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);" in j
-    assert "flex: 1 1 12rem; min-width: min(20rem, 100%);" in j
-    assert '"wrap": true' in j
+    # Consolidated onto the one responsive grid (coherence-plan #9): a grid of columns…
+    assert '"type": "ResponsiveGrid"' in j
+    assert "width: 100%; align-items: start;" in j
+    # …declared zones size by their width as grid tracks, the unzoned section is a fill track…
+    assert '"gridTemplateColumns": "64% 36% 1fr"' in j
+    # …and it stacks to one column on narrow containers…
+    assert '"stackBelow": "40rem"' in j
     # …and every section card survives.
     assert "Main" in j and "Side" in j and "Loose" in j
 

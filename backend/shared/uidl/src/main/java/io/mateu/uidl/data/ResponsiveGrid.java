@@ -21,16 +21,34 @@ public record ResponsiveGrid(
     String gap,
     List<Component> content,
     List<Integer> colSpans,
+    /**
+     * Responsive breakpoint (coherence-plan #9): a CSS length below which the grid collapses to a
+     * single column (the tracks apply at or above it). This is what makes the grid genuinely
+     * responsive — a ratio layout (e.g. 64%/36% zones) keeps its ratio on wide viewports and stacks
+     * on narrow ones, using CSS grid + a container query, not a flex fallback. Null = never
+     * collapse (the tracks always apply).
+     */
+    String stackBelow,
     String style)
     implements Component {
 
   public ResponsiveGrid(String id, List<GridTrack> columns, List<Component> content) {
-    this(id, columns, null, content, null, null);
+    this(id, columns, null, content, null, null, null);
   }
 
   public ResponsiveGrid(
       String id, List<GridTrack> columns, String gap, List<Component> content, String style) {
-    this(id, columns, gap, content, null, style);
+    this(id, columns, gap, content, null, null, style);
+  }
+
+  public ResponsiveGrid(
+      String id,
+      List<GridTrack> columns,
+      String gap,
+      List<Component> content,
+      List<Integer> colSpans,
+      String style) {
+    this(id, columns, gap, content, colSpans, null, style);
   }
 
   /**

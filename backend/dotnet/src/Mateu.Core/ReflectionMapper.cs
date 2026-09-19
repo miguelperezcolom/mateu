@@ -844,32 +844,35 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 MapFields(sections[i].Props, instance, readOnly),
                 sectionAttrs[i], type, sections[i].Props, titled: true);
 
-        // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
-        // line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
-        // min-width sets the responsive wrap point (mirrors Java's widthStyle).
-        ComponentDto Column(IEnumerable<ComponentDto> cards, string width) =>
+        // Consolidated onto the one responsive grid (coherence-plan #9): each zone is a grid track
+        // sized from its width, so the column is a bare VerticalLayout (mirrors Java's zoneColumn).
+        ComponentDto Column(IEnumerable<ComponentDto> cards) =>
             new ClientSideComponentDto(
                 new VerticalLayoutMetadataDto { Spacing = true }, null, cards.ToList(),
-                width.Length > 0
-                    ? $"flex: 1 1 calc({width} - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"
-                    : "flex: 1 1 12rem; min-width: min(20rem, 100%);",
-                null, null);
+                "min-width: 0;", null, null);
 
         var columns = new List<ComponentDto>();
+        var tracks = new List<string>();
         var remaining = Enumerable.Range(0, sections.Count).ToList();
         foreach (var zone in zones)
         {
             var mine = remaining.Where(i => sectionZones[i] == zone.Name).ToList();
             if (mine.Count == 0) continue;
             remaining.RemoveAll(mine.Contains);
-            columns.Add(Column(mine.Select(CardOf), zone.Width));
+            columns.Add(Column(mine.Select(CardOf)));
+            tracks.Add(zone.Width.Length > 0 ? zone.Width : "1fr");
         }
         if (remaining.Count > 0)
-            columns.Add(Column(remaining.Select(CardOf), ""));
+        {
+            columns.Add(Column(remaining.Select(CardOf)));
+            tracks.Add("1fr");
+        }
 
+        // Zone widths become grid tracks; stackBelow collapses the row to one column on narrow
+        // containers (mirrors Java's flushZonedRow — the old flex-wrap point was ~20rem/column).
         return new ClientSideComponentDto(
-            new HorizontalLayoutMetadataDto { Spacing = true, Wrap = true }, null, columns,
-            "width: 100%; align-items: flex-start;", null, null);
+            new ResponsiveGridMetadataDto(string.Join(" ", tracks), null, null, "40rem"), null, columns,
+            "width: 100%; align-items: start;", null, null);
     }
 
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.

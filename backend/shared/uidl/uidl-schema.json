@@ -4791,6 +4791,9 @@
             "type" : "integer"
           }
         },
+        "stackBelow" : {
+          "type" : "string"
+        },
         "style" : {
           "type" : "string"
         }

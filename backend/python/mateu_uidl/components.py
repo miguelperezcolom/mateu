@@ -177,6 +177,8 @@ class ResponsiveGrid(Component):
     #: Optional per-child column span, aligned with ``content``: a child with span N occupies N
     #: tracks (a full-width band uses a large span).
     col_spans: tuple[int, ...] = ()
+    #: Responsive breakpoint: a CSS length below which the grid collapses to one column.
+    stack_below: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
