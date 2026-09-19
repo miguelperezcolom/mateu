@@ -9,6 +9,15 @@ import java.lang.annotation.RetentionPolicy;
 public @interface App {
   AppVariant value() default AppVariant.AUTO;
 
+  /**
+   * The base path this app is served at (coherence-plan #5): {@code @App(route = "/shop")} declares
+   * BOTH that the class is an app AND its route — the single annotation a newcomer reaches for,
+   * equivalent to {@code @UI("/shop") @App}. Blank (the default) means the route is carried by a
+   * separate {@code @UI} on the same class, exactly as before — so nothing that exists today
+   * changes. When both are present and non-blank, {@code @App(route)} wins.
+   */
+  String route() default "";
+
   AppLayout layout() default AppLayout.SINGLE_SLOT;
 
   boolean themeToggle() default false;
