@@ -57,6 +57,25 @@ Everything is a component · inferred by default, explicit as override · one mo
   `Action` by id; `Action` carries confirm + effects); #4 default "unrecognized return → render as
   UI" already implemented via the `FragmentListMapper` fallback (pinned by `ReturnRendersAsUiSyncTest`);
   R1 (abstract event bus) is the existing `@SubscribeTo`/`@Emits` pair.
+- **Phase 3 (layout: sizing + grid): in progress.**
+  - **Sizing intent** (#507, PR A): a component declares `hug` / `fill` / `fixed:<len>` as portable
+    data (`ClientSideComponentDto.sizing`); a listing infers `fill`; the web applies it to the
+    component's host via the pure `applySizing` helper (`SizingSyncTest`, `sizing.test.ts`).
+  - **Viewport-height flex chain** (PR B): the content `mateu-ux` is now a flex COLUMN — the missing
+    link that lets a `fill` child (a listing's mateu-component: `flex:1 1 auto;min-height:0;overflow:auto`)
+    take the remaining height and scroll internally instead of pushing the page. Verified with a real
+    browser + SUT layout e2e (`e2e/tests/renderer/layout-sizing.spec.ts`, 3 checks: the ux is a flex
+    column, a listing does not overflow the page, a form still renders) + the smoke suite as a
+    regression guard (5/5).
+  - **Finding — the listing already fills via a JS hack.** `mateu-table-crud` has a `measureFill`/
+    `trimOverflow` mechanism (measures `100dvh - insets` and sets an explicit box height) — exactly
+    one of the ad-hoc hacks #8 wants to retire. PR B did NOT rip it out (it works; verifiable only
+    visually) — it establishes the declarative flex chain alongside it. **Follow-up:** retire
+    `measureFill` in favour of the pure flex chain, once it can be visually regression-tested across
+    all list layouts (table/list/cards/masterDetail).
+  - **Next in Phase 3:** explicit `@Size` override + broader inference (form→hug, sidebar→fixed) with
+    .NET/Python parity; then the unified responsive grid (#9) where a track's size IS the sizing
+    intent (hug=auto, fixed=px, fill=fr).
 - **Phase 2 (flow language v0): in progress.**
   - `Step` value model (#503): sealed v0 verbs (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
     `MarkClean`, `MarkDirty`), each lowering 1:1 to an existing `UICommand` (`StepTest`). Bounded on
