@@ -112,3 +112,23 @@ Everything is a component · inferred by default, explicit as override · one mo
     behaviour via the already-authorable `Rule`/`RuleLink` (`RunAction`) — e.g. a menu-leaf "Action".
   - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
     forEach), each with the interpreter + corpus once divergence becomes possible.
+- **Phase 4 (screen model: templates + slots; archetypes→templates): done.**
+  - **Template + named slots** (#523, ports #524): `ResponsiveGrid.template(id, areas, slotted)` +
+    `Slotted(slot, content)` place children into a CSS `grid-template-areas` template — a Screen =
+    Template + slots on the ONE grid. Wire `ResponsiveGridDto.gridTemplateAreas`; byte-identical
+    across Java/.NET/Python; renderer places each slotted child in its named area and stacks the
+    areas on a narrow container.
+  - **Slot-level sticky** (#526): `ResponsiveGrid.stickyAreas` pins a named area (`position: sticky`)
+    while the rest of the grid scrolls — a TEMPLATE property, so it lives on the grid beside the
+    areas. This is what let the sticky two-region archetypes drop the bespoke ContentLayout.
+  - **Archetypes → templates (all bespoke-layout producers retired):** CollectionDetail → `"list
+    detail"` (#524), ItemOverview → `"keyinfo tabs"` + sticky slot (#526), Welcome highlights →
+    ResponsiveGrid (#527, joining Dashboard #517), `@Aside` mechanism → `"main aside"` template
+    (#529, wrapping each region in a stretch VerticalLayout since a named area holds one item). Each
+    browser-verified on a live SUT.
+  - **Consolidation complete + legacy soft-deprecated (this PR):** `ContentLayout` and
+    `DashboardLayout` now have ZERO producers — every screen layout flows through the one
+    `ResponsiveGrid` (tracks, spans, named-slot templates, sticky slots, responsive stacking). Both
+    are soft-deprecated (Java `@Deprecated(forRemoval=false)`, .NET/Python doc note pointing at
+    `ResponsiveGrid`), kept authorable via YAML/fluent + their mappers for backward compatibility.
+    Removing them (and their DTOs/mappers/schema) is a later cleanup once no consumer authors them.
