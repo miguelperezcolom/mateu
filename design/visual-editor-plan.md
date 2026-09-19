@@ -146,11 +146,13 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   work offline), fixture chips with remove, and **Export/Import JSON** — which is also the *AI-generated
   fixtures* path (a fixture is plain `{vm: {fields, actions}}`, generate it however and Import). Canvas
   takes an explicit `clientRender` flag (so IntelliJ same-origin `baseUrl:''` ≠ client mode) with an honest
-  Phase-7 placeholder. Per-mode recipes documented in the app README. **Deliberately deferred (not the
-  contract slice):** data-source **row** mocking (`__preview__` renders layout with no data, so binding
-  fixtures were the offline gap; row mocking lives in `libs/mateu` `fetchExternalJson` — a later, cross-
-  cutting change), a real embedded **`local`** backend boot (labelled `remote` for now), and the true
-  no-backend **render** (`client`) which is coherence **Phase 6**.
+  Phase-7 placeholder. Per-mode recipes documented in the app README. **Data-source ROW mocking: DONE** —
+  `libs/mateu` `fetchExternalJson` (the one choke point for options/rows/actions) gained an opt-in
+  `registerExternalJsonMock` hook (null by default → every app unaffected; 441 lib tests green); the editor
+  registers it in `mock` mode to serve listing/option rows from `rowFixtures` (keyed by source ref or url),
+  with Import/Export in the fixtures panel. So `mock` now covers BOTH contract AND data — the canvas shows
+  sample rows with no live source. **Still deferred:** a real embedded **`local`** backend boot (labelled
+  `remote` for now), and the true no-backend **render** (`client`) which is coherence **Phase 6/7**.
 - **Phase 3 — Behaviour editor: STARTED (verification + first slice).** The mandated first step (verify
   classless `Action.steps` end-to-end) found a **real gap**: flow `steps:` is NOT authorable in YAML —
   `io.mateu.uidl.fluent.Step` is unregistered in `YamlUidlMapperFactory` and its schema `$def` name

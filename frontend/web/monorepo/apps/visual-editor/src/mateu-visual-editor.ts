@@ -9,8 +9,10 @@ import {
     PreviewSource, PreviewMode, ContractFixture, PREVIEW_MODES, PREVIEW_MODE_LABELS,
     renderBaseUrl, rendersClientSide, contractFixtureFor, fixtureAsMembers,
     fixturedViewModels, setContractFixture, removeContractFixture, parseContractFixtures,
+    resolveRowFixture, removeRowFixture, fixturedRowSources, parseRowFixtures,
 } from './model/previewSource'
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
+import { registerExternalJsonMock } from '@infra/http/externalOptions.ts'
 import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
@@ -170,6 +172,7 @@ export class MateuVisualEditor extends LitElement {
         this.host = resolveHost()
         if (!this.baseUrl) this.baseUrl = this.host.baseUrl()
         this.previewSource = loadPreviewSource(this.baseUrl)
+        this.syncRowMock()
         this.currentPath = this.host.currentPath?.()
         this.host.initialYaml().then((yaml) => this.load(yaml))
         this.host.onExternalChange?.((yaml) => { this.load(yaml); this.selectedPath = null })
@@ -184,6 +187,20 @@ export class MateuVisualEditor extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         window.removeEventListener('keydown', this.onKeydown)
+        registerExternalJsonMock(null) // don't leak the mock past this editor instance
+    }
+
+    /**
+     * Register (or clear) the libs/mateu external-JSON mock so a `mock` preview source serves listing/option
+     * ROWS from fixtures — the data half of mock mode, so the canvas shows sample rows with no live source.
+     */
+    private syncRowMock() {
+        const src = this.previewSource
+        if (src?.mode === 'mock' && src.rowFixtures) {
+            registerExternalJsonMock((ctx) => resolveRowFixture(src, ctx.ref, ctx.url))
+        } else {
+            registerExternalJsonMock(null)
+        }
     }
 
     /**
@@ -440,7 +457,32 @@ export class MateuVisualEditor extends LitElement {
                 ${fixtured.map((f) => html`<span class="chip" title=${f}>${shortVm(f)}<button class="x" @click=${() => this.removeFixture(f)} title="Remove fixture">✕</button></span>`)}
                 <button @click=${this.exportFixtures} title="Copy all fixtures as JSON (edit them, or have your AI generate them, then Import)">Export</button>
                 <button @click=${this.importFixtures} title="Paste fixtures JSON (ViewModel FQN → { fields, actions })">Import</button>
+                <span class="rows">
+                    <span class="hint">rows:</span>
+                    ${fixturedRowSources(this.previewSource).map((r) => html`<span class="chip" title=${r}>${shortVm(r)}<button class="x" @click=${() => this.removeRowFixtureUi(r)} title="Remove row fixture">✕</button></span>`)}
+                    <button @click=${this.exportRowFixtures} title="Copy all row fixtures as JSON">Export rows</button>
+                    <button @click=${this.importRowFixtures} title='Paste row fixtures JSON ({ "<source ref or url>": <raw endpoint JSON> }) — capture, edit, or have your AI generate them'>Import rows</button>
+                </span>
             </span>`
+    }
+
+    private removeRowFixtureUi(key: string) {
+        this.updatePreviewSource(removeRowFixture(this.previewSource, key))
+    }
+
+    private exportRowFixtures() {
+        navigator.clipboard?.writeText(JSON.stringify(this.previewSource.rowFixtures ?? {}, null, 2)).catch(() => {})
+    }
+
+    private importRowFixtures() {
+        const json = window.prompt('Paste row fixtures JSON ({ "<source ref or url>": <raw endpoint JSON> })')
+        if (!json) return
+        const parsed = parseRowFixtures(json)
+        if (!parsed) { window.alert('Not valid JSON object.'); return }
+        this.updatePreviewSource({
+            ...this.previewSource, mode: 'mock',
+            rowFixtures: { ...this.previewSource.rowFixtures, ...parsed },
+        })
     }
 
     /** Record the bound view model's live contract as a mock fixture, then switch to offline mock. */
@@ -487,6 +529,7 @@ export class MateuVisualEditor extends LitElement {
     private updatePreviewSource(src: PreviewSource) {
         this.previewSource = src
         savePreviewSource(src)
+        this.syncRowMock()
         this.lastContractVm = undefined
         this.refreshContract()
     }

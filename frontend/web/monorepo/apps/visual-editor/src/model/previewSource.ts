@@ -35,6 +35,8 @@ export interface PreviewSource {
     baseUrl: string
     /** `mock`-mode contract fixtures, keyed by ModelView FQN. */
     contractFixtures?: Record<string, ContractFixture>
+    /** `mock`-mode listing/option ROW fixtures, keyed by REST source ref (or url) → the raw endpoint JSON. */
+    rowFixtures?: Record<string, unknown>
 }
 
 export const PREVIEW_MODES: readonly PreviewMode[] = ['remote', 'local', 'mock', 'client'] as const
@@ -135,6 +137,42 @@ export function parseContractFixtures(json: string): Record<string, ContractFixt
     return out
 }
 
+// --- row fixtures (mock listing/option DATA, keyed by REST source ref or url → the raw endpoint JSON) ---
+
+export function fixturedRowSources(src: PreviewSource): string[] {
+    return Object.keys(src.rowFixtures ?? {}).sort()
+}
+
+export function setRowFixture(src: PreviewSource, key: string, json: unknown): PreviewSource {
+    return { ...src, mode: 'mock', rowFixtures: { ...src.rowFixtures, [key]: json } }
+}
+
+export function removeRowFixture(src: PreviewSource, key: string): PreviewSource {
+    const next = { ...(src.rowFixtures ?? {}) }
+    delete next[key]
+    return { ...src, rowFixtures: Object.keys(next).length ? next : undefined }
+}
+
+/** The raw endpoint JSON for a REST fetch, from the mock row fixtures — by ref, else by url; only in mock mode. */
+export function resolveRowFixture(src: PreviewSource, ref: string | undefined, url: string): unknown | undefined {
+    if (!usesFixtures(src) || !src.rowFixtures) return undefined
+    if (ref && ref in src.rowFixtures) return src.rowFixtures[ref]
+    if (url && url in src.rowFixtures) return src.rowFixtures[url]
+    return undefined
+}
+
+/** Parse an imported row-fixtures document: `{ "<ref-or-url>": <raw endpoint JSON> }`. Null if not a plain object. */
+export function parseRowFixtures(json: string): Record<string, unknown> | null {
+    let parsed: unknown
+    try {
+        parsed = JSON.parse(json)
+    } catch {
+        return null
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    return parsed as Record<string, unknown>
+}
+
 // --- persistence (pure serialise/parse; the store owns localStorage) ---
 
 export function serializePreviewSource(src: PreviewSource): string {
@@ -158,6 +196,8 @@ export function parsePreviewSource(raw: string | null | undefined, fallbackBaseU
                 parsed.contractFixtures && typeof parsed.contractFixtures === 'object'
                     ? parsed.contractFixtures
                     : undefined,
+            rowFixtures:
+                parsed.rowFixtures && typeof parsed.rowFixtures === 'object' ? parsed.rowFixtures : undefined,
         }
     } catch {
         return defaultPreviewSource(fallbackBaseUrl)
