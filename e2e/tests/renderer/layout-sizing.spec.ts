@@ -99,6 +99,24 @@ test.describe('layout sizing (fill / hug)', () => {
     expect(info.sidebarArea).toContain('sidebar');
   });
 
+  test('the CollectionDetail archetype is a named-slot template on the one grid (#7 migration)', async ({ page }) => {
+    await page.goto('/collection-detail');
+    await expect(page.getByText('Riu Palace')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    // The archetype's layout is now a ResponsiveGrid (display:grid) with named areas, not the
+    // bespoke ContentLayout — a "list detail" template with two resolved tracks.
+    const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      return { display: cs.display, cols: cs.gridTemplateColumns, areas: cs.gridTemplateAreas };
+    });
+    expect(grid.display).toBe('grid');
+    expect(grid.cols.trim().split(/\s+/).length).toBe(2);
+    expect(grid.areas).toContain('list');
+    // clicking a list item renders its detail in the main slot.
+    await page.getByText('Riu Plaza').click();
+    await expect(page.getByText('Madrid · 500 rooms')).toBeVisible({ timeout: 10000 });
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });

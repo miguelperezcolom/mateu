@@ -192,6 +192,13 @@ public class ArchetypeTests
         // the state round-trips and typing re-filters through the AutoSave trigger
         Assert.Contains("\"type\":\"AutoSave\"", json);
         Assert.Contains("\"actionId\":\"filterCollection\"", json);
+        // coherence-plan #7/#9: the layout is a named-slot template on the one responsive grid, not
+        // the bespoke ContentLayout — a "list detail" template with the list/detail placed by slot.
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"gridTemplateAreas\":\"\\u0022list detail\\u0022\"", json);
+        Assert.Contains("\"slot\":\"list\"", json);
+        Assert.Contains("\"slot\":\"detail\"", json);
+        Assert.DoesNotContain("\"type\":\"ContentLayout\"", json);
     }
 
     [Fact]

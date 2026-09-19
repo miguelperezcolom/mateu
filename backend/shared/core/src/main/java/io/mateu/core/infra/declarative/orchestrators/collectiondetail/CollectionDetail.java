@@ -3,11 +3,12 @@ package io.mateu.core.infra.declarative.orchestrators.collectiondetail;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Chip;
-import io.mateu.uidl.data.ContentAsidePosition;
-import io.mateu.uidl.data.ContentLayout;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.GridTrack;
 import io.mateu.uidl.data.QueueGroup;
 import io.mateu.uidl.data.QueueItem;
+import io.mateu.uidl.data.ResponsiveGrid;
+import io.mateu.uidl.data.Slotted;
 import io.mateu.uidl.data.TaskQueue;
 import io.mateu.uidl.fluent.AutoSaveTrigger;
 import io.mateu.uidl.fluent.Component;
@@ -116,16 +117,19 @@ public abstract class CollectionDetail<Row> implements TriggersSupplier {
                 List.of(QueueGroup.builder().label(listLabel(items.size())).items(items).build()))
             .build();
     var detail = selected == null ? emptyDetail() : detail(selected, currentRequest);
-    // The searchable list is the contextual aside (left, fixed width); the selected item's detail
-    // is the main region. The ContentLayout gives it the uniform responsive grammar (the list
-    // stacks above the detail on narrow viewports).
-    return ContentLayout.builder()
-        .aside(List.of(list))
-        .main(List.of(detail))
-        .asidePosition(ContentAsidePosition.start)
-        .asideWidth(listWidth())
-        .asideSticky(false)
-        .build();
+    // The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+    // "list detail" template whose fixed-width list column and free-space detail column are the #8
+    // sizing vocabulary, stacking to one column on a narrow container. The list and the detail land
+    // in their named slots — layout (the areas) separated from content (the slots).
+    return new ResponsiveGrid(
+        "collection-detail",
+        List.of(GridTrack.fixed(listWidth()), GridTrack.fill()),
+        null,
+        List.of(new Slotted("list", list), new Slotted("detail", detail)),
+        null,
+        "48rem",
+        "\"list detail\"",
+        null);
   }
 
   @io.mateu.uidl.annotations.Action

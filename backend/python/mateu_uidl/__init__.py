@@ -1777,18 +1777,23 @@ class CollectionDetail(ComponentTreeSupplier):
             groups=(fluent.QueueGroup(label=self.list_label(len(items)), items=tuple(items)),),
         )
         detail = self.detail(selected) if selected is not None else self.empty_detail()
-        # The searchable list is the contextual aside (left, fixed width); the selected item's detail
-        # is the main region — the uniform ContentLayout slot grammar (stacks when narrow).
+        # The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+        # "list detail" template whose fixed-width list column and free-space detail column are the
+        # #8 sizing vocabulary, stacking to one column on a narrow container. Layout (the areas)
+        # separated from content (the slots).
         return fluent.VerticalLayout(
             spacing=True,
             content=(
                 fluent.FormField(field_id="search", label="Search"),
-                fluent.ContentLayout(
-                    aside=(queue,),
-                    main=(detail,),
-                    aside_position="start",
-                    aside_width=width,
-                    aside_sticky=False,
+                fluent.ResponsiveGrid(
+                    id="collection-detail",
+                    columns=(fluent.GridTrack.fixed(width), fluent.GridTrack.fill()),
+                    stack_below="48rem",
+                    grid_template_areas='"list detail"',
+                    content=(
+                        fluent.Slotted(slot="list", content=queue),
+                        fluent.Slotted(slot="detail", content=detail),
+                    ),
                 ),
             ),
         )
