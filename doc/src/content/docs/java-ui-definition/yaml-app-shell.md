@@ -75,6 +75,15 @@ A YAML mount has no class to carry `@HomeRoute`, so the home defaults to the **f
 item**. Declare `homeRoute:` explicitly to point somewhere else. Do not leave a mount with neither:
 the shell would load its own root route, which is the shell again.
 
+:::note[App ≠ its Home Screen]
+An **App is a shell** — a menu, title, subtitle, logo and widgets — **plus a reference to a Home
+(a Route)**. The App is **not** a Screen. Its content area *mounts the current Route's Screen* (the
+Home when the URL is the base path); the App itself only renders the chrome around that content
+slot. So the Home is a normal Screen at a route like any other — the App just points at it as the
+default. Keeping the two distinct is why the home defaulting is uniform whether the mount is a class
+or a YAML file (part of the 5-noun vocabulary — see the [route registry](/java-ui-definition/route-registry/)).
+:::
+
 ## The mount that ties it together
 
 The app shell, the routes and the pages are files of one **mount**, declared by a `type: UI` file —
