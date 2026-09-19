@@ -740,6 +740,30 @@ class PageWidth(Enum):
     EDGE_TO_EDGE = "edgeToEdge"
 
 
+class SizeMode(Enum):
+    """How a component is sized within the space its parent gives it (coherence-plan #8):
+    HUG sizes to content, FILL grows to fill the space and scrolls internally, FIXED takes a
+    concrete size. The Python analogue of Java's SizeMode."""
+
+    HUG = "hug"
+    FILL = "fill"
+    FIXED = "fixed"
+
+
+def size(mode: SizeMode, length: str = "") -> Callable[[type], type]:
+    """Class-level: the explicit sizing intent (coherence-plan #8) — the override for the inferred
+    default (a listing infers fill). On a view it sizes the whole surface, e.g. a full-canvas
+    screen that fills the viewport and scrolls internally. The Python analogue of Java's @Size."""
+
+    wire = "fixed:" + length if mode == SizeMode.FIXED else mode.value
+
+    def deco(cls: type) -> type:
+        cls.__mateu_size__ = wire
+        return cls
+
+    return deco
+
+
 def page_width(width: PageWidth) -> Callable[[type], type]:
     """Class-level: explicitly sets how the page's content column is sized within the viewport
     (the first parameter of the Oracle Redwood page templates). When absent the renderer infers
@@ -1668,7 +1692,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",

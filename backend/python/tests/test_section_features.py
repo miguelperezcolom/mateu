@@ -17,8 +17,10 @@ from mateu_uidl import (  # noqa: E402
     Message,
     Section,
     SeparatorBefore,
+    SizeMode,
     Step,
     Wizard,
+    size,
     title,
     ui,
     wizard_progress,
@@ -87,6 +89,22 @@ class TextSizeView(ComponentTreeSupplier):
 
     def component(self):
         return fluent.Text(text="pequeño", size="xs")
+
+
+@ui("sizing-fill-canvas")
+@size(SizeMode.FILL)
+class FillCanvasView(ComponentTreeSupplier):
+    """@size(FILL) sizes the whole surface (coherence-plan #8)."""
+
+    def component(self):
+        return fluent.Text(id="canvas", text="a full-canvas screen")
+
+
+@ui("sizing-fixed-panel")
+@size(SizeMode.FIXED, "15rem")
+class FixedPanelView(ComponentTreeSupplier):
+    def component(self):
+        return fluent.Text(id="panel", text="a fixed panel")
 
 
 @ui("sections-notice")
@@ -238,3 +256,12 @@ def test_wizard_progress_steps_emits_connected_bullets_instead_of_the_bar():
     steppers = all_metadata(tree, "ProgressSteps")
     assert len(steppers) == 1
     assert [s["status"] for s in steppers[0]["metadata"]["steps"]] == ["current", "upcoming"]
+
+
+# ── Sizing intent (@size) ───────────────────────────────────────────────────────
+def test_explicit_size_sizes_the_view_surface():
+    # coherence-plan #8: @size(FILL) fills the viewport; @size(FIXED, "15rem") carries a length.
+    fill = component_tree(FillCanvasView)
+    assert fill["children"][0]["sizing"] == "fill"
+    fixed = component_tree(FixedPanelView)
+    assert fixed["children"][0]["sizing"] == "fixed:15rem"

@@ -222,6 +222,18 @@ def test_a_bare_listing_has_no_search_box_no_filters_no_buttons_and_no_clickable
     assert first_column_action_id(crudl) is None
 
 
+def test_a_listing_carries_the_fill_sizing_intent():
+    # coherence-plan #8: a listing fills the space its parent leaves and scrolls internally.
+    doc = load("plain-books").model_dump(by_alias=True, mode="json")
+    node = next(
+        n
+        for fragment in (doc.get("fragments") or [])
+        for n in walk(fragment.get("component"))
+        if isinstance(n.get("metadata"), dict) and n["metadata"].get("type") == "Crud"
+    )
+    assert node.get("sizing") == "fill"
+
+
 def test_a_bare_listing_always_receives_an_empty_search_text():
     PlainBooks.last_request = None
     run(PlainBooks, "plain-books", "search", {"searchText": "quijote"})

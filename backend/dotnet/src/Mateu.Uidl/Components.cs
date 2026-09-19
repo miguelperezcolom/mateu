@@ -95,6 +95,42 @@ public sealed record DashboardLayout : ComponentBase
     public IReadOnlyList<IComponent> Items { get; init; } = [];
 }
 
+// ── Responsive grid (coherence-plan #9) ──────────────────────────────────────
+/// <summary>A track (column) of a <see cref="ResponsiveGrid"/> — its size IS the #8 sizing intent:
+/// hug=auto, fill=1fr, fixed=len. Mirrors io.mateu.uidl.data.GridTrack.</summary>
+public sealed record GridTrack(SizeMode Size, string? Length = null)
+{
+    public static GridTrack Hug() => new(SizeMode.Hug);
+    public static GridTrack Fill() => new(SizeMode.Fill);
+    public static GridTrack Fixed(string length) => new(SizeMode.Fixed, length);
+
+    /// <summary>This track as a CSS grid track size — auto | 1fr | the fixed length.</summary>
+    public string ToCss() => Size switch
+    {
+        SizeMode.Hug => "auto",
+        SizeMode.Fill => "1fr",
+        SizeMode.Fixed => Length ?? "auto",
+        _ => "auto",
+    };
+}
+
+/// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Children are
+/// placed on a CSS grid whose column tracks are sized with the #8 vocabulary. Mirrors
+/// io.mateu.uidl.data.ResponsiveGrid.</summary>
+public sealed record ResponsiveGrid : ComponentBase
+{
+    public IReadOnlyList<GridTrack> Columns { get; init; } = [];
+    public string? Gap { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+    /// <summary>Optional per-child column span, aligned with Content: a child with span N occupies N
+    /// tracks (a full-width band uses a large span).</summary>
+    public IReadOnlyList<int>? ColSpans { get; init; }
+
+    /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
+    public string? GridTemplateColumns() =>
+        Columns.Count == 0 ? null : string.Join(" ", Columns.Select(t => t.ToCss()));
+}
+
 // ── Foldout ────────────────────────────────────────────────────────────────────
 
 /// <summary>One lateral panel of a <see cref="FoldoutLayout"/>. Closed panels render as a narrow
@@ -1017,3 +1053,20 @@ public sealed record MarkClean : FlowStep;
 
 /// <summary>Mark the current view dirty — arms the unsaved-changes navigation guard.</summary>
 public sealed record MarkDirty : FlowStep;
+
+// ── Sizing intent (coherence-plan #8) ────────────────────────────────────────
+/// <summary>How a component is sized within the space its parent gives it (coherence-plan #8).
+/// hug = size to content, fill = grow and scroll internally, fixed = a concrete size.</summary>
+public enum SizeMode { Hug, Fill, Fixed }
+
+/// <summary>Explicit sizing intent — the override for the inferred default (a listing infers fill).
+/// On a view / IComponentTreeSupplier it sizes the whole surface (e.g. a full-canvas screen that
+/// fills the viewport and scrolls internally). Mirrors io.mateu.uidl.annotations.Size.</summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+public sealed class SizeAttribute : Attribute
+{
+    public SizeAttribute(SizeMode value) => Value = value;
+    public SizeMode Value { get; }
+    /// <summary>The concrete length when Value is Fixed (e.g. "15rem").</summary>
+    public string Length { get; set; } = "";
+}

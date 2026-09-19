@@ -21,6 +21,9 @@ public static class ComponentMapper
 
         DashboardLayout d => Dto(d, new DashboardLayoutMetadataDto(d.Columns), d.Items.Select(Map)),
 
+        ResponsiveGrid g => Dto(g,
+            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans), g.Content.Select(Map)),
+
         FoldoutLayout f => MapFoldout(f),
 
         ContentLayout cl => MapContentLayout(cl),

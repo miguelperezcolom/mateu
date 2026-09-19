@@ -28,6 +28,7 @@ from mateu_dtos import (
     ContentLayoutMetadata,
     CustomTrigger,
     DashboardLayoutMetadata,
+    ResponsiveGridMetadata,
     DashboardPanelMetadata,
     DialogMetadata,
     DivMetadata,
@@ -837,6 +838,11 @@ class ReflectionMapper:
         tree = layout_override if layout_override is not None else self.component_tree(instance)
         if tree is not None:
             children = [self.map_component(tree)]
+            # An explicit @size on the view sizes its whole surface (coherence-plan #8): a
+            # full-canvas screen that fills the viewport and scrolls internally. Overrides inference.
+            sizing = getattr(cls, "__mateu_size__", None)
+            if is_tree_supplier and sizing and isinstance(children[0], ClientSideComponent):
+                children[0] = children[0].model_copy(update={"sizing": sizing})
             # A YAML layout_override page collects its buttons' actionIds into the ServerSide's
             # actions (they route back to the ModelView's methods). A ComponentTreeSupplier does
             # NOT: Java's ComponentTreeSupplierMapper never harvests action ids from the tree — a
@@ -1167,6 +1173,16 @@ class ReflectionMapper:
                 DashboardLayoutMetadata(columns=c.columns),
                 c,
                 [self.map_component(i) for i in c.items],
+            )
+        if isinstance(c, fluent.ResponsiveGrid):
+            return self._fluent_client(
+                ResponsiveGridMetadata(
+                    grid_template_columns=c.grid_template_columns(),
+                    gap=c.gap,
+                    col_spans=list(c.col_spans) or None,
+                ),
+                c,
+                [self.map_component(i) for i in c.content],
             )
         if isinstance(c, fluent.FoldoutLayout):
             children = []
@@ -2108,6 +2124,8 @@ class ReflectionMapper:
             "crud",
             [],
         )
+        # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        crud = crud.model_copy(update={"sizing": "fill"})
         page_children = []
         if hero is not None:
             page_children.append(self.client(
@@ -2254,6 +2272,8 @@ class ReflectionMapper:
             "crud",
             [],
         )
+        # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        crud = crud.model_copy(update={"sizing": "fill"})
         page_children = []
         smart_search = issubclass(cls, SmartSearchPage)
         if smart_search:

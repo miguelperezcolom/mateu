@@ -1094,9 +1094,40 @@ public class ComponentTests
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"Scoreboard\"},\"id\":\"board\",\"children\":[" +
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"MetricCard\",\"title\":\"Occupancy\",\"value\":\"87\"," +
             "\"unit\":\"%\",\"trend\":\"up\",\"trendLabel\":null,\"icon\":null,\"description\":null,\"actionId\":null}," +
-            "\"id\":null,\"children\":[],\"style\":null,\"cssClasses\":null,\"slot\":null}]," +
-            "\"style\":null,\"cssClasses\":null,\"slot\":null}",
+            "\"id\":null,\"children\":[],\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}]," +
+            "\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}",
             json);
+    }
+
+    [Fact]
+    public void ResponsiveGrid_resolves_its_tracks_to_a_css_grid_template()
+    {
+        // coherence-plan #9: hug→auto, fill→1fr, fixed→len; children travel as component children.
+        var dto = ComponentMapper.Map(new ResponsiveGrid
+        {
+            Id = "grid",
+            Columns = [GridTrack.Hug(), GridTrack.Fill(), GridTrack.Fixed("15rem")],
+            Gap = "1rem",
+            Content = [new Text("A"), new Text("B"), new Text("C")],
+        });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"gridTemplateColumns\":\"auto 1fr 15rem\"", json);
+        Assert.Contains("\"gap\":\"1rem\"", json);
+        Assert.Equal(3, dto.Children.Count);
+    }
+
+    [Fact]
+    public void ResponsiveGrid_carries_per_child_column_spans()
+    {
+        var dto = ComponentMapper.Map(new ResponsiveGrid
+        {
+            Columns = [GridTrack.Fill(), GridTrack.Fill()],
+            ColSpans = [2, 1, 1],
+            Content = [new Text("band"), new Text("A"), new Text("B")],
+        });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+        Assert.Contains("\"colSpans\":[2,1,1]", json);
     }
 
     [Fact]

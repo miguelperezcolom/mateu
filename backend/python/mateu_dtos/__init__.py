@@ -438,6 +438,17 @@ class DashboardLayoutMetadata(Wire):
     columns: int = 0
 
 
+class ResponsiveGridMetadata(Wire):
+    """One responsive grid — THE general layout foundation (coherence-plan #9). Carries the resolved
+    CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children travel
+    as the component's children."""
+
+    type: Literal["ResponsiveGrid"] = "ResponsiveGrid"
+    grid_template_columns: str | None = None
+    gap: str | None = None
+    col_spans: list[int] | None = None
+
+
 class FoldoutPanelInfo(Wire):
     """Header info for one foldout panel (mirrors ``FoldoutPanelInfoDto``)."""
 
@@ -1198,6 +1209,7 @@ ComponentMetadata = Annotated[
         ScoreboardMetadata,
         DashboardPanelMetadata,
         DashboardLayoutMetadata,
+        ResponsiveGridMetadata,
         FoldoutLayoutMetadata,
         ContentLayoutMetadata,
         HeroSectionMetadata,
@@ -1255,6 +1267,9 @@ class ClientSideComponent(Wire):
     style: str | None = None
     css_classes: str | None = None
     slot: str | None = None
+    #: The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:<len>". None = unset (default
+    #: flow). Portable intent-as-data; the web maps it to flex on the component host.
+    sizing: str | None = None
 
 
 class ServerSideComponent(Wire):

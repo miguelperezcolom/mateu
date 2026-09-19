@@ -566,9 +566,19 @@ export class MateuUx extends ConnectedElement {
     }
 
     static styles = css`
+        /* The content ux is a flex COLUMN, not a block — the missing link in the viewport-height
+           flex chain (coherence-plan #8): the shell content area is already flex:1;min-height:0, so
+           a flex-column ux lets a direct child that declares sizing "fill" (a listing's
+           mateu-component: flex:1 1 auto;min-height:0;overflow:auto) take the remaining height and
+           scroll internally instead of pushing the page. A "hug" child (a form) keeps its natural
+           height and the content area scrolls as before. min-height:100% keeps a short page filling
+           the viewport; an embedded island's parent is auto-height, so the percentage resolves to 0
+           there and the child keeps its natural size (no harm). */
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
             min-height: 100%;
+            min-width: 0;
         }
 
         .container {

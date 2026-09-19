@@ -73,7 +73,13 @@ public record ClientSideComponentDto(
     IReadOnlyList<ComponentDto> Children,
     string? Style,
     string? CssClasses,
-    string? Slot) : ComponentDto;
+    string? Slot) : ComponentDto
+{
+    /// <summary>The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:&lt;len&gt;". Null =
+    /// unset (default flow). Portable intent-as-data; the web maps it to flex on the component host.
+    /// An init property (not positional) so the many Client(...) call-sites keep compiling.</summary>
+    public string? Sizing { get; init; }
+}
 
 public record ServerSideComponentDto(
     string Id,
@@ -202,6 +208,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ScoreboardMetadataDto), "Scoreboard")]
 [JsonDerivedType(typeof(DashboardPanelMetadataDto), "DashboardPanel")]
 [JsonDerivedType(typeof(DashboardLayoutMetadataDto), "DashboardLayout")]
+[JsonDerivedType(typeof(ResponsiveGridMetadataDto), "ResponsiveGrid")]
 [JsonDerivedType(typeof(FoldoutLayoutMetadataDto), "FoldoutLayout")]
 [JsonDerivedType(typeof(ContentLayoutMetadataDto), "ContentLayout")]
 [JsonDerivedType(typeof(HeroSectionMetadataDto), "HeroSection")]
@@ -269,6 +276,11 @@ public record DashboardPanelMetadataDto(string? Title, string? Subtitle, int Col
 
 /// <summary>Responsive dashboard grid. Tiles travel as component children (columns 0 = auto-fit).</summary>
 public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
+
+/// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Carries the
+/// resolved CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children
+/// travel as the component's children.</summary>
+public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap, IReadOnlyList<int>? ColSpans = null) : ComponentMetadataDto;
 
 /// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
 /// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>

@@ -489,6 +489,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             children = content;
             containerStyle = treeStyle;
+            // An explicit [Size] on the view sizes its whole surface (coherence-plan #8): a
+            // full-canvas screen that fills the viewport and scrolls internally. Overrides inference.
+            var sizing = SizingOf(type);
+            if (sizing != null && children.Count > 0 && children[0] is ClientSideComponentDto leaf)
+                children = new List<ComponentDto> { leaf with { Sizing = sizing } }
+                    .Concat(children.Skip(1)).ToList();
         }
         else
         {
@@ -1120,7 +1126,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GroupBy = GroupByOf(row),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
-        }, "crud", []);
+            // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
@@ -1245,7 +1252,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
             RowsSelectionEnabled = canDelete,
-        }, "crud", []);
+        }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
         if (hero is not null)
             pageChildren.Add(Client(new HeroSectionMetadataDto(
@@ -1329,7 +1336,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
             RowsSelectionEnabled = profile.CanDelete,
-        }, "crud", []);
+        }, "crud", []) with { Sizing = "fill" };
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
@@ -1418,6 +1425,20 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             PageWidthStyle.Fixed => "fixed",
             PageWidthStyle.FullWidth => "fullWidth",
             PageWidthStyle.EdgeToEdge => "edgeToEdge",
+            _ => null,
+        };
+    }
+
+    /// <summary>The wire sizing string for a view's [Size] (coherence-plan #8): "hug" | "fill" |
+    /// "fixed:&lt;len&gt;", or null when absent.</summary>
+    internal static string? SizingOf(Type type)
+    {
+        var size = type.Find<SizeAttribute>();
+        return size?.Value switch
+        {
+            SizeMode.Hug => "hug",
+            SizeMode.Fill => "fill",
+            SizeMode.Fixed => "fixed:" + size!.Length,
             _ => null,
         };
     }

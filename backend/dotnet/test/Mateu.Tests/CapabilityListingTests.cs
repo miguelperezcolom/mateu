@@ -197,6 +197,14 @@ public class CapabilityListingTests
         Assert.Contains("Rayuela", json);
     }
 
+    [Fact]
+    public void A_listing_carries_the_fill_sizing_intent()
+    {
+        // coherence-plan #8: a listing fills the space its parent leaves and scrolls internally.
+        var json = Render(Load(typeof(PlainBooks), "/plain-books"));
+        Assert.Contains("\"sizing\":\"fill\"", json);
+    }
+
     // ── + ISearchable ─────────────────────────────────────────────────────────
 
     [Fact]

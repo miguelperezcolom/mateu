@@ -125,6 +125,7 @@ final class YamlUidlMapperFactory {
         new NamedType(ComparisonCard.class, "ComparisonCard"),
         new NamedType(ContentLayout.class, "ContentLayout"),
         new NamedType(DashboardLayout.class, "DashboardLayout"),
+        new NamedType(ResponsiveGrid.class, "ResponsiveGrid"),
         new NamedType(DashboardPanel.class, "DashboardPanel"),
         new NamedType(EmbeddedView.class, "EmbeddedView"),
         new NamedType(EmptyState.class, "EmptyState"),
