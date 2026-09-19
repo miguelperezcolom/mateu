@@ -61,6 +61,15 @@ class RouteRegistryTest {
   }
 
   @Test
+  void theCanonicalLayoutKeyIsAnAliasForDefinition() {
+    // coherence-plan #5 vocabulary: `layout:` names the layout file identically to the deprecated
+    // `definition:` alias — both land on RouteEntry.definition (the wire key is unchanged).
+    var help = authored().match("help").orElseThrow().entry();
+    assertThat(help.definition()).isEqualTo("about.yaml");
+    assertThat(help.viewModel()).isNull();
+  }
+
+  @Test
   void aStaticRouteIsNotSwallowedByItsParameterisedSibling() {
     assertThat(authored().match("orders/new").orElseThrow().entry().viewModel())
         .isEqualTo("com.acme.NewOrder");

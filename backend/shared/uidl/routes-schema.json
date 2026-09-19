@@ -64,7 +64,9 @@
           "type" : "string"
         },
         "definition" : {
-          "type" : "string"
+          "type" : "string",
+          "deprecated" : true,
+          "description" : "Deprecated alias of `layout` — kept so existing routes.yaml files keep working. Prefer `layout`; if both are present, `layout` wins."
         },
         "viewModel" : {
           "type" : "string"
@@ -95,6 +97,10 @@
         },
         "appData" : {
           "$ref" : "#/$defs/RestDataSource"
+        },
+        "layout" : {
+          "type" : "string",
+          "description" : "The UI definition (layout) this route renders — the canonical vocabulary of coherence-plan #5. May be omitted when the view model supplies its own tree. A definition shared by several routes lives in its own file and is named here."
         }
       }
     }

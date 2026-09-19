@@ -31,6 +31,11 @@ routes:
   - route: about
     definition: about.yaml
 
+  # Vocabulary (coherence-plan #5): `layout:` is the canonical layout-file key = the deprecated
+  # `definition:` alias. Both bind RouteEntry.Definition.
+  - route: help
+    layout: about.yaml
+
   # A parameterised route and the static sibling it must not swallow.
   - route: orders/:id
     viewModel: Mateu.Tests.RegistryOrderDetail

@@ -113,6 +113,9 @@ class UidlSchemaTest {
         .toIterable()
         .containsExactlyInAnyOrder(
             "route",
+            // `layout` is the canonical authoring key (coherence-plan #5); `definition` is its
+            // deprecated alias — both advertised so editors accept and prefer `layout`.
+            "layout",
             "definition",
             "viewModel",
             "fixedParams",

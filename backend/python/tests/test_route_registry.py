@@ -94,6 +94,14 @@ def test_a_route_can_have_a_definition_and_no_view_model():
     assert entry.view_model is None
 
 
+def test_the_canonical_layout_key_is_an_alias_for_definition():
+    # coherence-plan #5 vocabulary: `layout:` names the layout file identically to the deprecated
+    # `definition:` alias — both land on RouteEntry.definition.
+    entry = registry().match("help").entry
+    assert entry.definition == "about.yaml"
+    assert entry.view_model is None
+
+
 def test_a_path_that_matches_nothing_resolves_to_nothing():
     assert registry().match("customers") is None
 

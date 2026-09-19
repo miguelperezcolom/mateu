@@ -309,6 +309,26 @@ public final class UidlSchemaGenerator {
   public static ObjectNode generateRoutes() {
     var generator = new UidlSchemaGenerator();
     generator.defineValueRecord(io.mateu.uidl.data.RouteEntry.class);
+    // Vocabulary (coherence-plan #5): `layout:` is the CANONICAL authoring key for the layout file;
+    // `definition:` is a deprecated alias, both accepted by the loader (`layout:` wins). The record
+    // field is `definition` (the wire key), so the reflected schema only knows `definition` — add
+    // `layout` here and mark `definition` deprecated so editors accept and prefer the canonical
+    // key.
+    var routeEntryProps = (ObjectNode) generator.defs.get("RouteEntry").get("properties");
+    routeEntryProps
+        .putObject("layout")
+        .put("type", "string")
+        .put(
+            "description",
+            "The UI definition (layout) this route renders — the canonical vocabulary of"
+                + " coherence-plan #5. May be omitted when the view model supplies its own tree. A"
+                + " definition shared by several routes lives in its own file and is named here.");
+    ((ObjectNode) routeEntryProps.get("definition"))
+        .put("deprecated", true)
+        .put(
+            "description",
+            "Deprecated alias of `layout` — kept so existing routes.yaml files keep working. Prefer"
+                + " `layout`; if both are present, `layout` wins.");
 
     var entryRef = MAPPER.createObjectNode().put("$ref", "#/$defs/RouteEntry");
     var list = MAPPER.createObjectNode().put("type", "array");
@@ -435,6 +455,19 @@ public final class UidlSchemaGenerator {
     // Add RouteEntry (and anything it nests) to the shared $defs.
     var routeGen = new UidlSchemaGenerator();
     routeGen.defineValueRecord(io.mateu.uidl.data.RouteEntry.class);
+    // Vocabulary (coherence-plan #5): advertise `layout` as the canonical layout-file key and mark
+    // `definition` deprecated — same as generateRoutes() (the loader accepts both, `layout` wins).
+    var specsRouteEntryProps = (ObjectNode) routeGen.defs.get("RouteEntry").get("properties");
+    specsRouteEntryProps
+        .putObject("layout")
+        .put("type", "string")
+        .put(
+            "description",
+            "The UI definition (layout) this route renders — the canonical vocabulary of"
+                + " coherence-plan #5. Omit it when the view model supplies its own tree.");
+    ((ObjectNode) specsRouteEntryProps.get("definition"))
+        .put("deprecated", true)
+        .put("description", "Deprecated alias of `layout`; both are accepted, `layout` wins.");
     routeGen.defs.forEach(defs::set);
 
     var entryList = MAPPER.createObjectNode().put("type", "array");
