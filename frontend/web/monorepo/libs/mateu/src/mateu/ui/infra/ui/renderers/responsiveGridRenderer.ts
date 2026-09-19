@@ -3,6 +3,7 @@ import ResponsiveGrid from "@mateu/shared/apiClients/dtos/componentmetadata/Resp
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
 
 /**
  * One responsive grid — THE general layout foundation (coherence-plan #9). Paints a CSS grid whose
@@ -32,14 +33,9 @@ export const renderResponsiveGrid = (
     const gap = metadata.gap ?? 'var(--lumo-space-m, 1rem)'
     const spans = metadata.colSpans ?? []
     const gridStyle = `display: grid; grid-template-columns: ${columns}; gap: ${gap}; align-items: start; ${component.style ?? ''}`
-    const children = component.children?.map((child, i) => {
-        const span = spans[i]
-        const rendered = renderComponent(container, child, baseUrl, state, data, appState, appData)
-        // A child that spans more than one track rides on its own cell, whatever it renders as.
-        return span && span > 1
-            ? html`<div style="grid-column: span ${span}; min-width: 0;">${rendered}</div>`
-            : rendered
-    })
+    const children = component.children?.map((child, i) =>
+        // The shared grid-cell primitive (coherence-plan #9), the same one FormLayout uses.
+        gridCell(spans[i], renderComponent(container, child, baseUrl, state, data, appState, appData)))
 
     if (!metadata.stackBelow) {
         return html`

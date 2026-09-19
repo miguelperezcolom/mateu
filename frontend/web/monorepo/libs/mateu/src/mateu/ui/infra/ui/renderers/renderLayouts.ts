@@ -15,6 +15,7 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
 
 /*
  * Design-system-neutral layout renderers — flex / CSS grid / native <details>, no `@vaadin`.
@@ -50,7 +51,9 @@ export const renderFormComponent = (form: FormLayout, container: LitElement, com
     const cell = form.labelsAside
         ? wrapWithFormItem(container, component, baseUrl, state, data, appState, appData)
         : renderComponent(container, component, baseUrl, state, data, appState, appData)
-    return html`<div style="grid-column: span ${colspan}; min-width: 0;">${cell}</div>`
+    // The shared grid-cell primitive (coherence-plan #9): the form wraps EVERY field (alwaysWrap)
+    // so each gets the min-width:0 cell; the general ResponsiveGrid shares the same span cell.
+    return gridCell(colspan, cell, true)
 }
 
 const fieldColspan = (component: Component): number => {
