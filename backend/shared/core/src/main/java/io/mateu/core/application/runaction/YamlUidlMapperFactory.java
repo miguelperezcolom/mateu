@@ -11,6 +11,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.MenuBar;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.Actionable;
 
@@ -41,6 +42,13 @@ final class YamlUidlMapperFactory {
     mapper.addMixIn(UserTrigger.class, PolymorphicMixin.class);
     mapper.addMixIn(GridContent.class, PolymorphicMixin.class);
     mapper.addMixIn(FieldValidation.class, PolymorphicMixin.class);
+    // The flow-effect Trigger family, authored as a `triggers:` list beside `layout:`/`actions:` on
+    // a definition-only page (no view model). TriggerMapper already maps every Trigger record a
+    // TriggersSupplier yields; SeededYamlPage IS that supplier. Without the mixin + subtypes
+    // Jackson
+    // could not build one, so a `triggers:` list would fail to parse and take the whole page with
+    // it.
+    mapper.addMixIn(Trigger.class, PolymorphicMixin.class);
 
     mapper.registerSubtypes(
         new NamedType(AppShell.class, "AppShell"),
@@ -174,7 +182,14 @@ final class YamlUidlMapperFactory {
         new NamedType(JsValidation.class, "JsValidation"),
         new NamedType(MinValidation.class, "MinValidation"),
         new NamedType(MaxValidation.class, "MaxValidation"),
-        new NamedType(PatternValidation.class, "PatternValidation"));
+        new NamedType(PatternValidation.class, "PatternValidation"),
+        // The Trigger family (names = simple class names, matching the generated schema).
+        new NamedType(io.mateu.uidl.fluent.OnLoadTrigger.class, "OnLoadTrigger"),
+        new NamedType(io.mateu.uidl.fluent.OnCustomEventTrigger.class, "OnCustomEventTrigger"),
+        new NamedType(io.mateu.uidl.fluent.OnValueChangeTrigger.class, "OnValueChangeTrigger"),
+        new NamedType(io.mateu.uidl.fluent.OnSuccessTrigger.class, "OnSuccessTrigger"),
+        new NamedType(io.mateu.uidl.fluent.OnErrorTrigger.class, "OnErrorTrigger"),
+        new NamedType(io.mateu.uidl.fluent.AutoSaveTrigger.class, "AutoSaveTrigger"));
 
     return mapper;
   }

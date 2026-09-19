@@ -69,6 +69,13 @@
             "$ref" : "#/$defs/Action"
           },
           "description" : "Actions this page exposes. An action carrying a `restAction` is run by the CLIENT against the declared endpoint — no view model and no server round trip — so a Button naming its id can create, update or delete a record."
+        },
+        "triggers" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Trigger"
+          },
+          "description" : "Triggers this page fires without a click: on load, on a custom event or on a value change. Each entry is discriminated by `type` (OnLoadTrigger, OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs."
         }
       }
     } ]

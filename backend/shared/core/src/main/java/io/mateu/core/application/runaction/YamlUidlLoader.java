@@ -47,14 +47,28 @@ public class YamlUidlLoader {
       String modelView,
       Component layout,
       io.mateu.uidl.data.LayoutDelta delta,
-      java.util.List<io.mateu.uidl.fluent.Action> actions) {
+      java.util.List<io.mateu.uidl.fluent.Action> actions,
+      java.util.List<io.mateu.uidl.fluent.Trigger> triggers) {
 
     public YamlPageSpec(String modelView, Component layout) {
-      this(modelView, layout, io.mateu.uidl.data.LayoutDelta.empty(), java.util.List.of());
+      this(
+          modelView,
+          layout,
+          io.mateu.uidl.data.LayoutDelta.empty(),
+          java.util.List.of(),
+          java.util.List.of());
     }
 
     public YamlPageSpec(String modelView, Component layout, io.mateu.uidl.data.LayoutDelta delta) {
-      this(modelView, layout, delta, java.util.List.of());
+      this(modelView, layout, delta, java.util.List.of(), java.util.List.of());
+    }
+
+    public YamlPageSpec(
+        String modelView,
+        Component layout,
+        io.mateu.uidl.data.LayoutDelta delta,
+        java.util.List<io.mateu.uidl.fluent.Action> actions) {
+      this(modelView, layout, delta, actions, java.util.List.of());
     }
   }
 
@@ -191,12 +205,13 @@ public class YamlUidlLoader {
         return NONE; // neither a layout nor a delta: nothing this file can contribute
       }
       var actions = actionsOf(root);
+      var triggers = triggersOf(root);
       log.info(
           "Loaded YAML spec {} (modelView={}, {})",
           yamlPath,
           modelView,
           delta.isEmpty() ? "explicit layout" : "layout delta");
-      return new YamlPageSpec(modelView, layout, delta, actions);
+      return new YamlPageSpec(modelView, layout, delta, actions, triggers);
     } catch (Exception e) {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;
@@ -229,6 +244,36 @@ public class YamlUidlLoader {
       }
     }
     return java.util.List.copyOf(actions);
+  }
+
+  /**
+   * The {@code triggers:} a definition declares, or none.
+   *
+   * <p>The mirror of {@link #actionsOf}: what a trigger IS was never missing from the DSL — a class
+   * annotated {@code @Trigger}/{@code @SubscribeTo}/{@code @AutoSave} already reaches the wire, and
+   * {@code TriggerMapper} already maps every {@code Trigger} record a {@code TriggersSupplier}
+   * yields. What was missing is a place for a page with NO view model to declare one. This is that
+   * place, and it sits beside {@code layout:}/{@code actions:} because a trigger belongs to the
+   * screen: a definition serving two routes should not repeat it. The list is polymorphic — each
+   * entry is discriminated by {@code type} ({@code OnLoadTrigger}, {@code OnCustomEventTrigger},
+   * …), registered in {@link YamlUidlMapperFactory}.
+   */
+  private java.util.List<io.mateu.uidl.fluent.Trigger> triggersOf(JsonNode root) {
+    var node = root == null ? null : root.get("triggers");
+    if (node == null || !node.isArray()) {
+      return java.util.List.of();
+    }
+    var triggers = new java.util.ArrayList<io.mateu.uidl.fluent.Trigger>();
+    for (var item : node) {
+      try {
+        triggers.add(mapper.treeToValue(item, io.mateu.uidl.fluent.Trigger.class));
+      } catch (Exception e) {
+        // One malformed trigger must not cost the page: the rest still fire, and the one that did
+        // not parse simply does nothing — which the log says out loud.
+        log.warn("Ignoring an unparseable trigger in a YAML spec: {}", e.getMessage());
+      }
+    }
+    return java.util.List.copyOf(triggers);
   }
 
   /**
