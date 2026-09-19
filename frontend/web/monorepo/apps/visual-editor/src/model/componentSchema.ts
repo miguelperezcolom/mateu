@@ -110,6 +110,15 @@ export function createNode(spec: ComponentSpec): PageNode {
     if (spec.props.some((p) => p.kind === 'children' && (p.name === 'content' || p.name === 'children'))) {
         node.content = []
     }
+    // Seed every REQUIRED scalar prop so a freshly dropped component renders instead of coming back
+    // empty or erroring. Generic (kind-driven) so a new required prop on any component is covered
+    // automatically; the palette-completeness guard enforces this stays true as the catalog grows.
+    for (const p of spec.props) {
+        if (!p.required) continue
+        const seed = defaultScalar(p)
+        if (seed !== undefined) (node as Record<string, unknown>)[p.name] = seed
+    }
+    // Friendlier starters for the few components that would otherwise read as empty (win over generic).
     const starters: Record<string, Record<string, unknown>> = {
         FormField: { id: 'fieldId', label: 'Label', dataType: 'string' },
         Button: { label: 'Button', actionId: 'actionId' },
@@ -117,4 +126,20 @@ export function createNode(spec: ComponentSpec): PageNode {
     }
     Object.assign(node, starters[spec.name] ?? {})
     return node
+}
+
+/** A sensible default for a required scalar prop, by kind. Non-scalars (children/complex) → undefined. */
+function defaultScalar(p: PropSpec): unknown {
+    switch (p.kind) {
+        case 'boolean':
+            return false
+        case 'number':
+            return 0
+        case 'enum':
+            return p.values?.[0]
+        case 'string':
+            return ''
+        default:
+            return undefined
+    }
 }
