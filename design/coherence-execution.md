@@ -126,9 +126,24 @@ Everything is a component · inferred by default, explicit as override · one mo
     ResponsiveGrid (#527, joining Dashboard #517), `@Aside` mechanism → `"main aside"` template
     (#529, wrapping each region in a stretch VerticalLayout since a named area holds one item). Each
     browser-verified on a live SUT.
-  - **Consolidation complete + legacy soft-deprecated (this PR):** `ContentLayout` and
+  - **Consolidation complete + legacy soft-deprecated (#532):** `ContentLayout` and
     `DashboardLayout` now have ZERO producers — every screen layout flows through the one
     `ResponsiveGrid` (tracks, spans, named-slot templates, sticky slots, responsive stacking). Both
     are soft-deprecated (Java `@Deprecated(forRemoval=false)`, .NET/Python doc note pointing at
     `ResponsiveGrid`), kept authorable via YAML/fluent + their mappers for backward compatibility.
     Removing them (and their DTOs/mappers/schema) is a later cleanup once no consumer authors them.
+- **Phase 5 (vocabulary: App/Route/Screen/DataSource + App≠Home): in progress.** Breaking renames,
+  done as small ALIASED slices (old key keeps working, new canonical key wins). Decomposition:
+  1. **`modelView` → `viewModel`** (#534): the ONE server class (state + actions) had two
+     names — `RouteEntry.viewModel` (route side, already canonical) vs the definition YAML key
+     `modelView:`. The definition envelope now reads **`viewModel:`** as canonical and keeps
+     `modelView:` as a deprecated alias (`viewModel` wins if both present); schema emits both
+     (`modelView` marked `deprecated`); the internal Java field/var names stay `modelView` (not
+     user-facing — cosmetic churn avoided). `YamlModelViewSyncTest` pins that both keys bind
+     identically. **Follow-up:** the visual editor still WRITES `modelView:` — have it emit the
+     canonical `viewModel:` (frontend-only; deferred to avoid colliding with the active editor work).
+  2. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
+  3. **`definition` → `Layout`** (pending) — name the layout crisply; keep `definition` as alias.
+  4. **retire "page" as an authoring term**, keep it as the wire artifact only (pending).
+  5. **R2 (App ≠ its Home Screen)** (pending) — remove the "@UI class is both app and home"
+     conflation so the home is just another Screen; `AppShell` already carries the home reference.

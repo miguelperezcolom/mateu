@@ -60,9 +60,14 @@
     }, {
       "type" : "object",
       "properties" : {
+        "viewModel" : {
+          "type" : "string",
+          "description" : "Fully-qualified class of the view model this definition binds to (the canonical vocabulary of coherence-plan #5). Omit it on a definition shared by several routes — naming one means it can only ever serve that class. The route entry's `viewModel` is the place for the binding."
+        },
         "modelView" : {
           "type" : "string",
-          "description" : "Fully-qualified class of the view model this definition binds to. Omit it on a definition shared by several routes — naming one means it can only ever serve that class. The route entry's `viewModel` is the place for the binding."
+          "deprecated" : true,
+          "description" : "Deprecated alias of `viewModel` — kept so existing definitions keep working. Prefer `viewModel`; if both are present, `viewModel` wins."
         },
         "actions" : {
           "type" : "array",

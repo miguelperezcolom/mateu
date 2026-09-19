@@ -165,13 +165,17 @@ A page can carry a **`layoutDelta:`** instead of a `layout:`. The difference mat
 looks:
 
 ```yaml
-modelView: com.acme.Contact
+viewModel: com.acme.Contact
 layoutDelta:
   order: [email, name]
   hidden: [internalNote]
   overrides:
     name: { label: "Full name", colspan: 2 }
 ```
+
+> **Vocabulary:** the key that names the view model is **`viewModel:`** (the canonical noun of the
+> [5-noun model](/java-ui-definition/route-registry/)). The older **`modelView:`** is still accepted
+> as a deprecated alias so existing definitions keep working; prefer `viewModel:` in new files.
 
 A `layout:` is a **snapshot**: it takes the screen out of the inference regime for good, because
 explicit always wins. Add a field to the model afterwards and it does not appear; rename one and the

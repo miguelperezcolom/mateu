@@ -1,0 +1,19 @@
+# Same as yaml-bound.yaml but using the CANONICAL vocabulary key `viewModel:` (coherence-plan #5)
+# instead of the deprecated alias `modelView:`. Both must bind the referenced class identically.
+# Used by YamlModelViewSyncTest.
+viewModel: io.mateu.core.application.YamlModelViewSyncTest$GreeterView
+layout:
+  type: VerticalLayout
+  spacing: true
+  padding: true
+  content:
+    - type: FormLayout
+      content:
+        - type: FormField
+          id: name
+          label: "Name"
+          dataType: string
+    - type: Button
+      label: "Greet"
+      actionId: greet
+      buttonStyle: primary
