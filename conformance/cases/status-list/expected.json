@@ -26,5 +26,6 @@
       "style" : "max-width:900px;margin: auto;",
       "type" : "ServerSide"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

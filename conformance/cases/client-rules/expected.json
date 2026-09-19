@@ -120,5 +120,6 @@
     "state" : {
       "code" : "X-1"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

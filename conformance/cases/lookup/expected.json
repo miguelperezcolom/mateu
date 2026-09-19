@@ -91,5 +91,6 @@
     "state" : {
       "supplier" : "a2"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

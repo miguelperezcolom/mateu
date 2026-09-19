@@ -10,8 +10,16 @@ public record UIIncrementDto(
     IReadOnlyList<object> Banners,
     bool AppendBanners,
     object? AppData,
-    object? AppState)
+    object? AppState,
+    // Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive within a major
+    // version; a consumer may read it to guard against a mismatched producer. Trailing optional
+    // parameter so every existing positional construction keeps compiling.
+    string WireVersion = CurrentWireVersion)
 {
+    /// <summary>Current wire protocol version. Bumped only on a breaking (major) wire change;
+    /// additions within a major are backward compatible and do not change it.</summary>
+    public const string CurrentWireVersion = "3.0";
+
     public static UIIncrementDto Of(
         IEnumerable<UICommandDto>? commands = null,
         IEnumerable<MessageDto>? messages = null,

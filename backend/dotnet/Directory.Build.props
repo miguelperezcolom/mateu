@@ -1,0 +1,12 @@
+<Project>
+  <!-- Shared package metadata for every Mateu.NET project. Declares the license once (Apache-2.0),
+       mirroring the repository LICENSE.txt / NOTICE and the Java poms' <licenses> and Python's
+       pyproject license. Applied via Directory.Build.props so a new project inherits it automatically. -->
+  <PropertyGroup>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Authors>Miguel Pérez Colom</Authors>
+    <Company>Mateu</Company>
+    <Copyright>Copyright 2016-2026 Miguel Pérez Colom</Copyright>
+    <PackageProjectUrl>https://mateu.io</PackageProjectUrl>
+  </PropertyGroup>
+</Project>

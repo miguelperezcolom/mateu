@@ -80,5 +80,6 @@
       },
       "type" : "ClientSide"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }
