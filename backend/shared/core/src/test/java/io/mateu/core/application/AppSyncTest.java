@@ -167,6 +167,26 @@ class AppSyncTest {
     }
   }
 
+  // ── R2 fixture: an app whose home route resolves to a REAL, distinct Screen class ──────────────
+  @SuppressWarnings("unused")
+  @UI("/r2home/screen")
+  @Title("R2 home screen")
+  public static class R2HomeScreen {
+    String note = "home content";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/r2home")
+  @Title("R2 app")
+  public static class R2App implements HomeRouteSupplier {
+    @Menu String screen = "/r2home/screen";
+
+    @Override
+    public String homeRoute() {
+      return "/r2home/screen";
+    }
+  }
+
   // ── harness ────────────────────────────────────────────────────────────────
 
   static TestMateu mateu;
@@ -183,7 +203,9 @@ class AppSyncTest {
             DeepApp.class,
             FlatApp.class,
             TabsApp.class,
-            SupplierHomeApp.class);
+            SupplierHomeApp.class,
+            R2HomeScreen.class,
+            R2App.class);
   }
 
   @AfterAll
@@ -257,11 +279,23 @@ class AppSyncTest {
   }
 
   @Test
-  void r2_conflation_theHomeServerSideTypeIsStillTheAppClassNotTheHomeScreen() {
-    // THE conflation R2 removes: the app's home is the route /supplier/catalog (the CatalogPage
-    // Screen), yet homeServerSideType is the APP class — the "@UI class is both app and home"
-    // fusion. When R2 lands, the home's server type should become the home Screen's class; this
-    // assertion is the tripwire that will force that change to be deliberate.
+  void r2_aHomeThatResolvesToADistinctScreenIsTypedWithThatScreensClass() {
+    // R2 landed: /r2home's home route (/r2home/screen) resolves to a REAL, distinct routed class
+    // (R2HomeScreen), so the home fragment is typed with the home SCREEN's class — the App is no
+    // longer fused with its home. The App's own serverSideType stays the app class (it renders the
+    // chrome around the content slot).
+    var app = appOf("/r2home");
+    assertThat(app.homeRoute()).isEqualTo("/r2home/screen");
+    assertThat(app.homeServerSideType()).isEqualTo(R2HomeScreen.class.getName());
+    assertThat(app.serverSideType()).isEqualTo(R2App.class.getName());
+    assertThat(app.homeServerSideType()).isNotEqualTo(app.serverSideType());
+  }
+
+  @Test
+  void r2_aHomeWithNoBackingScreenKeepsTheAppsOwnType() {
+    // A home route that no routed class answers (a bare @Menu link — /supplier/catalog has no @UI
+    // class) is not a separate Screen, so the App remains its own content: homeServerSideType stays
+    // the app class. Only the case with a real distinct home Screen de-conflates.
     var app = appOf("/supplier");
     assertThat(app.homeServerSideType()).isEqualTo(SupplierHomeApp.class.getName());
     assertThat(app.serverSideType()).isEqualTo(SupplierHomeApp.class.getName());

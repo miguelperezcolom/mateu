@@ -159,8 +159,21 @@ Everything is a component · inferred by default, explicit as override · one mo
      that `homeServerSideType` is the APP class (not the home Screen's) is pinned as a named tripwire;
      an app with only `@Menu` items carries the `_no_home_route` sentinel (first-menu-item defaulting
      happens later in the resolver). Plus the conceptual statement in `yaml-app-shell.md` ("App is a
-     shell + a reference to a Home; the App is not a Screen"). No behaviour change. **(b) REFACTOR
-     (pending, reviewed):** remove the conflation so the home's server type is the home Screen's class
-     and the `_no_home_route`/`_page` sentinels collapse into uniform "home = first menu item's Screen"
-     resolution — a deliberate change that must update the `r2_*` tripwires, with tri-backend parity
-     and a browser-verified home load.
+     shell + a reference to a Home; the App is not a Screen"). No behaviour change. **(b) REFACTOR —
+     Java core DONE:** `AppHomeRouteResolver.getHomeServerSideType` now resolves the effective home
+     route to the class that answers it (`RoutedClassResolver`, obtained via `MateuBeanProvider`);
+     when that is a DIFFERENT routed class than the App, the home fragment is typed with the home
+     **Screen's** class. The spike's correction held: **`_page` stays** (it is the content-slot fetch
+     mechanism R2 wants); only the conflated *type* is fixed. Additive + safe — a single-screen app, a
+     home with no backing Screen (bare menu link), or an unresolvable home keeps the App's own type,
+     so it only de-conflates the case with a real distinct home Screen. Verified: full core suite
+     **1070 green** (conformance goldens unchanged), the `r2_*` tripwires updated (a distinct home →
+     Screen's class; a no-backing-Screen home → app class), wire confirmed
+     (`/r2home` → `homeServerSideType=R2HomeScreen`, `serverSideType=R2App`), and **browser-verified**
+     on a live SUT (the app chrome + the distinct home Screen's content in the slot) + a new e2e
+     (`app-not-home.spec.ts`). **PENDING (b-ports):** mirror the resolution on .NET/Python — their app
+     mappers set `homeServerSideType = app type` and don't hold the route registry (it lives in the
+     SyncHandler layer), so it needs the route table threaded through both port mappers + fixtures. No
+     conformance divergence today (no port fixture has a distinct-home app; the field is a string;
+     single-screen apps identical). The menu-default case (type the first menu item) stays deferred —
+     it needs the risky `_page`→real-route change the spike flagged.
