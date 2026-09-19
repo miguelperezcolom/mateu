@@ -73,9 +73,33 @@ Everything is a component · inferred by default, explicit as override · one mo
     visually) — it establishes the declarative flex chain alongside it. **Follow-up:** retire
     `measureFill` in favour of the pure flex chain, once it can be visually regression-tested across
     all list layouts (table/list/cards/masterDetail).
-  - **Next in Phase 3:** explicit `@Size` override + broader inference (form→hug, sidebar→fixed) with
-    .NET/Python parity; then the unified responsive grid (#9) where a track's size IS the sizing
-    intent (hug=auto, fixed=px, fill=fr).
+  - **`@Size` explicit override** (#510): `@Size(hug|fill|fixed)` on a view sizes its whole surface;
+    full parity Java/.NET/Python.
+  - **`ResponsiveGrid` — the one responsive grid (#9)** landed (#511) + **full parity** (#512) +
+    **per-child column spans** (#513): `data.ResponsiveGrid` with `GridTrack` columns (a track's size
+    IS the #8 intent: hug=auto, fill=1fr, fixed=len), a DS-neutral CSS-grid renderer, YAML-authorable,
+    browser-verified (`layout-sizing.spec.ts`).
+  - **First model consolidation — Dashboard → ResponsiveGrid** (#517): the Dashboard archetype (and
+    `@AutoPage`-inferred dashboards) emit a `ResponsiveGrid` instead of `DashboardLayout`; full parity;
+    browser-verified. `DashboardLayout` the DTO stays (direct + Welcome use); this consolidated the
+    archetype's EMISSION. It fit cleanly because a dashboard's responsive case is `auto-fit` (which
+    CSS grid does natively) and its fixed-N case never collapsed (grid = faithful).
+  - **Architectural decision — zones + form-columns are BLOCKED on responsive breakpoints, and that
+    is correct.** `@Zones` renders as **flex-wrap** (ratio 64/36 on desktop AND stack-below-min on
+    mobile); the auto-responsive **form layout** likewise collapses columns on narrow. Neither fits a
+    RIGID CSS-grid `grid-template-columns` — one inline template cannot both keep a fixed ratio and
+    collapse, so a naive migration REGRESSES mobile. The two non-answers were rejected: forcing a
+    rigid grid (regression) and bolting a flex-wrap mode onto `ResponsiveGrid` (two layout models in
+    one component — muddies the abstraction). **The right home is a genuine responsive
+    `ResponsiveGrid` (the plan's "responsive by breakpoints"): tracks per breakpoint / container
+    queries**, a dedicated foundational piece. Until it lands, **flex-wrap stays the correct tool for
+    ratio+wrap responsive columns** and zones is NOT migrated. So: consolidate what the grid natively
+    fits (Dashboard done; equal-column/auto-fit layouts next), and build breakpoints before folding
+    zones/form-columns on. This is "everything is expressible, but pick the right primitive per
+    intent" — not "force one CSS mechanism on every layout."
+  - **Next in Phase 3:** responsive breakpoints for `ResponsiveGrid` (the blocker), then zones +
+    form-columns consolidate onto it; retire `measureFill` for the flex chain (visual-regression
+    guarded).
 - **Phase 2 (flow language v0): in progress.**
   - `Step` value model (#503): sealed v0 verbs (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
     `MarkClean`, `MarkDirty`), each lowering 1:1 to an existing `UICommand` (`StepTest`). Bounded on
