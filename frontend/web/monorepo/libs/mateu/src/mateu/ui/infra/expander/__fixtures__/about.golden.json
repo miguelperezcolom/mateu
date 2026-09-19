@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "ux_main",
+      "type": "SetWindowTitle",
+      "data": "about"
+    }
+  ],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "ux_main",
+      "component": {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "VerticalLayout",
+          "spacing": false
+        },
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Text",
+              "text": "About this app",
+              "container": "div",
+              "noMargins": false
+            },
+            "children": []
+          }
+        ]
+      },
+      "action": "Replace"
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "wireVersion": "3.0"
+}
