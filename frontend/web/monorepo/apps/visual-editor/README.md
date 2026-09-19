@@ -27,6 +27,34 @@ could not run in VSCode.
 - **Model of truth**: the YAML page file (`modelView` + `layout`). Behaviour/data stay in the Java
   ModelView. This editor edits *layout only*.
 
+## Preview source (where the canvas renders + gets its data)
+
+The toolbar has a **preview-source selector**. The split that governs it: rendering the layout
+(`__preview__`) needs an actual renderer (any Mateu backend — it renders the layout with **no** data
+binding, so you don't need the app's data source); the **data/contract** (`__contract__`, binding
+pickers) is the mockable half. None of the modes require a paid cloud.
+
+| Mode | Render (`__preview__`) | Contract/data | Use it when |
+|---|---|---|---|
+| **Remote backend** | the backend URL | live from the backend | you have a backend running (dev/staging/demo) |
+| **Local backend** | an embedded/loopback Mateu (a labelled `remote` for now) | live | you want it offline/embedded |
+| **Mock data** | still the backend URL | from **fixtures** | render against any backend, but bind against fixtures — no real data source |
+| **Client-side** | — (not built yet, coherence Phase 6) | — | shows an honest placeholder for now |
+
+### Mock fixtures — the €0 / offline workflow
+
+A fixture is what `__contract__` would answer for one ModelView (its `fields` + `actions`), so the
+binding pickers work with no live data source. In **Mock data** mode the toolbar gains:
+
+- **Capture `<VM>`** — fetch the bound view model's contract from the backend once and save it as a
+  fixture. Connect to a backend, capture, then work offline.
+- fixture **chips** (with ✕ to remove) for every view model that has one.
+- **Export** — copy all fixtures as JSON. **Import** — paste fixtures JSON. This is also the *"have your
+  AI generate the fixtures"* path: a fixture is plain `{"<vm.FQN>": { "fields": [{"id": …}], "actions":
+  ["…"] }}` — generate it however you like and Import it.
+
+The choice (mode + backend url + fixtures) persists in `localStorage`.
+
 ## Run (standalone, in a browser)
 
 Needs any running Mateu backend (all expose `__preview__`). Point the dev-server proxy at it:

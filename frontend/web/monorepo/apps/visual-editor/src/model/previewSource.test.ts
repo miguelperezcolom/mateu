@@ -6,6 +6,10 @@ import {
     usesFixtures,
     contractFixtureFor,
     fixtureAsMembers,
+    fixturedViewModels,
+    setContractFixture,
+    removeContractFixture,
+    parseContractFixtures,
     parsePreviewSource,
     serializePreviewSource,
     PreviewSource,
@@ -57,5 +61,32 @@ describe('previewSource', () => {
         // unknown mode → remote; missing baseUrl → the live host baseUrl wins
         expect(parsePreviewSource(JSON.stringify({ mode: 'bogus' }), 'fb')).toEqual({ mode: 'remote', baseUrl: 'fb' })
         expect(parsePreviewSource(JSON.stringify({ mode: 'client' }), 'fb')).toEqual({ mode: 'client', baseUrl: 'fb' })
+    })
+
+    it('sets a fixture (switching to mock), lists it, and removes it', () => {
+        const base: PreviewSource = { mode: 'remote', baseUrl: 'b' }
+        const withFix = setContractFixture(base, 'VM1', { fields: [{ id: 'a' }], actions: ['save'] })
+        expect(withFix.mode).toBe('mock')
+        expect(fixturedViewModels(withFix)).toEqual(['VM1'])
+        expect(contractFixtureFor(withFix, 'VM1')).toEqual({ fields: [{ id: 'a' }], actions: ['save'] })
+
+        const withTwo = setContractFixture(withFix, 'VM2', { fields: [] })
+        expect(fixturedViewModels(withTwo)).toEqual(['VM1', 'VM2'])
+
+        const removed = removeContractFixture(withTwo, 'VM1')
+        expect(fixturedViewModels(removed)).toEqual(['VM2'])
+        // removing the last fixture clears the map entirely
+        expect(removeContractFixture(removed, 'VM2').contractFixtures).toBeUndefined()
+    })
+
+    it('imports a fixtures document and rejects malformed input', () => {
+        const doc = JSON.stringify({ VM: { fields: [{ id: 'x', label: 'X' }, { bad: 1 }], actions: ['go', 2] } })
+        const parsed = parseContractFixtures(doc)
+        // the field without an id and the non-string action are dropped
+        expect(parsed).toEqual({ VM: { fields: [{ id: 'x', label: 'X' }], actions: ['go'] } })
+
+        expect(parseContractFixtures('not json')).toBeNull()
+        expect(parseContractFixtures('[1,2]')).toBeNull()
+        expect(parseContractFixtures(JSON.stringify({ VM: 'nope' }))).toBeNull()
     })
 })

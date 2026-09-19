@@ -84,6 +84,57 @@ export function fixtureAsMembers(fixture: ContractFixture): ContractMembers {
     }
 }
 
+// --- fixtures authoring (pure; the shell captures from the backend / imports JSON) ---
+
+/** The ModelView FQNs this source has a mock fixture for. */
+export function fixturedViewModels(src: PreviewSource): string[] {
+    return Object.keys(src.contractFixtures ?? {}).sort()
+}
+
+/** A copy of the source with `modelView`'s fixture set (mode is switched to `mock` so it takes effect). */
+export function setContractFixture(src: PreviewSource, modelView: string, fixture: ContractFixture): PreviewSource {
+    return { ...src, mode: 'mock', contractFixtures: { ...src.contractFixtures, [modelView]: fixture } }
+}
+
+/** A copy of the source with `modelView`'s fixture removed. */
+export function removeContractFixture(src: PreviewSource, modelView: string): PreviewSource {
+    const next = { ...(src.contractFixtures ?? {}) }
+    delete next[modelView]
+    return { ...src, contractFixtures: Object.keys(next).length ? next : undefined }
+}
+
+/**
+ * Parse an imported fixtures document (VM FQN → fixture) — the shape a developer or an AI produces and
+ * pastes in. Returns null for anything that isn't a plain `{ [vm]: { fields?, actions? } }` object, so a
+ * bad paste is rejected rather than corrupting the source.
+ */
+export function parseContractFixtures(json: string): Record<string, ContractFixture> | null {
+    let parsed: unknown
+    try {
+        parsed = JSON.parse(json)
+    } catch {
+        return null
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    const out: Record<string, ContractFixture> = {}
+    for (const [vm, raw] of Object.entries(parsed as Record<string, unknown>)) {
+        if (!raw || typeof raw !== 'object') return null
+        const f = raw as { fields?: unknown; actions?: unknown }
+        const fixture: ContractFixture = {}
+        if (Array.isArray(f.fields)) {
+            fixture.fields = f.fields
+                .filter((x): x is { id: unknown } => !!x && typeof x === 'object' && 'id' in x)
+                .filter((x) => typeof x.id === 'string' && x.id)
+                .map((x) => x as unknown as InferredField)
+        }
+        if (Array.isArray(f.actions)) {
+            fixture.actions = f.actions.filter((a): a is string => typeof a === 'string' && !!a)
+        }
+        out[vm] = fixture
+    }
+    return out
+}
+
 // --- persistence (pure serialise/parse; the store owns localStorage) ---
 
 export function serializePreviewSource(src: PreviewSource): string {

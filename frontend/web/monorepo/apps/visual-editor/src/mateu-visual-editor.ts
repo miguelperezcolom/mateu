@@ -6,8 +6,9 @@ import {
 } from './model/pageModel'
 import { fetchInferredFields, fetchContractMembers, ContractMembers } from './model/contract'
 import {
-    PreviewSource, PreviewMode, PREVIEW_MODES, PREVIEW_MODE_LABELS,
+    PreviewSource, PreviewMode, ContractFixture, PREVIEW_MODES, PREVIEW_MODE_LABELS,
     renderBaseUrl, rendersClientSide, contractFixtureFor, fixtureAsMembers,
+    fixturedViewModels, setContractFixture, removeContractFixture, parseContractFixtures,
 } from './model/previewSource'
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { isRoutesYaml } from './model/routesModel'
@@ -22,6 +23,12 @@ import './properties/editor-properties'
 import './routes/routes-editor'
 import './app/app-editor'
 import './mount/mount-editor'
+
+/** The simple name of a ModelView FQN (last dotted segment), for compact fixture labels. */
+function shortVm(fqn: string): string {
+    const i = fqn.lastIndexOf('.')
+    return i >= 0 ? fqn.slice(i + 1) : fqn
+}
 
 /**
  * Root of the Mateu visual editor: palette + WYSIWYG canvas + properties in ONE view. Host-agnostic
@@ -44,6 +51,12 @@ export class MateuVisualEditor extends LitElement {
         .toolbar .preview-source select, .toolbar .preview-source input {
             font: 12px system-ui; border: 1px solid #d7dade; border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
         .toolbar .preview-source input { width: 15rem; }
+        .toolbar .fixtures { display: flex; align-items: center; gap: 0.3rem; padding-left: 0.3rem;
+            margin-left: 0.3rem; border-left: 1px solid #e3e5e8; }
+        .toolbar .fixtures .chip { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 11px;
+            background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 0.1rem 0.15rem 0.1rem 0.45rem; }
+        .toolbar .fixtures .chip .x { border: none; background: none; color: inherit; cursor: pointer;
+            padding: 0 0.2rem; font-size: 11px; }
         .toolbar .shape { padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 11px; }
         .toolbar .shape.delta { background: #e8f5ec; color: #1e7a3c; }
         .toolbar .shape.snapshot { background: #fdf0e3; color: #9a5b09; }
@@ -347,7 +360,53 @@ export class MateuVisualEditor extends LitElement {
                     ? html`<span class="hint">no backend (Phase 7)</span>`
                     : html`<input .value=${src.baseUrl} @change=${this.onBaseUrlChange} placeholder="backend url"
                                   title=${src.mode === 'mock' ? 'render backend (data comes from fixtures)' : 'backend url'} />`}
+                ${src.mode === 'mock' ? this.renderFixtures() : ''}
             </label>`
+    }
+
+    /** Mock-mode fixtures: capture the bound VM's contract from the backend, list/remove, import/export JSON. */
+    private renderFixtures() {
+        const vm = this.boundViewModel()
+        const fixtured = fixturedViewModels(this.previewSource)
+        return html`
+            <span class="fixtures">
+                ${vm ? html`<button @click=${this.captureFixture} title="Fetch this view model's contract from the backend and save it as a mock fixture">Capture ${shortVm(vm)}</button>` : ''}
+                ${fixtured.map((f) => html`<span class="chip" title=${f}>${shortVm(f)}<button class="x" @click=${() => this.removeFixture(f)} title="Remove fixture">✕</button></span>`)}
+                <button @click=${this.exportFixtures} title="Copy all fixtures as JSON (edit them, or have your AI generate them, then Import)">Export</button>
+                <button @click=${this.importFixtures} title="Paste fixtures JSON (ViewModel FQN → { fields, actions })">Import</button>
+            </span>`
+    }
+
+    /** Record the bound view model's live contract as a mock fixture, then switch to offline mock. */
+    private async captureFixture() {
+        const vm = this.boundViewModel()
+        if (!vm) return
+        const [fields, members] = await Promise.all([
+            fetchInferredFields(this.previewSource.baseUrl, vm, this),
+            fetchContractMembers(this.previewSource.baseUrl, vm, this),
+        ])
+        const fixture: ContractFixture = { fields: fields ?? [], actions: members?.actions ?? [] }
+        this.updatePreviewSource(setContractFixture(this.previewSource, vm, fixture))
+    }
+
+    private removeFixture(vm: string) {
+        this.updatePreviewSource(removeContractFixture(this.previewSource, vm))
+    }
+
+    private exportFixtures() {
+        const json = JSON.stringify(this.previewSource.contractFixtures ?? {}, null, 2)
+        navigator.clipboard?.writeText(json).catch(() => {})
+    }
+
+    private importFixtures() {
+        const json = window.prompt('Paste fixtures JSON (ViewModel FQN → { fields, actions })')
+        if (!json) return
+        const parsed = parseContractFixtures(json)
+        if (!parsed) { window.alert('Not valid fixtures JSON.'); return }
+        this.updatePreviewSource({
+            ...this.previewSource, mode: 'mock',
+            contractFixtures: { ...this.previewSource.contractFixtures, ...parsed },
+        })
     }
 
     private onPreviewModeChange(e: Event) {
