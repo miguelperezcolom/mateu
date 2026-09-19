@@ -86,7 +86,7 @@ New TS pieces (the expander), smallest→largest:
 | # | Increment | Verify |
 |---|---|---|
 | 0 | **This design doc.** | — |
-| 1 | `expandDefinition(spec, params) → UIIncrement` for the **bare-layout** case (+ actions/triggers on the envelope). Pure fn in `libs/mateu`. | vitest against a **server-generated golden** (a real definition-only route's increment) — byte-parity with the server expansion. |
+| 1 | `expandDefinition(spec, params) → UIIncrement` for the **bare-layout** case (+ actions/triggers on the envelope). Pure fn in `libs/mateu`. | vitest against a **server-generated structural golden** (`about.yaml`'s increment), default-tolerant (see golden strategy). |
 | 2 | **Specs mode wiring** — load `routes.json`+`sources.json`, resolve a route to its `definition`, load+expand, hand to the renderer as the fallback when there is no pre-rendered increment and no backend. | vitest (specs store) + **browser e2e**: a definition-only route renders client-side, no backend. |
 | 3 | **Field synthesis + type mapping** (`FieldTypeMapper` twin). | vitest golden per dataType. |
 | 4 | **`layoutDelta` application.** | vitest golden. |
@@ -100,8 +100,18 @@ at once — no .NET/Python port (those are backends; the whole point is *no* bac
 core (`apps/redwood/poc`) has its own transport; a VB twin of the expander is a later, optional
 increment (VB is ref-native for sources and does not consume them yet).
 
-**Golden strategy:** every expansion increment is pinned to a **server-generated golden** so the
-client expander is provably byte-identical to what the backend would have produced for the same
-definition. The server expansion is the spec; the TS expander is a faithful reimplementation, not a
-new behavior. Goldens are captured via the core test harness (`TestMateu.sync` on a definition-only
-route) or the bundle exporter, and checked into the vitest fixtures.
+**Golden strategy — render-parity, not byte-parity (corrected after the first golden).** The first
+golden (`about.yaml` → its increment) revealed the crux: the server fills **per-type defaults** when
+it maps a fluent node to the wire (`VerticalLayout` gains `spacing:false`; `Text` gains
+`container:"div"`, `noMargins:false`; etc.). Byte-parity would force the expander to carry a **fourth
+copy** of every component's default field set (Java/.NET/Python already hold three) — exactly the
+drift-prone triplication this project avoids elsewhere. So the bar is **render-parity**: the expander
+produces the mechanically-mapped wire (ClientSide-wrap each node, `content`→`children`, carry authored
+fields into `metadata`, build the envelope) and the RENDERER, which already defaults missing metadata,
+paints an identical result. Verified two ways: (a) **structural vitest goldens** — captured from the
+server (Python harness `SyncHandler.handle` on a definition-only route, or the bundle exporter) and
+compared with a normalization that tolerates server-only default fields (asserting every AUTHORED
+field is present and correctly placed); (b) **browser e2e** — the true bar: a definition-only route
+rendered client-side looks identical to the same route served by the backend. If a specific default
+turns out to be load-bearing (the renderer does NOT default it), that ONE field is added to the
+expander's small explicit-defaults table, case by case, rather than mirroring all ~116 components.
