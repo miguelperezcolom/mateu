@@ -10,15 +10,27 @@ import java.util.List;
  * as one grid instead of five specialized mechanisms. This is the foundation + escape hatch, not
  * the default authoring mode — inference still builds columns by default.
  *
- * <p>v1 carries explicit column tracks; a child spans tracks via its own layout metadata.
+ * <p>v1 carries explicit column tracks and an optional per-child column span ({@code colSpans},
+ * aligned with {@code content}: a child with span N occupies N tracks — this is what a full-width
+ * band or a wide dashboard tile needs, so the scattered column mechanisms can converge here).
  * Responsive breakpoints and named areas are follow-ups.
  */
 public record ResponsiveGrid(
-    String id, List<GridTrack> columns, String gap, List<Component> content, String style)
+    String id,
+    List<GridTrack> columns,
+    String gap,
+    List<Component> content,
+    List<Integer> colSpans,
+    String style)
     implements Component {
 
   public ResponsiveGrid(String id, List<GridTrack> columns, List<Component> content) {
-    this(id, columns, null, content, null);
+    this(id, columns, null, content, null, null);
+  }
+
+  public ResponsiveGrid(
+      String id, List<GridTrack> columns, String gap, List<Component> content, String style) {
+    this(id, columns, gap, content, null, style);
   }
 
   /**

@@ -6,4 +6,7 @@
 export default interface ResponsiveGrid {
     gridTemplateColumns?: string | undefined
     gap?: string | undefined
+    /** Optional per-child column span, aligned with the children; a child with span N occupies N
+     *  tracks (a full-width band uses a large span). */
+    colSpans?: number[] | undefined
 }

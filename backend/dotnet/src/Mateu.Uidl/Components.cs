@@ -122,6 +122,9 @@ public sealed record ResponsiveGrid : ComponentBase
     public IReadOnlyList<GridTrack> Columns { get; init; } = [];
     public string? Gap { get; init; }
     public IReadOnlyList<IComponent> Content { get; init; } = [];
+    /// <summary>Optional per-child column span, aligned with Content: a child with span N occupies N
+    /// tracks (a full-width band uses a large span).</summary>
+    public IReadOnlyList<int>? ColSpans { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>

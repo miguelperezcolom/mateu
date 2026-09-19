@@ -1118,6 +1118,19 @@ public class ComponentTests
     }
 
     [Fact]
+    public void ResponsiveGrid_carries_per_child_column_spans()
+    {
+        var dto = ComponentMapper.Map(new ResponsiveGrid
+        {
+            Columns = [GridTrack.Fill(), GridTrack.Fill()],
+            ColSpans = [2, 1, 1],
+            Content = [new Text("band"), new Text("A"), new Text("B")],
+        });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+        Assert.Contains("\"colSpans\":[2,1,1]", json);
+    }
+
+    [Fact]
     public void Anchor_emits_text_url_and_target()
     {
         var dto = ComponentMapper.Map(new Anchor("Open the docs", "https://mateu.io/docs") { Target = "_blank" });

@@ -280,7 +280,7 @@ public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
 /// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Carries the
 /// resolved CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children
 /// travel as the component's children.</summary>
-public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap) : ComponentMetadataDto;
+public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap, IReadOnlyList<int>? ColSpans = null) : ComponentMetadataDto;
 
 /// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
 /// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>
