@@ -1,6 +1,7 @@
 package io.mateu.annotationprocessing.indexer;
 
 import com.google.auto.service.AutoService;
+import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.KeycloakSecured;
 import io.mateu.uidl.annotations.Link;
 import io.mateu.uidl.annotations.Meta;
@@ -29,23 +30,50 @@ import javax.tools.StandardLocation;
  * of dependent modules without needing the sources.
  */
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI"})
+@SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI", "io.mateu.uidl.annotations.App"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIIndexerProcessor extends AbstractProcessor {
 
   /** Accumulated entries across all processing rounds. key = fully-qualified class name */
   private final Map<String, String> entries = new LinkedHashMap<>();
 
+  /**
+   * The route a class declares (coherence-plan #5): {@code @App(route = "/x")} wins over
+   * {@code @UI("/x")}; a value-less {@code @App} carries no route. {@code null} when it declares
+   * none.
+   */
+  private static String routeOf(Element e) {
+    App app = e.getAnnotation(App.class);
+    if (app != null && app.route() != null && !app.route().isBlank()) {
+      return app.route();
+    }
+    UI ui = e.getAnnotation(UI.class);
+    return ui != null ? ui.value() : null;
+  }
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    // Collect routed classes across @UI and @App(route), deduped by name (a class carrying both is
+    // indexed once; routeOf resolves which route wins).
+    Map<String, Element> routed = new LinkedHashMap<>();
     for (TypeElement annotation : annotations) {
       for (Element e : roundEnv.getElementsAnnotatedWith(annotation)) {
+        if (e instanceof TypeElement && routeOf(e) != null) {
+          routed.putIfAbsent(((TypeElement) e).getQualifiedName().toString(), e);
+        }
+      }
+    }
+    {
+      for (Element e : routed.values()) {
         String className = ((TypeElement) e).getQualifiedName().toString();
         String simpleClassName = e.getSimpleName().toString();
         UI uiAnnotation = e.getAnnotation(UI.class);
-        String path = uiAnnotation.value();
-        String indexHtmlPath = uiAnnotation.indexHtmlPath();
-        String frontendComponentPath = uiAnnotation.frontendComponentPath();
+        String path = routeOf(e);
+        // frontend paths come from @UI; an @App(route)-only class uses the @UI defaults.
+        String indexHtmlPath =
+            uiAnnotation != null ? uiAnnotation.indexHtmlPath() : "/static/_index.html";
+        String frontendComponentPath =
+            uiAnnotation != null ? uiAnnotation.frontendComponentPath() : "/assets/mateu.js";
 
         StringBuilder sb = new StringBuilder();
         sb.append("class=").append(className).append("\n");

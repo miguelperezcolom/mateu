@@ -148,7 +148,19 @@ Everything is a component · inferred by default, explicit as override · one mo
      (routes.yaml is parsed manually, so no wire change); schema advertises `layout` (canonical) +
      `definition` (deprecated) in routes-schema + specs-schema. A `help` route authored with `layout:`
      binds identically to `definition:`, pinned in all three.
-  3. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
+  3. **`@UI`/`@App` → one "App" concept — Java DONE (additive alias).** `@App(route = "/shop")`
+     declares BOTH that a class is an app AND its base path (design: `design/ui-app-reconciliation.md`,
+     go-full approved). `@UI` stays the generic router; `@App(route)` wins when both are present; a
+     value-less `@App` (chrome only) is unchanged — nothing that works today breaks. Wired through
+     all four layers: the `@App.route()` attribute (uidl); the **annotation processors**
+     (`MateuUIAnnotationProcessor` + the indexer now treat `@App(route)` as a routed class and
+     generate its controller, deduped when a class carries both); the **runtime** route resolution
+     (`RouteAnnotations.routeOf` + `RouteAnnotationMatcher`; `ViewTypeClassifier.isApp` recognises the
+     `@App` annotation). Verified: full core suite **1072 green**, `AppRouteSyncTest` (resolves +
+     renders + two-paths rule), and **end-to-end on a live SUT** — a real `@App(route = "/appdemo")`
+     app (no `@UI`) is served (`type: App`, `serverSideType = AppRouteDemo`) via the AP-generated
+     controller, with a new e2e (`app-route.spec.ts`). **PENDING (ports):** mirror on .NET
+     (`[App(Route = "/x")]`) and Python (`@app(route="/x")`) — reflective, lower risk.
   4. **retire "page" as an authoring term** (pending) — "page" is not an authoring keyword (only the
      wire artifact `PageDto`/`PageView`), so this is docs terminology; folded into Phase 9's rebuild.
   5. **R2 (App ≠ its Home Screen)** — split into (a) done, (b) pending, because unlike slices 1–2 it
