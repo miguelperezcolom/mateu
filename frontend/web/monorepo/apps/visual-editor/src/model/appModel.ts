@@ -28,6 +28,9 @@ export interface AppFields {
 export type AppMenuItem =
     | { kind: 'link'; label?: string; route?: string; icon?: string; extra: Record<string, unknown> }
     | { kind: 'group'; label?: string; submenu: AppMenuItem[]; extra: Record<string, unknown> }
+    // A menu leaf that RUNS an action instead of navigating: a RuleLink with a single RunAction rule
+    // (the unified menu-leaf `route | rule` model). Runs client-side — a declared flow or a named @Action.
+    | { kind: 'action'; label?: string; actionId?: string; extra: Record<string, unknown> }
     | { kind: 'separator' }
     | { kind: 'raw'; raw: unknown }
 
@@ -90,6 +93,14 @@ function toMenuItem(raw: any): AppMenuItem {
         return { kind: 'group', label: raw.label, submenu: Array.isArray(raw.submenu) ? raw.submenu.map(toMenuItem) : [], extra: rest(raw, ['type', 'label', 'submenu']) }
     }
     if (raw?.type === 'MenuSeparator') return { kind: 'separator' }
+    // A RuleLink whose single rule runs an action → an editable "action" leaf. Anything richer (RunJS,
+    // Set*, several rules, a filter) stays raw so the editor never edits it lossily.
+    if (raw?.type === 'RuleLink' && Array.isArray(raw.rules) && raw.rules.length === 1) {
+        const r = raw.rules[0]
+        if (r && r.action === 'RunAction' && !r.filter && !r.fieldName && !r.expression) {
+            return { kind: 'action', label: raw.label, actionId: r.actionId, extra: rest(raw, ['type', 'label', 'rules']) }
+        }
+    }
     return { kind: 'raw', raw }
 }
 
@@ -105,6 +116,12 @@ function menuItemToRaw(item: AppMenuItem): unknown {
         const out: Record<string, unknown> = { type: 'Menu' }
         if (item.label) out.label = item.label
         out.submenu = item.submenu.map(menuItemToRaw)
+        return { ...out, ...item.extra }
+    }
+    if (item.kind === 'action') {
+        const out: Record<string, unknown> = { type: 'RuleLink' }
+        if (item.label) out.label = item.label
+        out.rules = [{ action: 'RunAction', actionId: item.actionId ?? '' }]
         return { ...out, ...item.extra }
     }
     if (item.kind === 'separator') return { type: 'MenuSeparator' }

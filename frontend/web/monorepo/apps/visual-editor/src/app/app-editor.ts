@@ -83,6 +83,7 @@ export class AppEditor extends LitElement {
                 ${this.doc.menu.map((item, i) => this.menuItem(item, [i]))}
                 <div class="adds">
                     <button @click=${() => this.addItem([], 'link')}>+ Link</button>
+                    <button @click=${() => this.addItem([], 'action')}>+ Action</button>
                     <button @click=${() => this.addItem([], 'group')}>+ Group</button>
                     <button @click=${() => this.addItem([], 'separator')}>+ Separator</button>
                 </div>
@@ -127,6 +128,16 @@ export class AppEditor extends LitElement {
         if (item.kind === 'raw') {
             return html`<div class="menu-item"><div class="menu-row"><span class="kind">Custom</span><span class="raw">raw menu item — edit in YAML</span><span class="sep"></span>${this.delBtn(path)}</div></div>`
         }
+        if (item.kind === 'action') {
+            return html`<div class="menu-item">
+                <span class="kind">Action</span>
+                <div class="menu-row">
+                    <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
+                    <input placeholder="actionId" .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)} />
+                    ${this.delBtn(path)}
+                </div>
+            </div>`
+        }
         if (item.kind === 'link') {
             return html`<div class="menu-item">
                 <span class="kind">Link</span>
@@ -149,6 +160,7 @@ export class AppEditor extends LitElement {
                 ${item.submenu.map((child, j) => this.menuItem(child, [...path, j]))}
                 <div class="adds">
                     <button @click=${() => this.addItem(path, 'link')}>+ Link</button>
+                    <button @click=${() => this.addItem(path, 'action')}>+ Action</button>
                     <button @click=${() => this.addItem(path, 'separator')}>+ Separator</button>
                 </div>
             </div>
@@ -159,7 +171,7 @@ export class AppEditor extends LitElement {
         return html`<button class="del" title="Remove" @click=${() => this.removeItem(path)}>✕</button>`
     }
 
-    private setItem(path: number[], key: 'label' | 'route' | 'icon', value: string) {
+    private setItem(path: number[], key: 'label' | 'route' | 'icon' | 'actionId', value: string) {
         const menu = structuredClone(this.doc.menu)
         const item = this.at(menu, path)
         if (item) {
@@ -170,9 +182,10 @@ export class AppEditor extends LitElement {
         this.commit()
     }
 
-    private addItem(parentPath: number[], kind: 'link' | 'group' | 'separator') {
+    private addItem(parentPath: number[], kind: 'link' | 'action' | 'group' | 'separator') {
         const fresh: AppMenuItem =
             kind === 'link' ? { kind: 'link', label: 'Label', route: 'route', extra: {} }
+            : kind === 'action' ? { kind: 'action', label: 'Action', actionId: 'actionId', extra: {} }
             : kind === 'group' ? { kind: 'group', label: 'Group', submenu: [], extra: {} }
             : { kind: 'separator' }
         const menu = structuredClone(this.doc.menu)
