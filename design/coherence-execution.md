@@ -171,9 +171,11 @@ Everything is a component · inferred by default, explicit as override · one mo
      Screen's class; a no-backing-Screen home → app class), wire confirmed
      (`/r2home` → `homeServerSideType=R2HomeScreen`, `serverSideType=R2App`), and **browser-verified**
      on a live SUT (the app chrome + the distinct home Screen's content in the slot) + a new e2e
-     (`app-not-home.spec.ts`). **PENDING (b-ports):** mirror the resolution on .NET/Python — their app
-     mappers set `homeServerSideType = app type` and don't hold the route registry (it lives in the
-     SyncHandler layer), so it needs the route table threaded through both port mappers + fixtures. No
-     conformance divergence today (no port fixture has a distinct-home app; the field is a string;
-     single-screen apps identical). The menu-default case (type the first menu item) stays deferred —
-     it needs the risky `_page`→real-route change the spike flagged.
+     (`app-not-home.spec.ts`). **(b-ports) DONE (#543):** mirrored on .NET (`SyncHandler.RenderApp` →
+     `registry.Resolve`) and Python (`render_app` → `registry.resolve` + `type_name`) — the resolution
+     lives in the SyncHandler layer (which holds the registry), patching `homeServerSideType` after
+     the mapper builds the app. Each has the mirrored `/r2app`→`R2Screen` fixture + test; .NET 384,
+     Python 377 green. All three backends now emit the same R2 wire. **R2 is COMPLETE** except the
+     deliberately-deferred menu-default case (type the first menu item), which needs the risky
+     `_page`→real-route change the spike flagged. Remaining Phase-5 vocabulary work: `@UI`/`@App`
+     reconciliation, and retire "page" as an authoring term (docs, folded into Phase 9).
