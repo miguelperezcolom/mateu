@@ -29,16 +29,24 @@ public record ResponsiveGrid(
      * collapse (the tracks always apply).
      */
     String stackBelow,
+    /**
+     * Named-slot template (coherence-plan #7): a CSS {@code grid-template-areas} value (e.g. {@code
+     * "header header" "sidebar main"}). A child whose {@code slot} matches an area name is placed
+     * in that area — this is a Screen's Template + slots realised on the one grid (#9). Null = no
+     * named areas (children flow into the column tracks in order). A child with no matching slot
+     * flows into the implicit overflow (the plan's "fixed skeleton + overflow area" default).
+     */
+    String gridTemplateAreas,
     String style)
     implements Component {
 
   public ResponsiveGrid(String id, List<GridTrack> columns, List<Component> content) {
-    this(id, columns, null, content, null, null, null);
+    this(id, columns, null, content, null, null, null, null);
   }
 
   public ResponsiveGrid(
       String id, List<GridTrack> columns, String gap, List<Component> content, String style) {
-    this(id, columns, gap, content, null, null, style);
+    this(id, columns, gap, content, null, null, null, style);
   }
 
   public ResponsiveGrid(
@@ -48,7 +56,27 @@ public record ResponsiveGrid(
       List<Component> content,
       List<Integer> colSpans,
       String style) {
-    this(id, columns, gap, content, colSpans, null, style);
+    this(id, columns, gap, content, colSpans, null, null, style);
+  }
+
+  public ResponsiveGrid(
+      String id,
+      List<GridTrack> columns,
+      String gap,
+      List<Component> content,
+      List<Integer> colSpans,
+      String stackBelow,
+      String style) {
+    this(id, columns, gap, content, colSpans, stackBelow, null, style);
+  }
+
+  /**
+   * A named-slot template (coherence-plan #7): a grid with {@code grid-template-areas} and children
+   * placed by their {@code slot} into the matching area. Columns default to the areas' implied
+   * tracks unless given.
+   */
+  public static ResponsiveGrid template(String id, String areas, List<Component> slotted) {
+    return new ResponsiveGrid(id, null, null, slotted, null, null, areas, null);
   }
 
   /**

@@ -81,6 +81,24 @@ test.describe('layout sizing (fill / hug)', () => {
     expect(grid.cols.trim().split(/\s+/).length).toBe(2);
   });
 
+  test('a Screen template places its components into named grid slots (#7)', async ({ page }) => {
+    await page.goto('/template-demo');
+    await expect(page.getByText('Header slot')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Sidebar slot')).toBeVisible();
+    await expect(page.getByText('Main slot')).toBeVisible();
+    // The grid declares named areas, and each component is placed into its area by its slot.
+    const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      // find the cell whose text is "Sidebar slot" and read its grid-area
+      const cells = Array.from((el as HTMLElement).children) as HTMLElement[];
+      const sidebar = cells.find(c => c.textContent?.includes('Sidebar slot'));
+      return { display: cs.display, hasAreas: cs.gridTemplateAreas !== 'none', sidebarArea: sidebar ? getComputedStyle(sidebar).gridArea : null };
+    });
+    expect(info.display).toBe('grid');
+    expect(info.hasAreas).toBe(true);
+    expect(info.sidebarArea).toContain('sidebar');
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });

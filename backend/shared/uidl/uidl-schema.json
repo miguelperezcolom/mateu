@@ -1325,6 +1325,8 @@
       }, {
         "$ref" : "#/$defs/Skeleton"
       }, {
+        "$ref" : "#/$defs/Slotted"
+      }, {
         "$ref" : "#/$defs/SplitLayout"
       }, {
         "$ref" : "#/$defs/Stat"
@@ -4794,6 +4796,9 @@
         "stackBelow" : {
           "type" : "string"
         },
+        "gridTemplateAreas" : {
+          "type" : "string"
+        },
         "style" : {
           "type" : "string"
         }
@@ -5063,6 +5068,22 @@
     "SkeletonVariant" : {
       "type" : "string",
       "enum" : [ "text", "card", "grid", "form" ]
+    },
+    "Slotted" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Slotted"
+        },
+        "slot" : {
+          "type" : "string"
+        },
+        "content" : {
+          "$ref" : "#/$defs/Component"
+        }
+      }
     },
     "SpacingVariant" : {
       "type" : "string",

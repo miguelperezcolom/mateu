@@ -12,4 +12,7 @@ export default interface ResponsiveGrid {
     /** Responsive breakpoint: a CSS length below which the grid (its container) collapses to one
      *  column. Absent = never collapse. */
     stackBelow?: string | undefined
+    /** Named-slot template (coherence-plan #7): a CSS grid-template-areas value; a child whose slot
+     *  matches an area name is placed there. Absent = children flow into the column tracks. */
+    gridTemplateAreas?: string | undefined
 }
