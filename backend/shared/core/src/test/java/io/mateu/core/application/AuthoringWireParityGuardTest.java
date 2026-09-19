@@ -69,6 +69,12 @@ class AuthoringWireParityGuardTest {
   private static final Set<String> ALLOWLIST =
       new LinkedHashSet<>(
           List.of(
+              // ---- ResponsiveGridDto (authoring record: ResponsiveGrid) ----
+              // DERIVED: the CSS grid-template-columns string, computed by the record's
+              // gridTemplateColumns() accessor from the authored `columns` (List<GridTrack>) — the
+              // author declares `columns`, the wire carries the rendered template.
+              "ResponsiveGridDto.gridTemplateColumns",
+
               // ---- FormFieldDto ----
               // DERIVED: rules re-evaluation flag, computed from @Observed/rule wiring, never
               // authored on the field itself.
