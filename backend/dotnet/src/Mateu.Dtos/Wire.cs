@@ -73,7 +73,13 @@ public record ClientSideComponentDto(
     IReadOnlyList<ComponentDto> Children,
     string? Style,
     string? CssClasses,
-    string? Slot) : ComponentDto;
+    string? Slot) : ComponentDto
+{
+    /// <summary>The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:&lt;len&gt;". Null =
+    /// unset (default flow). Portable intent-as-data; the web maps it to flex on the component host.
+    /// An init property (not positional) so the many Client(...) call-sites keep compiling.</summary>
+    public string? Sizing { get; init; }
+}
 
 public record ServerSideComponentDto(
     string Id,

@@ -1120,7 +1120,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GroupBy = GroupByOf(row),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
-        }, "crud", []);
+            // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
@@ -1245,7 +1246,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
             RowsSelectionEnabled = canDelete,
-        }, "crud", []);
+        }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
         if (hero is not null)
             pageChildren.Add(Client(new HeroSectionMetadataDto(
@@ -1329,7 +1330,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
             RowsSelectionEnabled = profile.CanDelete,
-        }, "crud", []);
+        }, "crud", []) with { Sizing = "fill" };
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],

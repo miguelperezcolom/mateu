@@ -2108,6 +2108,8 @@ class ReflectionMapper:
             "crud",
             [],
         )
+        # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        crud = crud.model_copy(update={"sizing": "fill"})
         page_children = []
         if hero is not None:
             page_children.append(self.client(
@@ -2254,6 +2256,8 @@ class ReflectionMapper:
             "crud",
             [],
         )
+        # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
+        crud = crud.model_copy(update={"sizing": "fill"})
         page_children = []
         smart_search = issubclass(cls, SmartSearchPage)
         if smart_search:
