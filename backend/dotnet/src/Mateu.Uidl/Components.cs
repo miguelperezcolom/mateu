@@ -95,6 +95,39 @@ public sealed record DashboardLayout : ComponentBase
     public IReadOnlyList<IComponent> Items { get; init; } = [];
 }
 
+// ── Responsive grid (coherence-plan #9) ──────────────────────────────────────
+/// <summary>A track (column) of a <see cref="ResponsiveGrid"/> — its size IS the #8 sizing intent:
+/// hug=auto, fill=1fr, fixed=len. Mirrors io.mateu.uidl.data.GridTrack.</summary>
+public sealed record GridTrack(SizeMode Size, string? Length = null)
+{
+    public static GridTrack Hug() => new(SizeMode.Hug);
+    public static GridTrack Fill() => new(SizeMode.Fill);
+    public static GridTrack Fixed(string length) => new(SizeMode.Fixed, length);
+
+    /// <summary>This track as a CSS grid track size — auto | 1fr | the fixed length.</summary>
+    public string ToCss() => Size switch
+    {
+        SizeMode.Hug => "auto",
+        SizeMode.Fill => "1fr",
+        SizeMode.Fixed => Length ?? "auto",
+        _ => "auto",
+    };
+}
+
+/// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Children are
+/// placed on a CSS grid whose column tracks are sized with the #8 vocabulary. Mirrors
+/// io.mateu.uidl.data.ResponsiveGrid.</summary>
+public sealed record ResponsiveGrid : ComponentBase
+{
+    public IReadOnlyList<GridTrack> Columns { get; init; } = [];
+    public string? Gap { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+
+    /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
+    public string? GridTemplateColumns() =>
+        Columns.Count == 0 ? null : string.Join(" ", Columns.Select(t => t.ToCss()));
+}
+
 // ── Foldout ────────────────────────────────────────────────────────────────────
 
 /// <summary>One lateral panel of a <see cref="FoldoutLayout"/>. Closed panels render as a narrow

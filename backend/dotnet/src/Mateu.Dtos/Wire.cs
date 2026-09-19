@@ -208,6 +208,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ScoreboardMetadataDto), "Scoreboard")]
 [JsonDerivedType(typeof(DashboardPanelMetadataDto), "DashboardPanel")]
 [JsonDerivedType(typeof(DashboardLayoutMetadataDto), "DashboardLayout")]
+[JsonDerivedType(typeof(ResponsiveGridMetadataDto), "ResponsiveGrid")]
 [JsonDerivedType(typeof(FoldoutLayoutMetadataDto), "FoldoutLayout")]
 [JsonDerivedType(typeof(ContentLayoutMetadataDto), "ContentLayout")]
 [JsonDerivedType(typeof(HeroSectionMetadataDto), "HeroSection")]
@@ -275,6 +276,11 @@ public record DashboardPanelMetadataDto(string? Title, string? Subtitle, int Col
 
 /// <summary>Responsive dashboard grid. Tiles travel as component children (columns 0 = auto-fit).</summary>
 public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
+
+/// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Carries the
+/// resolved CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children
+/// travel as the component's children.</summary>
+public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap) : ComponentMetadataDto;
 
 /// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
 /// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>
