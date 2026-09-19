@@ -3,32 +3,31 @@ package io.mateu.core.application;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 
 import io.mateu.core.application.runaction.RunActionCommand;
-import io.mateu.uidl.annotations.UI;
 import java.util.Optional;
 
 /**
- * Matches a request route against a class's {@code @UI} mount. Inner routes are no longer
- * annotations — they live in {@code routes.yaml} and are resolved by the {@link RouteRegistry}
- * (consulted first by {@code DefaultRoutedClassResolver}), so the only annotation left to match
- * here is {@code @UI}.
+ * Matches a request route against a class's declared mount. A class declares its route with
+ * {@code @UI("/path")} OR with {@code @App(route = "/path")} (coherence-plan #5) — resolved
+ * uniformly by {@link RouteAnnotations#routeOf}. Inner routes are no longer annotations — they live
+ * in {@code routes.yaml} and are resolved by the {@link RouteRegistry} (consulted first by {@code
+ * DefaultRoutedClassResolver}).
  */
 final class RouteAnnotationMatcher {
 
   static Optional<ResolvedRoute> matchesAbsolute(
       String route, Class<?> aClass, RunActionCommand command) {
-    if (aClass.isAnnotationPresent(UI.class)
-        && matches(command.baseUrl() + command.route(), aClass.getAnnotation(UI.class).value())) {
-      return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+    var pattern = RouteAnnotations.routeOf(aClass);
+    if (pattern != null && matches(command.baseUrl() + command.route(), pattern)) {
+      return Optional.of(new ResolvedRoute(route, pattern, aClass));
     }
     return Optional.empty();
   }
 
   static Optional<ResolvedRoute> matchesApp(
       String route, Class<?> aClass, RunActionCommand command) {
-    if (isApp(aClass, route)
-        && aClass.isAnnotationPresent(UI.class)
-        && matches(route, aClass.getAnnotation(UI.class).value())) {
-      return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+    var pattern = RouteAnnotations.routeOf(aClass);
+    if (isApp(aClass, route) && pattern != null && matches(route, pattern)) {
+      return Optional.of(new ResolvedRoute(route, pattern, aClass));
     }
     return Optional.empty();
   }
@@ -38,13 +37,11 @@ final class RouteAnnotationMatcher {
     if (cleanRoute.startsWith(command.baseUrl())) {
       cleanRoute = cleanRoute.substring(command.baseUrl().length());
     }
-    if (aClass.isAnnotationPresent(UI.class)
-        && (matches(
-                command.httpRequest().getAttribute("baseUrl") + route,
-                aClass.getAnnotation(UI.class).value())
-            || (command.httpRequest().getAttribute("baseUrl") + cleanRoute)
-                .equals(aClass.getAnnotation(UI.class).value()))) {
-      return Optional.of(new ResolvedRoute(route, aClass.getAnnotation(UI.class).value(), aClass));
+    var pattern = RouteAnnotations.routeOf(aClass);
+    if (pattern != null
+        && (matches(command.httpRequest().getAttribute("baseUrl") + route, pattern)
+            || (command.httpRequest().getAttribute("baseUrl") + cleanRoute).equals(pattern))) {
+      return Optional.of(new ResolvedRoute(route, pattern, aClass));
     }
     return Optional.empty();
   }

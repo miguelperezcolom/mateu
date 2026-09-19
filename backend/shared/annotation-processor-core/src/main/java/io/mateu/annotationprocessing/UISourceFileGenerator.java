@@ -104,8 +104,13 @@ class UISourceFileGenerator {
     JavaFileObject builderFile = filer.createSourceFile(generatedFullClassName);
     try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
       String[] externalScripts = new String[0];
-      String indexHtmlPath = "/index/index.html";
-      String frontendPath = path + "/dist/assets/mateu.js";
+      // Defaults MUST match @UI's annotation defaults (indexHtmlPath = "/static/_index.html",
+      // frontendComponentPath = "/assets/mateu.js"): a routed class with only @App(route) (no @UI,
+      // coherence-plan #5) skips the @UI override below and would otherwise serve a nonexistent
+      // "/index/index.html", so its SPA never boots. For @UI classes these are always overridden
+      // (the annotation defaults are non-blank), so this only changes the @App-only case.
+      String indexHtmlPath = "/static/_index.html";
+      String frontendPath = path + "/assets/mateu.js";
       if (e.getAnnotation(UI.class) != null) {
         if (!Strings.isNullOrEmpty(e.getAnnotation(UI.class).indexHtmlPath())) {
           indexHtmlPath = e.getAnnotation(UI.class).indexHtmlPath();
