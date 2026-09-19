@@ -180,10 +180,13 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   three one-click scaffolds backed by pure, tested ops in `model/quickStarts.ts`: **Bind data source**
   (set `modelView`, then load its contract), **Lay out fields from data** (data-first — append a `FormField`
   per contract member, honouring the mock preview source), and **Turn into listing** (replace the page with
-  a `Listing` whose columns come from its fields). 96 vitest + tsc + build. **Remaining in Phase 6:** a
-  "Wire an action" quick start (button → declared action), model-editing quick starts in an IDE host (create
-  the field/@Action, the §G sync), AI-assisted scaffolds, and (editor tree friction) selecting INTO a
-  `Slotted` child (renders/round-trips fine; deep-edited via YAML for now).
+  a `Listing` whose columns come from its fields). **Wire an action: DONE** — a "Wire an action…" Quick
+  Start adds a `Button` bound to an `actionId` and gives the action a home context-aware: a **bound** page
+  leaves the id for an `@Action` (created via the §G Sync / IDE quick-fix); a **classless** page also gets a
+  page-level `actions:` `restAction` stub to edit. (This also fixed a latent `serializePage` bug — a *bare*
+  page dropped `rest`/`triggers` on save.) 102 vitest + tsc + build. **Remaining in Phase 6:** AI-assisted
+  scaffolds, and (editor tree friction) selecting INTO a `Slotted` child (renders/round-trips fine; deep-
+  edited via YAML for now). Model-editing quick starts are covered by §G's IntelliJ "Create in ViewModel".
 - **Phase 5 — Layout ↔ ViewModel sync: STARTED (the web-editor reconciliation half).** A **Sync panel**
   shows the structural diff between the page and the bound view model's contract (pure, tested
   `model/viewModelSync.ts`): **in the model, not on the page** → per-member **"Add to page"** (a `FormField`

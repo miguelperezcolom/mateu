@@ -12,7 +12,7 @@ import {
 } from './model/previewSource'
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { TEMPLATES, StarterTemplate } from './model/templates'
-import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing } from './model/quickStarts'
+import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
@@ -603,7 +603,20 @@ export class MateuVisualEditor extends LitElement {
                     <button @click=${this.qsTurnIntoListing} ?disabled=${this.doc?.layout?.type === 'Listing'}>Turn into listing</button>
                     <span class="qs-hint">replace the page with a table (columns from its fields)</span>
                 </div>
+                <div class="qs-row">
+                    <button @click=${this.qsWireAction}>Wire an action…</button>
+                    <span class="qs-hint">${bound ? 'add a button → an @Action (create it via Sync / Alt+Enter)' : 'add a button → a REST action stub you edit'}</span>
+                </div>
             </div>`
+    }
+
+    private qsWireAction = () => {
+        const actionId = window.prompt('Action id (runs on click):', 'save')?.trim()
+        if (!actionId) return
+        const label = (window.prompt('Button label:', actionId.replace(/^./, (c) => c.toUpperCase())) ?? actionId).trim()
+        this.doc = wireAction(this.doc!, label, actionId)
+        this.showQuickStarts = false
+        this.notifyChanged()
     }
 
     private qsTurnIntoListing = () => {

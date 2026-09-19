@@ -174,7 +174,10 @@ export function serializePage(doc: PageDoc): string {
         // stays a rootless fragment (inlined at the use site) rather than gaining a VerticalLayout.
         return stringify({ content: doc.layout.content ?? [] })
     }
-    if (doc.bare && !doc.modelView) {
+    // A bare page (a single component, no envelope) serializes as just that component — UNLESS it has
+    // gained an envelope concern (page-level triggers or other keys like `actions:`), in which case it
+    // needs the `layout:` envelope so those survive.
+    if (doc.bare && !doc.modelView && !doc.triggers?.length && !doc.rest) {
         return stringify(doc.layout)
     }
     const envelope: Record<string, unknown> = {}
