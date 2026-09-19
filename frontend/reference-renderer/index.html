@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mateu reference renderer</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #1a1a1a; }
+    body { margin: 0; background: #fbf9f8; }
+    .bar { display: flex; gap: .5rem; align-items: center; padding: .6rem 1rem; background: #fff; border-bottom: 1px solid #e5e2df; position: sticky; top: 0; }
+    .bar input { padding: .35rem .5rem; border: 1px solid #cfcac5; border-radius: 6px; }
+    .bar input.url { width: 22rem; } .bar input.route { width: 12rem; }
+    .bar button { padding: .35rem .8rem; border: 1px solid #cfcac5; border-radius: 6px; background: #f1efed; cursor: pointer; }
+    #app { padding: 1.25rem; max-width: 900px; margin: 0 auto; }
+    .mateu-page-title { font-size: 1.5rem; margin: 0 0 .25rem; }
+    .mateu-page-subtitle { color: #6b6560; margin-bottom: 1rem; }
+    .mateu-card { background: #fff; border: 1px solid #e5e2df; border-radius: 10px; padding: 1rem 1.25rem; margin: .75rem 0; }
+    .mateu-col { display: flex; flex-direction: column; gap: .5rem; }
+    .mateu-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .mateu-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem 1.25rem; }
+    .mateu-formrow { display: contents; }
+    .mateu-field { display: flex; flex-direction: column; gap: .25rem; }
+    .mateu-label { font-size: .8rem; color: #6b6560; }
+    .mateu-input { padding: .4rem .55rem; border: 1px solid #cfcac5; border-radius: 6px; font: inherit; }
+    .mateu-button { padding: .45rem 1rem; border: 0; border-radius: 6px; background: #2a6cf5; color: #fff; cursor: pointer; }
+    .mateu-table { width: 100%; border-collapse: collapse; background: #fff; }
+    .mateu-table th, .mateu-table td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #eee; }
+    .mateu-toast { background: #1a1a1a; color: #fff; padding: .5rem .8rem; border-radius: 6px; margin-bottom: .5rem; }
+    mateu-unsupported { display: inline-block; padding: .25rem .5rem; background: #fff3cd; border: 1px dashed #e0b400; border-radius: 6px; color: #7a5b00; font-size: .85rem; }
+  </style>
+  <link rel="stylesheet" href="./riu-theme.css" />
+</head>
+<body>
+  <div class="bar">
+    <label>Backend <input class="url" id="url" value="http://localhost:8080" /></label>
+    <label>Route <input class="route" id="route" value="" placeholder="(root)" /></label>
+    <button id="go">Load</button>
+    <label style="margin-left:1rem">Theme
+      <select id="theme"><option value="">Default</option><option value="riu">Riu</option></select>
+    </label>
+    <span style="margin-left:auto;color:#6b6560;font-size:.85rem">Mateu reference renderer · Core · zero-dep</span>
+  </div>
+  <div id="app"></div>
+
+  <script type="module">
+    import { boot } from './renderer.mjs';
+    const app = document.getElementById('app');
+    const url = document.getElementById('url');
+    const route = document.getElementById('route');
+    const theme = document.getElementById('theme');
+    const applyTheme = () => document.body.classList.toggle('riu', theme.value === 'riu');
+    theme.onchange = applyTheme; applyTheme();
+    document.getElementById('go').onclick = () => boot({ mount: app, baseUrl: url.value, route: route.value });
+  </script>
+</body>
+</html>

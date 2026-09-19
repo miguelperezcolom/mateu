@@ -2,6 +2,7 @@
   "name": "mateu-e2e",
   "version": "1.0.0",
   "description": "E2E tests for Mateu apps",
+  "license": "Apache-2.0",
   "scripts": {
     "install-browsers": "playwright install",
     "test": "playwright test",

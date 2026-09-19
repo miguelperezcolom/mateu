@@ -167,5 +167,6 @@
       "name" : "Ada",
       "notes" : "Quiet"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

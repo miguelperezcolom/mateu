@@ -91,5 +91,6 @@
       "email" : "ada@example.com",
       "name" : "Ada"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

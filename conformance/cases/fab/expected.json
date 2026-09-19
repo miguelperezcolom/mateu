@@ -81,5 +81,6 @@
     "state" : {
       "name" : "Ada"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

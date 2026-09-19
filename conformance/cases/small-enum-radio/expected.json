@@ -85,5 +85,6 @@
     "state" : {
       "size" : "MEDIUM"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

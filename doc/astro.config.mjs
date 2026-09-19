@@ -168,6 +168,8 @@ export default defineConfig({
 						{ slug: 'mateu-about/comparison' },
 						{ slug: 'mateu-about/comparison-low-code', label: 'Mateu vs Visual Builders' },
 						{ slug: 'mateu-about/mateu-and-ai', label: 'Mateu and AI' },
+						{ slug: 'mateu-about/portability-and-exit', label: 'Portability & exit strategy' },
+						{ slug: 'mateu-about/governance-and-continuity', label: 'Governance & continuity' },
 						{ slug: 'mateu-about/disclaimer' },
 						{
 							label: 'Advanced',
@@ -356,6 +358,8 @@ export default defineConfig({
 						{ slug: 'design-systems/oracle-redwood' },
 						{ slug: 'design-systems/renderer-contract' },
 						{ slug: 'design-systems/bring-your-own-design-system' },
+						{ slug: 'design-systems/branding-and-design-tokens', label: 'Branding & design tokens' },
+						{ slug: 'design-systems/reference-renderer', label: 'The reference renderer' },
 					],
 				},
 				{
@@ -367,6 +371,7 @@ export default defineConfig({
 				{
 					label: 'Reference',
 					items: [
+						{ slug: 'reference/wire-specification', label: 'Wire specification & derivation' },
 						{ slug: 'reference/key-annotations' },
 						{ slug: 'reference/key-interfaces' },
 						{ slug: 'reference/fluent-model' },

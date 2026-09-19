@@ -154,5 +154,6 @@
       "name" : "Ada",
       "role" : "Analyst"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

@@ -50,6 +50,14 @@ public final class UidlSchemaGenerator {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  /**
+   * Schema version, emitted as a top-level {@code "version"} on every generated schema. Mirrors the
+   * wire major ({@code UIIncrementDto.WIRE_VERSION} = "3.0"): additive within a major, bumped only
+   * on a breaking change. Kept as a plain field rather than folded into {@code $id}, so the
+   * published schema URLs (and the editors pointing at them) stay stable.
+   */
+  private static final String SCHEMA_VERSION = "3.0";
+
   /** $defs being built, sorted by name so the output is byte-stable across runs. */
   private final Map<String, ObjectNode> defs = new TreeMap<>();
 
@@ -81,6 +89,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu UIDL Schema");
     root.put(
         "description",
@@ -318,6 +327,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/routes-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu route registry");
     root.put(
         "description",
@@ -360,6 +370,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/sources-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu REST source catalogue");
     root.put(
         "description",
@@ -384,6 +395,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/mount-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu UI mount");
     root.put(
         "description",
@@ -517,6 +529,7 @@ public final class UidlSchemaGenerator {
     root.set("oneOf", oneOf);
 
     root.put("$id", "https://mateu.io/uidl/specs-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu specs/ui authoring schema");
     root.put(
         "description",

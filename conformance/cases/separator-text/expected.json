@@ -205,5 +205,6 @@
       "telefono" : "+34 600 000 000",
       "titular" : "Bienvenida"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

@@ -88,5 +88,6 @@
     "state" : {
       "preferences" : [ "Extra pillow", "High floor", "Sea view" ]
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }
