@@ -1,0 +1,91 @@
+// Phase 6 (coherence-plan #1) — the client-side expander: turn an AUTHORED fluent component node
+// (as parsed from a definition JSON/YAML) into the WIRE component the renderer paints, IN THE
+// BROWSER, with no backend. This is the TS twin of the server's ComponentMapper for the 100%
+// declarative path (a route with a `definition`, no `viewModel`).
+//
+// The mapping the server performs, distilled from a captured golden (about.yaml → its increment):
+//   authored  { "type": "VerticalLayout", "content": [ { "type": "Text", "text": "hi" } ] }
+//   wire       { "type": "ClientSide",
+//                "metadata": { "type": "VerticalLayout" },
+//                "children": [ { "type": "ClientSide",
+//                                "metadata": { "type": "Text", "text": "hi" },
+//                                "children": [] } ] }
+//
+// Two rules:
+//  1. Every node becomes a ClientSide wrapper: `{ type: "ClientSide", metadata: { type, ...fields },
+//     children }`. The authored type + its own fields live in `metadata`; the ENVELOPE fields (the
+//     ones declared on the wire `Component` interface — id/style/cssClasses/slot/sizing/…) sit on
+//     the ClientSide node itself, as siblings of `metadata`.
+//  2. A CONTAINER type lifts its `content`/`children` into wire `children` (each recursively
+//     expanded). A leaf carries no children.
+//
+// DEFAULTS ARE NOT FILLED. The server writes per-type defaults (VerticalLayout `spacing:false`, Text
+// `container:"div"`/`noMargins:false`); the renderer already defaults missing metadata, so the
+// expander emits the mechanical mapping and relies on RENDER-parity (see
+// design/phase6-client-side-expander.md, "golden strategy"). Reproducing every component's defaults
+// would be a fourth copy of what the three backends already hold.
+
+import type Component from '@mateu/shared/apiClients/dtos/Component'
+import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
+import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
+
+/** An authored fluent node: a `type` discriminator plus arbitrary type-specific fields, with child
+ *  content under `content` or `children`. This is what `js-yaml`/`JSON.parse` yields from a
+ *  definition file — deliberately loose, since the authored surface is the whole component catalog. */
+export interface FluentNode {
+    type: string
+    content?: FluentNode[]
+    children?: FluentNode[]
+    [field: string]: unknown
+}
+
+// The fields that live on the wire `Component` envelope (siblings of `metadata`), NOT inside
+// `metadata`. Mirrors the `Component` interface. Everything else an authored node declares is
+// type-specific and belongs in `metadata`.
+const ENVELOPE_FIELDS = new Set([
+    'id',
+    'style',
+    'cssClasses',
+    'slot',
+    'initialData',
+    'confirmOnNavigationIfDirty',
+    'sizing',
+])
+
+// Authored types whose `content`/`children` are LIFTED into wire `children`. These are the plain
+// layout containers, where a child is a child. Types that hold their content specially (Card under
+// `metadata.content`, FormLayout's packed rows, sections, listings) are NOT here — they get
+// dedicated handling in later increments, each pinned to its own golden. An unknown type is treated
+// as a leaf (its authored fields go to metadata, no child lifting), which is safe: it renders
+// whatever the renderer makes of the metadata, and never silently drops a child into the void
+// because a stray `content` on a non-container also lands in metadata verbatim.
+const CONTAINER_TYPES = new Set([
+    'VerticalLayout',
+    'HorizontalLayout',
+    'Div',
+    'FlexLayout',
+])
+
+/** Map one authored fluent node to its wire component. Recurses into a container's children. */
+export function expandComponent(node: FluentNode): Component {
+    const { type, content, children, ...fields } = node
+
+    const envelope: Record<string, unknown> = {}
+    const metadata: Record<string, unknown> = { type }
+    for (const [key, value] of Object.entries(fields)) {
+        if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+        else metadata[key] = value
+    }
+
+    const kids = CONTAINER_TYPES.has(type) ? (content ?? children ?? []) : []
+
+    // Cast through `unknown`: the wire `Component` interface marks style/cssClasses/slot/… as
+    // required, but the server itself omits them when unset (exclude_none) and the renderer defaults
+    // them. The expander emits the same minimal shape (render-parity), so this is deliberate.
+    return {
+        ...envelope,
+        type: ComponentType.ClientSide,
+        metadata,
+        children: kids.map(expandComponent),
+    } as unknown as ClientSideComponent
+}
