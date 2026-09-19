@@ -52,6 +52,21 @@ test.describe('layout sizing (fill / hug)', () => {
     await expect(page.getByRole('textbox').first()).toBeVisible({ timeout: 15000 });
   });
 
+  test('a Dashboard renders as a responsive grid with its KPIs and panel (#9 consolidation)', async ({ page }) => {
+    await page.goto('/dashboard-grid');
+    // The KPIs (Scoreboard) and the @Panel tile render inside the consolidated grid.
+    await expect(page.getByText('Revenue')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Occupancy')).toBeVisible();
+    await expect(page.getByText('Notes')).toBeVisible();
+    // The dashboard is now a ResponsiveGrid (display:grid), not the bespoke DashboardLayout.
+    const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      return { display: cs.display, columns: cs.gridTemplateColumns };
+    });
+    expect(grid.display).toBe('grid');
+    expect(grid.columns.trim().split(/\s+/).length).toBe(3);
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });

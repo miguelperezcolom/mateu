@@ -58,6 +58,7 @@ import io.mateu.dtos.ProcessMonitorDto;
 import io.mateu.dtos.ProgressBarDto;
 import io.mateu.dtos.ProgressStepsDto;
 import io.mateu.dtos.ResourceGridDto;
+import io.mateu.dtos.ResponsiveGridDto;
 import io.mateu.dtos.ScoreboardDto;
 import io.mateu.dtos.ScrollerDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -1050,10 +1051,12 @@ class ArchetypesSyncTest {
   // ---------------------------------------------------------------- dashboard
 
   @Test
-  void dashboardRendersAsDashboardLayoutWithConfiguredColumns() {
-    var layout = findFirst(sync("/ops-dashboard"), DashboardLayoutDto.class);
+  void dashboardRendersAsAResponsiveGridWithConfiguredColumns() {
+    // Consolidated onto the one responsive grid (coherence-plan #9): 3 columns → 3 fill tracks.
+    var layout = findFirst(sync("/ops-dashboard"), ResponsiveGridDto.class);
     assertThat(layout).isNotNull();
-    assertThat(((DashboardLayoutDto) layout.metadata()).columns()).isEqualTo(3);
+    assertThat(((ResponsiveGridDto) layout.metadata()).gridTemplateColumns())
+        .isEqualTo("1fr 1fr 1fr");
   }
 
   @Test
@@ -1100,7 +1103,7 @@ class ArchetypesSyncTest {
 
   @Test
   void plainComponentFieldLandsOnTheDashboardGridAsIs() {
-    var layout = findFirst(sync("/ops-dashboard"), DashboardLayoutDto.class);
+    var layout = findFirst(sync("/ops-dashboard"), ResponsiveGridDto.class);
     // scoreboard + panel + plain markdown = 3 grid items
     assertThat(layout.children()).hasSize(3);
     var last = (ClientSideComponentDto) layout.children().get(2);

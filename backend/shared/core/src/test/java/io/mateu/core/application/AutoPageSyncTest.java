@@ -6,10 +6,10 @@ import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
-import io.mateu.dtos.DashboardLayoutDto;
 import io.mateu.dtos.DashboardPanelDto;
 import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.MetricCardDto;
+import io.mateu.dtos.ResponsiveGridDto;
 import io.mateu.dtos.ScoreboardDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -121,7 +121,8 @@ class AutoPageSyncTest {
   void autoPageClassWithMetricCardsComposesTheDashboardArchetype() {
     var increment = mateu.sync("/inferred-dashboard");
 
-    var layout = findFirst(increment, DashboardLayoutDto.class);
+    // Consolidated onto the one responsive grid (coherence-plan #9).
+    var layout = findFirst(increment, ResponsiveGridDto.class);
     assertThat(layout).isNotNull();
 
     var scoreboard = findFirst(increment, ScoreboardDto.class);
@@ -188,7 +189,7 @@ class AutoPageSyncTest {
   void autoPageFalseOptsOutKeepingThePlainForm() {
     var increment = mateu.sync("/plain-metrics");
 
-    assertThat(findFirst(increment, DashboardLayoutDto.class)).isNull();
+    assertThat(findFirst(increment, ResponsiveGridDto.class)).isNull();
     assertThat(findFirst(increment, ScoreboardDto.class)).isNull();
   }
 
@@ -196,7 +197,7 @@ class AutoPageSyncTest {
   void withoutAnyAnnotationTheShapeComposesByDefault() {
     var increment = mateu.sync("/default-metrics");
 
-    assertThat(findFirst(increment, DashboardLayoutDto.class)).isNotNull();
+    assertThat(findFirst(increment, ResponsiveGridDto.class)).isNotNull();
     assertThat(findFirst(increment, ScoreboardDto.class)).isNotNull();
   }
 

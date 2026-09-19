@@ -156,7 +156,19 @@ public static class ArchetypeComposers
                 : component);
         }
         Archetypes.FlushMetrics(pendingMetrics, items);
-        return new DashboardLayout { Id = Archetypes.IdOf(host), Columns = columns, Items = items };
+        // Consolidated onto the one responsive grid (coherence-plan #9): N columns → N fill tracks;
+        // 0 → auto-fit. Tiles and the scoreboard band carry their own grid-column span, so the grid
+        // needs no per-child spans; align-items:stretch keeps the tiles equal-height.
+        var tracks = columns > 0
+            ? Enumerable.Range(0, columns).Select(_ => GridTrack.Fill()).ToList()
+            : new List<GridTrack>();
+        return new ResponsiveGrid
+        {
+            Id = Archetypes.IdOf(host),
+            Columns = tracks,
+            Content = items,
+            Style = "align-items: stretch;",
+        };
     }
 
     public static IComponent ComposeWelcome(
