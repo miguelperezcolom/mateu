@@ -27,6 +27,16 @@ def test_tracks_resolve_to_a_css_grid_template_and_children_travel():
     assert len(d["children"]) == 3
 
 
+def test_per_child_column_spans_travel():
+    grid = ResponsiveGrid(
+        columns=(GridTrack.fill(), GridTrack.fill()),
+        col_spans=(2, 1, 1),
+        content=(Text(text="band"), Text(text="A"), Text(text="B")),
+    )
+    d = ReflectionMapper().map_component(grid).model_dump(by_alias=True, mode="json")
+    assert d["metadata"]["colSpans"] == [2, 1, 1]
+
+
 def test_a_grid_with_no_columns_has_no_template():
     dto = ReflectionMapper().map_component(ResponsiveGrid(id="g", content=(Text(text="x"),)))
     assert dto.model_dump(by_alias=True, mode="json")["metadata"]["gridTemplateColumns"] is None

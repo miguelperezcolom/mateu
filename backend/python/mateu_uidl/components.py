@@ -174,6 +174,9 @@ class ResponsiveGrid(Component):
     columns: tuple[GridTrack, ...] = ()
     gap: str | None = None
     content: tuple[Component, ...] = ()
+    #: Optional per-child column span, aligned with ``content``: a child with span N occupies N
+    #: tracks (a full-width band uses a large span).
+    col_spans: tuple[int, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

@@ -46,12 +46,35 @@ class ResponsiveGridSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(GridView.class);
+    mateu = TestMateu.withUis(GridView.class, SpanGridView.class);
   }
 
   @AfterAll
   static void shutdown() {
     mateu.close();
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/responsive-grid-span")
+  public static class SpanGridView implements ComponentTreeSupplier {
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      // a full-width band (span 2) over two 1fr columns
+      return new ResponsiveGrid(
+          "grid",
+          List.of(GridTrack.fill(), GridTrack.fill()),
+          null,
+          List.of(new Text("band", "band"), new Text("a", "A"), new Text("b", "B")),
+          List.of(2, 1, 1),
+          null);
+    }
+  }
+
+  @Test
+  void perChildColumnSpansTravelOnTheWire() {
+    var grid = findGrid(mateu.sync("/responsive-grid-span"));
+    var meta = (ResponsiveGridDto) grid.metadata();
+    assertThat(meta.colSpans()).containsExactly(2, 1, 1);
   }
 
   @Test

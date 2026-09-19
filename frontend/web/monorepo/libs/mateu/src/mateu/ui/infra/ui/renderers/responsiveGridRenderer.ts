@@ -24,13 +24,21 @@ export const renderResponsiveGrid = (
         ? metadata.gridTemplateColumns
         : 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
     const gap = metadata.gap ?? 'var(--lumo-space-m, 1rem)'
+    const spans = metadata.colSpans ?? []
     return html`
         <div class="mateu-responsive-grid ${component.cssClasses ?? ''}"
              style="display: grid; grid-template-columns: ${columns}; gap: ${gap}; align-items: start; ${component.style ?? ''}"
              slot="${component.slot ?? nothing}"
         >
-            ${component.children?.map(child =>
-                renderComponent(container, child, baseUrl, state, data, appState, appData))}
+            ${component.children?.map((child, i) => {
+                const span = spans[i]
+                const rendered = renderComponent(container, child, baseUrl, state, data, appState, appData)
+                // A child that spans more than one track is wrapped so the span rides on its own cell,
+                // whatever the child renders as. span 99 → the whole row (a full-width band).
+                return span && span > 1
+                    ? html`<div style="grid-column: span ${span}; min-width: 0;">${rendered}</div>`
+                    : rendered
+            })}
         </div>
     `
 }

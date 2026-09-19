@@ -4852,6 +4852,12 @@
             "$ref" : "#/$defs/Component"
           }
         },
+        "colSpans" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer"
+          }
+        },
         "style" : {
           "type" : "string"
         }

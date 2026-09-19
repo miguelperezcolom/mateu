@@ -25,6 +25,7 @@ public class ResponsiveGridMapper {
         ResponsiveGridDto.builder()
             .gridTemplateColumns(grid.gridTemplateColumns())
             .gap(grid.gap())
+            .colSpans(grid.colSpans())
             .build(),
         grid.id(),
         grid.content() != null

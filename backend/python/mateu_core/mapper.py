@@ -1176,7 +1176,11 @@ class ReflectionMapper:
             )
         if isinstance(c, fluent.ResponsiveGrid):
             return self._fluent_client(
-                ResponsiveGridMetadata(grid_template_columns=c.grid_template_columns(), gap=c.gap),
+                ResponsiveGridMetadata(
+                    grid_template_columns=c.grid_template_columns(),
+                    gap=c.gap,
+                    col_spans=list(c.col_spans) or None,
+                ),
                 c,
                 [self.map_component(i) for i in c.content],
             )
