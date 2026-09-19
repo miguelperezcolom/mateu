@@ -37,8 +37,12 @@ class MateuRegistry:
         if "__mateu_app__" in cls.__dict__:
             self.app_type = cls
             self._by_name[type_name(cls)] = cls
-        if "__mateu_ui__" in cls.__dict__:
-            self._by_route[normalize(cls.__dict__["__mateu_ui__"])] = cls
+        # The route a class declares (coherence-plan #5): @app(route="/x") wins over @ui("/x") (the
+        # single "declare an app" decorator); a route-less @app carries no route. Register by it.
+        app_route = cls.__dict__.get("__mateu_app_route__")
+        route = app_route if app_route else cls.__dict__.get("__mateu_ui__")
+        if route is not None:
+            self._by_route[normalize(route)] = cls
             self._by_name[type_name(cls)] = cls
         self._register_route_supplier(cls)
 

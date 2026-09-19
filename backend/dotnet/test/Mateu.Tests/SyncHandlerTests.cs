@@ -203,6 +203,15 @@ public class R2App : IAppSupplier
     };
 }
 
+/// <summary>An app declared with the SINGLE [App(Route = "/x")] attribute (coherence-plan #5) — no
+/// separate [UI]. It IS an app and IS served at /approute.</summary>
+[App("App via App route", Route = "/approute")]
+public class AppViaAppRoute
+{
+    [MenuItem("Screen")]
+    public R2Screen Screen() => new();
+}
+
 public class Thing
 {
     public string Id { get; set; } = "";
@@ -947,6 +956,18 @@ public class SyncHandlerTests
     {
         var c = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" }));
         Assert.False(string.IsNullOrEmpty(c.StructureHash));
+    }
+
+    [Fact]
+    public void App_route_declares_an_app_and_its_route_in_one_attribute()
+    {
+        // coherence-plan #5, .NET parity: [App(Route = "/approute")] with NO [UI] resolves at
+        // /approute and renders as an app.
+        var inc = Handler().Handle(new RunActionRqDto { Route = "/approute", ConsumedRoute = "" });
+        var app = (ClientSideComponentDto)inc.Fragments[0].Component!;
+        var meta = (AppMetadataDto)app.Metadata;
+        Assert.Equal("App via App route", meta.Title);
+        Assert.Equal(typeof(AppViaAppRoute).FullName, meta.ServerSideType);
     }
 
     [Fact]
