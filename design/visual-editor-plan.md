@@ -139,8 +139,13 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   (`findFiles` capped at 500 + read in parallel, not one-by-one); **VSCode custom-editor `priority`
   `default`→`option`** (it no longer hijacks the text editor for every `specs/ui/*.yaml`; opt-in
   "Reopen With…", matching the README). Both hosts recompile clean.
-  **Remaining:** GUI live-run (human-in-the-loop) + minor backlog: wire `copy:web` into builds so the embed
-  can't go stale, and the VSCode proxy's https branch.
+  **Third pass — `copy:web` wired into the builds** (embed can't go stale): VSCode gained a
+  `vscode:prepublish` (`copy:web && compile`, so `vsce package` always bundles a fresh `media/`); IntelliJ
+  gained a `copyVisualEditor` Gradle task (`npm run copy` in the web app) wired into `processResources` —
+  up-to-date aware (skipped when the web source is unchanged) and skipped-with-a-warning when the web
+  workspace isn't installed, so a plugin-only build is never blocked. Validated by a Gradle dry-run (task
+  ordered before `processResources`) + VSCode `tsc`.
+  **Remaining:** GUI live-run (human-in-the-loop) + the VSCode proxy's https branch.
 - **Phase 2 — Preview source: DONE (contract/binding scope; web editor, build + 84 vitest green + tsc).**
   Pure model `apps/visual-editor/src/model/previewSource.ts` (8 tests) — modes `remote`/`local`/`mock`/
   `client` + `renderBaseUrl`/`rendersClientSide`/`contractFixtureFor`/`fixtureAsMembers` + fixture helpers
