@@ -1255,6 +1255,9 @@ class ClientSideComponent(Wire):
     style: str | None = None
     css_classes: str | None = None
     slot: str | None = None
+    #: The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:<len>". None = unset (default
+    #: flow). Portable intent-as-data; the web maps it to flex on the component host.
+    sizing: str | None = None
 
 
 class ServerSideComponent(Wire):

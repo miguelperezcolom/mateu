@@ -1094,8 +1094,8 @@ public class ComponentTests
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"Scoreboard\"},\"id\":\"board\",\"children\":[" +
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"MetricCard\",\"title\":\"Occupancy\",\"value\":\"87\"," +
             "\"unit\":\"%\",\"trend\":\"up\",\"trendLabel\":null,\"icon\":null,\"description\":null,\"actionId\":null}," +
-            "\"id\":null,\"children\":[],\"style\":null,\"cssClasses\":null,\"slot\":null}]," +
-            "\"style\":null,\"cssClasses\":null,\"slot\":null}",
+            "\"id\":null,\"children\":[],\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}]," +
+            "\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}",
             json);
     }
 
