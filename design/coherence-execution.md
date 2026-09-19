@@ -149,6 +149,18 @@ Everything is a component · inferred by default, explicit as override · one mo
      `definition` (deprecated) in routes-schema + specs-schema. A `help` route authored with `layout:`
      binds identically to `definition:`, pinned in all three.
   3. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
-  4. **retire "page" as an authoring term**, keep it as the wire artifact only (pending).
-  5. **R2 (App ≠ its Home Screen)** (pending) — remove the "@UI class is both app and home"
-     conflation so the home is just another Screen; `AppShell` already carries the home reference.
+  4. **retire "page" as an authoring term** (pending) — "page" is not an authoring keyword (only the
+     wire artifact `PageDto`/`PageView`), so this is docs terminology; folded into Phase 9's rebuild.
+  5. **R2 (App ≠ its Home Screen)** — split into (a) done, (b) pending, because unlike slices 1–2 it
+     is a *behavioral* refactor of accreted routing logic (`AppHomeRouteResolver`, 154 lines of
+     `_no_home_route`/`_page`/embedded-mediator/RemoteMenu special-cases across 10+ callers), NOT an
+     alias. **(a) CHARACTERIZATION + concept (this slice):** `AppSyncTest.r2_*` pin the CURRENT wire
+     behaviour — an app is served at its base path with a distinct `homeRoute`; the **conflation**
+     that `homeServerSideType` is the APP class (not the home Screen's) is pinned as a named tripwire;
+     an app with only `@Menu` items carries the `_no_home_route` sentinel (first-menu-item defaulting
+     happens later in the resolver). Plus the conceptual statement in `yaml-app-shell.md` ("App is a
+     shell + a reference to a Home; the App is not a Screen"). No behaviour change. **(b) REFACTOR
+     (pending, reviewed):** remove the conflation so the home's server type is the home Screen's class
+     and the `_no_home_route`/`_page` sentinels collapse into uniform "home = first menu item's Screen"
+     resolution — a deliberate change that must update the `r2_*` tripwires, with tri-backend parity
+     and a browser-verified home load.
