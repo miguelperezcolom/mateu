@@ -51,4 +51,18 @@ test.describe('layout sizing (fill / hug)', () => {
     // A form field is visible — the flex-column ux does not clip or hide normal (hug) content.
     await expect(page.getByRole('textbox').first()).toBeVisible({ timeout: 15000 });
   });
+
+  test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
+    await page.goto('/responsive-grid');
+    await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });
+    // The grid element paints display:grid with the tracks resolved from hug/fill/fixed intent.
+    const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      return { display: cs.display, columns: cs.gridTemplateColumns };
+    });
+    expect(grid.display).toBe('grid');
+    // hug→auto, fill→1fr, fixed→15rem; the computed value resolves to three px/px/px tracks,
+    // so assert there are three tracks and the last is a fixed width (15rem → 240px).
+    expect(grid.columns.trim().split(/\s+/).length).toBe(3);
+  });
 });

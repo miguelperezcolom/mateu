@@ -73,6 +73,7 @@ import {
     renderScoreboard
 } from "@infra/ui/renderers/dashboardRenderer.ts";
 import { renderFoldoutLayout } from "@infra/ui/renderers/foldoutRenderer.ts";
+import { renderResponsiveGrid } from "@infra/ui/renderers/responsiveGridRenderer.ts";
 import { renderContentLayout } from "@infra/ui/renderers/contentLayoutRenderer.ts";
 import { renderHeroSection } from "@infra/ui/renderers/heroRenderer.ts";
 import { renderEmptyState, renderSkeleton } from "@infra/ui/renderers/emptyStateRenderer.ts";
@@ -272,6 +273,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Scoreboard]: full(renderScoreboard),
     [ComponentMetadataType.DashboardPanel]: full(renderDashboardPanel),
     [ComponentMetadataType.DashboardLayout]: full(renderDashboardLayout),
+    [ComponentMetadataType.ResponsiveGrid]: full(renderResponsiveGrid),
     [ComponentMetadataType.FoldoutLayout]: full(renderFoldoutLayout),
     [ComponentMetadataType.ContentLayout]: full(renderContentLayout),
     [ComponentMetadataType.HeroSection]: full(renderHeroSection),

@@ -77,6 +77,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = ScoreboardDto.class, name = "Scoreboard"),
   @JsonSubTypes.Type(value = DashboardPanelDto.class, name = "DashboardPanel"),
   @JsonSubTypes.Type(value = DashboardLayoutDto.class, name = "DashboardLayout"),
+  @JsonSubTypes.Type(value = ResponsiveGridDto.class, name = "ResponsiveGrid"),
   @JsonSubTypes.Type(value = FoldoutLayoutDto.class, name = "FoldoutLayout"),
   @JsonSubTypes.Type(value = ContentLayoutDto.class, name = "ContentLayout"),
   @JsonSubTypes.Type(value = HeroSectionDto.class, name = "HeroSection"),

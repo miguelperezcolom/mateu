@@ -1382,6 +1382,8 @@
       }, {
         "$ref" : "#/$defs/ResourceGrid"
       }, {
+        "$ref" : "#/$defs/ResponsiveGrid"
+      }, {
         "$ref" : "#/$defs/Scoreboard"
       }, {
         "$ref" : "#/$defs/Scroller"
@@ -3049,6 +3051,17 @@
     "GridLayout" : {
       "type" : "string",
       "enum" : [ "auto", "table", "list", "cards", "masterDetail", "tree" ]
+    },
+    "GridTrack" : {
+      "type" : "object",
+      "properties" : {
+        "size" : {
+          "$ref" : "#/$defs/SizeMode"
+        },
+        "length" : {
+          "type" : "string"
+        }
+      }
     },
     "GroupRelationship" : {
       "type" : "string",
@@ -4813,6 +4826,37 @@
         }
       }
     },
+    "ResponsiveGrid" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "ResponsiveGrid"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/GridTrack"
+          }
+        },
+        "gap" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "style" : {
+          "type" : "string"
+        }
+      }
+    },
     "RestDataSource" : {
       "type" : "object",
       "properties" : {
@@ -5045,6 +5089,10 @@
         }
       }
     },
+    "SizeMode" : {
+      "type" : "string",
+      "enum" : [ "hug", "fill", "fixed" ]
+    },
     "Skeleton" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -5276,21 +5324,20 @@
       }
     },
     "Step" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "string"
-        },
-        "title" : {
-          "type" : "string"
-        },
-        "description" : {
-          "type" : "string"
-        },
-        "status" : {
-          "type" : "string"
-        }
-      }
+      "description" : "One of the Step implementations.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/CloseOverlay"
+      }, {
+        "$ref" : "#/$defs/Emit"
+      }, {
+        "$ref" : "#/$defs/MarkClean"
+      }, {
+        "$ref" : "#/$defs/MarkDirty"
+      }, {
+        "$ref" : "#/$defs/Navigate"
+      }, {
+        "$ref" : "#/$defs/RunAction"
+      } ]
     },
     "SubscriptionSource" : {
       "type" : "string",
@@ -5885,6 +5932,25 @@
         },
         "restAction" : {
           "$ref" : "#/$defs/RestAction"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Step"
+          }
+        }
+      }
+    },
+    "CloseOverlay" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "CloseOverlay"
+        },
+        "event" : {
+          "type" : "string"
         }
       }
     },
@@ -5914,6 +5980,53 @@
         "detail" : { }
       }
     },
+    "Emit" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Emit"
+        },
+        "event" : {
+          "type" : "string"
+        },
+        "payload" : { }
+      }
+    },
+    "MarkClean" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkClean"
+        }
+      }
+    },
+    "MarkDirty" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkDirty"
+        }
+      }
+    },
+    "Navigate" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Navigate"
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
     "RestAction" : {
       "type" : "object",
       "properties" : {
@@ -5931,6 +6044,19 @@
         },
         "forEachSelectedRow" : {
           "type" : "boolean"
+        }
+      }
+    },
+    "RunAction" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "RunAction"
+        },
+        "actionId" : {
+          "type" : "string"
         }
       }
     }
