@@ -83,17 +83,26 @@ New TS pieces (the expander), smallest→largest:
 
 ## Increment plan (one PR each, test-first)
 
-| # | Increment | Verify |
-|---|---|---|
-| 0 | **This design doc.** | — |
-| 1 | `expandDefinition(spec, params) → UIIncrement` for the **bare-layout** case (+ actions/triggers on the envelope). Pure fn in `libs/mateu`. | vitest against a **server-generated structural golden** (`about.yaml`'s increment), default-tolerant (see golden strategy). |
-| 2 | **Specs mode wiring** — load `routes.json`+`sources.json`, resolve a route to its `definition`, load+expand, hand to the renderer as the fallback when there is no pre-rendered increment and no backend. | vitest (specs store) + **browser e2e**: a definition-only route renders client-side, no backend. |
-| 3 | **Field synthesis + type mapping** (`FieldTypeMapper` twin). | vitest golden per dataType. |
-| 4 | **`layoutDelta` application.** | vitest golden. |
-| 5 | **Layout packing** (`FormLayoutBuilder.buildRows` twin). | vitest golden vs server rows. |
-| 6 | **Listing/CRUD from a definition + `sources` ref** (reuse REST machinery). | vitest + browser e2e against `demo-starwars`-style external API. |
-| 7 | **Specs-bundle export option** — `mateu:bundle` can emit the RAW specs (routes/sources/definitions as JSON) alongside/instead of the pre-rendered increments, so a static site ships specs + the expander. Idea #10 deliverable. | build + browser e2e serving the specs bundle. |
-| 8 | **Docs** — the three modes (backend / pre-rendered bundle / specs mode), the `viewModel`-less frontier, the "zero backend, zero build" dev loop. (Folds into Phase 9's rebuild.) | — |
+| # | Increment | Status | Verify |
+|---|---|---|---|
+| 0 | **This design doc.** | ✅ #553 | — |
+| 1 | `expandDefinition/expandComponent` — **bare-layout** case. Pure fn in `libs/mateu`. | ✅ #554 | vitest vs a server structural golden (`about.yaml`), default-tolerant. |
+| 2 | **Specs mode wiring** — manifest ships raw `definitions`; `bundleStore.getExpandedIncrement` expands a definition-only route as the fallback in `AxiosMateuApiClient`. | ✅ #554 | vitest (store). |
+| 7 | **Specs-bundle export** — `mateu:bundle` emits the RAW `definitions` (JSON) into `manifest.json` so a static site ships specs + the expander. Idea #10. **Reordered before display-component work: it unblocks the browser e2e (the true render-parity bar) and needs no unreliable golden.** | next | Java unit test (manifest carries definitions) + **browser e2e**: an `about`-style definition-only route renders client-side, no backend. |
+| 3 | **Display-component coverage** — Card (content under `metadata.content`), sections, HeroSection, Notice, StatusList, nested containers. The per-type child-placement rules. | after 7 | **Java** goldens (see below) + browser e2e. |
+| 6 | **Listing/CRUD from a definition + `sources` ref** (reuse `restSourceCatalogue`/`externalOptions`). The `demo-starwars` case — the highest-value declarative content. | after 3 | vitest + browser e2e vs an external API. |
+| 8 | **Docs** — the three modes, the `viewModel`-less frontier, the zero-build loop. (Folds into Phase 9.) | last | — |
+| ~~4~~ | ~~`layoutDelta` application~~ | **DROPPED** | `layoutDelta` (order/hidden/overrides) grows fields from a MODEL by inference — it only exists on a `viewModel` route (`delta-page.yaml` declares `modelView`). No model client-side ⇒ out of scope. A definition-only page declares its fields explicitly. |
+| ~~5~~ | ~~Layout packing (`FormLayoutBuilder`)~~ | **DEFERRED** | Only needed if editable definition-only FORMS prove worthwhile; those bind `fieldId` to state that, without a `viewModel`, has no model behind it — likely a backend concern too. Revisit after the listing path. |
+
+**Golden source — Java, not Python, for anything past trivial display components (learned building
+increment 3).** Python's YAML→wire mapping is faithful for plain display layouts (`about.yaml`
+matched byte-for-byte modulo defaults) but **diverges for richer components**: a bare `FormLayout`
+definition comes back as a plain `VerticalLayout` (no `FormRow` packing, no `FormLayout` metadata),
+where Java packs rows via `FormLayoutBuilder`. Java is canonical (the wire conformance corpus is
+Java-generated; the ports are verified against it), so goldens for Card/sections/listings must be
+captured from the **Java** harness (`TestMateu.sync` on a definition-only route), not the quick
+Python path. (The authored key for a field's id is `id`; the wire renames it to `fieldId`.)
 
 **Parity note:** the expander is **frontend-only** (`libs/mateu`), so it covers vaadin + every shell
 at once — no .NET/Python port (those are backends; the whole point is *no* backend). The VB/Redwood
