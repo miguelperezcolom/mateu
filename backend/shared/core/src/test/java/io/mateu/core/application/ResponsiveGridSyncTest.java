@@ -46,7 +46,7 @@ class ResponsiveGridSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(GridView.class, SpanGridView.class);
+    mateu = TestMateu.withUis(GridView.class, SpanGridView.class, TemplateView.class);
   }
 
   @AfterAll
@@ -68,6 +68,33 @@ class ResponsiveGridSyncTest {
           List.of(2, 1, 1),
           null);
     }
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/responsive-grid-template")
+  public static class TemplateView implements ComponentTreeSupplier {
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      // A Screen = Template + slots (coherence-plan #7): named grid areas, children placed by slot.
+      return ResponsiveGrid.template(
+          "screen",
+          "\"header header\" \"sidebar main\"",
+          List.of(
+              new io.mateu.uidl.data.Slotted("header", new Text("h", "Header")),
+              new io.mateu.uidl.data.Slotted("sidebar", new Text("s", "Sidebar")),
+              new io.mateu.uidl.data.Slotted("main", new Text("m", "Main"))));
+    }
+  }
+
+  @Test
+  void aTemplateCarriesItsGridAreasAndPlacesChildrenBySlot() {
+    var grid = findGrid(mateu.sync("/responsive-grid-template"));
+    assertThat(grid).isNotNull();
+    assertThat(((ResponsiveGridDto) grid.metadata()).gridTemplateAreas())
+        .isEqualTo("\"header header\" \"sidebar main\"");
+    // each child lands in its named slot
+    assertThat(grid.children().stream().map(c -> ((ClientSideComponentDto) c).slot()))
+        .containsExactly("header", "sidebar", "main");
   }
 
   @Test

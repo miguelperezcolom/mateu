@@ -27,15 +27,28 @@ export const renderResponsiveGrid = (
     appData: ComponentData,
 ) => {
     const metadata = component.metadata as ResponsiveGrid
-    const columns = metadata.gridTemplateColumns && metadata.gridTemplateColumns.trim().length
+    const areas = metadata.gridTemplateAreas
+    const explicitCols = metadata.gridTemplateColumns && metadata.gridTemplateColumns.trim().length
+    // In areas mode without explicit tracks, the named areas define the grid (columns default to
+    // auto) — forcing an auto-fit template here would conflict with the areas and void them.
+    const columns = explicitCols
         ? metadata.gridTemplateColumns
-        : 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
+        : (areas && areas.trim().length ? null : 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))')
     const gap = metadata.gap ?? 'var(--lumo-space-m, 1rem)'
     const spans = metadata.colSpans ?? []
-    const gridStyle = `display: grid; grid-template-columns: ${columns}; gap: ${gap}; align-items: start; ${component.style ?? ''}`
-    const children = component.children?.map((child, i) =>
-        // The shared grid-cell primitive (coherence-plan #9), the same one FormLayout uses.
-        gridCell(spans[i], renderComponent(container, child, baseUrl, state, data, appState, appData)))
+    const colStyle = columns ? ` grid-template-columns: ${columns};` : ''
+    const areaStyle = areas && areas.trim().length ? ` grid-template-areas: ${areas};` : ''
+    const gridStyle = `display: grid;${colStyle} gap: ${gap}; align-items: start;${areaStyle} ${component.style ?? ''}`
+    const children = component.children?.map((child, i) => {
+        const rendered = renderComponent(container, child, baseUrl, state, data, appState, appData)
+        // Named-slot template (coherence-plan #7): a child whose slot matches a grid area is placed
+        // there; a child with no slot flows into the implicit overflow. Otherwise the shared
+        // grid-cell primitive (#9) applies the column span (the same one FormLayout uses).
+        if (areas && child.slot) {
+            return html`<div style="grid-area: ${child.slot}; min-width: 0;">${rendered}</div>`
+        }
+        return gridCell(spans[i], rendered)
+    })
 
     if (!metadata.stackBelow) {
         return html`

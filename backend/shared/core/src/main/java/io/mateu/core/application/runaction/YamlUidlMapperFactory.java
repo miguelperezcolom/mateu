@@ -126,6 +126,7 @@ final class YamlUidlMapperFactory {
         new NamedType(ContentLayout.class, "ContentLayout"),
         new NamedType(DashboardLayout.class, "DashboardLayout"),
         new NamedType(ResponsiveGrid.class, "ResponsiveGrid"),
+        new NamedType(Slotted.class, "Slotted"),
         new NamedType(DashboardPanel.class, "DashboardPanel"),
         new NamedType(EmbeddedView.class, "EmbeddedView"),
         new NamedType(EmptyState.class, "EmptyState"),

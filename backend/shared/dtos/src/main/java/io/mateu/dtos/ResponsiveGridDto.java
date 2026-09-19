@@ -12,5 +12,13 @@ import lombok.Builder;
  */
 @Builder
 public record ResponsiveGridDto(
-    String gridTemplateColumns, String gap, List<Integer> colSpans, String stackBelow)
+    String gridTemplateColumns,
+    String gap,
+    List<Integer> colSpans,
+    String stackBelow,
+    /**
+     * A CSS grid-template-areas value (coherence-plan #7): children are placed into named areas by
+     * their {@code slot}. Null = no named areas.
+     */
+    String gridTemplateAreas)
     implements ComponentMetadataDto {}
