@@ -23,7 +23,7 @@
         "mateu.baseUrl": {
           "type": "string",
           "default": "http://localhost:8594",
-          "description": "Mateu backend base URL (serves the reserved __preview__ / __contract__ sync actions)."
+          "description": "Mateu backend base URL, serving the reserved __preview__ / __contract__ sync actions. Point it at a running Mateu app — e.g. the repo's demo-starwars on http://localhost:8600 (it has authored specs/ui pages)."
         }
       }
     }

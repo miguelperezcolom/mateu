@@ -5,6 +5,11 @@ import {
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp,
 } from './model/pageModel'
 import { fetchInferredFields, fetchContractMembers, ContractMembers } from './model/contract'
+import {
+    PreviewSource, PreviewMode, PREVIEW_MODES, PREVIEW_MODE_LABELS,
+    renderBaseUrl, rendersClientSide, contractFixtureFor, fixtureAsMembers,
+} from './model/previewSource'
+import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
@@ -35,6 +40,10 @@ export class MateuVisualEditor extends LitElement {
         .toolbar button { padding: 0.3rem 0.6rem; font: 12px system-ui; border: 1px solid #d7dade;
                           border-radius: 6px; background: #fff; cursor: pointer; }
         .toolbar .hint { color: #9ca3af; font-size: 12px; }
+        .toolbar .preview-source { display: flex; align-items: center; gap: 0.35rem; }
+        .toolbar .preview-source select, .toolbar .preview-source input {
+            font: 12px system-ui; border: 1px solid #d7dade; border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
+        .toolbar .preview-source input { width: 15rem; }
         .toolbar .shape { padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 11px; }
         .toolbar .shape.delta { background: #e8f5ec; color: #1e7a3c; }
         .toolbar .shape.snapshot { background: #fdf0e3; color: #9a5b09; }
@@ -79,6 +88,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private project?: ProjectIndex
     /** The data source (view model) members bound to this page, for the field/action binding pickers. */
     @state() private contract?: ContractMembers
+    /** Where the canvas gets its render and data from (remote/local/mock/client). Persisted per project. */
+    @state() private previewSource!: PreviewSource
     /** The edited file's path (relative to specs/ui), used to resolve the page's data source. */
     private currentPath?: string
     private lastContractVm?: string
@@ -89,6 +100,7 @@ export class MateuVisualEditor extends LitElement {
         super.connectedCallback()
         this.host = resolveHost()
         if (!this.baseUrl) this.baseUrl = this.host.baseUrl()
+        this.previewSource = loadPreviewSource(this.baseUrl)
         this.currentPath = this.host.currentPath?.()
         this.host.initialYaml().then((yaml) => this.load(yaml))
         this.host.onExternalChange?.((yaml) => { this.load(yaml); this.selectedPath = null })
@@ -157,7 +169,7 @@ export class MateuVisualEditor extends LitElement {
                  @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
                 <div class="toolbar">
                     <span class="brand">Mateu Visual Editor</span>
-                    <span class="hint">backend: ${this.baseUrl || 'same-origin'}</span>
+                    ${this.renderPreviewSelector()}
                     ${this.modeBadge()}
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
@@ -183,7 +195,8 @@ export class MateuVisualEditor extends LitElement {
                                 : html`<editor-palette></editor-palette>`}
                         </div>
                     </div>
-                    <editor-canvas .doc=${this.doc} .baseUrl=${this.baseUrl} .selectedPath=${this.selectedPath}></editor-canvas>
+                    <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
+                                   .clientRender=${rendersClientSide(this.previewSource)} .selectedPath=${this.selectedPath}></editor-canvas>
                     <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                     ${this.showSource ? html`
                         <div class="source">
@@ -290,7 +303,9 @@ export class MateuVisualEditor extends LitElement {
         this.doc = doc
         this.refreshContract()
         if (!doc.modelView) return
-        fetchInferredFields(this.baseUrl, doc.modelView, this).then((fields) => {
+        const fixture = contractFixtureFor(this.previewSource, doc.modelView)
+        if (fixture) { this.doc = hydrate(doc, fixture.fields ?? []); return }
+        fetchInferredFields(this.previewSource.baseUrl, doc.modelView, this).then((fields) => {
             // Ignore a late response for a document that has since been replaced.
             if (!fields || this.doc !== doc) return
             this.doc = hydrate(doc, fields)
@@ -314,8 +329,41 @@ export class MateuVisualEditor extends LitElement {
         if (vm === this.lastContractVm) return
         this.lastContractVm = vm
         if (!vm) { this.contract = undefined; return }
-        const members = await fetchContractMembers(this.baseUrl, vm, this)
+        const fixture = contractFixtureFor(this.previewSource, vm)
+        if (fixture) { this.contract = fixtureAsMembers(fixture); return }
+        const members = await fetchContractMembers(this.previewSource.baseUrl, vm, this)
         if (this.lastContractVm === vm) this.contract = members ?? undefined
+    }
+
+    /** The toolbar preview-source control: pick where the canvas renders + gets its data. */
+    private renderPreviewSelector() {
+        const src = this.previewSource
+        return html`
+            <label class="preview-source" title="Where the canvas renders and gets its data">
+                <select @change=${this.onPreviewModeChange}>
+                    ${PREVIEW_MODES.map((m) => html`<option value=${m} ?selected=${m === src.mode}>${PREVIEW_MODE_LABELS[m]}</option>`)}
+                </select>
+                ${src.mode === 'client'
+                    ? html`<span class="hint">no backend (Phase 7)</span>`
+                    : html`<input .value=${src.baseUrl} @change=${this.onBaseUrlChange} placeholder="backend url"
+                                  title=${src.mode === 'mock' ? 'render backend (data comes from fixtures)' : 'backend url'} />`}
+            </label>`
+    }
+
+    private onPreviewModeChange(e: Event) {
+        this.updatePreviewSource({ ...this.previewSource, mode: (e.target as HTMLSelectElement).value as PreviewMode })
+    }
+
+    private onBaseUrlChange(e: Event) {
+        this.updatePreviewSource({ ...this.previewSource, baseUrl: (e.target as HTMLInputElement).value.trim() })
+    }
+
+    /** Adopt + persist a new preview source, then re-resolve the contract under it (canvas re-renders via its binding). */
+    private updatePreviewSource(src: PreviewSource) {
+        this.previewSource = src
+        savePreviewSource(src)
+        this.lastContractVm = undefined
+        this.refreshContract()
     }
 
     /**
