@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.testutil.TestMateu;
+import io.mateu.dtos.AppDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.App;
@@ -232,6 +233,48 @@ class AppSyncTest {
     dump("sync /flatapp", mateu.sync("/flatapp"));
     dump("sync /tabsapp", mateu.sync("/tabsapp"));
     dump("sync /supplier", mateu.sync("/supplier"));
+  }
+
+  // ── R2 characterization: App ≠ its Home Screen (coherence-plan) ─────────────────
+  // These PIN the CURRENT home-route resolution so the eventual removal of the "@UI class is both
+  // the app and its home view" conflation (R2) is a safe, reviewed change: any behaviour shift has
+  // to update a named characterization test deliberately, rather than slipping through. They assert
+  // what the wire says TODAY — including the conflation R2 will remove — not the target state.
+
+  private static AppDto appOf(String route) {
+    return FullSyncPipelineTest.findMetadata(
+        mateu.sync(route).fragments().get(0).component(), AppDto.class);
+  }
+
+  @Test
+  void r2_anAppIsServedAtItsBasePathAndItsHomeIsADistinctRoute() {
+    // The one piece of R2 that is already clean: an app declaring a home (HomeRouteSupplier) is
+    // served at its base path, and the home is a SEPARATE route (a Screen), not the base path.
+    var app = appOf("/supplier");
+    assertThat(app.route()).isEqualTo("/supplier");
+    assertThat(app.homeRoute()).isEqualTo("/supplier/catalog");
+    assertThat(app.homeRoute()).isNotEqualTo(app.route());
+  }
+
+  @Test
+  void r2_conflation_theHomeServerSideTypeIsStillTheAppClassNotTheHomeScreen() {
+    // THE conflation R2 removes: the app's home is the route /supplier/catalog (the CatalogPage
+    // Screen), yet homeServerSideType is the APP class — the "@UI class is both app and home"
+    // fusion. When R2 lands, the home's server type should become the home Screen's class; this
+    // assertion is the tripwire that will force that change to be deliberate.
+    var app = appOf("/supplier");
+    assertThat(app.homeServerSideType()).isEqualTo(SupplierHomeApp.class.getName());
+    assertThat(app.serverSideType()).isEqualTo(SupplierHomeApp.class.getName());
+  }
+
+  @Test
+  void r2_anAppWithoutAnExplicitHomeCarriesTheNoHomeRouteSentinel() {
+    // An app that declares only @Menu items (no HomeRouteSupplier) carries the `_no_home_route`
+    // sentinel on the wire; the "home defaults to the first menu item" resolution happens later, in
+    // AppHomeRouteResolver.getHomeRoute at render time — not in this AppDto field. R2 should make
+    // the default uniform (the home is just the first menu item's Screen everywhere).
+    assertThat(appOf("/tabsapp").homeRoute()).isEqualTo("_no_home_route");
+    assertThat(appOf("/shop").homeRoute()).isEqualTo("_no_home_route");
   }
 
   @Test
