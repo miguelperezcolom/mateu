@@ -59,6 +59,33 @@ kotlin {
     jvmToolchain(21)
 }
 
+// Keep the embedded web bundle (`resources/visual-editor`) from going stale: rebuild + copy the shared
+// visual-editor web app before it is packaged into resources. Up-to-date aware (Gradle skips it when the
+// web source is unchanged), and skipped WITH A WARNING when the web workspace isn't installed — so a
+// plugin-only build (no Node set up) is never blocked, it just uses the committed bundle.
+val visualEditorWebApp = projectDir.resolve("../../web/monorepo/apps/visual-editor")
+val copyVisualEditor = tasks.register<Exec>("copyVisualEditor") {
+    description = "Build the shared visual-editor web app and copy it into resources/visual-editor."
+    group = "build"
+    workingDir = visualEditorWebApp
+    val npm = if (System.getProperty("os.name").lowercase().contains("win")) "npm.cmd" else "npm"
+    commandLine(npm, "run", "copy") // = vite build + copy dist/* into this plugin's resources/visual-editor
+    inputs.dir(visualEditorWebApp.resolve("src"))
+    inputs.file(visualEditorWebApp.resolve("package.json"))
+    outputs.dir(projectDir.resolve("src/main/resources/visual-editor"))
+    onlyIf {
+        val installed = visualEditorWebApp.resolve("../../node_modules").exists()
+        if (!installed) {
+            logger.warn(
+                "copyVisualEditor: the web workspace (frontend/web/monorepo) is not installed — using the " +
+                    "committed bundle. Run `npm install` there then `npm run copy` in apps/visual-editor to refresh.",
+            )
+        }
+        installed
+    }
+}
+tasks.named("processResources") { dependsOn(copyVisualEditor) }
+
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.
