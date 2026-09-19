@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -42,6 +44,9 @@ class MateuVisualEditor(
     private val mapper = ObjectMapper()
     private val listeners = java.util.concurrent.CopyOnWriteArrayList<PropertyChangeListener>()
 
+    /** True while WE push YAML into the Document, so our own edit is not echoed back as an externalChange. */
+    private var applyingFromWeb = false
+
     private val browser: JBCefBrowser? = if (JBCefApp.isSupported()) JBCefBrowser() else null
     private val query: JBCefJSQuery? = browser?.let { JBCefJSQuery.create(it as com.intellij.ui.jcef.JBCefBrowserBase) }
     private val fallback: JComponent? = if (browser == null) JLabel("JCEF is not available in this IDE runtime.") else null
@@ -59,6 +64,15 @@ class MateuVisualEditor(
             }, b.cefBrowser)
             b.loadURL("http://127.0.0.1:$port/index.html")
         }
+        // Out-of-band edits (the raw YAML text tab, or the file changing on disk) must reach the canvas
+        // or it silently desyncs — mirror VSCode's onDidChangeTextDocument. Our own writes are skipped
+        // via `applyingFromWeb` so this never feeds back into a loop.
+        FileDocumentManager.getInstance().getDocument(file)?.addDocumentListener(object : DocumentListener {
+            override fun documentChanged(event: DocumentEvent) {
+                if (applyingFromWeb) return
+                sendToWeb(mapOf("type" to "externalChange", "yaml" to event.document.text))
+            }
+        }, this)
     }
 
     /** Drain messages queued before the pipe existed and route future ones through the JCEF query. */
@@ -138,7 +152,12 @@ class MateuVisualEditor(
         ApplicationManager.getApplication().invokeLater {
             val doc = FileDocumentManager.getInstance().getDocument(file) ?: return@invokeLater
             if (doc.text == yaml) return@invokeLater
-            WriteCommandAction.runWriteCommandAction(project) { doc.setText(yaml) }
+            applyingFromWeb = true
+            try {
+                WriteCommandAction.runWriteCommandAction(project) { doc.setText(yaml) }
+            } finally {
+                applyingFromWeb = false
+            }
         }
     }
 

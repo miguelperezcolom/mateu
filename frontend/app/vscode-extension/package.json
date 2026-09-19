@@ -14,7 +14,7 @@
         "viewType": "mateu.visualEditor",
         "displayName": "Mateu Visual Editor",
         "selector": [{ "filenamePattern": "**/specs/ui/*.yaml" }, { "filenamePattern": "**/specs/ui/*.yml" }],
-        "priority": "default"
+        "priority": "option"
       }
     ],
     "configuration": {
