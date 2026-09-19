@@ -155,5 +155,6 @@
       "colour" : "green",
       "name" : "Ada"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

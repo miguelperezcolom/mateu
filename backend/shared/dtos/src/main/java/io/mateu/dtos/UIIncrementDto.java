@@ -11,6 +11,9 @@ import lombok.With;
  * @param commands List of command to run in the frontend
  * @param messages List of messages to be shown in the UI
  * @param fragments List of new UI fragments
+ * @param wireVersion Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive
+ *     within a major version; a consumer may read it to guard against a mismatched producer.
+ *     Defaults to {@link #WIRE_VERSION} when not set, so every response carries it.
  */
 @Builder
 @With
@@ -21,13 +24,21 @@ public record UIIncrementDto(
     List<BannerDto> banners,
     boolean appendBanners,
     Object appData,
-    Object appState) {
+    Object appState,
+    String wireVersion) {
+
+  /**
+   * Current wire protocol version. Bumped only on a breaking (major) change to the wire; additions
+   * within a major are backward compatible and do not change it.
+   */
+  public static final String WIRE_VERSION = "3.0";
 
   public UIIncrementDto {
     commands = Collections.unmodifiableList(commands != null ? commands : List.of());
     messages = Collections.unmodifiableList(messages != null ? messages : List.of());
     fragments = Collections.unmodifiableList(fragments != null ? fragments : List.of());
     banners = Collections.unmodifiableList(banners != null ? banners : List.of());
+    wireVersion = wireVersion != null ? wireVersion : WIRE_VERSION;
   }
 
   @Override

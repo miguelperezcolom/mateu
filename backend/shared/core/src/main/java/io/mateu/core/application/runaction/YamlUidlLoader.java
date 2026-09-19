@@ -18,11 +18,12 @@ import lombok.extern.slf4j.Slf4j;
  *   <li><b>Bare layout</b> (legacy): the whole file is a component tree ({@code type: ...}). It
  *       renders as a static, unbound page — good for help/landing screens with no behaviour.
  *   <li><b>Page envelope</b>: a {@code layout:} key holds the component tree and an optional {@code
- *       modelView:} key names a Java class. When present, that class is instantiated as the page's
- *       ModelView — it supplies the state, actions, validations and rules — while the YAML supplies
- *       the layout. This is the inverse of {@code @UISpec} (there the class points at the YAML;
- *       here the YAML points at the class), so a page can be authored as a file that references a
- *       plain, unannotated logic class.
+ *       viewModel:} key names a Java class (the canonical vocabulary of coherence-plan #5; {@code
+ *       modelView:} is accepted as a deprecated alias). When present, that class is instantiated as
+ *       the page's view model — it supplies the state, actions, validations and rules — while the
+ *       YAML supplies the layout. This is the inverse of {@code @UISpec} (there the class points at
+ *       the YAML; here the YAML points at the class), so a page can be authored as a file that
+ *       references a plain, unannotated logic class.
  * </ul>
  *
  * The binding between the YAML layout and the ModelView is by convention, exactly as everywhere
@@ -188,10 +189,17 @@ public class YamlUidlLoader {
         return NONE;
       }
       // The definition is layout; the binding to a view model belongs to the route entry. A YAML
-      // that still declares `modelView:` keeps working and wins, so nothing that exists today
+      // that declares the view model inline keeps working and wins, so nothing that exists today
       // changes — but a definition shared by several routes must NOT name one, or it could only
       // ever serve the class it names.
-      var modelView = root.hasNonNull("modelView") ? root.get("modelView").asText() : null;
+      // Vocabulary (coherence-plan #5): the canonical key is `viewModel:` (unifying the two names
+      // for the one concept — the server class of state + actions). `modelView:` is the DEPRECATED
+      // ALIAS, still accepted so every existing definition keeps working; `viewModel:` wins if both
+      // are present.
+      var modelView =
+          root.hasNonNull("viewModel")
+              ? root.get("viewModel").asText()
+              : root.hasNonNull("modelView") ? root.get("modelView").asText() : null;
       if (modelView == null) {
         modelView =
             entry

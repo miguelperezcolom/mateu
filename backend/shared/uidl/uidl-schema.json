@@ -1,6 +1,7 @@
 {
   "$schema" : "http://json-schema.org/draft-07/schema#",
   "$id" : "https://mateu.io/uidl/schema.json",
+  "version" : "3.0",
   "title" : "Mateu UIDL Schema",
   "description" : "JSON Schema for Mateu UI Definition Language (UIDL) components. Use the 'type' discriminator field to identify the concrete component type. GENERATED from the component records by UidlSchemaGenerator — do not edit by hand.",
   "oneOf" : [ {

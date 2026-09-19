@@ -1,0 +1,21 @@
+Mateu
+Copyright 2016-2026 Miguel Pérez Colom
+
+This product is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this project except in compliance with the License. A copy of
+the License is provided in LICENSE.txt and at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+------------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------------
+
+The Redwood / Visual Builder renderer (frontend/web/monorepo/apps/redwood)
+integrates with Oracle JET (Universal Permissive License 1.0) and loads Oracle
+Spectra / Visual Builder Runtime from Oracle's CDN. Those components are NOT
+part of this project and are NOT relicensed here; see
+frontend/web/monorepo/apps/redwood/NOTICE.md for details.
+
+All other renderers and the Mateu runtime, annotations, wire DTOs, generated
+schemas and tooling are licensed under Apache License 2.0.

@@ -50,6 +50,14 @@ public final class UidlSchemaGenerator {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  /**
+   * Schema version, emitted as a top-level {@code "version"} on every generated schema. Mirrors the
+   * wire major ({@code UIIncrementDto.WIRE_VERSION} = "3.0"): additive within a major, bumped only
+   * on a breaking change. Kept as a plain field rather than folded into {@code $id}, so the
+   * published schema URLs (and the editors pointing at them) stay stable.
+   */
+  private static final String SCHEMA_VERSION = "3.0";
+
   /** $defs being built, sorted by name so the output is byte-stable across runs. */
   private final Map<String, ObjectNode> defs = new TreeMap<>();
 
@@ -81,6 +89,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu UIDL Schema");
     root.put(
         "description",
@@ -338,6 +347,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/routes-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu route registry");
     root.put(
         "description",
@@ -380,6 +390,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/sources-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu REST source catalogue");
     root.put(
         "description",
@@ -404,6 +415,7 @@ public final class UidlSchemaGenerator {
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
     root.put("$id", "https://mateu.io/uidl/mount-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu UI mount");
     root.put(
         "description",
@@ -519,13 +531,22 @@ public final class UidlSchemaGenerator {
     var pageExtras = pageAllOf.addObject().put("type", "object");
     var pageProps = pageExtras.putObject("properties");
     pageProps
-        .putObject("modelView")
+        .putObject("viewModel")
         .put("type", "string")
         .put(
             "description",
-            "Fully-qualified class of the view model this definition binds to. Omit it on a"
-                + " definition shared by several routes — naming one means it can only ever serve"
-                + " that class. The route entry's `viewModel` is the place for the binding.");
+            "Fully-qualified class of the view model this definition binds to (the canonical"
+                + " vocabulary of coherence-plan #5). Omit it on a definition shared by several"
+                + " routes — naming one means it can only ever serve that class. The route entry's"
+                + " `viewModel` is the place for the binding.");
+    pageProps
+        .putObject("modelView")
+        .put("type", "string")
+        .put("deprecated", true)
+        .put(
+            "description",
+            "Deprecated alias of `viewModel` — kept so existing definitions keep"
+                + " working. Prefer `viewModel`; if both are present, `viewModel` wins.");
     pageProps.set("actions", actionList);
     ((ObjectNode) pageProps.get("actions"))
         .put(
@@ -550,6 +571,7 @@ public final class UidlSchemaGenerator {
     root.set("oneOf", oneOf);
 
     root.put("$id", "https://mateu.io/uidl/specs-schema.json");
+    root.put("version", SCHEMA_VERSION);
     root.put("title", "Mateu specs/ui authoring schema");
     root.put(
         "description",

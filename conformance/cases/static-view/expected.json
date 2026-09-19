@@ -76,5 +76,6 @@
     "state" : {
       "heading" : "This page never changes"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

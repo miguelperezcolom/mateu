@@ -61,5 +61,6 @@
       "route" : "_empty",
       "type" : "ServerSide"
     }
-  } ]
+  } ],
+  "wireVersion" : "3.0"
 }

@@ -85,7 +85,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToBanners(instance, baseUrl, httpRequest),
             mapToAppendBanners(instance),
             mapToAppData(instance, baseUrl, httpRequest),
-            mapToAppState(instance, baseUrl, httpRequest)));
+            mapToAppState(instance, baseUrl, httpRequest),
+            UIIncrementDto.WIRE_VERSION));
   }
 
   public static String removeQueryParamsFromRoute(String rawRoute) {

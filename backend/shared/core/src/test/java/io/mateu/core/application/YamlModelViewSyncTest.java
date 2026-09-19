@@ -122,6 +122,26 @@ class YamlModelViewSyncTest {
   }
 
   @Test
+  void theCanonicalViewModelKeyBindsIdenticallyToTheDeprecatedModelViewAlias() {
+    // coherence-plan #5 vocabulary: a definition may name its view model with the canonical key
+    // `viewModel:` (specs/ui/yaml-bound-viewmodel.yaml). It must bind exactly like the deprecated
+    // `modelView:` alias — same server-side type, same convention-bound layout + actions.
+    var component = componentOf(mateu.sync("yaml-bound-viewmodel"));
+    assertThat(component.serverSideType()).isEqualTo(GREETER);
+    assertThat(component.children()).isNotEmpty();
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("yaml-bound-viewmodel")
+                .serverSideType(GREETER)
+                .actionId("greet")
+                .componentState(Map.of("name", "Grace"))
+                .build());
+    assertThat(increment.messages()).isNotEmpty();
+    assertThat(increment.messages().get(0).text()).isEqualTo("Hello Grace!");
+  }
+
+  @Test
   void aBareLayoutYamlWithoutAModelViewStillRenders() {
     // backward compatibility: the legacy shape (whole file is a component tree, no modelView)
     var increment = mateu.sync("demo/hello");

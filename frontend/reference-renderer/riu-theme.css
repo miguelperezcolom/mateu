@@ -1,0 +1,77 @@
+/*
+ * Riu brand theme — design-token layer for Mateu (workstream R1).
+ *
+ * The whole point of "define, don't build": brand lives in TOKENS, not in per-screen code. Load this
+ * one file and every generated screen is on-brand at once — no screen is touched.
+ *
+ * It sets two layers:
+ *   1. --riu-*  : the Riu design tokens (the single source of the brand).
+ *   2. --lumo-* : Vaadin Lumo variables mapped to the tokens — this is what themes the PRODUCTION
+ *                 vaadin-lit renderer (Mateu's components use Lumo vars with fallbacks). Applying this
+ *                 file (or its --lumo-* subset) to a vaadin-lit app rebrands the real renderer.
+ * Below, the .mateu-* rules retheme THIS repo's zero-dependency reference renderer so the brand demo
+ * is self-contained.
+ *
+ * Brand source: Riu Hotels — Amaranth Red #D2232A (Pantone 1795 C), Aztec Gold #CA9C4E (Pantone 7407 C).
+ * NOTE: the RIU logo is Riu's registered trademark and is intentionally NOT vendored here — drop the
+ * official asset into a `logo` slot; this file only carries colour/type tokens.
+ * [PENDING: Riu's licensed brand webfont — the body/heading font-family tokens use safe fallbacks.]
+ */
+
+:root {
+  /* 1 · Riu design tokens (the brand, once) */
+  --riu-red: #d2232a;
+  --riu-red-dark: #b31e24;      /* hover/active */
+  --riu-red-ink: #8f1418;       /* text on light */
+  --riu-red-10: rgba(210, 35, 42, 0.10);
+  --riu-red-50: rgba(210, 35, 42, 0.50);
+  --riu-gold: #ca9c4e;
+  --riu-gold-10: rgba(202, 156, 78, 0.12);
+  --riu-ink: #1f1a17;
+  --riu-muted: #6b6560;
+  --riu-canvas: #fbf9f8;
+  --riu-surface: #ffffff;
+  --riu-border: #e6e1dc;
+  --riu-radius: 10px;
+  --riu-font-heading: Georgia, "Times New Roman", serif;   /* Riu wordmark is serif — placeholder */
+  --riu-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* 2 · Lumo mapping — themes the production vaadin-lit renderer */
+  --lumo-primary-color: var(--riu-red);
+  --lumo-primary-color-50pct: var(--riu-red-50);
+  --lumo-primary-color-10pct: var(--riu-red-10);
+  --lumo-primary-text-color: var(--riu-red-ink);
+  --lumo-error-color: var(--riu-red);
+  --lumo-base-color: var(--riu-surface);
+  --lumo-body-text-color: var(--riu-ink);
+  --lumo-secondary-text-color: var(--riu-muted);
+  --lumo-contrast-10pct: var(--riu-border);
+  --lumo-border-radius-m: var(--riu-radius);
+  --lumo-font-family: var(--riu-font-body);
+}
+
+/* ── Reference-renderer retheme (self-contained brand demo) ─────────────────────── */
+body.riu { background: var(--riu-canvas); color: var(--riu-ink); font-family: var(--riu-font-body); }
+body.riu .bar { border-bottom-color: var(--riu-border); }
+
+/* Brand strip: a Riu-red header band (stands in for the logo lockup) */
+body.riu .bar::before {
+  content: "RIU";
+  font-family: var(--riu-font-heading);
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: #fff;
+  background: var(--riu-red);
+  padding: .2rem .55rem;
+  border-radius: 4px;
+  margin-right: .5rem;
+}
+
+body.riu .mateu-page-title { font-family: var(--riu-font-heading); color: var(--riu-red-ink); }
+body.riu .mateu-page-subtitle { color: var(--riu-muted); }
+body.riu .mateu-card { border-color: var(--riu-border); border-radius: var(--riu-radius); border-top: 3px solid var(--riu-gold); }
+body.riu .mateu-input { border-color: var(--riu-border); border-radius: 6px; }
+body.riu .mateu-input:focus { outline: 2px solid var(--riu-red-50); border-color: var(--riu-red); }
+body.riu .mateu-button { background: var(--riu-red); border-radius: 6px; }
+body.riu .mateu-button:hover { background: var(--riu-red-dark); }
+body.riu .mateu-table th { color: var(--riu-red-ink); border-bottom: 2px solid var(--riu-gold); }
