@@ -68,6 +68,8 @@ export class EditorCanvas extends LitElement {
 
     @property({ attribute: false }) doc?: PageDoc
     @property() baseUrl = ''
+    /** True when the preview source is `client` (no render backend yet — Phase 7). Show a placeholder. */
+    @property({ type: Boolean }) clientRender = false
     @property({ attribute: false }) selectedPath: NodePath | null = null
 
     @state() private error?: string
@@ -145,7 +147,9 @@ export class EditorCanvas extends LitElement {
     }
 
     updated(changed: PropertyValues) {
-        if (changed.has('doc')) this.schedulePreview()
+        // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
+        if (changed.has('baseUrl') || changed.has('clientRender')) this.lastYaml = ''
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender')) this.schedulePreview()
         if (changed.has('selectedPath')) this.applyHighlight()
     }
 
@@ -159,6 +163,11 @@ export class EditorCanvas extends LitElement {
     }
 
     private async preview(yaml: string) {
+        if (this.clientRender) {
+            // `client` mode has no renderer yet (coherence Phase 6 expander). Be honest, don't call a dead URL.
+            this.error = 'Client-side rendering is not available yet (Phase 7). Pick a backend to preview.'
+            return
+        }
         try {
             const increment: any = await mateuApiClient.runAction(
                 this.baseUrl, '', '', '__preview__', 've-canvas',
