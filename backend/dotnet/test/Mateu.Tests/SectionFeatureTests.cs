@@ -76,6 +76,18 @@ public class TextSizeView : IComponentTreeSupplier
     public IComponent Component() => new Text("pequeño") { Size = "xs" };
 }
 
+[UI("sizing/fill-canvas"), Size(SizeMode.Fill)]
+public class FillCanvasView : IComponentTreeSupplier
+{
+    public IComponent Component() => new Text("a full-canvas screen") { Id = "canvas" };
+}
+
+[UI("sizing/fixed-panel"), Size(SizeMode.Fixed, Length = "15rem")]
+public class FixedPanelView : IComponentTreeSupplier
+{
+    public IComponent Component() => new Text("a fixed panel") { Id = "panel" };
+}
+
 /// <summary>[FileUpload(".csv")] on a string property (Java: @FileUpload(accept = ".csv")).</summary>
 [UI("sections/file-upload")]
 public class FileUploadForm
@@ -107,6 +119,19 @@ public class SectionFeatureTests
     private static JsonElement RenderView(Type viewType) =>
         JsonSerializer.SerializeToElement(
             Handler().Handle(new RunActionRqDto { ServerSideType = viewType.FullName }), Json);
+
+    [Fact]
+    public void An_explicit_Size_sizes_the_view_surface()
+    {
+        // coherence-plan #8: [Size(Fill)] on a view fills the viewport; [Size(Fixed)] carries a length.
+        var fill = JsonSerializer.Serialize(
+            Handler().Handle(new RunActionRqDto { ServerSideType = typeof(FillCanvasView).FullName }), Json);
+        Assert.Contains("\"sizing\":\"fill\"", fill);
+
+        var fixedPanel = JsonSerializer.Serialize(
+            Handler().Handle(new RunActionRqDto { ServerSideType = typeof(FixedPanelView).FullName }), Json);
+        Assert.Contains("\"sizing\":\"fixed:15rem\"", fixedPanel);
+    }
 
     [Fact]
     public void Property_list_section_marks_its_fields_as_read_only_property_rows()

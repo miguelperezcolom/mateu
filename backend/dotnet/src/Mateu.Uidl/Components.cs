@@ -1017,3 +1017,20 @@ public sealed record MarkClean : FlowStep;
 
 /// <summary>Mark the current view dirty — arms the unsaved-changes navigation guard.</summary>
 public sealed record MarkDirty : FlowStep;
+
+// ── Sizing intent (coherence-plan #8) ────────────────────────────────────────
+/// <summary>How a component is sized within the space its parent gives it (coherence-plan #8).
+/// hug = size to content, fill = grow and scroll internally, fixed = a concrete size.</summary>
+public enum SizeMode { Hug, Fill, Fixed }
+
+/// <summary>Explicit sizing intent — the override for the inferred default (a listing infers fill).
+/// On a view / IComponentTreeSupplier it sizes the whole surface (e.g. a full-canvas screen that
+/// fills the viewport and scrolls internally). Mirrors io.mateu.uidl.annotations.Size.</summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+public sealed class SizeAttribute : Attribute
+{
+    public SizeAttribute(SizeMode value) => Value = value;
+    public SizeMode Value { get; }
+    /// <summary>The concrete length when Value is Fixed (e.g. "15rem").</summary>
+    public string Length { get; set; } = "";
+}

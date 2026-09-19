@@ -837,6 +837,11 @@ class ReflectionMapper:
         tree = layout_override if layout_override is not None else self.component_tree(instance)
         if tree is not None:
             children = [self.map_component(tree)]
+            # An explicit @size on the view sizes its whole surface (coherence-plan #8): a
+            # full-canvas screen that fills the viewport and scrolls internally. Overrides inference.
+            sizing = getattr(cls, "__mateu_size__", None)
+            if is_tree_supplier and sizing and isinstance(children[0], ClientSideComponent):
+                children[0] = children[0].model_copy(update={"sizing": sizing})
             # A YAML layout_override page collects its buttons' actionIds into the ServerSide's
             # actions (they route back to the ModelView's methods). A ComponentTreeSupplier does
             # NOT: Java's ComponentTreeSupplierMapper never harvests action ids from the tree — a
