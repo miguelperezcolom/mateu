@@ -489,6 +489,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             children = content;
             containerStyle = treeStyle;
+            // An explicit [Size] on the view sizes its whole surface (coherence-plan #8): a
+            // full-canvas screen that fills the viewport and scrolls internally. Overrides inference.
+            var sizing = SizingOf(type);
+            if (sizing != null && children.Count > 0 && children[0] is ClientSideComponentDto leaf)
+                children = new List<ComponentDto> { leaf with { Sizing = sizing } }
+                    .Concat(children.Skip(1)).ToList();
         }
         else
         {
@@ -1419,6 +1425,20 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             PageWidthStyle.Fixed => "fixed",
             PageWidthStyle.FullWidth => "fullWidth",
             PageWidthStyle.EdgeToEdge => "edgeToEdge",
+            _ => null,
+        };
+    }
+
+    /// <summary>The wire sizing string for a view's [Size] (coherence-plan #8): "hug" | "fill" |
+    /// "fixed:&lt;len&gt;", or null when absent.</summary>
+    internal static string? SizingOf(Type type)
+    {
+        var size = type.Find<SizeAttribute>();
+        return size?.Value switch
+        {
+            SizeMode.Hug => "hug",
+            SizeMode.Fill => "fill",
+            SizeMode.Fixed => "fixed:" + size!.Length,
             _ => null,
         };
     }

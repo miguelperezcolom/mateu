@@ -37,11 +37,34 @@ class SizingSyncTest {
     }
   }
 
+  // An explicit @Size on a ComponentTreeSupplier sizes its whole surface (the full-canvas case).
+  @SuppressWarnings("unused")
+  @UI("/sizing-fill-canvas")
+  @io.mateu.uidl.annotations.Size(io.mateu.uidl.annotations.SizeMode.fill)
+  public static class FillCanvas implements io.mateu.uidl.interfaces.ComponentTreeSupplier {
+    @Override
+    public io.mateu.uidl.fluent.Component component(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.Text("canvas", "a full-canvas screen");
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/sizing-fixed-panel")
+  @io.mateu.uidl.annotations.Size(
+      value = io.mateu.uidl.annotations.SizeMode.fixed,
+      length = "15rem")
+  public static class FixedPanel implements io.mateu.uidl.interfaces.ComponentTreeSupplier {
+    @Override
+    public io.mateu.uidl.fluent.Component component(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.Text("panel", "a fixed-width panel");
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Books.class);
+    mateu = TestMateu.withUis(Books.class, FillCanvas.class, FixedPanel.class);
   }
 
   @AfterAll
@@ -57,6 +80,38 @@ class SizingSyncTest {
     assertThat(listingEnvelope.sizing())
         .as("a listing fills the space its parent leaves and scrolls internally")
         .isEqualTo("fill");
+  }
+
+  @Test
+  void anExplicitSizeFillOnAViewSizesItsSurface() {
+    var leaf = findById(mateu.sync("/sizing-fill-canvas"), "canvas");
+    assertThat(leaf).as("the view's component leaf is on the wire").isNotNull();
+    assertThat(leaf.sizing()).isEqualTo("fill");
+  }
+
+  @Test
+  void anExplicitSizeFixedCarriesItsLength() {
+    var leaf = findById(mateu.sync("/sizing-fixed-panel"), "panel");
+    assertThat(leaf).isNotNull();
+    assertThat(leaf.sizing()).isEqualTo("fixed:15rem");
+  }
+
+  /** The ClientSideComponentDto with the given id. */
+  private static ClientSideComponentDto findById(UIIncrementDto increment, String id) {
+    var found = new ArrayList<ClientSideComponentDto>();
+    increment.fragments().forEach(f -> collectById(f.component(), id, found));
+    return found.isEmpty() ? null : found.get(0);
+  }
+
+  private static void collectById(
+      ComponentDto node, String id, List<ClientSideComponentDto> found) {
+    if (node == null) {
+      return;
+    }
+    if (node instanceof ClientSideComponentDto client && id.equals(client.id())) {
+      found.add(client);
+    }
+    node.children().forEach(child -> collectById(child, id, found));
   }
 
   /** The ClientSideComponentDto whose metadata is the CrudlDto (the listing). */

@@ -6,7 +6,9 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import io.mateu.core.application.runaction.PartialExpander;
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
+import io.mateu.core.domain.out.componentmapper.SizingResolver;
 import io.mateu.core.domain.out.componentmapper.StaticViewResolver;
+import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -23,19 +25,26 @@ public class ComponentTreeSupplierMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var leaf =
+        mapComponentToDto(
+            componentTreeSupplier,
+            PartialExpander.expand(componentTreeSupplier.component(httpRequest), httpRequest),
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+    // An explicit @Size on the view sizes its whole surface (coherence-plan #8): e.g. a full-canvas
+    // screen that should fill the viewport and scroll internally. It overrides any inferred sizing.
+    var sizing = SizingResolver.wireSizing(componentTreeSupplier.getClass());
+    if (sizing != null && leaf instanceof ClientSideComponentDto client) {
+      leaf = client.withSizing(sizing);
+    }
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         componentTreeSupplier.serverSideType(),
         consumedRoute,
-        List.of(
-            mapComponentToDto(
-                componentTreeSupplier,
-                PartialExpander.expand(componentTreeSupplier.component(httpRequest), httpRequest),
-                baseUrl,
-                route,
-                consumedRoute,
-                initiatorComponentId,
-                httpRequest)),
+        List.of(leaf),
         getState(componentTreeSupplier, httpRequest),
         componentTreeSupplier.style(),
         componentTreeSupplier.cssClasses(),
