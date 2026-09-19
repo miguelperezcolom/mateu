@@ -104,3 +104,7 @@ routes:
   - route: appdata-app
     viewModel: io.mateu.core.application.AppDataApp
     appData: appMetrics
+
+  # Bare-layout definition with a Card — Phase 6 expander golden source.
+  - route: card-def
+    definition: card.yaml

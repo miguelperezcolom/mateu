@@ -1,0 +1,11 @@
+# A bare-layout definition using a Card (rich display component) — the golden source for the
+# client-side expander's Card handling (Phase 6). Card's content nests INSIDE metadata.content
+# (a single expanded child), not lifted to wire children; variants ride in metadata.
+layout:
+  type: Card
+  variants: [outlined]
+  content:
+    type: VerticalLayout
+    content:
+      - type: Text
+        text: "Inside a card"

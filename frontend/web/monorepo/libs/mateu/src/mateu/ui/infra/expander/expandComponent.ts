@@ -34,7 +34,9 @@ import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
  *  definition file — deliberately loose, since the authored surface is the whole component catalog. */
 export interface FluentNode {
     type: string
-    content?: FluentNode[]
+    // Children of a layout container (an array), OR the single content of a Card-family node (one
+    // node). `children` is the array alias some fluent shapes use.
+    content?: FluentNode | FluentNode[]
     children?: FluentNode[]
     [field: string]: unknown
 }
@@ -66,7 +68,16 @@ const CONTAINER_TYPES = new Set([
     'FlexLayout',
 ])
 
-/** Map one authored fluent node to its wire component. Recurses into a container's children. */
+// Types that hold ONE child under `metadata.content` (expanded), NOT lifted to wire children — the
+// Card family. Pinned by the Java golden (CardDefinitionSyncTest): a Card's content is a single
+// expanded component in metadata.content, children stays empty, variants ride in metadata. Extend
+// as later goldens add more (HeroSection, Notice-with-content, …), each verified against Java.
+const CONTENT_IN_METADATA_TYPES = new Set([
+    'Card',
+])
+
+/** Map one authored fluent node to its wire component. Recurses into a container's children, or —
+ *  for a Card-family type — into its single `content`, placed under `metadata.content`. */
 export function expandComponent(node: FluentNode): Component {
     const { type, content, children, ...fields } = node
 
@@ -77,7 +88,21 @@ export function expandComponent(node: FluentNode): Component {
         else metadata[key] = value
     }
 
-    const kids = CONTAINER_TYPES.has(type) ? (content ?? children ?? []) : []
+    let kids: FluentNode[] = []
+    if (CONTAINER_TYPES.has(type)) {
+        // A plain layout container: content/children is an array of children, lifted to the wire.
+        // Tolerate a single node authored without brackets.
+        const c = content ?? children ?? []
+        kids = Array.isArray(c) ? c : [c]
+    } else if (
+        CONTENT_IN_METADATA_TYPES.has(type)
+        && content
+        && typeof content === 'object'
+        && !Array.isArray(content)
+    ) {
+        // A Card-family node: its single content child is expanded INTO metadata, not lifted.
+        metadata.content = expandComponent(content as FluentNode)
+    }
 
     // Cast through `unknown`: the wire `Component` interface marks style/cssClasses/slot/… as
     // required, but the server itself omits them when unset (exclude_none) and the renderer defaults
