@@ -1,5 +1,6 @@
 package io.mateu.ijp.contract
 
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -55,7 +56,10 @@ class MateuYamlBindingAnnotator : Annotator {
         if (id.isEmpty()) return
         val cls = resolveClass(project, fqn) ?: return // the modelView error is reported on its own
         if (!hasAction(cls, id)) {
-          error(holder, value, "'$id' is not an action on ${cls.name} — no method named '$id'")
+          errorWithFix(
+            holder, value, "'$id' is not an action on ${cls.name} — no method named '$id'",
+            CreateActionInViewModelFix(fqn, id),
+          )
           return
         }
         // The method exists — but is it a Mateu action? The backend contract knows (a plain method
@@ -73,7 +77,11 @@ class MateuYamlBindingAnnotator : Annotator {
         if (mapping.getKeyValueByKey("type")?.valueText?.trim() != "FormField") return
         val cls = resolveClass(project, fqn) ?: return
         if (!hasProperty(cls, id)) {
-          error(holder, value, "'$id' is not a field on ${cls.name}")
+          val declaredType = mapping.getKeyValueByKey("dataType")?.valueText?.trim()
+          errorWithFix(
+            holder, value, "'$id' is not a field on ${cls.name}",
+            CreateFieldInViewModelFix(fqn, id, declaredType),
+          )
           return
         }
         // The property exists — refine against the backend contract (it lists only what actually
@@ -124,6 +132,11 @@ class MateuYamlBindingAnnotator : Annotator {
 
   private fun error(holder: AnnotationHolder, range: PsiElement, message: String) {
     holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create()
+  }
+
+  /** An error carrying a quick-fix (Alt+Enter) — e.g. "Create field/action in the ViewModel". */
+  private fun errorWithFix(holder: AnnotationHolder, range: PsiElement, message: String, fix: IntentionAction) {
+    holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).withFix(fix).create()
   }
 
   private fun warn(holder: AnnotationHolder, range: PsiElement, message: String) {
