@@ -10,7 +10,6 @@ import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
-import io.mateu.dtos.ContentLayoutDto;
 import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.FormLayoutDto;
 import io.mateu.dtos.HorizontalLayoutDto;
@@ -370,17 +369,20 @@ class LayoutSyncTest {
   }
 
   @Test
-  void asideFieldWrapsTheFormInAContentLayout() {
+  void asideFieldWrapsTheFormInAResponsiveGridTemplate() {
+    // coherence-plan #7/#9: an @Aside field composes a "main aside" named-slot template on the one
+    // responsive grid (aside on the end side, fixed-width, sticky) — retiring the bespoke
+    // ContentLayout.
     var page = page(mateu.sync("/layout/aside"));
     var content = (ClientSideComponentDto) page.children().get(0);
-    assertThat(content.metadata()).isInstanceOf(ContentLayoutDto.class);
-    var meta = (ContentLayoutDto) content.metadata();
-    assertThat(meta.asideWidth()).isEqualTo("20rem");
-    assertThat(meta.asideSticky()).isTrue();
+    assertThat(content.metadata()).isInstanceOf(ResponsiveGridDto.class);
+    var meta = (ResponsiveGridDto) content.metadata();
+    assertThat(meta.gridTemplateAreas()).isEqualTo("\"main aside\"");
+    assertThat(meta.gridTemplateColumns()).isEqualTo("1fr 20rem");
+    assertThat(meta.stickyAreas()).containsExactly("aside");
     // the form is in the main slot; the @Aside help panel in the aside slot
     var slots = content.children().stream().map(c -> ((ClientSideComponentDto) c).slot()).toList();
-    assertThat(slots).anyMatch(s -> s != null && s.startsWith("main-"));
-    assertThat(slots).anyMatch(s -> s != null && s.startsWith("aside-"));
+    assertThat(slots).containsExactlyInAnyOrder("main", "aside");
   }
 
   @Test
