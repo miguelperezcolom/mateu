@@ -486,13 +486,22 @@ public final class UidlSchemaGenerator {
     var pageExtras = pageAllOf.addObject().put("type", "object");
     var pageProps = pageExtras.putObject("properties");
     pageProps
-        .putObject("modelView")
+        .putObject("viewModel")
         .put("type", "string")
         .put(
             "description",
-            "Fully-qualified class of the view model this definition binds to. Omit it on a"
-                + " definition shared by several routes — naming one means it can only ever serve"
-                + " that class. The route entry's `viewModel` is the place for the binding.");
+            "Fully-qualified class of the view model this definition binds to (the canonical"
+                + " vocabulary of coherence-plan #5). Omit it on a definition shared by several"
+                + " routes — naming one means it can only ever serve that class. The route entry's"
+                + " `viewModel` is the place for the binding.");
+    pageProps
+        .putObject("modelView")
+        .put("type", "string")
+        .put("deprecated", true)
+        .put(
+            "description",
+            "Deprecated alias of `viewModel` — kept so existing definitions keep"
+                + " working. Prefer `viewModel`; if both are present, `viewModel` wins.");
     pageProps.set("actions", actionList);
     ((ObjectNode) pageProps.get("actions"))
         .put(

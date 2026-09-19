@@ -112,3 +112,18 @@ Everything is a component · inferred by default, explicit as override · one mo
     behaviour via the already-authorable `Rule`/`RuleLink` (`RunAction`) — e.g. a menu-leaf "Action".
   - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
     forEach), each with the interpreter + corpus once divergence becomes possible.
+- **Phase 5 (vocabulary: App/Route/Screen/DataSource + App≠Home): in progress.** Breaking renames,
+  done as small ALIASED slices (old key keeps working, new canonical key wins). Decomposition:
+  1. **`modelView` → `viewModel`** (this slice): the ONE server class (state + actions) had two
+     names — `RouteEntry.viewModel` (route side, already canonical) vs the definition YAML key
+     `modelView:`. The definition envelope now reads **`viewModel:`** as canonical and keeps
+     `modelView:` as a deprecated alias (`viewModel` wins if both present); schema emits both
+     (`modelView` marked `deprecated`); the internal Java field/var names stay `modelView` (not
+     user-facing — cosmetic churn avoided). `YamlModelViewSyncTest` pins that both keys bind
+     identically. **Follow-up:** the visual editor still WRITES `modelView:` — have it emit the
+     canonical `viewModel:` (frontend-only; deferred to avoid colliding with the active editor work).
+  2. **`@UI`/`@App` → one "App" concept** (pending) — reconcile the mount/chrome/shell fragmentation.
+  3. **`definition` → `Layout`** (pending) — name the layout crisply; keep `definition` as alias.
+  4. **retire "page" as an authoring term**, keep it as the wire artifact only (pending).
+  5. **R2 (App ≠ its Home Screen)** (pending) — remove the "@UI class is both app and home"
+     conflation so the home is just another Screen; `AppShell` already carries the home reference.
