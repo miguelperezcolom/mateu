@@ -10,11 +10,11 @@ test.describe('App ≠ its Home Screen (R2)', () => {
 
   test('a multi-screen app mounts its distinct home Screen in the content slot', async ({ page }) => {
     await page.goto('/r2home');
-    // The app chrome renders (title), AND the distinct home Screen's content is mounted — the
-    // R2HomeScreen field value, not the app itself. Use the heading role for the Screen title (a
-    // bare text match also hits the a11y live-region that announces the page title) and the unique
-    // field value for the content.
+    // The distinct home Screen (R2HomeScreen) is mounted in the content slot — NOT the app itself.
+    // Its @Title renders as the section heading (use the heading role; a bare text match also hits
+    // the a11y live-region that announces the page title), and its `note` field carries the value.
+    // getByText does not match an <input value>, so assert the textbox value directly.
     await expect(page.getByRole('heading', { name: 'R2 home screen' })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('R2 home content')).toBeVisible();
+    await expect(page.getByRole('textbox').first()).toHaveValue('R2 home content');
   });
 });
