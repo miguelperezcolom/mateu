@@ -29,6 +29,7 @@
     }
   },
   "scripts": {
+    "vscode:prepublish": "npm run copy:web && npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/"

@@ -35,6 +35,10 @@ public final class ViewTypeClassifier {
     }
     if (AppSupplier.class.isAssignableFrom(instanceType)) return true;
     if (App.class.isAssignableFrom(instanceType)) return true;
+    // A class carrying the @App annotation IS an app (coherence-plan #5) — including a bare
+    // @App(route = "/x") with no @Menu. Existing @App classes already match via their @Menu fields,
+    // so this only adds the menu-less case; it never reclassifies a class that was a page.
+    if (MetaAnnotations.isPresent(instanceType, io.mateu.uidl.annotations.App.class)) return true;
     if (getAllFields(instanceType).stream()
         .anyMatch(field -> MetaAnnotations.isPresent(field, Menu.class))) return true;
     return false;
