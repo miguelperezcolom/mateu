@@ -184,9 +184,14 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   Start adds a `Button` bound to an `actionId` and gives the action a home context-aware: a **bound** page
   leaves the id for an `@Action` (created via the §G Sync / IDE quick-fix); a **classless** page also gets a
   page-level `actions:` `restAction` stub to edit. (This also fixed a latent `serializePage` bug — a *bare*
-  page dropped `rest`/`triggers` on save.) 102 vitest + tsc + build. **Remaining in Phase 6:** AI-assisted
-  scaffolds, and (editor tree friction) selecting INTO a `Slotted` child (renders/round-trips fine; deep-
-  edited via YAML for now). Model-editing quick starts are covered by §G's IntelliJ "Create in ViewModel".
+  page dropped `rest`/`triggers` on save.) **AI-assisted scaffolds: DONE** — an **AI panel** that composes a
+  complete prompt (the component catalog + the page's bound-model context) to paste into any AI, and imports
+  + **validates** the YAML it returns (`model/aiScaffold.ts`: `buildScaffoldPrompt` / `validateScaffoldYaml`
+  — rejects unknown component types, tolerates ```yaml fences). Same €0, tool-agnostic shape as the
+  mock-fixtures Import: **no embedded/paid LLM, no key**. 108 vitest + tsc + build. **Phase 6 essentially
+  complete** (templates + bind/scaffold/turn-into-listing/wire-an-action + AI). **Only leftover:** the
+  editor-tree friction selecting INTO a `Slotted` child (renders/round-trips fine; deep-edited via YAML).
+  Model-editing quick starts are covered by §G's IntelliJ "Create in ViewModel".
 - **Phase 5 — Layout ↔ ViewModel sync: STARTED (the web-editor reconciliation half).** A **Sync panel**
   shows the structural diff between the page and the bound view model's contract (pure, tested
   `model/viewModelSync.ts`): **in the model, not on the page** → per-member **"Add to page"** (a `FormField`

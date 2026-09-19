@@ -182,6 +182,27 @@ public class TestApp : IAppActionsSupplier
     public Message Sync() => new("Synced");
 }
 
+// ── R2 fixtures: an app whose home route resolves to a REAL, distinct Screen class ──────────────
+[UI("/r2app/screen")]
+public class R2Screen
+{
+    public string Note { get; set; } = "R2 home content";
+}
+
+/// <summary>A multi-screen app whose home is a DISTINCT Screen (R2Screen), not the app itself
+/// (coherence-plan #5, R2). The IAppSupplier shell points HomeRoute at /r2app/screen.</summary>
+[App("R2 App"), UI("/r2app")]
+public class R2App : IAppSupplier
+{
+    public AppShell GetApp() => new("R2 App", new List<MenuItemDto>
+    {
+        new("Screen", "/r2app/screen", ""),
+    })
+    {
+        HomeRoute = "/r2app/screen",
+    };
+}
+
 public class Thing
 {
     public string Id { get; set; } = "";
@@ -926,6 +947,22 @@ public class SyncHandlerTests
     {
         var c = ComponentOf(Handler().Handle(new RunActionRqDto { Route = "", ConsumedRoute = "_empty" }));
         Assert.False(string.IsNullOrEmpty(c.StructureHash));
+    }
+
+    [Fact]
+    public void R2_a_home_that_resolves_to_a_distinct_screen_is_typed_with_that_screens_class()
+    {
+        // coherence-plan #5 (R2, App ≠ its Home Screen), .NET parity: /r2app's home route
+        // (/r2app/screen) resolves to a REAL distinct registered type (R2Screen), so the home
+        // fragment is typed with the home SCREEN's class — not the app class. The app's own
+        // serverSideType stays the app (it renders the chrome around the content slot).
+        var inc = Handler().Handle(new RunActionRqDto { Route = "/r2app", ConsumedRoute = "" });
+        var app = (ClientSideComponentDto)inc.Fragments[0].Component!;
+        var meta = (AppMetadataDto)app.Metadata;
+        Assert.Equal("/r2app/screen", meta.HomeRoute);
+        Assert.Equal(typeof(R2Screen).FullName, meta.HomeServerSideType);
+        Assert.Equal(typeof(R2App).FullName, meta.ServerSideType);
+        Assert.NotEqual(meta.ServerSideType, meta.HomeServerSideType);
     }
 
     [Fact]

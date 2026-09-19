@@ -1467,6 +1467,22 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             };
             app = app with { Metadata = meta with { AppDataSource = appData, RequiredCapabilities = caps.ToList() } };
         }
+        // R2 (App ≠ its Home Screen, coherence-plan #5): type the home fragment with the home
+        // SCREEN's class when the home route resolves to a DIFFERENT registered type than the app —
+        // a multi-screen app whose home is a distinct route. A single-screen app, a home with no
+        // backing Screen (a bare menu link / sentinel route), or an unresolvable home keeps the
+        // app's own type. Mirrors Java's AppHomeRouteResolver.getHomeServerSideType. Only the
+        // conflated TYPE is fixed; the home-fragment mechanism is untouched.
+        if (app is { Metadata: AppMetadataDto homeMeta }
+            && !string.IsNullOrWhiteSpace(homeMeta.HomeRoute)
+            && !homeMeta.HomeRoute!.EndsWith("_page", StringComparison.Ordinal)
+            && !homeMeta.HomeRoute.EndsWith("_no_home_route", StringComparison.Ordinal)
+            && registry.Resolve(null, homeMeta.HomeRoute) is { } homeType
+            && homeType.FullName is { } homeName
+            && homeName != appType.FullName)
+        {
+            app = app with { Metadata = homeMeta with { HomeServerSideType = homeName } };
+        }
         // SetWindowTitle rides for a DECLARATIVE app (the @UI-annotated app class is a page —
         // ViewTypeClassifier.isPage) but NOT for an AppSupplier: there the root load resolves to
         // the AppShell fluent object, which is not a page, so Java emits no title command.

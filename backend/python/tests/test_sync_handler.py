@@ -12,7 +12,7 @@ from typing import Annotated
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_dtos import Option, UICommand  # noqa: E402
+from mateu_dtos import MenuItem, Option, UICommand  # noqa: E402
 from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     action_options,
@@ -60,6 +60,8 @@ from mateu_uidl import (  # noqa: E402
     ReadOnly,
     Required,
     Section,
+    AppShell,
+    AppSupplier,
     Step,
     Tab,
     Translator,
@@ -212,6 +214,26 @@ class TestApp(AppActionsSupplier):
 
     def sync(self) -> Message:
         return Message("Synced")
+
+
+# ── R2 fixtures: an app whose home route resolves to a REAL, distinct Screen class ──────────────
+@ui("/r2app/screen")
+class R2Screen:
+    note: str = "R2 home content"
+
+
+@app("R2 App")
+@ui("/r2app")
+class R2App(AppSupplier):
+    """A multi-screen app whose home is a DISTINCT Screen (R2Screen), not the app itself
+    (coherence-plan #5, R2). The AppSupplier shell points home_route at /r2app/screen."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="R2 App",
+            home_route="/r2app/screen",
+            menu=[MenuItem(label="Screen", route="/r2app/screen", server_side_type="")],
+        )
 
 
 class Thing:
@@ -1046,6 +1068,18 @@ def test_app_shell_menu():
     assert "Test App" in j
     assert "Things" in j
     assert '"/things"' in j
+
+
+def test_r2_a_home_that_resolves_to_a_distinct_screen_is_typed_with_that_screens_class():
+    # coherence-plan #5 (R2, App ≠ its Home Screen), Python parity: /r2app's home (/r2app/screen)
+    # resolves to a REAL distinct registered type (R2Screen), so the home fragment is typed with the
+    # home SCREEN's class — not the app class. The app's own server_side_type stays the app.
+    inc = handler().handle(RunActionRq(route="/r2app", consumed_route=""))
+    meta = inc.fragments[0].component.metadata
+    assert meta.home_route == "/r2app/screen"
+    assert meta.home_server_side_type == _name(R2Screen)
+    assert meta.server_side_type == _name(R2App)
+    assert meta.home_server_side_type != meta.server_side_type
 
 
 def test_capture_and_tree_fields_on_the_wire():
