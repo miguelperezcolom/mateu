@@ -14,7 +14,7 @@ public record UIIncrementDto(
     // Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive within a major
     // version; a consumer may read it to guard against a mismatched producer. Trailing optional
     // parameter so every existing positional construction keeps compiling.
-    string WireVersion = CurrentWireVersion)
+    string WireVersion = "3.0")   // literal: a positional-record param default cannot reference the body const
 {
     /// <summary>Current wire protocol version. Bumped only on a breaking (major) wire change;
     /// additions within a major are backward compatible and do not change it.</summary>
