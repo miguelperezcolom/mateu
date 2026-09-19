@@ -137,5 +137,16 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   **Remaining:** GUI live-run (human-in-the-loop) + backlog: IntelliJ `externalChange` desync, wire
   `copy:web` into builds so the embed can't go stale, `listFiles` bound, https proxy, custom-editor
   `priority` drift.
-- **Next actions:** the human **GUI live-test** of both hosts against demo-starwars (`:8600`) — commands in
-  the verification recipe; then the remaining Phase-1 hardening, then Phase 2 (preview source).
+- **Phase 2 — Preview source: FIRST SLICE done (web editor, build + 82 vitest green + tsc).** Pure model
+  `apps/visual-editor/src/model/previewSource.ts` (6 tests) — modes `remote`/`local`/`mock`/`client`, with
+  `renderBaseUrl`/`rendersClientSide`/`contractFixtureFor`/`fixtureAsMembers` + serialise/parse; persisted
+  via `previewSourceStore.ts` (localStorage). Toolbar **selector** (mode + backend url) in
+  `mateu-visual-editor.ts`; contract fetches consult `mock` fixtures before the backend and otherwise use
+  the source's baseUrl; the canvas takes an explicit `clientRender` flag (so the IntelliJ same-origin
+  `baseUrl:''` isn't confused with client mode) and shows an honest "client-side rendering not available
+  yet (Phase 7)" placeholder. **Remaining in Phase 2:** a UI to author/populate `mock` fixtures (today they
+  can only be set via persisted JSON), data-source (listing-row) mocking (lives in `libs/mateu`
+  `fetchExternalJson`), the **AI-assisted fixture generator** (inspect ViewModels/sources → fixtures), and
+  per-mode recipe docs. `local` is currently a labelled `remote` (embedded-backend boot is a later step).
+- **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); finish
+  Phase 2 (fixture-authoring UI + AI generator + data mocking); remaining Phase-1 hardening.
