@@ -5,10 +5,10 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalAlignment;
+import io.mateu.uidl.data.ResponsiveGrid;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
@@ -74,7 +74,11 @@ public final class WelcomeComposer {
             .content(ctas)
             .build());
     if (!tiles.isEmpty()) {
-      content.add(DashboardLayout.builder().id("highlights").items(tiles).build());
+      // The highlight tiles land on the one responsive grid (coherence-plan #9), auto-fitting into
+      // as many columns as fit — the same consolidation the Dashboard archetype uses, retiring the
+      // bespoke DashboardLayout. The DashboardPanel tiles carry their own grid-column span.
+      content.add(
+          new ResponsiveGrid("highlights", List.of(), null, tiles, null, "align-items: stretch;"));
     }
     return VerticalLayout.builder()
         .id(id)

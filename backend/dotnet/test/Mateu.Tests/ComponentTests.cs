@@ -1051,9 +1051,12 @@ public class ComponentTests
         Assert.Contains("\"label\":\"Get started\"", json);
         Assert.Contains("\"actionId\":\"go\"", json);
 
-        // Highlight tiles on a DashboardLayout below.
-        Assert.Contains("\"type\":\"DashboardLayout\"", json);
+        // Highlight tiles on the one responsive grid below (coherence-plan #9), retiring the bespoke
+        // DashboardLayout — the same consolidation the Dashboard archetype uses.
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"id\":\"highlights\"", json);
         Assert.Contains("\"title\":\"Feature A\"", json);
+        Assert.DoesNotContain("\"type\":\"DashboardLayout\"", json);
 
         var inc = Handler().Handle(new RunActionRqDto { ActionId = "go", ServerSideType = typeof(WelcomePage).FullName });
         Assert.Equal("gone", Assert.Single(inc.Messages).Text);

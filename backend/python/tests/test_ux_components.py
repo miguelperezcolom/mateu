@@ -1347,7 +1347,8 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
     assert cta["metadata"]["label"] == "Get started"
     assert cta["metadata"]["actionId"] == "getStarted"
 
-    assert highlights["metadata"]["type"] == "DashboardLayout"
+    # coherence-plan #9: the highlight tiles land on the one responsive grid, retiring DashboardLayout.
+    assert highlights["metadata"]["type"] == "ResponsiveGrid"
     assert highlights["id"] == "highlights"
     empty_tile, loading_tile = highlights["children"]
     assert empty_tile["metadata"]["title"] == "Inbox"

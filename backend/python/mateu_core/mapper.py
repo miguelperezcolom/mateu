@@ -1150,8 +1150,14 @@ class ReflectionMapper:
             )
         ]
         if tiles:
+            # The highlight tiles land on the one responsive grid (coherence-plan #9), auto-fitting —
+            # the same consolidation the Dashboard archetype uses, retiring the bespoke DashboardLayout.
             content.append(
-                self.map_component(fluent.DashboardLayout(id="highlights", items=tuple(tiles)))
+                self.map_component(
+                    fluent.ResponsiveGrid(
+                        id="highlights", content=tuple(tiles), style="align-items: stretch;"
+                    )
+                )
             )
         return self.client(VerticalLayoutMetadata(spacing=True), None, content)
 

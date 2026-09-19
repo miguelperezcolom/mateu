@@ -206,7 +206,10 @@ public static class ArchetypeComposers
                 Centered = true, Content = ctas,
             },
         };
-        if (tiles.Count > 0) content.Add(new DashboardLayout { Id = "highlights", Items = tiles });
+        // The highlight tiles land on the one responsive grid (coherence-plan #9), auto-fitting — the
+        // same consolidation the Dashboard archetype uses, retiring the bespoke DashboardLayout.
+        if (tiles.Count > 0)
+            content.Add(new ResponsiveGrid { Id = "highlights", Content = tiles, Style = "align-items: stretch;" });
         return new VerticalLayout { Id = Archetypes.IdOf(host), Spacing = true, Content = content };
     }
 }
