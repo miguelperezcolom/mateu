@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import {
-    PageDoc, NodePath, PageNode, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
+    PageDoc, NodePath, PageNode, PageTrigger, TRIGGER_TYPES, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp,
 } from './model/pageModel'
 import { fetchInferredFields, fetchContractMembers, ContractMembers } from './model/contract'
@@ -79,6 +79,15 @@ export class MateuVisualEditor extends LitElement {
         .left-tabs button.active { background: #fff; color: #1f2937; font-weight: 600; border-bottom-color: #2563eb; }
         .left-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
         .source { grid-column: 1 / -1; }
+        .triggers-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; display: flex; flex-direction: column; gap: 0.4rem; font: 12px system-ui; }
+        .triggers-panel .tp-head { font-weight: 600; color: #374151; }
+        .triggers-panel .tp-empty { color: #9ca3af; }
+        .triggers-panel .tp-row { display: flex; align-items: center; gap: 0.4rem; }
+        .triggers-panel select, .triggers-panel input { font: 12px system-ui; border: 1px solid #d7dade;
+            border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
+        .triggers-panel input { flex: 1; min-width: 8rem; }
+        .triggers-panel .del { border: none; background: none; color: #b91c1c; cursor: pointer; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -88,6 +97,7 @@ export class MateuVisualEditor extends LitElement {
     @state() private doc?: PageDoc
     @state() private selectedPath: NodePath | null = null
     @state() private showSource = false
+    @state() private showTriggers = false
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -186,6 +196,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.modeBadge()}
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
                 ${this.mode === 'mount'
@@ -211,6 +222,7 @@ export class MateuVisualEditor extends LitElement {
                     <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                    .clientRender=${rendersClientSide(this.previewSource)} .selectedPath=${this.selectedPath}></editor-canvas>
                     <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
+                    ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
                             <textarea .value=${this.doc ? serializePage(this.doc) : ''} @change=${this.onSourceEdit}></textarea>
@@ -493,6 +505,59 @@ export class MateuVisualEditor extends LitElement {
      */
     private notifyChanged() {
         this.host.onContentChanged?.(this.currentYaml())
+    }
+
+    // --- page-level triggers (on-load / on-event / on-value-change → an action) ---
+
+    /** The triggers panel: one row per trigger (type + actionId + the type-specific field), add/remove. */
+    private renderTriggers() {
+        const triggers = this.doc?.triggers ?? []
+        return html`
+            <div class="triggers-panel">
+                <div class="tp-head">Triggers — run an action on a page event (client-side)</div>
+                ${triggers.length === 0 ? html`<div class="tp-empty">No triggers. Add one to run an action on load, on an event, or on a field change.</div>` : ''}
+                ${triggers.map((t, i) => html`
+                    <div class="tp-row">
+                        <select @change=${(e: Event) => this.setTrigger(i, 'type', (e.target as HTMLSelectElement).value)}>
+                            ${TRIGGER_TYPES.map((ty) => html`<option value=${ty} ?selected=${t.type === ty}>${triggerLabel(ty)}</option>`)}
+                        </select>
+                        <input placeholder="actionId" .value=${t.actionId ?? ''} @change=${(e: Event) => this.setTrigger(i, 'actionId', (e.target as HTMLInputElement).value)} />
+                        ${t.type === 'OnCustomEventTrigger'
+                            ? html`<input placeholder="event name" .value=${t.eventName ?? ''} @change=${(e: Event) => this.setTrigger(i, 'eventName', (e.target as HTMLInputElement).value)} />`
+                            : t.type === 'OnValueChangeTrigger'
+                            ? html`<input placeholder="field (propertyName)" .value=${t.propertyName ?? ''} @change=${(e: Event) => this.setTrigger(i, 'propertyName', (e.target as HTMLInputElement).value)} />`
+                            : ''}
+                        <button class="del" title="Remove" @click=${() => this.removeTrigger(i)}>✕</button>
+                    </div>`)}
+                <div><button @click=${this.addTrigger}>+ Trigger</button></div>
+            </div>`
+    }
+
+    private addTrigger = () => {
+        const triggers: PageTrigger[] = [...(this.doc?.triggers ?? []), { type: 'OnLoadTrigger', actionId: '', extra: {} }]
+        this.doc = { ...this.doc!, triggers }
+        this.notifyChanged()
+    }
+
+    private removeTrigger(i: number) {
+        const triggers = (this.doc?.triggers ?? []).filter((_, j) => j !== i)
+        this.doc = { ...this.doc!, triggers: triggers.length ? triggers : undefined }
+        this.notifyChanged()
+    }
+
+    private setTrigger(i: number, key: 'type' | 'actionId' | 'eventName' | 'propertyName', value: string) {
+        const triggers = (this.doc?.triggers ?? []).map((t, j) => (j === i ? { ...t, [key]: value } : t))
+        this.doc = { ...this.doc!, triggers }
+        this.notifyChanged()
+    }
+}
+
+function triggerLabel(type: string): string {
+    switch (type) {
+        case 'OnLoadTrigger': return 'On load'
+        case 'OnCustomEventTrigger': return 'On event'
+        case 'OnValueChangeTrigger': return 'On value change'
+        default: return type
     }
 }
 

@@ -467,6 +467,16 @@ public final class UidlSchemaGenerator {
     var actionList = MAPPER.createObjectNode().put("type", "array");
     actionList.putObject("items").put("$ref", "#/$defs/Action");
 
+    // The Trigger polymorphic family, so a definition may declare `triggers:` beside `actions:`:
+    // a classless page can fire an action on load / on a custom event / on a value change, without
+    // a click. TriggerMapper already maps every Trigger record a TriggersSupplier yields.
+    var triggerGen = new UidlSchemaGenerator();
+    triggerGen.definePolymorphic(io.mateu.uidl.fluent.Trigger.class);
+    triggerGen.defs.forEach(defs::set);
+
+    var triggerList = MAPPER.createObjectNode().put("type", "array");
+    triggerList.putObject("items").put("$ref", "#/$defs/Trigger");
+
     // A page definition IS a component, and may carry three keys of its own beside it. `allOf`
     // rather than extra properties on the component: the component branch is a oneOf over 116
     // shapes, and naming the extras separately keeps them out of every one of them.
@@ -490,6 +500,13 @@ public final class UidlSchemaGenerator {
             "Actions this page exposes. An action carrying a `restAction` is run by the CLIENT"
                 + " against the declared endpoint — no view model and no server round trip — so a"
                 + " Button naming its id can create, update or delete a record.");
+    pageProps.set("triggers", triggerList);
+    ((ObjectNode) pageProps.get("triggers"))
+        .put(
+            "description",
+            "Triggers this page fires without a click: on load, on a custom event or on a value"
+                + " change. Each entry is discriminated by `type` (OnLoadTrigger,"
+                + " OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs.");
 
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);

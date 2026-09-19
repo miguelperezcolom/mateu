@@ -207,3 +207,49 @@ describe('partials (content-list fragments)', () => {
         expect(out.type).toBe('Card')
     })
 })
+
+describe('page-level triggers + envelope preservation', () => {
+    const src = `layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+triggers:
+  - type: OnLoadTrigger
+    actionId: preload
+  - type: OnCustomEventTrigger
+    actionId: refresh
+    eventName: changed
+actions:
+  - id: save
+    restAction:
+      source:
+        url: https://x/api
+        method: POST
+`
+
+    it('reads page-level triggers and preserves other envelope keys (actions) verbatim', () => {
+        const doc = parsePage(src)
+        expect(doc.triggers).toHaveLength(2)
+        expect(doc.triggers![0]).toMatchObject({ type: 'OnLoadTrigger', actionId: 'preload' })
+        expect(doc.triggers![1]).toMatchObject({ type: 'OnCustomEventTrigger', actionId: 'refresh', eventName: 'changed' })
+        // actions are not modelled by the editor but must survive the round trip
+        expect((doc.rest as any).actions).toHaveLength(1)
+    })
+
+    it('round-trips triggers + actions (no data loss on save)', () => {
+        const out = parse(serializePage(parsePage(src)))
+        expect(out.triggers).toEqual([
+            { type: 'OnLoadTrigger', actionId: 'preload' },
+            { type: 'OnCustomEventTrigger', actionId: 'refresh', eventName: 'changed' },
+        ])
+        expect(out.actions[0].id).toBe('save')
+        expect(out.actions[0].restAction.source.method).toBe('POST')
+    })
+
+    it('drops the triggers key entirely when there are none', () => {
+        const doc = parsePage('layout:\n  type: VerticalLayout\n  content: []\n')
+        expect(doc.triggers).toBeUndefined()
+        expect(serializePage(doc)).not.toContain('triggers')
+    })
+})
