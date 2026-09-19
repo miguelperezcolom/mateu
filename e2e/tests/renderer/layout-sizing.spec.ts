@@ -140,6 +140,30 @@ test.describe('layout sizing (fill / hug)', () => {
     await expect(page.getByText('Specifications')).toBeVisible();
   });
 
+  test('an @Aside field composes a main/aside template on the one grid (#7 migration)', async ({ page }) => {
+    await page.goto('/aside-demo');
+    // The form fields render (the form-wrapping into the main slot does not break them).
+    await expect(page.getByText('Need help?')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    // The @Aside composes a ResponsiveGrid template (display:grid) with two tracks and a sticky
+    // aside — not the bespoke ContentLayout. The form field labels are still present.
+    const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      const cells = Array.from((el as HTMLElement).children) as HTMLElement[];
+      const aside = cells.find(c => c.style.gridArea?.includes('aside') || c.textContent?.includes('Need help?'));
+      return {
+        display: cs.display,
+        tracks: cs.gridTemplateColumns.trim().split(/\s+/).length,
+        asidePosition: aside ? getComputedStyle(aside).position : null,
+      };
+    });
+    expect(info.display).toBe('grid');
+    expect(info.tracks).toBe(2);
+    expect(info.asidePosition).toBe('sticky');
+    // the form's own fields survived the wrapping (rendered in the main slot).
+    await expect(page.getByLabel('First Name')).toBeVisible();
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });
