@@ -159,9 +159,17 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   `design/coherence-execution.md`) rather than changed here. Meanwhile the DSL-independent slice landed:
   a **menu-leaf "Action"** in `app-editor` — a `RuleLink` with a single `RunAction` rule (the unified
   `route | rule` model), authored/round-tripped via `appModel.ts` (richer rules — RunJS/Set*/filters —
-  stay `raw` so nothing is edited lossily). 85 vitest green + tsc + build. **Remaining in Phase 3:** the
-  `steps` flow editor (blocked on the coherence handoff), trigger wiring (on-load/on-click/on-event), and
-  authoring behaviour on buttons/actions (not just menus).
+  stay `raw` so nothing is edited lossily). **Trigger wiring: DONE** — page-level `triggers:` are now
+  authorable in classless YAML end-to-end (a definition-only page can preload on load, react to an event,
+  recompute on a field change). Backend enablement (Java-core, mirrors the `actions:` write-half):
+  `SeededYamlPage` implements `TriggersSupplier`, `YamlUidlLoader.triggersOf` parses `triggers:`,
+  `YamlUidlMapperFactory` registers the six `Trigger` subtypes, and `UidlSchemaGenerator` adds `triggers`
+  to the page envelope (schema regenerated). Editor: a **Triggers panel** (on-load/on-event/on-value-change
+  → actionId) in `mateu-visual-editor.ts`; `pageModel.ts` gained page-level `triggers` **and** preserves
+  the rest of the envelope verbatim — fixing a pre-existing bug where the editor **dropped `actions:`** on
+  save. Verified: 1062 core tests + UidlSchemaTest (12) + `YamlDeclaredTriggersSyncTest` (4) green; frontend
+  88 vitest + tsc + build. **Remaining in Phase 3:** the `steps` flow editor (blocked on the coherence
+  handoff) and authoring behaviour on buttons/actions (not just menus).
 - **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
   coherence thread closes the classless-`steps` gap → then the `steps` flow editor; remaining Phase-1
   hardening; finish Phase 2 (data mocking).

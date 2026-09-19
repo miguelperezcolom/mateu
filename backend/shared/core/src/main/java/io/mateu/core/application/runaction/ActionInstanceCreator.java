@@ -135,7 +135,8 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
-      return Mono.justOrEmpty(seedBareLayout(spec.layout(), spec.actions(), command));
+      return Mono.justOrEmpty(
+          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), command));
     }
     return createInstanceAndPostHydrate(spec.modelView(), command);
   }
@@ -156,21 +157,28 @@ public class ActionInstanceCreator {
   private Object seedBareLayout(
       io.mateu.uidl.fluent.Component layout,
       java.util.List<io.mateu.uidl.fluent.Action> actions,
+      java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
       RunActionCommand command) {
     if (layout == null) {
       return null;
     }
     var declaredActions =
         actions == null ? java.util.List.<io.mateu.uidl.fluent.Action>of() : actions;
+    var declaredTriggers =
+        triggers == null ? java.util.List.<io.mateu.uidl.fluent.Trigger>of() : triggers;
     var pathOnly = stripQuery(command.route());
     var match = routeRegistry.match(pathOnly).orElse(null);
     if (match == null || match.entry() == null) {
-      // No registry entry (e.g. a convention-only page): nothing to seed, but declared actions
-      // still have to travel.
-      return declaredActions.isEmpty()
+      // No registry entry (e.g. a convention-only page): nothing to seed, but declared actions and
+      // triggers still have to travel.
+      return declaredActions.isEmpty() && declaredTriggers.isEmpty()
           ? layout
           : new SeededYamlPage(
-              layout, command.componentState(), declaredActions, restSourceRegistry.catalog());
+              layout,
+              command.componentState(),
+              declaredActions,
+              declaredTriggers,
+              restSourceRegistry.catalog());
     }
     var entry = match.entry();
     var httpRequest = command.httpRequest();
@@ -184,7 +192,7 @@ public class ActionInstanceCreator {
             || !entry.defaultParams().isEmpty()
             || !entry.fixedParams().isEmpty()
             || hasQueryParams;
-    if (!seeds && declaredActions.isEmpty()) {
+    if (!seeds && declaredActions.isEmpty() && declaredTriggers.isEmpty()) {
       return layout; // a static page: keep the bare-layout shape (unchanged wire)
     }
     var resolved =
@@ -192,7 +200,8 @@ public class ActionInstanceCreator {
     var state =
         RouteSegmentUtils.addParameterValues(
             command.componentState(), pathOnly, resolved, httpRequest);
-    return new SeededYamlPage(layout, state, declaredActions, restSourceRegistry.catalog());
+    return new SeededYamlPage(
+        layout, state, declaredActions, declaredTriggers, restSourceRegistry.catalog());
   }
 
   private static String stripQuery(String route) {

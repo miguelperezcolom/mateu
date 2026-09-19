@@ -5,6 +5,8 @@ import io.mateu.uidl.data.RestSourceKind;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.Trigger;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RestSourceSupplier;
@@ -29,20 +31,43 @@ import java.util.Map;
  * always carried an action's {@code restAction}, and the client has always run it without a round
  * trip; what a page with no Java class lacked was somewhere to declare one. The {@code actions:} of
  * its definition land here, so a {@code Button} naming one calls the endpoint directly.
+ *
+ * <p>It is likewise a {@link TriggersSupplier}: the {@code triggers:} of its definition (on-load,
+ * on-custom-event, on-value-change …) land here, so a classless page can fire an action without a
+ * click. {@code TriggerMapper.mapTriggers} already consults {@code TriggersSupplier}, so all that
+ * was missing was for the page to BE one — the same shape as {@code declaredActions}.
  */
 record SeededYamlPage(
     Component layout,
     Map<String, Object> state,
     List<Action> declaredActions,
+    List<Trigger> declaredTriggers,
     io.mateu.uidl.data.RestSourceCatalog catalog)
-    implements ComponentTreeSupplier, StateSupplier, ActionSupplier, RestSourceSupplier {
+    implements ComponentTreeSupplier,
+        StateSupplier,
+        ActionSupplier,
+        RestSourceSupplier,
+        TriggersSupplier {
 
   SeededYamlPage(Component layout, Map<String, Object> state) {
-    this(layout, state, List.of(), io.mateu.uidl.data.RestSourceCatalog.empty());
+    this(layout, state, List.of(), List.of(), io.mateu.uidl.data.RestSourceCatalog.empty());
   }
 
   SeededYamlPage(Component layout, Map<String, Object> state, List<Action> declaredActions) {
-    this(layout, state, declaredActions, io.mateu.uidl.data.RestSourceCatalog.empty());
+    this(layout, state, declaredActions, List.of(), io.mateu.uidl.data.RestSourceCatalog.empty());
+  }
+
+  SeededYamlPage(
+      Component layout,
+      Map<String, Object> state,
+      List<Action> declaredActions,
+      io.mateu.uidl.data.RestSourceCatalog catalog) {
+    this(layout, state, declaredActions, List.of(), catalog);
+  }
+
+  @Override
+  public List<Trigger> triggers(HttpRequest httpRequest) {
+    return declaredTriggers == null ? List.of() : declaredTriggers;
   }
 
   @Override

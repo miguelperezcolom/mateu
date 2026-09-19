@@ -1,0 +1,19 @@
+# A definition-only page that FIRES actions without a click. No modelView, so there is no Java
+# class anywhere behind it: the page declares its own triggers beside its layout, the mirror of the
+# `actions:` write half. An OnLoadTrigger preloads on first render; an OnCustomEventTrigger reacts
+# to a named event from another component.
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: amount
+      label: Amount
+triggers:
+  - type: OnLoadTrigger
+    actionId: preload
+  - type: OnCustomEventTrigger
+    actionId: refresh
+    eventName: something-happened
+  - type: OnValueChangeTrigger
+    actionId: recompute
+    propertyName: amount

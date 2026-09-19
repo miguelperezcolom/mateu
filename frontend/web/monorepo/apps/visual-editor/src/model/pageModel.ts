@@ -45,6 +45,63 @@ export interface PageDoc {
      * layout, which is exactly right.
      */
     fragment?: boolean
+    /**
+     * Page-level triggers (on-load / on-event / on-value-change → an action) declared next to the
+     * layout. Authorable in classless YAML (a definition-only page can preload, react to an event…).
+     */
+    triggers?: PageTrigger[]
+    /**
+     * Other top-level envelope keys the editor does not model (e.g. `actions:`, `state:`) — kept
+     * VERBATIM so a round-trip through the editor never drops the write half of a classless page.
+     */
+    rest?: Record<string, unknown>
+}
+
+/** A page-level trigger. Known fields are edited; `extra` preserves anything else on round-trip. */
+export interface PageTrigger {
+    type: string
+    actionId?: string
+    /** OnCustomEventTrigger. */
+    eventName?: string
+    /** OnValueChangeTrigger. */
+    propertyName?: string
+    extra: Record<string, unknown>
+}
+
+/** The trigger types the editor offers; the discriminator matches the backend's registered names. */
+export const TRIGGER_TYPES = ['OnLoadTrigger', 'OnCustomEventTrigger', 'OnValueChangeTrigger'] as const
+
+const TRIGGER_KNOWN = ['type', 'actionId', 'eventName', 'propertyName']
+
+function toPageTrigger(raw: any): PageTrigger {
+    return {
+        type: typeof raw?.type === 'string' ? raw.type : 'OnLoadTrigger',
+        actionId: raw?.actionId,
+        eventName: raw?.eventName,
+        propertyName: raw?.propertyName,
+        extra: omit(raw && typeof raw === 'object' ? raw : {}, TRIGGER_KNOWN),
+    }
+}
+
+export function pageTriggerToRaw(t: PageTrigger): Record<string, unknown> {
+    const out: Record<string, unknown> = { type: t.type }
+    if (t.actionId) out.actionId = t.actionId
+    if (t.eventName) out.eventName = t.eventName
+    if (t.propertyName) out.propertyName = t.propertyName
+    return { ...out, ...t.extra }
+}
+
+function omit(obj: Record<string, unknown>, keys: string[]): Record<string, unknown> {
+    const out: Record<string, unknown> = {}
+    for (const k of Object.keys(obj)) if (!keys.includes(k)) out[k] = obj[k]
+    return out
+}
+
+/** Split an envelope's triggers + the other non-layout keys (kept verbatim) off the root object. */
+function envelopeExtras(root: any): { triggers?: PageTrigger[]; rest?: Record<string, unknown> } {
+    const triggers = Array.isArray(root?.triggers) ? root.triggers.map(toPageTrigger) : undefined
+    const rest = omit(root && typeof root === 'object' ? root : {}, ['modelView', 'layout', 'layoutDelta', 'triggers'])
+    return { triggers, rest: Object.keys(rest).length ? rest : undefined }
 }
 
 /** How this page will be written back — and, for a page with a model, what that costs. */
@@ -73,6 +130,7 @@ export function parsePage(yaml: string): PageDoc {
             layout: { type: 'FormLayout', content: [] },
             bare: false,
             delta: readDelta((root as any).layoutDelta),
+            ...envelopeExtras(root),
         }
     }
     if (root && typeof root === 'object' && 'layout' in (root as object)) {
@@ -80,6 +138,7 @@ export function parsePage(yaml: string): PageDoc {
             modelView: (root as any).modelView ?? undefined,
             layout: normalize((root as any).layout),
             bare: false,
+            ...envelopeExtras(root),
         }
     }
     // An empty/blank/whitespace file is an EMPTY editable page (a droppable VerticalLayout), not a
@@ -126,9 +185,13 @@ export function serializePage(doc: PageDoc): string {
         // nothing", which is different from a page that was never edited — and, unlike `layout:`,
         // it costs the screen nothing.
         envelope.layoutDelta = writeDelta(delta)
-        return stringify(envelope)
+    } else {
+        envelope.layout = doc.layout
     }
-    envelope.layout = doc.layout
+    // The write half of a classless page: triggers first (editable), then everything else verbatim so
+    // `actions:`/`state:`/… survive a round trip.
+    if (doc.triggers?.length) envelope.triggers = doc.triggers.map(pageTriggerToRaw)
+    if (doc.rest) Object.assign(envelope, doc.rest)
     return stringify(envelope)
 }
 
