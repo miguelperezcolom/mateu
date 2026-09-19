@@ -23,7 +23,15 @@ import lombok.Builder;
  *
  * Pure layout (no interaction) → rendered design-system-neutrally so every renderer supports it
  * with no per-renderer work.
+ *
+ * @deprecated (coherence-plan #7/#9) Prefer {@link ResponsiveGrid} — a named-slot template ({@code
+ *     ResponsiveGrid.template} + {@link Slotted}, with {@code stickyAreas} for a pinned region)
+ *     expresses the same "main aside" content grammar on the ONE responsive grid, layout (the
+ *     areas) separated from content (the slots). As of Phase 4 no archetype or mechanism produces a
+ *     {@code ContentLayout} any more (CollectionDetail, ItemOverview and {@code @Aside} all compose
+ *     templates); it is retained only for direct authoring and backward compatibility.
  */
+@Deprecated(since = "3.0-alpha", forRemoval = false)
 @Builder
 public record ContentLayout(
     String id,
