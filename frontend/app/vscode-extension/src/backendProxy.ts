@@ -1,4 +1,5 @@
 import * as http from 'http'
+import * as https from 'https'
 
 /**
  * A loopback HTTP proxy that forwards the Mateu sync endpoints (`/mateu`, `/sse`) to the configured
@@ -41,23 +42,26 @@ export class BackendProxy {
             res.writeHead(404); res.end('not found'); return
         }
         const target = new URL(backend.replace(/\/$/, '') + path)
-        // Forward the request STREAM verbatim (pipe), preserving content-type/length. Buffering the
-        // body worked for a plain Node client but dropped the browser's body (preflight/keep-alive
-        // interplay), so the backend saw empty parameters → "Invalid or empty YAML".
         const headers: Record<string, string> = {
             'Content-Type': (req.headers['content-type'] as string) ?? 'application/json',
             'Accept': (req.headers['accept'] as string) ?? 'application/json',
         }
-        if (req.headers['content-length']) headers['Content-Length'] = req.headers['content-length'] as string
-        // Buffer the body so we can (a) inspect exactly what the webview sent and (b) forward it
-        // with an accurate Content-Length. DIAGNOSTIC build.
+        // Buffer the whole request body, then forward it with an accurate Content-Length. A plain pipe
+        // dropped the webview's body (preflight/keep-alive interplay) and the backend saw empty
+        // parameters → "Invalid or empty YAML"; buffering is reliable for these small sync requests.
         const chunks: Buffer[] = []
         req.on('data', (c) => chunks.push(c as Buffer))
         req.on('end', () => {
             const body = Buffer.concat(chunks)
             const fwdHeaders = { ...headers, 'Content-Length': String(body.length) }
-            const upstream = http.request({
-                hostname: target.hostname, port: target.port, path: target.pathname + target.search,
+            // Pick the client by scheme so an `https://` mateu.baseUrl works (http.request would have
+            // silently failed against it). An empty port lets the client use the scheme default (80/443).
+            const client = target.protocol === 'https:' ? https : http
+            const upstream = client.request({
+                protocol: target.protocol,
+                hostname: target.hostname,
+                port: target.port ? Number(target.port) : undefined,
+                path: target.pathname + target.search,
                 method: req.method, headers: fwdHeaders,
             }, (up) => {
                 res.writeHead(up.statusCode ?? 502, { 'Content-Type': up.headers['content-type'] ?? 'application/json' })
