@@ -198,6 +198,13 @@ public sealed class AppAttribute(string title) : Attribute
 {
     public string Title { get; } = title;
 
+    /// <summary>The base path this app is served at (coherence-plan #5): <c>[App("Shop", Route =
+    /// "/shop")]</c> declares BOTH that the class is an app AND its route — the single attribute a
+    /// newcomer reaches for, equivalent to <c>[UI("/shop")] [App("Shop")]</c>. Blank (the default)
+    /// means the route is carried by a separate <c>[UI]</c> on the same class, exactly as before.
+    /// When both are set, <c>[App].Route</c> wins.</summary>
+    public string Route { get; set; } = "";
+
     /// <summary>Navigation chrome: "" = auto (Java's @App(AUTO) decision table: grouped menu →
     /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS), or an
     /// explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always wins.</summary>

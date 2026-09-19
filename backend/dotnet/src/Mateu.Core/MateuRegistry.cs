@@ -25,7 +25,8 @@ public sealed class MateuRegistry
         foreach (var asm in asms)
         foreach (var type in asm.GetTypes())
         {
-            if (type.GetCustomAttribute<AppAttribute>() is not null)
+            var app = type.GetCustomAttribute<AppAttribute>();
+            if (app is not null)
             {
                 AppType = type;
                 _byName[type.FullName!] = type;
@@ -45,8 +46,12 @@ public sealed class MateuRegistry
                 }
             }
             var ui = type.GetCustomAttribute<UIAttribute>();
-            if (ui is null) continue;
-            _byRoute[Normalize(ui.Route)] = type;
+            // The route a class declares (coherence-plan #5): [UI].Route OR [App(Route = "/x")] (the
+            // single "declare an app" attribute). [App].Route wins when both are set; a value-less
+            // [App] carries no route.
+            var route = app is not null && !string.IsNullOrWhiteSpace(app.Route) ? app.Route : ui?.Route;
+            if (route is null) continue;
+            _byRoute[Normalize(route)] = type;
             _byName[type.FullName!] = type;
         }
         SuppliedRoutes = supplied;
