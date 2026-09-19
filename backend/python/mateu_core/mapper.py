@@ -1004,7 +1004,7 @@ class ReflectionMapper:
             return panel.title
         return self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
 
-    def compose_dashboard(self, instance) -> fluent.DashboardLayout:
+    def compose_dashboard(self, instance) -> fluent.ResponsiveGrid:
         items: list[fluent.Component] = []
         pending: list[fluent.MetricCard] = []
 
@@ -1035,7 +1035,13 @@ class ReflectionMapper:
         flush()
         # A Dashboard subclass configures its columns; an @auto_page plain class keeps auto-fit.
         columns = instance.columns() if isinstance(instance, Dashboard) else 0
-        return fluent.DashboardLayout(columns=columns, items=tuple(items))
+        # Consolidated onto the one responsive grid (coherence-plan #9): N columns → N fill tracks;
+        # 0 → auto-fit. The tiles and the scoreboard band carry their own grid-column span, so the
+        # grid needs no per-child spans; align-items:stretch keeps the tiles equal-height.
+        tracks = tuple(fluent.GridTrack.fill() for _ in range(columns)) if columns > 0 else ()
+        return fluent.ResponsiveGrid(
+            columns=tracks, content=tuple(items), style="align-items: stretch;"
+        )
 
     def compose_foldout(self, instance: Foldout) -> fluent.FoldoutLayout:
         overview: fluent.Component | None = None

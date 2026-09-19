@@ -105,7 +105,7 @@ def of_type(root, wire_type: str) -> list[dict]:
 def test_auto_page_class_with_metric_cards_composes_the_dashboard_archetype():
     component = component_tree(InferredOps)
 
-    assert of_type(component, "DashboardLayout")
+    assert of_type(component, "ResponsiveGrid")
     (scoreboard,) = of_type(component, "Scoreboard")
     titles = [m["metadata"]["title"] for m in scoreboard["children"]]
     assert titles == ["Revenue", "Occupancy"]
@@ -139,12 +139,12 @@ def test_a_data_field_keeps_an_auto_page_class_with_buttons_as_a_plain_form():
 def test_auto_page_false_opts_out_keeping_the_plain_form():
     component = component_tree(PlainOps)
 
-    assert not of_type(component, "DashboardLayout")
+    assert not of_type(component, "ResponsiveGrid")
     assert not of_type(component, "Scoreboard")
 
 
 def test_without_any_decorator_the_shape_composes_by_default():
     component = component_tree(DefaultOps)
 
-    assert of_type(component, "DashboardLayout")
+    assert of_type(component, "ResponsiveGrid")
     assert of_type(component, "Scoreboard")

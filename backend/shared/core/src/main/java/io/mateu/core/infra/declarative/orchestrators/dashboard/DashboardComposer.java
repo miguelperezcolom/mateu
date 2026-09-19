@@ -4,14 +4,16 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
-import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.DashboardPanel;
+import io.mateu.uidl.data.GridTrack;
 import io.mateu.uidl.data.MetricCard;
+import io.mateu.uidl.data.ResponsiveGrid;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +64,13 @@ public final class DashboardComposer {
       }
     }
     flushMetrics(pendingMetrics, items);
-    return DashboardLayout.builder().id(id).columns(columns).items(items).build();
+    // Consolidated onto the one responsive grid (coherence-plan #9): a fixed column count becomes N
+    // fill tracks; 0 lets the renderer auto-fit. The tiles (DashboardPanel) and the Scoreboard band
+    // carry their own column span (grid-column) as before, so the grid needs no per-child spans;
+    // align-items:stretch keeps the tiles equal-height, matching the former DashboardLayout.
+    List<GridTrack> tracks =
+        columns > 0 ? Collections.nCopies(columns, GridTrack.fill()) : List.of();
+    return new ResponsiveGrid(id, tracks, null, items, null, "align-items: stretch;");
   }
 
   private static void flushMetrics(List<MetricCard> pendingMetrics, List<Component> items) {

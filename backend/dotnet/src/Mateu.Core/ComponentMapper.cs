@@ -297,6 +297,7 @@ public static class ComponentMapper
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
             case DashboardLayout d: foreach (var i in d.Items) Collect(i, ids); break;
+            case ResponsiveGrid g: foreach (var i in g.Content) Collect(i, ids); break;
             case ContentLayout cl:
                 foreach (var i in cl.Main) Collect(i, ids);
                 foreach (var i in cl.Aside) Collect(i, ids);

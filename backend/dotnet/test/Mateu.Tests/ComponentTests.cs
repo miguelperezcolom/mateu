@@ -557,9 +557,9 @@ public class ComponentTests
     {
         var json = RenderView(typeof(Dash));
 
-        // The grid, with the fixed column count.
-        Assert.Contains("\"type\":\"DashboardLayout\"", json);
-        Assert.Contains("\"columns\":3", json);
+        // The grid, consolidated onto the one responsive grid (coherence-plan #9): 3 fill tracks.
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"gridTemplateColumns\":\"1fr 1fr 1fr\"", json);
 
         // Consecutive MetricCards grouped into one Scoreboard band.
         Assert.Contains("\"type\":\"Scoreboard\"", json);

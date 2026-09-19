@@ -52,8 +52,9 @@
           "type" : "ClientSide"
         } ],
         "metadata" : {
-          "type" : "DashboardLayout"
+          "type" : "ResponsiveGrid"
         },
+        "style" : "align-items: stretch;",
         "type" : "ClientSide"
       } ],
       "pageType" : "dashboard",
