@@ -48,6 +48,7 @@ import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
+import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
@@ -269,6 +270,8 @@ export class MateuComponent extends ComponentElement {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
+            // Apply the component's sizing intent (coherence-plan #8) to this host element.
+            applySizing(this as unknown as SizableHost, (this.component as { sizing?: string })?.sizing)
             this.formerState = {...this.state}
             // A fresh (or reloaded) tracked form starts clean. Tying the reset to
             // the same lifecycle that rebuilds formerState makes dirty-state reset
@@ -1100,6 +1103,24 @@ export class MateuComponent extends ComponentElement {
 
     static styles = css`
         :host {
+        }
+
+        /* Sizing intent (coherence-plan #8), applied via the data-sizing attribute set from
+           component.sizing. "fill" grows to take the space its parent (a flex column) leaves and
+           scrolls internally rather than pushing the page — in a viewport-height flex chain this
+           subtracts header/menu/searchbox automatically. "hug" sizes to content. A "fixed:<len>"
+           intent sets flex-basis inline (see applySizing). */
+        :host([data-sizing="fill"]) {
+            flex: 1 1 auto;
+            min-height: 0;
+            align-self: stretch;
+            overflow: auto;
+        }
+        :host([data-sizing="hug"]) {
+            flex: 0 0 auto;
+        }
+        :host([data-sizing="fixed"]) {
+            flex: 0 0 auto;
         }
 
         ${unsafeCSS(badge.cssText)}

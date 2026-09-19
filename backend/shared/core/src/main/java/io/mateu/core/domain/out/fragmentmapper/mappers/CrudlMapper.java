@@ -150,7 +150,11 @@ public class CrudlMapper {
         List.of(),
         crudl.style(),
         crudl.cssClasses(),
-        null);
+        null,
+        // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8):
+        // the default sizing intent for a table/listing. The frontend maps "fill" to a flex-grow
+        // that, in a viewport-height flex chain, subtracts header/menu/searchbox automatically.
+        "fill");
   }
 
   private static io.mateu.dtos.RestDataSourceDto mapRestDataSource(

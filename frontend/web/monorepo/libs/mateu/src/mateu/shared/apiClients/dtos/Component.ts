@@ -10,5 +10,8 @@ export default interface Component {
     slot: string
     initialData: unknown
     confirmOnNavigationIfDirty: boolean
+    /** The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:<len>". Absent = default flow.
+     *  Applied to the component's host element by applySizing. */
+    sizing?: string | undefined
 
 }
