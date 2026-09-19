@@ -135,12 +135,13 @@ async function collectSpecsUiFiles(docUri: vscode.Uri): Promise<{ path: string; 
     if (idx < 0) return []
     const rootPath = docUri.path.slice(0, idx + marker.length - 1)
     const rootUri = docUri.with({ path: rootPath })
-    const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(rootUri, '**/*.{yaml,yml}'))
-    const out: { path: string; content: string }[] = []
-    for (const u of uris) {
-        const rel = u.path.slice(rootPath.length + 1)
-        const bytes = await vscode.workspace.fs.readFile(u)
-        out.push({ path: rel, content: Buffer.from(bytes).toString('utf8') })
-    }
-    return out
+    // Bound the scan (a huge monorepo could otherwise read thousands of files) and read them in
+    // parallel rather than one-by-one; the reference index only needs the mount's own YAMLs.
+    const uris = await vscode.workspace.findFiles(new vscode.RelativePattern(rootUri, '**/*.{yaml,yml}'), undefined, 500)
+    return Promise.all(
+        uris.map(async (u) => ({
+            path: u.path.slice(rootPath.length + 1),
+            content: Buffer.from(await vscode.workspace.fs.readFile(u)).toString('utf8'),
+        })),
+    )
 }
