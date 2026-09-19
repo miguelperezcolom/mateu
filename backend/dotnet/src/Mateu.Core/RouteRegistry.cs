@@ -352,7 +352,9 @@ public sealed class RouteRegistry
             : prefix + "/" + relative;
         entries.Add(new RouteEntry(
             Prefix(basePath, full),
-            Str(node, "definition"),
+            // Vocabulary (coherence-plan #5): `layout:` is the canonical layout-file key; `definition:`
+            // is the deprecated alias (both accepted, `layout` wins). The wire field stays Definition.
+            Str(node, "layout") ?? Str(node, "definition"),
             Str(node, "viewModel") ?? Str(node, "view_model"),
             Params(node, "fixedParams", "fixed_params"),
             Params(node, "defaultParams", "default_params"),

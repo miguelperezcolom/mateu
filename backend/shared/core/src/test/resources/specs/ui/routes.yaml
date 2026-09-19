@@ -32,6 +32,11 @@ routes:
   - route: about
     definition: about.yaml
 
+  # Vocabulary (coherence-plan #5): `layout:` is the CANONICAL key for the layout file — the same as
+  # the deprecated alias `definition:`. Both bind the RouteEntry's definition.
+  - route: help
+    layout: about.yaml
+
   # A definition-only page that declares its own actions: the write half of the DSL.
   - route: yaml-write
     definition: yaml-write.yaml

@@ -133,7 +133,7 @@ routes:
 | Field | Meaning |
 |---|---|
 | `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view, which typically binds the [app shell](/java-ui-definition/yaml-app-shell/). |
-| `definition` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. |
+| `layout` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. This is the **canonical** key (part of the 5-noun vocabulary); **`definition`** is a deprecated alias kept for backward compatibility (`layout` wins if both are given). |
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
 | `defaultParams` | Seeded. The request may override them. |

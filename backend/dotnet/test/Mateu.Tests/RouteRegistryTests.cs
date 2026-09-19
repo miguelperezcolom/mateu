@@ -97,6 +97,16 @@ public class RouteRegistryTests
     }
 
     [Fact]
+    public void The_canonical_layout_key_is_an_alias_for_definition()
+    {
+        // coherence-plan #5 vocabulary: `layout:` names the layout file identically to the
+        // deprecated `definition:` alias — both land on RouteEntry.Definition.
+        var entry = Registry().Match("help")!.Entry;
+        Assert.Equal("about.yaml", entry.Definition);
+        Assert.Null(entry.ViewModel);
+    }
+
+    [Fact]
     public void A_path_that_matches_nothing_resolves_to_nothing()
     {
         Assert.Null(Registry().Match("customers"));

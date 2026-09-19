@@ -79,7 +79,9 @@ def _flatten_node(
     out.append(
         RouteEntry(
             route=full,
-            definition=node.get("definition"),
+            # Vocabulary (coherence-plan #5): `layout:` is the canonical layout-file key; `definition:`
+            # is the deprecated alias (both accepted, `layout` wins). The field stays `definition`.
+            definition=node.get("layout") or node.get("definition"),
             view_model=node.get("viewModel") or node.get("view_model"),
             fixed_params=_params_of(node, "fixedParams", "fixed_params"),
             default_params=_params_of(node, "defaultParams", "default_params"),
