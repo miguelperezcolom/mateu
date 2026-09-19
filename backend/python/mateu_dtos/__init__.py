@@ -449,6 +449,7 @@ class ResponsiveGridMetadata(Wire):
     col_spans: list[int] | None = None
     stack_below: str | None = None
     grid_template_areas: str | None = None
+    sticky_areas: list[str] | None = None
 
 
 class FoldoutPanelInfo(Wire):

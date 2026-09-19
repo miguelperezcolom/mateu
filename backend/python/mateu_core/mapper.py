@@ -1082,22 +1082,30 @@ class ReflectionMapper:
                     key_info = value
                 continue
             tabs.append((self._panel_title(f, panel), value))
-        content = []
-        if key_info is not None:
-            card = self.client(CardMetadata(content=self.map_component(key_info)), "key-info", [])
-            card.style = (
-                f"flex: 0 0 {instance.panel_width()}; align-self: flex-start; "
-                "position: sticky; top: 1rem;"
-            )
-            content.append(card)
         tab_comps = [
             self.client(TabMetadata(label=label, active=i == 0), None, [self.map_component(c)])
             for i, (label, c) in enumerate(tabs)
         ]
         tab_layout = self.client(TabLayoutMetadata(), "item-tabs", tab_comps)
-        tab_layout.style = "flex: 1; min-width: 0;"
-        content.append(tab_layout)
-        return self.client(HorizontalLayoutMetadata(spacing=True), None, content)
+        if key_info is None:
+            # Degenerate: no key-info panel → just the tabs (no two-region template to build).
+            return tab_layout
+        # The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+        # "keyinfo tabs" template whose fixed-width key-info column is pinned (a sticky slot) beside
+        # the free-space tabbed column — replacing the bespoke sticky HorizontalLayout.
+        card = self.client(CardMetadata(content=self.map_component(key_info)), "key-info", [])
+        card.slot = "keyinfo"
+        tab_layout.slot = "tabs"
+        return self.client(
+            ResponsiveGridMetadata(
+                grid_template_columns=f"{instance.panel_width()} 1fr",
+                stack_below="48rem",
+                grid_template_areas='"keyinfo tabs"',
+                sticky_areas=["keyinfo"],
+            ),
+            None,
+            [card, tab_layout],
+        )
 
     def compose_welcome(self, instance) -> ClientSideComponent:
         ctas: list[fluent.Component] = []
@@ -1196,6 +1204,7 @@ class ReflectionMapper:
                     col_spans=list(c.col_spans) or None,
                     stack_below=c.stack_below,
                     grid_template_areas=c.grid_template_areas,
+                    sticky_areas=list(c.sticky_areas) or None,
                 ),
                 c,
                 children,

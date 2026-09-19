@@ -20,5 +20,11 @@ public record ResponsiveGridDto(
      * A CSS grid-template-areas value (coherence-plan #7): children are placed into named areas by
      * their {@code slot}. Null = no named areas.
      */
-    String gridTemplateAreas)
+    String gridTemplateAreas,
+    /**
+     * Named areas pinned with {@code position: sticky} while the rest of the grid scrolls
+     * (coherence -plan #7). A child whose {@code slot} is listed here gets a sticky wrapper.
+     * Null/empty = none.
+     */
+    List<String> stickyAreas)
     implements ComponentMetadataDto {}

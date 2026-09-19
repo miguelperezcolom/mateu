@@ -117,6 +117,29 @@ test.describe('layout sizing (fill / hug)', () => {
     await expect(page.getByText('Madrid · 500 rooms')).toBeVisible({ timeout: 10000 });
   });
 
+  test('the ItemOverview archetype is a keyinfo/tabs template with a sticky key-info slot (#7 migration)', async ({ page }) => {
+    await page.goto('/item-overview');
+    await expect(page.getByText('Aeron chair — key info summary')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    // The archetype is now a ResponsiveGrid template (display:grid) with two tracks and a sticky
+    // key-info area — not the bespoke sticky HorizontalLayout/ContentLayout.
+    const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
+      const cs = getComputedStyle(el as HTMLElement);
+      const cells = Array.from((el as HTMLElement).children) as HTMLElement[];
+      const keyinfo = cells.find(c => c.style.gridArea?.includes('keyinfo') || c.textContent?.includes('key info summary'));
+      return {
+        display: cs.display,
+        tracks: cs.gridTemplateColumns.trim().split(/\s+/).length,
+        keyinfoPosition: keyinfo ? getComputedStyle(keyinfo).position : null,
+      };
+    });
+    expect(info.display).toBe('grid');
+    expect(info.tracks).toBe(2);
+    expect(info.keyinfoPosition).toBe('sticky');
+    // the tabs render in the tabs slot
+    await expect(page.getByText('Specifications')).toBeVisible();
+  });
+
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });

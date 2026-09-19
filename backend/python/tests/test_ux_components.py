@@ -856,7 +856,7 @@ def find(children, meta_type):
 def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     doc = render(SalesDashboard)
     (layout,) = page_children(doc)
-    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None}
+    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None, "stickyAreas": None}
 
     scoreboard, panel, note = layout["children"]
 
@@ -1306,17 +1306,22 @@ def test_foldout_horizontal_orientation_travels_on_the_wire():
     assert foldout["metadata"]["orientation"] == "horizontal"
 
 
-def test_item_overview_archetype_key_info_card_plus_tabs():
+def test_item_overview_archetype_is_a_keyinfo_tabs_template_with_a_sticky_keyinfo_slot():
+    # coherence-plan #7/#9: a "keyinfo tabs" named-slot template on the one responsive grid, the
+    # key-info column pinned as a sticky slot beside the tabs — not the bespoke HorizontalLayout.
     doc = render(ProductOverview)
-    (row,) = page_children(doc)
-    assert row["metadata"]["type"] == "HorizontalLayout"
-    card, tab_layout = row["children"]
+    (grid,) = page_children(doc)
+    assert grid["metadata"]["type"] == "ResponsiveGrid"
+    assert grid["metadata"]["gridTemplateAreas"] == '"keyinfo tabs"'
+    assert grid["metadata"]["gridTemplateColumns"] == "22rem 1fr"
+    assert grid["metadata"]["stickyAreas"] == ["keyinfo"]
+    card, tab_layout = grid["children"]
     assert card["metadata"]["type"] == "Card"
     assert card["id"] == "key-info"
-    assert "position: sticky" in card["style"]
-    assert "22rem" in card["style"]
+    assert card["slot"] == "keyinfo"
     assert tab_layout["metadata"]["type"] == "TabLayout"
     assert tab_layout["id"] == "item-tabs"
+    assert tab_layout["slot"] == "tabs"
     tabs = tab_layout["children"]
     assert [t["metadata"]["label"] for t in tabs] == ["Specs", "Stock"]
     assert tabs[0]["metadata"]["active"] is True

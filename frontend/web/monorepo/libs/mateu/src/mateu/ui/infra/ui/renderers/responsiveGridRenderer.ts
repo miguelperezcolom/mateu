@@ -36,6 +36,7 @@ export const renderResponsiveGrid = (
         : (areas && areas.trim().length ? null : 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))')
     const gap = metadata.gap ?? 'var(--lumo-space-m, 1rem)'
     const spans = metadata.colSpans ?? []
+    const stickyAreas = metadata.stickyAreas ?? []
     const colStyle = columns ? ` grid-template-columns: ${columns};` : ''
     const areaStyle = areas && areas.trim().length ? ` grid-template-areas: ${areas};` : ''
     const gridStyle = `display: grid;${colStyle} gap: ${gap}; align-items: start;${areaStyle} ${component.style ?? ''}`
@@ -45,7 +46,13 @@ export const renderResponsiveGrid = (
         // there; a child with no slot flows into the implicit overflow. Otherwise the shared
         // grid-cell primitive (#9) applies the column span (the same one FormLayout uses).
         if (areas && child.slot) {
-            return html`<div style="grid-area: ${child.slot}; min-width: 0;">${rendered}</div>`
+            // A slot listed in stickyAreas is pinned while the rest of the grid scrolls (coherence
+            // -plan #7): the wrapper stretches to the row height and sticks near the top — this is
+            // what lets a two-region screen template replace the bespoke sticky ContentLayout.
+            const sticky = stickyAreas.includes(child.slot)
+                ? ' position: sticky; top: 1rem; align-self: start; height: fit-content;'
+                : ''
+            return html`<div style="grid-area: ${child.slot}; min-width: 0;${sticky}">${rendered}</div>`
         }
         return gridCell(spans[i], rendered)
     })

@@ -1060,17 +1060,24 @@ public class ComponentTests
     }
 
     [Fact]
-    public void Item_overview_emits_sticky_key_info_card_and_tabs()
+    public void Item_overview_is_a_keyinfo_tabs_template_with_a_sticky_keyinfo_slot()
     {
         var json = RenderView(typeof(Item));
 
-        Assert.Contains("\"type\":\"HorizontalLayout\"", json);
+        // coherence-plan #7/#9: a "keyinfo tabs" named-slot template on the one responsive grid, the
+        // key-info column pinned as a sticky slot beside the tabs — not the bespoke HorizontalLayout.
+        Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
+        Assert.Contains("\"gridTemplateAreas\":\"", json);
+        Assert.Contains("keyinfo tabs", json);
+        Assert.Contains("\"stickyAreas\":[\"keyinfo\"]", json);
+        Assert.Contains("\"slot\":\"keyinfo\"", json);
+        Assert.Contains("\"slot\":\"tabs\"", json);
         Assert.Contains("\"type\":\"Card\"", json);
-        Assert.Contains("position: sticky", json);
         Assert.Contains("\"type\":\"TabLayout\"", json);
         Assert.Contains("\"label\":\"Details\"", json);
         Assert.Contains("\"label\":\"History\"", json);
         Assert.Contains("the key info", json);
+        Assert.DoesNotContain("\"type\":\"HorizontalLayout\"", json);
     }
 
     [Fact]

@@ -182,6 +182,9 @@ class ResponsiveGrid(Component):
     #: Named-slot template (coherence-plan #7): a CSS grid-template-areas string. When set, children
     #: are :class:`Slotted` wrappers placed by area name — a Screen = Template + slots.
     grid_template_areas: str | None = None
+    #: Named areas pinned with position:sticky while the rest of the grid scrolls (coherence-plan
+    #: #7): a child whose slot is listed here gets a sticky wrapper. Empty = none.
+    sticky_areas: tuple[str, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

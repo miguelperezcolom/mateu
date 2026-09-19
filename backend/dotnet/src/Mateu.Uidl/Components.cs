@@ -131,6 +131,9 @@ public sealed record ResponsiveGrid : ComponentBase
     /// <summary>Named-slot template (coherence-plan #7): a CSS grid-template-areas string. When set,
     /// children are <see cref="Slotted"/> wrappers placed by area name — a Screen = Template + slots.</summary>
     public string? GridTemplateAreas { get; init; }
+    /// <summary>Named areas pinned with position:sticky while the rest of the grid scrolls (coherence
+    /// -plan #7): a child whose slot is listed here gets a sticky wrapper. Null/empty = none.</summary>
+    public IReadOnlyList<string>? StickyAreas { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>

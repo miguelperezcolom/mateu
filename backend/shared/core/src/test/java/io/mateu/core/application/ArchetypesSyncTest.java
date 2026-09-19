@@ -1199,17 +1199,24 @@ class ArchetypesSyncTest {
   // ---------------------------------------------------------------- item overview
 
   @Test
-  void itemOverviewKeyInfoTravelsInAStickyAsideWithConfiguredWidth() {
+  void itemOverviewKeyInfoTravelsInAStickyKeyinfoSlotWithConfiguredWidth() {
     var increment = sync("/chair-overview");
-    // The sticky/width chrome now belongs to the ContentLayout aside slot, not the card.
-    var content = findFirst(increment, ContentLayoutDto.class);
-    assertThat(content).isNotNull();
-    var meta = (ContentLayoutDto) content.metadata();
-    assertThat(meta.asideWidth()).isEqualTo("26rem");
-    assertThat(meta.asideSticky()).isTrue();
-    assertThat(meta.asidePosition()).isEqualTo("start");
-    // the aside hosts the key-info card whose content is the Markdown summary
-    var card = findFirst(content, CardDto.class);
+    // coherence-plan #7/#9: the sticky/width chrome now belongs to the "keyinfo tabs" template on
+    // the one responsive grid — the key-info column is a fixed track and a sticky slot.
+    var grid = findFirst(increment, ResponsiveGridDto.class);
+    assertThat(grid).isNotNull();
+    var meta = (ResponsiveGridDto) grid.metadata();
+    assertThat(meta.gridTemplateAreas()).isEqualTo("\"keyinfo tabs\"");
+    assertThat(meta.gridTemplateColumns()).isEqualTo("26rem 1fr");
+    assertThat(meta.stickyAreas()).containsExactly("keyinfo");
+    // the keyinfo slot hosts the key-info card whose content is the Markdown summary
+    var keyinfo =
+        grid.children().stream()
+            .map(c -> (ClientSideComponentDto) c)
+            .filter(c -> "keyinfo".equals(c.slot()))
+            .findFirst()
+            .orElseThrow();
+    var card = findFirst(keyinfo, CardDto.class);
     assertThat(card).isNotNull();
     var cardContent = ((CardDto) card.metadata()).content();
     assertThat(cardContent).isInstanceOf(ClientSideComponentDto.class);
@@ -1229,13 +1236,15 @@ class ArchetypesSyncTest {
   }
 
   @Test
-  void itemOverviewComposesAContentLayoutRoot() {
+  void itemOverviewComposesAResponsiveGridRoot() {
     var increment = sync("/chair-overview");
-    var content = findFirst(increment, ContentLayoutDto.class);
-    assertThat(content).isNotNull();
-    // the content layout hosts both the key-info card (aside) and the tab layout (main)
-    assertThat(findFirst(content, CardDto.class)).isNotNull();
-    assertThat(findFirst(content, TabLayoutDto.class)).isNotNull();
+    var grid = findFirst(increment, ResponsiveGridDto.class);
+    assertThat(grid).isNotNull();
+    // the grid template hosts both the key-info card (keyinfo slot) and the tab layout (tabs slot)
+    assertThat(findFirst(grid, CardDto.class)).isNotNull();
+    assertThat(findFirst(grid, TabLayoutDto.class)).isNotNull();
+    var slots = grid.children().stream().map(c -> ((ClientSideComponentDto) c).slot()).toList();
+    assertThat(slots).containsExactly("keyinfo", "tabs");
   }
 
   @Test

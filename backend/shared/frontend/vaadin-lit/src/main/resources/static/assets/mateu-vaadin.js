@@ -2024,16 +2024,16 @@ ${i}
         >
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </mateu-foldout>
-    `},ki=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateAreas,l=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:c&&c.trim().length?null:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,u=s.gap??`var(--lumo-space-m, 1rem)`,d=s.colSpans??[],f=`display: grid;${l?` grid-template-columns: ${l};`:``} gap: ${u}; align-items: start;${c&&c.trim().length?` grid-template-areas: ${c};`:``} ${t.style??``}`,p=t.children?.map((t,s)=>{let l=P(e,t,n,r,i,a,o);return c&&t.slot?E`<div style="grid-area: ${t.slot}; min-width: 0;">${l}</div>`:Bn(d[s],l)});if(!s.stackBelow)return E`
+    `},ki=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateAreas,l=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:c&&c.trim().length?null:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,u=s.gap??`var(--lumo-space-m, 1rem)`,d=s.colSpans??[],f=s.stickyAreas??[],p=`display: grid;${l?` grid-template-columns: ${l};`:``} gap: ${u}; align-items: start;${c&&c.trim().length?` grid-template-areas: ${c};`:``} ${t.style??``}`,m=t.children?.map((t,s)=>{let l=P(e,t,n,r,i,a,o);if(c&&t.slot){let e=f.includes(t.slot)?` position: sticky; top: 1rem; align-self: start; height: fit-content;`:``;return E`<div style="grid-area: ${t.slot}; min-width: 0;${e}">${l}</div>`}return Bn(d[s],l)});if(!s.stackBelow)return E`
             <div class="mateu-responsive-grid ${t.cssClasses??``}"
-                 style="${f}"
+                 style="${p}"
                  slot="${t.slot??y}"
-            >${p}</div>
-        `;let m=t.id??`mateu-grid`;return E`
+            >${m}</div>
+        `;let h=t.id??`mateu-grid`;return E`
         <div style="container-type: inline-size;" slot="${t.slot??y}">
             <style>
                 @container (max-width: ${s.stackBelow}) {
-                    .mateu-responsive-grid[data-grid-id="${m}"] {
+                    .mateu-responsive-grid[data-grid-id="${h}"] {
                         grid-template-columns: 1fr !important;
                         /* a named-slot template names N columns per row; on one track that would be a
                            mismatch (and void the areas) — drop the areas so the slots stack in order. */
@@ -2042,9 +2042,9 @@ ${i}
                 }
             </style>
             <div class="mateu-responsive-grid ${t.cssClasses??``}"
-                 data-grid-id="${m}"
-                 style="${f}"
-            >${p}</div>
+                 data-grid-id="${h}"
+                 style="${p}"
+            >${m}</div>
         </div>
     `},Ai=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children??[],l=e=>c.filter(t=>(t.slot??``).startsWith(e)),u=l(`main-`),d=l(`aside-`),f=l(`footer-`),p=s.asideWidth&&s.asideWidth.trim()?s.asideWidth:`32%`,m=s.asidePosition===`start`,h=s.asideSticky!==!1,ee=t=>t.map(t=>P(e,t,n,r,i,a,o)),te=E`
         <div class="mateu-content-main"
