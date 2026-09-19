@@ -131,12 +131,16 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   Builds verified: VSCode `tsc` clean; IntelliJ `compileKotlin` + `registryProbe` + `test` all green
   (incl. `MateuVisualEditorServerTest`, which proves `__preview__` proxies end-to-end). Live target is
   **`demo-starwars` (:8600, 27 page YAMLs)** — the default `mateu.baseUrl`s (:8594/:8080) match no demo.
-  **Hardening applied:** VSCode `media/` embed now fails with an actionable "run `npm run copy:web`" panel
-  instead of a blank ENOENT (`MateuVisualEditorProvider.buildHtml`); the `mateu.baseUrl` config description
-  now points at demo-starwars :8600. VSCode `tsc` still clean.
-  **Remaining:** GUI live-run (human-in-the-loop) + backlog: IntelliJ `externalChange` desync, wire
-  `copy:web` into builds so the embed can't go stale, `listFiles` bound, https proxy, custom-editor
-  `priority` drift.
+  **Hardening applied:** VSCode `media/` embed fails with an actionable "run `npm run copy:web`" panel
+  instead of a blank ENOENT; `mateu.baseUrl` config points at demo-starwars :8600. **Second pass:**
+  **IntelliJ `externalChange`** — `MateuVisualEditor` now adds a `DocumentListener` that pushes out-of-band
+  edits (the raw YAML text tab, or an on-disk change) to the canvas, with an `applyingFromWeb` guard so our
+  own writes don't loop (mirrors VSCode's `onDidChangeTextDocument`); **VSCode `listFiles` bounded**
+  (`findFiles` capped at 500 + read in parallel, not one-by-one); **VSCode custom-editor `priority`
+  `default`→`option`** (it no longer hijacks the text editor for every `specs/ui/*.yaml`; opt-in
+  "Reopen With…", matching the README). Both hosts recompile clean.
+  **Remaining:** GUI live-run (human-in-the-loop) + minor backlog: wire `copy:web` into builds so the embed
+  can't go stale, and the VSCode proxy's https branch.
 - **Phase 2 — Preview source: DONE (contract/binding scope; web editor, build + 84 vitest green + tsc).**
   Pure model `apps/visual-editor/src/model/previewSource.ts` (8 tests) — modes `remote`/`local`/`mock`/
   `client` + `renderBaseUrl`/`rendersClientSide`/`contractFixtureFor`/`fixtureAsMembers` + fixture helpers
