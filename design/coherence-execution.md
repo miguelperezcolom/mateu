@@ -99,5 +99,16 @@ Everything is a component · inferred by default, explicit as override · one mo
   - **Deferred — the flow conformance corpus** waits until the flow model grows past 1:1-command
     verbs: the corpus harness only does a route load, and for v0 the parallel unit tests already pin
     identical semantics.
+  - **Handoff from the visual-editor thread (2026-09-19) — classless YAML `Action.steps` is NOT
+    authorable yet.** The declared flow works from Java-fluent (`new Step.Navigate(...)`, no Jackson) and
+    on the wire (lowered to `UICommandDto`), but a definition-only page cannot author `steps:` in YAML.
+    Two causes: (1) the flow `Step` sealed interface (`io.mateu.uidl.fluent.Step`) is **not registered in
+    `YamlUidlMapperFactory`** (only Component/Actionable/UserTrigger/GridContent/FieldValidation are), so
+    Jackson can't deserialise the polymorphic verbs; (2) **name collision** — `io.mateu.uidl.data.Step`
+    (the ProgressSteps item: id/title/description/status) already owns the `Step` schema `$def`, so the
+    generated schema describes the wrong type and the flow verbs have no discriminated schema. To close:
+    register the 6 verbs as `NamedType`s (+ `PolymorphicMixin` on `Step`) and disambiguate the two `Step`s
+    in `UidlSchemaGenerator`. The visual editor's flow-editor slice waits on this; meanwhile it authors
+    behaviour via the already-authorable `Rule`/`RuleLink` (`RunAction`) — e.g. a menu-leaf "Action".
   - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
     forEach), each with the interpreter + corpus once divergence becomes possible.
