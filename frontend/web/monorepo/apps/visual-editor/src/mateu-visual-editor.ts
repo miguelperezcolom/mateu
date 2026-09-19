@@ -14,6 +14,8 @@ import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore
 import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
+import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
+import { SCHEMA } from './model/schemaCatalog'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
@@ -119,6 +121,14 @@ export class MateuVisualEditor extends LitElement {
             padding: 0.05rem 0.35rem; background: #e8eefe; color: #3a4bb3; }
         .sync-panel .tag.a { background: #e6f4f4; color: #0f766e; }
         .sync-panel .tag.warn { background: #fdecec; color: #b91c1c; }
+        .ai-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
+        .ai-panel .tp-head { font-weight: 600; color: #374151; }
+        .ai-panel .qs-hint { color: #9ca3af; }
+        .ai-panel textarea { width: 100%; box-sizing: border-box; min-height: 3.5rem; font: 12px ui-monospace, monospace;
+            border: 1px solid #d7dade; border-radius: 4px; padding: 0.4rem; resize: vertical; }
+        .ai-panel .ai-row { display: flex; align-items: center; gap: 0.5rem; }
+        .ai-panel .ai-msg { color: #4b5563; background: #eef2ff; border-radius: 4px; padding: 0.3rem 0.5rem; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -132,6 +142,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private showTemplates = false
     @state() private showQuickStarts = false
     @state() private showSync = false
+    @state() private showAi = false
+    @state() private aiMsg?: string
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -233,6 +245,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSync = !this.showSync)}>Sync</button>` : ''}
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showAi = !this.showAi)}>AI</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
@@ -262,6 +275,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.showTemplates ? this.renderTemplateGallery() : ''}
                     ${this.showQuickStarts ? this.renderQuickStarts() : ''}
                     ${this.showSync ? this.renderSync() : ''}
+                    ${this.showAi ? this.renderAi() : ''}
                     ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
@@ -698,6 +712,54 @@ export class MateuVisualEditor extends LitElement {
         const root = Array.isArray(layout.content) ? layout : { type: 'VerticalLayout', content: [layout] }
         root.content = [...(root.content ?? []), { type: 'Button', label: actionId, actionId }]
         this.doc = { ...doc, layout: root }
+        this.notifyChanged()
+    }
+
+    // --- AI scaffold (Phase 6): the editor composes the prompt, any AI writes the YAML, we import it ---
+
+    private renderAi() {
+        return html`
+            <div class="ai-panel">
+                <div class="tp-head">AI scaffold — describe it, an AI writes the layout</div>
+                <textarea id="ai-desc" placeholder="e.g. a customer form with name, email and phone and a Save button"></textarea>
+                <div class="ai-row">
+                    <button @click=${this.aiCopyPrompt}>Copy prompt</button>
+                    <span class="qs-hint">paste it into your AI assistant (Claude, your IDE's…), then paste its YAML below</span>
+                </div>
+                <textarea id="ai-yaml" placeholder="paste the AI's YAML here"></textarea>
+                ${this.aiMsg ? html`<div class="ai-msg">${this.aiMsg}</div>` : ''}
+                <div><button @click=${this.aiLoad}>Load into the page</button></div>
+            </div>`
+    }
+
+    private knownTypes(): string[] {
+        return [...SCHEMA.components.keys()]
+    }
+
+    private aiCopyPrompt = () => {
+        const desc = (this.renderRoot.querySelector('#ai-desc') as HTMLTextAreaElement | null)?.value ?? ''
+        const vm = this.boundViewModel()
+        const context = vm ? { modelView: vm, fields: this.contract?.fields, actions: this.contract?.actions } : undefined
+        const prompt = buildScaffoldPrompt(desc, this.knownTypes(), context)
+        navigator.clipboard?.writeText(prompt).catch(() => {})
+        this.aiMsg = 'Prompt copied to the clipboard — paste it into your AI, then paste its YAML below.'
+    }
+
+    private aiLoad = () => {
+        const yaml = (this.renderRoot.querySelector('#ai-yaml') as HTMLTextAreaElement | null)?.value ?? ''
+        if (!yaml.trim()) { this.aiMsg = 'Paste the AI-generated YAML first.'; return }
+        const v = validateScaffoldYaml(yaml, this.knownTypes())
+        if (!v.ok) {
+            this.aiMsg = v.error ?? `Unknown component types: ${v.unknownTypes.join(', ')} — ask the AI to use only real Mateu components.`
+            return
+        }
+        if (this.pageHasContent() && !window.confirm('Replace the current page with the AI-generated layout?')) return
+        const fresh = parsePage(stripFences(yaml))
+        this.doc = { ...fresh, modelView: this.doc?.modelView ?? fresh.modelView }
+        this.selectedPath = null
+        this.showAi = false
+        this.aiMsg = undefined
+        this.refreshContract()
         this.notifyChanged()
     }
 
