@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson } from './externalOptions'
+import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson, registerExternalJsonMock } from './externalOptions'
 import { registerExternalAuthProvider } from './externalAuth'
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 
@@ -91,6 +91,23 @@ describe('fetchExternalJson', () => {
         expect((seen.init?.headers as Record<string, string>).Authorization).toBe('Bearer abc')
         expect(seen.init?.body).toBe('{"z":"28001"}')
         expect(getByPath(json, 'address.city')).toBe('Madrid')
+    })
+
+    it('a registered mock short-circuits the fetch (or falls through on undefined)', async () => {
+        let called = 0
+        const fetchImpl = (async () => { called++; return { ok: true, status: 200, json: async () => ({ live: true }) } }) as unknown as typeof fetch
+
+        // returns fixture JSON by ref → no network call
+        registerExternalJsonMock((ctx) => (ctx.ref === 'people' ? { results: [{ id: 1 }] } : undefined))
+        const mocked = await fetchExternalJson({ ref: 'people' } as unknown as RestDataSource, (t) => t, fetchImpl)
+        expect(mocked).toEqual({ results: [{ id: 1 }] })
+        expect(called).toBe(0)
+
+        // undefined → falls through to the real fetch
+        const live = await fetchExternalJson({ url: 'https://x', ref: 'other' } as unknown as RestDataSource, (t) => t, fetchImpl)
+        expect(live).toEqual({ live: true })
+        expect(called).toBe(1)
+        registerExternalJsonMock(null)
     })
 })
 

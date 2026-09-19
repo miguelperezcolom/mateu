@@ -78,6 +78,27 @@ export function mapItemsToRows(
  * the string early and the endpoint would answer 400, with nothing on screen to say why. Callers
  * that have a state to interpolate should pass it; without it the body is resolved unescaped, which
  * is what a non-JSON body wants. */
+/** Context handed to a registered {@link registerExternalJsonMock} resolver. */
+export interface ExternalJsonMockContext {
+    url: string
+    ref?: string
+    method: string
+}
+
+/** A mock resolver: return fixture JSON to short-circuit the fetch, or `undefined` to fall through. */
+export type ExternalJsonMock = (ctx: ExternalJsonMockContext) => unknown | undefined
+
+let externalJsonMock: ExternalJsonMock | null = null
+
+/**
+ * Register a mock that can short-circuit {@link fetchExternalJson} — the single choke point for options,
+ * listing rows and REST actions. Used by the visual editor's `mock` preview source to serve fixture rows
+ * with no live data source. Opt-in and null by default, so every normal app is unaffected. Pass null to clear.
+ */
+export function registerExternalJsonMock(fn: ExternalJsonMock | null): void {
+    externalJsonMock = fn
+}
+
 export async function fetchExternalJson(
     declared: RestDataSource,
     resolve: (tpl: string | undefined) => string | undefined = (t) => t,
@@ -87,9 +108,16 @@ export async function fetchExternalJson(
     // A descriptor may name a catalogue entry instead of carrying a url. Resolving HERE covers every
     // surface at once — options, rows and actions all come through this function.
     const source = resolveRestSource(declared)
+    const method = (source.method || 'GET').toUpperCase()
+    // A registered mock (the visual editor's `mock` preview source) may serve this without a network
+    // call — checked BEFORE the url is required, so a fixture can answer a source that has no live url yet.
+    if (externalJsonMock) {
+        const mockUrl = source.url ? (resolve(source.url) ?? source.url) : ''
+        const mocked = externalJsonMock({ url: mockUrl, ref: declared.ref, method })
+        if (mocked !== undefined) return mocked
+    }
     if (!source.url) throw new Error(`External REST fetch has no url${declared.ref ? ` (unknown source "${declared.ref}")` : ''}`)
     const url = resolve(source.url) ?? source.url
-    const method = (source.method || 'GET').toUpperCase()
     const headers: Record<string, string> = {}
     for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
     // A registered client-side auth provider supplies dynamic headers (e.g. a bearer token from a

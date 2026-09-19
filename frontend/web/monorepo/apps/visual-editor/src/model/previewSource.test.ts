@@ -10,6 +10,11 @@ import {
     setContractFixture,
     removeContractFixture,
     parseContractFixtures,
+    setRowFixture,
+    removeRowFixture,
+    fixturedRowSources,
+    resolveRowFixture,
+    parseRowFixtures,
     parsePreviewSource,
     serializePreviewSource,
     PreviewSource,
@@ -88,5 +93,30 @@ describe('previewSource', () => {
         expect(parseContractFixtures('not json')).toBeNull()
         expect(parseContractFixtures('[1,2]')).toBeNull()
         expect(parseContractFixtures(JSON.stringify({ VM: 'nope' }))).toBeNull()
+    })
+
+    it('sets/lists/removes row fixtures and resolves them by ref then url (mock only)', () => {
+        const base: PreviewSource = { mode: 'remote', baseUrl: 'b' }
+        const withRows = setRowFixture(base, 'people', { results: [{ id: 1 }] })
+        expect(withRows.mode).toBe('mock')
+        expect(fixturedRowSources(withRows)).toEqual(['people'])
+        // resolved by ref
+        expect(resolveRowFixture(withRows, 'people', 'https://x')).toEqual({ results: [{ id: 1 }] })
+        // resolved by url when there's no ref match
+        const byUrl = setRowFixture(base, 'https://api/people', [{ id: 2 }])
+        expect(resolveRowFixture(byUrl, undefined, 'https://api/people')).toEqual([{ id: 2 }])
+        // never resolves outside mock mode
+        expect(resolveRowFixture({ ...withRows, mode: 'remote' }, 'people', 'https://x')).toBeUndefined()
+        // removal clears the map when empty
+        expect(removeRowFixture(withRows, 'people').rowFixtures).toBeUndefined()
+    })
+
+    it('imports a row-fixtures document (any JSON value per key) and rejects non-objects', () => {
+        expect(parseRowFixtures(JSON.stringify({ people: { results: [1, 2] }, flags: [true] }))).toEqual({
+            people: { results: [1, 2] },
+            flags: [true],
+        })
+        expect(parseRowFixtures('not json')).toBeNull()
+        expect(parseRowFixtures('[1,2]')).toBeNull()
     })
 })
