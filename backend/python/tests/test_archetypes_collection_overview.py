@@ -93,6 +93,13 @@ def test_collection_detail_renders_the_search_field_the_list_and_the_empty_detai
     # typing re-filters through the AutoSave trigger
     assert '"type":"AutoSave"' in j
     assert '"actionId":"filterCollection"' in j
+    # coherence-plan #7/#9: the layout is a named-slot template on the one responsive grid, not the
+    # bespoke ContentLayout — a "list detail" template with list/detail placed by slot.
+    assert '"type":"ResponsiveGrid"' in j
+    assert '"gridTemplateAreas":"\\"listdetail\\""' in j
+    assert '"slot":"list"' in j
+    assert '"slot":"detail"' in j
+    assert '"type":"ContentLayout"' not in j
 
 
 def test_selecting_an_item_renders_its_detail_and_marks_the_card():

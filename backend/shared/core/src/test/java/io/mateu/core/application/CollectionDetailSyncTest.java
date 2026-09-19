@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.EmptyStateDto;
+import io.mateu.dtos.ResponsiveGridDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.TaskQueueDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -131,6 +132,59 @@ class CollectionDetailSyncTest {
     assertThat(FieldKindsSyncTest.collect(root, EmptyStateDto.class)).isEmpty();
     var texts = FieldKindsSyncTest.collect(root, io.mateu.dtos.TextDto.class);
     assertThat(texts).anySatisfy(text -> assertThat(text.text()).isEqualTo("Madrid · 500"));
+  }
+
+  @Test
+  void theLayoutIsANamedSlotTemplateOnTheOneResponsiveGrid() {
+    // coherence-plan #7/#9: the archetype's layout is a Screen = Template + slots on the grid — a
+    // "list detail" template, not the bespoke ContentLayout.
+    var increment = mateu.sync("/hotel-directory");
+    var root = increment.fragments().get(0).component();
+    var grids = FieldKindsSyncTest.collect(root, ResponsiveGridDto.class);
+    assertThat(grids).hasSize(1);
+    assertThat(grids.get(0).gridTemplateAreas()).isEqualTo("\"list detail\"");
+    assertThat(grids.get(0).stackBelow()).isEqualTo("48rem");
+    // the list and detail are placed by slot into the named areas.
+    var slots = new java.util.ArrayList<String>();
+    collectSlots(root, slots);
+    assertThat(slots).contains("list", "detail");
+  }
+
+  private static void collectSlots(Object node, List<String> out) {
+    if (node == null) {
+      return;
+    }
+    if (node instanceof io.mateu.dtos.ClientSideComponentDto client) {
+      if (client.slot() != null) {
+        out.add(client.slot());
+      }
+      client.children().forEach(child -> collectSlots(child, out));
+      if (client.metadata() != null) {
+        descendMetadata(client.metadata(), out);
+      }
+    } else if (node instanceof io.mateu.dtos.ServerSideComponentDto server) {
+      server.children().forEach(child -> collectSlots(child, out));
+    }
+  }
+
+  /** A grid nested in a form field lives in the field's metadata, not its children — descend it. */
+  private static void descendMetadata(Object metadata, List<String> out) {
+    if (!metadata.getClass().isRecord()) {
+      return;
+    }
+    for (var rc : metadata.getClass().getRecordComponents()) {
+      Object value;
+      try {
+        value = rc.getAccessor().invoke(metadata);
+      } catch (ReflectiveOperationException e) {
+        continue;
+      }
+      if (value instanceof io.mateu.dtos.ComponentDto child) {
+        collectSlots(child, out);
+      } else if (value instanceof List<?> list) {
+        list.forEach(item -> collectSlots(item, out));
+      }
+    }
   }
 
   @Test

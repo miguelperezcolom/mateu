@@ -333,21 +333,23 @@ public abstract class CollectionDetail<TRow> : IComponentTreeSupplier, IRefreshO
             Groups = [new QueueGroup { Label = ListLabel(items.Count), Items = items }],
         };
         var detail = found ? Detail(selected!) : EmptyDetail();
-        // The searchable list is the contextual aside (left, fixed width); the selected item's
-        // detail is the main region — the uniform ContentLayout slot grammar (stacks when narrow).
+        // The screen IS a template + slots (coherence-plan #7) on the one responsive grid (#9): a
+        // "list detail" template whose fixed-width list column and free-space detail column are the
+        // #8 sizing vocabulary, stacking to one column on a narrow container. Layout (the areas)
+        // separated from content (the slots).
         return new VerticalLayout
         {
             Id = Archetypes.IdOf(this), Spacing = true,
             Content =
             [
                 new FormField { FieldId = "search", Label = "Search" },
-                new ContentLayout
+                new ResponsiveGrid
                 {
-                    AsidePosition = "start",
-                    AsideWidth = ListWidth,
-                    AsideSticky = false,
-                    Aside = [list],
-                    Main = [detail],
+                    Id = "collection-detail",
+                    Columns = [GridTrack.Fixed(ListWidth), GridTrack.Fill()],
+                    StackBelow = "48rem",
+                    GridTemplateAreas = "\"list detail\"",
+                    Content = [new Slotted("list", list), new Slotted("detail", detail)],
                 },
             ],
         };

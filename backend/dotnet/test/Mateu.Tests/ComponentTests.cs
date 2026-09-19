@@ -1131,6 +1131,18 @@ public class ComponentTests
     }
 
     [Fact]
+    public void A_template_carries_grid_areas_and_places_children_by_slot()
+    {
+        // coherence-plan #7: a Screen = Template + slots on the one grid.
+        var areas = "\"header header\" \"sidebar main\"";
+        var dto = (ClientSideComponentDto)ComponentMapper.Map(ResponsiveGrid.Template("screen", areas,
+            [new Slotted("header", new Text("H")), new Slotted("sidebar", new Text("S")), new Slotted("main", new Text("M"))]));
+        Assert.Equal(areas, ((ResponsiveGridMetadataDto)dto.Metadata).GridTemplateAreas);
+        Assert.Equal(["header", "sidebar", "main"],
+            dto.Children.Select(c => ((ClientSideComponentDto)c).Slot).ToList());
+    }
+
+    [Fact]
     public void Anchor_emits_text_url_and_target()
     {
         var dto = ComponentMapper.Map(new Anchor("Open the docs", "https://mateu.io/docs") { Target = "_blank" });

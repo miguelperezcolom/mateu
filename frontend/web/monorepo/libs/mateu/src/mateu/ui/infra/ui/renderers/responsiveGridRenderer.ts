@@ -66,7 +66,12 @@ export const renderResponsiveGrid = (
         <div style="container-type: inline-size;" slot="${component.slot ?? nothing}">
             <style>
                 @container (max-width: ${metadata.stackBelow}) {
-                    .mateu-responsive-grid[data-grid-id="${gridId}"] { grid-template-columns: 1fr !important; }
+                    .mateu-responsive-grid[data-grid-id="${gridId}"] {
+                        grid-template-columns: 1fr !important;
+                        /* a named-slot template names N columns per row; on one track that would be a
+                           mismatch (and void the areas) — drop the areas so the slots stack in order. */
+                        grid-template-areas: none !important;
+                    }
                 }
             </style>
             <div class="mateu-responsive-grid ${component.cssClasses ?? ''}"
