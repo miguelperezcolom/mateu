@@ -1513,9 +1513,24 @@ class SyncHandler:
             if issubclass(app_type, AppSupplier)
             else [UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))]
         )
+        app_component = self.mapper.map_app(app_type, request_base_url)
+        # R2 (App ≠ its Home Screen, coherence-plan #5): type the home fragment with the home
+        # SCREEN's class when the home route resolves to a DIFFERENT registered type than the app —
+        # a multi-screen app whose home is a distinct route. A single-screen app, a home with no
+        # backing Screen (a bare menu link / sentinel route), or an unresolvable home keeps the
+        # app's own type. Mirrors Java's AppHomeRouteResolver.get_home_server_side_type. Only the
+        # conflated TYPE is fixed; the home-fragment mechanism is untouched.
+        meta = getattr(app_component, "metadata", None)
+        home_route = getattr(meta, "home_route", None) if meta is not None else None
+        if home_route and not home_route.endswith("_page") and not home_route.endswith("_no_home_route"):
+            home_type = self.registry.resolve(None, home_route)
+            if home_type is not None:
+                home_name = type_name(home_type)
+                if home_name and home_name != type_name(app_type):
+                    meta.home_server_side_type = home_name
         return UIIncrement.of(
             commands=commands,
-            fragments=[UIFragment(target_component_id=self.target(rq), component=self.mapper.map_app(app_type, request_base_url), action="Replace")],
+            fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
 
     # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
