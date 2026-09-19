@@ -82,6 +82,12 @@ Home when the URL is the base path); the App itself only renders the chrome arou
 slot. So the Home is a normal Screen at a route like any other — the App just points at it as the
 default. Keeping the two distinct is why the home defaulting is uniform whether the mount is a class
 or a YAML file (part of the 5-noun vocabulary — see the [route registry](/java-ui-definition/route-registry/)).
+
+**How it resolves:** when the home route points at a **distinct routed Screen** (a `homeRoute:` or a
+first menu item that has its own `@UI`/definition), the App's home fragment is typed with *that
+Screen's* class — the content slot loads the home Screen, and the App renders only the chrome. When
+the home has no separate Screen (a single-screen app, or a bare menu link with no backing route), the
+App remains its own content, unchanged.
 :::
 
 ## The mount that ties it together
