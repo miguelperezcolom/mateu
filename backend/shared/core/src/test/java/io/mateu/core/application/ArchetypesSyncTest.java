@@ -1185,9 +1185,11 @@ class ArchetypesSyncTest {
   }
 
   @Test
-  void welcomePanelFieldsBecomeHighlightTilesOnADashboardGrid() {
+  void welcomePanelFieldsBecomeHighlightTilesOnTheResponsiveGrid() {
+    // coherence-plan #9: the highlight tiles land on the one responsive grid (auto-fit), retiring
+    // the bespoke DashboardLayout — the same consolidation the Dashboard archetype uses.
     var increment = sync("/front-desk-welcome");
-    var grid = findFirst(increment, DashboardLayoutDto.class);
+    var grid = findFirst(increment, ResponsiveGridDto.class);
     assertThat(grid).isNotNull();
     assertThat(grid.id()).isEqualTo("highlights");
     var tiles = findAll(grid, DashboardPanelDto.class);
