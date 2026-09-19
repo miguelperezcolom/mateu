@@ -14,10 +14,10 @@ import io.mateu.uidl.interfaces.HomeRouteSupplier;
 @Title("App via @App route")
 public class AppRouteDemo implements HomeRouteSupplier {
 
-  @Menu String screen = "/r2home/screen";
+  @Menu String screen = "/appdemo/screen";
 
   @Override
   public String homeRoute() {
-    return "/r2home/screen";
+    return "/appdemo/screen";
   }
 }
