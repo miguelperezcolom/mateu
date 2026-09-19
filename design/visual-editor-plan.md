@@ -151,6 +151,17 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   fixtures were the offline gap; row mocking lives in `libs/mateu` `fetchExternalJson` — a later, cross-
   cutting change), a real embedded **`local`** backend boot (labelled `remote` for now), and the true
   no-backend **render** (`client`) which is coherence **Phase 6**.
-- **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); remaining
-  Phase-1 hardening; then Phase 3 (declared-flow behaviour editor) when its coherence-Phase-2 dependency is
-  comfortable.
+- **Phase 3 — Behaviour editor: STARTED (verification + first slice).** The mandated first step (verify
+  classless `Action.steps` end-to-end) found a **real gap**: flow `steps:` is NOT authorable in YAML —
+  `io.mateu.uidl.fluent.Step` is unregistered in `YamlUidlMapperFactory` and its schema `$def` name
+  collides with `io.mateu.uidl.data.Step` (the ProgressSteps item). That is flow-DSL / coherence-Phase-2
+  territory and the coherence thread is active, so it was **handed off** (a note in
+  `design/coherence-execution.md`) rather than changed here. Meanwhile the DSL-independent slice landed:
+  a **menu-leaf "Action"** in `app-editor` — a `RuleLink` with a single `RunAction` rule (the unified
+  `route | rule` model), authored/round-tripped via `appModel.ts` (richer rules — RunJS/Set*/filters —
+  stay `raw` so nothing is edited lossily). 85 vitest green + tsc + build. **Remaining in Phase 3:** the
+  `steps` flow editor (blocked on the coherence handoff), trigger wiring (on-load/on-click/on-event), and
+  authoring behaviour on buttons/actions (not just menus).
+- **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
+  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; remaining Phase-1
+  hardening; finish Phase 2 (data mocking).

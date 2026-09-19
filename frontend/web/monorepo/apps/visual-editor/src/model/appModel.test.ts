@@ -51,6 +51,31 @@ describe('appModel', () => {
         expect(out.pageTitle).toBeUndefined()
     })
 
+    it('reads and round-trips an "action" menu leaf (RuleLink + RunAction), keeping richer rules raw', () => {
+        const withActions = `type: AppShell
+menu:
+  - type: RuleLink
+    label: Sign out
+    rules:
+      - action: RunAction
+        actionId: logout
+  - type: RuleLink
+    label: Complex
+    rules:
+      - action: RunJS
+        expression: doStuff()
+`
+        const doc = parseApp(withActions)
+        // the RunAction leaf is editable; the RunJS one stays raw (never edited lossily)
+        expect(doc.menu.map((m) => m.kind)).toEqual(['action', 'raw'])
+        expect(doc.menu[0]).toMatchObject({ kind: 'action', label: 'Sign out', actionId: 'logout' })
+
+        const out = parse(serializeApp(doc))
+        expect(out.menu[0]).toEqual({ type: 'RuleLink', label: 'Sign out', rules: [{ action: 'RunAction', actionId: 'logout' }] })
+        // the raw one round-trips untouched
+        expect(out.menu[1]).toEqual({ type: 'RuleLink', label: 'Complex', rules: [{ action: 'RunJS', expression: 'doStuff()' }] })
+    })
+
     it('edits a field and a menu item and re-serializes', () => {
         const doc: AppDoc = parseApp(src)
         doc.fields.title = 'HQ'
