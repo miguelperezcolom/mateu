@@ -3,7 +3,7 @@
     "dependencies": {
         "upgrade": "none",
         "paths": {
-            "jet": "https://static.oracle.com/cdn/jet/19.0.0-2604.8",
+            "jet": "https://static.oracle.com/cdn/jet/18.1.0-2510.3",
             "telemetry": "https://static.oracle.com/cdn/trace/10.4.2",
             "visualRuntime": "https://static.oracle.com/cdn/vb/2510.1.0"
         }
