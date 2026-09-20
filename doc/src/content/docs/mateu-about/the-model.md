@@ -69,6 +69,20 @@ rearranged on top of a layout the framework still infers on every request.
   `META-INF/mateu/contract.json`, so generators and importers read it from the artifact instead of
   keeping a copy that drifts.
 - **`mateu:openapi`** — the same declarations exported as an OpenAPI document.
+- **The [client-side expander](/java-ui-definition/route-registry/)** — turns a declarative page
+  (a route with a `definition` and no view model) into the wire model **in the browser**, so the
+  no-backend path renders without a server round-trip.
+- **A [static compiler](/design-systems/renderer-contract/)** — the same declarative page compiled
+  **at build time into standalone HTML+CSS with no Mateu runtime** (the interpreter/compiler axis of
+  rendering). Zero overhead, runs anywhere you can serve a file; it reuses the expander's model
+  understanding and refuses a view-model route (that needs a backend).
+
+The catalog also carries two consolidations that keep reuse and extension in the same model rather
+than in code: a **[business component](/java-ui-definition/component-catalogue/)** is a named, bound
+composition of existing pieces referenced by name (`ComponentRef`) — it ports for free and resolves
+with no backend; a **[custom component](/java-ui-definition/custom-components/)** is a genuinely new
+rendering carried as data (`CustomComponent`), the explicit, relegated per-renderer escape hatch that
+degrades to a visible placeholder where a renderer has not registered it.
 
 ## What makes it a model and not a config format
 

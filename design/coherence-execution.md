@@ -224,3 +224,43 @@ Everything is a component · inferred by default, explicit as override · one mo
      deliberately-deferred menu-default case (type the first menu item), which needs the risky
      `_page`→real-route change the spike flagged. Remaining Phase-5 vocabulary work: `@UI`/`@App`
      reconciliation, and retire "page" as an authoring term (docs, folded into Phase 9).
+
+---
+
+## Completion summary — all phases delivered (2026-09-20)
+
+The running log above captures Phases 1–5 in detail; Phases 6–9 landed after it. Authoritative
+final state of the coherence plan (all 14 ideas + 2 refinements), one verified PR per increment,
+merged to master:
+
+- **Phase 1 (behavior core, #2/#4/R1): done.** trigger→action + effect vocabulary + "unrecognized
+  return renders as UI" + the `@SubscribeTo`/`@Emits` bus.
+- **Phase 2 (flow language v0, #3): done.** Sealed `Step` verbs, returned flow (all 3 backends) and
+  declared-on-action flow (Java + web). Standing fork: zero-round-trip *declared* flow authoring is
+  Java+web (ports reach the same outcome via returned flow); classless YAML `Action.steps` awaits a
+  `Step` NamedType registration (noted above).
+- **Phase 3 (layout: sizing + grid, #8/#9): done.** `hug`/`fill`/`fixed:<len>` as portable data, the
+  viewport flex chain, explicit override + the unified responsive grid.
+- **Phase 4 (screen model: templates + slots, #7): done.** archetypes as templates, inference default.
+- **Phase 5 (vocabulary, #5/R2): done.** App/Route/Screen/DataSource; App≠Home (`homeServerSideType`)
+  across all 3 backends; "page" retired as an authoring term.
+- **Phase 6 (JSON + client-side expander + static, #1/#10): done.** the declarative path renders in
+  the browser with no backend; a static bundle/site; render-parity goldens.
+- **Phase 7 (tables + business + custom, #6/#13/#14): done.** rich columns + cell-as-component (#6);
+  business components as data (`ComponentRef` + catalogue, #13, Java+web; ports 🟡 by decision #576);
+  custom components (`CustomComponent`, #14, wire on all 3 backends, rendering per-renderer + graceful
+  degradation).
+- **Phase 8 (seeds, #11/#12): done — first step on each axis + design (`design/phase8-seeds.md`).**
+  #11 compile-without-renderer: a static-HTML compiler for the declarative subset, reusing the Phase-6
+  expander (`libs/mateu/.../compiler`). #12 visual builder: the palette is derived from
+  `uidl-schema.json`, so the Phase-7 additions flow into it for free (palette-completeness guard
+  green) — the builder continues under its own live plan (`design/visual-editor-plan.md`). Both seeds
+  are open-ended "develop together" streams by design; Phase 8's deliverable is the design + a
+  verifiable first step, which is met.
+- **Phase 9 (docs, final): done.** the consolidated model (`mateu-about/the-model.md`), the golden
+  path + explicit/relegated escape hatches (`the-mateu-way.md`), and the honesty/parity matrix
+  (`reference/parity.md`) updated for the Phase 6–8 additions.
+
+Standing forks recorded (recommended reversible defaults, all additive if taken up): catalogue
+registries (routes/sources/components) stay Java-primary 🟡 on the ports; declared-on-action flow
+authoring is Java+web; the #11 compiler + #12 builder continue as their own open-ended streams.
