@@ -184,8 +184,14 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   88 vitest + tsc + build. **The classless-`steps` DSL gap is now CLOSED** (2026-09-20): registering the
   6 flow-Step verbs in `YamlUidlMapperFactory` was the only runtime piece missing (the schema already
   described them); pinned by `YamlDeclaredFlowSyncTest`, full core suite green (1071). See
-  `coherence-execution.md`. **Remaining in Phase 3:** the `steps` flow-editor UI itself (now UNBLOCKED —
-  author `steps:` on an action/trigger) and authoring behaviour on buttons/actions (not just menus).
+  `coherence-execution.md`. **The `steps` flow editor — the marquee VB feature — is now DONE** (2026-09-20):
+  a **"Flows" panel** authors a page action's `steps:` as an action chain — pick/add a flow action, then
+  add/reorder/remove step verbs (Navigate/Emit/CloseOverlay/RunAction/MarkClean/MarkDirty), each with its
+  one param (a `RunAction` step delegates to a named `@Action`). Pure, tested model (`model/flowEditor.ts`
+  → `pageActionIds`/`actionSteps`/`setActionSteps`/`addFlowAction`/`removeAction`, round-trip lossless,
+  empties drop the key); 115 vitest + tsc + build. **Phase 3 essentially complete** (menu-Action + triggers
+  + flow editor). **Only leftover:** surfacing the flow editor from a specific button/trigger inline (today
+  it's a page-level panel keyed by actionId — the button's `actionId` links to it).
 - **Phase 6 — Quick Starts & templates: STARTED (new-from-template).** Its coherence-Phase-4 dependency
   landed (#523/#524: `ResponsiveGrid` + `gridTemplateAreas` + `Slotted` named slots). Delivered: a
   **starter-template gallery** (`model/templates.ts`, `Templates` toolbar button) with 5 curated,
