@@ -971,6 +971,18 @@ define('resources/js/mateu-bridge',['ojs/ojarraydataprovider'], (ArrayDataProvid
         for (const child of kidsOf(node)) visit(child, container)
         return
       }
+      if (t === 'CustomComponent') {
+        // Escape hatch (#14): VB no trae un renderer para el tipo → placeholder visible + los hijos
+        // slotted igualmente (paridad con el <mateu-unsupported> del web).
+        atom({
+          isNotice: true,
+          text: 'Custom component "' + (m.name || '') + '" — no VB renderer',
+          noticeClass: NOTICE_CLASSES.warning,
+          buttons: [],
+        }, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
       if (t === 'Text') {
         const text = interp(m.text)
         if (text) {
