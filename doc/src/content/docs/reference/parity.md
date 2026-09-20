@@ -212,7 +212,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | 🟡 theme ✅; conversational AI chat pending (the VB shell's chat FAB opens the command palette, not a chat panel) | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas | ✅ mouse canvas | ✅ svg + view-shot |
@@ -220,18 +220,18 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
-| Custom components (`registerCustomComponent`; unknown → `<mateu-unsupported>`) — the per-renderer escape hatch: the shared registry serves renderers built on the shared dispatch (Vaadin); the others need their own registration | ✅ | — (own render path) | — | — |
+| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | — (own render path, pending) | 🟡 registry + placeholder | 🟡 registry + placeholder |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | — | — |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | — | — |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | ✅ sidebar search | ✅ drawer search |
-| Planning board (tape chart) | ✅ drag+select | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
-| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | — | — |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
+| Planning board (tape chart) | ✅ drag+select | ✅ | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
+| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
 

@@ -12,7 +12,8 @@
     "build:ios": "eas build --platform ios --profile production",
     "build:apk:local": "eas build --platform android --profile preview --local",
     "submit:android": "eas submit --platform android --profile production",
-    "submit:ios": "eas submit --platform ios --profile production"
+    "submit:ios": "eas submit --platform ios --profile production",
+    "test": "node --test 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

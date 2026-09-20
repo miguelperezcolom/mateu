@@ -1,3 +1,5 @@
+import { handleSessionExpired } from '../core/sessionGuard';
+
 export interface RunActionParams {
   route: string;
   consumedRoute: string;
@@ -45,16 +47,22 @@ export class MateuApiClient {
     console.log('[Mateu] --> POST', url);
     console.log('[Mateu]     body:', JSON.stringify(body).slice(0, 500));
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Session-Id': this.sessionId,
-      },
-      body: JSON.stringify(body),
-    });
+    const doFetch = () =>
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Session-Id': this.sessionId,
+        },
+        body: JSON.stringify(body),
+      });
 
+    let response = await doFetch();
+    // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
+    if (response.status === 401 && (await handleSessionExpired())) {
+      response = await doFetch();
+    }
     const text = await response.text();
     console.log('[Mateu] <--', response.status, text.slice(0, 500));
 

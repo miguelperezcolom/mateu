@@ -33,6 +33,7 @@ import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { resolveCustomComponent } from './customComponents';
 
 interface Props {
   component: unknown;
@@ -292,6 +293,24 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return metadata['content'] ? <ComponentRenderer component={metadata['content']} state={state} /> : null;
     case 'MicroFrontend':
       return <MicroFrontendIsland metadata={metadata} />;
+
+    case 'CustomComponent': {
+      // The per-renderer escape hatch (#14): a registered renderer paints it; otherwise degrade to a
+      // visible placeholder that still shows the slotted children (never a broken screen).
+      const name = (metadata['name'] as string) ?? '';
+      const props = (metadata['props'] as Record<string, unknown>) ?? {};
+      const kids = ((component['children'] as unknown[]) ?? []).map((c, i) => (
+        <ComponentRenderer key={i} component={c} state={state} />
+      ));
+      const custom = resolveCustomComponent(name);
+      if (custom) return <>{custom(props, kids)}</>;
+      return (
+        <View>
+          <Text style={styles.unknown}>Custom component “{name}” is not registered on this renderer</Text>
+          {kids}
+        </View>
+      );
+    }
 
     default: {
       if (metaType) {

@@ -165,6 +165,40 @@ abstract pub/sub bus: `UICommand.dispatchEvent` emits, `@SubscribeTo`/`@Emits` s
 `DOCUMENT`/`COMPONENT`/`SELF`). This is not the DOM event system — it is a logical bus a renderer must
 provide.
 
+## Agent operability — the MCP projection
+
+The wire is self-describing, so it is not only a *rendering* protocol — it is an **agent-operation**
+protocol. An MCP (Model Context Protocol) server is "a renderer of agents": same self-describing model,
+tools instead of pixels. The rules below are **normative** so every host (the `frontend/mcp-server/`
+sidecar and the native endpoint) produces the *same* projection, exactly like the derivation rules above
+are shared by every renderer.
+
+**The projection** — a `UIIncrementDto` deep-walked into a flat, agent-friendly screen:
+
+| Projected | Derived from |
+|---|---|
+| `title` | `SetWindowTitle` command → else `Page.pageTitle`/`title` → else `Crudl.title`. |
+| `route`, `serverSideType`, `pageType` | the primary `ServerSide` component node. |
+| `fields[]` `{id,label,dataType,stereotype,required,readOnly,value,options?}` | every `FormField` metadata node, de-duplicated by `fieldId`, declaration order. `value` from the fragment `state` (else the `ServerSide.initialData`). |
+| `actions[]` `{id,label,shortcut?,confirmationRequired?}` | `ServerSide.actions[].id`; label enriched from a `Button` whose `actionId` matches. **RBAC is already applied server-side** — an action a token may not run never reaches the wire, so it never appears as a tool. |
+| `listing?` `{title,searchable,columns,filters}` | a `Crudl` metadata node. |
+| `messages[]`, `commands[]` | `UIIncrementDto.messages`; and non-`SetWindowTitle` `commands` (e.g. `navigateTo`) surfaced so the agent sees navigation/effects. |
+
+**The request mapping** — a tool call becomes a sync request (see [The exchange](#the-exchange)):
+- `describe_screen(route)` → load: `actionId: ""`.
+- `run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
+- `search(route, searchText, filters)` → the `search` action.
+
+**Two transport gotchas** (verified against a live backend, both belong to the contract):
+- `consumedRoute` **must be `null`** for a fresh load — an empty string `""` makes the server resolve
+  to nothing.
+- the server encodes the root/empty route as **`"_empty"`** on the wire; a host normalizes it to `""`.
+
+**Two hosts, one projection.** The **sidecar** (`frontend/mcp-server/`, zero-dependency Node) speaks only
+this wire, so it operates a Java, .NET or Python backend with no backend change. The **native endpoint**
+serves the same projection from `MateuService` directly, enforcing RBAC natively. Reference
+implementation + the tool surface: `frontend/mcp-server/README.md`; design: `design/riu-agent-operability-plan.md`.
+
 ## Conformance
 
 A renderer's coverage is measured, not asserted, by the harness in `e2e/conformance.*` against shared

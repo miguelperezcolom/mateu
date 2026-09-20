@@ -372,6 +372,7 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						{ slug: 'reference/wire-specification', label: 'Wire specification & derivation' },
+						{ slug: 'reference/agent-operability', label: 'Agent operability (MCP)' },
 						{ slug: 'reference/key-annotations' },
 						{ slug: 'reference/key-interfaces' },
 						{ slug: 'reference/fluent-model' },

@@ -1,7 +1,8 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';
+import { computePlanningMove } from './planningDrag';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 
@@ -9,8 +10,10 @@ import { buttonA11y } from '../a11y/a11y';
  * Planning board / tape chart (PlanningBoardDto) — READ-ONLY on native: rows = resources (with
  * optional group swimlane captions), columns = days, colored blocks spanning their date ranges.
  * Tapping a block dispatches the board's selectActionId with `{_blockId: block.id}` through the
- * standard action pipeline (same contract as the web's mateu-planning-board). Drag-to-move
- * (moveActionId) is intentionally NOT supported on native.
+ * standard action pipeline (same contract as the web's mateu-planning-board). When moveActionId is
+ * set, a block is DRAGGABLE (PanResponder): on release the pixel delta becomes a move via the pure
+ * `computePlanningMove` and dispatches moveActionId with `{_blockId, _resourceId, _start, _end}` —
+ * same payload as the web. A drag under the tap threshold falls back to select.
  *
  * Layout mirrors the Gantt renderer: a fixed-ish left column with the resource labels + a
  * horizontal ScrollView with the day headers and the block lanes, both built from the same
@@ -78,6 +81,29 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
     void controller.runAction(actionId, { _blockId: block.id });
   };
 
+  const windowFromIso = new Date(minDay * DAY_MS).toISOString().slice(0, 10);
+  const moveBlock = (block: PlanningBlock, dx: number, dy: number) => {
+    const actionId = metadata.moveActionId;
+    if (!actionId) return;
+    const start = parseDay(block.start);
+    const end = parseDay(block.end);
+    if (start == null || end == null) return;
+    const move = computePlanningMove({
+      blockId: block.id ?? '',
+      originResourceIndex: resources.findIndex((r) => r.id === block.resourceId),
+      originStartIdx: start - minDay,
+      durationDays: end - start + 1,
+      deltaXpx: dx,
+      deltaYpx: dy,
+      dayWidthPx: DAY_W,
+      laneHeightPx: ROW_H,
+      resourceIds: resources.map((r) => r.id ?? ''),
+      windowFromIso,
+      dayCount: totalDays,
+    });
+    if (move) void controller.runAction(actionId, move as unknown as Record<string, unknown>);
+  };
+
   // Blocks per resource id, clamped to the visible day range (start/end inclusive).
   const blocksFor = (resourceId?: string) =>
     blocks
@@ -138,16 +164,16 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
                   <View key={dayIndex} style={[styles.gridLine, { left: dayIndex * DAY_W }]} />
                 ))}
                 {blocksFor(row.resource.id).map(({ block, left, width }, j) => (
-                  <TouchableOpacity {...buttonA11y()}
+                  <DraggableBlock
                     key={block.id ?? j}
-                    style={[styles.block, { left, width, backgroundColor: block.color || '#7aa7d9' }]}
-                    disabled={!metadata.selectActionId}
-                    onPress={() => selectBlock(block)}
-                  >
-                    <Text style={styles.blockLabel} numberOfLines={1}>
-                      {block.label ?? ''}
-                    </Text>
-                  </TouchableOpacity>
+                    block={block}
+                    left={left}
+                    width={width}
+                    moveEnabled={!!metadata.moveActionId}
+                    selectEnabled={!!metadata.selectActionId}
+                    onSelect={() => selectBlock(block)}
+                    onMove={(dx, dy) => moveBlock(block, dx, dy)}
+                  />
                 ))}
               </View>
             ),
@@ -160,6 +186,63 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+const DRAG_THRESHOLD = 4;
+
+/** A planning block: draggable (PanResponder) when moveEnabled, else a plain tap-to-select cell.
+ *  A drag under the threshold is treated as a tap → select. */
+function DraggableBlock({
+  block, left, width, moveEnabled, selectEnabled, onSelect, onMove,
+}: {
+  block: PlanningBlock;
+  left: number;
+  width: number;
+  moveEnabled: boolean;
+  selectEnabled: boolean;
+  onSelect: () => void;
+  onMove: (dx: number, dy: number) => void;
+}) {
+  const pan = React.useRef(new Animated.ValueXY()).current;
+  const responder = React.useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) =>
+        moveEnabled && (Math.abs(g.dx) > DRAG_THRESHOLD || Math.abs(g.dy) > DRAG_THRESHOLD),
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
+      onPanResponderRelease: (_e, g) => {
+        pan.setValue({ x: 0, y: 0 });
+        if (Math.abs(g.dx) < DRAG_THRESHOLD && Math.abs(g.dy) < DRAG_THRESHOLD) onSelect();
+        else onMove(g.dx, g.dy);
+      },
+    }),
+  ).current;
+
+  const label = (
+    <Text style={styles.blockLabel} numberOfLines={1}>{block.label ?? ''}</Text>
+  );
+  const bg = block.color || '#7aa7d9';
+
+  if (!moveEnabled) {
+    return (
+      <TouchableOpacity
+        {...buttonA11y()}
+        style={[styles.block, { left, width, backgroundColor: bg }]}
+        disabled={!selectEnabled}
+        onPress={onSelect}
+      >
+        {label}
+      </TouchableOpacity>
+    );
+  }
+  return (
+    <Animated.View
+      {...responder.panHandlers}
+      {...buttonA11y({ label: block.label })}
+      style={[styles.block, { left, width, backgroundColor: bg, transform: pan.getTranslateTransform() }]}
+    >
+      {label}
+    </Animated.View>
   );
 }
 
