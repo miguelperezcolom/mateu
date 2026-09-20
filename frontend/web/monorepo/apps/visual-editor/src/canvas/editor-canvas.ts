@@ -97,10 +97,12 @@ export class EditorCanvas extends LitElement {
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
             <div class="host" @click=${this.onClick} @mousedown=${this.onMouseDown}
                  @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
-                <!-- Intentionally NO baseUrl/route/id: mateu-ux only fires its own (unwanted) route-load
-                     when one of those changes. The canvas is the sole driver via applyFragment, and it
-                     passes baseUrl straight to runAction — the ux never needs it to render preview. -->
-                <mateu-ux></mateu-ux>
+                <!-- preventNavigation stops mateu-ux from firing its OWN route-load. That load runs on the
+                     first updated() (the reactive route/baseurl/instant defaults count as changes) and, with
+                     no backend behind the editor, paints a "Not found" fragment that overwrites our render.
+                     The canvas is the sole driver via applyFragment; it passes baseUrl straight to runAction,
+                     so the ux never needs a route of its own. -->
+                <mateu-ux .preventNavigation=${true}></mateu-ux>
                 ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
                 ${this.hoverBox && !this.drag ? this.renderHoverOverlay() : ''}
                 ${this.selBox ? this.renderSelectionOverlay() : ''}

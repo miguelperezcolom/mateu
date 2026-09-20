@@ -122,6 +122,21 @@ Everything is a component · inferred by default, explicit as override · one mo
     is now unblocked.**
   - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
     forEach), each with the interpreter + corpus once divergence becomes possible.
+  - **Handoff from the visual-editor thread (2026-09-20) — the client-side expander does not paint
+    `FormLayout`/`FormField` yet.** Live-testing the €0 offline path (the editor's `client` preview mode,
+    which renders a classless definition through `expandDefinition` with NO backend) confirmed the
+    expander paints layout containers (VerticalLayout/HorizontalLayout/Div/Flex), Text, Buttons, Cards
+    and Listings offline — but a `FormLayout` node falls through to the leaf path: its `content` (the
+    packed `FormField` rows) lands in `metadata.content` verbatim, un-lifted and un-expanded, so the
+    fields never become renderable wire nodes and a form authored classlessly shows only its non-field
+    chrome offline. This is the increment `expandComponent.ts` already flags as pending
+    (`CONTAINER_TYPES` comment: "FormLayout's packed rows … dedicated handling in later increments, each
+    pinned to its own golden"). To close: capture the Java golden for a `FormLayout` definition
+    (`FormLayout` → wire `Form`/`FormLayout` with its FormField metadata) and add the dedicated
+    `expandFormLayout` branch, pinned to that golden — same discipline as `expandCard`/`expandListing`.
+    Until then the editor's `client` mode paints layout+buttons+listings offline and forms need any
+    backed mode (remote/local/mock); pinned by `e2e/visual-editor-probe.mjs` (an informational line
+    reports whether the increment has shipped).
 - **Phase 4 (screen model: templates + slots; archetypes→templates): done.**
   - **Template + named slots** (#523, ports #524): `ResponsiveGrid.template(id, areas, slotted)` +
     `Slotted(slot, content)` place children into a CSS `grid-template-areas` template — a Screen =
