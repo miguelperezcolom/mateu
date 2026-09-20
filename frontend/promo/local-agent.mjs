@@ -57,11 +57,19 @@ const server = createServer(async (req, res) => {
   if (req.url.startsWith("/health")) { res.writeHead(200, cors); return res.end("ok"); }
   if (req.method !== "POST") { res.writeHead(404, cors); return res.end(); }
 
+  // Plain-text /chat (no SSE): returns the authored YAML directly, for a server-side caller like
+  // Mateu's GenerateScreen button route (which reads the response body as the definition).
+  const plain = req.url.startsWith("/chat");
+
   let raw = "";
   req.on("data", (c) => (raw += c));
   req.on("end", async () => {
     let message = "";
     try { message = JSON.parse(raw).message || ""; } catch { /* ignore */ }
+    if (plain) {
+      try { const yaml = await authorYaml(message); res.writeHead(200, { ...cors, "content-type": "text/plain" }); return res.end(yaml); }
+      catch (e) { res.writeHead(500, cors); return res.end(String(e.message || e)); }
+    }
     res.writeHead(200, { ...cors, "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
     try {
       const yaml = await authorYaml(message);

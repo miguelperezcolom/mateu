@@ -35,6 +35,9 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu WelcomePage welcome;
 
+  // AI "prompt → screen": an LLM authors a Mateu definition and the Redwood/VB renderer renders it.
+  @Menu GenerateScreen generate;
+
   @Menu HelloPage hello;
 
   @Menu ProductsCrud products;
