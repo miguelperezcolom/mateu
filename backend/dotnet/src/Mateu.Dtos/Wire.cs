@@ -248,6 +248,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
+[JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
 [JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
 [JsonDerivedType(typeof(NoticeMetadataDto), "Notice")]
 [JsonDerivedType(typeof(TaskQueueMetadataDto), "TaskQueue")]
@@ -713,6 +714,10 @@ public record TextMetadataDto(string Text) : ComponentMetadataDto
 /// <summary>A horizontal divider line (&lt;hr&gt;); data-colspan in Attributes makes it span the
 /// full form row.</summary>
 public record SeparatorMetadataDto(IReadOnlyDictionary<string, string>? Attributes = null) : ComponentMetadataDto;
+
+/// <summary>A custom component (coherence-plan #14): a type Name a renderer registers against + a
+/// Props bag it reads. Slotted children ride on the ClientSideComponentDto's children.</summary>
+public record CustomComponentMetadataDto(string Name, IReadOnlyDictionary<string, object>? Props = null) : ComponentMetadataDto;
 
 /// <summary>A hyperlink (mirrors AnchorDto). Target "_blank" is rendered with rel=noopener.</summary>
 public record AnchorMetadataDto(string Text, string Url, string? Target = null) : ComponentMetadataDto;

@@ -128,6 +128,7 @@ public static class ComponentMapper
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
 
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
+        CustomComponent cc => Dto(cc, new CustomComponentMetadataDto(cc.Name, cc.Props), cc.Content.Select(Map)),
 
         TaskQueue tq => Dto(tq, new TaskQueueMetadataDto(tq.ActionId, tq.Groups.Select(g =>
             new QueueGroupDto(g.Label, g.Items.Select(i => new QueueItemDto(
