@@ -107,6 +107,17 @@ class ComponentRenderer(val ctx: AppContext) {
             "PaymentPicker" -> renderPaymentPicker(this, metadata)
             "ProcessMonitor" -> renderProcessMonitor(this, metadata)
             "Image" -> renderStandaloneImage(metadata)
+            "CustomComponent" -> {
+                // The per-renderer escape hatch (#14): a registered renderer paints it; otherwise
+                // degrade to a visible placeholder that still shows the slotted children.
+                val name = metadata.text("name")
+                val kids = renderChildren(component, state, data)
+                CustomComponentRegistry.resolve(name)?.invoke(metadata, kids)
+                    ?: JPanel(VerticalLayout(JBGap)).also { panel ->
+                        panel.add(JBLabel("Custom component \"$name\" is not registered on this renderer"))
+                        panel.add(kids)
+                    }
+            }
             else -> {
                 val t = metadata.text("type")
                 if (t.isNotBlank()) JBLabel("Unsupported component: $t")

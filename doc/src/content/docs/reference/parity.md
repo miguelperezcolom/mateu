@@ -220,7 +220,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
-| Custom components (`registerCustomComponent`; unknown → `<mateu-unsupported>`) — the per-renderer escape hatch: the shared registry serves renderers built on the shared dispatch (Vaadin); the others need their own registration | ✅ | — (own render path) | — | — |
+| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | — (own render path, pending) | 🟡 registry + placeholder | 🟡 registry + placeholder |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
