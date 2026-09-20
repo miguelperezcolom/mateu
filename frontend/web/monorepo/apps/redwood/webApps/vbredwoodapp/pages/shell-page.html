@@ -156,9 +156,9 @@
             </oj-bind-for-each>
           </div>
           <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top" style="gap: .5rem;">
-            <oj-input-text class="oj-flex-item" placeholder="Escribe un mensaje…"
+            <oj-input-text id="mateuChatInput" class="oj-flex-item" placeholder="Escribe un mensaje…"
               value="{{ $application.variables.mateuChatInput }}"
-              on-oj-action="[[ $listeners.chatSend ]]"></oj-input-text>
+              on-keydown="[[ $listeners.chatKeydown ]]"></oj-input-text>
             <oj-button chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]"
               :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button>
           </div>

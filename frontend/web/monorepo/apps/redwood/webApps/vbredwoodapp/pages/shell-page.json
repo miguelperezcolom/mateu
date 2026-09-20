@@ -242,6 +242,16 @@
         }
       ]
     },
+    "chatKeydown": {
+      "chains": [
+        {
+          "chain": "chatKeydown",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "dismissMateuError": {
       "chains": [
         {
