@@ -127,7 +127,7 @@ public class ImportWizardTests
         // the read-only cells stay display-only
         Assert.Contains(
             "\"id\":\"csvColumn\",\"label\":\"CSV column\",\"type\":\"GridColumn\"," +
-            "\"dataType\":\"string\",\"stereotype\":null,\"editable\":false",
+            "\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":false",
             json);
     }
 
