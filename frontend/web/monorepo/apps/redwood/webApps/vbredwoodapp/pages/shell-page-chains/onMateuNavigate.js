@@ -105,6 +105,17 @@ define([
         reg = bridge.reduceContexts(reg, increment);
       }
 
+      // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
+      // cargado — igual que un trigger OnLoad — y la proyección de más abajo la pinta. Es lo que
+      // permite que "abrir el chat → pedir la pantalla → aparece" funcione desde la shell.
+      if (detail.renderYaml) {
+        const rh = reg.contexts[bridge.HOST_ID];
+        const inc = await bridge.runMateuAction(
+          callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
+          { parameters: { yaml: detail.renderYaml }, appState });
+        reg = bridge.reduceContexts(reg, inc);
+      }
+
       // islas embebidas: cada frontera ServerSide del host se carga como superficie
       // propia (initiator = id de la frontera → sus fragments van a SU contexto)
       let hostForIslands = reg.contexts[bridge.HOST_ID];

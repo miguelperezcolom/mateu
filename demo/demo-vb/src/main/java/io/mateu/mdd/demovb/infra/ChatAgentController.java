@@ -1,5 +1,11 @@
 package io.mateu.mdd.demovb.infra;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,40 +16,65 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * DEMO AI agent — the SSE endpoint behind {@code @AI(sse = "/agent/stream")} on {@link
- * io.mateu.mdd.demovb.infra.in.ui.VbHome}. It is a MOCK (no LLM): it echoes the user's message back
- * token by token so the VB chat panel can be exercised end to end (type → stream → render) without a
- * real agent. Point {@code @AI(sse=...)} at a real endpoint to replace it.
+ * The SSE endpoint behind {@code @AI(sse = "/agent/stream")} on {@link
+ * io.mateu.mdd.demovb.infra.in.ui.VbHome}. It PROXIES the browser's chat request to a real agent
+ * (server-side, so no CORS and the sseUrl stays a same-origin relative path — the VB chat prepends
+ * the app base to the sseUrl, so an absolute cross-origin URL cannot be used from the client).
  *
- * <p>Contract (the shared mateu-chat / poc chat core): POST JSON {@code {message, sessionId, …}} →
- * {@code text/event-stream} of {@code data:} chunks the client accumulates into the assistant reply.
+ * <p>Default target is the local demo agent {@code frontend/promo/local-agent.mjs} on :8777, which
+ * authors a Mateu definition (YAML) and emits a {@code render-screen} event; override with the env
+ * var {@code MATEU_AGENT_STREAM_URL}. Each {@code data:} line from the upstream stream (plain text
+ * chunks AND the {@code {event:"render-screen", detail:{yaml}}} event) is relayed verbatim, which is
+ * exactly what the shared chat core (poc {@code streamChat}) consumes.
  */
 @RestController
 public class ChatAgentController {
 
   private static final ExecutorService POOL = Executors.newCachedThreadPool();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final HttpClient HTTP =
+      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
   @PostMapping(value = "/agent/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter stream(@RequestBody(required = false) Map<String, Object> body) {
-    final String message = body == null ? "" : String.valueOf(body.getOrDefault("message", ""));
-    final SseEmitter emitter = new SseEmitter(60_000L);
+    final SseEmitter emitter = new SseEmitter(120_000L);
     POOL.submit(
         () -> {
           try {
-            // Sentence-level chunks so most spacing survives the client's per-payload trim; the
-            // delay makes the streaming visible. A real agent streams its own tokens here.
-            String[] chunks = {
-              "You said: \"" + message + "\".",
-              "I'm the demo agent for the VB chat panel.",
-              "This reply is streamed over SSE, chunk by chunk,",
-              "so you can see the conversation surface update live.",
-            };
-            for (String chunk : chunks) {
-              emitter.send(SseEmitter.event().data(chunk));
-              Thread.sleep(220);
-            }
+            String url =
+                System.getenv()
+                    .getOrDefault("MATEU_AGENT_STREAM_URL", "http://localhost:8777/agent/stream");
+            HttpRequest req =
+                HttpRequest.newBuilder(URI.create(url))
+                    .timeout(Duration.ofSeconds(120))
+                    .header("content-type", "application/json")
+                    .POST(
+                        HttpRequest.BodyPublishers.ofString(
+                            MAPPER.writeValueAsString(body == null ? Map.of() : body)))
+                    .build();
+            HttpResponse<java.util.stream.Stream<String>> resp =
+                HTTP.send(req, HttpResponse.BodyHandlers.ofLines());
+            resp.body()
+                .forEach(
+                    line -> {
+                      String t = line.trim();
+                      if (t.startsWith("data:")) {
+                        try {
+                          emitter.send(SseEmitter.event().data(t.substring(5).trim()));
+                        } catch (Exception ignore) {
+                          // client went away
+                        }
+                      }
+                    });
             emitter.complete();
           } catch (Exception e) {
+            try {
+              emitter.send(
+                  SseEmitter.event()
+                      .data("{\"event\":\"agent-error\",\"detail\":{\"message\":\"agent unreachable\"}}"));
+            } catch (Exception ignore) {
+              // ignore
+            }
             emitter.completeWithError(e);
           }
         });

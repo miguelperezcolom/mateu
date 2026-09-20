@@ -4,6 +4,12 @@
 type: Routes
 routes:
 
+  # The "chat → screen" content view: a sub-route of the root app (AssistantApp, @UI("")) so it
+  # renders in the app's content slot and keeps the app shell — the AI chat FAB. It has no @UI of
+  # its own (that would make it a separate mount, and navigating to it would drop the shell/FAB).
+  - route: assistant
+    viewModel: com.example.demo.infra.in.ui.ChatGenerate
+
   - route: home
     viewModel: com.example.demo.infra.in.ui.pages.tests.Home
 

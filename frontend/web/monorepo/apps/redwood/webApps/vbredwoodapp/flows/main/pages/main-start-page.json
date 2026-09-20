@@ -1,6 +1,6 @@
 {
   "title": "",
-  "description": "Contenido alimentado por Mateu: título + form / listado + drawer del crud; la carga la orquesta la shell",
+  "description": "Contenido alimentado por Mateu: t\u00edtulo + form / listado + drawer del crud; la carga la orquesta la shell",
   "variables": {
     "listingADP": {
       "type": "vb/ArrayDataProvider2",
@@ -13,12 +13,12 @@
     "mateuDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edición en curso del form del host ({fieldId: valor})"
+      "description": "edici\u00f3n en curso del form del host ({fieldId: valor})"
     },
     "mateuDrawerDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edición en curso del form del drawer"
+      "description": "edici\u00f3n en curso del form del drawer"
     },
     "mateuToastText": {
       "type": "string",
@@ -27,7 +27,7 @@
     "mateuIslandDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edición en curso del form de la isla"
+      "description": "edici\u00f3n en curso del form de la isla"
     },
     "overviewADP": {
       "type": "vb/ArrayDataProvider2",
@@ -42,7 +42,7 @@
         "data": "{{ $application.variables.mateuWelcomeTrendItems }}",
         "keyAttributes": "id"
       },
-      "description": "items del chart de previsión de la welcome para el oj-chart"
+      "description": "items del chart de previsi\u00f3n de la welcome para el oj-chart"
     },
     "overviewSelectConfig": {
       "type": "any",
@@ -56,10 +56,10 @@
     "mateuSmartFilters": {
       "type": "any",
       "defaultValue": {
-        "askHint": "Buscar…",
+        "askHint": "Buscar\u2026",
         "value": []
       },
-      "description": "config/estado del smart filter del header de colección (chips keyword)"
+      "description": "config/estado del smart filter del header de colecci\u00f3n (chips keyword)"
     },
     "mateuProgressTitle": {
       "type": "string",
@@ -439,66 +439,121 @@
     },
     "filterChipClicked": {
       "chains": [
-        { "chain": "mateuFilterOpened", "parameters": { "fieldId": "{{ $current.data.fieldId }}" } }
+        {
+          "chain": "mateuFilterOpened",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}"
+          }
+        }
       ]
     },
     "filterChipCleared": {
       "chains": [
-        { "chain": "mateuFilterApplied", "parameters": { "fieldId": "{{ $current.data.fieldId }}", "keys": "{{ $current.data.keys }}" } }
+        {
+          "chain": "mateuFilterApplied",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "keys": "{{ $current.data.keys }}"
+          }
+        }
       ]
     },
     "filterOptionPicked": {
       "chains": [
-        { "chain": "mateuFilterApplied", "parameters": {
+        {
+          "chain": "mateuFilterApplied",
+          "parameters": {
             "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
-            "value": "{{ $current.data.value }}" } }
+            "value": "{{ $current.data.value }}"
+          }
+        }
       ]
     },
     "filterOptionToggled": {
       "chains": [
-        { "chain": "mateuFilterApplied", "parameters": {
+        {
+          "chain": "mateuFilterApplied",
+          "parameters": {
             "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
-            "value": "{{ $current.data.value }}", "toggle": true, "keepOpen": true } }
+            "value": "{{ $current.data.value }}",
+            "toggle": true,
+            "keepOpen": true
+          }
+        }
       ]
     },
     "filterBoolPicked": {
       "chains": [
-        { "chain": "mateuFilterApplied", "parameters": {
+        {
+          "chain": "mateuFilterApplied",
+          "parameters": {
             "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
-            "value": "{{ $current.data.value }}" } }
+            "value": "{{ $current.data.value }}"
+          }
+        }
       ]
     },
     "filterTextApplied": {
       "chains": [
-        { "chain": "mateuFilterApplied", "parameters": {
+        {
+          "chain": "mateuFilterApplied",
+          "parameters": {
             "fieldId": "{{ $application.variables.mateuFilterEditing.fieldId }}",
-            "value": "{{ $application.variables.mateuFilterDraft.text }}" } }
+            "value": "{{ $application.variables.mateuFilterDraft.text }}"
+          }
+        }
       ]
     },
     "filterRangeApplied": {
       "chains": [
-        { "chain": "mateuRangeApplied", "parameters": {
+        {
+          "chain": "mateuRangeApplied",
+          "parameters": {
             "fromKey": "{{ $application.variables.mateuFilterEditing.fromKey }}",
-            "toKey": "{{ $application.variables.mateuFilterEditing.toKey }}" } }
+            "toKey": "{{ $application.variables.mateuFilterEditing.toKey }}"
+          }
+        }
       ]
     },
     "filterDraftText": {
       "chains": [
-        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "text", "value": "{{ $event.detail.value }}" } }
+        {
+          "chain": "mateuFilterDraftChanged",
+          "parameters": {
+            "part": "text",
+            "value": "{{ $event.detail.value }}"
+          }
+        }
       ]
     },
     "filterDraftFrom": {
       "chains": [
-        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "from", "value": "{{ $event.detail.value }}" } }
+        {
+          "chain": "mateuFilterDraftChanged",
+          "parameters": {
+            "part": "from",
+            "value": "{{ $event.detail.value }}"
+          }
+        }
       ]
     },
     "filterDraftTo": {
       "chains": [
-        { "chain": "mateuFilterDraftChanged", "parameters": { "part": "to", "value": "{{ $event.detail.value }}" } }
+        {
+          "chain": "mateuFilterDraftChanged",
+          "parameters": {
+            "part": "to",
+            "value": "{{ $event.detail.value }}"
+          }
+        }
       ]
     },
     "filtersCleared": {
-      "chains": [ { "chain": "mateuFiltersCleared" } ]
+      "chains": [
+        {
+          "chain": "mateuFiltersCleared"
+        }
+      ]
     },
     "welcomeKpiClicked": {
       "chains": [
