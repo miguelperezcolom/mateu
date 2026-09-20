@@ -1,0 +1,15 @@
+{
+  "name": "mateu-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing any live Mateu backend as agent tools (the agent-operability plane).",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": { "mateu-mcp": "index.mjs" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node index.mjs",
+    "test": "node --test",
+    "check": "node --check index.mjs && node --check wire.mjs && node --check projection.mjs"
+  },
+  "files": ["index.mjs", "wire.mjs", "projection.mjs", "README.md"]
+}

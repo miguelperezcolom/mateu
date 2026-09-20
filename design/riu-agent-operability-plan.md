@@ -48,7 +48,7 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | Fase | Entregable | Estado | Rama / rutas | Nota de retome |
 |---|---|:--:|---|---|
 | **P0** | Folding en ADR/deck (§2.15 pilar + GAP‑4/R4 + matriz A6) | ✅ HECHO | `design/riu-*.md` | ADR §2.15 + GAP‑4 + §7.2/§7.4 + nota A6; deck titular 4 + pilar 4 |
-| **P1** | Proyección + **sidecar MCP** (Node/TS) contra cualquier backend | ⏳ TODO | `frontend/mcp-server/` | El core de valor + demo A6 |
+| **P1** | Proyección + **sidecar MCP** (Node, cero-dep) contra cualquier backend | ✅ HECHO | `frontend/mcp-server/` + `e2e/mcp-probe.mjs` | 14 unit (corpus real + protocolo) + e2e 7/7 vs mvc-app1 vivo |
 | **P2** | Semántica de proyección como **spec versionada** | ⏳ TODO | `doc/.../reference/wire-specification.md` | Sección "Proyección MCP" |
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ⏳ TODO | `backend/shared/core` + adaptadores | Reusa `MateuService`, no HTTP self-hop |
 | **P4** | Paridad ports (.NET, Python) del endpoint nativo | ⏳ TODO | `backend/dotnet`, `backend/python` | Playbook corpus/paridad habitual |
@@ -59,6 +59,13 @@ Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P1 ✅**. Sidecar `frontend/mcp-server/` (Node ESM, cero deps): `projection.mjs` (wire→
+  vista plana, pura), `wire.mjs` (cliente sync), `index.mjs` (MCP JSON-RPC 2.0 stdio: initialize/
+  tools/list/tools/call, 4 tools). Tests: 14 unit (`node --test`) — proyección contra el corpus REAL
+  `conformance/cases/*` + capa de protocolo con wire falso — y sonda e2e `e2e/mcp-probe.mjs` **7/7 contra
+  mvc-app1 vivo** (describe "Simple Form" → 1 campo + acción `greet`; run_action OK). **2 gotchas del wire
+  reales, corregidos:** (a) `consumedRoute: ""` rompe la resolución de ruta → debe ser `null` en un load
+  fresco; (b) el server codifica la raíz como `"_empty"` → normalizar a `""` (`normalizeRoute`).
 - 2026-09-20 — **P0 ✅**. ADR: nuevo pilar §2.15 "Plano de operabilidad por agentes"; GAP‑4 elevado
   (row §6.5) a incorporar-runtime + dirección-autoría; R4 §7.2 reescrito; §7.4 cuadro actualizado; nota
   de matiz en el veredicto A6 (§6.3). Deck: titular 4 + slide "4 · IA bajo control" con MCP/operabilidad.
