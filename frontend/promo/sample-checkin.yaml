@@ -1,0 +1,37 @@
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: 'Hotel Check-in'
+      size: xl
+    - type: Card
+      content:
+        type: FormLayout
+        content:
+          - type: FormField
+            label: 'Booking Reference'
+            dataType: string
+          - type: FormField
+            label: 'Guest Full Name'
+            dataType: string
+          - type: FormField
+            label: 'Identification / Passport Number'
+            dataType: string
+          - type: FormField
+            label: 'Check-in Date'
+            dataType: date
+          - type: FormField
+            label: 'Check-out Date'
+            dataType: date
+          - type: FormField
+            label: 'Room Number'
+            dataType: integer
+          - type: FormField
+            label: 'Number of Guests'
+            dataType: integer
+          - type: FormField
+            label: 'Deposit Amount'
+            dataType: number
+          - type: FormField
+            label: 'Key Card Issued'
+            dataType: bool
