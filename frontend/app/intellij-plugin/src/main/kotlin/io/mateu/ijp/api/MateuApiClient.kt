@@ -70,7 +70,11 @@ class MateuApiClient(
             .POST(HttpRequest.BodyPublishers.ofString(json))
             .build()
 
-        val response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        var response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        // Session expiry: a 401 gives the plugin one chance to re-authenticate, then we retry once.
+        if (response.statusCode() == 401 && SessionGuard.handleSessionExpired()) {
+            response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        }
         val responseBody = response.body()
         println("[Mateu] <-- ${response.statusCode()}")
         println(
