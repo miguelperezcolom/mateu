@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './quickStarts'
+import { bindDataSource, modelViewOptions, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './quickStarts'
 import { parsePage, serializePage } from './pageModel'
 import { parse } from 'yaml'
 
@@ -10,6 +10,16 @@ describe('quickStarts', () => {
         const doc = page('type: VerticalLayout\ncontent: []\n')
         expect(bindDataSource(doc, '  com.acme.PersonView ').modelView).toBe('com.acme.PersonView')
         expect(bindDataSource(doc, '   ').modelView).toBeUndefined()
+    })
+
+    it('modelViewOptions merges known models with the current binding, sorted + de-duplicated', () => {
+        expect(modelViewOptions(['com.b.B', 'com.a.A'], undefined)).toEqual(['com.a.A', 'com.b.B'])
+        // the current binding is included even when no route references it yet
+        expect(modelViewOptions(['com.a.A'], 'com.z.Z')).toEqual(['com.a.A', 'com.z.Z'])
+        // no dupes, trims, drops blanks; a current already present stays once
+        expect(modelViewOptions(['com.a.A', '  com.a.A ', ''], 'com.a.A')).toEqual(['com.a.A'])
+        // no known models and no binding → empty (the shell falls back to free text)
+        expect(modelViewOptions(undefined, undefined)).toEqual([])
     })
 
     it('scaffoldFieldsFromContract appends a FormField per field, skipping ones already present', () => {

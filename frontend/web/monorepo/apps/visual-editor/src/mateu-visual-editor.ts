@@ -14,7 +14,7 @@ import {
 import { loadPreviewSource, savePreviewSource } from './model/previewSourceStore'
 import { registerExternalJsonMock } from '@infra/http/externalOptions.ts'
 import { TEMPLATES, StarterTemplate } from './model/templates'
-import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
+import { bindDataSource, modelViewOptions, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
 import { STEP_TYPES, stepParam, pageActionIds, actionSteps, setActionSteps, addFlowAction, removeAction, FlowStep } from './model/flowEditor'
@@ -112,6 +112,8 @@ export class MateuVisualEditor extends LitElement {
         .quickstart-panel .tp-head { font-weight: 600; color: #374151; }
         .quickstart-panel .qs-row { display: flex; align-items: center; gap: 0.5rem; }
         .quickstart-panel .qs-row button { min-width: 12rem; text-align: left; }
+        .quickstart-panel .qs-row .modelview-picker { min-width: 14rem; max-width: 22rem; padding: 0.2rem 0.35rem; }
+        .quickstart-panel .qs-row .modelview-picker ~ button { min-width: 5rem; }
         .quickstart-panel .qs-hint { color: #9ca3af; }
         .sync-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
             background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -666,11 +668,13 @@ export class MateuVisualEditor extends LitElement {
     /** The Quick Start panel: one-click higher-altitude scaffolds, contextual to the page. */
     private renderQuickStarts() {
         const bound = this.boundViewModel()
+        const options = modelViewOptions(this.project?.viewModels, this.doc?.modelView)
         return html`
             <div class="quickstart-panel">
                 <div class="tp-head">Quick Starts — one-click scaffolds</div>
                 <div class="qs-row">
-                    <button @click=${this.qsBindData}>Bind data source…</button>
+                    ${this.renderModelViewPicker(bound)}
+                    <button @click=${this.qsBindData} title="Type a ModelView FQN not listed in the routes">${options.length ? 'Custom…' : 'Bind data source…'}</button>
                     <span class="qs-hint">${bound ? `bound to ${bound}` : 'not bound'}</span>
                 </div>
                 <div class="qs-row">
@@ -704,10 +708,29 @@ export class MateuVisualEditor extends LitElement {
         this.notifyChanged()
     }
 
+    /** A dropdown of the ModelViews the routes already reference (+ the current binding), so binding is a
+     *  pick, not a typed FQN. Absent when no models are known — the "Bind data source…" button covers it. */
+    private renderModelViewPicker(bound: string | undefined) {
+        const options = modelViewOptions(this.project?.viewModels, this.doc?.modelView)
+        if (!options.length) return ''
+        return html`
+            <select class="modelview-picker" title="Bind this page to a data source"
+                    @change=${(e: Event) => { const v = (e.target as HTMLSelectElement).value; if (v) this.bindToViewModel(v) }}>
+                <option value="" ?selected=${!bound}>— data source —</option>
+                ${options.map((vm) => html`<option value=${vm} ?selected=${vm === bound}>${vm}</option>`)}
+            </select>`
+    }
+
+    /** Free-text bind: prompt for a ModelView FQN (the fallback when no known model fits / none exist). */
     private qsBindData = async () => {
         const vms = this.project?.viewModels ?? []
         const vm = window.prompt(`Data source — model view FQN${vms.length ? ` (e.g. ${vms[0]})` : ''}:`, this.doc?.modelView ?? '')
         if (vm == null) return
+        await this.bindToViewModel(vm)
+    }
+
+    /** The picker path: bind straight to a chosen ModelView FQN (from the routes' known models). */
+    private bindToViewModel = async (vm: string) => {
         this.doc = bindDataSource(this.doc!, vm)
         this.lastContractVm = undefined
         this.refreshContract()
