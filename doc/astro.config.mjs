@@ -373,6 +373,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'reference/wire-specification', label: 'Wire specification & derivation' },
 						{ slug: 'reference/agent-operability', label: 'Agent operability (MCP)' },
+						{ slug: 'reference/prompt-to-app', label: 'Prompt-to-app (AI authoring)' },
 						{ slug: 'reference/key-annotations' },
 						{ slug: 'reference/key-interfaces' },
 						{ slug: 'reference/fluent-model' },

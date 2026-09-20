@@ -12,6 +12,10 @@ Antigravity, an internal copilot) can discover and run.
 
 Think of it as **"a renderer of agents"**: same self-describing model, tools instead of pixels.
 
+This page is the half where an agent **operates an app a developer defined**. For the other half —
+where **an LLM writes the UI definition** from a prompt, validated against the published schema — see
+[Prompt-to-app (AI authoring)](/reference/prompt-to-app/).
+
 ## The tools
 
 | Tool | What it does |
