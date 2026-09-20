@@ -251,6 +251,18 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   (coherence Phase 6, `expandComponent.ts` flags it) — a classless FORM shows only its non-field chrome
   offline until that increment ships; forms render in every backed mode (remote/local/mock). Handed to the
   coherence thread in `design/coherence-execution.md` (Phase 2 handoff note).
-- **Next actions:** the human **GUI live-test** of the IDE hosts (JCEF/webview bridges — needs a desktop
-  IDE), and the optional minor backlog (VSCode "Create in ViewModel" LSP, `modelView` picker, embedded
-  `local` boot, `Slotted` deep-edit).
+- **Minor backlog — progress (2026-09-20).** Landed after the client-offline fix:
+  - **`modelView` picker** (merged): the "Bind data source" Quick Start offers a dropdown of the routes'
+    known models (`projectIndex.viewModels`) + a "Custom…" free-text fallback. Unit-tested + headless.
+  - **`Slotted` deep-edit** (merged): a grid-template slot's single-object `content` is normalised to a
+    1-element array on parse and back on serialize (`pageModel.normalizeSlots`/`denormalizeSlots`), so a
+    slot child is selectable/editable/droppable. 4 unit tests + no-regression probe.
+  - **VSCode "Create in ViewModel"** (this PR): a text-editor **code-action** on `specs/ui/*.yaml` — when a
+    `FormField` binds an `id:` the bound ModelView lacks, offer to write the field into the Java class (the
+    twin of IntelliJ's `CreateFieldInViewModelFix`). The pure core (`createInViewModel.ts`: binding
+    extraction, dataType→Java-type, class/record checks, insertion) is **unit-tested (9, vitest added to the
+    extension)**; the `CodeActionProvider` wiring compiles (tsc) but its **behaviour is GUI-gated** — like the
+    IntelliJ fix it can only be confirmed in a running IDE (bucketed with the human live-run).
+- **Next actions:** the human **GUI live-test** of the IDE hosts (JCEF/webview bridges + the new VSCode
+  code-action — needs a desktop IDE), and the last optional minor: embedded **`local` boot** (the plugin's
+  `MateuVisualEditorServer` — Kotlin, GUI-gated, no headless path; recommend verifying alongside the live-run).
