@@ -105,6 +105,10 @@ routes:
     viewModel: io.mateu.core.application.AppDataApp
     appData: appMetrics
 
+  # A definition-only page whose action runs a declared client FLOW (steps).
+  - route: yaml-flow
+    definition: yaml-flow.yaml
+
   # Bare-layout definition with a Card — Phase 6 expander golden source.
   - route: card-def
     definition: card.yaml

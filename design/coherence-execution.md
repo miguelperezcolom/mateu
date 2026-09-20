@@ -110,6 +110,16 @@ Everything is a component · inferred by default, explicit as override · one mo
     register the 6 verbs as `NamedType`s (+ `PolymorphicMixin` on `Step`) and disambiguate the two `Step`s
     in `UidlSchemaGenerator`. The visual editor's flow-editor slice waits on this; meanwhile it authors
     behaviour via the already-authorable `Rule`/`RuleLink` (`RunAction`) — e.g. a menu-leaf "Action".
+  - **RESOLVED (2026-09-20, by the visual-editor thread).** The schema half turned out to already be in
+    place — `UidlSchemaGenerator` auto-defines the polymorphic `Step` family from `Action.steps`, so
+    `specs-schema.json` describes it with `type` discriminators (the collision only mis-describes the
+    unrelated `uidl-schema.json` catalog entry, which nothing authors). The only real gap was runtime:
+    `YamlUidlMapperFactory` now registers `PolymorphicMixin` on `io.mateu.uidl.fluent.Step` + the 6 verbs
+    as `NamedType`s (mirrors the `Trigger` registration). `data.Step` (ProgressSteps item, a plain record)
+    is a distinct class picked by the field's declared type, so no runtime collision. Pinned by
+    `YamlDeclaredFlowSyncTest` (a classless `/yaml-flow` page whose `steps:` lower to
+    `MarkAsClean`/`CloseModal`/`NavigateTo`). Full `shared/core` suite green (1071). **The flow-editor slice
+    is now unblocked.**
   - **Next in Phase 2:** grow the verb set as demand pulls it (set / validate / callRest / branch /
     forEach), each with the interpreter + corpus once divergence becomes possible.
 - **Phase 4 (screen model: templates + slots; archetypes→templates): done.**
