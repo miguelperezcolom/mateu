@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit'
+import { LitElement, html, css, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import {
     PageDoc, NodePath, PageNode, PageTrigger, TRIGGER_TYPES, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
@@ -17,6 +17,7 @@ import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
+import { STEP_TYPES, stepParam, pageActionIds, actionSteps, setActionSteps, addFlowAction, removeAction, FlowStep } from './model/flowEditor'
 import { SCHEMA } from './model/schemaCatalog'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
@@ -131,6 +132,20 @@ export class MateuVisualEditor extends LitElement {
             border: 1px solid #d7dade; border-radius: 4px; padding: 0.4rem; resize: vertical; }
         .ai-panel .ai-row { display: flex; align-items: center; gap: 0.5rem; }
         .ai-panel .ai-msg { color: #4b5563; background: #eef2ff; border-radius: 4px; padding: 0.3rem 0.5rem; }
+        .flows-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
+            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
+        .flows-panel .tp-head { font-weight: 600; color: #374151; }
+        .flows-panel .qs-hint { color: #9ca3af; }
+        .flows-panel .fl-actions { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+        .flows-panel .fl-actions button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .flows-panel .fl-steps { display: flex; flex-direction: column; gap: 0.25rem; padding-left: 0.5rem;
+            border-left: 2px solid #e3e5e8; }
+        .flows-panel .fl-step, .flows-panel .fl-row { display: flex; align-items: center; gap: 0.35rem; }
+        .flows-panel .fl-row .sep { flex: 1; }
+        .flows-panel select, .flows-panel input { font: 12px system-ui; border: 1px solid #d7dade;
+            border-radius: 4px; padding: 0.2rem 0.4rem; background: #fff; }
+        .flows-panel input { flex: 1; min-width: 8rem; }
+        .flows-panel .del { color: #b91c1c; }
         textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
                    border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
     `
@@ -146,6 +161,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private showSync = false
     @state() private showAi = false
     @state() private aiMsg?: string
+    @state() private showFlows = false
+    @state() private flowActionId?: string
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -263,6 +280,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSync = !this.showSync)}>Sync</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showAi = !this.showAi)}>AI</button>` : ''}
+                    ${this.mode === 'page' ? html`<button @click=${() => (this.showFlows = !this.showFlows)}>Flows</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
                 </div>
@@ -293,6 +311,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.showQuickStarts ? this.renderQuickStarts() : ''}
                     ${this.showSync ? this.renderSync() : ''}
                     ${this.showAi ? this.renderAi() : ''}
+                    ${this.showFlows ? this.renderFlows() : ''}
                     ${this.showTriggers ? this.renderTriggers() : ''}
                     ${this.showSource ? html`
                         <div class="source">
@@ -803,6 +822,80 @@ export class MateuVisualEditor extends LitElement {
         this.showAi = false
         this.aiMsg = undefined
         this.refreshContract()
+        this.notifyChanged()
+    }
+
+    // --- declared-flow editor (Phase 3): steps on a page action, the VB action-chain analog ---
+
+    private renderFlows() {
+        const actions = pageActionIds(this.doc!)
+        const current = this.flowActionId && actions.includes(this.flowActionId) ? this.flowActionId : actions[0]
+        const steps = current ? actionSteps(this.doc!, current) : []
+        return html`
+            <div class="flows-panel">
+                <div class="tp-head">Flows — a bounded client action (no round-trip); a RunAction step delegates to a @Action</div>
+                <div class="fl-actions">
+                    ${actions.map((id) => html`<button class=${id === current ? 'active' : ''} @click=${() => (this.flowActionId = id)}>${id}</button>`)}
+                    <button @click=${this.flowAddAction}>+ Flow action</button>
+                </div>
+                ${current
+                    ? html`<div class="fl-steps">
+                        ${steps.map((s, i) => this.renderFlowStep(current, steps, s, i))}
+                        <div class="fl-row">
+                            <button @click=${() => this.commitFlow(current, [...steps, { type: 'Navigate', extra: {} }])}>+ Step</button>
+                            <span class="sep"></span>
+                            <button class="del" @click=${() => this.flowRemoveAction(current)}>Remove action</button>
+                        </div>
+                    </div>`
+                    : html`<div class="qs-hint">No actions yet — add a flow action, then author its steps.</div>`}
+            </div>`
+    }
+
+    private renderFlowStep(actionId: string, steps: FlowStep[], s: FlowStep, i: number): TemplateResult {
+        const p = stepParam(s.type)
+        return html`
+            <div class="fl-step">
+                <select @change=${(e: Event) => this.flowSet(actionId, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
+                    ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${s.type === t}>${t}</option>`)}
+                </select>
+                ${p
+                    ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
+                                  @change=${(e: Event) => this.flowSet(actionId, steps, i, p.key, (e.target as HTMLInputElement).value)} />`
+                    : html`<span class="qs-hint">no params</span>`}
+                <button @click=${() => this.flowMove(actionId, steps, i, -1)} ?disabled=${i === 0}>↑</button>
+                <button @click=${() => this.flowMove(actionId, steps, i, 1)} ?disabled=${i === steps.length - 1}>↓</button>
+                <button class="del" @click=${() => this.commitFlow(actionId, steps.filter((_, j) => j !== i))}>✕</button>
+            </div>`
+    }
+
+    private flowAddAction = () => {
+        const id = window.prompt('Action id (the button/menu actionId that runs this flow):', 'doThing')?.trim()
+        if (!id) return
+        this.doc = addFlowAction(this.doc!, id)
+        this.flowActionId = id
+        this.notifyChanged()
+    }
+
+    private flowSet(actionId: string, steps: FlowStep[], i: number, key: 'type' | 'route' | 'event' | 'actionId', value: string) {
+        this.commitFlow(actionId, steps.map((s, j) => (j === i ? { ...s, [key]: value } : s)))
+    }
+
+    private flowMove(actionId: string, steps: FlowStep[], i: number, delta: number) {
+        const j = i + delta
+        if (j < 0 || j >= steps.length) return
+        const next = [...steps]
+        ;[next[i], next[j]] = [next[j], next[i]]
+        this.commitFlow(actionId, next)
+    }
+
+    private flowRemoveAction(actionId: string) {
+        this.doc = removeAction(this.doc!, actionId)
+        if (this.flowActionId === actionId) this.flowActionId = undefined
+        this.notifyChanged()
+    }
+
+    private commitFlow(actionId: string, steps: FlowStep[]) {
+        this.doc = setActionSteps(this.doc!, actionId, steps)
         this.notifyChanged()
     }
 
