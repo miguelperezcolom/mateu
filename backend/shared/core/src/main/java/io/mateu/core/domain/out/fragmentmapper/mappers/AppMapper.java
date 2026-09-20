@@ -67,6 +67,7 @@ public final class AppMapper {
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
             .restSources(RestSourceCatalogMapper.mapCatalogue())
+            .components(ComponentCatalogMapper.mapCatalogue(baseUrl, route, httpRequest))
             .appDataSource(
                 httpRequest.getAttribute("_routeAppData")
                         instanceof io.mateu.uidl.data.RestDataSource appData
