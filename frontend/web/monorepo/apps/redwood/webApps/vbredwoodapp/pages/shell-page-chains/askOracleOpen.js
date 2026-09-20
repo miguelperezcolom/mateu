@@ -66,11 +66,25 @@ define([
       $page.variables.mateuAskResults = buildResults($application, '');
       await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'open' });
       setTimeout(() => {
-        // Foco al input que toca según el modo (chat vs buscar) → funciona en CADA apertura,
-        // no solo la primera (antes solo el toggle a Chat enfocaba).
-        const sel = $application.variables.mateuChatMode ? '#mateuChatInput input' : '#mateuAskInput input';
-        const input = document.querySelector(sel);
-        if (input) input.focus();
+        // Foco al input que toca según el modo (chat vs buscar) → en CADA apertura, no solo la 1ª.
+        if ($application.variables.mateuChatMode) {
+          const el = document.querySelector('#mateuChatInput input');
+          if (!el) return;
+          el.focus();
+          if (!el.__mateuEnterWired) {
+            el.__mateuEnterWired = true;
+            el.addEventListener('keydown', (e) => {
+              if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
+                e.preventDefault();
+                const btn = document.querySelector('#mateuChatSend');
+                if (btn) btn.click();
+              }
+            });
+          }
+        } else {
+          const input = document.querySelector('#mateuAskInput input');
+          if (input) input.focus();
+        }
       }, 300);
     }
   }

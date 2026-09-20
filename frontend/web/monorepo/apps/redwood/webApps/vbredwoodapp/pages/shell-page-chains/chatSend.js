@@ -1,6 +1,6 @@
-/* Envío del chat de IA: postea el mensaje al sseUrl y ACUMULA la respuesta del agente en el
- * último mensaje (reasigna el array en cada trozo → reactividad de VB). Usa el core probado del
- * bridge (buildChatBody + streamChat). Al terminar, devuelve el foco al input. */
+/* Envío del chat de IA. Lee el valor VIVO del input del DOM (oj-input-text commitea `value` al
+ * change/blur, que va por detrás de un Enter), postea al sseUrl y ACUMULA la respuesta del agente
+ * en el último mensaje. Al terminar, limpia el input y devuelve el foco. */
 define([
   'vb/action/actionChain',
   'vb/action/actions',
@@ -8,15 +8,21 @@ define([
 ], (ActionChain, Actions, bridge) => {
   'use strict';
 
-  const focusInput = () => setTimeout(() => {
-    const el = document.querySelector('#mateuChatInput input');
-    if (el) el.focus();
-  }, 30);
+  const inputEl = () => document.querySelector('#mateuChatInput input');
+  const clearInput = ($application) => {
+    $application.variables.mateuChatInput = '';
+    const oj = document.querySelector('#mateuChatInput');
+    if (oj) oj.value = '';
+    const el = inputEl();
+    if (el) el.value = '';
+  };
+  const focusInput = () => setTimeout(() => { const el = inputEl(); if (el) el.focus(); }, 30);
 
   class chatSend extends ActionChain {
     async run(context) {
       const { $application } = context;
-      const text = ($application.variables.mateuChatInput || '').trim();
+      const el = inputEl();
+      const text = ((el && el.value) || $application.variables.mateuChatInput || '').trim();
       if (!text || $application.variables.mateuChatBusy) return;
 
       if (!$application.variables.mateuChatSessionId) {
@@ -27,7 +33,7 @@ define([
       msgs.push({ role: 'user', text });
       const agentIdx = msgs.push({ role: 'agent', text: '' }) - 1;
       $application.variables.mateuChatMessages = msgs;
-      $application.variables.mateuChatInput = '';
+      clearInput($application);
       $application.variables.mateuChatBusy = true;
 
       const setAgent = (value) => {
