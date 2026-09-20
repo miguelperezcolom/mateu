@@ -251,8 +251,8 @@
   "constants": {
     "mateuBaseUrl": {
       "type": "string",
-      "defaultValue": "http://localhost:8595",
-      "description": "Backend Mateu (demo-front-office-evolution :8595; front-office compartido :8594; demo-vb :9005 — punto único de cambio)"
+      "defaultValue": "http://localhost:9005",
+      "description": "Backend Mateu (demo-vb :9005 — el chat de IA se demuestra contra demo-vb; front-office :8594/:8595 — punto único de cambio)"
     },
     "mateuBundleUrl": {
       "type": "string",
@@ -676,6 +676,36 @@
       "type": "string",
       "defaultValue": "",
       "description": "ultimo fallo de transporte YA TRADUCIDO a lenguaje de usuario (classifyRequestFailure)"
+    },
+    "mateuChatSseUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "endpoint SSE del chat de IA (App.sseUrl); si esta puesto, Ask Oracle ofrece modo Chat"
+    },
+    "mateuChatMode": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "Ask Oracle muestra el chat de IA en vez del buscador"
+    },
+    "mateuChatMessages": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "conversacion del chat de IA: [{role:'user'|'agent', text}] (any: VB no acepta 'array' pelado)"
+    },
+    "mateuChatInput": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "texto que el usuario esta escribiendo en el chat"
+    },
+    "mateuChatSessionId": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "id de sesion del chat (se genera al primer envio)"
+    },
+    "mateuChatBusy": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "hay una respuesta del agente en streaming"
     }
   },
   "userConfig": {
