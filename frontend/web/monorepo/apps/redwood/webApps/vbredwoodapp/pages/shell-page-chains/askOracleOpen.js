@@ -66,7 +66,10 @@ define([
       $page.variables.mateuAskResults = buildResults($application, '');
       await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'open' });
       setTimeout(() => {
-        const input = document.querySelector('#mateuAskInput input');
+        // Foco al input que toca según el modo (chat vs buscar) → funciona en CADA apertura,
+        // no solo la primera (antes solo el toggle a Chat enfocaba).
+        const sel = $application.variables.mateuChatMode ? '#mateuChatInput input' : '#mateuAskInput input';
+        const input = document.querySelector(sel);
         if (input) input.focus();
       }, 300);
     }

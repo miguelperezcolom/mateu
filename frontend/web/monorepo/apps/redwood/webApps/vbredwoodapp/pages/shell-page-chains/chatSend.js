@@ -1,13 +1,17 @@
 /* Envío del chat de IA: postea el mensaje al sseUrl y ACUMULA la respuesta del agente en el
  * último mensaje (reasigna el array en cada trozo → reactividad de VB). Usa el core probado del
- * bridge (buildChatBody + streamChat). menuContext queda pendiente (la forma del menú VB difiere
- * de la que espera buildChatMenuContext — se mapea en una iteración posterior). */
+ * bridge (buildChatBody + streamChat). Al terminar, devuelve el foco al input. */
 define([
   'vb/action/actionChain',
   'vb/action/actions',
   'resources/js/mateu-bridge',
 ], (ActionChain, Actions, bridge) => {
   'use strict';
+
+  const focusInput = () => setTimeout(() => {
+    const el = document.querySelector('#mateuChatInput input');
+    if (el) el.focus();
+  }, 30);
 
   class chatSend extends ActionChain {
     async run(context) {
@@ -45,6 +49,7 @@ define([
         setAgent('⚠️ ' + (e && e.message ? e.message : 'Error'));
       } finally {
         $application.variables.mateuChatBusy = false;
+        focusInput();
       }
     }
   }
