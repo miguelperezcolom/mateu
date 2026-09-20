@@ -113,3 +113,34 @@ código específico de esa app y sin tocar el backend de Mateu**.
 Mateu, y ver una pantalla de Mateu renderizada con aspecto Redwood nativo — sin escribir código propio de esa
 app. Cada fase de arriba se valida, además de con su puerta visual, **corriendo dentro de una app VB real**
 (no solo en local/dev), para no descubrir al final una incompatibilidad del runtime hosteado.
+
+## Superficie pendiente — chat de IA conversacional (`sseUrl`)
+
+Estado (2026-09-20): **NO implementado en VB.** El shell tiene un FAB de chat, pero está cableado a
+la paleta **Ask Oracle** (command center / navegación), no a un chat conversacional. El único SSE que
+hoy consume el bridge es el **diálogo de progreso de un LongTask** (`reduceContexts` → `Add`), que es
+otra cosa. El chat de IA compartido (`libs/mateu/.../mateu-chat.ts`, ~939 líneas) expone: `sseUrl`
+(POST `{message, sessionId, menuContext?, attachments?}` → `data:` chunks acumulados en el mensaje del
+asistente), `sessionId`, `menuContext` (el menú aplanado como contexto), subida de ficheros
+(`@AI(upload=…)`) y un modo "agente local".
+
+**Cómo encaja el trabajo por capas (igual que el resto del roadmap):**
+- **Lógica (gate Node, seguro y verificable ya):** el transporte del chat — POST a `sseUrl`, lectura
+  del stream `data:`, acumulación por mensaje — es renderer-neutral y va en `poc/` (junto a
+  `resilience.mjs`, que ya hace SSE para el LongTask) con tests en `poc/test.mjs`. No aproxima nada
+  visual.
+- **Visual (gate en runtime VB — necesita Oracle):** el panel real. Apoyarse en VB al máximo = usar el
+  componente de conversación de JET/Redwood (familia `oj-c-*` de messaging/conversation) en vez de
+  dibujar burbujas a mano. Esta es la decisión que el roadmap dice **resolver mirando antes de
+  construir**.
+
+**Decisiones de diseño que abre (a resolver con el runtime/tu criterio):**
+1. **Coexistencia del FAB.** El FAB de chat del shell ya abre Ask Oracle. ¿El chat de IA es un
+   segundo FAB apilado (como en Vaadin: AI-fab + app-fab), una pestaña dentro de la paleta, o un modo
+   del mismo FAB? En Vaadin son entradas separadas.
+2. **Componente JET de conversación** concreto sobre el que apoyarse (fidelidad heredada, no dibujada).
+3. **Alcance v1:** ¿solo texto en streaming, o también `menuContext` + subida de ficheros + agente
+   local desde el arranque?
+
+Hasta resolver (1)–(2) por la puerta visual, lo correcto es NO aproximar el panel; el núcleo de
+transporte sí puede ir cerrándose en `poc/`.

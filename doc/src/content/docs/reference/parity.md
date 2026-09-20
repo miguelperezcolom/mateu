@@ -212,7 +212,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | 🟡 theme ✅; conversational AI chat pending (the VB shell's chat FAB opens the command palette, not a chat panel) | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas | ✅ mouse canvas | ✅ svg + view-shot |
@@ -229,7 +229,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | ✅ sidebar search | ✅ drawer search |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
 | Planning board (tape chart) | ✅ drag+select | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | — | — |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
