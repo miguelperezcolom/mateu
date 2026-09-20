@@ -108,3 +108,7 @@ routes:
   # Bare-layout definition with a Card — Phase 6 expander golden source.
   - route: card-def
     definition: card.yaml
+
+  # Simple read-only listing (no viewModel) — Phase 6 expander golden source.
+  - route: read-listing
+    definition: read-listing.yaml

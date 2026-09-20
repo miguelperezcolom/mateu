@@ -76,9 +76,21 @@ const CONTENT_IN_METADATA_TYPES = new Set([
     'Card',
 ])
 
+// Authored listing types → the wire `Crud` component. Pinned by the Java golden
+// (ReadListingDefinitionSyncTest): a read-only listing (no proxy/secret actions) renders as a DIRECT
+// ClientSide Crud (the ServerSide SeededYamlPage wrapper only appears with server-side actions).
+// `columns` are ClientSide-wrapped GridColumns; `toolbar`/`filters` serialize as their own wire types
+// (a Button is `{type:"Button"}`, not ClientSide-wrapped), so they pass through as authored and the
+// renderer defaults them. Everything else (title/rowRoute/rowsSource/…) rides in metadata as data.
+// Scope: read + navigate (rowRoute); proxy/secret actions need a backend.
+const LISTING_TYPES = new Set(['Listing', 'Crudl', 'Crud'])
+
 /** Map one authored fluent node to its wire component. Recurses into a container's children, or —
- *  for a Card-family type — into its single `content`, placed under `metadata.content`. */
+ *  for a Card-family type — into its single `content`, placed under `metadata.content`; a listing
+ *  becomes a Crud with its columns/toolbar/filters expanded. */
 export function expandComponent(node: FluentNode): Component {
+    if (LISTING_TYPES.has(node.type)) return expandListing(node)
+
     const { type, content, children, ...fields } = node
 
     const envelope: Record<string, unknown> = {}
@@ -113,4 +125,50 @@ export function expandComponent(node: FluentNode): Component {
         metadata,
         children: kids.map(expandComponent),
     } as unknown as ClientSideComponent
+}
+
+/**
+ * Expand a listing definition (`type: Listing`/`Crudl`) into the wire `Crud` ClientSide component —
+ * the shape the server produces for a read-only listing (ReadListingDefinitionSyncTest). The node
+ * carries `id: "crud"` and `sizing: "fill"` (as the server does); `columns`/`toolbar`/`filters` hold
+ * child components and are each expanded; `crudlType` defaults to `"table"`; everything else
+ * (title/rowRoute/rowsSource/…) rides in metadata as data. A GridColumn keeps its `id` in metadata
+ * (the column key the grid reads) as well as on the node, matching the golden.
+ */
+function expandListing(node: FluentNode): Component {
+    const { type, content, children, ...fields } = node
+    void type
+    void content
+    void children
+
+    const envelope: Record<string, unknown> = { id: 'crud', sizing: 'fill' }
+    const metadata: Record<string, unknown> = {
+        type: 'Crud',
+        crudlType: (fields.crudlType as string) ?? (fields.listingType as string) ?? 'table',
+    }
+    for (const [key, value] of Object.entries(fields)) {
+        if (key === 'crudlType' || key === 'listingType') continue
+        if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+        else if (key === 'columns' && Array.isArray(value)) {
+            metadata[key] = (value as FluentNode[]).map(expandColumn)
+        } else metadata[key] = value // toolbar/filters/rowsSource/title/rowRoute pass through
+    }
+
+    return {
+        ...envelope,
+        type: ComponentType.ClientSide,
+        metadata,
+        children: [],
+    } as unknown as ClientSideComponent
+}
+
+/** Expand a listing column into a ClientSide GridColumn. Its `id` is kept in metadata (the column
+ *  key the grid reads) as well as on the node envelope, matching the server golden. */
+function expandColumn(node: FluentNode): Component {
+    const wire = expandComponent(node) as unknown as {
+        id?: unknown
+        metadata?: Record<string, unknown>
+    }
+    if (node.id !== undefined && wire.metadata) wire.metadata.id = node.id
+    return wire as unknown as Component
 }
