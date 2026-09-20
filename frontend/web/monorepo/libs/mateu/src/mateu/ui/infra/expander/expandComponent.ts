@@ -28,6 +28,7 @@
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
+import { resolveComponent } from '@infra/http/componentCatalogue'
 
 /** An authored fluent node: a `type` discriminator plus arbitrary type-specific fields, with child
  *  content under `content` or `children`. This is what `js-yaml`/`JSON.parse` yields from a
@@ -90,6 +91,19 @@ const LISTING_TYPES = new Set(['Listing', 'Crudl', 'Crud'])
  *  becomes a Crud with its columns/toolbar/filters expanded. */
 export function expandComponent(node: FluentNode): Component {
     if (LISTING_TYPES.has(node.type)) return expandListing(node)
+
+    // A business-component reference (coherence-plan #13): resolve it against the shipped catalogue,
+    // no backend. The catalogue entry is already a wire component, so it is returned as-is; an
+    // unknown name is a graceful placeholder (matching the server's ComponentRef resolution).
+    if (node.type === 'ComponentRef') {
+        const resolved = resolveComponent(node.ref as string | undefined)
+        if (resolved) return resolved
+        return {
+            type: ComponentType.ClientSide,
+            metadata: { type: 'Text', text: `Unknown business component: ${node.ref as string}` },
+            children: [],
+        } as unknown as ClientSideComponent
+    }
 
     const { type, content, children, ...fields } = node
 
