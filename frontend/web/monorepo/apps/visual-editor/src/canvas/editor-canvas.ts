@@ -1,7 +1,9 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
 import { styleMap } from 'lit/directives/style-map.js'
+import { parse } from 'yaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
+import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer } from '../model/pageModel'
 
 // Mateu custom events the live renderer fires on interaction. In edit mode the canvas must be
@@ -163,11 +165,7 @@ export class EditorCanvas extends LitElement {
     }
 
     private async preview(yaml: string) {
-        if (this.clientRender) {
-            // `client` mode has no renderer yet (coherence Phase 6 expander). Be honest, don't call a dead URL.
-            this.error = 'Client-side rendering is not available yet (Phase 7). Pick a backend to preview.'
-            return
-        }
+        if (this.clientRender) { this.renderClientSide(yaml); return }
         try {
             const increment: any = await mateuApiClient.runAction(
                 this.baseUrl, '', '', '__preview__', 've-canvas',
@@ -178,6 +176,32 @@ export class EditorCanvas extends LitElement {
             if (!fragment) { this.error = 'backend returned no fragment'; return }
             this.error = undefined
             this.ux?.applyFragment(fragment)
+            requestAnimationFrame(() => this.applyHighlight())
+        } catch (e: any) {
+            this.error = e?.message ?? String(e)
+        }
+    }
+
+    /**
+     * Render OFFLINE via the coherence Phase 6 client-side expander — the truest €0 path, no backend at
+     * all. Works for a classless (backend-free) definition; a view-model-bound page still needs a backend
+     * for its inferred fields, so it falls back to an honest message.
+     */
+    private renderClientSide(yaml: string) {
+        try {
+            const tree = parse(yaml) as Record<string, unknown>
+            const spec: DefinitionSpec = this.doc?.modelView
+                ? { modelView: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
+                : (tree as DefinitionSpec)
+            if (!isClientExpandable(spec)) {
+                this.error =
+                    'Client render is backend-free — it needs a classless definition, but this page binds a view model. Use remote/local/mock to preview it.'
+                return
+            }
+            const fragment = expandDefinition(spec, 'preview')?.fragments?.[0]
+            if (!fragment) { this.error = 'the client expander returned no fragment'; return }
+            this.error = undefined
+            this.ux?.applyFragment(fragment as any)
             requestAnimationFrame(() => this.applyHighlight())
         } catch (e: any) {
             this.error = e?.message ?? String(e)
