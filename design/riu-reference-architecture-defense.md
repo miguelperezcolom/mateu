@@ -453,7 +453,14 @@ procesos internos sin construir una API-para-agentes por cada app. Plan de ejecu
 - **Chat in-app** (P5): la misma proyección de pantalla como contexto — 10 tests (proyección + DOM/shadow),
   suite `libs/mateu` **486/486**.
 - **Prompt-to-app** (P6, spike/beta): prompt→validar-contra-schema-publicado→reparar — 8 tests (los **5
-  schemas publicados compilan**, la reparación recupera). `frontend/prompt-to-app/`.**]**
+  schemas publicados compilan**, la reparación recupera). `frontend/prompt-to-app/`.
+- **E2E EN VIVO CON LLM REAL (cierra el residuo "IA conduce la UI"):** contra el entorno desplegado
+  `ec-demo1` (`ec1.mateu.io`, agente Spring AI + Anthropic que consume MCP), un prompt de solo lectura
+  del usuario demo devolvió (a) **uso real de tokens** (8007 in / 130 out), (b) un comando
+  `navigation-requested → /booking/bookings` — **el LLM condujo la UI** a la pantalla de reservas —, y
+  (c) el resumen de **47 reservas reales leídas por MCP** (28 confirmadas / 19 canceladas). El mismo
+  mecanismo que este plano hace NATIVO a cualquier app Mateu (`ec-demo1` lo cableaba a mano con un módulo
+  `api-mcp`; aquí es `/mateu/mcp` de serie + la proyección de pantalla en el chat).**]**
 
 ---
 
