@@ -9,29 +9,12 @@
 import { describe, expect, it } from 'vitest'
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition'
 import { expandComponent } from '@infra/expander/expandComponent'
+import { expectSubset } from '@infra/expander/__fixtures__/structuralSubset'
 import golden from '@infra/expander/__fixtures__/about.golden.json'
 
 // The parsed about.yaml (increment 2 owns loading + js-yaml parsing; here we hand the parsed object).
 const aboutSpec: DefinitionSpec = {
     layout: { type: 'VerticalLayout', content: [{ type: 'Text', text: 'About this app' }] },
-}
-
-/** Assert `actual` is a structural subset of `expected`: every key/element the expander emits is
- *  present and equal in the golden. The golden may carry extra keys (server-filled defaults). */
-function expectSubset(actual: unknown, expected: unknown, path = ''): void {
-    if (Array.isArray(actual)) {
-        expect(Array.isArray(expected), `${path} should be an array in the golden`).toBe(true)
-        expect((actual as unknown[]).length, `${path} length`).toBe((expected as unknown[]).length)
-        actual.forEach((v, i) => expectSubset(v, (expected as unknown[])[i], `${path}[${i}]`))
-    } else if (actual && typeof actual === 'object') {
-        expect(expected && typeof expected === 'object', `${path} should be an object in the golden`).toBeTruthy()
-        for (const [k, v] of Object.entries(actual)) {
-            if (v === undefined) continue
-            expectSubset(v, (expected as Record<string, unknown>)[k], path ? `${path}.${k}` : k)
-        }
-    } else {
-        expect(actual, `${path}`).toEqual(expected)
-    }
 }
 
 describe('client-side expander — bare-layout definition (Phase 6, increment 1)', () => {
