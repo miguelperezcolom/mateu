@@ -30,9 +30,13 @@ check() {
     return
   fi
 
-  # The newest source commit, ignoring test files (they do not end up in the bundle).
+  # The newest source commit, ignoring test files (they do not end up in the bundle) and the
+  # build-time static compiler (coherence-plan #11: a Node/TS tool that emits standalone HTML — it is
+  # NOT imported by any renderer and is provably absent from mateu-vaadin.js, so regenerating the
+  # bundle never reflects a change to it; globbing it would fail the gate for a change nobody can act
+  # on, which is the exact failure mode this check exists to prevent).
   local source_commit
-  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts')
+  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts' ':(exclude)**/ui/infra/compiler/**')
   if [ -z "$source_commit" ]; then
     echo "?? $name: no commit found for its sources — skipping"
     return
