@@ -53,12 +53,24 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ✅ HECHO | `backend/shared/core/.../mcp` + `mvc-core/.../mcp` | 12 tests core + e2e vivo `/mateu/mcp` |
 | **P4** | Paridad ports (.NET, Python) del endpoint nativo | ✅ HECHO | `backend/python` ✅ · `backend/dotnet` ✅ | Python 12 tests; .NET 11 tests (incl. RBAC) + suite completa 398/398 |
 | **P5** | Mejora del **chat in-app** (IA conduce la UI) | ✅ HECHO | `libs/mateu/.../ui/screenContext.ts` + `mateu-chat.ts` | Contexto = MISMA proyección (campos+acciones); 10 vitest (pura + jsdom). El "conducir" ya existía (eventos) |
-| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ DIRECCIÓN | (spike) | NO gate; 🟡 como en el ADR |
+| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *spike* | ✅ SPIKE | `frontend/prompt-to-app/` | 8 tests (loop+reparación+5 schemas compilan); LLM inyectable; sigue 🟡/beta |
 
 Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un entregable:** marcar aquí +
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P6 SPIKE ✅** (sigue 🟡/beta, no gate — así lo encuadra el ADR). `frontend/prompt-to-app/`:
+  prompt → LLM → extraer JSON → **validar contra el schema PUBLICADO** (ajv sobre
+  `backend/shared/uidl/*-schema.json`, leídos directamente) → **bucle de reparación** re-enviando los
+  errores. LLM **inyectable** (`generate.mjs` toma `llm(messages,{system})`), adaptador real Anthropic en
+  `llm.mjs` (borde no testeado, necesita API key). Tests `node --test` 8/8: los **5 schemas publicados
+  compilan bajo ajv**, routes valida (válido pasa / inválido falla), la reparación se recupera en el
+  intento 2, el mensaje de reparación lleva los errores de vuelta, siempre-inválido → ok:false,
+  respuesta-sin-JSON re-prompt, extractJson (fences/prosa). ajv instalado (node_modules gitignored;
+  package-lock commiteado). Es la tesis §2.14 hecha ejecutable: la salida del LLM es verificable contra
+  un contrato. LÍMITES honestos (README): solo forma-de-schema (los schemas son cota inferior ABIERTA →
+  no pilla "componente desconocido" ni semántica; el paso siguiente sería round-trip por el loader real),
+  schema completo inline en el prompt (ok routes/sources; uidl/specs ~130KB → recortar), emite JSON.
 - 2026-09-20 — **P5 ✅** (la mitad verificable). El chat in-app ya mandaba `context` (estado crudo),
   `menuContext`, `mcpUrl` y aplicaba respuestas del LLM como eventos DOM (`{event,detail}` →
   `navigation-requested`…) — el "conducir la UI" YA existía. La mejora: `libs/mateu/.../ui/screenContext.ts`
