@@ -236,6 +236,14 @@ public class ${simpleClassName}Controller {
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
     + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\"" + (debug ? " debug=\"true\"" : "") + " style=\"width:100%;height:100vh;\"></mateu-ui>"
+    // A page that does not boot itself with a single ES module — a Visual Builder (redwood) app —
+    // parks its boot scripts as type="text/mateu-deferred" (require.js, its bundle config, the
+    // visual-runtime) so no browser runs them, and stashes the src in data-src so they are not even
+    // fetched. Only the @KeycloakSecured path promoted them (after the token); an UNSECURED app got
+    // <mateu-ui> and inert scripts, so the VB runtime never started. Promote them here too, IN ORDER
+    // and awaiting each (they depend on one another). A Vite-built renderer (vaadin) has no deferred
+    // scripts, so this is a no-op there.
+    + "<script>(function(){var all=document.getElementsByTagName('script'),d=[];for(var j=0;j<all.length;j++){if(all[j].type==='text/mateu-deferred')d.push(all[j]);}if(!d.length)return;var i=0;(function n(){if(i>=d.length)return;var o=d[i++],s=document.createElement('script');for(var k=0;k<o.attributes.length;k++){var a=o.attributes[k];if(a.name==='type'||a.name==='data-src')continue;s.setAttribute(a.name,a.value);}var u=o.getAttribute('data-src');if(u){s.onload=n;s.onerror=function(){console.log('mateu: deferred boot failed',u);};s.src=u;}else{s.text=o.textContent;}o.parentNode.replaceChild(s,o);if(!u)n();})();})();</script>"
     + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
 <#if metas?has_content || links?has_content || scripts?has_content>
