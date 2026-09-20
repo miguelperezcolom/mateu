@@ -780,6 +780,12 @@ public record GridColumnMetaDto(string Id, string Label)
 
     public string? Stereotype { get; init; }
 
+    /// <summary>Rich "primary" column (coherence-plan #6): the row field for the secondary caption
+    /// line, and the one for the leading avatar/icon. Set only when Stereotype == "primary".</summary>
+    public string? CaptionPath { get; init; }
+
+    public string? LeadingPath { get; init; }
+
     /// <summary>Inline editing (class-level [InlineEditing] on the crud): the cell renders an
     /// in-place editor and each commit dispatches the crud's update-row action.</summary>
     public bool Editable { get; init; }

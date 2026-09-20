@@ -135,6 +135,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     Aggregate,
+    PrimaryColumn,
     AppActionsSupplier,
     AppSupplier,
     Aside,
@@ -2123,6 +2124,9 @@ class ReflectionMapper:
                     if editable and is_enum(f.type) else None
                 ),
                 aggregate=self.aggregate_of(f),
+                stereotype=self.column_stereotype_of(f),
+                caption_path=self.caption_path_of(f),
+                leading_path=self.leading_path_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
@@ -2189,6 +2193,22 @@ class ReflectionMapper:
         return marker.function.name if marker is not None else None
 
     @staticmethod
+    def column_stereotype_of(f) -> str | None:
+        """"primary" when the column field carries PrimaryColumn() (coherence-plan #6); None
+        otherwise (mirrors Java's ColumnTypeMapper.getStereotypeForColumn)."""
+        return "primary" if f.marker(PrimaryColumn) is not None else None
+
+    @staticmethod
+    def caption_path_of(f) -> str | None:
+        marker = f.marker(PrimaryColumn)
+        return marker.caption if marker is not None and marker.caption else None
+
+    @staticmethod
+    def leading_path_of(f) -> str | None:
+        marker = f.marker(PrimaryColumn)
+        return marker.leading if marker is not None and marker.leading else None
+
+    @staticmethod
     def group_by_of(row_type) -> str | None:
         """The GroupBy() column of a row class (camelCase field id); one per row class — first
         declared wins. None when the class declares none (mirrors Java's ListingSummarySpec)."""
@@ -2248,6 +2268,9 @@ class ReflectionMapper:
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 data_type=self.infer_data_type(f.type, f),
                 aggregate=self.aggregate_of(f),
+                stereotype=self.column_stereotype_of(f),
+                caption_path=self.caption_path_of(f),
+                leading_path=self.leading_path_of(f),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
             )))
@@ -2949,6 +2972,9 @@ class ReflectionMapper:
                                   if is_enum(c.type) else None))
                     if editable else None
                 ),
+                stereotype=self.column_stereotype_of(c),
+                caption_path=self.caption_path_of(c),
+                leading_path=self.leading_path_of(c),
             )))
         on_row = f.marker(OnRowSelected)
         meta = FormFieldMetadata(

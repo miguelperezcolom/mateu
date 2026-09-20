@@ -822,6 +822,22 @@ public class UpperTranslator : ITranslator
     public string Translate(string key) => key.ToUpperInvariant();
 }
 
+// Rich "primary" column (coherence-plan #6): [PrimaryColumn(Caption, Leading)] → stereotype
+// "primary" + captionPath/leadingPath (mirrors Java's PrimaryColumnSyncTest).
+public class PrimaryPerson
+{
+    public string Id { get; set; } = "";
+    [PrimaryColumn(Caption = "email", Leading = "avatar")] public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Avatar { get; set; } = "";
+}
+
+[UI("primary-people"), Title("People")]
+public class PrimaryPeople : Crud<PrimaryPerson>
+{
+    public override IEnumerable<PrimaryPerson> Fetch(string? search) => [];
+}
+
 [UI("decorated"), Title("Decorated"), Subtitle("a subtitle")]
 [Emits("ev-out"), SubscribeTo("ev-in", "act")]
 public class Decorated
@@ -2559,6 +2575,20 @@ public class SyncHandlerTests
             ServerSideType = typeof(Sales).FullName,
             ComponentState = state,
         });
+    }
+
+    [Fact]
+    public void A_primary_column_carries_the_stereotype_and_the_caption_and_leading_paths()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "/primary-people", ServerSideType = typeof(PrimaryPeople).FullName,
+        }));
+
+        Assert.Contains("\"id\":\"name\"", json);
+        Assert.Contains("\"stereotype\":\"primary\"", json);
+        Assert.Contains("\"captionPath\":\"email\"", json);
+        Assert.Contains("\"leadingPath\":\"avatar\"", json);
     }
 
     [Fact]

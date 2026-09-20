@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.componentmapper;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.MappedValue;
+import io.mateu.uidl.annotations.PrimaryColumn;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -43,10 +44,33 @@ final class ColumnTypeMapper {
   }
 
   static FieldStereotype getStereotypeForColumn(Field columnField) {
+    // A @PrimaryColumn field is the rich "primary" cell (coherence-plan #6): title + caption +
+    // leading. Wins over an explicit @Stereotype so the annotation reads as the whole intent.
+    if (MetaAnnotations.isPresent(columnField, PrimaryColumn.class)) {
+      return FieldStereotype.primary;
+    }
     if (MetaAnnotations.isPresent(columnField, Stereotype.class)) {
       return MetaAnnotations.find(columnField, Stereotype.class).value();
     }
     return FieldStereotype.regular;
+  }
+
+  /** The row field a @PrimaryColumn shows as its secondary caption line, or null. */
+  static String getCaptionPathForColumn(Field columnField) {
+    if (MetaAnnotations.isPresent(columnField, PrimaryColumn.class)) {
+      var caption = MetaAnnotations.find(columnField, PrimaryColumn.class).caption();
+      return caption != null && !caption.isBlank() ? caption : null;
+    }
+    return null;
+  }
+
+  /** The row field a @PrimaryColumn shows as its leading avatar/icon, or null. */
+  static String getLeadingPathForColumn(Field columnField) {
+    if (MetaAnnotations.isPresent(columnField, PrimaryColumn.class)) {
+      var leading = MetaAnnotations.find(columnField, PrimaryColumn.class).leading();
+      return leading != null && !leading.isBlank() ? leading : null;
+    }
+    return null;
   }
 
   private ColumnTypeMapper() {}
