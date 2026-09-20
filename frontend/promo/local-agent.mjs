@@ -8,10 +8,14 @@
 //   node local-agent.mjs           # listens on :8777, points at ec1.mateu.io by default
 
 import { createServer } from "node:http";
+import { existsSync, readFileSync } from "node:fs";
 
 const PORT = Number(process.env.PORT || 8777);
 const DEPLOYED = process.env.DEPLOYED_AGENT || "https://ec1.mateu.io/ai/api/agent/chat";
 const TOKEN_URL = "https://auth.ec1.mateu.io/realms/ec-demo1/protocol/openid-connect/token";
+// For a snappy on-camera recording: serve a genuinely-LLM-authored YAML (captured earlier) instantly,
+// so the video has no dead time waiting on the model's latency. Set CANNED_YAML=/path/to/file.yaml.
+const CANNED = process.env.CANNED_YAML && existsSync(process.env.CANNED_YAML) ? process.env.CANNED_YAML : null;
 
 async function token() {
   const body = new URLSearchParams({ grant_type: "password", client_id: "demo", username: "demo", password: "demo", scope: "openid" });
@@ -32,6 +36,7 @@ function stripFences(s) {
 }
 
 async function authorYaml(prompt) {
+  if (CANNED) return stripFences(readFileSync(CANNED, "utf8"));
   const t = await token();
   const r = await fetch(DEPLOYED, {
     method: "POST",
