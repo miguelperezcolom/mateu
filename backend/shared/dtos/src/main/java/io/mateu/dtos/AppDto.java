@@ -60,7 +60,14 @@ public record AppDto(
      * reports what is missing instead of rendering a broken screen — compatibility by capability,
      * not by version. Mostly derived from the app's own metadata, plus any {@code @App(requires)}.
      */
-    List<String> requiredCapabilities)
+    List<String> requiredCapabilities,
+    /**
+     * The app's business-component catalogue (coherence-plan #13): every named composition its
+     * screens reference by {@code ComponentRef}, already mapped to the wire. App-wide, so it
+     * travels with the shell — and it is what lets a reference resolve with no backend (the
+     * client-side expander looks a name up here). Empty for an app that declares none.
+     */
+    List<ComponentEntryDto> components)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -76,6 +83,7 @@ public record AppDto(
     requiredCapabilities =
         Collections.unmodifiableList(
             requiredCapabilities != null ? requiredCapabilities : List.of());
+    components = Collections.unmodifiableList(components != null ? components : List.of());
   }
 
   @Override

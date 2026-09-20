@@ -5,11 +5,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.ComponentEntry;
 import io.mateu.uidl.data.ComponentRef;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.ComponentCatalogSupplier;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -18,9 +22,18 @@ import org.junit.jupiter.api.Test;
  * A business-component reference resolves server-side (coherence-plan #13): a {@code
  * ComponentRef("AgencySelector")} in a page's tree is substituted by the catalogue entry's
  * composition before rendering, so a backend-driven app never ships the reference. The catalogue is
- * the authored {@code specs/ui/components.yaml} on the test classpath (AgencySelector → a Text).
+ * contributed by a {@link ComponentCatalogSupplier} bean (the programmatic producer) — kept off the
+ * shared test classpath so it does not leak into the cross-language conformance corpus.
  */
 class ComponentRefSyncTest {
+
+  /** The programmatic catalogue for this test: names AgencySelector → a Text. */
+  public static class TestCatalogue implements ComponentCatalogSupplier {
+    @Override
+    public List<ComponentEntry> businessComponents() {
+      return List.of(new ComponentEntry("AgencySelector", new Text("agency selector")));
+    }
+  }
 
   @UI("/biz-ref")
   public static class BizRefPage implements ComponentTreeSupplier {
@@ -38,11 +51,18 @@ class ComponentRefSyncTest {
     }
   }
 
+  @UI("/biz-app")
+  public static class BizApp {
+    @io.mateu.uidl.annotations.Menu String home = "/biz-ref";
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(BizRefPage.class, BizRefUnknownPage.class);
+    mateu =
+        TestMateu.withUisAndBeans(
+            List.of(new TestCatalogue()), BizRefPage.class, BizRefUnknownPage.class, BizApp.class);
   }
 
   @AfterAll
@@ -69,5 +89,16 @@ class ComponentRefSyncTest {
     var json = wire("/biz-ref-unknown");
     assertThat(json).contains("Unknown business component: Nope");
     assertThat(json).doesNotContain("\"type\":\"ComponentRef\"");
+  }
+
+  @Test
+  void theAppShipsTheComponentCatalogueOnItsMetadata() throws Exception {
+    // AppDto.components carries the catalogue (name → resolved composition) so a ComponentRef can
+    // be
+    // resolved by the renderer or the client-side expander with no backend.
+    var json = wire("/biz-app");
+    assertThat(json).contains("\"components\"");
+    assertThat(json).contains("\"name\":\"AgencySelector\"");
+    assertThat(json).contains("agency selector");
   }
 }
