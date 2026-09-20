@@ -59,6 +59,17 @@ Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P6 AUTORÍA EN VIVO ✅ (el LLM ESCRIBE el UIDL).** `frontend/prompt-to-app/live-ecdemo-probe.mjs`:
+  adaptador que usa el agente de `ec-demo1` como backend LLM del harness (pliega system+schema+transcripción
+  en el `message` porque el agente no acepta `system` aparte; le pide NO usar tools/navegar; recoge solo el
+  texto del SSE). Prompt "crea un routes con dos pantallas" → el LLM **emitió** `{type:Routes, routes:[{route:
+  bookings,layout:bookings},{route:customers,layout:customers}]}` → **válido contra `routes-schema.json`
+  publicado al PRIMER intento**. Es la mitad de AUTORÍA (A6-a): el LLM escribe UIDL, no opera. Distinto del
+  test de operabilidad. Sigue 🟡/beta (schema pequeño routes, sin render).
+- 2026-09-20 — **E2E DE ESCRITURA (operabilidad) ✅.** Autorizado por el user: creó reserva `6R343R` (baseline
+  47→48) + la canceló (`changeBookingStatus`→Cancelled) vía LLM+MCP, conduciendo la UI. HALLAZGO: el dominio
+  hace **soft-delete** (cancelación lógica), no borrado físico → queda un registro `Cancelled` etiquetado
+  `CLAUDE E2E TEST — DELETE ME` (el agente no expone purga; limpiar por BD/admin si molesta).
 - 2026-09-20 — **E2E EN VIVO CON LLM REAL ✅ (cierra el residuo).** Contra el entorno desplegado
   `ec-demo1` (`ec1.mateu.io`; su `ia-agent` es Spring AI + Anthropic que consume MCP por petición —
   `PerRequestMcpClientFactory`). Token del usuario público `demo` (realm `ec-demo1`, client `demo`
