@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -47,8 +48,11 @@ private class MateuToolbarAction(
     private val ctx: AppContext,
     private val spec: ToolbarSpec,
 ) : AnAction(spec.label.ifBlank { spec.actionId }, null, iconFor(spec.actionId)), DumbAware {
-    /** Icon-only toolbar buttons would hide the (often dynamic) Mateu labels — always show text. */
-    override fun displayTextInToolbar(): Boolean = true
+    init {
+        // Icon-only toolbar buttons would hide the (often dynamic) Mateu labels — always show text.
+        // Replaces the deprecated (scheduled-for-removal) `displayTextInToolbar()` override.
+        templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+    }
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
     override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = !spec.disabled

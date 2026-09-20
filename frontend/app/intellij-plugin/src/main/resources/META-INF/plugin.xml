@@ -17,6 +17,11 @@
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
+        <!-- Bottom results panel for CRUD-listing tabs. Declared here (rather than registered at
+             runtime) so we never call the override-only ToolWindowManager.registerToolWindow. -->
+        <toolWindow id="Mateu Results" anchor="bottom" canCloseContents="true"
+                    factoryClass="io.mateu.ijp.plugin.MateuResultsToolWindowFactory"
+                    icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <!-- Cross-IDE web visual editor (JCEF) for specs/ui/*.yaml pages: palette + WYSIWYG canvas
              + properties in one view. Successor to the retired Swing split-preview. -->

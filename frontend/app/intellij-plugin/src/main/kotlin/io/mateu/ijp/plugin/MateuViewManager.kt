@@ -9,15 +9,12 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
 import java.awt.BorderLayout
-import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -114,16 +111,12 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     /** Crud listing → a tab in the bottom "Mateu" results tool window; actions on the title bar. */
     private fun placeCrudList(ctx: AppContext, panel: JComponent, title: String): () -> Unit {
         val twm = ToolWindowManager.getInstance(project)
-        val tw = twm.getToolWindow(RESULTS_ID) ?: twm.registerToolWindow(RESULTS_ID) {
-            anchor = ToolWindowAnchor.BOTTOM
-            canCloseContent = true
-            stripeTitle = Supplier { "Mateu" }
-            icon = IconLoader.getIcon("/icons/mateu.svg", MateuViewManager::class.java)
-        }.also {
-            // One delegating group for the whole tool window: it surfaces the SELECTED tab's actions
-            // (plain tool windows don't render per-Content action groups).
-            it.setTitleActions(listOf(toolWindowTitleGroup(it)))
-        }
+        // "Mateu Results" is declared in plugin.xml (MateuResultsToolWindowFactory), so it already
+        // exists — we never call the override-only ToolWindowManager.registerToolWindow.
+        val tw = twm.getToolWindow(RESULTS_ID) ?: return {}
+        // One delegating group for the whole tool window: it surfaces the SELECTED tab's actions
+        // (plain tool windows don't render per-Content action groups). Idempotent as views open.
+        tw.setTitleActions(listOf(toolWindowTitleGroup(tw)))
         val content = ContentFactory.getInstance().createContent(panel, title, false)
         content.putUserData(MATEU_VIEW_CTX, ctx)
         // This view's SetWindowTitle names its own tab (e.g. "All products").
@@ -170,7 +163,8 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     }
 
     companion object {
-        private const val RESULTS_ID = "MateuResults"
+        // Must match the <toolWindow id="…"> declared in plugin.xml.
+        private const val RESULTS_ID = "Mateu Results"
     }
 }
 
