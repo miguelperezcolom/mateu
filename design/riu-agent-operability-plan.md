@@ -49,7 +49,7 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 |---|---|:--:|---|---|
 | **P0** | Folding en ADR/deck (§2.15 pilar + GAP‑4/R4 + matriz A6) | ✅ HECHO | `design/riu-*.md` | ADR §2.15 + GAP‑4 + §7.2/§7.4 + nota A6; deck titular 4 + pilar 4 |
 | **P1** | Proyección + **sidecar MCP** (Node, cero-dep) contra cualquier backend | ✅ HECHO | `frontend/mcp-server/` + `e2e/mcp-probe.mjs` | 14 unit (corpus real + protocolo) + e2e 7/7 vs mvc-app1 vivo |
-| **P2** | Semántica de proyección como **spec versionada** | ⏳ TODO | `doc/.../reference/wire-specification.md` | Sección "Proyección MCP" |
+| **P2** | Semántica de proyección como **spec versionada** | ✅ HECHO | `doc/.../reference/wire-specification.md` + `reference/agent-operability.md` | Sección normativa "Agent operability" + doc usuario + sidebar |
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ⏳ TODO | `backend/shared/core` + adaptadores | Reusa `MateuService`, no HTTP self-hop |
 | **P4** | Paridad ports (.NET, Python) del endpoint nativo | ⏳ TODO | `backend/dotnet`, `backend/python` | Playbook corpus/paridad habitual |
 | **P5** | Mejora del **chat in-app** (IA conduce la UI) | ⏳ TODO | `frontend/web/monorepo/libs/mateu` | §2.4 runtime; reusa `mateu-chat`/`sseUrl` |
@@ -59,6 +59,9 @@ Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P2 ✅**. Sección normativa "Agent operability — the MCP projection" en
+  `wire-specification.md` (tabla de derivación wire→tools, mapeo tool-call→sync, los 2 gotchas del wire,
+  dos-hosts-una-proyección) + doc de usuario `reference/agent-operability.md` + entrada en el sidebar.
 - 2026-09-20 — **P1 ✅**. Sidecar `frontend/mcp-server/` (Node ESM, cero deps): `projection.mjs` (wire→
   vista plana, pura), `wire.mjs` (cliente sync), `index.mjs` (MCP JSON-RPC 2.0 stdio: initialize/
   tools/list/tools/call, 4 tools). Tests: 14 unit (`node --test`) — proyección contra el corpus REAL
