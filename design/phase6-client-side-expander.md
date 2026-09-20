@@ -109,6 +109,25 @@ at once — no .NET/Python port (those are backends; the whole point is *no* bac
 core (`apps/redwood/poc`) has its own transport; a VB twin of the expander is a later, optional
 increment (VB is ref-native for sources and does not consume them yet).
 
+**Listing/REST finding — a definition-only Listing renders as a `ServerSide` wrapper; the client
+must emit the `Crud` child directly (a substantial per-type transform; read+navigate is the scope).**
+A `type: Listing`/`Crudl` definition does NOT render as a client tree: the server wraps it in a
+`ServerSide` `SeededYamlPage` (route `_empty`) whose child is a `ClientSide` `Crud` — the wrapper
+exists to run the page's actions and proxy secrets server-side. The full wire is huge (~2600 lines
+for `bulk-list`: the `Crud` metadata carries ~15 server-derived fields — `crudlType`, `canEdit`,
+`selectionListened`, `searchable`, `showCards`, `filters`… — plus every column expanded to a
+`GridColumn` ClientSide with its own ~25 defaults, and every toolbar `Button` in full). So the client
+expander cannot reproduce the ServerSide wrapper (there is no server in specs mode); it must map
+`type: Listing` → the **`Crud` ClientSide component directly**, renaming Listing→Crud, defaulting
+`crudlType`, expanding `columns`→GridColumn and `toolbar`→Button, and binding rows via the existing
+client-side `restSourceCatalogue`/`externalOptions` (`mapItemsToRows`) from the `rowsSource`/`ref`.
+**Scope = read + navigate** (`rowRoute`): proxy/secret actions (e.g. `bulk-list`'s `delete-selected`,
+`forEachSelectedRow` against `${secret.KEY}`) need a backend and stay out — the documented boundary.
+Golden source: a SIMPLE read-only listing (a `demo-starwars`-style `rowsSource` + `columns` +
+`rowRoute`), captured from Java (`TestMateu.sync`), NOT `bulk-list` (its proxy actions muddy it).
+This is the largest remaining expander increment and is architecturally distinct from the display
+components — it is its own PR.
+
 **Browser-e2e finding — deep-linking a sub-route in bundle mode renders the app HOME, not the
 sub-route (blocks the naive e2e; needs in-app navigation).** The exporter→manifest→expander data
 path is proven end to end: `BundleDefinitionsTest` (server ships the raw definition), the
