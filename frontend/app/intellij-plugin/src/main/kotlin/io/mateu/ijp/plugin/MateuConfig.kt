@@ -30,7 +30,9 @@ fun loadMateuConfig(): MateuConfig {
     val baseUrl = prop("mateu.baseUrl", "http://localhost:8080")!!
     val route = prop("mateu.route", "/")!!
     val config = parseConfig(prop("mateu.config", "{}")!!)
-    val focused = prop("mateu.focused", "true")!!.toBoolean()
+    // Default OFF: focused mode rewires the platform's tool windows/EPs (see application.properties);
+    // only the desktop installers turn it on via -Dmateu.focused=true.
+    val focused = prop("mateu.focused", "false")!!.toBoolean()
     val productName = prop("mateu.productName", "Mateu")!!.ifBlank { "Mateu" }
     val registryUrl = prop("mateu.registryUrl")?.ifBlank { null }
     val appId = prop("mateu.appId")?.ifBlank { null }

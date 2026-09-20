@@ -248,6 +248,9 @@ tasks.register("buildInstaller") {
                     "-Djb.consents.confirmation.enabled=false",
                     "-Didea.trust.all.projects=true",
                     "-Dmateu.productName=Mateu",
+                    // The desktop app IS the standalone shell — turn focused mode on here (it is OFF by
+                    // default so the Marketplace plugin doesn't rewire a developer's IDE).
+                    "-Dmateu.focused=true",
                 ) + registryProps).joinToString("\n", prefix = "\n", postfix = "\n"),
             )
 
@@ -386,7 +389,8 @@ tasks.register("buildInstaller") {
             (findProperty("mateu.appId") as String?)?.let { "-Dmateu.appId=$it" },
         )
         vmOptionsFile.appendText(
-            (listOf("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true") + registryProps)
+            // The desktop app IS the standalone shell — focused mode on (OFF by default in the plugin).
+            (listOf("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true", "-Dmateu.focused=true") + registryProps)
                 .joinToString("\n", prefix = "\n", postfix = "\n"),
         )
 
