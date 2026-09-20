@@ -31,9 +31,8 @@ so every host produces the same result.
   wire, so it operates a **Java, .NET or Python** backend with **no backend change**. Point it at a URL
   and go. This is the quickest way to try it, and it covers **every** backend today.
 - **Native endpoint** — the backend serves the same MCP projection directly, so *every app is also an
-  MCP* with no sidecar to deploy, enforcing permissions natively. Available today on **Java**
-  (Spring MVC, `POST /mateu/mcp`) and **Python** (FastAPI, `POST /mateu/mcp`); the **.NET** native
-  endpoint is a follow-up (the sidecar covers .NET in the meantime). All hosts share one projection.
+  MCP* with no sidecar to deploy, enforcing permissions natively. Available on **Java** (Spring MVC),
+  **Python** (FastAPI) and **.NET** (ASP.NET Core) — all at `POST /mateu/mcp`, all sharing one projection.
 
 ## Permissions (RBAC)
 
@@ -63,6 +62,15 @@ Register the sidecar as an MCP server (stdio):
 
 Then an agent can, for example: `mateu_list_routes` → `mateu_describe_screen("bookings")` → read the
 fields and filters → `mateu_search("bookings", "smith")` → `mateu_run_action("bookings", "export")`.
+
+## The in-app assistant uses the same projection
+
+The built-in AI chat (`@AI(sse=…)`) is the *other* face of the same idea. With every message it now
+sends a **self-describing projection of the screen the user is looking at** — the same shape the MCP
+produces: the current fields (id, label, dataType, value) and the actions available. So the assistant
+fills forms and runs actions precisely instead of guessing from raw state, and it drives the UI by
+returning the wire events the frontend already applies (`navigation-requested`, dispatched events…).
+One projection, two consumers: external agents (MCP) and the in-app assistant.
 
 ## Verify
 

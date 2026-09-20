@@ -51,14 +51,29 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | **P1** | Proyección + **sidecar MCP** (Node, cero-dep) contra cualquier backend | ✅ HECHO | `frontend/mcp-server/` + `e2e/mcp-probe.mjs` | 14 unit (corpus real + protocolo) + e2e 7/7 vs mvc-app1 vivo |
 | **P2** | Semántica de proyección como **spec versionada** | ✅ HECHO | `doc/.../reference/wire-specification.md` + `reference/agent-operability.md` | Sección normativa "Agent operability" + doc usuario + sidebar |
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ✅ HECHO | `backend/shared/core/.../mcp` + `mvc-core/.../mcp` | 12 tests core + e2e vivo `/mateu/mcp` |
-| **P4** | Paridad ports (.NET, Python) del endpoint nativo | 🔨 PARCIAL | `backend/python` ✅ · `backend/dotnet` ⏳ | Python 12 tests verdes; .NET = follow-up (sidecar ya lo cubre) |
-| **P5** | Mejora del **chat in-app** (IA conduce la UI) | ⏳ DIRECCIÓN | `frontend/web/monorepo/libs/mateu` | El MCP ES la entrega verificada de "IA opera la UI"; el chat necesita backend LLM para e2e |
+| **P4** | Paridad ports (.NET, Python) del endpoint nativo | ✅ HECHO | `backend/python` ✅ · `backend/dotnet` ✅ | Python 12 tests; .NET 11 tests (incl. RBAC) + suite completa 398/398 |
+| **P5** | Mejora del **chat in-app** (IA conduce la UI) | ✅ HECHO | `libs/mateu/.../ui/screenContext.ts` + `mateu-chat.ts` | Contexto = MISMA proyección (campos+acciones); 10 vitest (pura + jsdom). El "conducir" ya existía (eventos) |
 | **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ DIRECCIÓN | (spike) | NO gate; 🟡 como en el ADR |
 
 Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un entregable:** marcar aquí +
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P5 ✅** (la mitad verificable). El chat in-app ya mandaba `context` (estado crudo),
+  `menuContext`, `mcpUrl` y aplicaba respuestas del LLM como eventos DOM (`{event,detail}` →
+  `navigation-requested`…) — el "conducir la UI" YA existía. La mejora: `libs/mateu/.../ui/screenContext.ts`
+  proyecta el componente en pantalla al MISMO esquema que el MCP (campos con tipo/label/valor + acciones)
+  y `mateu-chat.send()` lo añade al body como `screen`, así el asistente sabe qué rellenar/ejecutar en vez
+  de adivinar del estado. Tests: 10 vitest (`screenContext.test.ts` proyección pura 6 + `screenContext.dom.test.ts`
+  jsdom, DOM-walk con shadow-piercing + elige la pantalla más rica, 4); suite libs/mateu 486/486; tsc 0
+  errores. NO rebuild de assets (convención repo: se rebuild aparte). El e2e "LLM conduce la UI" necesita
+  backend LLM (config de app, no del framework) → fuera de alcance verificable local.
+- 2026-09-20 — **P4 .NET ✅** (VERIFICADO: sí había `dotnet` en `~/.dotnet/dotnet`, 9.0.100). Port C#:
+  `src/Mateu.Core/Mcp/` (`McpProjection` sobre `System.Text.Json.Nodes` — ojo `JsonNode` tiene UN padre,
+  `DeepClone()` al copiar; `McpService` reusa `SyncHandler`; `McpJsonRpc`) + endpoint `POST /mateu/mcp`
+  en `MateuExtensions.MapMateu`. Tests `McpTests.cs`: 11 verdes (proyección inline + wire REAL .NET con
+  **RBAC** — `[EyesOnly(Roles=["admin"])]` + sin identidad → oculto; ojo: `[EyesOnly]` SIN dimensiones =
+  siempre visible) + **suite completa 398/398**. Los 3 backends nativos ahora en paridad.
 - 2026-09-20 — **P4 Python ✅ / .NET follow-up**. `backend/python/mateu_core/mcp.py` (proyección pura
   dict→dict + JSON-RPC + 4 tools, gemelo de JS/Java) + endpoint `POST /mateu/mcp` en `mateu_fastapi`
   (reusa SyncHandler → RBAC). 12 tests con `python3 -m unittest tests.test_mcp` (sin pydantic). **.NET

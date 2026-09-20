@@ -1,7 +1,9 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Mateu.Core;
+using Mateu.Core.Mcp;
 using Mateu.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +42,22 @@ public static class MateuExtensions
             var increment = handler.Handle(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json);
+        });
+
+        // Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
+        // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
+        app.MapPost(prefix + "/mateu/mcp", async (HttpContext ctx, SyncHandler handler) =>
+        {
+            var message = await JsonSerializer.DeserializeAsync<JsonNode>(ctx.Request.Body, Json);
+            var mcp = new McpService(handler, Json, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
+            var response = McpJsonRpc.Handle(message, mcp);
+            if (response is null)
+            {
+                ctx.Response.StatusCode = 202;
+                return;
+            }
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsync(response.ToJsonString(Json));
         });
     }
 }
