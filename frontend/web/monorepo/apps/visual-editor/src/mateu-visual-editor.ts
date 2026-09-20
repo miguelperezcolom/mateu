@@ -18,6 +18,7 @@ import { bindDataSource, scaffoldFieldsFromContract, turnIntoListing, wireAction
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
 import { STEP_TYPES, stepParam, pageActionIds, actionSteps, setActionSteps, addFlowAction, removeAction, FlowStep } from './model/flowEditor'
+import { buildBundleManifest, clientRenderableRouteCount } from './model/exportBundle'
 import { SCHEMA } from './model/schemaCatalog'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
@@ -276,6 +277,7 @@ export class MateuVisualEditor extends LitElement {
                     ${this.modeBadge()}
                     ${this.mode === 'page' ? this.shapeBadge() : ''}
                     <span class="spacer"></span>
+                    <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export bundle</button>
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
                     ${this.mode === 'page' ? html`<button @click=${() => (this.showSync = !this.showSync)}>Sync</button>` : ''}
@@ -823,6 +825,26 @@ export class MateuVisualEditor extends LitElement {
         this.aiMsg = undefined
         this.refreshContract()
         this.notifyChanged()
+    }
+
+    // --- static bundle export (Phase 7): the €0 deploy half ---
+
+    /** Download a specs-mode `manifest.json` of the whole mount — deployable to any free static host, no backend. */
+    private exportBundle = async () => {
+        const files = (await this.host.listFiles?.()) ?? []
+        // No project files (e.g. a standalone browser draft) → export just the current definition.
+        const project = files.length ? files : [{ path: this.currentPath ?? 'page.yaml', content: this.currentYaml() }]
+        const manifest = buildBundleManifest(project, new Date().toISOString())
+        const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'manifest.json'
+        a.click()
+        URL.revokeObjectURL(url)
+        const routes = clientRenderableRouteCount(manifest)
+        const defs = Object.keys(manifest.definitions).length
+        window.alert(`Exported manifest.json — ${defs} definition(s), ${routes} route(s) render with no backend. Serve it beside the Mateu renderer (specs mode) on any static host.`)
     }
 
     // --- declared-flow editor (Phase 3): steps on a page action, the VB action-chain analog ---
