@@ -86,6 +86,21 @@ val copyVisualEditor = tasks.register<Exec>("copyVisualEditor") {
 }
 tasks.named("processResources") { dependsOn(copyVisualEditor) }
 
+// Emit the plugin version as a plain classpath resource so AppRegistry can read it WITHOUT the plugin
+// manager — both PluginManagerCore.getPlugin and PluginManager.findEnabledPlugin are @ApiStatus.Internal.
+val versionResourceDir = layout.buildDirectory.dir("generated/version")
+val generatePluginVersion = tasks.register("generatePluginVersion") {
+    val dir = versionResourceDir
+    val v = version.toString()
+    inputs.property("version", v)
+    outputs.dir(dir)
+    doLast {
+        dir.get().file("mateu-plugin-version.txt").asFile.apply { parentFile.mkdirs(); writeText(v) }
+    }
+}
+sourceSets.main.get().resources.srcDir(versionResourceDir)
+tasks.named("processResources") { dependsOn(generatePluginVersion) }
+
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.
