@@ -82,6 +82,7 @@ final class YamlUidlMapperFactory {
         new NamedType(Container.class, "Container"),
         new NamedType(ContextMenu.class, "ContextMenu"),
         new NamedType(CookieConsent.class, "CookieConsent"),
+        new NamedType(CustomComponent.class, "CustomComponent"),
         new NamedType(CustomField.class, "CustomField"),
         new NamedType(Data.class, "Data"),
         new NamedType(Details.class, "Details"),

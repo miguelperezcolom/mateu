@@ -721,6 +721,22 @@ public sealed record Notice(string Text) : ComponentBase
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
 
+/// <summary>
+/// A genuinely NEW component type the platform does not ship (coherence-plan #14): the per-renderer
+/// escape hatch. Unlike a business component (composition of known pieces that ports for free), a
+/// custom component is a new RENDERING — each renderer registers against <see cref="Name"/> and
+/// degrades to the &lt;mateu-unsupported&gt; placeholder when it has none. The model only DECLARES it
+/// (a type name, a <see cref="Props"/> bag the renderer reads, and slotted <see cref="Content"/>);
+/// the wire carries exactly that as data, so backend parity is cheap even though rendering is not.
+/// </summary>
+public sealed record CustomComponent(string Name) : ComponentBase
+{
+    /// <summary>The properties the renderer reads.</summary>
+    public IReadOnlyDictionary<string, object> Props { get; init; } = new Dictionary<string, object>();
+    /// <summary>Slotted children (ordinary components).</summary>
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+}
+
 /// <summary>One card of a <see cref="TaskQueue"/> group. Selected renders with an accent
 /// border + tinted background.</summary>
 public sealed record QueueItem

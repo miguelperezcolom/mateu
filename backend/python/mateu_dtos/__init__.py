@@ -349,6 +349,16 @@ class SeparatorMetadata(Wire):
     attributes: dict[str, str] = Field(default_factory=dict)
 
 
+class CustomComponentMetadata(Wire):
+    """A custom component (coherence-plan #14): a type ``name`` a renderer registers against + a
+    ``props`` bag it reads. Slotted children ride on the client-side component's children (mirrors
+    ``CustomComponentDto``)."""
+
+    type: Literal["CustomComponent"] = "CustomComponent"
+    name: str = ""
+    props: dict[str, object] = Field(default_factory=dict)
+
+
 class AnchorMetadata(Wire):
     """A hyperlink (mirrors ``AnchorDto``); target "_blank" is rendered with rel=noopener."""
 
@@ -1249,6 +1259,7 @@ ComponentMetadata = Annotated[
         StatusListMetadata,
         BulletedListMetadata,
         SeparatorMetadata,
+        CustomComponentMetadata,
         AnchorMetadata,
         NoticeMetadata,
         TaskQueueMetadata,

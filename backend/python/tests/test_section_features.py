@@ -118,6 +118,18 @@ class NoticeView(ComponentTreeSupplier):
         )
 
 
+@ui("sections-custom-component")
+class CustomComponentView(ComponentTreeSupplier):
+    """A custom component (coherence-plan #14): name + props in metadata, slotted content as children."""
+
+    def component(self):
+        return fluent.CustomComponent(
+            name="org-chart",
+            props={"orientation": "vertical", "levels": 3},
+            content=(fluent.Text("fallback content"),),
+        )
+
+
 @ui("sections-wizard-steps")
 @title("Steps wizard")
 @wizard_progress("steps")
@@ -247,6 +259,18 @@ def test_notice_travels_with_theme_text_and_action():
     assert m["theme"] == "danger"
     assert m["actionLabel"] == "Revisar"
     assert m["actionId"] == "review"
+
+
+def test_custom_component_carries_name_props_and_slotted_children():
+    tree = component_tree(CustomComponentView)
+    customs = all_metadata(tree, "CustomComponent")
+    assert len(customs) == 1
+    m = customs[0]["metadata"]
+    assert m["name"] == "org-chart"
+    assert m["props"] == {"orientation": "vertical", "levels": 3}
+    # slotted content travels as ordinary children, paintable by any renderer
+    texts = all_metadata(tree, "Text")
+    assert any(t["metadata"].get("text") == "fallback content" for t in texts)
 
 
 # ── Wizard progress styles ──────────────────────────────────────────────────────

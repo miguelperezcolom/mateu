@@ -90,6 +90,7 @@ from mateu_dtos import (
     StatusListMetadata,
     BulletedListMetadata,
     SeparatorMetadata,
+    CustomComponentMetadata,
     NoticeMetadata,
     QueueItemRecord,
     QueueGroupRecord,
@@ -1744,6 +1745,12 @@ class ReflectionMapper:
             )
         if isinstance(c, fluent.Separator):
             return self._fluent_client(SeparatorMetadata(), c)
+        if isinstance(c, fluent.CustomComponent):
+            return self._fluent_client(
+                CustomComponentMetadata(name=c.name, props=dict(c.props)),
+                c,
+                [self.map_component(child) for child in c.content],
+            )
         if isinstance(c, fluent.Anchor):
             return self._fluent_client(AnchorMetadata(text=c.text, url=c.url, target=c.target), c)
         # Federation — a remote Mateu UI mounted as an island inside this page.

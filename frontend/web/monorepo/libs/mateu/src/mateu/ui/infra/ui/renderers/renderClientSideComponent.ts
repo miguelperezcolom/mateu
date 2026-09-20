@@ -103,6 +103,7 @@ import { renderTaskProgress } from "@infra/ui/renderers/taskProgressRenderer.ts"
 import { renderStatusList } from "@infra/ui/renderers/statusListRenderer.ts";
 import { renderBulletedList } from "@infra/ui/renderers/bulletedListRenderer.ts";
 import { renderSeparator } from "@infra/ui/renderers/separatorRenderer.ts";
+import { renderCustomComponent } from "@infra/ui/renderers/customComponentRenderer.ts";
 import { renderNotice } from "@infra/ui/renderers/noticeRenderer.ts";
 import { renderTaskQueue } from "@infra/ui/renderers/taskQueueRenderer.ts";
 import { renderResourceGrid } from "@infra/ui/renderers/resourceGridRenderer.ts";
@@ -305,6 +306,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.StatusList]: ({ component }) => renderStatusList(component),
     [ComponentMetadataType.BulletedList]: ({ component }) => renderBulletedList(component),
     [ComponentMetadataType.Separator]: ({ component }) => renderSeparator(component),
+    [ComponentMetadataType.CustomComponent]: full(renderCustomComponent),
     [ComponentMetadataType.Notice]: full(renderNotice),
     [ComponentMetadataType.TaskQueue]: ({ component }) => renderTaskQueue(component),
     [ComponentMetadataType.ResourceGrid]: ({ component }) => renderResourceGrid(component),

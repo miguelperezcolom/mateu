@@ -59,6 +59,17 @@ public class NoticeView : IComponentTreeSupplier
     };
 }
 
+/// <summary>A custom component (coherence-plan #14): name + props in metadata, slotted content as children.</summary>
+[UI("sections/custom-component")]
+public class CustomComponentView : IComponentTreeSupplier
+{
+    public IComponent Component() => new CustomComponent("org-chart")
+    {
+        Props = new Dictionary<string, object> { ["orientation"] = "vertical", ["levels"] = 3 },
+        Content = new IComponent[] { new Text("fallback content") },
+    };
+}
+
 /// <summary>[SeparatorBefore] on a field (Java: @SeparatorBefore).</summary>
 [UI("sections/separator")]
 public class SeparatorForm
@@ -228,6 +239,20 @@ public class SectionFeatureTests
         Assert.Equal("danger", notice.GetProperty("theme").GetString());
         Assert.Equal("Revisar", notice.GetProperty("actionLabel").GetString());
         Assert.Equal("review", notice.GetProperty("actionId").GetString());
+    }
+
+    [Fact]
+    public void Custom_component_carries_name_props_and_slotted_children()
+    {
+        var root = RenderView(typeof(CustomComponentView));
+        var meta = ComponentOfType(root, "CustomComponent")!.Value.GetProperty("metadata");
+        Assert.Equal("org-chart", meta.GetProperty("name").GetString());
+        var props = meta.GetProperty("props");
+        Assert.Equal("vertical", props.GetProperty("orientation").GetString());
+        Assert.Equal(3, props.GetProperty("levels").GetInt32());
+        // slotted content travels as ordinary children, paintable by any renderer
+        var text = ComponentOfType(root, "Text")!.Value.GetProperty("metadata");
+        Assert.Equal("fallback content", text.GetProperty("text").GetString());
     }
 
     [Fact]

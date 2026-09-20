@@ -1028,6 +1028,28 @@ class Notice(Component):
 
 
 @dataclass(frozen=True)
+class CustomComponent(Component):
+    """A genuinely NEW component type the platform does not ship (coherence-plan #14): the
+    per-renderer escape hatch. Unlike a business component (composition of known pieces that ports
+    for free), a custom component is a new RENDERING — each renderer registers against ``name`` and
+    degrades to ``<mateu-unsupported>`` when it has none. The model only DECLARES it (a type name, a
+    ``props`` bag the renderer reads, and slotted ``content``); the wire carries exactly that as
+    data, so backend parity is cheap even though rendering is per-renderer."""
+
+    name: str = ""
+    #: The properties the renderer reads.
+    props: dict[str, object] = field(default_factory=dict)
+    #: Slotted children (ordinary components).
+    content: tuple[Component, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "content", tuple(self.content))
+
+
+@dataclass(frozen=True)
 class BulletedList(Component):
     """A plain bulleted list (``<ul>``) of text items — the lightweight counterpart of
     :class:`StatusList` for read-only enumerations (preferences, highlights, notes)."""
