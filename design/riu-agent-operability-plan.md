@@ -53,12 +53,45 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ✅ HECHO | `backend/shared/core/.../mcp` + `mvc-core/.../mcp` | 12 tests core + e2e vivo `/mateu/mcp` |
 | **P4** | Paridad ports (.NET, Python) del endpoint nativo | ✅ HECHO | `backend/python` ✅ · `backend/dotnet` ✅ | Python 12 tests; .NET 11 tests (incl. RBAC) + suite completa 398/398 |
 | **P5** | Mejora del **chat in-app** (IA conduce la UI) | ✅ HECHO | `libs/mateu/.../ui/screenContext.ts` + `mateu-chat.ts` | Contexto = MISMA proyección (campos+acciones); 10 vitest (pura + jsdom). El "conducir" ya existía (eventos) |
-| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ DIRECCIÓN | (spike) | NO gate; 🟡 como en el ADR |
+| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *spike* | ✅ SPIKE | `frontend/prompt-to-app/` | 8 tests (loop+reparación+5 schemas compilan); LLM inyectable; sigue 🟡/beta |
 
 Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un entregable:** marcar aquí +
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P6 AUTORÍA EN VIVO ✅ (el LLM ESCRIBE el UIDL).** `frontend/prompt-to-app/live-ecdemo-probe.mjs`:
+  adaptador que usa el agente de `ec-demo1` como backend LLM del harness (pliega system+schema+transcripción
+  en el `message` porque el agente no acepta `system` aparte; le pide NO usar tools/navegar; recoge solo el
+  texto del SSE). Prompt "crea un routes con dos pantallas" → el LLM **emitió** `{type:Routes, routes:[{route:
+  bookings,layout:bookings},{route:customers,layout:customers}]}` → **válido contra `routes-schema.json`
+  publicado al PRIMER intento**. Es la mitad de AUTORÍA (A6-a): el LLM escribe UIDL, no opera. Distinto del
+  test de operabilidad. Sigue 🟡/beta (schema pequeño routes, sin render).
+- 2026-09-20 — **E2E DE ESCRITURA (operabilidad) ✅.** Autorizado por el user: creó reserva `6R343R` (baseline
+  47→48) + la canceló (`changeBookingStatus`→Cancelled) vía LLM+MCP, conduciendo la UI. HALLAZGO: el dominio
+  hace **soft-delete** (cancelación lógica), no borrado físico → queda un registro `Cancelled` etiquetado
+  `CLAUDE E2E TEST — DELETE ME` (el agente no expone purga; limpiar por BD/admin si molesta).
+- 2026-09-20 — **E2E EN VIVO CON LLM REAL ✅ (cierra el residuo).** Contra el entorno desplegado
+  `ec-demo1` (`ec1.mateu.io`; su `ia-agent` es Spring AI + Anthropic que consume MCP por petición —
+  `PerRequestMcpClientFactory`). Token del usuario público `demo` (realm `ec-demo1`, client `demo`
+  password-grant) → `POST /ai/api/agent/stream` con un prompt de SOLO LECTURA. Respuesta: uso real de
+  tokens (8007 in/130 out) + comando `navigation-requested → /booking/bookings` (**el LLM condujo la
+  UI**) + resumen de **47 reservas reales leídas por MCP**. Valida el plano end-to-end con LLM real, sin
+  mutar datos. NOTA: el entorno usa el MCP propio de ec-demo1 (`api-mcp`, imágenes previas a este trabajo);
+  lo que este plano aporta es hacer ese mismo mecanismo NATIVO (`/mateu/mcp` de serie + proyección de
+  pantalla en el chat) en cualquier app Mateu. No hay clave local (secrets out-of-band); se usó el
+  entorno desplegado.
+- 2026-09-20 — **P6 SPIKE ✅** (sigue 🟡/beta, no gate — así lo encuadra el ADR). `frontend/prompt-to-app/`:
+  prompt → LLM → extraer JSON → **validar contra el schema PUBLICADO** (ajv sobre
+  `backend/shared/uidl/*-schema.json`, leídos directamente) → **bucle de reparación** re-enviando los
+  errores. LLM **inyectable** (`generate.mjs` toma `llm(messages,{system})`), adaptador real Anthropic en
+  `llm.mjs` (borde no testeado, necesita API key). Tests `node --test` 8/8: los **5 schemas publicados
+  compilan bajo ajv**, routes valida (válido pasa / inválido falla), la reparación se recupera en el
+  intento 2, el mensaje de reparación lleva los errores de vuelta, siempre-inválido → ok:false,
+  respuesta-sin-JSON re-prompt, extractJson (fences/prosa). ajv instalado (node_modules gitignored;
+  package-lock commiteado). Es la tesis §2.14 hecha ejecutable: la salida del LLM es verificable contra
+  un contrato. LÍMITES honestos (README): solo forma-de-schema (los schemas son cota inferior ABIERTA →
+  no pilla "componente desconocido" ni semántica; el paso siguiente sería round-trip por el loader real),
+  schema completo inline en el prompt (ok routes/sources; uidl/specs ~130KB → recortar), emite JSON.
 - 2026-09-20 — **P5 ✅** (la mitad verificable). El chat in-app ya mandaba `context` (estado crudo),
   `menuContext`, `mcpUrl` y aplicaba respuestas del LLM como eventos DOM (`{event,detail}` →
   `navigation-requested`…) — el "conducir la UI" YA existía. La mejora: `libs/mateu/.../ui/screenContext.ts`

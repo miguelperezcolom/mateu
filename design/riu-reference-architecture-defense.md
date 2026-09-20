@@ -412,8 +412,9 @@ versionada, §4/R2):
 1. **Plano de definición/render** — Mateu: define y pinta (multi-DS, multidispositivo).
 2. **Plano de operabilidad por agentes** — un **MCP** (Model Context Protocol) expone cada app Mateu como
    *herramientas autodescriptivas* que cualquier agente (Claude, Antigravity, un copiloto interno)
-   descubre y ejecuta; y el **chat in-app** conduce la propia UI devolviendo los comandos que el frontend
-   ya sabe aplicar.
+   descubre y ejecuta; y el **chat in-app**, que ya conducía la UI devolviendo los comandos que el
+   frontend aplica, ahora manda con cada mensaje **la MISMA proyección** (campos con tipo/valor + acciones
+   de la pantalla) — *una proyección, dos consumidores*: el agente externo por MCP y el asistente embebido.
 
 **El encuadre:** un MCP es **"un renderer de agente"** — mismo modelo autodescriptivo, *tools* en vez de
 píxeles. Que este plano sea "aparte de Mateu" es el argumento fuerte: no depende de que Mateu embeba IA,
@@ -431,13 +432,40 @@ que "ocultar en UI".
 **Honestidad (no sobrevender — coherente con A6=🟡):** son dos cosas distintas y solo una es sólida hoy.
 La **operabilidad en runtime** (un agente describe y ejecuta una app viva, con RBAC aplicado en servidor)
 es **real y demostrable** → es la mitad de A6 que sube sobre terreno firme. El **prompt-to-app** (autoría
-al vuelo emitiendo UIDL) sigue **🟡 / dirección de producto**. La defensa las presenta separadas.
+al vuelo emitiendo UIDL) sigue **🟡 / dirección de producto**, pero ya **no es solo una promesa**: hay un
+**spike ejecutable** que prueba el mecanismo diferencial —la salida del LLM se **valida mecánicamente
+contra el schema publicado** con bucle de reparación (justo lo de §2.14: la IA emite *dato pequeño y
+verificable contra contrato*, no React ilegible)—. La defensa las presenta separadas: runtime como hecho,
+prompt-to-app como dirección con prueba de concepto.
 
 **Por qué le importa a Riu:** convierte todo el catálogo de UIs corporativas en superficie operable por
 los agentes que Riu ya va a adoptar (§2.14), con **permisos aplicados en servidor** — automatización de
 procesos internos sin construir una API-para-agentes por cada app. Plan de ejecución:
-`design/riu-agent-operability-plan.md`. **[EVIDENCIA: `frontend/mcp-server/` (sidecar) + endpoint MCP
-nativo + proyección + sonda e2e].**
+`design/riu-agent-operability-plan.md`.
+
+**[EVIDENCIA — IMPLEMENTADO Y VERIFICADO (2026-09-20, v3.0-alpha.350–354):**
+- **Sidecar** `frontend/mcp-server/` (Node, cero-dep): 14 tests unit + sonda e2e `e2e/mcp-probe.mjs`
+  **7/7 contra un backend vivo** (describe/run reales).
+- **Endpoint MCP nativo** en los **tres** backends — Java (`mvc` `POST /mateu/mcp`, 12 tests + e2e vivo),
+  Python (FastAPI, 12 tests) y .NET (ASP.NET, 11 tests + **suite 398/398**) — con **RBAC probado** (un
+  campo `@EyesOnly` no llega al agente no autorizado). Una sola proyección; spec normativa en
+  `reference/wire-specification.md` (§ Agent operability).
+- **Chat in-app** (P5): la misma proyección de pantalla como contexto — 10 tests (proyección + DOM/shadow),
+  suite `libs/mateu` **486/486**.
+- **Prompt-to-app** (P6, spike/beta): prompt→validar-contra-schema-publicado→reparar — 8 tests (los **5
+  schemas publicados compilan**, la reparación recupera). `frontend/prompt-to-app/`. **Verificado también
+  EN VIVO con un LLM real** (el agente de `ec-demo1` como backend, `live-ecdemo-probe.mjs`): "crea un
+  routes con dos pantallas" → el LLM **escribió** `{type:Routes, routes:[bookings, customers]}` **válido
+  contra el schema publicado al primer intento** (autoría de UIDL, no operación). Sigue 🟡/beta.
+- **E2E EN VIVO CON LLM REAL — las DOS mitades de A6:** contra el entorno desplegado `ec-demo1`
+  (`ec1.mateu.io`, agente Spring AI + Anthropic que consume MCP), con el usuario demo:
+  - **Operabilidad (runtime):** prompt de lectura → **uso real de tokens** (8007/130) + comando
+    `navigation-requested → /booking/bookings` (**el LLM condujo la UI**) + **47 reservas reales leídas por
+    MCP**; y un e2e de ESCRITURA autorizado → creó la reserva `6R343R` y la canceló (`changeBookingStatus`;
+    el dominio hace soft-delete, sin borrado físico). Cierra el residuo "IA conduce/opera la UI".
+  - **Autoría (prompt-to-app):** el mismo LLM **escribió un UIDL válido** contra el schema (arriba).
+  El mismo mecanismo que este plano hace NATIVO a cualquier app Mateu (`ec-demo1` lo cableaba a mano con un
+  módulo `api-mcp`; aquí es `/mateu/mcp` de serie + la proyección de pantalla en el chat).**]**
 
 ---
 
@@ -605,10 +633,12 @@ propósito: **A13 ecosistema/hiring (su peor eje, ❌)**, **A11 visual builder (
 pixel-perfect (🟡)**. En **A6 (IA) Mateu es 🟡, no ✅**: es AI-native *arquitectónicamente* (la UI es dato
 que un LLM emite/conduce), pero **no** tiene aún una superficie de autoría prompt-to-app productizada
 como v0/Copilot/Mentor — no hay que sobrevenderlo. **Matiz (§2.15):** A6 mezcla dos mitades — la de
-**operabilidad en runtime** (un agente describe/ejecuta la app viva vía MCP, con RBAC en servidor) es
-**real y demostrable** y se eleva a elemento de la AR (el "plano de operabilidad por agentes"); la de
-**autoría prompt-to-app** sigue 🟡. Por eso A6 se mantiene 🟡 de conjunto: sube por una mitad, no por las
-dos.
+**operabilidad en runtime** (un agente describe/ejecuta la app viva vía MCP, con RBAC en servidor) ya no
+es solo demostrable: está **implementada y enviada** (sidecar + endpoint nativo en Java/Python/.NET +
+chat in-app, v3.0-alpha.350–354) — es el "plano de operabilidad por agentes", elemento de la AR; la de
+**autoría prompt-to-app** sigue 🟡 pero con **spike ejecutable** (valida contra el schema publicado +
+repara). Por eso A6 se mantiene 🟡 de conjunto: una mitad enviada, la otra con prueba de concepto, no las
+dos productizadas.
 
 **Nota de método/honestidad:** matriz de la fase de *research* (6 agentes con búsqueda web + fuentes).
 La fase de *verificación adversaria* cayó parcialmente por rate-limiting; los 2 verificadores que sí
@@ -656,7 +686,7 @@ vive en `design/riu-gap-closure-plan.md`.
 | GAP‑1 | **Fidelidad de diseño pixel-perfect / micro-interacción a medida** más allá del vocabulario del renderer | React+CSS (A), React-Admin/Refine headless (B), SDUI (E) | **Alta** | **Incorporar antes de GA**: endurecer y **documentar** el camino design-tokens + custom-DS + escape hatches, y **demostrarlo contra la marca real de Riu**. Hay base (ComponentAdapter, BYODS de Wefox) pero el wire acota lo expresable. Es la crítica más creíble de un comité *design-led*. |
 | GAP‑2 | **Visual builder GA** (autoría first-class para citizen devs + handoff diseñador) | Retool/Appsmith (C), Directus (B), OutSystems/Mendix/Power Apps (D), Vaadin Copilot (F) | ~~Alta~~ **Media** (verificado V2) | **NO bloquear GA — beta declarada** (§7.3): la madurez del gap se sostiene, pero el mercado se aleja del drag-drop hacia autoría IA/NL (donde Mateu compite: código+YAML+DSL-por-IA). Condiciones: cerrar handoff Figma + carril citizen-dev gobernado. |
 | GAP‑3 | **Ecosistema / comunidad / hiring / continuidad de mantenedor** | todos (A,B,C,D,F) | ~~Alta~~ **Media** (rebajada por la IA) | **Reencuadrar, no solo documentar.** El eje sigue siendo ❌ como *hecho* (pool minúsculo, ~1 mantenedor), pero **la IA colapsa por qué importa una comunidad**: (a) *librería-para-todo* → la IA construye lo que falte sobre el DSL, bajo demanda, sin esperar a un tercero; (b) *soporte/foros* → la IA es el soporte (lee/entiende el código); (c) *hiring* → no necesitas gente que "sepa Mateu", basta un dev que dirija a la IA sobre un DSL pequeño; (d) *continuidad* → el framework es open-source, acotado y **AI-legible**, así que un equipo+IA puede mantenerlo/evolucionarlo (el dogfooding §2.14 lo prueba). La respuesta deja de ser "es un riesgo que aceptamos" y pasa a "**con IA lo llevamos donde queramos sin necesidad de comunidad detrás**". *Residuo honesto:* queda un riesgo **organizativo/accountability** (no técnico) → se cubre con gobernanza + escrow + ≥2 personas que dirijan la IA (§5.3). |
-| GAP‑4 | **Autoría IA productizada** (prompt-to-app en IDE + superficie MCP/agente que respeta RBAC) | v0/Copilot (A), Retool/ToolJet AI (C), Mentor/Maia/Copilot (D), Directus MCP (B) | Media | **INCORPORAR la mitad runtime (§2.15) + dirección la mitad autoría.** Se eleva a *elemento de la AR* (§2.15, "plano de operabilidad por agentes"), con los **dos hosts** (sidecar + endpoint MCP nativo) y **RBAC heredado del servidor**. La **operabilidad en runtime** es demostrable → sube la mitad (a) de A6 sobre terreno firme; el **prompt-to-app** sigue dirección/beta. La ventaja rival es más estrecha de lo que parece (§6.3.1). Plan: `riu-agent-operability-plan.md`. |
+| GAP‑4 | **Autoría IA productizada** (prompt-to-app en IDE + superficie MCP/agente que respeta RBAC) | v0/Copilot (A), Retool/ToolJet AI (C), Mentor/Maia/Copilot (D), Directus MCP (B) | Media | **HECHO la mitad runtime (§2.15) + spike la mitad autoría.** Elevado a *elemento de la AR*: la **operabilidad en runtime** está **implementada y enviada** — sidecar + endpoint MCP nativo en Java/Python/.NET + chat in-app, con **RBAC heredado del servidor** (v3.0-alpha.350–354, tests + e2e vivo) → sube la mitad (a) de A6 sobre terreno firme; el **prompt-to-app** sigue dirección/beta pero con **spike ejecutable** (valida contra el schema publicado + repara). La ventaja rival es más estrecha de lo que parece (§6.3.1). Plan: `riu-agent-operability-plan.md`. |
 | GAP‑5 | **Data-grid enterprise best-in-class** (pivoting, server-side row model, range selection, export Excel a gran escala) | AG-Grid Enterprise (A), Vaadin premium Grid (F) | Media | **Investigar**: los hoteleros esperan tablas operativas maduras. Mateu tiene capability listings, filtros tipados, inline edit, agregados/grouping, tree grids, server-paging — pero pivoting/range-selection no está claramente a la par. Ver si ComponentAdapter puede embeber AG-Grid donde haga falta. |
 | GAP‑6 | **Offline-first nativo móvil + hardware** (cámara/GPS/NFC/barcode/sync offline/push/OTA) para workforce móvil | Retool Mobile (C), OutSystems/Mendix offline-native (D) | Media | **Documentar como límite** (VERIFICADO en repo): Mateu brilla en red lenta + offline de solo-lectura, RN captura firma/foto y va online por el sync API, pero **no** es offline-first ni OTA (`whenBack` sin usar). Para el grueso corporativo (back-office/recepción) online es aceptable; apps de campo offline-heavy → mitigación acotada (shell nativo / modo offline), no bloquea GA. |
 | GAP‑7 | **Conectores/data-providers prefabricados** a backends heterogéneos existentes (no-Mateu) | Refine/React-Admin data providers (B), marketplaces de conectores (C) | Media | **Documentar como límite**: Mateu espera que el backend sea/exponga un adaptador Mateu; para sistemas hoteleros legacy puede ser más integración. Mitigado por el catálogo de sources (§2.10), rowRoute/RestDataSource y derivación de OpenAPI. Dar **recetas de adaptador**; no bloquea GA. |
@@ -778,11 +808,13 @@ bus factor de intención de diseño.* Mitigación **obligatoria** para que el re
 
 ### 7.2 Tier 2 — INVESTIGAR (spike time-boxed; NO bloquea GA)
 - **R4 · Plano de operabilidad por agentes: MCP que respeta RBAC (GAP‑4, §2.15)** — **ELEVADO a elemento
-  de la AR** (ya no solo "investigar"): dos hosts (sidecar Node dependency-light contra cualquier backend
-  + endpoint MCP nativo que reutiliza `MateuService`), proyección wire→tools especificada una vez, RBAC
-  heredado del servidor. Alto apalancamiento porque la UI es dato; la ventaja rival de "IA agéntica GA"
-  está sobrevendida (verificado). La **mitad runtime** es demostrable (mueve A6 (a)); el **prompt-to-app**
-  queda como dirección. El endpoint nativo puede ir a v3.x si sigue el feature-freeze. Plan:
+  de la AR y HECHO (v3.0-alpha.350–354):** dos hosts (sidecar Node dependency-light contra cualquier
+  backend + endpoint MCP nativo en **Java/Python/.NET** que reutiliza el handler de sync), proyección
+  wire→tools especificada una vez, **RBAC heredado del servidor** (probado: un `@EyesOnly` no llega al
+  agente no autorizado). Verificado con tests en los 3 backends (.NET suite 398/398) + **e2e vivo**; el
+  chat in-app usa la misma proyección (P5). El **prompt-to-app** (P6) queda como dirección **con spike
+  ejecutable** (valida contra el schema publicado + repara). Alto apalancamiento porque la UI es dato; la
+  ventaja rival de "IA agéntica GA" está sobrevendida (verificado). Plan:
   `design/riu-agent-operability-plan.md`.
 - **R5 · Data-grid analítico vía ComponentAdapter (GAP‑5)** — *veredicto (V3): document-as-limit; el
   embed AG-Grid es técnicamente viable (`Element`+`ComponentAdapter`), pero pivoting/range/xlsx estilado
@@ -807,7 +839,7 @@ bus factor de intención de diseño.* Mitigación **obligatoria** para que el re
 | R1 Renderer marca Riu + demo + playbook + guardrail | GAP‑1 | Real, severidad por superficie (baja en operacional) | **Sí** |
 | R2 Portabilidad verificable (wire versionado, spec, renderer ref, guía, OSS+self-host) | A3/GAP‑3 | Se sostiene vs low-code; distinto vs React → hacerlo real | **Sí** |
 | R3 Gobernanza (≥2 jueces, fork+CI, charter, auditoría) | GAP‑3 | IA baja adopción a BAJA, stewardship queda MEDIA | **Sí** (pre-defensa) |
-| R4 Plano operabilidad por agentes (MCP, §2.15) | GAP‑4 | Runtime demostrable (mueve A6); prompt-to-app dirección | Runtime **sí** (elemento AR); endpoint nativo v3.x; prompt-to-app no |
+| R4 Plano operabilidad por agentes (MCP, §2.15) | GAP‑4 | Runtime **HECHO y enviado** (sidecar+nativo Java/Python/.NET+chat, v3.0-alpha.350–354); prompt-to-app spike | Runtime **sí** (elemento AR, implementado+verificado); prompt-to-app dirección con PoC |
 | R5 AG-Grid vía adapter | GAP‑5 | Document-as-limit; BI ≠ back-office | No (trigger) |
 | Visual builder beta declarada + Figma + carril gobernado | GAP‑2 | Madurez sí, severidad MEDIA; mercado va a IA/NL | No |
 | Documentar límites (offline/conectores/analítica/scaffolding/plumbing) | GAP‑6/7/8/10/11 | — | No |
