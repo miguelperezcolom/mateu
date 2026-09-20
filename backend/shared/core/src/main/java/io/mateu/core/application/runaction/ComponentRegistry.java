@@ -6,6 +6,8 @@ import io.mateu.uidl.data.ComponentEntry;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentCatalogSupplier;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -30,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
  * dedicated follow-up. The supplier + YAML producers already make a business component first-class
  * in DATA, which is the point of #13.)
  */
+@Named
+@Singleton
 @Slf4j
 public class ComponentRegistry {
 

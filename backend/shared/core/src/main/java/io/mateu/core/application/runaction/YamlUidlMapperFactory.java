@@ -170,6 +170,7 @@ final class YamlUidlMapperFactory {
         new NamedType(PricingTable.class, "PricingTable"),
         new NamedType(ProcessMonitor.class, "ProcessMonitor"),
         new NamedType(ProgressSteps.class, "ProgressSteps"),
+        new NamedType(ComponentRef.class, "ComponentRef"),
         new NamedType(ResourceGrid.class, "ResourceGrid"),
         new NamedType(Scoreboard.class, "Scoreboard"),
         new NamedType(Separator.class, "Separator"),
