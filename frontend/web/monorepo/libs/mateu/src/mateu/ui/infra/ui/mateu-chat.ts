@@ -3,6 +3,7 @@ import {css, html, LitElement, nothing} from "lit";
 import {nanoid} from "nanoid";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {neutralButtonStyles, iconClose, iconMicrophone} from "./neutralChrome";
+import {projectCurrentScreen} from "./screenContext";
 import "./mateu-markdown";
 
 /** One chat message (design-system-neutral replacement for Vaadin's MessageListItem). */
@@ -400,11 +401,17 @@ export class MateuChat extends LitElement {
             // the user is LOOKING AT (route, app/component state), not just what
             // they typed — so it acts in place instead of navigating blindly.
             const context = this.contextProvider?.();
+            // Beyond the raw state, a SELF-DESCRIBING projection of the current screen (fields with
+            // type/label/value + the available actions) — the same shape an MCP agent gets — so the
+            // assistant can fill and run precisely instead of guessing from values. Best-effort.
+            const screen = projectCurrentScreen(document, (context as { componentState?: unknown } | undefined)?.componentState);
+            const hasScreen = !!screen && (screen.fields.length > 0 || screen.actions.length > 0 || !!screen.title);
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
                 ...(attachments.length && { attachments }),
                 ...(context !== undefined && context !== null && { context }),
+                ...(hasScreen && { screen }),
                 ...(this.mcpUrl && { mcpUrl: new URL(this.mcpUrl, window.location.origin).href }),
                 ...(!this.menuContextSent && { menuContext: this.buildMenuContext(this.menu) }),
             });

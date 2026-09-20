@@ -103,6 +103,11 @@ class DateField(
         input.text = ""
     }
 
+    /** Set the field from an ISO date string (used when applying a saved view). */
+    fun setIso(iso: String) {
+        input.text = iso
+    }
+
     init {
         isOpaque = false
         input.text = initialIso

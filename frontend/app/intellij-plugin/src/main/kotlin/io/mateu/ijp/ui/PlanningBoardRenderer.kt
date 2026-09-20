@@ -28,11 +28,31 @@ import javax.swing.JComponent
  * dispatches the board's `selectActionId` with `{_blockId: block.id}` through the standard action
  * dispatch. Drag/move is intentionally not supported on the desktop (the web handles moveActionId).
  */
+private const val DRAG_THRESHOLD = 4
+
 fun renderPlanningBoard(r: ComponentRenderer, metadata: JsonNode): JComponent {
-    val canvas = PlanningBoardCanvas(metadata) { blockId ->
-        val selectActionId = metadata.text("selectActionId")
-        if (selectActionId.isNotBlank()) r.ctx.runAction(selectActionId, mapOf("_blockId" to blockId))
-    }
+    val canvas = PlanningBoardCanvas(
+        metadata,
+        onBlockClicked = { blockId ->
+            val selectActionId = metadata.text("selectActionId")
+            if (selectActionId.isNotBlank()) r.ctx.runAction(selectActionId, mapOf("_blockId" to blockId))
+        },
+        onBlockMoved = { move ->
+            // Drag-to-move (moveActionId): same payload as the web — {_blockId,_resourceId,_start,_end}.
+            val moveActionId = metadata.text("moveActionId")
+            if (moveActionId.isNotBlank()) {
+                r.ctx.runAction(
+                    moveActionId,
+                    mapOf(
+                        "_blockId" to move.blockId,
+                        "_resourceId" to move.resourceId,
+                        "_start" to move.start,
+                        "_end" to move.end,
+                    ),
+                )
+            }
+        },
+    )
     val scroll = JBScrollPane(canvas)
     scroll.border = JBUI.Borders.empty()
     return scroll
@@ -41,6 +61,7 @@ fun renderPlanningBoard(r: ComponentRenderer, metadata: JsonNode): JComponent {
 private class PlanningBoardCanvas(
     metadata: JsonNode,
     private val onBlockClicked: (String) -> Unit,
+    private val onBlockMoved: (PlanningDrag.Move) -> Unit = {},
 ) : JComponent() {
 
     private data class Block(val id: String, val resourceId: String, val start: LocalDate?, val end: LocalDate?, val label: String, val color: String, val status: String)
@@ -66,6 +87,36 @@ private class PlanningBoardCanvas(
 
     /** Hit-test regions of the painted blocks, rebuilt on every paint. */
     private val blockBounds = ArrayList<Pair<Rectangle, String>>()
+
+    // Drag state (press → release): which block, and where the press landed.
+    private var dragBlockId: String? = null
+    private var dragStart: java.awt.Point? = null
+
+    /** Turn a press→release pixel delta on [blockId] into a move via the pure [PlanningDrag]. */
+    private fun moveFor(blockId: String, dx: Int, dy: Int): PlanningDrag.Move? {
+        val block = blocks.firstOrNull { it.id == blockId } ?: return null
+        val start = block.start ?: return null
+        val end = block.end ?: return null
+        if (days.isEmpty()) return null
+        val laneIds = rows.filterIsInstance<LaneRow>().map { it.resourceId }
+        val originResourceIndex = laneIds.indexOf(block.resourceId)
+        if (originResourceIndex < 0) return null
+        return PlanningDrag.computeMove(
+            PlanningDrag.Input(
+                blockId = blockId,
+                originResourceIndex = originResourceIndex,
+                originStartIdx = java.time.temporal.ChronoUnit.DAYS.between(days.first(), start).toInt(),
+                durationDays = java.time.temporal.ChronoUnit.DAYS.between(start, end).toInt() + 1,
+                deltaXpx = dx,
+                deltaYpx = dy,
+                dayWidthPx = dayW,
+                laneHeightPx = rowH,
+                resourceIds = laneIds,
+                windowFromIso = days.first().toString(),
+                dayCount = days.size,
+            ),
+        )
+    }
 
     init {
         val from = parseDate(metadata.text("from"))
@@ -96,9 +147,25 @@ private class PlanningBoardCanvas(
 
         cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
-                val hit = blockBounds.lastOrNull { it.first.contains(e.point) } ?: return
-                onBlockClicked(hit.second)
+            override fun mousePressed(e: MouseEvent) {
+                dragBlockId = blockBounds.lastOrNull { it.first.contains(e.point) }?.second
+                dragStart = e.point
+            }
+
+            override fun mouseReleased(e: MouseEvent) {
+                val blockId = dragBlockId
+                val startPt = dragStart
+                dragBlockId = null
+                dragStart = null
+                if (blockId == null || startPt == null) return
+                val dx = e.x - startPt.x
+                val dy = e.y - startPt.y
+                // Under the threshold it is a click → select; otherwise a drag → move.
+                if (kotlin.math.abs(dx) < DRAG_THRESHOLD && kotlin.math.abs(dy) < DRAG_THRESHOLD) {
+                    onBlockClicked(blockId)
+                } else {
+                    moveFor(blockId, dx, dy)?.let(onBlockMoved)
+                }
             }
         })
         addMouseMotionListener(object : java.awt.event.MouseMotionAdapter() {

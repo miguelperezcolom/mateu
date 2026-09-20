@@ -133,9 +133,11 @@ private fun bootstrap() {
     System.setProperty("idea.system.path", sub("system"))
     System.setProperty("idea.plugins.path", sub("plugins"))
     System.setProperty("idea.log.path", sub("log"))
+    // Force 1:1 so headless renders are deterministic. Only the system scale is set here — the user
+    // scale defaults to 1 in a headless run, and JBUIScale.setUserScaleFactor is @ApiStatus.Internal.
     runCatching {
+        System.setProperty("sun.java2d.uiScale", "1.0")
         JBUIScale.setSystemScaleFactor(1f)
-        JBUIScale.setUserScaleFactor(1f)
     }.onFailure { System.err.println("[probe] scale precompute failed: $it") }
     runCatching {
         val laf = Class.forName("com.intellij.ide.ui.laf.darcula.DarculaLaf")

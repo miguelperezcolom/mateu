@@ -116,6 +116,14 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
     table.emptyText.text = metadata.text("emptyStateMessage").ifBlank { "No data" }
 
+    // Per-user column personalization (show/hide via header right-click + native drag-reorder,
+    // persisted per crud route). The identity/row-open column (first link column) is protected.
+    run {
+        val colIds = specs.map { it.id }
+        val protectedIds = setOfNotNull(specs.firstOrNull { it.kind == ColKind.LINK }?.id)
+        ColumnChooser.install(table, colIds, protectedIds, ctx.currentRoute)
+    }
+
     // Bulk row selection (@RowsSelection crud): native JTable multi-selection; the selected row
     // objects (as they came off the wire — synthetic group/totals rows excluded) travel in the
     // component state under `crud_selected_items`, where rowsSelectedRequired actions expect them.
@@ -272,7 +280,57 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             searchBar.add(bar.toggle)
             north.addStacked(bar.panel, 2)
         }
+
+        // Saved views: apply a named snapshot of {searchText + filters} into the widgets, then search.
+        val viewScope = ctx.currentRoute
+        val applyView = { view: SavedViews.View ->
+            searchField.text = view.values["searchText"]?.toString() ?: ""
+            filterBar?.applyValues(view.values)
+            doSearch()
+        }
+        val viewsBtn = javax.swing.JButton("Views")
+        viewsBtn.addActionListener {
+            val menu = com.intellij.openapi.ui.JBPopupMenu()
+            val views = SavedViews.list(viewScope)
+            for (view in views) {
+                val sub = javax.swing.JMenu(view.name + if (view.isDefault) "  ★" else "")
+                sub.add(javax.swing.JMenuItem("Apply").apply { addActionListener { applyView(view) } })
+                sub.add(
+                    javax.swing.JMenuItem(if (view.isDefault) "Unset default" else "Set as default")
+                        .apply { addActionListener { SavedViews.toggleDefault(viewScope, view.name) } },
+                )
+                sub.add(javax.swing.JMenuItem("Delete").apply { addActionListener { SavedViews.delete(viewScope, view.name) } })
+                menu.add(sub)
+            }
+            if (views.isNotEmpty()) menu.addSeparator()
+            menu.add(
+                javax.swing.JMenuItem("Save current view…").apply {
+                    addActionListener {
+                        val name = com.intellij.openapi.ui.Messages.showInputDialog(
+                            null as com.intellij.openapi.project.Project?, "View name:", "Save view", null,
+                        )
+                        if (name != null) {
+                            val values = LinkedHashMap<String, Any?>()
+                            if (searchField.text.isNotBlank()) values["searchText"] = searchField.text
+                            filterBar?.collectInto(values)
+                            SavedViews.save(viewScope, name, values)
+                        }
+                    }
+                },
+            )
+            menu.show(viewsBtn, 0, viewsBtn.height)
+        }
+        searchBar.add(viewsBtn)
+
         center.add(north, BorderLayout.NORTH)
+
+        // Auto-apply the default view once (guarded against the search re-render re-triggering it).
+        if (ctx.currentComponentState["_defaultViewApplied"] != true) {
+            SavedViews.default(viewScope)?.let {
+                ctx.currentComponentState["_defaultViewApplied"] = true
+                applyView(it)
+            }
+        }
     }
     // GridLayout.masterDetail: table on the left, a read-only detail form of the selected row on
     // the right (a JBSplitter). Every other layout keeps the plain full-width table.

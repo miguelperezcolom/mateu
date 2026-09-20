@@ -1,1 +1,2 @@
 io.mateu.yamlmount.YamlMountAutoConfiguration
+io.mateu.mcp.MateuMcpAutoConfiguration

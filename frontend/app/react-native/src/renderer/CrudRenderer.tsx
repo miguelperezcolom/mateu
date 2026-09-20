@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
+import { listSavedViews, saveView, deleteView, setDefaultView, defaultView, SavedView } from './savedViews';
 import { interpolate } from '../core/expressions';
 import { fetchExternalJson, mapItemsToRows, resolveRestSource } from '../core/restFetch';
 import { DateField } from './DateField';
@@ -194,10 +197,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     (v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0),
   ).length;
 
-  const doSearch = (values?: Record<string, unknown>) => {
+  const doSearch = (values?: Record<string, unknown>, searchTextOverride?: string) => {
+    const effectiveSearchText = searchTextOverride ?? searchText;
     // @RestListing: filter the client-fetched rows in memory — no server round-trip.
     if (rowsSource) {
-      const q = searchText.trim().toLowerCase();
+      const q = effectiveSearchText.trim().toLowerCase();
       const filtered = q
         ? restRows.filter((r) => columnIds.some((id) => String(r[id] ?? '').toLowerCase().includes(q)))
         : restRows;
@@ -205,7 +209,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       return;
     }
     controller.seedSearchState();
-    controller.currentComponentState['searchText'] = searchText;
+    controller.currentComponentState['searchText'] = effectiveSearchText;
     controller.currentComponentState['page'] = 0;
     for (const [k, v] of Object.entries(values ?? filterValues)) {
       if (v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)) {
@@ -291,7 +295,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const gridLayout = String(metadata['gridLayout'] ?? 'auto');
 
-  const colDefs = columns
+  const allColDefs = columns
     .map((col) => {
       const cm = (col.metadata ?? {}) as Record<string, unknown>;
       return {
@@ -305,6 +309,52 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
+
+  // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
+  // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
+  const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
+  const protectedColId = allColDefs[0]?.fieldId;
+  const [hiddenCols, setHiddenCols] = useState<string[]>(() => getHiddenColumns(columnScope));
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const toggleColumn = (id: string) => {
+    const next = hiddenCols.includes(id) ? hiddenCols.filter((x) => x !== id) : [...hiddenCols, id];
+    setHiddenCols(next);
+    setHiddenColumns(columnScope, next);
+  };
+  const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
+
+  // Saved views: named snapshots of {searchText + filters}; one may be the default (auto-applied once).
+  const [viewsOpen, setViewsOpen] = useState(false);
+  const [viewsVersion, setViewsVersion] = useState(0);
+  const [newViewName, setNewViewName] = useState('');
+  void viewsVersion; // re-reading the (external) store depends on this bumping
+  const savedViews = listSavedViews(columnScope);
+  const applyView = (view: SavedView) => {
+    const { searchText: st, ...fv } = view.values as Record<string, unknown>;
+    const stStr = st != null ? String(st) : '';
+    setSearchText(stStr);
+    setFilterValues(fv);
+    doSearch(fv, stStr);
+    setViewsOpen(false);
+  };
+  const saveCurrentView = () => {
+    const values: Record<string, unknown> = { ...filterValues };
+    if (searchText.trim()) values.searchText = searchText.trim();
+    saveView(columnScope, { name: newViewName, values });
+    setNewViewName('');
+    setViewsVersion((v) => v + 1);
+  };
+  const removeView = (name: string) => { deleteView(columnScope, name); setViewsVersion((v) => v + 1); };
+  const toggleDefaultView = (name: string) => { setDefaultView(columnScope, name); setViewsVersion((v) => v + 1); };
+  // Auto-apply the default view once, when the screen still has no active conditions.
+  const defaultAppliedRef = React.useRef(false);
+  useEffect(() => {
+    if (defaultAppliedRef.current) return;
+    defaultAppliedRef.current = true;
+    const dv = defaultView(columnScope);
+    if (dv && Object.keys(filterValues).length === 0 && !searchText) applyView(dv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Listing totals + groups (Crud.groupBy / GridColumn.aggregate): rows arrive group-sorted,
   // a group header row is interleaved wherever the groupBy value changes, and a totals footer
@@ -355,6 +405,23 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 );
               })}
             </View>
+          )}
+        </View>
+      )}
+
+      {(allColDefs.length > 1 || filters.length > 0) && (
+        <View style={styles.columnsBar}>
+          {filters.length > 0 && (
+            <TouchableOpacity {...buttonA11y({ label: 'Saved views' })} style={styles.columnsBtn} onPress={() => setViewsOpen(true)}>
+              <Text style={styles.columnsBtnText}>★ Views{savedViews.length ? ` (${savedViews.length})` : ''}</Text>
+            </TouchableOpacity>
+          )}
+          {allColDefs.length > 1 && (
+            <TouchableOpacity {...buttonA11y({ label: 'Choose columns' })} style={styles.columnsBtn} onPress={() => setColumnsOpen(true)}>
+              <Text style={styles.columnsBtnText}>
+                ⚙ Columns{hiddenCols.length ? ` (${colDefs.length}/${allColDefs.length})` : ''}
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       )}
@@ -600,6 +667,71 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Saved views: apply / save / default / delete named snapshots of the search conditions. */}
+      <Modal visible={viewsOpen} transparent animationType="fade" onRequestClose={() => setViewsOpen(false)}>
+        <TouchableOpacity style={styles.columnsBackdrop} activeOpacity={1} onPress={() => setViewsOpen(false)}>
+          <View style={styles.columnsSheet}>
+            <Text style={styles.columnsTitle}>Saved views</Text>
+            {savedViews.length === 0 && <Text style={styles.columnsLabelDim}>No saved views yet.</Text>}
+            {savedViews.map((v) => (
+              <View key={v.name} style={styles.columnsRow}>
+                <TouchableOpacity {...buttonA11y({ label: `Apply ${v.name}` })} style={styles.viewApply} onPress={() => applyView(v)}>
+                  <Text style={styles.columnsLabel}>{v.name}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity {...buttonA11y({ label: 'Default' })} onPress={() => toggleDefaultView(v.name)}>
+                  <Text style={styles.columnsCheck}>{v.isDefault ? '★' : '☆'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity {...buttonA11y({ label: 'Delete' })} onPress={() => removeView(v.name)}>
+                  <Text style={styles.columnsCheck}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            <View style={styles.viewSaveRow}>
+              <TextInput
+                style={styles.viewNameInput}
+                placeholder="Save current as…"
+                value={newViewName}
+                onChangeText={setNewViewName}
+              />
+              <TouchableOpacity
+                {...buttonA11y({ label: 'Save view' })}
+                style={[styles.btnPrimary, !newViewName.trim() && styles.btnDisabled]}
+                disabled={!newViewName.trim()}
+                onPress={saveCurrentView}
+              >
+                <Text style={styles.btnPrimaryText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Column chooser: show/hide columns (session-scoped; the identity column stays). */}
+      <Modal visible={columnsOpen} transparent animationType="fade" onRequestClose={() => setColumnsOpen(false)}>
+        <TouchableOpacity style={styles.columnsBackdrop} activeOpacity={1} onPress={() => setColumnsOpen(false)}>
+          <View style={styles.columnsSheet}>
+            <Text style={styles.columnsTitle}>Columns</Text>
+            {allColDefs.map((c) => {
+              const isProtected = c.fieldId === protectedColId;
+              const visible = !hiddenCols.includes(c.fieldId);
+              return (
+                <TouchableOpacity {...buttonA11y({ label: c.label })}
+                  key={c.fieldId}
+                  disabled={isProtected}
+                  style={styles.columnsRow}
+                  onPress={() => toggleColumn(c.fieldId)}
+                >
+                  <Text style={styles.columnsCheck}>{visible ? '☑' : '☐'}</Text>
+                  <Text style={[styles.columnsLabel, isProtected && styles.columnsLabelDim]}>
+                    {c.label}{isProtected ? ' (required)' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -769,6 +901,19 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
   tableHeader: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.border },
   headerCell: { width: CELL_WIDTH, padding: 10 },
+  columnsBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 12, paddingVertical: 4 },
+  columnsBtn: { paddingHorizontal: 10, paddingVertical: 4 },
+  columnsBtnText: { color: theme.faint, fontSize: 12 },
+  columnsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 24 },
+  columnsSheet: { backgroundColor: theme.white, borderRadius: theme.radiusSm, padding: 16, maxHeight: '80%' },
+  columnsTitle: { fontSize: 16, fontWeight: '600', color: theme.ink, marginBottom: 8 },
+  columnsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
+  columnsCheck: { fontSize: 16, color: theme.ink },
+  columnsLabel: { fontSize: 14, color: theme.ink },
+  columnsLabelDim: { color: theme.faint, fontSize: 13, paddingVertical: 6 },
+  viewApply: { flex: 1 },
+  viewSaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  viewNameInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
   headerText: { fontWeight: '600', fontSize: 13, color: theme.ink },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.divider },
   cell: { width: CELL_WIDTH, padding: 10, justifyContent: 'center' },
