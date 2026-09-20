@@ -49,6 +49,14 @@ final class YamlUidlMapperFactory {
     // could not build one, so a `triggers:` list would fail to parse and take the whole page with
     // it.
     mapper.addMixIn(Trigger.class, PolymorphicMixin.class);
+    // The declared-flow Step verbs (coherence-plan #3), authored as a `steps:` list on an
+    // `actions:`
+    // entry of a definition-only page (no view model). Each lowers to a wire command in
+    // CommandMapper;
+    // without the mixin + subtypes Jackson could not build a sealed Step, so `steps:` silently
+    // failed
+    // to parse and the action was dropped.
+    mapper.addMixIn(io.mateu.uidl.fluent.Step.class, PolymorphicMixin.class);
 
     mapper.registerSubtypes(
         new NamedType(AppShell.class, "AppShell"),
@@ -190,7 +198,14 @@ final class YamlUidlMapperFactory {
         new NamedType(io.mateu.uidl.fluent.OnValueChangeTrigger.class, "OnValueChangeTrigger"),
         new NamedType(io.mateu.uidl.fluent.OnSuccessTrigger.class, "OnSuccessTrigger"),
         new NamedType(io.mateu.uidl.fluent.OnErrorTrigger.class, "OnErrorTrigger"),
-        new NamedType(io.mateu.uidl.fluent.AutoSaveTrigger.class, "AutoSaveTrigger"));
+        new NamedType(io.mateu.uidl.fluent.AutoSaveTrigger.class, "AutoSaveTrigger"),
+        // The declared-flow Step verbs (names = simple class names, matching the generated schema).
+        new NamedType(io.mateu.uidl.fluent.Step.Navigate.class, "Navigate"),
+        new NamedType(io.mateu.uidl.fluent.Step.Emit.class, "Emit"),
+        new NamedType(io.mateu.uidl.fluent.Step.CloseOverlay.class, "CloseOverlay"),
+        new NamedType(io.mateu.uidl.fluent.Step.RunAction.class, "RunAction"),
+        new NamedType(io.mateu.uidl.fluent.Step.MarkClean.class, "MarkClean"),
+        new NamedType(io.mateu.uidl.fluent.Step.MarkDirty.class, "MarkDirty"));
 
     return mapper;
   }

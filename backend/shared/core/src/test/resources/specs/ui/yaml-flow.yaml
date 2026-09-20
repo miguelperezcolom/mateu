@@ -1,0 +1,15 @@
+# A definition-only page whose action runs a declared client FLOW (steps), no view model.
+layout:
+  type: VerticalLayout
+  content:
+    - type: Button
+      label: Save and close
+      actionId: saveAndClose
+actions:
+  - id: saveAndClose
+    steps:
+      - type: MarkClean
+      - type: CloseOverlay
+        event: saved
+      - type: Navigate
+        route: /orders

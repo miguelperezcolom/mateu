@@ -104,3 +104,6 @@ routes:
   - route: appdata-app
     viewModel: io.mateu.core.application.AppDataApp
     appData: appMetrics
+
+  - route: yaml-flow
+    definition: yaml-flow.yaml

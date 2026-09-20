@@ -181,8 +181,11 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   → actionId) in `mateu-visual-editor.ts`; `pageModel.ts` gained page-level `triggers` **and** preserves
   the rest of the envelope verbatim — fixing a pre-existing bug where the editor **dropped `actions:`** on
   save. Verified: 1062 core tests + UidlSchemaTest (12) + `YamlDeclaredTriggersSyncTest` (4) green; frontend
-  88 vitest + tsc + build. **Remaining in Phase 3:** the `steps` flow editor (blocked on the coherence
-  handoff) and authoring behaviour on buttons/actions (not just menus).
+  88 vitest + tsc + build. **The classless-`steps` DSL gap is now CLOSED** (2026-09-20): registering the
+  6 flow-Step verbs in `YamlUidlMapperFactory` was the only runtime piece missing (the schema already
+  described them); pinned by `YamlDeclaredFlowSyncTest`, full core suite green (1071). See
+  `coherence-execution.md`. **Remaining in Phase 3:** the `steps` flow-editor UI itself (now UNBLOCKED —
+  author `steps:` on an action/trigger) and authoring behaviour on buttons/actions (not just menus).
 - **Phase 6 — Quick Starts & templates: STARTED (new-from-template).** Its coherence-Phase-4 dependency
   landed (#523/#524: `ResponsiveGrid` + `gridTemplateAreas` + `Slotted` named slots). Delivered: a
   **starter-template gallery** (`model/templates.ts`, `Templates` toolbar button) with 5 curated,
