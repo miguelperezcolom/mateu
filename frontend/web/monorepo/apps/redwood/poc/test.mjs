@@ -17,6 +17,10 @@ import {
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
 } from './resilience.mjs'
 import {
+  buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
+  tryParseCustomEvent, streamChat,
+} from './chat.mjs'
+import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
@@ -1436,6 +1440,96 @@ test('multi: los valores llegan como lista o como cadena separada por comas', ()
   assert.deepEqual(multiValuesOf('A, B'), ['A', 'B'], 'así vuelven tras restaurar desde la URL')
   assert.deepEqual(multiValuesOf(''), [])
   assert.deepEqual(multiValuesOf(null), [])
+})
+
+// ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────
+test('chat: buildChatMenuContext aplana el menú a path + navigation (salta separador/remoto)', () => {
+  const menu = [
+    { label: 'Bookings', submenus: [
+      { label: 'List', route: '/bookings', consumedRoute: '', actionId: '', baseUrl: '', serverSideType: 'B', uriPrefix: undefined, description: 'todas' },
+    ] },
+    { separator: true },
+    { label: 'Remoto', remote: true, route: '/x' },
+  ]
+  const ctx = buildChatMenuContext(menu)
+  assert.equal(ctx.length, 1)
+  assert.deepEqual(ctx[0].path, ['Bookings', 'List'])
+  assert.equal(ctx[0].navigation.route, '/bookings')
+  assert.equal(ctx[0].navigation.serverSideType, 'B')
+  assert.equal(ctx[0].description, 'todas')
+})
+
+test('chat: effectiveChatUrl usa el agente local si vive, si no el sseUrl', () => {
+  assert.equal(effectiveChatUrl({ localAgentAlive: true, localAgentUrl: 'http://localhost:9999', sseUrl: '/sse' }), 'http://localhost:9999/mateu/agent/stream')
+  assert.equal(effectiveChatUrl({ localAgentAlive: false, localAgentUrl: 'http://localhost:9999', sseUrl: '/sse' }), '/sse')
+})
+
+test('chat: buildChatBody solo incluye lo presente (menuContext en el 1er mensaje)', () => {
+  assert.deepEqual(buildChatBody({ message: 'hola', sessionId: 's1' }), { message: 'hola', sessionId: 's1' })
+  const full = buildChatBody({ message: 'hola', sessionId: 's1', attachments: [{ name: 'a', path: 'p' }], context: { route: '/x' }, mcpUrl: 'http://m', menuContext: [{ path: ['A'] }] })
+  assert.deepEqual(full.attachments, [{ name: 'a', path: 'p' }])
+  assert.deepEqual(full.context, { route: '/x' })
+  assert.equal(full.mcpUrl, 'http://m')
+  assert.equal(full.menuContext.length, 1)
+})
+
+test('chat: los discriminadores de payload distinguen uso, evento y texto', () => {
+  assert.deepEqual(tryParseTokenUsage('{"inputTokens":5}'), { inputTokens: 5 })
+  assert.equal(tryParseTokenUsage('hola'), null)
+  assert.deepEqual(tryParseCustomEvent('{"event":"navigate","detail":{"route":"/x"}}'), { event: 'navigate', detail: { route: '/x' } })
+  assert.equal(tryParseCustomEvent('texto plano'), null)
+})
+
+// Un doble de reader SSE: emite los trozos dados y luego {done:true}.
+const sseResponse = (chunks) => {
+  const enc = new TextEncoder()
+  let i = 0
+  return {
+    ok: true,
+    body: { getReader: () => ({ read: async () => (i < chunks.length ? { done: false, value: enc.encode(chunks[i++]) } : { done: true }) }) },
+  }
+}
+
+atest('chat: streamChat acumula payloads data: (trimmed, como el chat compartido) y bufferea a través de trozos', async () => {
+  const texts = []
+  const out = await streamChat({
+    url: '/sse', body: { message: 'hola' },
+    // el 2º payload llega partido en dos trozos SIN el \n → se bufferea hasta cerrar la línea
+    fetchImpl: async () => sseResponse(['data: uno\n', 'data: d', 'os\n']),
+    onText: (t) => texts.push(t),
+  })
+  assert.equal(out, 'unodos', 'payloads trimmed y concatenados = paridad con mateu-chat')
+  assert.equal(texts[texts.length - 1], 'unodos')
+})
+
+atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
+  const events = []; let usage = null
+  await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n', 'data: {"totalTokens":9}\n']),
+    onEvent: (e) => events.push(e), onUsage: (u) => { usage = u },
+  })
+  assert.deepEqual(events, [{ event: 'navigate', detail: { route: '/x' } }])
+  assert.deepEqual(usage, { totalTokens: 9 })
+})
+
+atest('chat: agent-error se muestra como el texto del asistente, no como evento', async () => {
+  let text = ''; const events = []
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n']),
+    onText: (t) => { text = t }, onEvent: (e) => events.push(e),
+  })
+  assert.equal(out, '⚠️ boom')
+  assert.equal(text, '⚠️ boom')
+  assert.deepEqual(events, [])
+})
+
+atest('chat: streamChat lanza un error legible ante una respuesta no-ok', async () => {
+  await assert.rejects(
+    streamChat({ url: '/sse', body: {}, fetchImpl: async () => ({ ok: false, status: 503, text: async () => 'caído' }) }),
+    /503/,
+  )
 })
 
 await queue
