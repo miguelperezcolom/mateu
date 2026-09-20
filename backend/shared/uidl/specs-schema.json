@@ -1257,6 +1257,8 @@
       }, {
         "$ref" : "#/$defs/ComparisonCard"
       }, {
+        "$ref" : "#/$defs/ComponentRef"
+      }, {
         "$ref" : "#/$defs/ConfirmDialog"
       }, {
         "$ref" : "#/$defs/Container"
@@ -1439,6 +1441,19 @@
       }, {
         "$ref" : "#/$defs/Workflow"
       } ]
+    },
+    "ComponentRef" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "ComponentRef"
+        },
+        "ref" : {
+          "type" : "string"
+        }
+      }
     },
     "ConfirmDialog" : {
       "type" : "object",
