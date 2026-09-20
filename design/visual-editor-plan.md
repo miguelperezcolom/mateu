@@ -234,9 +234,12 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   is now real**: `editor-canvas.renderClientSide` parses the layout, calls `expandDefinition` and applies the
   fragment — **rendering fully offline** for a classless definition (a view-model-bound page still needs a
   backend for its inferred fields → honest fallback message). Ids survive the expansion (`id` is a wire
-  envelope field), so click-to-select works offline too. 115 vitest + tsc + build. **Remaining in Phase 7:**
-  the author→export→deploy story is now possible end to end (coherence's bundle exporter + this offline
-  render); a one-click "export static bundle" affordance in the editor is the optional follow-up.
-- **Next actions:** the human **GUI live-test** of the IDE hosts (incl. the new `client` offline render);
-  optional: an in-editor "export static bundle" button; the remaining minor backlog (VSCode "Create in
-  ViewModel" LSP, `modelView` picker, embedded `local` boot, `Slotted` deep-edit).
+  envelope field), so click-to-select works offline too. **Static export: DONE** — an **"Export bundle"**
+  toolbar button downloads a specs-mode `manifest.json` of the whole mount (`model/exportBundle.ts`:
+  `buildBundleManifest` — raw `definitions` keyed by file name + the `routes`/`sources` sections, skipping
+  the mount/app-shell; matches `MateuBundleExporter`'s shape, consumed by `bundleStore`). Deploy it beside
+  the Mateu renderer on any free static host → the author→export→**deploy €0 loop is closed end to end**.
+  118 vitest + tsc + build. **Phase 7 complete.**
+- **Next actions:** only the human **GUI live-test** of the IDE hosts (incl. the new `client` offline render
+  + Export bundle), and the optional minor backlog (VSCode "Create in ViewModel" LSP, `modelView` picker,
+  embedded `local` boot, `Slotted` deep-edit).
