@@ -174,6 +174,24 @@ The same applies to AI assistants: point them at the
 [AI assistant reference](/ai-assistant-reference/) and ask for the screen in business terms — the
 assistant's job is exactly the three moves of this page: family, archetype, refinements.
 
+## Escape hatches — explicit, and relegated
+
+When the path does not fit, Mateu has deliberate exits. They are worth knowing *because* they are
+the exception — reach for them only when the rungs above genuinely do not cover the screen:
+
+- **Reuse a bound composition** → a [business component](/java-ui-definition/component-catalogue/):
+  a named `dropdown + source` (etc.) referenced by name. Still the model — it ports for free and
+  runs with no backend. This is reuse, not an escape; try it first.
+- **A rendering the catalog does not have** → a [custom component](/java-ui-definition/custom-components/):
+  a genuinely new drawing, carried as data (`CustomComponent`) and rendered per-renderer. It does
+  **not** port for free (each renderer registers it), which is exactly why it is the last resort —
+  an un-taught renderer shows a visible placeholder, never a broken screen.
+- **Something no template covers** → drop to a hand-built component tree. What you keep on the way
+  down (state, actions, validation, routing, the surrounding chrome) is pinned by a test.
+
+The rule across all three: an escape hatch is explicit in the model and visible on screen, so the
+golden path stays *seen* without the exceptions adding noise to it.
+
 ## Next
 
 - [Choosing a page template](/ux-patterns/choosing-a-page-template/) — the fine-grained decision guide, family by family

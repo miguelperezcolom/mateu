@@ -57,6 +57,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / env var; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
 | — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ❌ | ❌ |
+| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). The registry (catalogue reader + `ref` resolution) is Java-only, matching the route-registry-in-data pattern; the ports resolve inlined sources, not a named catalogue | ✅ | 🟡 | 🟡 |
+| [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue, so the ports sit at the same 🟡 (a `ComponentRef`/populated `AppDto.components` is only emitted where the registry exists — the wire contract is preserved) | ✅ | 🟡 | 🟡 |
+| [Custom components](/java-ui-definition/custom-components/) (`CustomComponent(name, props, content)` — a genuinely NEW rendering as data; the per-renderer escape hatch). The WIRE is data and identical across backends; the RENDERING is per-renderer (`registerCustomComponent`, degrading to `<mateu-unsupported>`) | ✅ | ✅ | ✅ |
+| Sizing intent (`hug`/`fill`/`fixed:<len>` as portable data on the component; a listing infers `fill`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
@@ -216,6 +220,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
+| Custom components (`registerCustomComponent`; unknown → `<mateu-unsupported>`) — the per-renderer escape hatch: the shared registry serves renderers built on the shared dispatch (Vaadin); the others need their own registration | ✅ | — (own render path) | — | — |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
