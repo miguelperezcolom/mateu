@@ -5,15 +5,26 @@
   "version": "0.0.1",
   "publisher": "mateu",
   "license": "Apache-2.0",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Other"],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "customEditors": [
       {
         "viewType": "mateu.visualEditor",
         "displayName": "Mateu Visual Editor",
-        "selector": [{ "filenamePattern": "**/specs/ui/*.yaml" }, { "filenamePattern": "**/specs/ui/*.yml" }],
+        "selector": [
+          {
+            "filenamePattern": "**/specs/ui/*.yaml"
+          },
+          {
+            "filenamePattern": "**/specs/ui/*.yml"
+          }
+        ],
         "priority": "option"
       }
     ],
@@ -32,11 +43,19 @@
     "vscode:prepublish": "npm run copy:web && npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/"
+    "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
-    "typescript": "^5.4.0"
-  }
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "yaml": "^2.4.0"
+  },
+  "activationEvents": [
+    "onLanguage:yaml"
+  ]
 }
