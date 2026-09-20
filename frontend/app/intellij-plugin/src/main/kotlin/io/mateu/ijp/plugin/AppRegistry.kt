@@ -2,9 +2,7 @@ package io.mateu.ijp.plugin
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.extensions.PluginId
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -33,8 +31,6 @@ import java.time.Duration
  * placeholder substituted.
  */
 object AppRegistry {
-
-    const val PLUGIN_ID = "io.mateu.ijp.plugin"
 
     data class Entry(
         val baseUrl: String,
@@ -91,8 +87,12 @@ object AppRegistry {
     }
 
     fun installedPluginVersion(): String =
-        runCatching { PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID))?.version }
-            .getOrNull() ?: "0.0.0"
+        runCatching {
+            // Read the version from a build-generated resource (see build.gradle.kts) rather than the
+            // plugin manager — its getPlugin/findEnabledPlugin accessors are both @ApiStatus.Internal.
+            AppRegistry::class.java.getResourceAsStream("/mateu-plugin-version.txt")
+                ?.bufferedReader()?.use { it.readText() }?.trim()
+        }.getOrNull()?.takeIf { it.isNotBlank() } ?: "0.0.0"
 
     /** The IDE build ("243.22562.145"); null outside a running IDE (renderProbe). */
     fun installedIdeBuild(): String? =
