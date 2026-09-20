@@ -41,7 +41,7 @@ fun JsonNode?.isBlankNode(): Boolean = this == null || isNull || isMissingNode
 fun JsonNode?.toFieldMap(): Map<String, Any?> {
     if (this == null || !isObject) return emptyMap()
     val out = LinkedHashMap<String, Any?>()
-    fields().forEach { (k, v) -> out[k] = v }
+    properties().forEach { (k, v) -> out[k] = v }
     return out
 }
 
