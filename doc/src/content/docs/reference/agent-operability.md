@@ -63,6 +63,15 @@ Register the sidecar as an MCP server (stdio):
 Then an agent can, for example: `mateu_list_routes` → `mateu_describe_screen("bookings")` → read the
 fields and filters → `mateu_search("bookings", "smith")` → `mateu_run_action("bookings", "export")`.
 
+## The in-app assistant uses the same projection
+
+The built-in AI chat (`@AI(sse=…)`) is the *other* face of the same idea. With every message it now
+sends a **self-describing projection of the screen the user is looking at** — the same shape the MCP
+produces: the current fields (id, label, dataType, value) and the actions available. So the assistant
+fills forms and runs actions precisely instead of guessing from raw state, and it drives the UI by
+returning the wire events the frontend already applies (`navigation-requested`, dispatched events…).
+One projection, two consumers: external agents (MCP) and the in-app assistant.
+
 ## Verify
 
 ```bash
