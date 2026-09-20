@@ -221,6 +221,27 @@
         }
       ]
     },
+    "chatShowSearch": {
+      "chains": [
+        {
+          "chain": "chatShowSearch"
+        }
+      ]
+    },
+    "chatShowChat": {
+      "chains": [
+        {
+          "chain": "chatShowChat"
+        }
+      ]
+    },
+    "chatSend": {
+      "chains": [
+        {
+          "chain": "chatSend"
+        }
+      ]
+    },
     "dismissMateuError": {
       "chains": [
         {
