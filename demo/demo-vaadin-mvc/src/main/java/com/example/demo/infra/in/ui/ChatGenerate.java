@@ -1,28 +1,21 @@
 package com.example.demo.infra.in.ui;
 
 import io.mateu.core.application.runaction.YamlUidlLoader;
-import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Action;
-import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.SubscribeTo;
 import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.concurrent.Callable;
 
 /**
- * "Chat → screen": the built-in Mateu AI chat ({@link AI}) is the interface. You ask it for a screen;
- * the agent authors the Mateu definition (YAML) and emits a {@code render-screen} event carrying it;
- * this view is subscribed to that event and renders the parsed definition IN THE PAGE through the
- * normal pipeline. Point {@code @AI(sse=…)} at the local agent (frontend/promo/local-agent.mjs), which
- * delegates the authoring to the deployed LLM.
+ * The content view of the "chat → screen" demo: subscribed to the {@code render-screen} event the AI
+ * chat emits, it parses the YAML the agent authored and renders it IN THE PAGE through the normal
+ * pipeline. The chat itself + the @AI wiring live on the app shell {@link AssistantApp} (an @App must
+ * be a pure shell — a class mixing @App with content fields renders as a page, so the FAB never shows).
  */
-@UI("chat")
-@App
 @Title("Chat → screen")
-@AI(sse = "http://localhost:8777/agent/stream")
 @SubscribeTo(event = "render-screen", action = "renderScreen")
 public class ChatGenerate {
 

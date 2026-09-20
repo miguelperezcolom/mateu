@@ -6,7 +6,7 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.UI;
 
-@UI("")
+@UI("counter")
 @Style(StyleConstants.CONTAINER)
 public class Home {
 
