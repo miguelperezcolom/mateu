@@ -200,8 +200,11 @@ class MateuProjectService(private val project: Project) {
             add(JButton("Update now").apply {
                 addActionListener {
                     // The IDE's own update flow: checks (and installs) plugin AND platform updates.
+                    // (Every ActionUtil.invokeAction/performAction overload is deprecated on the 2025.2
+                    // baseline the plugin targets; keeping the simplest form until the since-build rises.)
                     val action = ActionManager.getInstance().getAction("CheckForUpdate")
                     if (action != null) {
+                        @Suppress("DEPRECATION")
                         ActionUtil.invokeAction(
                             action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null,
                         )

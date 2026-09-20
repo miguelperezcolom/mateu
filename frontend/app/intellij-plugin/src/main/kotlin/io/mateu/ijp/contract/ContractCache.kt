@@ -51,7 +51,9 @@ class ContractCache(private val project: Project) {
       cache[fqn] = Optional.ofNullable(contract)
       inFlight.remove(fqn)
       ApplicationManager.getApplication().invokeLater(
-        { if (!project.isDisposed) DaemonCodeAnalyzer.getInstance(project).restart() },
+        // restart() is deprecated in favour of restart(PsiFile), but this is a GLOBAL re-annotate after a
+        // contract fetch (no single file), so the no-arg form is the right one — @Suppress the warning.
+        { if (!project.isDisposed) @Suppress("DEPRECATION") DaemonCodeAnalyzer.getInstance(project).restart() },
         { project.isDisposed },
       )
     }

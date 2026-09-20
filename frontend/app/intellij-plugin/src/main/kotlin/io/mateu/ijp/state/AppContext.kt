@@ -514,7 +514,7 @@ class AppContext(val session: AppSession) {
                     val url = Expressions.interpolate(source.text("url"), ctx)
                     val method = source.text("method").ifBlank { "GET" }.uppercase()
                     val headers = LinkedHashMap<String, String>()
-                    source.path("headers").fields().forEach { (k, v) ->
+                    source.path("headers").properties().forEach { (k, v) ->
                         headers[k] = Expressions.interpolate(v.asText(""), ctx)
                     }
                     val body = source.get("body")?.asText("").orEmpty().let {
@@ -532,7 +532,7 @@ class AppContext(val session: AppSession) {
                 if (resultPath != null && resultPath.isTextual) {
                     val merged = valueAtPath(json, resultPath.asText())
                     if (merged != null && merged.isObject) {
-                        merged.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                        merged.properties().forEach { (k, v) -> currentComponentState[k] = v }
                         rerenderCurrentForm()
                     }
                 }
@@ -832,7 +832,7 @@ class AppContext(val session: AppSession) {
 
         val newAppState = increment.path("appState")
         if (!newAppState.isNull && newAppState.isObject) {
-            newAppState.fields().forEach { (k, v) -> appState[k] = v }
+            newAppState.properties().forEach { (k, v) -> appState[k] = v }
         }
     }
 
@@ -891,7 +891,7 @@ class AppContext(val session: AppSession) {
                     // Same inner route as what's already rendered (e.g. a row action answering
                     // "/list" to a listing): stay put — a RunAction command (e.g. "search") in the
                     // same increment refreshes the data.
-                    state.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                    state.properties().forEach { (k, v) -> currentComponentState[k] = v }
                     return
                 }
                 val fullRoute = base + routeSuffix
@@ -919,7 +919,7 @@ class AppContext(val session: AppSession) {
             // sent the fresh state (e.g. a @Toolbar method adding a grid row). The web merges it into
             // the component state and re-renders — do the same with the captured form children.
             if (state.isObject && state.fieldNames().hasNext()) {
-                state.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                state.properties().forEach { (k, v) -> currentComponentState[k] = v }
                 rerenderCurrentForm()
             }
             return
@@ -1127,7 +1127,7 @@ class AppContext(val session: AppSession) {
                 val initialData = sscNode.path("initialData")
                 if (initialData.isObject) {
                     currentComponentState = HashMap()
-                    initialData.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                    initialData.properties().forEach { (k, v) -> currentComponentState[k] = v }
                 }
                 applyRules() // initial pass (needs the hydrated state): conditional visibility etc.
                 val state = sscNode.path("initialData")

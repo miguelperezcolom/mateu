@@ -99,7 +99,7 @@ object RestFetch {
         val url = Expressions.interpolate(source.text("url"), ctx)
         val method = source.text("method").ifBlank { "GET" }.uppercase()
         val headers = LinkedHashMap<String, String>()
-        source.path("headers").fields().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }
+        source.path("headers").properties().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }
         val body = source.get("body")?.asText("").orEmpty().let { if (it.isBlank()) null else Expressions.interpolate(it, ctx) }
         // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
         headers.putAll(authHeaders(url, method))
