@@ -1,4 +1,5 @@
 import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import { setComponentCatalogue } from '../http/componentCatalogue.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import { property, state } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult, type PropertyValues } from 'lit'
@@ -256,7 +257,8 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
         // (PatternFly, SLDS) — same single mechanism the MateuApp shells use.
         syncCommandCenter(this as unknown as { renderRoot: ParentNode; component: unknown; baseUrl?: string })
         // Same catalogue publication as MateuApp — these shells run the same fetch layer.
-        const metadata = (this.component as { metadata?: { restSources?: RestSourceEntry[] } })?.metadata
+        const metadata = (this.component as { metadata?: { restSources?: RestSourceEntry[]; components?: { name: string; component: unknown }[] } })?.metadata
         setRestSourceCatalogue(metadata?.restSources)
+        setComponentCatalogue(metadata?.components as never)
     }
 }
