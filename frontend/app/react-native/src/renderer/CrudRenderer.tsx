@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
 import { interpolate } from '../core/expressions';
 import { fetchExternalJson, mapItemsToRows, resolveRestSource } from '../core/restFetch';
 import { DateField } from './DateField';
@@ -291,7 +293,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const gridLayout = String(metadata['gridLayout'] ?? 'auto');
 
-  const colDefs = columns
+  const allColDefs = columns
     .map((col) => {
       const cm = (col.metadata ?? {}) as Record<string, unknown>;
       return {
@@ -305,6 +307,19 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
+
+  // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
+  // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
+  const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
+  const protectedColId = allColDefs[0]?.fieldId;
+  const [hiddenCols, setHiddenCols] = useState<string[]>(() => getHiddenColumns(columnScope));
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const toggleColumn = (id: string) => {
+    const next = hiddenCols.includes(id) ? hiddenCols.filter((x) => x !== id) : [...hiddenCols, id];
+    setHiddenCols(next);
+    setHiddenColumns(columnScope, next);
+  };
+  const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
 
   // Listing totals + groups (Crud.groupBy / GridColumn.aggregate): rows arrive group-sorted,
   // a group header row is interleaved wherever the groupBy value changes, and a totals footer
@@ -356,6 +371,16 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
               })}
             </View>
           )}
+        </View>
+      )}
+
+      {allColDefs.length > 1 && (
+        <View style={styles.columnsBar}>
+          <TouchableOpacity {...buttonA11y({ label: 'Choose columns' })} style={styles.columnsBtn} onPress={() => setColumnsOpen(true)}>
+            <Text style={styles.columnsBtnText}>
+              ⚙ Columns{hiddenCols.length ? ` (${colDefs.length}/${allColDefs.length})` : ''}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -600,6 +625,32 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Column chooser: show/hide columns (session-scoped; the identity column stays). */}
+      <Modal visible={columnsOpen} transparent animationType="fade" onRequestClose={() => setColumnsOpen(false)}>
+        <TouchableOpacity style={styles.columnsBackdrop} activeOpacity={1} onPress={() => setColumnsOpen(false)}>
+          <View style={styles.columnsSheet}>
+            <Text style={styles.columnsTitle}>Columns</Text>
+            {allColDefs.map((c) => {
+              const isProtected = c.fieldId === protectedColId;
+              const visible = !hiddenCols.includes(c.fieldId);
+              return (
+                <TouchableOpacity {...buttonA11y({ label: c.label })}
+                  key={c.fieldId}
+                  disabled={isProtected}
+                  style={styles.columnsRow}
+                  onPress={() => toggleColumn(c.fieldId)}
+                >
+                  <Text style={styles.columnsCheck}>{visible ? '☑' : '☐'}</Text>
+                  <Text style={[styles.columnsLabel, isProtected && styles.columnsLabelDim]}>
+                    {c.label}{isProtected ? ' (required)' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -769,6 +820,16 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
   tableHeader: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.border },
   headerCell: { width: CELL_WIDTH, padding: 10 },
+  columnsBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 12, paddingVertical: 4 },
+  columnsBtn: { paddingHorizontal: 10, paddingVertical: 4 },
+  columnsBtnText: { color: theme.faint, fontSize: 12 },
+  columnsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 24 },
+  columnsSheet: { backgroundColor: theme.white, borderRadius: theme.radiusSm, padding: 16, maxHeight: '80%' },
+  columnsTitle: { fontSize: 16, fontWeight: '600', color: theme.ink, marginBottom: 8 },
+  columnsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
+  columnsCheck: { fontSize: 16, color: theme.ink },
+  columnsLabel: { fontSize: 14, color: theme.ink },
+  columnsLabelDim: { color: theme.faint },
   headerText: { fontWeight: '600', fontSize: 13, color: theme.ink },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.divider },
   cell: { width: CELL_WIDTH, padding: 10, justifyContent: 'center' },

@@ -116,6 +116,14 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
     table.emptyText.text = metadata.text("emptyStateMessage").ifBlank { "No data" }
 
+    // Per-user column personalization (show/hide via header right-click + native drag-reorder,
+    // persisted per crud route). The identity/row-open column (first link column) is protected.
+    run {
+        val colIds = specs.map { it.id }
+        val protectedIds = setOfNotNull(specs.firstOrNull { it.kind == ColKind.LINK }?.id)
+        ColumnChooser.install(table, colIds, protectedIds, ctx.currentRoute)
+    }
+
     // Bulk row selection (@RowsSelection crud): native JTable multi-selection; the selected row
     // objects (as they came off the wire — synthetic group/totals rows excluded) travel in the
     // component state under `crud_selected_items`, where rowsSelectedRequired actions expect them.
