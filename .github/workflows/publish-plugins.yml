@@ -44,13 +44,34 @@ jobs:
         run: cd frontend/web/monorepo && npm ci
       - name: Set the plugin version from the tag
         run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$PLUGIN_VERSION"'"/' build.gradle.kts
+      # `publishPlugin` intermittently dies with a transient Gradle `ClosedFileSystemException` during
+      # the build phase (before the upload), so retry a few times — with a fresh daemon each attempt —
+      # instead of needing a manual re-run. If a prior attempt actually uploaded (so the marketplace
+      # already has this version), treat "already contains version" as success rather than failing.
       - name: Publish to the JetBrains Marketplace
-        run: cd frontend/app/intellij-plugin && ./gradlew publishPlugin --no-daemon --console=plain
         env:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        run: |
+          cd frontend/app/intellij-plugin
+          for attempt in 1 2 3; do
+            echo "::group::publishPlugin attempt $attempt"
+            set +e
+            ./gradlew publishPlugin --no-daemon --console=plain 2>&1 | tee /tmp/publish.log
+            rc=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+            [ "$rc" = "0" ] && exit 0
+            if grep -q "already contains version" /tmp/publish.log; then
+              echo "Marketplace already has this version — treating as success."; exit 0
+            fi
+            echo "attempt $attempt failed (likely transient); stopping the daemon and retrying…"
+            ./gradlew --stop || true
+            sleep 15
+          done
+          echo "publishPlugin failed after 3 attempts."; exit 1
 
   vscode:
     if: startsWith(github.event.release.tag_name, 'plugins-v')
