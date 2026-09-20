@@ -222,6 +222,17 @@ class Aggregate:
         self.function = function
 
 
+class PrimaryColumn:
+    """Marks a listing/CRUD row field as the rich "primary" column (coherence-plan #6): its value is
+    the cell title, with an optional secondary caption line (``caption`` — another field's name) and
+    an optional leading avatar/icon (``leading``). Sets the column's stereotype to "primary" and its
+    caption_path/leading_path. The Python analogue of Java's ``@PrimaryColumn``."""
+
+    def __init__(self, caption: str | None = None, leading: str | None = None):
+        self.caption = caption
+        self.leading = leading
+
+
 @dataclass(frozen=True)
 class GroupBy:
     """Groups the listing rows by this column: the column becomes the implicit primary sort so

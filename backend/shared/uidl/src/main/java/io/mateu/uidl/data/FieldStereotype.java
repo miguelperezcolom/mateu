@@ -82,5 +82,13 @@ public enum FieldStereotype {
    * constant names (or a comma-joined string when restored from the URL) and reaches the repository
    * as a {@link FilterCriterion} with the {@code in} operator.
    */
-  multiSelect
+  multiSelect,
+
+  /**
+   * A rich "primary" table column (coherence-plan #6): the column value is the title, with an
+   * optional secondary caption line (from {@code GridColumn.captionPath}) and an optional leading
+   * avatar/icon (from {@code GridColumn.leadingPath}) — 2–3 row fields composed into one cell.
+   * Declared with {@code @PrimaryColumn(caption=…, leading=…)}.
+   */
+  primary
 }

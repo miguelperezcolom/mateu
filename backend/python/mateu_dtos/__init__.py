@@ -1360,6 +1360,10 @@ class GridColumnMeta(Wire):
     #: cell formatting. None on legacy crud columns.
     data_type: str | None = None
     stereotype: str | None = None
+    #: Rich "primary" column (coherence-plan #6): the row field for the secondary caption line, and
+    #: the one for the leading avatar/icon. Set only when stereotype == "primary".
+    caption_path: str | None = None
+    leading_path: str | None = None
     # Inline editing (class-level @inline_editing on the crud): the cell renders an in-place
     # editor (select|boolean|integer|number|date|datetime|text) and each commit dispatches the
     # crud's update-row action. editor_options carries a select editor's enum constants.

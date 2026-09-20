@@ -24,6 +24,8 @@ public record GridColumnDto(
     String tooltipPath,
     String actionId,
     String text,
+    String captionPath,
+    String leadingPath,
     Integer priority,
     boolean identifier,
     boolean editable,

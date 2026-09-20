@@ -1378,8 +1378,8 @@ def test_blank_audience_counts_as_unset():
 def test_inline_editing_grid_field_emits_editable_cells_and_rows_bind_back():
     j = render(handler().handle(RunActionRq(route="editable-grid", consumed_route="editable-grid")))
     # Cells edit in place, ReadOnly() row columns stay display-only.
-    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": true, "editorType": "text"' in j
-    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": false' in j
+    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"' in j
+    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": false' in j
 
     # The edited rows travel in the form state and bind back into list[EditableGuest].
     inc = handler().handle(
@@ -1940,7 +1940,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     # Data columns edit in place with the widget matching their type…
     assert (
         '"id": "name", "label": "Name", "type": "GridColumn", "dataType": null, "stereotype": null, '
-        '"editable": true, "editorType": "text"'
+        '"captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"'
     ) in j
     assert '"editorType": "integer"' in j
     assert '"editorType": "boolean"' in j
@@ -1950,7 +1950,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     # …ReadOnly() columns stay display-only…
     assert (
         '"id": "id", "label": "Id", "type": "GridColumn", "dataType": null, "stereotype": null, '
-        '"editable": false'
+        '"captionPath": null, "leadingPath": null, "editable": false'
     ) in j
     # …and the crud advertises the update-row action.
     assert '"update-row"' in j

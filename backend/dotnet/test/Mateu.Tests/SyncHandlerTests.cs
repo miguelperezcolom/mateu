@@ -822,6 +822,22 @@ public class UpperTranslator : ITranslator
     public string Translate(string key) => key.ToUpperInvariant();
 }
 
+// Rich "primary" column (coherence-plan #6): [PrimaryColumn(Caption, Leading)] → stereotype
+// "primary" + captionPath/leadingPath (mirrors Java's PrimaryColumnSyncTest).
+public class PrimaryPerson
+{
+    public string Id { get; set; } = "";
+    [PrimaryColumn(Caption = "email", Leading = "avatar")] public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Avatar { get; set; } = "";
+}
+
+[UI("primary-people"), Title("People")]
+public class PrimaryPeople : Crud<PrimaryPerson>
+{
+    public override IEnumerable<PrimaryPerson> Fetch(string? search) => [];
+}
+
 [UI("decorated"), Title("Decorated"), Subtitle("a subtitle")]
 [Emits("ev-out"), SubscribeTo("ev-in", "act")]
 public class Decorated
@@ -1493,8 +1509,8 @@ public class SyncHandlerTests
     {
         var renderJson = Render(Handler().Handle(new RunActionRqDto { Route = "editable-grid", ConsumedRoute = "editable-grid" }));
         // Cells edit in place, [ReadOnly] row columns stay display-only.
-        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"editable\":true,\"editorType\":\"text\"", renderJson);
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"editable\":false", renderJson);
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"text\"", renderJson);
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":false", renderJson);
 
         // The edited rows travel in the form state and bind back into List<EditableGuest>.
         var rq = new RunActionRqDto
@@ -2126,14 +2142,14 @@ public class SyncHandlerTests
         var json = Render(inc);
 
         // Data columns edit in place with the widget matching their type…
-        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"editable\":true,\"editorType\":\"text\"", json);
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"text\"", json);
         Assert.Contains("\"editorType\":\"integer\"", json);
         Assert.Contains("\"editorType\":\"boolean\"", json);
         Assert.Contains("\"editorType\":\"select\"", json);
         // …enum editors carry their constants as options…
         Assert.Contains("\"editorOptions\":[{\"value\":\"Ok\"", json);
         // …[ReadOnly] columns stay display-only…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"editable\":false", json);
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":false", json);
         // …and the crud advertises the update-row action.
         Assert.Contains("update-row", json);
     }
@@ -2559,6 +2575,20 @@ public class SyncHandlerTests
             ServerSideType = typeof(Sales).FullName,
             ComponentState = state,
         });
+    }
+
+    [Fact]
+    public void A_primary_column_carries_the_stereotype_and_the_caption_and_leading_paths()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "/primary-people", ServerSideType = typeof(PrimaryPeople).FullName,
+        }));
+
+        Assert.Contains("\"id\":\"name\"", json);
+        Assert.Contains("\"stereotype\":\"primary\"", json);
+        Assert.Contains("\"captionPath\":\"email\"", json);
+        Assert.Contains("\"leadingPath\":\"avatar\"", json);
     }
 
     [Fact]

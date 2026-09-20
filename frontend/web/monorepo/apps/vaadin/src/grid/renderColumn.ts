@@ -11,6 +11,7 @@ import { groupLabelColumnId, groupRowCellText, isGroupRow } from "@infra/ui/list
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
+import { renderPrimaryCell } from "@infra/ui/renderers/columnRenderers/primaryColumnRenderer.ts";
 import { renderBooleanCell } from "@infra/ui/renderers/columnRenderers/booleanColumnRenderer.ts";
 import { renderMoneyCell } from "@infra/ui/renderers/columnRenderers/moneyColumnRenderer.ts";
 import { renderLinkCell } from "@infra/ui/renderers/columnRenderers/linkColumnRenderer.ts";
@@ -416,6 +417,9 @@ export const columnRenderer = (item: any,
     }
     if ('status' == type) {
         return renderStatusCell(item, model, vaadinColumn)
+    }
+    if ('primary' == stereotype) {
+        return renderPrimaryCell(item, column, vaadinColumn)
     }
     if ('bool' == type) {
         return renderBooleanCell(item, model, vaadinColumn)

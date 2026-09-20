@@ -1105,6 +1105,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             {
                 DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
                 Aggregate = AggregateOf(p),
+                Stereotype = ColumnStereotypeOf(p),
+                CaptionPath = CaptionPathOf(p),
+                LeadingPath = LeadingPathOf(p),
             }))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
@@ -1215,6 +1218,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     EditorType = editable ? EditorTypeOf(p) : null,
                     EditorOptions = editable ? EditorOptionsOf(p) : null,
                     Aggregate = AggregateOf(p),
+                    Stereotype = ColumnStereotypeOf(p),
+                    CaptionPath = CaptionPathOf(p),
+                    LeadingPath = LeadingPathOf(p),
                     // The first column is the row-open affordance (mirrors the Java crud wire).
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
@@ -1292,6 +1298,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             {
                 DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
                 Aggregate = AggregateOf(p),
+                Stereotype = ColumnStereotypeOf(p),
+                CaptionPath = CaptionPathOf(p),
+                LeadingPath = LeadingPathOf(p),
                 // Rows open through their first column: the read-only detail when navigable, the
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
@@ -1380,6 +1389,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// enum: sum|avg|min|max|count); null on non-aggregated columns.</summary>
     internal static string? AggregateOf(PropertyInfo p) =>
         p.Find<AggregateAttribute>()?.Function.ToString().ToLowerInvariant();
+
+    /// <summary>The rich "primary" column stereotype (coherence-plan #6) when the property carries
+    /// [PrimaryColumn]; null otherwise. (Mirrors Java's ColumnTypeMapper.getStereotypeForColumn.)</summary>
+    internal static string? ColumnStereotypeOf(PropertyInfo p) =>
+        p.Find<PrimaryColumnAttribute>() is not null ? "primary" : null;
+
+    internal static string? CaptionPathOf(PropertyInfo p) =>
+        p.Find<PrimaryColumnAttribute>()?.Caption is { Length: > 0 } c ? c : null;
+
+    internal static string? LeadingPathOf(PropertyInfo p) =>
+        p.Find<PrimaryColumnAttribute>()?.Leading is { Length: > 0 } l ? l : null;
 
     /// <summary>The view's [WelcomeBanner], when declared. Inherited from a base class (the Java
     /// annotation is @Inherited), so the lookup walks the base-type chain like PageTypeOf does.</summary>
