@@ -147,7 +147,7 @@ function renderField(ctx, md) {
   const dataType = md.dataType ?? 'string';
   let input;
 
-  if (stereotype === 'select' || Array.isArray(md.options)) {
+  if (stereotype === 'select' || md.options?.length) {
     input = el('select', 'mateu-input');
     for (const opt of md.options ?? []) {
       const o = el('option'); o.value = opt.value; o.textContent = opt.label ?? opt.value;
