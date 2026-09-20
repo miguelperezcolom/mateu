@@ -1532,5 +1532,33 @@ atest('chat: streamChat lanza un error legible ante una respuesta no-ok', async 
   )
 })
 
+// ── Custom components (#14) en VB: placeholder + hijos slotted ──────────────────
+test('custom component: placeholder visible + hijos slotted (escape hatch #14)', () => {
+  const inc = {
+    commands: [], messages: [], banners: [],
+    fragments: [{
+      targetComponentId: '', action: 'Replace', state: {}, data: {},
+      component: {
+        type: 'ServerSide', metadata: null,
+        children: [{
+          type: 'ClientSide', metadata: { type: 'Page', title: '' },
+          children: [{
+            type: 'ClientSide', metadata: { type: 'CustomComponent', name: 'org-chart' },
+            children: [{ type: 'ClientSide', metadata: { type: 'Text', text: 'fallback content' }, children: [] }],
+          }],
+        }],
+      },
+    }],
+  }
+  const reg = reduceContexts(empty(), inc)
+  const host = reg.contexts[HOST_ID]
+  const atoms = (hostContentOf(host, null, { title: '' }) || []).flatMap((b) => b.items)
+  // placeholder con el nombre del tipo custom
+  const placeholder = atoms.find((a) => a.isNotice && /org-chart/.test(a.text || ''))
+  assert.ok(placeholder, 'el custom component muestra un placeholder con su nombre')
+  // y los hijos slotted se pintan igualmente
+  assert.ok(atoms.some((a) => a.isText && a.text === 'fallback content'), 'los hijos slotted se renderizan')
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
