@@ -2229,7 +2229,7 @@
     },
     "FieldStereotype" : {
       "type" : "string",
-      "enum" : [ "regular", "radio", "checkbox", "textarea", "toggle", "combobox", "select", "email", "password", "richText", "listBox", "html", "markdown", "image", "uploadableImage", "fileUpload", "icon", "link", "money", "grid", "color", "choice", "popover", "slider", "button", "stars", "searchable", "badge", "plainText", "bulletedList", "dateRange", "numberRange", "treeSelect", "signature", "camera", "multiSelect" ]
+      "enum" : [ "regular", "radio", "checkbox", "textarea", "toggle", "combobox", "select", "email", "password", "richText", "listBox", "html", "markdown", "image", "uploadableImage", "fileUpload", "icon", "link", "money", "grid", "color", "choice", "popover", "slider", "button", "stars", "searchable", "badge", "plainText", "bulletedList", "dateRange", "numberRange", "treeSelect", "signature", "camera", "multiSelect", "primary" ]
     },
     "FileItem" : {
       "type" : "object",
@@ -3007,6 +3007,12 @@
           "type" : "string"
         },
         "text" : {
+          "type" : "string"
+        },
+        "captionPath" : {
+          "type" : "string"
+        },
+        "leadingPath" : {
           "type" : "string"
         },
         "priority" : {

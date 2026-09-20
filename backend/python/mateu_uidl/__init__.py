@@ -222,6 +222,17 @@ class Aggregate:
         self.function = function
 
 
+class PrimaryColumn:
+    """Marks a listing/CRUD row field as the rich "primary" column (coherence-plan #6): its value is
+    the cell title, with an optional secondary caption line (``caption`` — another field's name) and
+    an optional leading avatar/icon (``leading``). Sets the column's stereotype to "primary" and its
+    caption_path/leading_path. The Python analogue of Java's ``@PrimaryColumn``."""
+
+    def __init__(self, caption: str | None = None, leading: str | None = None):
+        self.caption = caption
+        self.leading = leading
+
+
 @dataclass(frozen=True)
 class GroupBy:
     """Groups the listing rows by this column: the column becomes the implicit primary sort so
@@ -926,6 +937,7 @@ def app(
     command_center: bool = False,
     chromeless: bool = False,
     requires: list[str] | None = None,
+    route: str = "",
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS),
@@ -949,6 +961,11 @@ def app(
         cls.__mateu_app_command_center__ = command_center
         cls.__mateu_app_chromeless__ = chromeless
         cls.__mateu_app_requires__ = list(requires) if requires else []
+        # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
+        # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
+        # separate @ui on the same class; when both are set, @app(route) wins (see MateuRegistry).
+        if route:
+            cls.__mateu_app_route__ = route
         return cls
 
     return deco

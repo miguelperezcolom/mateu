@@ -1,0 +1,11 @@
+# A SIMPLE read-only Listing (no viewModel, no proxy actions): rows from an external source, a few
+# columns, and rowRoute as the way into a record. The golden source for the client-side expander's
+# listing handling (Phase 6) — read + navigate, the achievable no-backend scope.
+type: Listing
+title: Read Only People
+rowRoute: read-listing/${row.id}
+rowsSource:
+  url: https://example.test/api/people
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true}
+  - {type: GridColumn, id: gender, label: Gender}

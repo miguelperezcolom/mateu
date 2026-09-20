@@ -95,6 +95,17 @@ public sealed class AggregateAttribute(AggregateFunction function = AggregateFun
     public AggregateFunction Function { get; } = function;
 }
 
+/// <summary>Marks a listing/CRUD row property as the rich "primary" column (coherence-plan #6): its
+/// value is the cell title, with an optional secondary caption line (<see cref="Caption"/> — another
+/// property's name) and an optional leading avatar/icon (<see cref="Leading"/>). Sets the column's
+/// stereotype to "primary" and its captionPath/leadingPath. (C# analogue of Java's @PrimaryColumn.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class PrimaryColumnAttribute : Attribute
+{
+    public string? Caption { get; init; }
+    public string? Leading { get; init; }
+}
+
 /// <summary>Groups the listing rows by this column: the column becomes the implicit primary sort
 /// so rows of the same value are contiguous, and the grid renders a group subtotal row whenever
 /// the value changes — showing the group value, its row count over the WHOLE filtered set, and
@@ -197,6 +208,13 @@ public sealed class LabelAttribute(string value) : Attribute
 public sealed class AppAttribute(string title) : Attribute
 {
     public string Title { get; } = title;
+
+    /// <summary>The base path this app is served at (coherence-plan #5): <c>[App("Shop", Route =
+    /// "/shop")]</c> declares BOTH that the class is an app AND its route — the single attribute a
+    /// newcomer reaches for, equivalent to <c>[UI("/shop")] [App("Shop")]</c>. Blank (the default)
+    /// means the route is carried by a separate <c>[UI]</c> on the same class, exactly as before.
+    /// When both are set, <c>[App].Route</c> wins.</summary>
+    public string Route { get; set; } = "";
 
     /// <summary>Navigation chrome: "" = auto (Java's @App(AUTO) decision table: grouped menu →
     /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS), or an

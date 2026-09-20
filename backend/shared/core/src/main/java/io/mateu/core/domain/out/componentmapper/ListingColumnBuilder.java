@@ -1,7 +1,9 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getCaptionPathForColumn;
 import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getDataTypeForColumn;
+import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getLeadingPathForColumn;
 import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getStereotypeForColumn;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
@@ -109,6 +111,8 @@ final class ListingColumnBuilder {
         .label(getLabel(field))
         .dataType(getDataTypeForColumn(field))
         .stereotype(getStereotypeForColumn(field))
+        .captionPath(getCaptionPathForColumn(field))
+        .leadingPath(getLeadingPathForColumn(field))
         .style(getColumnStyle(field))
         .resizable(true)
         .priority(priority)

@@ -1,7 +1,9 @@
 package io.mateu.core.application.export;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.application.runaction.RestSourceRegistry;
@@ -89,7 +91,18 @@ public final class MateuBundleExporter {
        * Derived from the entries, so it never contradicts them; deliberately NOT part of {@link
        * #structureHash()} (it is redundant with the entry JSON the hash already covers).
        */
-      List<String> requiredCapabilities) {
+      List<String> requiredCapabilities,
+      /**
+       * SPECS MODE (Phase 6, #1/#10): the RAW authored definitions, keyed by the file name a route
+       * entry's {@code definition} names (e.g. {@code "about.yaml"}), each parsed to JSON. This is
+       * what lets a static site expand a definition-only route ({@code definition}, no {@code
+       * viewModel}) to the wire IN THE BROWSER via the client-side expander — edit a definition and
+       * refresh, no backend and no re-export. Shipped ALONGSIDE the pre-rendered entries (the
+       * client prefers a pre-rendered increment and falls back to expanding the raw definition), so
+       * it is purely additive. Only client-expandable definitions travel; a {@code viewModel} route
+       * needs a backend and is omitted.
+       */
+      Map<String, JsonNode> definitions) {
 
     /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
     public BundleManifest(
@@ -115,6 +128,18 @@ public final class MateuBundleExporter {
         List<BundleEntry> entries,
         RouteTable routes,
         RestSourceCatalog sources) {
+      this(baseUrl, generatedAt, staticOnly, entries, routes, sources, Map.of());
+    }
+
+    /** Pre-specs-mode shape: no raw definitions shipped (pre-rendered entries only). */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        Map<String, JsonNode> definitions) {
       this(
           baseUrl,
           generatedAt,
@@ -122,7 +147,8 @@ public final class MateuBundleExporter {
           entries,
           routes,
           sources,
-          aggregateCapabilities(entries));
+          aggregateCapabilities(entries),
+          definitions);
     }
 
     /**
@@ -312,7 +338,38 @@ public final class MateuBundleExporter {
         onlyStatic,
         entries,
         authored,
-        restSourceCatalogue());
+        restSourceCatalogue(),
+        collectDefinitions(cl, authored));
+  }
+
+  /**
+   * The raw authored definitions to ship for SPECS MODE (Phase 6): each authored route that names a
+   * {@code definition} and has NO {@code viewModel} (so it can be expanded client-side), keyed by
+   * the definition file name and parsed to JSON. A {@code viewModel} route is skipped (it needs a
+   * backend). Mirrors {@code YamlUidlLoader}'s classpath convention ({@code specs/ui/<definition>},
+   * or the classpath root when it starts with {@code /}). Never throws: a missing/unreadable
+   * definition is logged and omitted, leaving that route pre-rendered/backend-served as before.
+   */
+  private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
+    var mapper = new YAMLMapper();
+    var out = new java.util.LinkedHashMap<String, JsonNode>();
+    for (var entry : authored.routes()) {
+      var def = entry.definition();
+      if (def == null || def.isBlank()) continue;
+      if (entry.viewModel() != null && !entry.viewModel().isBlank()) continue; // needs a backend
+      if (out.containsKey(def)) continue; // one definition may serve several routes
+      var path = def.startsWith("/") ? def.substring(1) : "specs/ui/" + def;
+      try (var is = cl.getResourceAsStream(path)) {
+        if (is == null) {
+          log.warn("bundle: definition {} not found at classpath:{} — omitted", def, path);
+          continue;
+        }
+        out.put(def, mapper.readTree(is));
+      } catch (Exception e) {
+        log.warn("bundle: could not read definition {}: {}", def, e.toString());
+      }
+    }
+    return out;
   }
 
   /**

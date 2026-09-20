@@ -14,24 +14,47 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 
-@SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI"})
+@SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI", "io.mateu.uidl.annotations.App"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
   private boolean indexedUIsProcessed = false;
 
+  /**
+   * The route a class declares (coherence-plan #5): {@code @App(route = "/x")} wins over
+   * {@code @UI("/x")} when both are non-blank; a value-less {@code @App} (chrome only) carries no
+   * route. Returns {@code null} when the class declares no route.
+   */
+  private static String routeOf(Element e) {
+    App app = e.getAnnotation(App.class);
+    if (app != null && app.route() != null && !app.route().isBlank()) {
+      return app.route();
+    }
+    UI ui = e.getAnnotation(UI.class);
+    return ui != null ? ui.value() : null;
+  }
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     Set<String> compiledClassNames = new HashSet<>();
 
+    // Collect the routed classes across BOTH @UI and @App(route = ...), deduped by name: a class
+    // carrying both annotations must generate its controller ONCE (routeOf resolves which route).
+    Map<String, Element> routed = new LinkedHashMap<>();
     for (TypeElement annotation : annotations) {
-      Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
+      for (Element e : roundEnv.getElementsAnnotatedWith(annotation)) {
+        if (e instanceof TypeElement && routeOf(e) != null) {
+          routed.putIfAbsent(((TypeElement) e).getQualifiedName().toString(), e);
+        }
+      }
+    }
 
-      for (Element e : annotatedElements) {
+    {
+      for (Element e : routed.values()) {
         String className = ((TypeElement) e).getQualifiedName().toString();
         compiledClassNames.add(className);
         String simpleClassName = e.getSimpleName().toString();
-        String path = e.getAnnotation(UI.class).value();
+        String path = routeOf(e);
 
         System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
@@ -74,22 +97,13 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               caption,
               path,
               getFiler());
-          List<RouteValue> routes =
-              new ArrayList<>(
-                  Arrays.stream(
-                          Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
-                      .map(
-                          routeAnnotation ->
-                              new RouteValue(
-                                  routeAnnotation.value(),
-                                  "_empty",
-                                  toRegex(routeAnnotation.value()),
-                                  toRegex("_empty")))
-                      .toList());
-          Arrays.stream(Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
-              .filter(routeAnnotation -> routeAnnotation.value().isEmpty())
-              .map(routeAnnotation -> new RouteValue("", "_empty", toRegex(""), toRegex("_empty")))
-              .forEach(routes::add);
+          // The class's single declared route (from @UI or @App(route)); an empty path keeps the
+          // legacy double-entry the @UI path produced (a value + an explicit empty route).
+          List<RouteValue> routes = new ArrayList<>();
+          routes.add(new RouteValue(path, "_empty", toRegex(path), toRegex("_empty")));
+          if (path.isEmpty()) {
+            routes.add(new RouteValue("", "_empty", toRegex(""), toRegex("_empty")));
+          }
           createRouteHandler(
               className + "UIRouteResolver",
               pkgName,

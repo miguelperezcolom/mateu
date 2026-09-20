@@ -208,6 +208,14 @@ public class FieldTypeMapper {
     return ColumnTypeMapper.getStereotypeForColumn(columnField);
   }
 
+  public static String getCaptionPathForColumn(Field columnField) {
+    return ColumnTypeMapper.getCaptionPathForColumn(columnField);
+  }
+
+  public static String getLeadingPathForColumn(Field columnField) {
+    return ColumnTypeMapper.getLeadingPathForColumn(columnField);
+  }
+
   private static boolean isMoneyStereotype(Field field) {
     return MetaAnnotations.isPresent(field, Stereotype.class)
         && MetaAnnotations.find(field, Stereotype.class).value() == FieldStereotype.money;

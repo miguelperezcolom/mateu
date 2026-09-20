@@ -236,6 +236,14 @@ class R2App(AppSupplier):
         )
 
 
+# An app declared with the SINGLE @app(route="/x") decorator (coherence-plan #5) — no separate @ui.
+@app("App via app route", route="/approute")
+class AppViaAppRoute:
+    @menu_item("Screen")
+    def screen(self) -> R2Screen:
+        return R2Screen()
+
+
 class Thing:
     id: str = ""
     name: Annotated[str, Required()] = ""
@@ -1070,6 +1078,15 @@ def test_app_shell_menu():
     assert '"/things"' in j
 
 
+def test_app_route_declares_an_app_and_its_route_in_one_decorator():
+    # coherence-plan #5, Python parity: @app(route="/approute") with NO @ui resolves at /approute
+    # and renders as an app.
+    inc = handler().handle(RunActionRq(route="/approute", consumed_route=""))
+    meta = inc.fragments[0].component.metadata
+    assert meta.title == "App via app route"
+    assert meta.server_side_type == _name(AppViaAppRoute)
+
+
 def test_r2_a_home_that_resolves_to_a_distinct_screen_is_typed_with_that_screens_class():
     # coherence-plan #5 (R2, App ≠ its Home Screen), Python parity: /r2app's home (/r2app/screen)
     # resolves to a REAL distinct registered type (R2Screen), so the home fragment is typed with the
@@ -1361,8 +1378,8 @@ def test_blank_audience_counts_as_unset():
 def test_inline_editing_grid_field_emits_editable_cells_and_rows_bind_back():
     j = render(handler().handle(RunActionRq(route="editable-grid", consumed_route="editable-grid")))
     # Cells edit in place, ReadOnly() row columns stay display-only.
-    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": true, "editorType": "text"' in j
-    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": false' in j
+    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"' in j
+    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": false' in j
 
     # The edited rows travel in the form state and bind back into list[EditableGuest].
     inc = handler().handle(
@@ -1923,7 +1940,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     # Data columns edit in place with the widget matching their type…
     assert (
         '"id": "name", "label": "Name", "type": "GridColumn", "dataType": null, "stereotype": null, '
-        '"editable": true, "editorType": "text"'
+        '"captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"'
     ) in j
     assert '"editorType": "integer"' in j
     assert '"editorType": "boolean"' in j
@@ -1933,7 +1950,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     # …ReadOnly() columns stay display-only…
     assert (
         '"id": "id", "label": "Id", "type": "GridColumn", "dataType": null, "stereotype": null, '
-        '"editable": false'
+        '"captionPath": null, "leadingPath": null, "editable": false'
     ) in j
     # …and the crud advertises the update-row action.
     assert '"update-row"' in j

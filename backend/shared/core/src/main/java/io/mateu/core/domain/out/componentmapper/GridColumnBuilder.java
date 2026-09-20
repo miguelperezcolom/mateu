@@ -51,6 +51,8 @@ public class GridColumnBuilder {
                   GridColumn.builder()
                       .dataType(getDataTypeForColumn(columnField))
                       .stereotype(getStereotypeForColumn(columnField))
+                      .captionPath(getCaptionPathForColumn(columnField))
+                      .leadingPath(getLeadingPathForColumn(columnField))
                       .id(columnField.getName())
                       .label(getLabel(columnField))
                       .autoWidth(auto)

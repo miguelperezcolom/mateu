@@ -24,6 +24,10 @@ public record GridColumn(
     String tooltipPath,
     String actionId,
     String text,
+    // Rich "primary" column (coherence-plan #6): the row field to read for the secondary caption
+    // line, and the one for the leading avatar/icon. Both null unless stereotype == primary.
+    String captionPath,
+    String leadingPath,
     Integer priority,
     boolean identifier,
     boolean editable,

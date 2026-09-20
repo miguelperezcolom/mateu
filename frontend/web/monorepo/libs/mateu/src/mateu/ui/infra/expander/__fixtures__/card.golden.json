@@ -1,0 +1,78 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": null,
+      "component": {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "Card",
+          "media": null,
+          "headerPrefix": null,
+          "header": null,
+          "title": null,
+          "subtitle": null,
+          "headerSuffix": null,
+          "content": {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "VerticalLayout",
+              "spacing": false,
+              "padding": false,
+              "margin": false,
+              "spacingVariant": null,
+              "horizontalAlignment": null,
+              "justification": null,
+              "wrap": false,
+              "flexGrows": null,
+              "fullWidth": false,
+              "style": null
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "Inside a card",
+                  "size": null,
+                  "noMargins": false
+                },
+                "id": "c336a110-0867-4455-b148-cf1dad59bcfd",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null,
+                "sizing": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+          },
+          "footer": null,
+          "variants": ["outlined"]
+        },
+        "id": "fieldId",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": null,
+        "sizing": null
+      },
+      "state": null,
+      "data": null,
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}

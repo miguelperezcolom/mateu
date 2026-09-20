@@ -18,6 +18,10 @@ export default interface GridColumn extends ComponentMetadata {
     tooltipPath: string
     actionId: string
     text: string
+    /** Rich `primary` column (coherence-plan #6): the row field for the secondary caption line,
+     *  and the one for the leading avatar/icon. Set only when stereotype === 'primary'. */
+    captionPath?: string
+    leadingPath?: string
     style: string
     priority: number
     identifier: boolean
