@@ -2,7 +2,7 @@ package io.mateu.ijp.visualeditor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -105,21 +105,27 @@ class MateuVisualEditor(
     /** Reply with every YAML file under the mount's `specs/ui` directory (path relative to it) so the
      *  editor can build its reference index. The edited file lives under `specs/ui`, one of its ancestors. */
     private fun sendFiles() {
-        val files = runReadAction {
-            val root = specsUiRoot(file) ?: return@runReadAction emptyList<Map<String, String>>()
-            val out = mutableListOf<Map<String, String>>()
-            VfsUtilCore.iterateChildrenRecursively(root, null) { vf ->
-                val ext = vf.extension
-                if (!vf.isDirectory && (ext == "yaml" || ext == "yml")) {
-                    val rel = VfsUtilCore.getRelativePath(vf, root) ?: vf.name
-                    val text = FileDocumentManager.getInstance().getDocument(vf)?.text
-                        ?: String(vf.contentsToByteArray())
-                    out.add(mapOf("path" to rel, "content" to text))
+        val files = ApplicationManager.getApplication().runReadAction(
+            Computable {
+                val root = specsUiRoot(file)
+                if (root == null) {
+                    emptyList()
+                } else {
+                    val out = mutableListOf<Map<String, String>>()
+                    VfsUtilCore.iterateChildrenRecursively(root, null) { vf ->
+                        val ext = vf.extension
+                        if (!vf.isDirectory && (ext == "yaml" || ext == "yml")) {
+                            val rel = VfsUtilCore.getRelativePath(vf, root) ?: vf.name
+                            val text = FileDocumentManager.getInstance().getDocument(vf)?.text
+                                ?: String(vf.contentsToByteArray())
+                            out.add(mapOf("path" to rel, "content" to text))
+                        }
+                        true
+                    }
+                    out
                 }
-                true
-            }
-            out
-        }
+            },
+        )
         sendToWeb(mapOf("type" to "files", "files" to files))
     }
 
@@ -134,12 +140,12 @@ class MateuVisualEditor(
     }
 
     private fun sendInit() {
-        val text = runReadAction {
-            FileDocumentManager.getInstance().getDocument(file)?.text ?: String(file.contentsToByteArray())
-        }
-        val path = runReadAction {
-            specsUiRoot(file)?.let { VfsUtilCore.getRelativePath(file, it) } ?: file.name
-        }
+        val text = ApplicationManager.getApplication().runReadAction(
+            Computable { FileDocumentManager.getInstance().getDocument(file)?.text ?: String(file.contentsToByteArray()) },
+        )
+        val path = ApplicationManager.getApplication().runReadAction(
+            Computable { specsUiRoot(file)?.let { VfsUtilCore.getRelativePath(file, it) } ?: file.name },
+        )
         sendToWeb(mapOf("type" to "init", "yaml" to text, "baseUrl" to "", "path" to path))
     }
 
