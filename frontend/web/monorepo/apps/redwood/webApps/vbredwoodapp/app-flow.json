@@ -688,9 +688,9 @@
       "description": "Ask Oracle muestra el chat de IA en vez del buscador"
     },
     "mateuChatMessages": {
-      "type": "array",
+      "type": "any",
       "defaultValue": [],
-      "description": "conversacion del chat de IA: [{role:'user'|'agent', text}]"
+      "description": "conversacion del chat de IA: [{role:'user'|'agent', text}] (any: VB no acepta 'array' pelado)"
     },
     "mateuChatInput": {
       "type": "string",
