@@ -144,10 +144,11 @@
           <div style="height: 340px; overflow-y: auto; padding: .25rem;">
             <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
               <template>
-                <div class="oj-flex oj-sm-margin-2x-bottom">
+                <div class="oj-flex oj-sm-margin-3x-bottom"
+                  :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
                   <div class="oj-sm-padding-3x oj-typography-body-md"
-                    :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 oj-sm-margin-8x-start' : 'oj-bg-neutral-20 oj-sm-margin-8x-end' ]]"
-                    style="border-radius: 12px; white-space: pre-wrap;">
+                    :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10' : 'oj-bg-neutral-20' ]]"
+                    style="border-radius: 14px; max-width: 78%; white-space: pre-wrap; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
                     <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
                   </div>
                 </div>
