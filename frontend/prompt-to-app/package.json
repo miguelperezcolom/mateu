@@ -1,0 +1,16 @@
+{
+  "name": "mateu-prompt-to-app",
+  "version": "0.0.1",
+  "description": "Spike: prompt -> schema-valid Mateu UI definition, validated against the published JSON Schemas with a repair loop.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": { "mateu-prompt-to-app": "index.mjs" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check index.mjs && node --check generate.mjs && node --check validate.mjs && node --check schemas.mjs && node --check llm.mjs"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  }
+}
