@@ -50,15 +50,29 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | **P0** | Folding en ADR/deck (§2.15 pilar + GAP‑4/R4 + matriz A6) | ✅ HECHO | `design/riu-*.md` | ADR §2.15 + GAP‑4 + §7.2/§7.4 + nota A6; deck titular 4 + pilar 4 |
 | **P1** | Proyección + **sidecar MCP** (Node, cero-dep) contra cualquier backend | ✅ HECHO | `frontend/mcp-server/` + `e2e/mcp-probe.mjs` | 14 unit (corpus real + protocolo) + e2e 7/7 vs mvc-app1 vivo |
 | **P2** | Semántica de proyección como **spec versionada** | ✅ HECHO | `doc/.../reference/wire-specification.md` + `reference/agent-operability.md` | Sección normativa "Agent operability" + doc usuario + sidebar |
-| **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ⏳ TODO | `backend/shared/core` + adaptadores | Reusa `MateuService`, no HTTP self-hop |
-| **P4** | Paridad ports (.NET, Python) del endpoint nativo | ⏳ TODO | `backend/dotnet`, `backend/python` | Playbook corpus/paridad habitual |
-| **P5** | Mejora del **chat in-app** (IA conduce la UI) | ⏳ TODO | `frontend/web/monorepo/libs/mateu` | §2.4 runtime; reusa `mateu-chat`/`sseUrl` |
-| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ TODO | (spike) | NO gate; encuadrar como beta |
+| **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ✅ HECHO | `backend/shared/core/.../mcp` + `mvc-core/.../mcp` | 12 tests core + e2e vivo `/mateu/mcp` |
+| **P4** | Paridad ports (.NET, Python) del endpoint nativo | 🔨 PARCIAL | `backend/python` ✅ · `backend/dotnet` ⏳ | Python 12 tests verdes; .NET = follow-up (sidecar ya lo cubre) |
+| **P5** | Mejora del **chat in-app** (IA conduce la UI) | ⏳ DIRECCIÓN | `frontend/web/monorepo/libs/mateu` | El MCP ES la entrega verificada de "IA opera la UI"; el chat necesita backend LLM para e2e |
+| **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ DIRECCIÓN | (spike) | NO gate; 🟡 como en el ADR |
 
 Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un entregable:** marcar aquí +
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P4 Python ✅ / .NET follow-up**. `backend/python/mateu_core/mcp.py` (proyección pura
+  dict→dict + JSON-RPC + 4 tools, gemelo de JS/Java) + endpoint `POST /mateu/mcp` en `mateu_fastapi`
+  (reusa SyncHandler → RBAC). 12 tests con `python3 -m unittest tests.test_mcp` (sin pydantic). **.NET
+  nativo deferido**: no hay dotnet local para verificar y shipear C# sin test rompería la regla de oro;
+  **el sidecar ya opera un backend .NET hoy** (solo habla wire). P5/P6 → dirección (el MCP es la entrega
+  verificada de "IA opera la UI"; prompt-to-app sigue 🟡 como en el ADR).
+- 2026-09-20 — **P3 ✅**. Core (framework-neutral, sin deps nuevas, sin tocar bean graph):
+  `McpProjection` (wire serializado→pantalla plana, gemelo Java de projection.mjs), `McpService`
+  (tool-call→`MateuService`; RBAC heredado del JWT), `McpJsonRpc` (JSON-RPC 2.0, 4 tools). Adaptador
+  mvc: `MateuMcpAutoConfiguration` → `POST /mateu/mcp` (RouterFunction aditivo, convive con
+  `/mateu/v3/**`; body por el Jackson de Mateu, no el conversor de Spring que va en otro Jackson major).
+  12 tests core (incl. RBAC ocultando `@EyesOnly`) + **e2e vivo contra mvc-app1** (initialize/tools-list/
+  describe "Simple Form"+greet/run_action). GOTCHA: Spring 7/Boot 4 usa Jackson 3 (`tools.jackson`) en
+  su conversor → no deserializa un `JsonNode` de Jackson 2; leer/escribir el body como String.
 - 2026-09-20 — **P2 ✅**. Sección normativa "Agent operability — the MCP projection" en
   `wire-specification.md` (tabla de derivación wire→tools, mapeo tool-call→sync, los 2 gotchas del wire,
   dos-hosts-una-proyección) + doc de usuario `reference/agent-operability.md` + entrada en el sidebar.

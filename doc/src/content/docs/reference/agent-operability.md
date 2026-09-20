@@ -29,9 +29,11 @@ so every host produces the same result.
 
 - **Sidecar** — `frontend/mcp-server/`, a zero-dependency Node MCP server. It speaks only the public
   wire, so it operates a **Java, .NET or Python** backend with **no backend change**. Point it at a URL
-  and go. This is the quickest way to try it.
-- **Native endpoint** — the backend serves the same MCP projection from `MateuService` directly, so
-  *every app is also an MCP* with no sidecar to deploy, enforcing permissions natively.
+  and go. This is the quickest way to try it, and it covers **every** backend today.
+- **Native endpoint** — the backend serves the same MCP projection directly, so *every app is also an
+  MCP* with no sidecar to deploy, enforcing permissions natively. Available today on **Java**
+  (Spring MVC, `POST /mateu/mcp`) and **Python** (FastAPI, `POST /mateu/mcp`); the **.NET** native
+  endpoint is a follow-up (the sidecar covers .NET in the meantime). All hosts share one projection.
 
 ## Permissions (RBAC)
 
