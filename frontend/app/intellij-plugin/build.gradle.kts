@@ -53,6 +53,18 @@ intellijPlatform {
             untilBuild = provider { null }
         }
     }
+    // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI, on a `plugins-v*` release).
+    // The token comes from the environment so it is never committed; get one at
+    // https://plugins.jetbrains.com/author/me/tokens. Optional signing is configured only when the
+    // certificate env vars are present, so a normal (unsigned) local build never needs them.
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
 }
 
 kotlin {

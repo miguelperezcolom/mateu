@@ -1,0 +1,84 @@
+# Publishes the two IDE plugins when a DEDICATED plugin release is cut — a GitHub Release whose tag
+# starts with `plugins-v` (e.g. `plugins-v0.2.0`). The version is taken from the tag and injected into
+# both plugins, so the tag is the single source of truth and neither file has to be bumped by hand.
+#
+# It does NOT run on the framework's `v3.0-alpha.N` releases (Maven Central) or the `mateu-desktop-*`
+# installer releases — the `if:` guard on each job scopes it to `plugins-v*`.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   PUBLISH_TOKEN  — JetBrains Marketplace token   (https://plugins.jetbrains.com/author/me/tokens)
+#   VSCE_PAT       — VS Code Marketplace PAT        (Azure DevOps, scope: Marketplace → Manage)
+#   OVSX_PAT       — Open VSX token                 (https://open-vsx.org/user-settings/tokens)
+# Optional (IntelliJ plugin signing — recommended, but publishing works unsigned without them):
+#   CERTIFICATE_CHAIN, PRIVATE_KEY, PRIVATE_KEY_PASSWORD
+#
+# NOTE: the FIRST publish of each plugin (creating the Marketplace listing / the Open VSX namespace)
+# is done manually; this workflow publishes UPDATES to the already-created listings.
+
+name: Publish plugins
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  intellij:
+    if: startsWith(github.event.release.tag_name, 'plugins-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derive version from the tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: echo "PLUGIN_VERSION=${TAG#plugins-v}" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # The plugin build rebuilds + embeds the shared visual-editor web bundle (copyVisualEditor →
+      # apps/visual-editor `npm run copy`), which needs the monorepo workspaces installed.
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci
+      - name: Set the plugin version from the tag
+        run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$PLUGIN_VERSION"'"/' build.gradle.kts
+      - name: Publish to the JetBrains Marketplace
+        run: cd frontend/app/intellij-plugin && ./gradlew publishPlugin --no-daemon --console=plain
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+
+  vscode:
+    if: startsWith(github.event.release.tag_name, 'plugins-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derive version from the tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: echo "PLUGIN_VERSION=${TAG#plugins-v}" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # `vsce package` runs vscode:prepublish (copy:web builds the visual-editor bundle into media/),
+      # which needs the monorepo workspaces installed.
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci
+      - name: Install extension dependencies
+        run: cd frontend/app/vscode-extension && npm ci
+      - name: Set the extension version from the tag
+        run: cd frontend/app/vscode-extension && npm version "$PLUGIN_VERSION" --no-git-tag-version --allow-same-version
+      - name: Package the .vsix
+        run: cd frontend/app/vscode-extension && npx @vscode/vsce package -o mateu-visual-editor.vsix
+      - name: Publish to the VS Code Marketplace
+        run: cd frontend/app/vscode-extension && npx @vscode/vsce publish --packagePath mateu-visual-editor.vsix --pat "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: Publish to Open VSX
+        run: cd frontend/app/vscode-extension && npx ovsx publish mateu-visual-editor.vsix -p "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
