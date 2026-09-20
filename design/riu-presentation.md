@@ -39,7 +39,7 @@ Guion: "El coste de un frontal no es escribir React. Es el contrato, la coordina
 1. **Definir, no construir** — subimos el nivel de abstracción del frontal.
 2. **Sin API que publicar** — la UI es un adaptador del hexágono, no una app aparte.
 3. **Una definición → todos los canales, para siempre** — activo portable y duradero.
-4. **IA bajo control** — la IA solo necesita un DSL pequeño; no pierdes el proyecto.
+4. **IA bajo control** — la IA solo necesita un DSL pequeño; no pierdes el proyecto. Y **opera** las apps por MCP.
 5. **Probado y honesto** — GA de la v3 (no la v1), y sabemos qué cerrar antes de GA.
 
 Guion: "Todo sale de una única propiedad: **la UI es una definición declarativa (dato), no código imperativo.**"
@@ -102,8 +102,9 @@ La IA escribiendo código es ineludible. **Mateu es el plano de control.**
 
 - La IA solo necesita conocer el **DSL de Mateu** — superficie finita, no el ecosistema React infinito.
 - **Prueba viviente:** Mateu se desarrolla hace tiempo **sin una línea escrita a mano** — la escribe la IA bajo dirección arquitectónica.
+- **Y al revés — la IA *opera* las apps:** el wire se autodescribe, así que un **MCP** convierte cada app en herramientas que cualquier agente (Claude, Antigravity, un copiloto interno) descubre y ejecuta, **con permisos aplicados en servidor**. Un "renderer de agente": tools en vez de píxeles.
 
-Guion: "¿Por qué no dejar que la IA escriba React directamente? Porque eso es **perder el control**. Con Mateu la IA construye dentro de un contrato acotado y validable."
+Guion: "¿Por qué no dejar que la IA escriba React directamente? Porque eso es **perder el control**. Con Mateu la IA construye dentro de un contrato acotado y validable — y además **opera** las apps ya hechas por MCP, sin construir una API-para-agentes por cada una."
 
 ---
 
