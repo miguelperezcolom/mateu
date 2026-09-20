@@ -55,6 +55,9 @@ jobs:
   vscode:
     if: startsWith(github.event.release.tag_name, 'plugins-v')
     runs-on: ubuntu-latest
+    env:
+      # Job-level so the Open VSX step can be skipped (via its `if:`) when the token isn't configured.
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v7
       - name: Derive version from the tag
@@ -78,7 +81,7 @@ jobs:
         run: cd frontend/app/vscode-extension && npx @vscode/vsce publish --packagePath mateu-visual-editor.vsix --pat "$VSCE_PAT"
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      # Optional: skipped when OVSX_PAT is not set, so IntelliJ + VS Code Marketplace alone are enough.
       - name: Publish to Open VSX
+        if: ${{ env.OVSX_PAT != '' }}
         run: cd frontend/app/vscode-extension && npx ovsx publish mateu-visual-editor.vsix -p "$OVSX_PAT"
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
