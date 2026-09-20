@@ -43,8 +43,33 @@ expander resolves the ref against the shipped catalogue exactly as it resolves a
 | 0 | **This design doc.** | — |
 | 1 | **Wire + registry (Java)** — `ComponentEntry`/`ComponentCatalog` (uidl.data), `@BusinessComponent` + `ComponentCatalogSupplier`, `ComponentRegistry` (core), `ComponentDto.ref`, `AppDto.components`; resolve `ref` server-side. Java golden via `TestMateu.sync`. Regenerate the schema (new records/fields). | copy RestSourceRegistry |
 | 2 | **Client resolution** — `componentCatalogue.ts` (mirror `restSourceCatalogue.ts`) + resolve `ref` in the renderer AND the Phase-6 expander; ship `components` in `manifest.json` (exporter). vitest + bundle regen. | reuse the sources plumbing |
-| 3 | **Ports** — .NET `[BusinessComponent]`/`IComponentCatalogSupplier`/`ComponentRegistry` + `components` wire; Python `@business_component`/`ComponentCatalogSupplier` + wire. Golden tests each. **Update the brittle .NET substring goldens** for any new wire field. | full parity |
-| 4 | **`@Component(ref=…)` field sugar** + a demo (the agency-selector) + docs. | ties to #12 (visual builder authors these) |
+| 3 | ~~**Ports** — .NET/Python `ComponentRegistry` + `components` wire~~ | **DEFERRED to 🟡 (see below)** |
+| 4 | **`@Component(ref=…)` field sugar** + a demo + docs. | **DONE (#574) — no annotation needed**: a `Component`-typed field holding `new ComponentRef("X")` already renders resolved; docs at `java-ui-definition/component-catalogue.md`. |
+
+### DONE (Java + web + docs) — status 2026-09-20
+
+Increments 1, 2, 4 landed: `ComponentEntry`/`ComponentCatalog`/`@BusinessComponent`/`ComponentCatalogSupplier`
+(#566), `ComponentRegistry` (#568), `ComponentRef` + server resolution (#570), `AppDto.components` +
+`ComponentCatalogMapper` + fixture isolation (#572), `componentCatalogue.ts` + Phase-6 expander
+resolution + `App.ts` wiring (#573), reflected-page usage + user docs (#574). A business component is
+declared once and referenced by name, resolving identically backend-driven or fully client-side.
+Two plan items proved unnecessary and were NOT built: a separate `manifest.components` (the catalogue
+rides the pre-rendered `AppDto.components` through `mateu-app`'s `setComponentCatalogue`), and a
+`@Component(ref)` field annotation (a `ComponentRef` field value already resolves).
+
+### Port-parity FORK (surfaced) — recommend 🟡, matching the sibling catalogues
+
+The .NET/Python ports do **not** carry a REST-source-catalogue REGISTRY either — the port matrix marks
+catalogues **🟡 (Java-primary)**, and `ReflectionMapper`'s own comment says *"there is no rest-source
+catalogue here … matching the 🟡 matrix"*. The component catalogue is a sibling; building full
+`ComponentRegistry` registries (components.yaml reader + supplier discovery + fluent→wire catalogue
+mapping) in both ports would **exceed** the established port bar for catalogues, for no conformance
+gain: an app that declares no business component emits an empty `components`, which the conformance
+normaliser drops — so **Java-first is conformance-clean and the ports stay identical without changes**.
+The WIRE CONTRACT is preserved (neither side emits a `ComponentRef` or a populated `components` unless
+a catalogue exists, which needs the registry a port doesn't have). **Recommended default: leave #13's
+ports at 🟡**, consistent with routes + REST sources; revisit if/when the ports gain catalogue infra
+(the same lift for all three catalogues at once). Reversible — additive when taken up.
 
 **Golden/CI discipline (carried):** wire changes pinned to Java goldens via `TestMateu.sync`; the
 client-side expander must resolve a `ref` so the no-backend path keeps working; regenerate the
