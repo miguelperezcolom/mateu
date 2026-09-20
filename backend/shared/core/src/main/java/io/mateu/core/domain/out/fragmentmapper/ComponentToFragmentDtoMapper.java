@@ -81,6 +81,29 @@ public final class ComponentToFragmentDtoMapper {
       return mapComponentTreeSupplierToDto(
           componentSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
+    // A reference to a named business component (coherence-plan #13): substitute the catalogue
+    // entry's composition and map THAT. The server resolves it here so a backend-driven app never
+    // ships the reference; when no backend is present it reaches the wire and the client-side
+    // expander resolves it against the shipped catalogue. An unknown name is a graceful
+    // placeholder,
+    // never an error.
+    if (component instanceof io.mateu.uidl.data.ComponentRef ref) {
+      var registry =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(
+              io.mateu.core.application.runaction.ComponentRegistry.class);
+      var entry =
+          registry == null
+              ? java.util.Optional.<io.mateu.uidl.data.ComponentEntry>empty()
+              : registry.get(ref.ref());
+      var resolved =
+          entry
+              .map(io.mateu.uidl.data.ComponentEntry::component)
+              .filter(java.util.Objects::nonNull)
+              .orElseGet(
+                  () -> new io.mateu.uidl.data.Text("Unknown business component: " + ref.ref()));
+      return mapComponentToDto(
+          null, resolved, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
     if (component instanceof ServerSideComponent serverSideComponent) {
       return ServerSideComponentDto.builder()
           .id(serverSideComponent.id())
