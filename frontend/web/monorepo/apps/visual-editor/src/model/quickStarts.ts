@@ -18,6 +18,20 @@ export function bindDataSource(doc: PageDoc, modelView: string): PageDoc {
 }
 
 /**
+ * The ModelView FQNs to offer in the bind-data picker: the ones already referenced by the mount's
+ * routes (from {@link ProjectIndex}) plus the page's CURRENT binding (so a hand-typed FQN not yet in
+ * any route stays selectable), sorted + de-duplicated. Pure so the shell can render a `<select>` and
+ * a test can pin the merge/sort. An empty result means "no known models — fall back to free text".
+ */
+export function modelViewOptions(known: string[] | undefined, current: string | undefined): string[] {
+    const set = new Set<string>()
+    for (const vm of known ?? []) { const t = vm?.trim(); if (t) set.add(t) }
+    const cur = current?.trim()
+    if (cur) set.add(cur)
+    return [...set].sort((a, b) => a.localeCompare(b))
+}
+
+/**
  * Lay a data source's fields out as a form: append a `FormField` per contract field into the page's
  * root container (wrapping a non-container root in a VerticalLayout first). Skips fields already bound.
  */
