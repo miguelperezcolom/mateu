@@ -15,6 +15,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChat
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChecklistMapper.mapChecklistToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CommentThreadMapper.mapCommentThreadToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ComparisonCardMapper.mapComparisonCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.CustomComponentMapper.mapCustomComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EntityHeaderMapper.mapEntityHeaderToDto;
@@ -175,6 +176,10 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Separator separator) {
       return mapSeparatorToDto(separator);
+    }
+    if (component instanceof CustomComponent customComponent) {
+      return mapCustomComponentToDto(
+          customComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Notice notice) {
       return mapNoticeToDto(

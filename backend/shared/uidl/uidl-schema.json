@@ -1190,6 +1190,8 @@
       }, {
         "$ref" : "#/$defs/CookieConsent"
       }, {
+        "$ref" : "#/$defs/CustomComponent"
+      }, {
         "$ref" : "#/$defs/CustomField"
       }, {
         "$ref" : "#/$defs/DashboardLayout"
@@ -1594,6 +1596,31 @@
     "CookieConsentPosition" : {
       "type" : "string",
       "enum" : [ "Top", "Bottom", "TopLeft", "TopRight", "BottomLeft", "BottomRight" ]
+    },
+    "CustomComponent" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "CustomComponent"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "props" : {
+          "type" : "object"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        }
+      }
     },
     "CustomField" : {
       "type" : "object",
