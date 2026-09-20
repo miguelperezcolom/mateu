@@ -3,7 +3,7 @@
   "displayName": "Mateu Visual Editor",
   "description": "Visual editor for Mateu YAML pages — palette + WYSIWYG canvas + properties, in one view. Shares the exact web bundle with the IntelliJ (JCEF) host.",
   "version": "0.0.1",
-  "publisher": "mateu",
+  "publisher": "miguelperezcolom",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
