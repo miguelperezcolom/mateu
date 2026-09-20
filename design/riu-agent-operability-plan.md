@@ -59,6 +59,16 @@ Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **E2E EN VIVO CON LLM REAL ✅ (cierra el residuo).** Contra el entorno desplegado
+  `ec-demo1` (`ec1.mateu.io`; su `ia-agent` es Spring AI + Anthropic que consume MCP por petición —
+  `PerRequestMcpClientFactory`). Token del usuario público `demo` (realm `ec-demo1`, client `demo`
+  password-grant) → `POST /ai/api/agent/stream` con un prompt de SOLO LECTURA. Respuesta: uso real de
+  tokens (8007 in/130 out) + comando `navigation-requested → /booking/bookings` (**el LLM condujo la
+  UI**) + resumen de **47 reservas reales leídas por MCP**. Valida el plano end-to-end con LLM real, sin
+  mutar datos. NOTA: el entorno usa el MCP propio de ec-demo1 (`api-mcp`, imágenes previas a este trabajo);
+  lo que este plano aporta es hacer ese mismo mecanismo NATIVO (`/mateu/mcp` de serie + proyección de
+  pantalla en el chat) en cualquier app Mateu. No hay clave local (secrets out-of-band); se usó el
+  entorno desplegado.
 - 2026-09-20 — **P6 SPIKE ✅** (sigue 🟡/beta, no gate — así lo encuadra el ADR). `frontend/prompt-to-app/`:
   prompt → LLM → extraer JSON → **validar contra el schema PUBLICADO** (ajv sobre
   `backend/shared/uidl/*-schema.json`, leídos directamente) → **bucle de reparación** re-enviando los
