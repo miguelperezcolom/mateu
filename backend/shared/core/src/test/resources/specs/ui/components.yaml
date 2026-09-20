@@ -1,0 +1,7 @@
+# The mount's business-component catalogue (coherence-plan #13): reusable BOUND compositions declared
+# once and referenced by name. Each entry is {name, component}; the component is a fluent tree.
+components:
+  - name: AgencySelector
+    component:
+      type: Text
+      text: "agency selector"
