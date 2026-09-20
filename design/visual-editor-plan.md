@@ -232,14 +232,25 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   the client-side expander (`libs/mateu/.../expander/expandDefinition` → a wire `UIIncrement` in the browser,
   no backend; #553–#561) and the zero-build static-site bundle (#556). The editor's **`client` preview mode
   is now real**: `editor-canvas.renderClientSide` parses the layout, calls `expandDefinition` and applies the
-  fragment — **rendering fully offline** for a classless definition (a view-model-bound page still needs a
-  backend for its inferred fields → honest fallback message). Ids survive the expansion (`id` is a wire
-  envelope field), so click-to-select works offline too. **Static export: DONE** — an **"Export bundle"**
-  toolbar button downloads a specs-mode `manifest.json` of the whole mount (`model/exportBundle.ts`:
-  `buildBundleManifest` — raw `definitions` keyed by file name + the `routes`/`sources` sections, skipping
-  the mount/app-shell; matches `MateuBundleExporter`'s shape, consumed by `bundleStore`). Deploy it beside
-  the Mateu renderer on any free static host → the author→export→**deploy €0 loop is closed end to end**.
-  118 vitest + tsc + build. **Phase 7 complete.**
-- **Next actions:** only the human **GUI live-test** of the IDE hosts (incl. the new `client` offline render
-  + Export bundle), and the optional minor backlog (VSCode "Create in ViewModel" LSP, `modelView` picker,
-  embedded `local` boot, `Slotted` deep-edit).
+  fragment offline. Ids survive the expansion (`id` is a wire envelope field), so click-to-select works
+  offline too. **Static export: DONE** — an **"Export bundle"** toolbar button downloads a specs-mode
+  `manifest.json` of the whole mount (`model/exportBundle.ts`: `buildBundleManifest` — raw `definitions`
+  keyed by file name + the `routes`/`sources` sections, skipping the mount/app-shell; matches
+  `MateuBundleExporter`'s shape, consumed by `bundleStore`). Deploy it beside the Mateu renderer on any free
+  static host → the author→export→**deploy €0 loop is closed end to end**. 118 vitest + tsc + build.
+  **Phase 7 complete.**
+- **HEADLESS LIVE-TEST DONE + a real bug found & fixed (2026-09-20).** `e2e/visual-editor-probe.mjs`
+  (Playwright over the built bundle) verified the toolbar surfaces, the preview-source switch to `client`,
+  the offline paint (**0 backend calls**) and the Export-bundle download (valid manifest) — **10/10 green**.
+  It caught that the `client` render did **not** actually paint: the canvas's bare `<mateu-ux>` fired its
+  OWN route-load on first `updated()` (the reactive `route`/`baseurl`/`instant` defaults count as changes)
+  and, with no backend, overwrote our fragment with a "Not found". **Fixed** by setting `preventNavigation`
+  on the canvas's `<mateu-ux>` (the canvas is the sole driver via `applyFragment` in every mode, so it never
+  wants a route of its own). Now layout containers, Text, Buttons, Cards and Listings render offline.
+  **Honest scope correction:** `FormLayout`'s packed `FormField` rows are a **pending expander increment**
+  (coherence Phase 6, `expandComponent.ts` flags it) — a classless FORM shows only its non-field chrome
+  offline until that increment ships; forms render in every backed mode (remote/local/mock). Handed to the
+  coherence thread in `design/coherence-execution.md` (Phase 2 handoff note).
+- **Next actions:** the human **GUI live-test** of the IDE hosts (JCEF/webview bridges — needs a desktop
+  IDE), and the optional minor backlog (VSCode "Create in ViewModel" LSP, `modelView` picker, embedded
+  `local` boot, `Slotted` deep-edit).
