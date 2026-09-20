@@ -109,6 +109,35 @@ at once — no .NET/Python port (those are backends; the whole point is *no* bac
 core (`apps/redwood/poc`) has its own transport; a VB twin of the expander is a later, optional
 increment (VB is ref-native for sources and does not consume them yet).
 
+## Phase 6 closing status (what shipped, what the browser e2e still needs)
+
+**Shipped + merged (the client-side expander).** `expandComponent`/`expandDefinition` +
+`bundleStore.getExpandedIncrement` (specs-mode fallback in `AxiosMateuApiClient`) + the exporter
+shipping raw `definitions` in `manifest.json`. Coverage: **bare layouts, the Card family, layout
+containers, and read-only listings over a REST source** (the `demo-starwars` read+navigate case) —
+i.e. the meaningful declarative surface. Each increment is pinned to a **Java golden** (`about`/`card`/
+`read-listing` definition-only routes via `TestMateu.sync`) with a default-tolerant structural-subset
+test, verified render-parity, not byte-parity. `layoutDelta` and editable-form field-synthesis are
+`viewModel`-bound and out of client scope.
+
+**Verified four ways:** TS unit/integration (`expand*.test.ts`, `bundleExpander.test.ts`), Java
+server goldens (`*DefinitionSyncTest`), the **real `mvn -Pbundle`** manifest carrying the definitions,
+and a real browser BOOTING the served bundle (assets + manifest 200, `mateu-ui` mounts).
+
+**The one thing NOT yet proven in a browser, and exactly why.** An in-browser render of a
+definition-only route THROUGH THE EXPANDER needs two things the current setup does not provide,
+neither about the expander's correctness: (1) a **specs-only export mode** — the exporter today
+pre-renders EVERY route AND ships the raw definitions, so the client prefers the pre-rendered
+increment and `getExpandedIncrement` never fires; only a bundle that ships definitions *without*
+pre-rendering exercises the expander end to end; (2) **working in-app navigation to the route** —
+bundle-mode deep-linking renders the app HOME not the sub-route (#557, reproduces on a pre-rendered
+route too), and `demo-static-bundle`'s Home is a plain form with no menu, so there is no click path.
+So the remaining browser e2e is its own increment: add a `staticOnly`-style "specs-only" export flag
++ a menu leaf to a definition-only route + a CI-wired static-serving Playwright project (or a
+committed local probe, like the repo's other `*-probe.mjs`). Tracked, not faked.
+
+---
+
 **Listing/REST finding — a definition-only Listing renders as a `ServerSide` wrapper; the client
 must emit the `Crud` child directly (a substantial per-type transform; read+navigate is the scope).**
 A `type: Listing`/`Crudl` definition does NOT render as a client tree: the server wraps it in a
