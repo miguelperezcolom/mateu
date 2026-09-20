@@ -123,6 +123,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setLastRetry,
     hasLastRetry,
     takeLastRetry,
+    // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
+    effectiveChatUrl,
+    buildChatBody,
+    buildChatMenuContext,
+    streamChat,
+    uploadChatFiles,
   };
 });
 `

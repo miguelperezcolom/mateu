@@ -20,6 +20,9 @@ import java.util.List;
 // HAMBURGUER_MENU explícito para exhibir el navigator-drawer del renderer VB
 // (AUTO daría MENU_ON_TOP con este menú: opciones visibles en el header)
 @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU)
+// Chat de IA: sseUrl → el shell VB muestra el panel de conversación. El endpoint es el agente
+// mock de demostración (ChatAgentController, same-origin) — apúntalo a un agente real cambiando sse.
+@io.mateu.uidl.annotations.AI(sse = "/agent/stream")
 public class VbHome implements AppActionsSupplier {
 
   enum Hotel {

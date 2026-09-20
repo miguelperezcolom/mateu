@@ -1764,6 +1764,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
         // primera opción del menú
         homeRoute: md.homeRoute || '',
+        // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
+        sseUrl: md.sseUrl || '',
       }
       continue
     }

@@ -1769,6 +1769,8 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
           // primera opción del menú
           homeRoute: md.homeRoute || '',
+          // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
+          sseUrl: md.sseUrl || '',
         }
         continue
       }
@@ -3453,5 +3455,11 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     setLastRetry,
     hasLastRetry,
     takeLastRetry,
+    // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
+    effectiveChatUrl,
+    buildChatBody,
+    buildChatMenuContext,
+    streamChat,
+    uploadChatFiles,
   };
 });

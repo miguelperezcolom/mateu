@@ -102,6 +102,10 @@ define([
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';
+      // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
+      // Con esto puesto, Ask Oracle ofrece el modo Chat.
+      $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
+        ? base + reg.shell.sseUrl : '';
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
       }
