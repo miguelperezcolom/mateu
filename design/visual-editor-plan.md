@@ -228,6 +228,15 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   quick-fix for the **VSCode** host (needs an LSP/code-action; the web diff panel already degrades gracefully
   there) and the `modelView:` picker upgrade (a dropdown from `projectIndex.viewModels`; the Quick Start
   prompt covers it for now).
-- **Next actions:** the human **GUI live-test** of the IDE hosts against demo-starwars (`:8600`); the
-  coherence thread closes the classless-`steps` gap → then the `steps` flow editor; the IntelliJ
-  "Create in ViewModel" quick-fix; remaining Phase-1 hardening; finish Phase 2 (data mocking).
+- **Phase 7 — Zero-cost loop: client render UNBLOCKED + wired (2026-09-20).** Coherence **Phase 6 shipped**
+  the client-side expander (`libs/mateu/.../expander/expandDefinition` → a wire `UIIncrement` in the browser,
+  no backend; #553–#561) and the zero-build static-site bundle (#556). The editor's **`client` preview mode
+  is now real**: `editor-canvas.renderClientSide` parses the layout, calls `expandDefinition` and applies the
+  fragment — **rendering fully offline** for a classless definition (a view-model-bound page still needs a
+  backend for its inferred fields → honest fallback message). Ids survive the expansion (`id` is a wire
+  envelope field), so click-to-select works offline too. 115 vitest + tsc + build. **Remaining in Phase 7:**
+  the author→export→deploy story is now possible end to end (coherence's bundle exporter + this offline
+  render); a one-click "export static bundle" affordance in the editor is the optional follow-up.
+- **Next actions:** the human **GUI live-test** of the IDE hosts (incl. the new `client` offline render);
+  optional: an in-editor "export static bundle" button; the remaining minor backlog (VSCode "Create in
+  ViewModel" LSP, `modelView` picker, embedded `local` boot, `Slotted` deep-edit).
