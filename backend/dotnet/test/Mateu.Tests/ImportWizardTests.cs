@@ -118,7 +118,7 @@ public class ImportWizardTests
 
         Assert.Contains(
             "\"id\":\"targetField\",\"label\":\"Target field\",\"type\":\"GridColumn\"," +
-            "\"dataType\":\"string\",\"stereotype\":null,\"editable\":true,\"editorType\":\"select\"",
+            "\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"select\"",
             json);
         Assert.Contains("{\"value\":\"\",\"label\":\"— skip —\",\"children\":[]}", json);
         Assert.Contains("{\"value\":\"name\",\"label\":\"name\",\"children\":[]}", json);
