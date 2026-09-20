@@ -3,6 +3,7 @@
 // live booking read, the navigation command) — not mock-ups.
 
 import { page, term } from "./theme.mjs";
+import { explainerEs, teaserEs } from "./scenes.es.mjs";
 
 const routesJson =
   `<span class="c">// a live LLM wrote this from "create a routes file with two screens"</span>\n` +
@@ -191,4 +192,15 @@ export const teaser = [
   },
 ];
 
-export const targets = { explainer, teaser };
+export const targets = {
+  explainer,
+  teaser,
+  "explainer-es": explainerEs,
+  "teaser-es": teaserEs,
+};
+
+// Per-target `say` voice (English scenes use the theme default; Spanish scenes use a Spanish voice).
+export const VOICES = {
+  "explainer-es": "Mónica",
+  "teaser-es": "Mónica",
+};

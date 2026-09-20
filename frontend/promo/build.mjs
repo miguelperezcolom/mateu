@@ -10,7 +10,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { targets } from "./scenes.mjs";
+import { targets, VOICES } from "./scenes.mjs";
 import { VOICE } from "./theme.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,14 +29,14 @@ const run = (cmd, args) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "
 const probeDuration = (file) =>
   parseFloat(run("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", file]).toString().trim());
 
-function buildScene(workdir, scene, i) {
+function buildScene(workdir, scene, i, voice) {
   const html = join(workdir, `s${i}.html`);
   const png = join(workdir, `s${i}.png`);
   const aiff = join(workdir, `s${i}.aiff`);
   const mp4 = join(workdir, `s${i}.mp4`);
   writeFileSync(html, scene.html);
   run("node", [screenshot, "--url", "file://" + html, "--output", png, "--wait-for", "body", "--settle", "250", "--width", "1280", "--height", "720"]);
-  run("say", ["-v", VOICE, "-o", aiff, scene.vo]);
+  run("say", ["-v", voice, "-o", aiff, scene.vo]);
   const dur = (probeDuration(aiff) + PAD).toFixed(2);
   run("ffmpeg", [
     "-y", "-loglevel", "error",
@@ -55,17 +55,19 @@ function buildScene(workdir, scene, i) {
 function buildTarget(name) {
   const scenes = targets[name];
   if (!scenes) throw new Error(`Unknown target '${name}'. Known: ${Object.keys(targets).join(", ")}`);
+  const voice = VOICES[name] || VOICE;
   const workdir = join(here, "build", name);
   rmSync(workdir, { recursive: true, force: true });
   mkdirSync(workdir, { recursive: true });
   const outDir = join(here, "out");
   mkdirSync(outDir, { recursive: true });
 
+  console.log(`  [${name}] voice=${voice}`);
   let total = 0;
   const listLines = [];
   scenes.forEach((scene, i) => {
     process.stdout.write(`  [${name}] scene ${i + 1}/${scenes.length} · ${scene.id} … `);
-    const { mp4, dur } = buildScene(workdir, scene, i);
+    const { mp4, dur } = buildScene(workdir, scene, i, voice);
     total += dur;
     listLines.push(`file '${mp4.replace(/'/g, "'\\''")}'`);
     process.stdout.write(`${dur.toFixed(1)}s\n`);
@@ -83,6 +85,6 @@ if (!existsSync(screenshot)) {
   console.error(`Cannot find ${screenshot} (needed for slide rendering).`);
   process.exit(2);
 }
-console.log(`Building promo video(s): ${names.join(", ")}  · voice=${VOICE}\n`);
+console.log(`Building promo video(s): ${names.join(", ")}\n`);
 for (const n of names) buildTarget(n);
 console.log("Done. Videos in frontend/promo/out/.");

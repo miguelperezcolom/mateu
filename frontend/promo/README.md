@@ -1,9 +1,9 @@
 # Mateu promo videos
 
-Two short videos that explain the **agent-operability plane** (the UI is data → agents can *operate*
-and *author* Mateu apps): a **2.5-min explainer** and a **~45s teaser**. Rendered from slides +
-synthesized voice, with the **real** demo output embedded (a live LLM authoring UIDL / operating a
-booking app over MCP — not mock-ups).
+Short videos that explain the **agent-operability plane** (the UI is data → agents can *operate*
+and *author* Mateu apps): a **2.5-min explainer** and a **~45s teaser**, in **English and Spanish**.
+Rendered from slides + synthesized voice, with the **real** demo output embedded (a live LLM authoring
+UIDL / operating a booking app over MCP — not mock-ups).
 
 > **Draft-quality by design.** Slide-based, macOS `say` voice. Great for a dev-rel explainer or as a
 > storyboard for a polished cut — swap in a human voice + motion graphics and keep the copy. The
@@ -25,10 +25,20 @@ Needs macOS `say`, `ffmpeg`/`ffprobe`, and the e2e Playwright+Chromium (already 
 No new dependencies.
 
 ```bash
-node build.mjs                 # both videos → out/explainer.mp4, out/teaser.mp4
+node build.mjs                        # English pair → out/explainer.mp4, out/teaser.mp4
 node build.mjs --target teaser
-PROMO_VOICE="Alex" node build.mjs --target explainer   # pick a different macOS voice
+node build.mjs --target explainer-es  # Spanish (voice "Mónica") → out/explainer-es.mp4
+node build.mjs --target teaser-es
+PROMO_VOICE="Alex" node build.mjs --target explainer   # override the English voice
 ```
+
+Targets: `explainer`, `teaser`, `explainer-es`, `teaser-es`. Spanish scenes live in `scenes.es.mjs`;
+per-target voices in `VOICES` (`scenes.mjs`).
+
+## Publishing to YouTube
+
+See **`youtube.md`** for ready-to-paste titles, descriptions (with chapters) and tags for all four
+videos, plus the upload options (manual in YouTube Studio, or the API path).
 
 ## Honesty guardrail
 
