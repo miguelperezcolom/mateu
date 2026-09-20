@@ -253,3 +253,54 @@ actions:
         expect(serializePage(doc)).not.toContain('triggers')
     })
 })
+
+describe('Slotted deep-edit (single-child slot normalised to an array on the way in)', () => {
+    // A ResponsiveGrid template placing one child into a named slot: the slot's `content` is a SINGLE
+    // object in the authored YAML, not the `content: [...]` array every other container uses.
+    const grid = () => layout(
+        'type: ResponsiveGrid\n' +
+        'content:\n' +
+        '  - type: Slotted\n' +
+        '    slot: main\n' +
+        '    content:\n' +
+        '      type: FormField\n' +
+        '      id: name\n' +
+        '      label: Name\n'
+    )
+
+    it('descends into a slot child: nodeAt reaches it and the Slotted is a container', () => {
+        const doc = grid()
+        const slot = nodeAt(doc, [0])!
+        expect(slot.type).toBe('Slotted')
+        expect(isContainer(slot)).toBe(true)
+        const child = nodeAt(doc, [0, 0])
+        expect(child).toMatchObject({ type: 'FormField', id: 'name', label: 'Name' })
+    })
+
+    it('round-trips: the slot child serialises back to a single object, not an array', () => {
+        const out = parse(serializePage(grid()))
+        const slotted = out.content[0]
+        expect(slotted.type).toBe('Slotted')
+        expect(Array.isArray(slotted.content)).toBe(false)
+        expect(slotted.content).toMatchObject({ type: 'FormField', id: 'name' })
+    })
+
+    it('edits the slot child in place and keeps the single-object shape on save', () => {
+        const doc = grid()
+        nodeAt(doc, [0, 0])!.label = 'Full name'
+        const out = parse(serializePage(doc))
+        expect(out.content[0].content).toMatchObject({ id: 'name', label: 'Full name' })
+    })
+
+    it('an empty slot drops the content key; a defensive multi-child slot wraps in a VerticalLayout', () => {
+        const empty = layout('type: ResponsiveGrid\ncontent:\n  - type: Slotted\n    slot: main\n')
+        expect(isContainer(nodeAt(empty, [0])!)).toBe(true) // still a drop target
+        expect(parse(serializePage(empty)).content[0].content).toBeUndefined()
+
+        const doc = grid()
+        nodeAt(doc, [0])!.content!.push({ type: 'Text', text: 'extra' })
+        const slotted = parse(serializePage(doc)).content[0]
+        expect(slotted.content.type).toBe('VerticalLayout')
+        expect(slotted.content.content).toHaveLength(2)
+    })
+})

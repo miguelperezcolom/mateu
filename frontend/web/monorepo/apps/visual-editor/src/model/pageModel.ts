@@ -169,16 +169,18 @@ export function parsePage(yaml: string): PageDoc {
  * delta cannot say, and let the caller tell them which happened (see {@link saveShape}).
  */
 export function serializePage(doc: PageDoc): string {
+    // A slot child rides as an array in the editor; restore its authored single-object shape on write.
+    const layout = denormalizeSlots(doc.layout)
     if (doc.fragment) {
         // Unwrap the synthetic editing container back to the authored `content:` list, so the partial
         // stays a rootless fragment (inlined at the use site) rather than gaining a VerticalLayout.
-        return stringify({ content: doc.layout.content ?? [] })
+        return stringify({ content: (layout.content ?? []) })
     }
     // A bare page (a single component, no envelope) serializes as just that component — UNLESS it has
     // gained an envelope concern (page-level triggers or other keys like `actions:`), in which case it
     // needs the `layout:` envelope so those survive.
     if (doc.bare && !doc.modelView && !doc.triggers?.length && !doc.rest) {
-        return stringify(doc.layout)
+        return stringify(layout)
     }
     const envelope: Record<string, unknown> = {}
     if (doc.modelView) envelope.modelView = doc.modelView
@@ -189,7 +191,7 @@ export function serializePage(doc: PageDoc): string {
         // it costs the screen nothing.
         envelope.layoutDelta = writeDelta(delta)
     } else {
-        envelope.layout = doc.layout
+        envelope.layout = layout
     }
     // The write half of a classless page: triggers first (editable), then everything else verbatim so
     // `actions:`/`state:`/… survive a round trip.
@@ -278,7 +280,51 @@ function fieldNode(id: string, inferred: InferredField[], delta: LayoutDelta): P
 function normalize(node: any): PageNode {
     if (!node || typeof node !== 'object') return { type: 'Text', text: String(node ?? '') }
     if (!node.type) node.type = 'VerticalLayout'
-    return node as PageNode
+    return normalizeSlots(node) as PageNode
+}
+
+/**
+ * A `Slotted` holds ONE child under `content` as a single object (schema `content: $ref Component`),
+ * not the `content: [...]` array every other container uses. The whole path model — {@link nodeAt},
+ * {@link isContainer}, the mutators, the outline — assumes an array, so a slot child was unreachable:
+ * you could not select it, edit its props, or drop into an empty slot.
+ *
+ * Rather than teach every function a second child shape, we normalise a slot's single child into a
+ * 1-element array on the way IN (here) and back to a single object on the way OUT
+ * ({@link denormalizeSlots}), exactly as this file already wraps/unwraps a rootless partial. In the
+ * editor a `Slotted` is then an ordinary array-container and everything works unchanged.
+ *
+ * Deep + in place (the tree is small); returns the same node for convenient chaining.
+ */
+function normalizeSlots(node: any): any {
+    if (!node || typeof node !== 'object') return node
+    if (node.type === 'Slotted' && node.content != null && !Array.isArray(node.content)) {
+        node.content = [node.content] // single child → 1-element array
+    }
+    if (Array.isArray(node.content)) node.content.forEach(normalizeSlots)
+    return node
+}
+
+/**
+ * The inverse of {@link normalizeSlots} for serialization: a `Slotted`'s array `content` collapses
+ * back to the authored single-object shape — empty → the key is dropped, one child → that child,
+ * and (defensively — a slot holds one child) several → wrapped in a `VerticalLayout` so the value
+ * stays a single Component. Returns a CLONE; the live doc keeps its array form for editing.
+ */
+function denormalizeSlots(node: any): any {
+    if (!node || typeof node !== 'object') return node
+    const out: any = { ...node }
+    if (Array.isArray(out.content)) {
+        const children = out.content.map(denormalizeSlots)
+        if (out.type === 'Slotted') {
+            if (children.length === 0) delete out.content
+            else if (children.length === 1) out.content = children[0]
+            else out.content = { type: 'VerticalLayout', content: children }
+        } else {
+            out.content = children
+        }
+    }
+    return out
 }
 
 /** The node at `path`, or undefined if the path does not resolve. */
@@ -296,9 +342,10 @@ export function scalarProps(node: PageNode): string[] {
     return Object.keys(node).filter((k) => !RESERVED.has(k))
 }
 
-/** Whether a node type is a container that accepts children under `content`. */
+/** Whether a node type is a container that accepts children under `content`. `Slotted` is one even
+ *  while empty (its single child is normalised to an array), so an empty slot stays a drop target. */
 export function isContainer(node: PageNode): boolean {
-    return node.type.endsWith('Layout') || node.type === 'Card' || Array.isArray(node.content)
+    return node.type.endsWith('Layout') || node.type === 'Card' || node.type === 'Slotted' || Array.isArray(node.content)
 }
 
 // --- structural edits (return the mutated doc; the model is small, in-place is fine) ---
