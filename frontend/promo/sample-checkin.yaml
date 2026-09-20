@@ -9,29 +9,38 @@ layout:
         type: FormLayout
         content:
           - type: FormField
+            id: bookingReference
             label: 'Booking Reference'
             dataType: string
           - type: FormField
+            id: guestFullName
             label: 'Guest Full Name'
             dataType: string
           - type: FormField
+            id: identificationNumber
             label: 'Identification / Passport Number'
             dataType: string
           - type: FormField
+            id: checkInDate
             label: 'Check-in Date'
             dataType: date
           - type: FormField
+            id: checkOutDate
             label: 'Check-out Date'
             dataType: date
           - type: FormField
+            id: roomNumber
             label: 'Room Number'
             dataType: integer
           - type: FormField
+            id: numberOfGuests
             label: 'Number of Guests'
             dataType: integer
           - type: FormField
+            id: depositAmount
             label: 'Deposit Amount'
             dataType: number
           - type: FormField
+            id: keyCardIssued
             label: 'Key Card Issued'
             dataType: bool

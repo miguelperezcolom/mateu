@@ -252,12 +252,12 @@
     "mateuBaseUrl": {
       "type": "string",
       "defaultValue": "http://localhost:9005",
-      "description": "Backend Mateu (demo-vb :9005 — el chat de IA se demuestra contra demo-vb; front-office :8594/:8595 — punto único de cambio)"
+      "description": "Backend Mateu (demo-vb :9005 \u2014 el chat de IA se demuestra contra demo-vb; front-office :8594/:8595 \u2014 punto \u00fanico de cambio)"
     },
     "mateuBundleUrl": {
       "type": "string",
       "defaultValue": "",
-      "description": "Static bundle (modo sin backend): URL del manifest.json (build-time mateu:bundle o runtime GET /mateu/v3/bundle). Vacío = desactivado (todo va al backend). Si se pone, las cargas de ruta se responden desde el bundle."
+      "description": "Static bundle (modo sin backend): URL del manifest.json (build-time mateu:bundle o runtime GET /mateu/v3/bundle). Vac\u00edo = desactivado (todo va al backend). Si se pone, las cargas de ruta se responden desde el bundle."
     }
   },
   "variables": {
@@ -268,7 +268,7 @@
         "stack": [],
         "shell": null
       },
-      "description": "El registro del bridge (contexts/stack/shell) — scope de aplicación para sobrevivir a la navegación"
+      "description": "El registro del bridge (contexts/stack/shell) \u2014 scope de aplicaci\u00f3n para sobrevivir a la navegaci\u00f3n"
     },
     "mateuNavItems": {
       "type": "any",
@@ -282,12 +282,12 @@
     "mateuActiveTab": {
       "type": "string",
       "defaultValue": "",
-      "description": "pestaña activa del contenido (átomo isTabs) — estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
+      "description": "pesta\u00f1a activa del contenido (\u00e1tomo isTabs) \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
     },
     "mateuPageHeaderTranslations": {
       "type": "any",
       "defaultValue": {},
-      "description": "traducciones del oj-sp-header-general-overview de PANTALLA — hoy solo el rótulo del goToParent (el botón de vuelta del toolbar; sin esto pone \"Parent page\")"
+      "description": "traducciones del oj-sp-header-general-overview de PANTALLA \u2014 hoy solo el r\u00f3tulo del goToParent (el bot\u00f3n de vuelta del toolbar; sin esto pone \"Parent page\")"
     },
     "mateuHostTitle": {
       "type": "string",
@@ -299,7 +299,7 @@
     },
     "mateuFormMetadata": {
       "type": "any",
-      "description": "FormFields del host proyectados a metadata de oj-dyn-form (null = página sin form)"
+      "description": "FormFields del host proyectados a metadata de oj-dyn-form (null = p\u00e1gina sin form)"
     },
     "mateuFormValue": {
       "type": "any"
@@ -315,12 +315,12 @@
     },
     "mateuListing": {
       "type": "any",
-      "description": "proyección del Crud del host (título, columnas, total, emptyStateMessage; null = no es un listado)"
+      "description": "proyecci\u00f3n del Crud del host (t\u00edtulo, columnas, total, emptyStateMessage; null = no es un listado)"
     },
     "mateuListingRows": {
       "type": "any",
       "defaultValue": [],
-      "description": "las filas (data.crud.page.content) — el ADP de la página las envuelve"
+      "description": "las filas (data.crud.page.content) \u2014 el ADP de la p\u00e1gina las envuelve"
     },
     "mateuDrawerOpen": {
       "type": "boolean",
@@ -329,7 +329,7 @@
     "mateuAppState": {
       "type": "any",
       "defaultValue": {},
-      "description": "contexto de aplicación (@AppContext) — viaja como appState en CADA request"
+      "description": "contexto de aplicaci\u00f3n (@AppContext) \u2014 viaja como appState en CADA request"
     },
     "mateuContextSelectors": {
       "type": "any",
@@ -344,12 +344,12 @@
     "mateuShellSST": {
       "type": "string",
       "defaultValue": "",
-      "description": "serverSideType del App — las acciones de cabecera se despachan app-level con él"
+      "description": "serverSideType del App \u2014 las acciones de cabecera se despachan app-level con \u00e9l"
     },
     "mateuShellLogo": {
       "type": "string",
       "defaultValue": "",
-      "description": "URL absoluta del logo del @App (mateuBaseUrl + AppDto.logo) — marca en el header"
+      "description": "URL absoluta del logo del @App (mateuBaseUrl + AppDto.logo) \u2014 marca en el header"
     },
     "mateuWelcomeTrendItems": {
       "type": "any",
@@ -364,7 +364,7 @@
         },
         "panels": []
       },
-      "description": "CONTENIDO vivo del foldout (bloques por panel + subtítulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez — el motor del foldout come los anclajes del for-each de paneles al re-stampar"
+      "description": "CONTENIDO vivo del foldout (bloques por panel + subt\u00edtulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez \u2014 el motor del foldout come los anclajes del for-each de paneles al re-stampar"
     },
     "mateuDrawer": {
       "type": "any",
@@ -376,12 +376,12 @@
         "state": {},
         "texts": []
       },
-      "description": "proyección del overlay superior (drawer): título + campos + acciones + bloques display (PaymentPicker, AddOnPicker, grids…)"
+      "description": "proyecci\u00f3n del overlay superior (drawer): t\u00edtulo + campos + acciones + bloques display (PaymentPicker, AddOnPicker, grids\u2026)"
     },
     "mateuMenuTree": {
       "type": "any",
       "defaultValue": [],
-      "description": "menú jerárquico para el oj-menu de la hamburguesa (children con rutas TERMINALES)"
+      "description": "men\u00fa jer\u00e1rquico para el oj-menu de la hamburguesa (children con rutas TERMINALES)"
     },
     "mateuMenuTabs": {
       "type": "boolean",
@@ -404,25 +404,25 @@
     },
     "mateuFoldout": {
       "type": "any",
-      "description": "proyección del FoldoutLayout (overview + paneles con textos); null = no es un foldout"
+      "description": "proyecci\u00f3n del FoldoutLayout (overview + paneles con textos); null = no es un foldout"
     },
     "mateuWizard": {
       "type": "any",
-      "description": "proyección del wizard ({steps,currentStep} para el guided-process); null = no es un wizard"
+      "description": "proyecci\u00f3n del wizard ({steps,currentStep} para el guided-process); null = no es un wizard"
     },
     "mateuWizardForwardId": {
       "type": "string",
       "defaultValue": "",
-      "description": "actionId de avance del paso (next/confirm) — lo dispara el Continue del guided-process"
+      "description": "actionId de avance del paso (next/confirm) \u2014 lo dispara el Continue del guided-process"
     },
     "mateuWizardPrimary": {
       "type": "any",
-      "description": "primaryAction del guided-process en el último paso del tren ({label} de confirm); null en el resto"
+      "description": "primaryAction del guided-process en el \u00faltimo paso del tren ({label} de confirm); null en el resto"
     },
     "mateuWizardStarted": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "false = mostrando el OVERVIEW del guided-process (currentStep vacío); el primer Continue arranca"
+      "description": "false = mostrando el OVERVIEW del guided-process (currentStep vac\u00edo); el primer Continue arranca"
     },
     "mateuWizardShownStep": {
       "type": "string",
@@ -432,11 +432,11 @@
     "mateuHomeRoute": {
       "type": "string",
       "defaultValue": "",
-      "description": "primera hoja del menú — destino del Cancel del guided-process"
+      "description": "primera hoja del men\u00fa \u2014 destino del Cancel del guided-process"
     },
     "mateuIsland": {
       "type": "any",
-      "description": "proyección de la isla embebida ({fields, actions}); null = la página no tiene isla"
+      "description": "proyecci\u00f3n de la isla embebida ({fields, actions}); null = la p\u00e1gina no tiene isla"
     },
     "mateuIslandId": {
       "type": "string",
@@ -446,7 +446,7 @@
     "mateuDirty": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "hay edición local sin guardar (borradores) — la navegación pide confirmación (dirtyGuard 1.5)"
+      "description": "hay edici\u00f3n local sin guardar (borradores) \u2014 la navegaci\u00f3n pide confirmaci\u00f3n (dirtyGuard 1.5)"
     },
     "mateuPageMaxWidth": {
       "type": "string",
@@ -467,15 +467,15 @@
     },
     "mateuWelcome": {
       "type": "any",
-      "description": "proyección del arquetipo Welcome (hero + CTAs + tiles)"
+      "description": "proyecci\u00f3n del arquetipo Welcome (hero + CTAs + tiles)"
     },
     "mateuOverview": {
       "type": "any",
-      "description": "proyección del General Overview (switcher + header + cards)"
+      "description": "proyecci\u00f3n del General Overview (switcher + header + cards)"
     },
     "mateuItemOv": {
       "type": "any",
-      "description": "proyección del Item Overview (key info + tabs)"
+      "description": "proyecci\u00f3n del Item Overview (key info + tabs)"
     },
     "mateuOverviewOptions": {
       "type": "any",
@@ -492,7 +492,7 @@
       "defaultValue": {
         "goToParent": ""
       },
-      "description": "el título de página se integra como 'parent page' del header Redwood"
+      "description": "el t\u00edtulo de p\u00e1gina se integra como 'parent page' del header Redwood"
     },
     "mateuListPrimary": {
       "type": "any",
@@ -500,7 +500,7 @@
         "label": "",
         "display": "off"
       },
-      "description": "primaryAction del header de colección (New) — nunca null"
+      "description": "primaryAction del header de colecci\u00f3n (New) \u2014 nunca null"
     },
     "mateuListPrimaryId": {
       "type": "string",
@@ -509,7 +509,7 @@
     "mateuListSecondary": {
       "type": "any",
       "defaultValue": [],
-      "description": "secondaryActions del header de colección (Delete…)"
+      "description": "secondaryActions del header de colecci\u00f3n (Delete\u2026)"
     },
     "mateuPageHeader": {
       "type": "any",
@@ -529,17 +529,17 @@
         "secondary": [],
         "toolbar": []
       },
-      "description": "header genérico: SIEMPRE objeto (asignar null revienta los bindings internos .title antes de que el bind-if colapse) — flags showBand/showInline precomputados"
+      "description": "header gen\u00e9rico: SIEMPRE objeto (asignar null revienta los bindings internos .title antes de que el bind-if colapse) \u2014 flags showBand/showInline precomputados"
     },
     "mateuShellPageLayout": {
       "type": "string",
       "defaultValue": "fixedWidth",
-      "description": "pageLayout de oj-sp-simple-ui-shell derivado del pageWidth del wire (fixed→fixedWidth)"
+      "description": "pageLayout de oj-sp-simple-ui-shell derivado del pageWidth del wire (fixed\u2192fixedWidth)"
     },
     "mateuQueue": {
       "type": "any",
       "defaultValue": null,
-      "description": "TaskQueue del host (cola de trabajo front-office) — grupos de cards con badges"
+      "description": "TaskQueue del host (cola de trabajo front-office) \u2014 grupos de cards con badges"
     },
     "mateuHostEmpty": {
       "type": "any",
@@ -549,7 +549,7 @@
     "mateuNested": {
       "type": "any",
       "defaultValue": null,
-      "description": "isla ANIDADA (App dentro de la isla, p.ej. el documento del check-in): átomos display aplanados"
+      "description": "isla ANIDADA (App dentro de la isla, p.ej. el documento del check-in): \u00e1tomos display aplanados"
     },
     "mateuNestedId": {
       "type": "string",
@@ -558,27 +558,27 @@
     "mateuNestedSeed": {
       "type": "string",
       "defaultValue": "",
-      "description": "JSON del initialData con el que se cargó la anidada — si cambia (p.ej. selectPax), recarga"
+      "description": "JSON del initialData con el que se carg\u00f3 la anidada \u2014 si cambia (p.ej. selectPax), recarga"
     },
     "mateuBand": {
       "type": "any",
       "defaultValue": null,
-      "description": "banda RDS del header (fixed/fullWidth): fondo a sangre detrás del header que asoma tras el arranque del contenido"
+      "description": "banda RDS del header (fixed/fullWidth): fondo a sangre detr\u00e1s del header que asoma tras el arranque del contenido"
     },
     "mateuBandBoxMargin": {
       "type": "string",
       "defaultValue": "0 auto",
-      "description": "margen de la caja interior de la banda (la fórmula horizontal del contenido, sin el solape)"
+      "description": "margen de la caja interior de la banda (la f\u00f3rmula horizontal del contenido, sin el solape)"
     },
     "mateuHostContent": {
       "type": "any[]",
       "defaultValue": [],
-      "description": "bloques display del HOST (páginas de detalle standalone: encasa/checkout)"
+      "description": "bloques display del HOST (p\u00e1ginas de detalle standalone: encasa/checkout)"
     },
     "mateuWizardContent": {
       "type": "any[]",
       "defaultValue": [],
-      "description": "bloques display de los pasos del wizard standalone (sin título/rail/back-next: los pone el guided process)"
+      "description": "bloques display de los pasos del wizard standalone (sin t\u00edtulo/rail/back-next: los pone el guided process)"
     },
     "mateuIslandSeed": {
       "type": "string",
@@ -602,30 +602,36 @@
     "mateuFilterValues": {
       "type": "any",
       "defaultValue": {},
-      "description": "filtros aplicados del listado activo: {fieldId: valor} (un rango ocupa <campo>_from/<campo>_to). Viajan en el componentState de la búsqueda"
+      "description": "filtros aplicados del listado activo: {fieldId: valor} (un rango ocupa <campo>_from/<campo>_to). Viajan en el componentState de la b\u00fasqueda"
     },
     "mateuFilterChips": {
       "type": "any",
       "defaultValue": [],
-      "description": "un chip por filtro declarado, aplicado o no (bridge.filterChipsOf) — la fila bajo el smart search"
+      "description": "un chip por filtro declarado, aplicado o no (bridge.filterChipsOf) \u2014 la fila bajo el smart search"
     },
     "mateuHasAppliedFilters": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "hay al menos un filtro aplicado — PRECOMPUTADO: el evaluador de expresiones de VB corre bajo CSP y no ejecuta un .filter() en la plantilla"
+      "description": "hay al menos un filtro aplicado \u2014 PRECOMPUTADO: el evaluador de expresiones de VB corre bajo CSP y no ejecuta un .filter() en la plantilla"
     },
     "mateuBoolChoices": {
       "type": "any",
       "defaultValue": [
-        { "value": "true", "label": "Yes" },
-        { "value": "false", "label": "No" }
+        {
+          "value": "true",
+          "label": "Yes"
+        },
+        {
+          "value": "false",
+          "label": "No"
+        }
       ],
       "description": "las dos opciones de un filtro booleano (mismo par que la barra compartida)"
     },
     "mateuFilterEditing": {
       "type": "any",
       "defaultValue": null,
-      "description": "el filtro cuyo editor está abierto (descriptor de bridge), null si ninguno"
+      "description": "el filtro cuyo editor est\u00e1 abierto (descriptor de bridge), null si ninguno"
     },
     "mateuFilterDraft": {
       "type": "any",
@@ -635,12 +641,12 @@
     "mateuLastSearchText": {
       "type": "string",
       "defaultValue": "",
-      "description": "último texto buscado en el smart search (para re-buscar al togglear chips)"
+      "description": "\u00faltimo texto buscado en el smart search (para re-buscar al togglear chips)"
     },
     "mateuFiltersPending": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "una vista rápida del Ask Oracle (o un deep-link ?campo=valor) dejó filtros puestos: onMateuNavigate los aplica en vez de resetearlos"
+      "description": "una vista r\u00e1pida del Ask Oracle (o un deep-link ?campo=valor) dej\u00f3 filtros puestos: onMateuNavigate los aplica en vez de resetearlos"
     },
     "mateuWelcomeTheme": {
       "type": "string",
@@ -650,17 +656,17 @@
     "mateuWelcomeImage": {
       "type": "string",
       "defaultValue": "pebbles",
-      "description": "imagen temática del hero de la welcome (rota junto al tono)"
+      "description": "imagen tem\u00e1tica del hero de la welcome (rota junto al tono)"
     },
     "mateuWelcomeIllu": {
       "type": "string",
       "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-fg-01.png",
-      "description": "ilustración del hero de la welcome (la abstract RDS del propio banner)"
+      "description": "ilustraci\u00f3n del hero de la welcome (la abstract RDS del propio banner)"
     },
     "mateuWelcomeIlluBg": {
       "type": "string",
       "defaultValue": "https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/illust-welcome-banner-bg-01.png",
-      "description": "capa de fondo de la ilustración del hero (galería oficial fnd)"
+      "description": "capa de fondo de la ilustraci\u00f3n del hero (galer\u00eda oficial fnd)"
     },
     "mateuBusy": {
       "type": "boolean",
@@ -727,7 +733,7 @@
       "payloadType": {
         "route": "string"
       },
-      "description": "Efecto NavigateTo del bridge: la shell (que posee el menú) carga la ruta"
+      "description": "Efecto NavigateTo del bridge: la shell (que posee el men\u00fa) carga la ruta"
     },
     "spShowToast": {
       "payloadType": {

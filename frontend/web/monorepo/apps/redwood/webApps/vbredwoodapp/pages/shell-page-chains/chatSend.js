@@ -42,6 +42,10 @@ define([
         $application.variables.mateuChatMessages = next;
       };
 
+      // El agente puede emitir un evento `render-screen` con la definición (YAML) que ha autorado.
+      // Se CAPTURA durante el stream y se dispara DESPUÉS, desde el flujo principal de la chain (no
+      // desde el callback async anidado, que no propaga el evento de aplicación de forma fiable).
+      let renderYaml = null;
       try {
         await bridge.streamChat({
           url: $application.variables.mateuChatSseUrl,
@@ -50,12 +54,31 @@ define([
             sessionId: $application.variables.mateuChatSessionId,
           }),
           onText: (accumulated) => setAgent(accumulated),
+          onEvent: (ev) => {
+            if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
+              renderYaml = ev.detail.yaml;
+            }
+          },
         });
       } catch (e) {
         setAgent('⚠️ ' + (e && e.message ? e.message : 'Error'));
       } finally {
         $application.variables.mateuChatBusy = false;
         focusInput();
+      }
+
+      // La pantalla generada la pinta onMateuNavigate (chain de la shell que conduce el contenido):
+      // recarga la ruta actual y, con renderYaml presente, corre renderScreen con el YAML sobre el
+      // host y proyecta el resultado. Es el mismo camino que la navegación del menú, que sí funciona
+      // desde la shell (un evento de aplicación desde aquí NO alcanza los listeners del contenido).
+      if (renderYaml) {
+        await Actions.callChain(context, {
+          chain: 'onMateuNavigate',
+          params: {
+            event: { route: $application.variables.mateuSelectedRoute || '/ai-screen', renderYaml },
+            force: true,
+          },
+        });
       }
     }
   }

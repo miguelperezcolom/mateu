@@ -27,7 +27,8 @@ const INSTR =
   "Author a Mateu page layout in YAML for the request below. Reply with ONLY YAML (no prose, no markdown fences). " +
   "Do NOT call tools or navigate. Format: top-level 'layout:' whose value is {type: VerticalLayout, content: [ ... ]}. " +
   "Allowed: {type: Text, text: '...', size: xl}; {type: Card, content: {type: FormLayout, content: [ ...fields... ]}}; " +
-  "a field is {type: FormField, label: '...', dataType: string|date|integer|number|bool}. Request: ";
+  "a field is {type: FormField, id: '<camelCaseId>', label: '...', dataType: string|date|integer|number|bool}. " +
+  "EVERY FormField MUST have a unique id (camelCase of its label) or it will not render. Request: ";
 
 function stripFences(s) {
   if (!s) return "";

@@ -2,7 +2,6 @@ package io.mateu.mdd.demovb.infra.in.ui;
 
 import io.mateu.core.application.runaction.YamlUidlLoader;
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Help;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
@@ -12,7 +11,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.concurrent.Callable;
 
 /**
  * "Prompt → screen" on the Redwood/VB renderer: type what you want, an LLM authors the Mateu
@@ -29,25 +27,20 @@ public class GenerateScreen {
   @Help("Describe the screen you want, then press Generate")
   public String prompt = "a hotel guest check-in screen";
 
-  private transient Component generated;
-
-  @Colspan(2)
-  public Callable<Component> screen = this::render;
-
-  @Button Runnable generate = this::doGenerate;
-
-  private Component render() {
-    return generated != null
-        ? generated
-        : parse("type: Text\ntext: \"↑ Describe a screen above and press Generate.\"\nsize: l");
-  }
-
-  private void doGenerate() {
+  /**
+   * Returns the generated component AS the page: an LLM authors the Mateu definition and Mateu
+   * renders it in place through the normal pipeline. Returning the tree (rather than holding it in a
+   * Callable island) makes the whole page BECOME the generated form, so it renders through the
+   * standard form path on every renderer — including Redwood/VB, whose bridge only re-projects an
+   * island on a seed change, not on a host re-render.
+   */
+  @Button
+  public Object generate() {
     try {
       Component c = parse(author(prompt));
-      generated = c != null ? c : parse("type: Text\ntext: \"Could not parse the generated definition.\"");
+      return c != null ? c : parse("type: Text\ntext: \"Could not parse the generated definition.\"");
     } catch (Exception e) {
-      generated = parse("type: Text\ntext: \"Generation failed: " + safe(e.getMessage()) + "\"");
+      return parse("type: Text\ntext: \"Generation failed: " + safe(e.getMessage()) + "\"");
     }
   }
 

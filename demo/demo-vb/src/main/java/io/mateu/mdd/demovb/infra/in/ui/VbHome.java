@@ -20,8 +20,10 @@ import java.util.List;
 // HAMBURGUER_MENU explícito para exhibir el navigator-drawer del renderer VB
 // (AUTO daría MENU_ON_TOP con este menú: opciones visibles en el header)
 @io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU)
-// Chat de IA: sseUrl → el shell VB muestra el panel de conversación. El endpoint es el agente
-// mock de demostración (ChatAgentController, same-origin) — apúntalo a un agente real cambiando sse.
+// Chat de IA: sseUrl → el shell VB muestra el panel de conversación. Ruta RELATIVA same-origin (el
+// chat VB antepone el base a la sseUrl) → ChatAgentController, que hace de proxy al agente local del
+// demo (frontend/promo/local-agent.mjs, :8777): autora la definición Mateu y emite `render-screen`,
+// y la pantalla aparece en ChatGenerate.
 @io.mateu.uidl.annotations.AI(sse = "/agent/stream")
 public class VbHome implements AppActionsSupplier {
 
@@ -35,7 +37,10 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu WelcomePage welcome;
 
-  // AI "prompt → screen": an LLM authors a Mateu definition and the Redwood/VB renderer renders it.
+  // AI "chat → screen": open the chat, ask for a screen, it renders here (like the Vaadin demo).
+  @Menu ChatGenerate aiScreen;
+
+  // AI "prompt → screen": a button-driven variant of the same authoring.
   @Menu GenerateScreen generate;
 
   @Menu HelloPage hello;

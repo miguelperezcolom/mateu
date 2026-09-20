@@ -5991,6 +5991,10 @@ define('pages/shell-page-chains/chatSend',[
         $application.variables.mateuChatMessages = next;
       };
 
+      // El agente puede emitir un evento `render-screen` con la definición (YAML) que ha autorado.
+      // Se CAPTURA durante el stream y se dispara DESPUÉS, desde el flujo principal de la chain (no
+      // desde el callback async anidado, que no propaga el evento de aplicación de forma fiable).
+      let renderYaml = null;
       try {
         await bridge.streamChat({
           url: $application.variables.mateuChatSseUrl,
@@ -5999,12 +6003,31 @@ define('pages/shell-page-chains/chatSend',[
             sessionId: $application.variables.mateuChatSessionId,
           }),
           onText: (accumulated) => setAgent(accumulated),
+          onEvent: (ev) => {
+            if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
+              renderYaml = ev.detail.yaml;
+            }
+          },
         });
       } catch (e) {
         setAgent('⚠️ ' + (e && e.message ? e.message : 'Error'));
       } finally {
         $application.variables.mateuChatBusy = false;
         focusInput();
+      }
+
+      // La pantalla generada la pinta onMateuNavigate (chain de la shell que conduce el contenido):
+      // recarga la ruta actual y, con renderYaml presente, corre renderScreen con el YAML sobre el
+      // host y proyecta el resultado. Es el mismo camino que la navegación del menú, que sí funciona
+      // desde la shell (un evento de aplicación desde aquí NO alcanza los listeners del contenido).
+      if (renderYaml) {
+        await Actions.callChain(context, {
+          chain: 'onMateuNavigate',
+          params: {
+            event: { route: $application.variables.mateuSelectedRoute || '/ai-screen', renderYaml },
+            force: true,
+          },
+        });
       }
     }
   }
@@ -6485,6 +6508,17 @@ define('pages/shell-page-chains/onMateuNavigate',[
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
+      }
+
+      // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
+      // cargado — igual que un trigger OnLoad — y la proyección de más abajo la pinta. Es lo que
+      // permite que "abrir el chat → pedir la pantalla → aparece" funcione desde la shell.
+      if (detail.renderYaml) {
+        const rh = reg.contexts[bridge.HOST_ID];
+        const inc = await bridge.runMateuAction(
+          callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
+          { parameters: { yaml: detail.renderYaml }, appState });
+        reg = bridge.reduceContexts(reg, inc);
       }
 
       // islas embebidas: cada frontera ServerSide del host se carga como superficie
