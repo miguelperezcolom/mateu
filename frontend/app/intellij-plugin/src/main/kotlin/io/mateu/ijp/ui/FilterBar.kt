@@ -29,6 +29,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
 
     private val collectors = ArrayList<(MutableMap<String, Any?>) -> Unit>()
     private val clearers = ArrayList<() -> Unit>()
+    private val appliers = ArrayList<(Map<String, Any?>) -> Unit>()
     private val activeCount: () -> Int
 
     val panel: JPanel = JPanel(GridLayout(0, 3, JBUI.scale(JBGap), JBUI.scale(4))).apply {
@@ -96,6 +97,13 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         refreshToggle()
     }
 
+    /** Set the widgets from [values] (a saved view's snapshot): clear everything, then apply. */
+    fun applyValues(values: Map<String, Any?>) {
+        clearers.forEach { it() }
+        for (a in appliers) a(values)
+        refreshToggle()
+    }
+
     private fun refreshToggle() {
         val n = activeCount()
         toggle.text = if (n > 0) "Filters ($n)" else "Filters"
@@ -108,6 +116,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         tf.addActionListener { onApply() }
         collectors.add { st -> tf.text.trim().takeIf { it.isNotEmpty() }?.let { st[fieldId] = it } }
         clearers.add { tf.text = "" }
+        appliers.add { v -> v[fieldId]?.let { tf.text = it.toString() } }
         actives.add { tf.text.isNotBlank() }
         return tf
     }
@@ -121,6 +130,13 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             }
         }
         clearers.add { combo.selectedIndex = 0 }
+        appliers.add { v ->
+            combo.selectedIndex = when (v[fieldId]) {
+                true, "true" -> 1
+                false, "false" -> 2
+                else -> 0
+            }
+        }
         actives.add { combo.selectedIndex > 0 }
         return combo
     }
@@ -134,6 +150,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             if (i > 0) st[fieldId] = values[i]
         }
         clearers.add { combo.selectedIndex = 0 }
+        appliers.add { v -> val i = values.indexOf(v[fieldId]?.toString()); combo.selectedIndex = if (i >= 0) i else 0 }
         actives.add { combo.selectedIndex > 0 }
         return combo
     }
@@ -163,6 +180,14 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         }
         collectors.add { st -> if (selected.isNotEmpty()) st[fieldId] = selected.toList() }
         clearers.add { selected.clear(); refresh() }
+        appliers.add { v ->
+            selected.clear()
+            when (val raw = v[fieldId]) {
+                is List<*> -> raw.forEach { it?.let { x -> selected.add(x.toString()) } }
+                is String -> raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { selected.add(it) }
+            }
+            refresh()
+        }
         actives.add { selected.isNotEmpty() }
         return button
     }
@@ -176,6 +201,10 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             to.text.trim().replace(',', '.').toDoubleOrNull()?.let { st["${fieldId}_to"] = it }
         }
         clearers.add { from.text = ""; to.text = "" }
+        appliers.add { v ->
+            v["${fieldId}_from"]?.let { from.text = it.toString() }
+            v["${fieldId}_to"]?.let { to.text = it.toString() }
+        }
         actives.add { from.text.isNotBlank() || to.text.isNotBlank() }
         return row
     }
@@ -189,6 +218,10 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             to.isoValue.takeIf { it.isNotEmpty() }?.let { st["${fieldId}_to"] = it }
         }
         clearers.add { from.clear(); to.clear() }
+        appliers.add { v ->
+            (v["${fieldId}_from"] as? String)?.let { from.setIso(it) }
+            (v["${fieldId}_to"] as? String)?.let { to.setIso(it) }
+        }
         actives.add { from.isoValue.isNotEmpty() || to.isoValue.isNotEmpty() }
         return row
     }

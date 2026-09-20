@@ -224,7 +224,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | — | — |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
