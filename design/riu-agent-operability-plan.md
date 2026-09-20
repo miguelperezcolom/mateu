@@ -51,7 +51,7 @@ helidon envuelven el mismo core). Los dos hosts son adaptadores delgados: (a) cl
 | **P1** | Proyección + **sidecar MCP** (Node, cero-dep) contra cualquier backend | ✅ HECHO | `frontend/mcp-server/` + `e2e/mcp-probe.mjs` | 14 unit (corpus real + protocolo) + e2e 7/7 vs mvc-app1 vivo |
 | **P2** | Semántica de proyección como **spec versionada** | ✅ HECHO | `doc/.../reference/wire-specification.md` + `reference/agent-operability.md` | Sección normativa "Agent operability" + doc usuario + sidebar |
 | **P3** | **Endpoint MCP nativo** en backend Java (+ RBAC nativo) | ✅ HECHO | `backend/shared/core/.../mcp` + `mvc-core/.../mcp` | 12 tests core + e2e vivo `/mateu/mcp` |
-| **P4** | Paridad ports (.NET, Python) del endpoint nativo | 🔨 PARCIAL | `backend/python` ✅ · `backend/dotnet` ⏳ | Python 12 tests verdes; .NET = follow-up (sidecar ya lo cubre) |
+| **P4** | Paridad ports (.NET, Python) del endpoint nativo | ✅ HECHO | `backend/python` ✅ · `backend/dotnet` ✅ | Python 12 tests; .NET 11 tests (incl. RBAC) + suite completa 398/398 |
 | **P5** | Mejora del **chat in-app** (IA conduce la UI) | ⏳ DIRECCIÓN | `frontend/web/monorepo/libs/mateu` | El MCP ES la entrega verificada de "IA opera la UI"; el chat necesita backend LLM para e2e |
 | **P6** | **Prompt-to-app** (emite UIDL validado por schema) — *dirección* | ⏳ DIRECCIÓN | (spike) | NO gate; 🟡 como en el ADR |
 
@@ -59,6 +59,12 @@ Leyenda: ⏳ TODO · 🔨 EN CURSO · ✅ HECHO · ⛔ BLOQUEADO. **Al cerrar un
 apuntar rama/commit + verificación hecha.
 
 **Bitácora (append-only, lo más reciente arriba):**
+- 2026-09-20 — **P4 .NET ✅** (VERIFICADO: sí había `dotnet` en `~/.dotnet/dotnet`, 9.0.100). Port C#:
+  `src/Mateu.Core/Mcp/` (`McpProjection` sobre `System.Text.Json.Nodes` — ojo `JsonNode` tiene UN padre,
+  `DeepClone()` al copiar; `McpService` reusa `SyncHandler`; `McpJsonRpc`) + endpoint `POST /mateu/mcp`
+  en `MateuExtensions.MapMateu`. Tests `McpTests.cs`: 11 verdes (proyección inline + wire REAL .NET con
+  **RBAC** — `[EyesOnly(Roles=["admin"])]` + sin identidad → oculto; ojo: `[EyesOnly]` SIN dimensiones =
+  siempre visible) + **suite completa 398/398**. Los 3 backends nativos ahora en paridad.
 - 2026-09-20 — **P4 Python ✅ / .NET follow-up**. `backend/python/mateu_core/mcp.py` (proyección pura
   dict→dict + JSON-RPC + 4 tools, gemelo de JS/Java) + endpoint `POST /mateu/mcp` en `mateu_fastapi`
   (reusa SyncHandler → RBAC). 12 tests con `python3 -m unittest tests.test_mcp` (sin pydantic). **.NET
