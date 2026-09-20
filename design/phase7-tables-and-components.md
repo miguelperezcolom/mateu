@@ -83,16 +83,40 @@ parity.
 
 ## Increment plan (one PR each, test-first; wire changes → Java/.NET/Python parity + browser)
 
+### AUDIT (2026-09-20): most of #6 was already built — only `primary` is missing
+
+An implementation audit of the existing column machinery found three of the four #6 patterns already
+shipped, so the plan below is corrected. Dispatch lives in `apps/vaadin/src/grid/renderColumn.ts`
+(`columnRenderer`, ~16-way by `dataType`/`stereotype`) + `apps/vaadin/src/grid/menuColumnRenderer.ts`,
+over the shared `libs/mateu/.../renderers/columnRenderers/*` suite; the card path mirrors it in
+`mateu-table-crud.ts`.
+
+- **`status` chip — DONE.** `dataType: 'status'` → `renderStatusCell` (`statusColumnRenderer.ts`,
+  `getThemeForBadgetType`); backend `@Status(mappings, defaultStatus)` + a `Status` row type →
+  `FieldDataType.status`; table + card. (Residual: the DS-neutral `neutralTableRenderer` doesn't
+  render it; .NET/Python parity unverified.)
+- **`actions` — DONE.** `dataType: 'action'|'actionGroup'|'menu'` and `stereotype:'button'`/`actionId`
+  → `renderActionCell`/`renderMenuCell`/`renderButtonCell`; fluent `ColumnAction`/`ColumnActionGroup`;
+  table + card.
+- **cell-as-component (escape hatch) — DONE.** `dataType: 'component'` → `renderComponentCell`; the
+  row field carries a `Component`/`ClientSideComponent`, rendered with the row in state/data. (No
+  static `cell:` template — the cell IS the row's component object, which is the more general shape.)
+- **`primary` (title + caption + leading) — MISSING.** No annotation, no wire fields, no renderer. A
+  layout-level two-line list exists (`GridLayout.list` / `renderTwoLineList`) but not a COLUMN
+  stereotype. This is the one real #6 gap.
+
+Also missing (minor): **inferred column dataType from the row field's type** (today a status/action
+column needs the annotation/typed field; there's no "auto-detect Status → dataType=status"). Deferred
+— the explicit path works and is clear.
+
 | # | Increment | Notes |
 |---|---|---|
-| 0 | **This design doc.** | — |
-| 1 | **#6 `status` chip column** — pin `stereotype: status` color/label mapping (likely closest to done). | small; renderer + golden |
-| 2 | **#6 `primary` column** — title + caption + leading, reading 2–3 row fields. | new `GridColumn` fields; parity |
-| 3 | **#6 `actions` column** — a set of row actions (buttons/menu). | new `GridColumn` field; parity |
-| 4 | **#6 cell-as-component** — an opt-in `cell:` component template per row (`${row.*}`); reuse the expander. | escape hatch |
-| 5 | **#13 component catalogue** — `components.yaml` + `@BusinessComponent` + `ComponentRegistry` + wire `ref` + client-side resolution. | two-producers-one-table; full parity |
-| 6 | **#14 custom component** — wire `CustomComponent(name, props, slots)` + per-renderer `registerCustomComponent` + `<mateu-unsupported>` fallback; backends emit the type. | frontend-first; cheap backend parity |
-| 7 | **Docs** — the three-way distinction (inferred/rich / business / custom), the decision guide. (Folds into Phase 9.) | — |
+| 0 | **This design doc + audit.** | — |
+| 1 | **#6 `primary` column** — title + caption + leading, reading 2–3 row fields; the ONE real #6 gap. `@PrimaryColumn(caption, leading)` + `GridColumn.captionPath/leadingPath` + `primaryColumnRenderer.ts` + dispatch. | new wire fields; full Java/.NET/Python parity; Java golden |
+| — | ~~status / actions / cell-as-component~~ | **DONE** (see audit); no work |
+| 2 | **#13 component catalogue** — `components.yaml` + `@BusinessComponent` + `ComponentRegistry` + wire `ref` + client-side resolution. | two-producers-one-table; full parity |
+| 3 | **#14 custom component** — wire `CustomComponent(name, props, slots)` + per-renderer `registerCustomComponent` + `<mateu-unsupported>` fallback; backends emit the type. | frontend-first; cheap backend parity |
+| 4 | **Docs** — the three-way distinction (inferred/rich / business / custom), the decision guide. (Folds into Phase 9.) | — |
 
 **Golden discipline (carried from Phase 6):** wire changes are pinned to Java goldens via
 `TestMateu.sync`; the client-side expander (#1) must handle any new data-carried column/component so
