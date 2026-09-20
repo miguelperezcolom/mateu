@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler
+from mateu_core.mcp import handle_jsonrpc
 
 
 def add_mateu(
@@ -43,6 +44,28 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
+
+    # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
+    # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
+    async def mcp(request: Request) -> JSONResponse:
+        message = await request.json()
+        request_base_url = str(request.base_url).rstrip("/") + (f"/{base_url.strip('/')}" if base_url else "")
+
+        def sync_fn(route, action_id, component_state, parameters):
+            rq = RunActionRq(
+                route=route or "",
+                action_id=action_id or "",
+                component_state=component_state or {},
+                parameters=parameters or {},
+            )
+            return handler.handle(rq, request_base_url).model_dump(by_alias=True, mode="json")
+
+        response = handle_jsonrpc(message, sync_fn)
+        if response is None:
+            return JSONResponse(status_code=202, content=None)
+        return JSONResponse(response)
+
+    app.add_api_route(f"{prefix}/mateu/mcp", mcp, methods=["POST"])
 
 
 __all__ = ["add_mateu"]
