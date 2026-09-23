@@ -127,6 +127,10 @@ class CrudHistoryPathSyncTest {
 
   /** What the browser sends for a toolbar action: the url it is on, and no consumed route. */
   private UIIncrementDto runAction(String actionId, String route) {
+    return runAction(actionId, route, "p1");
+  }
+
+  private UIIncrementDto runAction(String actionId, String route, String id) {
     return mateu.run(
         RunActionRqDto.builder()
             .route(route)
@@ -134,7 +138,7 @@ class CrudHistoryPathSyncTest {
             .serverSideType(ProductsCrud.class.getName())
             .actionId(actionId)
             .initiatorComponentId("c1_app")
-            .componentState(Map.of("id", "p1"))
+            .componentState(Map.of("id", id))
             .parameters(Map.of())
             .build());
   }
@@ -187,6 +191,24 @@ class CrudHistoryPathSyncTest {
   void savingFromTheEditFormKeepsTheMenuPrefix() {
     assertThat(pushedPath(runAction("save", "/shop/products/p1/edit")))
         .isEqualTo("/shop/products/p1");
+  }
+
+  /**
+   * An id with slashes in it — a composite key such as {@code MISSING_MAPPING/chain/BOARD/AD} —
+   * spans several segments of the url. The mount has to come off by the whole id, not by the first
+   * segment of it: taking only the first left the id on the mount, and Edit pushed {@code
+   * /shop/products/a/b/c/a/b/c/edit}, which resolves to nothing.
+   */
+  @Test
+  void anIdWithSlashesIsTakenOffTheMountWhole() {
+    PRODUCTS.add(new Product("a/b/c", "Composite"));
+
+    assertThat(pushedPath(runAction("view", "/shop/products", "a/b/c")))
+        .isEqualTo("/shop/products/a/b/c");
+    assertThat(pushedPath(runAction("edit", "/shop/products/a/b/c", "a/b/c")))
+        .isEqualTo("/shop/products/a/b/c/edit");
+    assertThat(pushedPath(runAction("save", "/shop/products/a/b/c/edit", "a/b/c")))
+        .isEqualTo("/shop/products/a/b/c");
   }
 
   /**
