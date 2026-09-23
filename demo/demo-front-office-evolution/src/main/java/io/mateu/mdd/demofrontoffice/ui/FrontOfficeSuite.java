@@ -7,6 +7,7 @@ import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.RouteLink;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
 
 /**
  * The Front-Office Suite app shell: top menu with the four operational screens plus the two
@@ -15,11 +16,16 @@ import io.mateu.uidl.data.RouteLink;
  */
 @UI("")
 @Title("Front-Office Suite")
-@io.mateu.uidl.annotations.HomeRoute("/bienvenida") // la home es la welcome page (Bienvenida)
 @App(themeToggle = true) // variante AUTO: menú plano de RouteLinks → TABS (in-app navigation)
 @io.mateu.uidl.annotations.Logo("/images/riu.svg")
 @io.mateu.uidl.annotations.FavIcon("/images/riu.svg")
-public class FrontOfficeSuite {
+public class FrontOfficeSuite implements HomeRouteSupplier {
+
+  // la home es la welcome page (Bienvenida)
+  @Override
+  public String homeRoute() {
+    return "/bienvenida";
+  }
 
   public enum Modo {
     Staff,
