@@ -294,6 +294,28 @@ class CapabilityListingSyncTest {
     assertThat(String.valueOf(detail)).contains("El Quijote");
   }
 
+  /**
+   * The detail page offers only what the listing declared, as the listing itself does: a Navigable
+   * listing that is neither Editable nor Creatable showed Edit and Add another on its detail, and
+   * both led to a route nothing serves.
+   */
+  @Test
+  void theDetailOfAListingThatIsOnlyNavigableOffersNeitherEditNorNew() {
+    var detail =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/navigable-books/b1")
+                .consumedRoute("/navigable-books")
+                .serverSideType(NavigableBooks.class.getName())
+                .actionId("")
+                .initiatorComponentId("cap_app")
+                .componentState(Map.of())
+                .build());
+    assertThat(String.valueOf(detail))
+        .contains("actionId=cancel-view")
+        .doesNotContain("actionId=edit,", "actionId=new,");
+  }
+
   // ── Searchable + Filterable + Navigable together ──────────────────────────
 
   @Test

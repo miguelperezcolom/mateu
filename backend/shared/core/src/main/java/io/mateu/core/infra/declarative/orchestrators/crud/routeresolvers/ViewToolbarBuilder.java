@@ -59,10 +59,16 @@ final class ViewToolbarBuilder {
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
-    if (!orchestrator.readOnly() && !hiddenByEntity(finalEntity, "new", httpRequest)) {
+    // Only what the crud can do: a listing that is only Navigable has no create form and no editor,
+    // and offering them led to a route nothing serves.
+    if (!orchestrator.readOnly()
+        && orchestrator.canCreate()
+        && !hiddenByEntity(finalEntity, "new", httpRequest)) {
       toolbar.add(new Button(orchestrator.addAnotherLabel(), "new"));
     }
-    if (!viewReadOnly(item, orchestrator) && !hiddenByEntity(finalEntity, "edit", httpRequest)) {
+    if (!viewReadOnly(item, orchestrator)
+        && orchestrator.canEdit()
+        && !hiddenByEntity(finalEntity, "edit", httpRequest)) {
       toolbar.add(new Button(orchestrator.editLabel(), "edit"));
     }
     return toolbar;

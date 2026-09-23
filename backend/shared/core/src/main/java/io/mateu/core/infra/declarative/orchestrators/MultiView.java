@@ -300,9 +300,10 @@ public abstract class MultiView
    *
    * <p>The request route is {@code mount + whatever relative route the browser currently sits on},
    * and the relative part is one of a crud's own shapes — a record, optionally followed by {@code
-   * /edit}, or {@code /new}. Stripping those off the end leaves the mount. The record's segment is
-   * taken from the route being navigated TO rather than from the component state, so it does not
-   * depend on what an entity happens to call its id field.
+   * /edit}, or {@code /new}. Stripping those off the end leaves the mount. The record is taken from
+   * the route being navigated TO rather than from the component state, so it does not depend on
+   * what an entity happens to call its id field — and it is taken WHOLE: an id may carry slashes (a
+   * composite key), and stripping only its first segment left the rest of it on the mount.
    */
   private static String mountPathOf(HttpRequest httpRequest, String route) {
     var requested = httpRequest.runActionRq().route();
@@ -321,20 +322,22 @@ public abstract class MultiView
         break;
       }
     }
-    var record = firstSegmentOf(route);
+    var record = recordOf(route);
     if (record != null && mount.endsWith("/" + record)) {
       mount = mount.substring(0, mount.length() - record.length() - 1);
     }
     return mount;
   }
 
-  private static String firstSegmentOf(String route) {
+  /** The record a crud route points at — {@code /<id>} or {@code /<id>/edit} — slashes and all. */
+  private static String recordOf(String route) {
     if (route == null || !route.startsWith("/") || route.length() < 2) {
       return null;
     }
-    var rest = route.substring(1);
-    var slash = rest.indexOf('/');
-    return slash < 0 ? rest : rest.substring(0, slash);
+    var record = route.substring(1);
+    return record.endsWith("/edit")
+        ? record.substring(0, record.length() - "/edit".length())
+        : record;
   }
 
   public UICommand setWindowTitle(HttpRequest httpRequest) {
