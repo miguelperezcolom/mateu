@@ -7,6 +7,8 @@ import io.mateu.core.application.MateuService;
 import io.mateu.core.application.mcp.McpJsonRpc;
 import io.mateu.core.application.mcp.McpService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -30,6 +32,11 @@ import org.springframework.web.servlet.function.ServerResponse;
  * design/riu-agent-operability-plan.md}).
  */
 @AutoConfiguration
+// Only where there is something to serve: a servlet web app with Mateu's service in it. An app that
+// has mvc-core on its classpath but runs without the web layer — an embedded engine, a batch job, a
+// test context — failed to start on the MateuService this route needs.
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@ConditionalOnBean(MateuService.class)
 public class MateuMcpAutoConfiguration {
 
   @Bean
