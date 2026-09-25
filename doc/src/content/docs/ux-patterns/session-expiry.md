@@ -44,11 +44,25 @@ document.addEventListener('mateu-session-expired', e => {
 ```
 
 - The retry happens **once** per request (no loops when the new token is also rejected).
+- Both web renderers raise it: the Vaadin one from its axios client, the Redwood one from its
+  bridge's single request path.
 - With **no handler registered**, behavior is exactly as before: the request fails — the guard is
   fully opt-in.
 - Because the page never navigates, everything holds: form values, wizard position, scroll,
   selection. Combine with the [dirty guard](/ux-patterns/partial-forms/) and
   [autosave](/ux-patterns/autosave/) for defense in depth.
+
+## Keycloak (the generated bootstrap page): handled for you
+
+An app secured with Keycloak through Mateu's generated bootstrap page needs none of the above —
+the page does it:
+
+- it **claims `mateu-session-expired`**, forces a token refresh (`updateToken(-1)`) and retries the
+  request; if the refresh fails the Keycloak session itself is gone (expired, revoked, the realm
+  was reset), so it sends the browser to the **login** instead of leaving a "session is no longer
+  valid" message whose retry resends the same dead token;
+- it refreshes on **`onTokenExpired`** and again whenever the tab **becomes visible** — browsers
+  throttle timers in background tabs and sleeping laptops, which is how a token expires unnoticed.
 
 ## Container-managed login (basic auth / form login): the invisible 302
 

@@ -298,6 +298,32 @@ function authHeaders(init) {
 }
 
 /**
+ * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
+ * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
+ * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
+ * de Keycloak y llama a retry, o manda al login si la sesión ya no existe. Resuelve true si hay
+ * que reenviar la petición; false si nadie lo reclamó o la página desistió.
+ */
+function askForReauthentication() {
+  return new Promise((resolve) => {
+    if (typeof document === 'undefined' || typeof CustomEvent === 'undefined') {
+      resolve(false)
+      return
+    }
+    let settled = false
+    const settle = (value) => {
+      if (settled) return
+      settled = true
+      resolve(value)
+    }
+    const detail = { retry: () => settle(true), giveUp: () => settle(false) }
+    const claimed = !document.dispatchEvent(
+      new CustomEvent('mateu-session-expired', { detail, cancelable: true, bubbles: false }))
+    if (!claimed) settle(false)
+  })
+}
+
+/**
  * El punto único por el que pasa TODO el tráfico de este renderer.
  *
  * Y por eso es donde se adjunta el token: es el cliente de Mateu de este renderer, igual que
@@ -309,19 +335,32 @@ function authHeaders(init) {
  * resultado de cara a la UI: un estado de carga, un mensaje.
  */
 export async function fetchWithPolicy(url, init, options = {}) {
-  const auth = authHeaders(init)
-  if (auth) init = { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } }
+  // El token se lee en CADA envío, no una vez: tras un 401 el bootstrap deja uno nuevo en
+  // localStorage y el reintento tiene que llevar ese, no el caducado.
+  const withAuth = () => {
+    const auth = authHeaders(init)
+    return auth ? { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } } : init
+  }
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
   notify('onStart', { actionId })
   let attempt = 0
+  let reauthenticated = false
   for (;;) {
     try {
-      const res = await sendOnce(url, init, options.timeoutMillis)
+      const res = await sendOnce(url, withAuth(), options.timeoutMillis)
       connectivity.noteReachable()
       notify('onSettle', { actionId, failure: null })
       return res
     } catch (error) {
+      // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
+      // reautentique y se reenvía UNA vez: el servidor rechazó la petición sin ejecutarla, así
+      // que repetirla es seguro también para una escritura. Sin nadie que reautentique, o si el
+      // reintento vuelve a dar 401, falla como siempre.
+      if (error && error.status === 401 && !reauthenticated) {
+        reauthenticated = true
+        if (await askForReauthentication()) continue
+      }
       const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
       if (failure.kind === 'offline') connectivity.noteUnreachable()
       attempt++

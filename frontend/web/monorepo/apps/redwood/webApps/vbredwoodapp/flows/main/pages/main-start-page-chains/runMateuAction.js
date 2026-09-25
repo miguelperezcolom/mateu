@@ -140,6 +140,18 @@ define([
       if (flipRoute) {
         const flipOutbound = (reg.contexts[bridge.HOST_ID] || {}).outbound || {};
         const mediatorRoute = flipOutbound.route || route || '';
+        // la URL acompaña al contenido: el detalle es direccionable y el botón atrás devuelve al
+        // listado (el popstate de la shell recarga la ruta anterior). Se empuja ANTES de cargar
+        // el detalle, como un enlace: empujada al final, un "atrás" pulsado durante la carga no
+        // encontraba esta entrada y se saltaba la del listado.
+        if (urlPush != null) {
+          const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
+          $application.variables.mateuSelectedRoute = urlRoute;
+          try {
+            window.history.pushState(
+              null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
+          } catch (ignored) { /* sin history en algunos contextos */ }
+        }
         applyInc(await bridge.loadRoute(base, flipRoute, '', {
           consumedRoute: flipOutbound.consumedRoute || mediatorRoute,
           serverSideType: flipOutbound.serverSideType,
@@ -156,16 +168,6 @@ define([
             Object.assign({}, reloaded.state,
               { page: 0, size: (reloadedListing && reloadedListing.pageSize) || 20 }),
             { appState }));
-        }
-        // la URL acompaña al contenido: el detalle es direccionable y el botón atrás
-        // devuelve al listado (el popstate de la shell recarga la ruta anterior)
-        if (urlPush != null) {
-          const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
-          $application.variables.mateuSelectedRoute = urlRoute;
-          try {
-            window.history.pushState(
-              null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
-          } catch (ignored) { /* sin history en algunos contextos */ }
         }
       }
 
