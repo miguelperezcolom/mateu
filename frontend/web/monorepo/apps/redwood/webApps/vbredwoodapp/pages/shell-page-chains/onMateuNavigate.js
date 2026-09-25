@@ -14,6 +14,23 @@ define([
 ) => {
   'use strict';
 
+  /**
+   * La URL refleja la ruta — path (/ruta) servida por el backend Mateu, hash (#/ruta) en serving
+   * estático (el modo lo fija loadMateuShell en el bootstrap). Sólo empuja si cambia.
+   */
+  function pushRouteToUrl($application, route) {
+    if (window.__mateuUrlPathMode) {
+      // la home (incluido el sentinel _no_home_route del server) es '/', no un path
+      const home = $application.variables.mateuHomeRoute || '';
+      const target = (!route || route === home) ? '/' : route;
+      if (window.location.pathname !== target) {
+        window.history.pushState(null, '', target);
+      }
+    } else if (window.location.hash !== '#' + route) {
+      window.history.pushState(null, '', '#' + route);
+    }
+  }
+
   class onMateuNavigate extends ActionChain {
 
     /**
@@ -64,6 +81,15 @@ define([
           return;
         }
         $application.variables.mateuDirty = false;
+      }
+
+      // La URL cambia AL EMPEZAR la navegación, no al terminar de cargar: es lo que hace un
+      // navegador con un enlace. Empujándola al final, un "atrás" pulsado mientras la pantalla
+      // carga no encontraba la entrada del destino y se saltaba la de origen (del detalle de una
+      // reserva volvía a la home, no al listado); y mientras cargaba, la dirección seguía siendo
+      // la de la pantalla anterior. La de abajo, al final, compara antes de empujar: no duplica.
+      if (!fromUrl) {
+        pushRouteToUrl($application, route);
       }
 
       const base = $application.constants.mateuBaseUrl;
@@ -479,16 +505,7 @@ define([
       // 1.5: la URL refleja la ruta — path (/ruta) servida por el backend Mateu, hash
       // (#/ruta) en serving estático (el modo lo fija loadMateuShell en el bootstrap)
       if (!fromUrl) {
-        if (window.__mateuUrlPathMode) {
-          // la home (incluido el sentinel _no_home_route del server) es '/', no un path
-          const home = $application.variables.mateuHomeRoute || '';
-          const target = (!route || route === home) ? '/' : route;
-          if (window.location.pathname !== target) {
-            window.history.pushState(null, '', target);
-          }
-        } else if (window.location.hash !== '#' + route) {
-          window.history.pushState(null, '', '#' + route);
-        }
+        pushRouteToUrl($application, route);
       }
       $application.variables.mateuDirty = false;
 
