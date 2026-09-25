@@ -1148,7 +1148,7 @@ atest('fetchWithPolicy ante un 401 pide reautenticar y reenvía UNA vez con el t
       : { ok: false, status: 401, text: async () => '' }
   }
   try {
-    await fetchWithPolicy('http://x/', {}, { actionId: 'save' })
+    await fetchWithPolicy('https://x/', {}, { actionId: 'save' })
     assert.deepEqual(sent, ['Bearer caducado', 'Bearer nuevo'])
   } finally {
     globalThis.fetch = originalFetch
@@ -1166,13 +1166,13 @@ atest('fetchWithPolicy ante un 401 sin nadie que reautentique falla como siempre
   globalThis.document = new EventTarget()
   globalThis.fetch = async () => { calls++; return { ok: false, status: 401, text: async () => '' } }
   try {
-    await assert.rejects(() => fetchWithPolicy('http://x/', {}, { actionId: 'search' }),
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
       (e) => e.failure && e.failure.kind === 'unauthorized')
     assert.equal(calls, 1)
     // Con alguien que reautentica pero el 401 persiste: un reintento, no más.
     calls = 0
     globalThis.document.addEventListener('mateu-session-expired', (e) => { e.preventDefault(); e.detail.retry() })
-    await assert.rejects(() => fetchWithPolicy('http://x/', {}, { actionId: 'search' }),
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
       (e) => e.failure && e.failure.kind === 'unauthorized')
     assert.equal(calls, 2)
   } finally {
