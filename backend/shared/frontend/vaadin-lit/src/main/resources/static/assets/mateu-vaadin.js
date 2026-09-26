@@ -7951,7 +7951,11 @@ ${i}
             @click="${()=>n.actionId&&Ml(e,t,n.actionId)}" title="${n.label}">${n.icon?F(n.icon):y}${n.label}</button>`)}`},Pl=(e,t)=>E`
     <button class="mateu-nav-item ${e.selected?`mateu-nav-item--active`:``}"
             ?disabled="${e.disabled}"
-            @click="${()=>t(e)}">${e.text}</button>`,Fl=(e,t,n=``)=>E`
+            @click="${()=>t(e)}">${e.text}</button>`,Fl=e=>E`
+    <div class="m-hl" style="align-items: ${e.title?`baseline`:`center`};">
+        ${e.logo?E`<img src="${e.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:y}
+        ${e.title?E`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${e.title}</h2>`:y}
+    </div>`,Il=`flex: 1; min-width: 0; align-items: baseline;`,Ll=(e,t,n=``)=>E`
     <nav class="mateu-nav ${n}">
         ${e.map(e=>(e.children?.length??0)>0?E`<details class="mateu-nav-group">
                        <summary class="mateu-nav-item">${e.text} ▾</summary>
@@ -7959,25 +7963,25 @@ ${i}
                            ${e.children.map(e=>Pl(e,t))}
                        </div>
                    </details>`:Pl(e,t))}
-    </nav>`,Il=(e,t)=>n=>t.call(e,{detail:{value:n}}),Ll=(e,t)=>e.themeToggle?E`
+    </nav>`,Rl=(e,t)=>n=>t.call(e,{detail:{value:n}}),zl=(e,t)=>e.themeToggle?E`
         <button class="app-chrome-icon-btn" @click="${t.toggleTheme}"
             title="${t.isDark?`Switch to light mode`:`Switch to dark mode`}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             ${F(t.isDark?`vaadin:sun-o`:`vaadin:moon`,`color: var(--lumo-body-text-color);`)}
         </button>
-    `:y,Rl=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},zl=(e,t,n)=>{let r=Bl(e,t,n),i=Z(t,n);return r==`list`||r==i?`new`:r},Bl=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=Z(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},Z=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,Vl=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,Hl=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Ul=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Wl=(e,t)=>`ux_`+((Z(e,t)||`root`)+`|`+(Hl(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),Gl=(e,t,n,r,i,a,o)=>{t.variant!==Nt.MENU_ON_TOP&&t.menu?.some(e=>e.remote)&&(t={...t,variant:Nt.MENU_ON_TOP});let s=Wl(e,t);if(t.chromeless)return E`
+    `:y,Bl=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},Vl=(e,t,n)=>{let r=Hl(e,t,n),i=Z(t,n);return r==`list`||r==i?`new`:r},Hl=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=Z(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},Z=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,Ul=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,Wl=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Gl=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Kl=(e,t)=>`ux_`+((Z(e,t)||`root`)+`|`+(Wl(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),ql=(e,t,n,r,i,a,o)=>{t.variant!==Nt.MENU_ON_TOP&&t.menu?.some(e=>e.remote)&&(t={...t,variant:Nt.MENU_ON_TOP});let s=Kl(e,t);if(t.chromeless)return E`
             <div class="app chromeless">
                 <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}" style="height: 100%;">
                     <div class="m-md">
                         <div class="m-scroll" style="height: 100%;">
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${Bl(r,e,t)}"
+                                        route="${Hl(r,e,t)}"
                                         id="${s}"
-                                        baseUrl="${Vl(e,t)}"
+                                        baseUrl="${Ul(e,t)}"
                                         consumedRoute="${Z(e,t)}"
-                                        serverSideType="${Hl(e,t)}"
-                                        uriPrefix="${Ul(e,t)}"
+                                        serverSideType="${Wl(e,t)}"
+                                        uriPrefix="${Gl(e,t)}"
                                         style="width: 100%;"
                                         .appState="${a}"
                                         .appData="${o}"
@@ -7991,7 +7995,7 @@ ${i}
                 </div>
                 <slot></slot>
             </div>
-        `;let c=e.mapItems(t.menu,e.filter?.toLowerCase()??``),l=Z(e,t),u=zl(r,e,t),d=u&&u!==`new`&&u.startsWith(l+`/`)?u.substring(l.length+1).split(`/`)[0]:void 0;return E`
+        `;let c=e.mapItems(t.menu,e.filter?.toLowerCase()??``),l=Z(e,t),u=Vl(r,e,t),d=u&&u!==`new`&&u.startsWith(l+`/`)?u.substring(l.length+1).split(`/`)[0]:void 0;return E`
                     ${t.variant==Nt.MEDIATOR?E`
 
                         ${t.layout==`SPLIT`?E`
@@ -8001,10 +8005,10 @@ ${i}
                                     <mateu-ux
                                             route="${Z(e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${{...a,_splitDetailId:d}}"
                                             .appData="${o}"
@@ -8016,12 +8020,12 @@ ${i}
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
-                                            route="${zl(r,e,t)}"
+                                            route="${Vl(r,e,t)}"
                                             id="${s}_detail"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8035,12 +8039,12 @@ ${i}
                         `:E`
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${Bl(r,e,t)}"
+                                        route="${Hl(r,e,t)}"
                                         id="${s}"
-                                        baseUrl="${Vl(e,t)}"
+                                        baseUrl="${Ul(e,t)}"
                                         consumedRoute="${Z(e,t)}"
-                                        serverSideType="${Hl(e,t)}"
-                                        uriPrefix="${Ul(e,t)}"
+                                        serverSideType="${Wl(e,t)}"
+                                        uriPrefix="${Gl(e,t)}"
                                         style="width: 100%;"
                                         .appState="${a}"
                                         .appData="${o}"
@@ -8062,7 +8066,7 @@ ${i}
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${t.title}</h2><p style="margin: 0;">${t.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${Nl(t,e)}${Ll(t,e)}
+                            ${Nl(t,e)}${zl(t,e)}
                         </div>
                     </header>
                     <div class="app-body">
@@ -8070,7 +8074,7 @@ ${i}
                             ${t.menu&&t.totalMenuOptions>10?E`
                                 <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
                                     <input class="drawer-search" placeholder="Search…" style="width: calc(100% - 20px); margin: 0 10px;"
-                                           @input="${t=>Rl({detail:{value:t.target.value}},e)}">
+                                           @input="${t=>Bl({detail:{value:t.target.value}},e)}">
                                 </div>
                                 `:y}
                             <nav class="side-nav">
@@ -8082,12 +8086,12 @@ ${i}
                                 <div class="m-scroll" style="height: 100%;">
                                     <mateu-api-caller>
                                         <mateu-ux
-                                                route="${Bl(r,e,t)}"
+                                                route="${Hl(r,e,t)}"
                                                 id="${s}"
-                                                baseUrl="${Vl(e,t)}"
+                                                baseUrl="${Ul(e,t)}"
                                                 consumedRoute="${Z(e,t)}"
-                                                serverSideType="${Hl(e,t)}"
-                                                uriPrefix="${Ul(e,t)}"
+                                                serverSideType="${Wl(e,t)}"
+                                                uriPrefix="${Gl(e,t)}"
                                                 style="width: 100%;"
                                                 .appState="${a}"
                                                 .appData="${o}"
@@ -8108,31 +8112,29 @@ ${i}
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${e.updateRoute}">
+                    <div class="m-hl" style="${Il}" theme="spacing">
                         <a href="javascript: void(0);" @click="${()=>e.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${t.logo?E`<img src="${t.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:y}
-                            ${t.title?E`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:y}
-                        </div>
+                        ${Fl(t)}
                         </a>
-                        ${(()=>{let t=Il(e,e.itemSelected);return N.get()?.renderTopNav?.(c,t,`menu-on-top`)??Fl(c,t,`menu-on-top`)})()}
+                        ${(()=>{let t=Rl(e,e.itemSelected);return N.get()?.renderTopNav?.(c,t,`menu-on-top`)??Ll(c,t,`menu-on-top`)})()}
                         <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${Nl(t,e)}${Ll(t,e)}
+                            ${Nl(t,e)}${zl(t,e)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${Bl(r,e,t)}"
+                                            route="${Hl(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8152,19 +8154,17 @@ ${i}
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${e.updateRoute}">
+                    <div class="m-hl" style="${Il}" theme="spacing">
                         <a href="javascript: void(0);" @click="${()=>{e.goHome(),e.tilesMenuOption=null}}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${t.logo?E`<img src="${t.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:y}
-                            ${t.title?E`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:y}
-                        </div>
+                        ${Fl(t)}
                         </a>
-                        ${Fl(e.mapItemsForTiles(t.menu),Il(e,e.itemSelectedTiles),`menu-on-top`)}
+                        ${Ll(e.mapItemsForTiles(t.menu),Rl(e,e.itemSelectedTiles),`menu-on-top`)}
                         <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${Nl(t,e)}${Ll(t,e)}
+                            ${Nl(t,e)}${zl(t,e)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${e.tilesMenuOption?e.renderTilesHub(e.tilesMenuOption):E`
@@ -8172,12 +8172,12 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${Bl(r,e,t)}"
+                                            route="${Hl(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8202,12 +8202,12 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${Bl(r,e,t)}"
+                                            route="${Hl(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8229,7 +8229,7 @@ ${i}
                         <div class="m-vl"
                                 @navigation-requested="${e.updateRoute}">
                             ${t.menu.map(t=>e.renderOptionOnLeftMenu(t))}
-                            ${Nl(t,e)}${Ll(t,e)}
+                            ${Nl(t,e)}${zl(t,e)}
                         </div>
                     </div>
                     <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}">
@@ -8237,12 +8237,12 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${Bl(r,e,t)}"
+                                            route="${Hl(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%; padding: 1em;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8269,14 +8269,11 @@ ${i}
                 <div>
                     <div>
                         <div class="m-hl" 
-                                style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
+                                style="width: 100%; ${Il} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${e.updateRoute}">
                             <a href="javascript: void(0);" @click="${()=>e.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                            <div class="m-hl" style="align-items: center;">
-                                ${t.logo?E`<img src="${t.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:y}
-                                ${t.title?E`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2>`:y}
-                            </div>
+                            ${Fl(t)}
                             </a>
                             <nav class="mateu-tabs ${e.component?.cssClasses??``}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${t.menu.map((n,r)=>E`
@@ -8286,7 +8283,7 @@ ${i}
                             </nav>
                             <div class="m-hl" style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
-                                ${Nl(t,e)}${Ll(t,e)}
+                                ${Nl(t,e)}${zl(t,e)}
                             </div>
                         </div>
                     </div>
@@ -8295,12 +8292,12 @@ ${i}
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${Bl(r,e,t)}"
+                                            route="${Hl(r,e,t)}"
                                             id="${s}"
-                                            baseUrl="${Vl(e,t)}"
+                                            baseUrl="${Ul(e,t)}"
                                             consumedRoute="${Z(e,t)}"
-                                            serverSideType="${Hl(e,t)}"
-                                            uriPrefix="${Ul(e,t)}"
+                                            serverSideType="${Wl(e,t)}"
+                                            uriPrefix="${Gl(e,t)}"
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${o}"
@@ -8330,7 +8327,7 @@ ${i}
             `:y}
             ${e.renderCommandPalette()}
             <slot></slot>
-       `},Kl=class{renderFilterBar(e,t,n,r,i,a,o,s){let c=t?.metadata;return E`
+       `},Jl=class{renderFilterBar(e,t,n,r,i,a,o,s){let c=t?.metadata;return E`
             <mateu-filter-bar
                 .metadata="${c}"
                 @search-requested="${e.search}"
@@ -8353,14 +8350,14 @@ ${i}
                 data-testid="pagination"
                 .pageNumber="${e.data[t?.id]?.page?.pageNumber??0}"
         ></mateu-pagination>
-        `}renderTableComponent(e,t,n,r,i,a,o){return Pr(t,(e.data?.[e.id])?.page?.content??[],r[t?.id]?.emptyStateMessage)}rendererName(){return this.constructor?.name??`unknown`}supportedClientSideTypes(){}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type??t?.type,l=Object.values(j).includes(c)?c:void 0;return wo(this.supportedClientSideTypes(),l)?Oo(t,l,this.rendererName()):Jo(e,t,n,r,i,a,o,s)}renderAppComponent(e,t,n,r,i,a,o){return Gl(e,t?.metadata,n,r,i,a,o)}},ql=(e,t,n,r,i,a,o)=>E`
+        `}renderTableComponent(e,t,n,r,i,a,o){return Pr(t,(e.data?.[e.id])?.page?.content??[],r[t?.id]?.emptyStateMessage)}rendererName(){return this.constructor?.name??`unknown`}supportedClientSideTypes(){}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type??t?.type,l=Object.values(j).includes(c)?c:void 0;return wo(this.supportedClientSideTypes(),l)?Oo(t,l,this.rendererName()):Jo(e,t,n,r,i,a,o,s)}renderAppComponent(e,t,n,r,i,a,o){return ql(e,t?.metadata,n,r,i,a,o)}},Yl=(e,t,n,r,i,a,o)=>E`
         <vaadin-virtual-list
                 .items="${t.metadata.page.content}"
                 ${ee(t=>E`${P(e,t,n,r,i,a,o)}`,[])}
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??y}"
         ></vaadin-virtual-list>
-    `,Jl=e=>{let t=e.metadata;return E`
+    `,Xl=e=>{let t=e.metadata;return E`
         <vaadin-notification
                 .opened="${!0}"
                 slot="${e.slot??y}"
@@ -8373,7 +8370,7 @@ ${i}
                     </vaadin-horizontal-layout>
                 `,[])}
         ></vaadin-notification>
-    `},Yl=(e,t={})=>{let n=e.metadata,r=n.valueKey?t[n.valueKey]:n.value;return E`
+    `},Zl=(e,t={})=>{let n=e.metadata,r=n.valueKey?t[n.valueKey]:n.value;return E`
         <div style="${e.style}">
         <vaadin-progress-bar
                 ?indeterminate="${n.indeterminate}"
@@ -8388,7 +8385,7 @@ ${i}
     ${n.text}
   </span>`:y}
         </div>
-    `},Xl=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
+    `},Ql=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
         <vaadin-details
                 ?opened="${s.opened}"
                 style="${t.style}"
@@ -8400,17 +8397,17 @@ ${i}
             </vaadin-details-summary>
             ${P(e,s.content,n,r,i,a,o)}
         </vaadin-details>
-            `},Zl=(e,t,n)=>{let r=e.metadata;return E`<vaadin-avatar
+            `},$l=(e,t,n)=>{let r=e.metadata;return E`<vaadin-avatar
             img="${r.image}"
             name="${Zt(r.name,t,n)}"
             abbr="${r.abbreviation}"
             style="${e.style}" class="${e.cssClasses}"
             slot="${e.slot??y}"
-    ></vaadin-avatar>`},Ql=e=>{let t=e.metadata;return E`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
+    ></vaadin-avatar>`},eu=e=>{let t=e.metadata;return E`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
                                      .items="${t.avatars}"
                                      style="${e.style}" class="${e.cssClasses}"
                                      slot="${e.slot??y}">
-    </vaadin-avatar-group>`},$l=(e,t,n,r,i,a,o)=>{let s=t.metadata;if(!s)return E``;let c=``;return s.variants?.map(e=>e==`stretchMedia`?`stretch-media`:e==`coverMedia`?`cover-media`:e).forEach(e=>c+=` `+e),c=c.trim(),E`
+    </vaadin-avatar-group>`},tu=(e,t,n,r,i,a,o)=>{let s=t.metadata;if(!s)return E``;let c=``;return s.variants?.map(e=>e==`stretchMedia`?`stretch-media`:e==`coverMedia`?`cover-media`:e).forEach(e=>c+=` `+e),c=c.trim(),E`
         <vaadin-card
                 style="${t.style}"
                 class="${t.cssClasses}"
@@ -8426,7 +8423,7 @@ ${i}
             ${s.footer?tn(e,s.footer,n,r,i,a,o,`footer`,!1):y}
             ${s.content?P(e,s.content,n,r,i,a,o,!1):y}
         </vaadin-card>
-    `},eu=e=>e>0&&e<640?`accordion`:`tabs`,tu=class extends x{constructor(...e){super(...e),this.tabLabels=[],this.mode=`tabs`,this.selected=0,this.selectedChangedListener=e=>{let t=e.detail?.value;typeof t==`number`&&t>=0&&(this.selected=t)}}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{for(let t of e)this.mode=eu(t.contentRect.width)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect(),this.resizeObserver=void 0,this.detachTabsListener()}detachTabsListener(){this.slottedTabs?.removeEventListener(`selected-changed`,this.selectedChangedListener),this.slottedTabs=void 0}tabsSlotChanged(e){this.detachTabsListener();let t=e.target.assignedElements().find(e=>`selected`in e);t&&(this.slottedTabs=t,t.addEventListener(`selected-changed`,this.selectedChangedListener),t.selected=this.selected)}select(e){this.selected=e,this.slottedTabs&&(this.slottedTabs.selected=e)}updated(){this.slottedTabs&&this.slottedTabs.selected!=this.selected&&(this.slottedTabs.selected=this.selected)}static{this.styles=g`
+    `},nu=e=>e>0&&e<640?`accordion`:`tabs`,ru=class extends x{constructor(...e){super(...e),this.tabLabels=[],this.mode=`tabs`,this.selected=0,this.selectedChangedListener=e=>{let t=e.detail?.value;typeof t==`number`&&t>=0&&(this.selected=t)}}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{for(let t of e)this.mode=nu(t.contentRect.width)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect(),this.resizeObserver=void 0,this.detachTabsListener()}detachTabsListener(){this.slottedTabs?.removeEventListener(`selected-changed`,this.selectedChangedListener),this.slottedTabs=void 0}tabsSlotChanged(e){this.detachTabsListener();let t=e.target.assignedElements().find(e=>`selected`in e);t&&(this.slottedTabs=t,t.addEventListener(`selected-changed`,this.selectedChangedListener),t.selected=this.selected)}select(e){this.selected=e,this.slottedTabs&&(this.slottedTabs.selected=e)}updated(){this.slottedTabs&&this.slottedTabs.selected!=this.selected&&(this.slottedTabs.selected=this.selected)}static{this.styles=g`
         :host {
             display: block;
         }
@@ -8510,7 +8507,7 @@ ${i}
                     `)}
                 </div>
             `}
-        `}};k([b({type:Array})],tu.prototype,`tabLabels`,void 0),k([w()],tu.prototype,`mode`,void 0),k([w()],tu.prototype,`selected`,void 0),tu=k([_(`mateu-adaptive-tabs`)],tu);var nu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;c??=``,s.columnSpacing&&(c+=`--vaadin-form-layout-column-spacing: `+s.columnSpacing+`;`);let l=s.itemRowSpacing&&s.itemRowSpacing!==`0`?s.itemRowSpacing:`var(--lumo-space-m)`;return c+=`--vaadin-form-layout-row-spacing: `+l+`;`,s.itemLabelSpacing&&(c+=`--vaadin-form-layout-label-spacing: `+s.itemLabelSpacing+`;`),s.labelsAside&&(c+=`--vaadin-form-item-label-width: 10rem;`),s.fullWidth&&(c+=`width: 100%;`),E`
+        `}};k([b({type:Array})],ru.prototype,`tabLabels`,void 0),k([w()],ru.prototype,`mode`,void 0),k([w()],ru.prototype,`selected`,void 0),ru=k([_(`mateu-adaptive-tabs`)],ru);var iu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;c??=``,s.columnSpacing&&(c+=`--vaadin-form-layout-column-spacing: `+s.columnSpacing+`;`);let l=s.itemRowSpacing&&s.itemRowSpacing!==`0`?s.itemRowSpacing:`var(--lumo-space-m)`;return c+=`--vaadin-form-layout-row-spacing: `+l+`;`,s.itemLabelSpacing&&(c+=`--vaadin-form-layout-label-spacing: `+s.itemLabelSpacing+`;`),s.labelsAside&&(c+=`--vaadin-form-item-label-width: 10rem;`),s.fullWidth&&(c+=`width: 100%;`),E`
                <vaadin-form-layout 
                        .responsiveSteps="${s.responsiveSteps||y}"  
                        style="${c||y}" 
@@ -8523,18 +8520,18 @@ ${i}
                        labels-aside="${s.labelsAside||y}"
                        slot="${t.slot||y}"
                >
-                   ${t.children?.map(t=>ru(s,e,t,n,r,i,a,o))}
+                   ${t.children?.map(t=>au(s,e,t,n,r,i,a,o))}
                </vaadin-form-layout>
-            `},ru=(e,t,n,r,i,a,o,s)=>n.type==A.ClientSide&&n.metadata?.type==j.FormRow?au(e,t,n,r,i,a,o,s):e.labelsAside?iu(t,n,r,i,a,o,s):P(t,n,r,i,a,o,s),iu=(e,t,n,r,i,a,o)=>{if(t.type==A.ClientSide&&t.metadata?.type==j.FormField&&t.metadata.label){let s=t.metadata,c=s.label?.includes("${")?e._evalTemplate(s.label):s.label;return E`
+            `},au=(e,t,n,r,i,a,o,s)=>n.type==A.ClientSide&&n.metadata?.type==j.FormRow?su(e,t,n,r,i,a,o,s):e.labelsAside?ou(t,n,r,i,a,o,s):P(t,n,r,i,a,o,s),ou=(e,t,n,r,i,a,o)=>{if(t.type==A.ClientSide&&t.metadata?.type==j.FormField&&t.metadata.label){let s=t.metadata,c=s.label?.includes("${")?e._evalTemplate(s.label):s.label;return E`
                        <vaadin-form-item data-colspan="${s.colspan}">
                            <label slot="label">${c}</label>
                            ${P(e,t,n,r,i,a,o,!0)}
                        </vaadin-form-item>
-                   `}return P(e,t,n,r,i,a,o)},au=(e,t,n,r,i,a,o,s)=>E`
+                   `}return P(e,t,n,r,i,a,o)},su=(e,t,n,r,i,a,o,s)=>E`
         <vaadin-form-row>
-            ${n.children?.map(n=>ru(e,t,n,r,i,a,o,s))}
+            ${n.children?.map(n=>au(e,t,n,r,i,a,o,s))}
         </vaadin-form-row>
-            `,ou=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=(s.padding?` padding`:``)+(s.spacing?` spacing`:``)+(s.spacingVariant?` spacing-`+s.spacingVariant:``)+(s.wrap?` wrap`:``),l=t.style;return s.fullWidth&&(l=l?`width: 100%;`+l:`width: 100%;`),s.justification&&(l=l?`justify-content: `+s.justification+`;`+l:`justify-content: `+s.justification+`;`),s.verticalAlignment&&(l=l?`align-items: `+s.verticalAlignment+`;`+l:`align-items: `+s.verticalAlignment+`;`),E`
+            `,cu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=(s.padding?` padding`:``)+(s.spacing?` spacing`:``)+(s.spacingVariant?` spacing-`+s.spacingVariant:``)+(s.wrap?` wrap`:``),l=t.style;return s.fullWidth&&(l=l?`width: 100%;`+l:`width: 100%;`),s.justification&&(l=l?`justify-content: `+s.justification+`;`+l:`justify-content: `+s.justification+`;`),s.verticalAlignment&&(l=l?`align-items: `+s.verticalAlignment+`;`+l:`align-items: `+s.verticalAlignment+`;`),E`
                <vaadin-horizontal-layout 
                        style="${l}" 
                        class="${t.cssClasses}"
@@ -8543,7 +8540,7 @@ ${i}
                >
                    ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
                </vaadin-horizontal-layout>
-            `},su=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=(s.padding?` padding`:``)+(s.spacing?` spacing`:``)+(s.spacingVariant?` spacing-`+s.spacingVariant:``)+(s.wrap?` wrap`:``),l=t.style;return s.fullWidth&&(l=l?`width: 100%;`+l:`width: 100%;`),s.justification&&(l=l?`justify-content: `+s.justification+`;`+l:`justify-content: `+s.justification+`;`),s.horizontalAlignment&&(l=l?`align-items: `+s.horizontalAlignment+`;`+l:`align-items: `+s.horizontalAlignment+`;`),E`
+            `},lu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=(s.padding?` padding`:``)+(s.spacing?` spacing`:``)+(s.spacingVariant?` spacing-`+s.spacingVariant:``)+(s.wrap?` wrap`:``),l=t.style;return s.fullWidth&&(l=l?`width: 100%;`+l:`width: 100%;`),s.justification&&(l=l?`justify-content: `+s.justification+`;`+l:`justify-content: `+s.justification+`;`),s.horizontalAlignment&&(l=l?`align-items: `+s.horizontalAlignment+`;`+l:`align-items: `+s.horizontalAlignment+`;`),E`
         <vaadin-vertical-layout
                 style="${l}"
                 class="${t.cssClasses}"
@@ -8552,7 +8549,7 @@ ${i}
         >
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </vaadin-vertical-layout>
-    `},cu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;return s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`),E`
+    `},uu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;return s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`),E`
                <vaadin-split-layout 
                        style="${c}" 
                        class="${t.cssClasses}"
@@ -8563,7 +8560,7 @@ ${i}
                    <master-content>${P(e,t.children[0],n,r,i,a,o)}</master-content>
                    <detail-content>${P(e,t.children[1],n,r,i,a,o)}</detail-content>
                </vaadin-split-layout>
-            `},lu=(e,t,n,r,i,a,o)=>{let s=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,l=!!i?.hasDetail||!!s,u=c??s;return E`
+            `},du=(e,t,n,r,i,a,o)=>{let s=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,l=!!i?.hasDetail||!!s,u=c??s;return E`
                <vaadin-master-detail-layout ?has-detail="${l}"
                                             style="${t.style}"
                                             class="${t.cssClasses}"
@@ -8571,7 +8568,7 @@ ${i}
                    <div>${P(e,t.children[0],n,r,i,a,o)}</div>
                    ${l&&u?E`<div slot="detail">${P(e,u,n,r,i,a,o)}</div>`:E`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
                </vaadin-master-detail-layout>
-            `},uu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;c??=``,s.fullWidth&&(c+=`width: 100%;`);let l=s.variant;l==`equalWidth`&&(l=`equal-width-tabs`);let u=Math.max(0,(t.children??[]).findIndex(e=>e.metadata.active)),d=e=>{e.target.selected=u};if(s.adaptable){let u=(t.children??[]).map(t=>{let n=t.metadata.label;return n?.includes("${")?e._evalTemplate(n):n});return E`
+            `},fu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;c??=``,s.fullWidth&&(c+=`width: 100%;`);let l=s.variant;l==`equalWidth`&&(l=`equal-width-tabs`);let u=Math.max(0,(t.children??[]).findIndex(e=>e.metadata.active)),d=e=>{e.target.selected=u};if(s.adaptable){let u=(t.children??[]).map(t=>{let n=t.metadata.label;return n?.includes("${")?e._evalTemplate(n):n});return E`
             <mateu-adaptive-tabs
                     .tabLabels="${u}"
                     style="${c}"
@@ -8616,22 +8613,22 @@ ${i}
                     >${r}</vaadin-tab>`})}
             </vaadin-tabs>
 
-            ${t.children?.map(t=>du(e,t,n,r,i,a,o))}
+            ${t.children?.map(t=>pu(e,t,n,r,i,a,o))}
         </vaadin-tabsheet>
-            `},du=(e,t,n,r,i,a,o)=>{let s=t.metadata.label;return E`
+            `},pu=(e,t,n,r,i,a,o)=>{let s=t.metadata.label;return E`
         <div tab="${s?.includes("${")?e._evalTemplate(s):s}" style="padding: var(--lumo-space-m) 0;">
                    ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
                </div>
-            `},fu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`);let l=0;if(t.children){for(let e=0;e<t.children.length;e++)if(t.children[e].metadata?.active){l=e;break}}return E`
+            `},mu=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`);let l=0;if(t.children){for(let e=0;e<t.children.length;e++)if(t.children[e].metadata?.active){l=e;break}}return E`
                <vaadin-accordion
                        style="${t.style}"
                        class="${t.cssClasses}"
                        opened="${l}"
                        slot="${t.slot??y}"
                >
-                   ${t.children?.map(t=>pu(e,t,n,r,i,a,o,s.variant))}
+                   ${t.children?.map(t=>hu(e,t,n,r,i,a,o,s.variant))}
                </vaadin-accordion>
-            `},pu=(e,t,n,r,i,a,o,s)=>{let c=t.metadata,l=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return E`
+            `},hu=(e,t,n,r,i,a,o,s)=>{let c=t.metadata,l=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return E`
         <vaadin-accordion-panel style="${t.style}"
                                 class="${t.cssClasses}"
                                 theme="${s??y}"
@@ -8640,49 +8637,49 @@ ${i}
             <vaadin-accordion-heading slot="summary">${l}</vaadin-accordion-heading>
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </vaadin-accordion-panel>
-            `},mu=(e,t,n,r,i,a,o)=>E`
+            `},gu=(e,t,n,r,i,a,o)=>E`
                <vaadin-scroller style="${t.style}" 
                                 class="${t.cssClasses}"
                                 slot="${t.slot??y}">
                    ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
                </vaadin-scroller>
-            `,hu=(e,t,n,r,i,a,o)=>E`
+            `,_u=(e,t,n,r,i,a,o)=>E`
         <vaadin-board style="${t.style}" 
                       class="${t.cssClasses}"
                       slot="${t.slot??y}">
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </vaadin-board>
-            `,gu=(e,t,n,r,i,a,o)=>E`
+            `,vu=(e,t,n,r,i,a,o)=>E`
         <vaadin-board-row style="${t.style}" class="${t.cssClasses}">
                    ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
                </vaadin-board-row>
-            `,_u=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
+            `,yu=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
         <div style="${t.style}" 
              class="${t.cssClasses}"
              board-cols="${s.boardCols??y}"
         >
                    ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
                </div>
-            `},vu=(e,t,n)=>E`
+            `},bu=(e,t,n)=>E`
     <vaadin-menu-bar
         theme="tertiary"
         .items=${e}
         class="${n??y}"
         @item-selected=${e=>t(e.detail.value)}>
-    </vaadin-menu-bar>`,yu=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
-        <vaadin-context-menu .items=${Su(e,s.menu,n,r,i,a,o)} 
+    </vaadin-menu-bar>`,xu=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
+        <vaadin-context-menu .items=${wu(e,s.menu,n,r,i,a,o)} 
                              style="${t.style}" 
                              class="${t.cssClasses}"
                              open-on="${s.activateOnLeftClick?`click`:y}"
                              slot="${t.slot??y}">
             ${P(e,s.wrapped,n,r,i,a,o)}
         </vaadin-context-menu>
-            `},bu=(e,t,n,r,i)=>{let a=t.metadata;return E`
-        <vaadin-menu-bar .items=${Su(e,a.options,n,r,i,O,fe)}
+            `},Su=(e,t,n,r,i)=>{let a=t.metadata;return E`
+        <vaadin-menu-bar .items=${wu(e,a.options,n,r,i,O,fe)}
                          style="${t.style}" class="${t.cssClasses}"
                          slot="${t.slot??y}">
         </vaadin-menu-bar>
-            `},xu=(e,t,n,r,i,a,o)=>{let s=document.createElement(`vaadin-context-menu-item`);return ne(P(e,t,n,r,i,a,o),s),s},Su=(e,t,n,r,i,a,o)=>t.map(t=>t.submenus?{text:t.component?void 0:t.label,route:t.path,checked:t.selected,disabled:t.disabled,className:t.className,component:t.component?xu(e,t.component,n,r,i,a,o):void 0,children:Su(e,t.submenus,n,r,i,a,o)}:t.separator?{component:`hr`}:{text:t.component?void 0:t.label,route:t.path,checked:t.selected,disabled:t.disabled,className:t.className,component:t.component?xu(e,t.component,n,r,i,a,o):void 0}),Cu=class extends x{constructor(...e){super(...e),this.fieldId=``,this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{let t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;let n=t.getContext(`2d`);n.lineWidth=2,n.lineCap=`round`,n.lineJoin=`round`,n.strokeStyle=getComputedStyle(this).getPropertyValue(`--lumo-body-text-color`)||`#1a1a1a`;let[r,i]=this.pointerPosition(e);n.beginPath(),n.moveTo(r,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;let t=e.target.getContext(`2d`),[n,r]=this.pointerPosition(e);t.lineTo(n,r),t.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector(`canvas`)}pointerPosition(e){let t=e.target.getBoundingClientRect();return[e.clientX-t.left,e.clientY-t.top]}ensureCanvasSize(e){let t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){let e=this.canvas();e&&e.getContext(`2d`).clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){let e=this.canvas();!e||!this.hasStrokes||(this.signing=!1,this.emit(e.toDataURL(`image/png`)))}renderPad(){return E`
+            `},Cu=(e,t,n,r,i,a,o)=>{let s=document.createElement(`vaadin-context-menu-item`);return ne(P(e,t,n,r,i,a,o),s),s},wu=(e,t,n,r,i,a,o)=>t.map(t=>t.submenus?{text:t.component?void 0:t.label,route:t.path,checked:t.selected,disabled:t.disabled,className:t.className,component:t.component?Cu(e,t.component,n,r,i,a,o):void 0,children:wu(e,t.submenus,n,r,i,a,o)}:t.separator?{component:`hr`}:{text:t.component?void 0:t.label,route:t.path,checked:t.selected,disabled:t.disabled,className:t.className,component:t.component?Cu(e,t.component,n,r,i,a,o):void 0}),Tu=class extends x{constructor(...e){super(...e),this.fieldId=``,this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{let t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;let n=t.getContext(`2d`);n.lineWidth=2,n.lineCap=`round`,n.lineJoin=`round`,n.strokeStyle=getComputedStyle(this).getPropertyValue(`--lumo-body-text-color`)||`#1a1a1a`;let[r,i]=this.pointerPosition(e);n.beginPath(),n.moveTo(r,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;let t=e.target.getContext(`2d`),[n,r]=this.pointerPosition(e);t.lineTo(n,r),t.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector(`canvas`)}pointerPosition(e){let t=e.target.getBoundingClientRect();return[e.clientX-t.left,e.clientY-t.top]}ensureCanvasSize(e){let t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){let e=this.canvas();e&&e.getContext(`2d`).clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){let e=this.canvas();!e||!this.hasStrokes||(this.signing=!1,this.emit(e.toDataURL(`image/png`)))}renderPad(){return E`
             <canvas class="pad"
                     @pointerdown="${this.startStroke}"
                     @pointermove="${this.stroke}"
@@ -8749,7 +8746,7 @@ ${i}
         .button--danger {
             color: var(--lumo-error-text-color, rgb(179, 49, 31));
         }
-    `}};k([b()],Cu.prototype,`fieldId`,void 0),k([b()],Cu.prototype,`value`,void 0),k([w()],Cu.prototype,`signing`,void 0),k([w()],Cu.prototype,`hasStrokes`,void 0),Cu=k([_(`mateu-signature-pad`)],Cu);var wu=class extends x{constructor(...e){super(...e),this.fieldId=``,this.options=[],this.leavesOnly=!1,this.opened=!1,this.expandedItems=[],this._normalized=[],this.dataProvider=(e,t)=>{let n=e.parentItem?e.parentItem.children??[]:this.normalized;t(n,n.length)}}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}get normalized(){return this._optsSource!==this.options&&(this._optsSource=this.options,this._normalized=this.normalizeOptions(this.options??[])),this._normalized}normalizeOptions(e){return e.map(e=>{let t=e.children&&e.children.length?this.normalizeOptions(e.children):void 0;return{...e,children:t}})}ancestorsOf(e,t){for(let n of t){if(String(n.value)===e)return[];let t=n.children?this.ancestorsOf(e,n.children):null;if(t!=null)return[n,...t]}return null}labelOf(e,t){for(let n of t){if(String(n.value)===e)return n.label;let t=n.children?this.labelOf(e,n.children):null;if(t!=null)return t}return null}open(){this.opened||(this.expandedItems=this.value==null?[]:this.ancestorsOf(String(this.value),this.normalized)??[],this.opened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.close()},document.addEventListener(`mousedown`,this.outsideClick))}close(){this.detachOutsideClick(),this.opened=!1}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}pick(e){this.close(),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e.value,fieldId:this.fieldId},bubbles:!0,composed:!0}))}clear(){this.close(),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:void 0,fieldId:this.fieldId},bubbles:!0,composed:!0}))}onActiveItemChanged(e){let t=e.detail.value;if(t){if((t.children?.length??0)>0&&this.leavesOnly){this.expandedItems=this.expandedItems.includes(t)?this.expandedItems.filter(e=>e!==t):[...this.expandedItems,t],e.target.activeItem=null;return}this.pick(t)}}render(){let e=this.value!=null&&this.value!==``?this.labelOf(String(this.value),this.normalized)??String(this.value):``;return E`
+    `}};k([b()],Tu.prototype,`fieldId`,void 0),k([b()],Tu.prototype,`value`,void 0),k([w()],Tu.prototype,`signing`,void 0),k([w()],Tu.prototype,`hasStrokes`,void 0),Tu=k([_(`mateu-signature-pad`)],Tu);var Eu=class extends x{constructor(...e){super(...e),this.fieldId=``,this.options=[],this.leavesOnly=!1,this.opened=!1,this.expandedItems=[],this._normalized=[],this.dataProvider=(e,t)=>{let n=e.parentItem?e.parentItem.children??[]:this.normalized;t(n,n.length)}}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}get normalized(){return this._optsSource!==this.options&&(this._optsSource=this.options,this._normalized=this.normalizeOptions(this.options??[])),this._normalized}normalizeOptions(e){return e.map(e=>{let t=e.children&&e.children.length?this.normalizeOptions(e.children):void 0;return{...e,children:t}})}ancestorsOf(e,t){for(let n of t){if(String(n.value)===e)return[];let t=n.children?this.ancestorsOf(e,n.children):null;if(t!=null)return[n,...t]}return null}labelOf(e,t){for(let n of t){if(String(n.value)===e)return n.label;let t=n.children?this.labelOf(e,n.children):null;if(t!=null)return t}return null}open(){this.opened||(this.expandedItems=this.value==null?[]:this.ancestorsOf(String(this.value),this.normalized)??[],this.opened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.close()},document.addEventListener(`mousedown`,this.outsideClick))}close(){this.detachOutsideClick(),this.opened=!1}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}pick(e){this.close(),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e.value,fieldId:this.fieldId},bubbles:!0,composed:!0}))}clear(){this.close(),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:void 0,fieldId:this.fieldId},bubbles:!0,composed:!0}))}onActiveItemChanged(e){let t=e.detail.value;if(t){if((t.children?.length??0)>0&&this.leavesOnly){this.expandedItems=this.expandedItems.includes(t)?this.expandedItems.filter(e=>e!==t):[...this.expandedItems,t],e.target.activeItem=null;return}this.pick(t)}}render(){let e=this.value!=null&&this.value!==``?this.labelOf(String(this.value),this.normalized)??String(this.value):``;return E`
             <div class="root">
                 <vaadin-button class="control" theme="tertiary"
                                @click="${()=>this.opened?this.close():this.open()}">
@@ -8820,7 +8817,7 @@ ${i}
             min-width: 16rem;
             max-height: 18rem;
         }
-    `}};k([b()],wu.prototype,`fieldId`,void 0),k([b()],wu.prototype,`value`,void 0),k([b()],wu.prototype,`options`,void 0),k([b({type:Boolean})],wu.prototype,`leavesOnly`,void 0),k([w()],wu.prototype,`opened`,void 0),k([w()],wu.prototype,`expandedItems`,void 0),wu=k([_(`mateu-vaadin-tree-select`)],wu);var Tu=class extends x{constructor(...e){super(...e),this.fieldId=``,this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>this.emit(r.result),r.readAsDataURL(n),t.value=``}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:`environment`},audio:!1}),this.cameraOpen=!0,await this.updateComplete;let e=this.renderRoot.querySelector(`video`);e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){let e=this.renderRoot.querySelector(`video`);if(!e||e.videoWidth===0)return;let t=document.createElement(`canvas`);t.width=e.videoWidth,t.height=e.videoHeight,t.getContext(`2d`).drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL(`image/jpeg`,.9))}triggerFallback(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``;return E`
+    `}};k([b()],Eu.prototype,`fieldId`,void 0),k([b()],Eu.prototype,`value`,void 0),k([b()],Eu.prototype,`options`,void 0),k([b({type:Boolean})],Eu.prototype,`leavesOnly`,void 0),k([w()],Eu.prototype,`opened`,void 0),k([w()],Eu.prototype,`expandedItems`,void 0),Eu=k([_(`mateu-vaadin-tree-select`)],Eu);var Du=class extends x{constructor(...e){super(...e),this.fieldId=``,this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>this.emit(r.result),r.readAsDataURL(n),t.value=``}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:`environment`},audio:!1}),this.cameraOpen=!0,await this.updateComplete;let e=this.renderRoot.querySelector(`video`);e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){let e=this.renderRoot.querySelector(`video`);if(!e||e.videoWidth===0)return;let t=document.createElement(`canvas`);t.width=e.videoWidth,t.height=e.videoHeight,t.getContext(`2d`).drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL(`image/jpeg`,.9))}triggerFallback(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``;return E`
             <input type="file" accept="image/*" capture="environment" style="display: none;"
                    @change="${this.fileFallback}">
             ${this.cameraOpen?E`
@@ -8898,7 +8895,7 @@ ${i}
             font-size: var(--lumo-font-size-xs, 0.75rem);
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.6));
         }
-    `}};k([b()],Tu.prototype,`fieldId`,void 0),k([b()],Tu.prototype,`value`,void 0),k([w()],Tu.prototype,`cameraOpen`,void 0),k([w()],Tu.prototype,`cameraError`,void 0),Tu=k([_(`mateu-camera-capture`)],Tu);var Eu,Du=(e,t)=>{if(!e)return;if(Array.isArray(e)){let n=e.find(e=>e.key==t);return n?.value==null?void 0:String(n.value)}let n=e[t];return n==null?void 0:String(n)},Ou=class extends x{static{Eu=this}constructor(...e){super(...e),this.fieldId=``,this.editable=!0,this.filePicked=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>{let e=r.result,t=e.indexOf(`,`),i=e.substring(0,t).replace(`;base64`,`;name=${encodeURIComponent(n.name)};base64`);this.emit(i+e.substring(t))},r.readAsDataURL(n),t.value=``}}static fileName(e){if(!e)return``;if(e.startsWith(`data:`)){let t=e.indexOf(`,`),n=e.substring(5,t<0?e.length:t).split(`;`).find(e=>e.startsWith(`name=`));if(n)try{return decodeURIComponent(n.substring(5))}catch{return n.substring(5)}return`Attached file`}return e.split(`/`).pop()||e}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}triggerPick(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``,t=Eu.fileName(this.value),n=e&&this.value.startsWith(`data:`),r=e?E`<span class="file" title="${t}">📄 ${n?E`<a href="${this.value}" download="${t}">${t}</a>`:E`<a href="${this.value}" target="_blank">${t}</a>`}</span>`:y;return this.editable?E`
+    `}};k([b()],Du.prototype,`fieldId`,void 0),k([b()],Du.prototype,`value`,void 0),k([w()],Du.prototype,`cameraOpen`,void 0),k([w()],Du.prototype,`cameraError`,void 0),Du=k([_(`mateu-camera-capture`)],Du);var Ou,ku=(e,t)=>{if(!e)return;if(Array.isArray(e)){let n=e.find(e=>e.key==t);return n?.value==null?void 0:String(n.value)}let n=e[t];return n==null?void 0:String(n)},Au=class extends x{static{Ou=this}constructor(...e){super(...e),this.fieldId=``,this.editable=!0,this.filePicked=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>{let e=r.result,t=e.indexOf(`,`),i=e.substring(0,t).replace(`;base64`,`;name=${encodeURIComponent(n.name)};base64`);this.emit(i+e.substring(t))},r.readAsDataURL(n),t.value=``}}static fileName(e){if(!e)return``;if(e.startsWith(`data:`)){let t=e.indexOf(`,`),n=e.substring(5,t<0?e.length:t).split(`;`).find(e=>e.startsWith(`name=`));if(n)try{return decodeURIComponent(n.substring(5))}catch{return n.substring(5)}return`Attached file`}return e.split(`/`).pop()||e}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}triggerPick(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``,t=Ou.fileName(this.value),n=e&&this.value.startsWith(`data:`),r=e?E`<span class="file" title="${t}">📄 ${n?E`<a href="${this.value}" download="${t}">${t}</a>`:E`<a href="${this.value}" target="_blank">${t}</a>`}</span>`:y;return this.editable?E`
             <input type="file" accept="${this.accept||y}" style="display: none;"
                    @change="${this.filePicked}">
             <div class="row">
@@ -8946,7 +8943,7 @@ ${i}
         .button--danger {
             color: var(--lumo-error-text-color, rgb(179, 49, 31));
         }
-    `}};k([b()],Ou.prototype,`fieldId`,void 0),k([b()],Ou.prototype,`value`,void 0),k([b()],Ou.prototype,`accept`,void 0),k([b({type:Boolean})],Ou.prototype,`editable`,void 0),Ou=Eu=k([_(`mateu-file-upload`)],Ou);var ku=e=>e==null||typeof e==`string`&&e.trim()===``,Au=(e,t)=>{if(ku(e))return null;let n=t?parseInt(String(e),10):Number(e);return Number.isNaN(n)?null:n},ju=(e,t)=>ku(e)&&ku(t)?!0:e==t,Mu=e=>!!e&&typeof e==`object`&&`__mateuGroup`in e,Nu=e=>String(e??``),Pu=(e,t,n)=>{let r=e??[];if(!t||!n||n.length===0)return r;let i=[],a,o=!1;return r.forEach((e,s)=>{let c=Nu(e?.[t]);if(!o||c!==a){let e=n.find(e=>Nu(e.value)===c)??{value:c,count:r.filter(e=>Nu(e?.[t])===c).length,aggregates:{}};i.push({__mateuGroup:e,__mateuGroupBy:t,_rowNumber:`__mateuGroup:${s}:${c}`}),o=!0,a=c}i.push(e)}),i},Fu=(e,t)=>e==null?``:t.dataType===`money`||t.stereotype===`money`?new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}).format(e):t.aggregate===`count`?new Intl.NumberFormat(void 0,{maximumFractionDigits:0}).format(Math.round(e)):new Intl.NumberFormat(void 0,{maximumFractionDigits:2}).format(e),Iu=(e,t)=>e&&t.includes(e)?e:t.find(e=>!!e),Lu=(e,t,n)=>{let r=e.__mateuGroup;return t.id===n?`${r.value} (${r.count})`:t.aggregate?Fu(r.aggregates?.[t.id],t):``},Ru=(e,t,n)=>{let r=t?.aggregates;if(!r||!e.some(e=>e.aggregate))return;let i={};e.forEach(e=>{e.aggregate&&r[e.id]!=null&&(i[e.id]=Fu(r[e.id],e))});let a=e[0];if(a&&i[a.id]===void 0){let e=t?.page?.totalElements;i[a.id]=n&&a.id===n&&e!=null?`Total (${e})`:`Total`}return i},zu=(e,t,n)=>{let r=e[n.path]??``,i=t.captionPath?e[t.captionPath]:void 0,a=t.leadingPath?e[t.leadingPath]:void 0;return E`
+    `}};k([b()],Au.prototype,`fieldId`,void 0),k([b()],Au.prototype,`value`,void 0),k([b()],Au.prototype,`accept`,void 0),k([b({type:Boolean})],Au.prototype,`editable`,void 0),Au=Ou=k([_(`mateu-file-upload`)],Au);var ju=e=>e==null||typeof e==`string`&&e.trim()===``,Mu=(e,t)=>{if(ju(e))return null;let n=t?parseInt(String(e),10):Number(e);return Number.isNaN(n)?null:n},Nu=(e,t)=>ju(e)&&ju(t)?!0:e==t,Pu=e=>!!e&&typeof e==`object`&&`__mateuGroup`in e,Fu=e=>String(e??``),Iu=(e,t,n)=>{let r=e??[];if(!t||!n||n.length===0)return r;let i=[],a,o=!1;return r.forEach((e,s)=>{let c=Fu(e?.[t]);if(!o||c!==a){let e=n.find(e=>Fu(e.value)===c)??{value:c,count:r.filter(e=>Fu(e?.[t])===c).length,aggregates:{}};i.push({__mateuGroup:e,__mateuGroupBy:t,_rowNumber:`__mateuGroup:${s}:${c}`}),o=!0,a=c}i.push(e)}),i},Lu=(e,t)=>e==null?``:t.dataType===`money`||t.stereotype===`money`?new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}).format(e):t.aggregate===`count`?new Intl.NumberFormat(void 0,{maximumFractionDigits:0}).format(Math.round(e)):new Intl.NumberFormat(void 0,{maximumFractionDigits:2}).format(e),Ru=(e,t)=>e&&t.includes(e)?e:t.find(e=>!!e),zu=(e,t,n)=>{let r=e.__mateuGroup;return t.id===n?`${r.value} (${r.count})`:t.aggregate?Lu(r.aggregates?.[t.id],t):``},Bu=(e,t,n)=>{let r=t?.aggregates;if(!r||!e.some(e=>e.aggregate))return;let i={};e.forEach(e=>{e.aggregate&&r[e.id]!=null&&(i[e.id]=Lu(r[e.id],e))});let a=e[0];if(a&&i[a.id]===void 0){let e=t?.page?.totalElements;i[a.id]=n&&a.id===n&&e!=null?`Total (${e})`:`Total`}return i},Vu=(e,t,n)=>{let r=e[n.path]??``,i=t.captionPath?e[t.captionPath]:void 0,a=t.leadingPath?e[t.leadingPath]:void 0;return E`
         <span style="display: flex; align-items: center; gap: var(--lumo-space-s); overflow: hidden;">
             ${a?E`<img src="${a}" alt="" loading="lazy"
                 style="width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; flex-shrink: 0;" />`:y}
@@ -8954,34 +8951,34 @@ ${i}
                 <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${jr(r)}</span>
                 ${i?E`<span style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${i}</span>`:y}
             </span>
-        </span>`},Bu=(e,t,n)=>F(e[n.path]?`vaadin:check`:`vaadin:minus`,`height: 16px; width: 16px; color: var(--lumo-body-text-color);`),Vu=(e,t,n,r,i)=>{let a=e[n.path],o=a;return r==`money`&&a&&a.locale&&a.currency?o=new Intl.NumberFormat(a.locale,{style:`currency`,currency:a.currency}).format(a.value):i==`money`&&(o=new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}).format(a)),E`${o}`},Hu=(e,t,n)=>{e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:n},bubbles:!0,composed:!0}))},Uu=(e,t,n,r,i,a)=>{let o=n.xcolumn??a;if(o.text)return o.actionId?E`<a href="javascript: void(0);" @click="${t=>Hu(n,o,e)}">${o.text}</a>`:E`<a href="${e[n.path]}">${o.text}</a>`;if(r==`string`){if(o.actionId)return E`<a href="javascript: void(0);" @click="${t=>Hu(n,o,e)}">${e[n.path]}</a>`;let t=e[n.path];return E`<a href="${t}">${t}</a>`}let s=e[n.path];return E`<a href="${s.href}">${s.text}</a>`},Wu=(e,t,n,r,i)=>{let a=e[n.path];return r==`string`?a.split(`,`).map(e=>F(e,`width: 16px;`)):a.split(`,`).map(e=>F(e.icon,`width: 16px;`))},Gu=(e,t,n,r,i)=>{let a=e[n.path];return E`${v(a)}`},Ku=(e,t,n,r,i,a)=>r==`string`?E`<img src="${e[n.path]}" style="${`max-height: 40px; `+(a.style??``)}">`:E`<img src="${e[n.path].src}" style="${a.style??``}">`,qu=e=>{let t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`action-on-row-`+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Ju=e=>{let t={_clickedRow:e.target.row},n=e.target.action;e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`action-on-row-`+n.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Yu=e=>{let t=document.createElement(`vaadin-context-menu-item`),n=document.createElement(`vaadin-icon`);return n.style.color=`var(--lumo-secondary-text-color)`,n.style.marginInlineEnd=`var(--lumo-space-s)`,n.style.padding=`var(--lumo-space-xs)`,n.setAttribute(`icon`,e.icon),t.appendChild(n),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},Xu=(e,t,n)=>{let r=e[n.path]?.actions;if(r?.length==1){let t=r[0];return E`
+        </span>`},Hu=(e,t,n)=>F(e[n.path]?`vaadin:check`:`vaadin:minus`,`height: 16px; width: 16px; color: var(--lumo-body-text-color);`),Uu=(e,t,n,r,i)=>{let a=e[n.path],o=a;return r==`money`&&a&&a.locale&&a.currency?o=new Intl.NumberFormat(a.locale,{style:`currency`,currency:a.currency}).format(a.value):i==`money`&&(o=new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}).format(a)),E`${o}`},Wu=(e,t,n)=>{e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:n},bubbles:!0,composed:!0}))},Gu=(e,t,n,r,i,a)=>{let o=n.xcolumn??a;if(o.text)return o.actionId?E`<a href="javascript: void(0);" @click="${t=>Wu(n,o,e)}">${o.text}</a>`:E`<a href="${e[n.path]}">${o.text}</a>`;if(r==`string`){if(o.actionId)return E`<a href="javascript: void(0);" @click="${t=>Wu(n,o,e)}">${e[n.path]}</a>`;let t=e[n.path];return E`<a href="${t}">${t}</a>`}let s=e[n.path];return E`<a href="${s.href}">${s.text}</a>`},Ku=(e,t,n,r,i)=>{let a=e[n.path];return r==`string`?a.split(`,`).map(e=>F(e,`width: 16px;`)):a.split(`,`).map(e=>F(e.icon,`width: 16px;`))},qu=(e,t,n,r,i)=>{let a=e[n.path];return E`${v(a)}`},Ju=(e,t,n,r,i,a)=>r==`string`?E`<img src="${e[n.path]}" style="${`max-height: 40px; `+(a.style??``)}">`:E`<img src="${e[n.path].src}" style="${a.style??``}">`,Yu=e=>{let t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`action-on-row-`+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Xu=e=>{let t={_clickedRow:e.target.row},n=e.target.action;e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`action-on-row-`+n.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Zu=e=>{let t=document.createElement(`vaadin-context-menu-item`),n=document.createElement(`vaadin-icon`);return n.style.color=`var(--lumo-secondary-text-color)`,n.style.marginInlineEnd=`var(--lumo-space-s)`,n.style.padding=`var(--lumo-space-xs)`,n.setAttribute(`icon`,e.icon),t.appendChild(n),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},Qu=(e,t,n)=>{let r=e[n.path]?.actions;if(r?.length==1){let t=r[0];return E`
          <vaadin-button theme="tertiary${t.icon&&!t.label?` icon`:``}" title="${t.label||y}" ?disabled=${t.disabled}
-                        @click="${Ju}" .row="${e}" .action="${t}" data-testid="action-${n.path}">
+                        @click="${Xu}" .row="${e}" .action="${t}" data-testid="action-${n.path}">
              ${t.icon?E`<vaadin-icon icon="${t.icon}"></vaadin-icon>`:y}
              ${t.label?t.label:y}
          </vaadin-button>
-    `}let i=r?.map(e=>e.icon?{component:Yu(e),methodNameInCrud:e.methodNameInCrud}:{...e,text:e.label});return!i||i.length==0?E``:E`
+    `}let i=r?.map(e=>e.icon?{component:Zu(e),methodNameInCrud:e.methodNameInCrud}:{...e,text:e.label});return!i||i.length==0?E``:E`
                                      <vaadin-menu-bar
                                          .items=${[{text:`···`,children:i}]}
                                          theme="tertiary"
                                          .row="${e}"
                                          data-testid="menubar-${n.path}"
-                                         @item-selected="${qu}"
+                                         @item-selected="${Yu}"
                                      ></vaadin-menu-bar>
-                                   `},Zu=(e,t,n)=>{if(n.path==`select`)return E`
-         <vaadin-button theme="tertiary" title="Select" @click="${Ju}" .row="${e}" .action="${{actionId:n.path,icon:``,label:`Select`,disabled:!1,methodNameInCrud:`select`}}">
+                                   `},$u=(e,t,n)=>{if(n.path==`select`)return E`
+         <vaadin-button theme="tertiary" title="Select" @click="${Xu}" .row="${e}" .action="${{actionId:n.path,icon:``,label:`Select`,disabled:!1,methodNameInCrud:`select`}}">
              Select
          </vaadin-button>
     `;let r=n.path&&e[n.path]?.methodNameInCrud?e[n.path]:e.action;return r?E`
-         <vaadin-button theme="tertiary${r.icon&&!r.label?` icon`:``}" title="${r.label||y}" @click="${Ju}" .row="${e}" .action="${r}">
+         <vaadin-button theme="tertiary${r.icon&&!r.label?` icon`:``}" title="${r.label||y}" @click="${Xu}" .row="${e}" .action="${r}">
              ${r.icon?E`<vaadin-icon icon="${r.icon}"></vaadin-icon>`:y}
              ${r.label?r.label:y}
          </vaadin-button>
-    `:E``},Qu=(e,t,n)=>{e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:n},bubbles:!0,composed:!0}))},$u=(e,t,n,r,i,a)=>{let o=n.xcolumn??a;if(o.actionId)return E`
-            <vaadin-button theme="tertiary" @click="${t=>Qu(n,o,e)}" .row="${e}">
+    `:E``},ed=(e,t,n)=>{e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:n},bubbles:!0,composed:!0}))},td=(e,t,n,r,i,a)=>{let o=n.xcolumn??a;if(o.actionId)return E`
+            <vaadin-button theme="tertiary" @click="${t=>ed(n,o,e)}" .row="${e}">
                 ${o.text||jr(e[n.path])}
             </vaadin-button>
-        `;let s=e[n.path];return E`<a href="${s}">${o.text||s}</a>`},ed=(e,t,n,r,i,a,o,s,c)=>{let l=e[n.path];return P(r,l,i,a,o,s,c)},td=new WeakMap,nd=(e,t)=>td.get(e)?.[t],rd=(e,t,n)=>{let r=td.get(e);r||(r={},td.set(e,r)),r[t]=n},id=(e,t=!1)=>Au(e,t),ad=(e,t,n,r)=>{let i=n?.field?.fieldId,a=a=>{if(e[t.id]===a||e[t.id]==null&&(a===``||a==null))return;if(e[t.id]=a,!i){n.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`update-row`,parameters:{_editedRow:{...e}}},bubbles:!0,composed:!0}));return}let o=(n?.state??r)[i];n.dispatchEvent(new CustomEvent(`value-changed`,{detail:{fieldId:i,value:Array.isArray(o)?[...o]:o},bubbles:!0,composed:!0}))},o=e[t.id],s=o==null?``:String(o);switch(t.editorType){case`boolean`:return E`<vaadin-checkbox ?checked=${!!o} @checked-changed=${e=>a(e.detail.value)}></vaadin-checkbox>`;case`integer`:return E`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(id(e.target.value,!0))}></vaadin-integer-field>`;case`number`:return E`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(id(e.target.value))}></vaadin-number-field>`;case`date`:return E`<vaadin-date-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-date-picker>`;case`time`:return E`<vaadin-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-time-picker>`;case`datetime`:return E`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-date-time-picker>`;case`select`:return E`<vaadin-combo-box
+        `;let s=e[n.path];return E`<a href="${s}">${o.text||s}</a>`},nd=(e,t,n,r,i,a,o,s,c)=>{let l=e[n.path];return P(r,l,i,a,o,s,c)},rd=new WeakMap,id=(e,t)=>rd.get(e)?.[t],ad=(e,t,n)=>{let r=rd.get(e);r||(r={},rd.set(e,r)),r[t]=n},od=(e,t=!1)=>Mu(e,t),sd=(e,t,n,r)=>{let i=n?.field?.fieldId,a=a=>{if(e[t.id]===a||e[t.id]==null&&(a===``||a==null))return;if(e[t.id]=a,!i){n.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`update-row`,parameters:{_editedRow:{...e}}},bubbles:!0,composed:!0}));return}let o=(n?.state??r)[i];n.dispatchEvent(new CustomEvent(`value-changed`,{detail:{fieldId:i,value:Array.isArray(o)?[...o]:o},bubbles:!0,composed:!0}))},o=e[t.id],s=o==null?``:String(o);switch(t.editorType){case`boolean`:return E`<vaadin-checkbox ?checked=${!!o} @checked-changed=${e=>a(e.detail.value)}></vaadin-checkbox>`;case`integer`:return E`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(od(e.target.value,!0))}></vaadin-integer-field>`;case`number`:return E`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(od(e.target.value))}></vaadin-number-field>`;case`date`:return E`<vaadin-date-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-date-picker>`;case`time`:return E`<vaadin-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-time-picker>`;case`datetime`:return E`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${e=>a(e.detail.value)}></vaadin-date-time-picker>`;case`select`:return E`<vaadin-combo-box
                 theme="small" style="width:100%;"
                 .items=${(t.editorOptions??[]).map(e=>({label:e.label,value:String(e.value)}))}
                 item-label-path="label" item-value-path="value"
@@ -8990,12 +8987,12 @@ ${i}
                 theme="small" style="width:100%;"
                 item-label-path="label" item-id-path="value"
                 .dataProvider=${(e,t)=>{n.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:i,parameters:{searchText:e.filter,size:e.pageSize,page:e.page},callback:e=>{let n=e?.fragments?.[0]?.data?.[o];t(n?.content??[],n?.totalElements??0)},callbackonly:!0},bubbles:!0,composed:!0}))}}
-                .selectedItem=${(t.editorOptions??[]).find(e=>String(e.value)===s)??(s?{value:s,label:nd(e,t.id)??s}:void 0)}
-                @selected-item-changed=${n=>{let r=n.detail.value,i=r?r.value:null;String(i??``)!==s&&(r&&rd(e,t.id,r.label),a(i))}}></vaadin-combo-box>`}default:return E`<vaadin-text-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(e.target.value)}></vaadin-text-field>`}},od=e=>m(()=>E`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),sd=e=>e===void 0?y:d(()=>E`<span style="font-weight: 600; white-space: nowrap;">${e}</span>`,[e]),cd=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent(`sort-direction-changed`,{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},ld=(e,t,n,r,i,a,o,s)=>E`
+                .selectedItem=${(t.editorOptions??[]).find(e=>String(e.value)===s)??(s?{value:s,label:id(e,t.id)??s}:void 0)}
+                @selected-item-changed=${n=>{let r=n.detail.value,i=r?r.value:null;String(i??``)!==s&&(r&&ad(e,t.id,r.label),a(i))}}></vaadin-combo-box>`}default:return E`<vaadin-text-field theme="small" style="width:100%;" .value=${s} @change=${e=>a(e.target.value)}></vaadin-text-field>`}},cd=e=>m(()=>E`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),ld=e=>e===void 0?y:d(()=>E`<span style="font-weight: 600; white-space: nowrap;">${e}</span>`,[e]),ud=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent(`sort-direction-changed`,{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},dd=(e,t,n,r,i,a,o,s)=>E`
 <vaadin-grid-column-group header="${M(e.label,r,i)}">
-    ${e.columns.map(e=>dd(e.metadata,t,n,r,i,a,o,s?.[e.metadata?.id]))}
+    ${e.columns.map(e=>pd(e.metadata,t,n,r,i,a,o,s?.[e.metadata?.id]))}
 </vaadin-grid-column-group>
-`,ud=(e,t,n,r,i,a,o,s)=>j.GridGroupColumn==e.metadata?.type?ld(e.metadata,t,n,r,i,a,o,s):dd(e.metadata,t,n,r,i,a,o,s?.[e.metadata?.id]),dd=(e,n,r,i,a,o,s,c)=>{let l=M(e.label,i,a);return e.sortable?E`
+`,fd=(e,t,n,r,i,a,o,s)=>j.GridGroupColumn==e.metadata?.type?dd(e.metadata,t,n,r,i,a,o,s):pd(e.metadata,t,n,r,i,a,o,s?.[e.metadata?.id]),pd=(e,n,r,i,a,o,s,c)=>{let l=M(e.label,i,a);return e.sortable?E`
                         <vaadin-grid-sort-column
                                 path="${e.id}"
                                 text-align="${e.align??y}"
@@ -9005,12 +9002,12 @@ ${i}
                                 flex-grow="${e.flexGrow??y}"
                                 ?resizable="${e.resizable}"
                                 width="${e.width??y}"
-                                @direction-changed="${cd}"
+                                @direction-changed="${ud}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${od(l)}
-                                ${sd(c)}
-                                ${t((t,c,l)=>fd(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
+                                ${cd(l)}
+                                ${ld(c)}
+                                ${t((t,c,l)=>md(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-sort-column>
                     `:e.filterable?E`
                         <vaadin-grid-filter-column
@@ -9024,9 +9021,9 @@ ${i}
                                 width="${e.width??y}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${od(l)}
-                                ${sd(c)}
-                                ${t((t,c,l)=>fd(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
+                                ${cd(l)}
+                                ${ld(c)}
+                                ${t((t,c,l)=>md(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-filter-column>
                     `:E`
                         <vaadin-grid-column
@@ -9041,22 +9038,22 @@ ${i}
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
                                 .xcolumn="${e}"
-                                ${od(l)}
-                                ${sd(c)}
-                                ${t((t,c,l)=>fd(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
+                                ${cd(l)}
+                                ${ld(c)}
+                                ${t((t,c,l)=>md(t,c,l,e,n,r,i,a,o,s),[e,i,a])}
                         ></vaadin-grid-column>
-                    `},fd=(e,t,n,r,i,a,o,s,c,l)=>{let u=n.dataset.dataType??``,d=n.dataset.stereotype??``;if(Mu(e)){let t=i?.metadata,n=(t?.columns??[]).flatMap(e=>e?.metadata?.type===j.GridGroupColumn?(e.metadata.columns??[]).map(e=>e?.metadata?.id):[e?.metadata?.id]),a=Lu(e,r,Iu(e.__mateuGroupBy,n)),o=e.__mateuGroup.hiddenActions??[],s=r.id===n[n.length-1]?(t?.groupActions??[]).filter(e=>!o.includes(e.actionId??e.id)):[];return s.length?E`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
+                    `},md=(e,t,n,r,i,a,o,s,c,l)=>{let u=n.dataset.dataType??``,d=n.dataset.stereotype??``;if(Pu(e)){let t=i?.metadata,n=(t?.columns??[]).flatMap(e=>e?.metadata?.type===j.GridGroupColumn?(e.metadata.columns??[]).map(e=>e?.metadata?.id):[e?.metadata?.id]),a=zu(e,r,Ru(e.__mateuGroupBy,n)),o=e.__mateuGroup.hiddenActions??[],s=r.id===n[n.length-1]?(t?.groupActions??[]).filter(e=>!o.includes(e.actionId??e.id)):[];return s.length?E`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
                 ${a?E`<span style="font-weight: 600;">${a}</span>`:y}
                 ${s.map(t=>E`
                     <vaadin-button theme="tertiary small" style="flex-shrink: 0;"
                         @click="${n=>{n.stopPropagation(),n.currentTarget.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`action-on-row-`+(t.actionId??t.id),parameters:{_groupValue:e.__mateuGroup.value}},bubbles:!0,composed:!0}))}}">${t.label??t.caption??``}</vaadin-button>
                 `)}
-            </span>`:E`<span title="${a}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${a}</span>`}if(r.editable)return ad(e,r,i,o);if(u==`status`)return Xo(e,t,n);if(d==`primary`)return zu(e,r,n);if(u==`bool`)return Bu(e,t,n);if(u==`money`||d==`money`)return Vu(e,t,n,u,d);if(u==`link`||d==`link`)return Uu(e,t,n,u,d,r);if(u==`icon`||d==`icon`)return Wu(e,t,n,u,d);if(d==`html`)return Gu(e,t,n,u,d);if(d==`image`)return Ku(e,t,n,u,d,r);if(u==`menu`)return Xu(e,t,n);if(u==`component`)return ed(e,t,n,i,a,o,s,c,l);if(u==`action`)return Zu(e,t,n);if(u==`actionGroup`)return Xu(e,t,n);if(d==`button`||r.actionId)return $u(e,t,n,u,d,r);let f=e[n.path],p=i?.metadata?.rowRoute;if(r.identifier&&p){let t=on(p,e,o,s);if(t)return E`<a href="${`/`+t.replace(/^\/+/,``)}" title="${f}"
+            </span>`:E`<span title="${a}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${a}</span>`}if(r.editable)return sd(e,r,i,o);if(u==`status`)return Xo(e,t,n);if(d==`primary`)return Vu(e,r,n);if(u==`bool`)return Hu(e,t,n);if(u==`money`||d==`money`)return Uu(e,t,n,u,d);if(u==`link`||d==`link`)return Gu(e,t,n,u,d,r);if(u==`icon`||d==`icon`)return Ku(e,t,n,u,d);if(d==`html`)return qu(e,t,n,u,d);if(d==`image`)return Ju(e,t,n,u,d,r);if(u==`menu`)return Qu(e,t,n);if(u==`component`)return nd(e,t,n,i,a,o,s,c,l);if(u==`action`)return $u(e,t,n);if(u==`actionGroup`)return Qu(e,t,n);if(d==`button`||r.actionId)return td(e,t,n,u,d,r);let f=e[n.path],p=i?.metadata?.rowRoute;if(r.identifier&&p){let t=on(p,e,o,s);if(t)return E`<a href="${`/`+t.replace(/^\/+/,``)}" title="${f}"
                 @click="${e=>{e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0||(e.preventDefault(),sn(i,t))}}"
                 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
                 @mouseover="${e=>{e.currentTarget.style.textDecoration=`underline`}}"
                 @mouseout="${e=>{e.currentTarget.style.textDecoration=`none`}}"
-            >${jr(f)}</a>`}return E`<span title="${f}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${jr(f)}</span>`},pd=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},md=(e,t)=>{let n=t;for(;n;){if(n===e)return!0;n=n.assignedSlot??n.parentNode??n.host??null}return!1},hd=class extends Bt{constructor(...e){super(...e),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{let t=e.currentTarget,n=t.getEventContext(e)?.item??null;n!==this.hoveredItem&&(this.hoveredItem=n,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?`hovered-cell`:``,this._onRowKey=e=>{let t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Zr(t,e))return;let n=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!n)return;let r=this.currentItems(),i=parseInt(n[1],10)-1;i>=r.length||(e.preventDefault(),this.selectRow(r[i]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener(`keydown`,this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+`_selected_items`]=[e],this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;let e=pd();if(e&&e!==document.body&&!md(this,e)){let t=e.tagName?.toLowerCase()??``;if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith(`vaadin-`)&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){let{item:t,selected:n,shiftKey:r}=e.detail;if(this.rangeStartItem??=t,r){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);let[r,i]=[this.rangeStartItem,t].map(t=>e.indexOf(t)).sort((e,t)=>e-t),a=e.slice(r,i+1),o=new Set(this.selectedItems);a.forEach(e=>{n?o.add(e):o.delete(e)}),this.selectedItems=[...o],this.state[this.id+`_selected_items`]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);let t=this.state[this.field?.fieldId+`_show_detail`]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){let t=this.field.remoteCoordinates;this.data[this.id]&&this.data[this.id].searchSignature&&this.data[this.id].searchSignature!=``&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.action,parameters:{searchText:``,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((e,t)=>{e&&typeof e==`object`&&e._rowNumber===void 0&&(e._rowNumber=t)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith(`modal`)){let n=this;return E`
+            >${jr(f)}</a>`}return E`<span title="${f}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${jr(f)}</span>`},hd=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},gd=(e,t)=>{let n=t;for(;n;){if(n===e)return!0;n=n.assignedSlot??n.parentNode??n.host??null}return!1},_d=class extends Bt{constructor(...e){super(...e),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{let t=e.currentTarget,n=t.getEventContext(e)?.item??null;n!==this.hoveredItem&&(this.hoveredItem=n,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?`hovered-cell`:``,this._onRowKey=e=>{let t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Zr(t,e))return;let n=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!n)return;let r=this.currentItems(),i=parseInt(n[1],10)-1;i>=r.length||(e.preventDefault(),this.selectRow(r[i]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener(`keydown`,this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+`_selected_items`]=[e],this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;let e=hd();if(e&&e!==document.body&&!gd(this,e)){let t=e.tagName?.toLowerCase()??``;if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith(`vaadin-`)&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){let{item:t,selected:n,shiftKey:r}=e.detail;if(this.rangeStartItem??=t,r){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);let[r,i]=[this.rangeStartItem,t].map(t=>e.indexOf(t)).sort((e,t)=>e-t),a=e.slice(r,i+1),o=new Set(this.selectedItems);a.forEach(e=>{n?o.add(e):o.delete(e)}),this.selectedItems=[...o],this.state[this.id+`_selected_items`]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);let t=this.state[this.field?.fieldId+`_show_detail`]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){let t=this.field.remoteCoordinates;this.data[this.id]&&this.data[this.id].searchSignature&&this.data[this.id].searchSignature!=``&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.action,parameters:{searchText:``,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((e,t)=>{e&&typeof e==`object`&&e._rowNumber===void 0&&(e._rowNumber=t)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith(`modal`)){let n=this;return E`
 
                 ${this.renderMaster(e)}
 
@@ -9107,7 +9104,7 @@ ${i}
                 ${this.field?.readOnly||this.field?.inlineEditing?y:E`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
-                ${this.field?.columns?.map(e=>ud(e,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.field?.columns?.map(e=>fd(e,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
 
                 ${this.field?.inlineEditing&&!this.field?.readOnly?E`
                     <vaadin-grid-column width="3.5rem" flex-grow="0" frozen-to-end
@@ -9164,7 +9161,7 @@ ${i}
             background-color: var(--lumo-primary-color-10pct);
             cursor: pointer;
         }
-    `}};k([b()],hd.prototype,`field`,void 0),k([b()],hd.prototype,`state`,void 0),k([b()],hd.prototype,`data`,void 0),k([b()],hd.prototype,`appState`,void 0),k([b()],hd.prototype,`appData`,void 0),k([b()],hd.prototype,`selectedItems`,void 0),k([w()],hd.prototype,`detailsOpenedItems`,void 0),hd=k([_(`mateu-grid`)],hd);var gd=class extends x{constructor(...e){super(...e),this.getNewValue=e=>{if(this.field?.dataType==`array`){if(!this.value)return[e];let t=this.value;return t.indexOf(e)>=0?t.filter(t=>t!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){let t=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.action,parameters:{searchText:``,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}return E`
+    `}};k([b()],_d.prototype,`field`,void 0),k([b()],_d.prototype,`state`,void 0),k([b()],_d.prototype,`data`,void 0),k([b()],_d.prototype,`appState`,void 0),k([b()],_d.prototype,`appData`,void 0),k([b()],_d.prototype,`selectedItems`,void 0),k([w()],_d.prototype,`detailsOpenedItems`,void 0),_d=k([_(`mateu-grid`)],_d);var vd=class extends x{constructor(...e){super(...e),this.getNewValue=e=>{if(this.field?.dataType==`array`){if(!this.value)return[e];let t=this.value;return t.indexOf(e)>=0?t.filter(t=>t!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){let t=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.action,parameters:{searchText:``,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}return E`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${this.field?.attributes?.divStyle}">
                                     ${e?.map(e=>E`
                             <div role="button" tabindex="0" 
@@ -9212,7 +9209,7 @@ ${i}
         }
   
         ${R}
-    `}};k([b()],gd.prototype,`field`,void 0),k([b()],gd.prototype,`baseUrl`,void 0),k([b()],gd.prototype,`state`,void 0),k([b()],gd.prototype,`data`,void 0),k([b()],gd.prototype,`value`,void 0),gd=k([_(`mateu-choice`)],gd);var _d,vd=class extends x{static{_d=this}constructor(...e){super(...e),this.commit=e=>{this.value=e,this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:{...e},fieldId:this.fieldId}}))},this.currencyChanged=e=>{let t=this.value??_d.EMPTY;!e.detail.value||e.detail.value===t.currency||this.commit({...t,currency:e.detail.value})},this.valueChanged=e=>{let t=this.value??_d.EMPTY,n=Au(e.detail.value,!1)??0;n!==t.value&&this.commit({...t,value:n})}}static{this.EMPTY={value:0,currency:`EUR`,locale:`es-ES`}}render(){return E`
+    `}};k([b()],vd.prototype,`field`,void 0),k([b()],vd.prototype,`baseUrl`,void 0),k([b()],vd.prototype,`state`,void 0),k([b()],vd.prototype,`data`,void 0),k([b()],vd.prototype,`value`,void 0),vd=k([_(`mateu-choice`)],vd);var yd,bd=class extends x{static{yd=this}constructor(...e){super(...e),this.commit=e=>{this.value=e,this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:{...e},fieldId:this.fieldId}}))},this.currencyChanged=e=>{let t=this.value??yd.EMPTY;!e.detail.value||e.detail.value===t.currency||this.commit({...t,currency:e.detail.value})},this.valueChanged=e=>{let t=this.value??yd.EMPTY,n=Mu(e.detail.value,!1)??0;n!==t.value&&this.commit({...t,value:n})}}static{this.EMPTY={value:0,currency:`EUR`,locale:`es-ES`}}render(){return E`
             <vaadin-number-field
                     id="${this.fieldId}"
                     label="${this.label}"
@@ -9232,10 +9229,10 @@ ${i}
                     theme="small"
             ></vaadin-select></div></vaadin-number-field>
        `}static{this.styles=g`
-  `}};k([b()],vd.prototype,`fieldId`,void 0),k([b()],vd.prototype,`label`,void 0),k([b()],vd.prototype,`state`,void 0),k([b()],vd.prototype,`data`,void 0),k([b()],vd.prototype,`value`,void 0),k([b()],vd.prototype,`autoFocus`,void 0),k([b()],vd.prototype,`required`,void 0),k([b()],vd.prototype,`colspan`,void 0),k([b()],vd.prototype,`helperText`,void 0),vd=_d=k([_(`mateu-money-field`)],vd);var yd=`vaadin:abacus.vaadin:absolute-position.vaadin:academy-cap.vaadin:accessibility.vaadin:accordion-menu.vaadin:add-dock.vaadin:adjust.vaadin:adobe-flash.vaadin:airplane.vaadin:alarm.vaadin:align-center.vaadin:align-justify.vaadin:align-left.vaadin:align-right.vaadin:alt-a.vaadin:alt.vaadin:ambulance.vaadin:anchor.vaadin:angle-double-down.vaadin:angle-double-left.vaadin:angle-double-right.vaadin:angle-double-up.vaadin:angle-down.vaadin:angle-left.vaadin:angle-right.vaadin:angle-up.vaadin:archive.vaadin:archives.vaadin:area-select.vaadin:arrow-backward.vaadin:arrow-circle-down-o.vaadin:arrow-circle-down.vaadin:arrow-circle-left-o.vaadin:arrow-circle-left.vaadin:arrow-circle-right-o.vaadin:arrow-circle-right.vaadin:arrow-circle-up-o.vaadin:arrow-circle-up.vaadin:arrow-down.vaadin:arrow-forward.vaadin:arrow-left.vaadin:arrow-long-down.vaadin:arrow-long-left.vaadin:arrow-right.vaadin:arrow-up.vaadin:arrows-cross.vaadin:arrows-long-h.vaadin:arrows-long-right.vaadin:arrows-long-up.vaadin:arrows-long-v.vaadin:arrows.vaadin:asterisk.vaadin:at.vaadin:automation.vaadin:backspace-a.vaadin:backspace.vaadin:backwards.vaadin:ban.vaadin:bar-chart-h.vaadin:bar-chart-v.vaadin:bar-chart.vaadin:barcode.vaadin:bed.vaadin:bell-o.vaadin:bell-slash-o.vaadin:bell-slash.vaadin:bell.vaadin:boat.vaadin:bold.vaadin:bolt.vaadin:bomb.vaadin:book-dollar.vaadin:book-percent.vaadin:book.vaadin:bookmark-o.vaadin:bookmark.vaadin:briefcase.vaadin:browser.vaadin:bug-o.vaadin:bug.vaadin:building-o.vaadin:building.vaadin:bullets.vaadin:bullseye.vaadin:bus.vaadin:buss.vaadin:button.vaadin:calc-book.vaadin:calc.vaadin:calendar-briefcase.vaadin:calendar-clock.vaadin:calendar-envelope.vaadin:calendar-o.vaadin:calendar-user.vaadin:calendar.vaadin:camera.vaadin:car.vaadin:caret-down.vaadin:caret-left.vaadin:caret-right.vaadin:caret-square-down-o.vaadin:caret-square-left-o.vaadin:caret-square-right-o.vaadin:caret-square-up-o.vaadin:caret-up.vaadin:cart-o.vaadin:cart.vaadin:cash.vaadin:chart-3d.vaadin:chart-grid.vaadin:chart-line.vaadin:chart-timeline.vaadin:chart.vaadin:chat.vaadin:check-circle-o.vaadin:check-circle.vaadin:check-square-o.vaadin:check-square.vaadin:check.vaadin:chevron-circle-down-o.vaadin:chevron-circle-down.vaadin:chevron-circle-left-o.vaadin:chevron-circle-left.vaadin:chevron-circle-right-o.vaadin:chevron-circle-right.vaadin:chevron-circle-up-o.vaadin:chevron-circle-up.vaadin:chevron-down-small.vaadin:chevron-down.vaadin:chevron-left-small.vaadin:chevron-left.vaadin:chevron-right-small.vaadin:chevron-right.vaadin:chevron-up-small.vaadin:chevron-up.vaadin:child.vaadin:circle-thin.vaadin:circle.vaadin:clipboard-check.vaadin:clipboard-cross.vaadin:clipboard-heart.vaadin:clipboard-pulse.vaadin:clipboard-text.vaadin:clipboard-user.vaadin:clipboard.vaadin:clock.vaadin:close-big.vaadin:close-circle-o.vaadin:close-circle.vaadin:close-small.vaadin:close.vaadin:cloud-download-o.vaadin:cloud-download.vaadin:cloud-o.vaadin:cloud-upload-o.vaadin:cloud-upload.vaadin:cloud.vaadin:cluster.vaadin:code.vaadin:coffee.vaadin:cog-o.vaadin:cog.vaadin:cogs.vaadin:coin-piles.vaadin:coins.vaadin:combobox.vaadin:comment-ellipsis-o.vaadin:comment-ellipsis.vaadin:comment-o.vaadin:comment.vaadin:comments-o.vaadin:comments.vaadin:compile.vaadin:compress-square.vaadin:compress.vaadin:connect-o.vaadin:connect.vaadin:controller.vaadin:copy-o.vaadin:copy.vaadin:copyright.vaadin:corner-lower-left.vaadin:corner-lower-right.vaadin:corner-upper-left.vaadin:corner-upper-right.vaadin:credit-card.vaadin:crop.vaadin:cross-cutlery.vaadin:crosshairs.vaadin:css.vaadin:ctrl-a.vaadin:ctrl.vaadin:cube.vaadin:cubes.vaadin:curly-brackets.vaadin:cursor-o.vaadin:cursor.vaadin:cutlery.vaadin:dashboard.vaadin:database.vaadin:date-input.vaadin:deindent.vaadin:del-a.vaadin:del.vaadin:dental-chair.vaadin:desktop.vaadin:diamond-o.vaadin:diamond.vaadin:diploma-scroll.vaadin:diploma.vaadin:disc.vaadin:doctor-briefcase.vaadin:doctor.vaadin:dollar.vaadin:dot-circle.vaadin:download-alt.vaadin:download.vaadin:drop.vaadin:edit.vaadin:eject.vaadin:elastic.vaadin:ellipsis-circle-o.vaadin:ellipsis-circle.vaadin:ellipsis-dots-h.vaadin:ellipsis-dots-v.vaadin:ellipsis-h.vaadin:ellipsis-v.vaadin:enter-arrow.vaadin:enter.vaadin:envelope-o.vaadin:envelope-open-o.vaadin:envelope-open.vaadin:envelope.vaadin:envelopes-o.vaadin:envelopes.vaadin:eraser.vaadin:esc-a.vaadin:esc.vaadin:euro.vaadin:exchange.vaadin:exclamation-circle-o.vaadin:exclamation-circle.vaadin:exclamation.vaadin:exit-o.vaadin:exit.vaadin:expand-full.vaadin:expand-square.vaadin:expand.vaadin:external-browser.vaadin:external-link.vaadin:eye-slash.vaadin:eye.vaadin:eyedropper.vaadin:facebook-square.vaadin:facebook.vaadin:factory.vaadin:family.vaadin:fast-backward.vaadin:fast-forward.vaadin:female.vaadin:file-add.vaadin:file-code.vaadin:file-font.vaadin:file-movie.vaadin:file-o.vaadin:file-picture.vaadin:file-presentation.vaadin:file-process.vaadin:file-refresh.vaadin:file-remove.vaadin:file-search.vaadin:file-sound.vaadin:file-start.vaadin:file-table.vaadin:file-text-o.vaadin:file-text.vaadin:file-tree-small.vaadin:file-tree-sub.vaadin:file-tree.vaadin:file-zip.vaadin:file.vaadin:fill.vaadin:film.vaadin:filter.vaadin:fire.vaadin:flag-checkered.vaadin:flag-o.vaadin:flag.vaadin:flash.vaadin:flask.vaadin:flight-landing.vaadin:flight-takeoff.vaadin:flip-h.vaadin:flip-v.vaadin:folder-add.vaadin:folder-o.vaadin:folder-open-o.vaadin:folder-open.vaadin:folder-remove.vaadin:folder-search.vaadin:folder.vaadin:font.vaadin:form.vaadin:forward.vaadin:frown-o.vaadin:funcion.vaadin:function.vaadin:funnel.vaadin:gamepad.vaadin:gavel.vaadin:gift.vaadin:glass.vaadin:glasses.vaadin:globe-wire.vaadin:globe.vaadin:golf.vaadin:google-plus-square.vaadin:google-plus.vaadin:grab.vaadin:grid-bevel.vaadin:grid-big-o.vaadin:grid-big.vaadin:grid-h.vaadin:grid-small-o.vaadin:grid-small.vaadin:grid-v.vaadin:grid.vaadin:group.vaadin:hammer.vaadin:hand.vaadin:handle-corner.vaadin:hands-up.vaadin:handshake.vaadin:harddrive-o.vaadin:harddrive.vaadin:hash.vaadin:header.vaadin:headphones.vaadin:headset.vaadin:health-card.vaadin:heart-o.vaadin:heart.vaadin:home-o.vaadin:home.vaadin:hospital.vaadin:hourglass-empty.vaadin:hourglass-end.vaadin:hourglass-start.vaadin:hourglass.vaadin:inbox.vaadin:indent.vaadin:info-circle-o.vaadin:info-circle.vaadin:info.vaadin:input.vaadin:insert.vaadin:institution.vaadin:invoice.vaadin:italic.vaadin:key-o.vaadin:key.vaadin:keyboard-o.vaadin:keyboard.vaadin:laptop.vaadin:layout.vaadin:level-down-bold.vaadin:level-down.vaadin:level-left-bold.vaadin:level-left.vaadin:level-right-bold.vaadin:level-right.vaadin:level-up-bold.vaadin:level-up.vaadin:lifebuoy.vaadin:lightbulb.vaadin:line-bar-chart.vaadin:line-chart.vaadin:line-h.vaadin:line-v.vaadin:lines-list.vaadin:lines.vaadin:link.vaadin:list-ol.vaadin:list-select.vaadin:list-ul.vaadin:list.vaadin:location-arrow-circle-o.vaadin:location-arrow-circle.vaadin:location-arrow.vaadin:lock.vaadin:magic.vaadin:magnet.vaadin:mailbox.vaadin:male.vaadin:map-marker.vaadin:margin-bottom.vaadin:margin-left.vaadin:margin-right.vaadin:margin-top.vaadin:margin.vaadin:medal.vaadin:megafone.vaadin:megaphone.vaadin:meh-o.vaadin:menu.vaadin:microphone.vaadin:minus-circle-o.vaadin:minus-circle.vaadin:minus-square-o.vaadin:minus.vaadin:mobile-browser.vaadin:mobile-retro.vaadin:mobile.vaadin:modal-list.vaadin:modal.vaadin:money-deposit.vaadin:money-exchange.vaadin:money-withdraw.vaadin:money.vaadin:moon-o.vaadin:moon.vaadin:morning.vaadin:movie.vaadin:music.vaadin:mute.vaadin:native-button.vaadin:newspaper.vaadin:notebook.vaadin:nurse.vaadin:office.vaadin:open-book.vaadin:option-a.vaadin:option.vaadin:options.vaadin:orientation.vaadin:out.vaadin:outbox.vaadin:package.vaadin:padding-bottom.vaadin:padding-left.vaadin:padding-right.vaadin:padding-top.vaadin:padding.vaadin:paint-roll.vaadin:paintbrush.vaadin:palete.vaadin:palette.vaadin:panel.vaadin:paperclip.vaadin:paperplane-o.vaadin:paperplane.vaadin:paragraph.vaadin:password.vaadin:paste.vaadin:pause.vaadin:pencil.vaadin:phone-landline.vaadin:phone.vaadin:picture.vaadin:pie-bar-chart.vaadin:pie-chart.vaadin:piggy-bank-coin.vaadin:piggy-bank.vaadin:pill.vaadin:pills.vaadin:pin-post.vaadin:pin.vaadin:play-circle-o.vaadin:play-circle.vaadin:play.vaadin:plug.vaadin:plus-circle-o.vaadin:plus-circle.vaadin:plus-minus.vaadin:plus-square-o.vaadin:plus.vaadin:pointer.vaadin:power-off.vaadin:presentation.vaadin:print.vaadin:progressbar.vaadin:puzzle-piece.vaadin:pyramid-chart.vaadin:qrcode.vaadin:question-circle-o.vaadin:question-circle.vaadin:question.vaadin:quote-left.vaadin:quote-right.vaadin:random.vaadin:raster-lower-left.vaadin:raster.vaadin:records.vaadin:recycle.vaadin:refresh.vaadin:reply-all.vaadin:reply.vaadin:resize-h.vaadin:resize-v.vaadin:retweet.vaadin:rhombus.vaadin:road-branch.vaadin:road-branches.vaadin:road-split.vaadin:road.vaadin:rocket.vaadin:rotate-left.vaadin:rotate-right.vaadin:rss-square.vaadin:rss.vaadin:safe-lock.vaadin:safe.vaadin:scale-unbalance.vaadin:scale.vaadin:scatter-chart.vaadin:scissors.vaadin:screwdriver.vaadin:search-minus.vaadin:search-plus.vaadin:search.vaadin:select.vaadin:server.vaadin:share-square.vaadin:share.vaadin:shield.vaadin:shift-arrow.vaadin:shift.vaadin:shop.vaadin:sign-in-alt.vaadin:sign-in.vaadin:sign-out-alt.vaadin:sign-out.vaadin:signal.vaadin:sitemap.vaadin:slider.vaadin:sliders.vaadin:smiley-o.vaadin:sort.vaadin:sound-disable.vaadin:spark-line.vaadin:specialist.vaadin:spinner-arc.vaadin:spinner-third.vaadin:spinner.vaadin:spline-area-chart.vaadin:spline-chart.vaadin:split-h.vaadin:split-v.vaadin:split.vaadin:spoon.vaadin:square-shadow.vaadin:star-half-left-o.vaadin:star-half-left.vaadin:star-half-right-o.vaadin:star-half-right.vaadin:star-o.vaadin:star.vaadin:start-cog.vaadin:step-backward.vaadin:step-forward.vaadin:stethoscope.vaadin:stock.vaadin:stop-cog.vaadin:stop.vaadin:stopwatch.vaadin:storage.vaadin:strikethrough.vaadin:subscript.vaadin:suitcase.vaadin:sun-down.vaadin:sun-o.vaadin:sun-rise.vaadin:superscript.vaadin:sword.vaadin:tab-a.vaadin:tab.vaadin:table.vaadin:tablet.vaadin:tabs.vaadin:tag.vaadin:tags.vaadin:tasks.vaadin:taxi.vaadin:teeth.vaadin:terminal.vaadin:text-height.vaadin:text-input.vaadin:text-label.vaadin:text-width.vaadin:thin-square.vaadin:thumbs-down-o.vaadin:thumbs-down.vaadin:thumbs-up-o.vaadin:thumbs-up.vaadin:ticket.vaadin:time-backward.vaadin:time-forward.vaadin:timer.vaadin:toolbox.vaadin:tools.vaadin:tooth.vaadin:touch.vaadin:train.vaadin:trash.vaadin:tree-table.vaadin:trendind-down.vaadin:trending-down.vaadin:trending-up.vaadin:trophy.vaadin:truck.vaadin:twin-col-select.vaadin:twitter-square.vaadin:twitter.vaadin:umbrella.vaadin:underline.vaadin:unlink.vaadin:unlock.vaadin:upload-alt.vaadin:upload.vaadin:user-card.vaadin:user-check.vaadin:user-clock.vaadin:user-heart.vaadin:user-star.vaadin:user.vaadin:users.vaadin:vaadin-h.vaadin:vaadin-v.vaadin:viewport.vaadin:vimeo-square.vaadin:vimeo.vaadin:volume-down.vaadin:volume-off.vaadin:volume-up.vaadin:volume.vaadin:wallet.vaadin:warning.vaadin:workplace.vaadin:wrench.vaadin:youtube-square.vaadin:youtube`.split(`.`),bd=null,xd=()=>(bd||=Promise.all([D(()=>import(`./vendor-ui5.js`).then(e=>e.n),__vite__mapDeps([5,1])),D(()=>import(`./vendor-ui5.js`).then(e=>e.t),__vite__mapDeps([5,1]))]),bd),Q=class extends x{constructor(...e){super(...e),this.ui5FieldComponentsReady=!1,this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter=``,this.rendered=!1,this.renderColorPicker=()=>{this.loadUi5FieldComponents();let e=this.field?.fieldId;return E`
+  `}};k([b()],bd.prototype,`fieldId`,void 0),k([b()],bd.prototype,`label`,void 0),k([b()],bd.prototype,`state`,void 0),k([b()],bd.prototype,`data`,void 0),k([b()],bd.prototype,`value`,void 0),k([b()],bd.prototype,`autoFocus`,void 0),k([b()],bd.prototype,`required`,void 0),k([b()],bd.prototype,`colspan`,void 0),k([b()],bd.prototype,`helperText`,void 0),bd=yd=k([_(`mateu-money-field`)],bd);var xd=`vaadin:abacus.vaadin:absolute-position.vaadin:academy-cap.vaadin:accessibility.vaadin:accordion-menu.vaadin:add-dock.vaadin:adjust.vaadin:adobe-flash.vaadin:airplane.vaadin:alarm.vaadin:align-center.vaadin:align-justify.vaadin:align-left.vaadin:align-right.vaadin:alt-a.vaadin:alt.vaadin:ambulance.vaadin:anchor.vaadin:angle-double-down.vaadin:angle-double-left.vaadin:angle-double-right.vaadin:angle-double-up.vaadin:angle-down.vaadin:angle-left.vaadin:angle-right.vaadin:angle-up.vaadin:archive.vaadin:archives.vaadin:area-select.vaadin:arrow-backward.vaadin:arrow-circle-down-o.vaadin:arrow-circle-down.vaadin:arrow-circle-left-o.vaadin:arrow-circle-left.vaadin:arrow-circle-right-o.vaadin:arrow-circle-right.vaadin:arrow-circle-up-o.vaadin:arrow-circle-up.vaadin:arrow-down.vaadin:arrow-forward.vaadin:arrow-left.vaadin:arrow-long-down.vaadin:arrow-long-left.vaadin:arrow-right.vaadin:arrow-up.vaadin:arrows-cross.vaadin:arrows-long-h.vaadin:arrows-long-right.vaadin:arrows-long-up.vaadin:arrows-long-v.vaadin:arrows.vaadin:asterisk.vaadin:at.vaadin:automation.vaadin:backspace-a.vaadin:backspace.vaadin:backwards.vaadin:ban.vaadin:bar-chart-h.vaadin:bar-chart-v.vaadin:bar-chart.vaadin:barcode.vaadin:bed.vaadin:bell-o.vaadin:bell-slash-o.vaadin:bell-slash.vaadin:bell.vaadin:boat.vaadin:bold.vaadin:bolt.vaadin:bomb.vaadin:book-dollar.vaadin:book-percent.vaadin:book.vaadin:bookmark-o.vaadin:bookmark.vaadin:briefcase.vaadin:browser.vaadin:bug-o.vaadin:bug.vaadin:building-o.vaadin:building.vaadin:bullets.vaadin:bullseye.vaadin:bus.vaadin:buss.vaadin:button.vaadin:calc-book.vaadin:calc.vaadin:calendar-briefcase.vaadin:calendar-clock.vaadin:calendar-envelope.vaadin:calendar-o.vaadin:calendar-user.vaadin:calendar.vaadin:camera.vaadin:car.vaadin:caret-down.vaadin:caret-left.vaadin:caret-right.vaadin:caret-square-down-o.vaadin:caret-square-left-o.vaadin:caret-square-right-o.vaadin:caret-square-up-o.vaadin:caret-up.vaadin:cart-o.vaadin:cart.vaadin:cash.vaadin:chart-3d.vaadin:chart-grid.vaadin:chart-line.vaadin:chart-timeline.vaadin:chart.vaadin:chat.vaadin:check-circle-o.vaadin:check-circle.vaadin:check-square-o.vaadin:check-square.vaadin:check.vaadin:chevron-circle-down-o.vaadin:chevron-circle-down.vaadin:chevron-circle-left-o.vaadin:chevron-circle-left.vaadin:chevron-circle-right-o.vaadin:chevron-circle-right.vaadin:chevron-circle-up-o.vaadin:chevron-circle-up.vaadin:chevron-down-small.vaadin:chevron-down.vaadin:chevron-left-small.vaadin:chevron-left.vaadin:chevron-right-small.vaadin:chevron-right.vaadin:chevron-up-small.vaadin:chevron-up.vaadin:child.vaadin:circle-thin.vaadin:circle.vaadin:clipboard-check.vaadin:clipboard-cross.vaadin:clipboard-heart.vaadin:clipboard-pulse.vaadin:clipboard-text.vaadin:clipboard-user.vaadin:clipboard.vaadin:clock.vaadin:close-big.vaadin:close-circle-o.vaadin:close-circle.vaadin:close-small.vaadin:close.vaadin:cloud-download-o.vaadin:cloud-download.vaadin:cloud-o.vaadin:cloud-upload-o.vaadin:cloud-upload.vaadin:cloud.vaadin:cluster.vaadin:code.vaadin:coffee.vaadin:cog-o.vaadin:cog.vaadin:cogs.vaadin:coin-piles.vaadin:coins.vaadin:combobox.vaadin:comment-ellipsis-o.vaadin:comment-ellipsis.vaadin:comment-o.vaadin:comment.vaadin:comments-o.vaadin:comments.vaadin:compile.vaadin:compress-square.vaadin:compress.vaadin:connect-o.vaadin:connect.vaadin:controller.vaadin:copy-o.vaadin:copy.vaadin:copyright.vaadin:corner-lower-left.vaadin:corner-lower-right.vaadin:corner-upper-left.vaadin:corner-upper-right.vaadin:credit-card.vaadin:crop.vaadin:cross-cutlery.vaadin:crosshairs.vaadin:css.vaadin:ctrl-a.vaadin:ctrl.vaadin:cube.vaadin:cubes.vaadin:curly-brackets.vaadin:cursor-o.vaadin:cursor.vaadin:cutlery.vaadin:dashboard.vaadin:database.vaadin:date-input.vaadin:deindent.vaadin:del-a.vaadin:del.vaadin:dental-chair.vaadin:desktop.vaadin:diamond-o.vaadin:diamond.vaadin:diploma-scroll.vaadin:diploma.vaadin:disc.vaadin:doctor-briefcase.vaadin:doctor.vaadin:dollar.vaadin:dot-circle.vaadin:download-alt.vaadin:download.vaadin:drop.vaadin:edit.vaadin:eject.vaadin:elastic.vaadin:ellipsis-circle-o.vaadin:ellipsis-circle.vaadin:ellipsis-dots-h.vaadin:ellipsis-dots-v.vaadin:ellipsis-h.vaadin:ellipsis-v.vaadin:enter-arrow.vaadin:enter.vaadin:envelope-o.vaadin:envelope-open-o.vaadin:envelope-open.vaadin:envelope.vaadin:envelopes-o.vaadin:envelopes.vaadin:eraser.vaadin:esc-a.vaadin:esc.vaadin:euro.vaadin:exchange.vaadin:exclamation-circle-o.vaadin:exclamation-circle.vaadin:exclamation.vaadin:exit-o.vaadin:exit.vaadin:expand-full.vaadin:expand-square.vaadin:expand.vaadin:external-browser.vaadin:external-link.vaadin:eye-slash.vaadin:eye.vaadin:eyedropper.vaadin:facebook-square.vaadin:facebook.vaadin:factory.vaadin:family.vaadin:fast-backward.vaadin:fast-forward.vaadin:female.vaadin:file-add.vaadin:file-code.vaadin:file-font.vaadin:file-movie.vaadin:file-o.vaadin:file-picture.vaadin:file-presentation.vaadin:file-process.vaadin:file-refresh.vaadin:file-remove.vaadin:file-search.vaadin:file-sound.vaadin:file-start.vaadin:file-table.vaadin:file-text-o.vaadin:file-text.vaadin:file-tree-small.vaadin:file-tree-sub.vaadin:file-tree.vaadin:file-zip.vaadin:file.vaadin:fill.vaadin:film.vaadin:filter.vaadin:fire.vaadin:flag-checkered.vaadin:flag-o.vaadin:flag.vaadin:flash.vaadin:flask.vaadin:flight-landing.vaadin:flight-takeoff.vaadin:flip-h.vaadin:flip-v.vaadin:folder-add.vaadin:folder-o.vaadin:folder-open-o.vaadin:folder-open.vaadin:folder-remove.vaadin:folder-search.vaadin:folder.vaadin:font.vaadin:form.vaadin:forward.vaadin:frown-o.vaadin:funcion.vaadin:function.vaadin:funnel.vaadin:gamepad.vaadin:gavel.vaadin:gift.vaadin:glass.vaadin:glasses.vaadin:globe-wire.vaadin:globe.vaadin:golf.vaadin:google-plus-square.vaadin:google-plus.vaadin:grab.vaadin:grid-bevel.vaadin:grid-big-o.vaadin:grid-big.vaadin:grid-h.vaadin:grid-small-o.vaadin:grid-small.vaadin:grid-v.vaadin:grid.vaadin:group.vaadin:hammer.vaadin:hand.vaadin:handle-corner.vaadin:hands-up.vaadin:handshake.vaadin:harddrive-o.vaadin:harddrive.vaadin:hash.vaadin:header.vaadin:headphones.vaadin:headset.vaadin:health-card.vaadin:heart-o.vaadin:heart.vaadin:home-o.vaadin:home.vaadin:hospital.vaadin:hourglass-empty.vaadin:hourglass-end.vaadin:hourglass-start.vaadin:hourglass.vaadin:inbox.vaadin:indent.vaadin:info-circle-o.vaadin:info-circle.vaadin:info.vaadin:input.vaadin:insert.vaadin:institution.vaadin:invoice.vaadin:italic.vaadin:key-o.vaadin:key.vaadin:keyboard-o.vaadin:keyboard.vaadin:laptop.vaadin:layout.vaadin:level-down-bold.vaadin:level-down.vaadin:level-left-bold.vaadin:level-left.vaadin:level-right-bold.vaadin:level-right.vaadin:level-up-bold.vaadin:level-up.vaadin:lifebuoy.vaadin:lightbulb.vaadin:line-bar-chart.vaadin:line-chart.vaadin:line-h.vaadin:line-v.vaadin:lines-list.vaadin:lines.vaadin:link.vaadin:list-ol.vaadin:list-select.vaadin:list-ul.vaadin:list.vaadin:location-arrow-circle-o.vaadin:location-arrow-circle.vaadin:location-arrow.vaadin:lock.vaadin:magic.vaadin:magnet.vaadin:mailbox.vaadin:male.vaadin:map-marker.vaadin:margin-bottom.vaadin:margin-left.vaadin:margin-right.vaadin:margin-top.vaadin:margin.vaadin:medal.vaadin:megafone.vaadin:megaphone.vaadin:meh-o.vaadin:menu.vaadin:microphone.vaadin:minus-circle-o.vaadin:minus-circle.vaadin:minus-square-o.vaadin:minus.vaadin:mobile-browser.vaadin:mobile-retro.vaadin:mobile.vaadin:modal-list.vaadin:modal.vaadin:money-deposit.vaadin:money-exchange.vaadin:money-withdraw.vaadin:money.vaadin:moon-o.vaadin:moon.vaadin:morning.vaadin:movie.vaadin:music.vaadin:mute.vaadin:native-button.vaadin:newspaper.vaadin:notebook.vaadin:nurse.vaadin:office.vaadin:open-book.vaadin:option-a.vaadin:option.vaadin:options.vaadin:orientation.vaadin:out.vaadin:outbox.vaadin:package.vaadin:padding-bottom.vaadin:padding-left.vaadin:padding-right.vaadin:padding-top.vaadin:padding.vaadin:paint-roll.vaadin:paintbrush.vaadin:palete.vaadin:palette.vaadin:panel.vaadin:paperclip.vaadin:paperplane-o.vaadin:paperplane.vaadin:paragraph.vaadin:password.vaadin:paste.vaadin:pause.vaadin:pencil.vaadin:phone-landline.vaadin:phone.vaadin:picture.vaadin:pie-bar-chart.vaadin:pie-chart.vaadin:piggy-bank-coin.vaadin:piggy-bank.vaadin:pill.vaadin:pills.vaadin:pin-post.vaadin:pin.vaadin:play-circle-o.vaadin:play-circle.vaadin:play.vaadin:plug.vaadin:plus-circle-o.vaadin:plus-circle.vaadin:plus-minus.vaadin:plus-square-o.vaadin:plus.vaadin:pointer.vaadin:power-off.vaadin:presentation.vaadin:print.vaadin:progressbar.vaadin:puzzle-piece.vaadin:pyramid-chart.vaadin:qrcode.vaadin:question-circle-o.vaadin:question-circle.vaadin:question.vaadin:quote-left.vaadin:quote-right.vaadin:random.vaadin:raster-lower-left.vaadin:raster.vaadin:records.vaadin:recycle.vaadin:refresh.vaadin:reply-all.vaadin:reply.vaadin:resize-h.vaadin:resize-v.vaadin:retweet.vaadin:rhombus.vaadin:road-branch.vaadin:road-branches.vaadin:road-split.vaadin:road.vaadin:rocket.vaadin:rotate-left.vaadin:rotate-right.vaadin:rss-square.vaadin:rss.vaadin:safe-lock.vaadin:safe.vaadin:scale-unbalance.vaadin:scale.vaadin:scatter-chart.vaadin:scissors.vaadin:screwdriver.vaadin:search-minus.vaadin:search-plus.vaadin:search.vaadin:select.vaadin:server.vaadin:share-square.vaadin:share.vaadin:shield.vaadin:shift-arrow.vaadin:shift.vaadin:shop.vaadin:sign-in-alt.vaadin:sign-in.vaadin:sign-out-alt.vaadin:sign-out.vaadin:signal.vaadin:sitemap.vaadin:slider.vaadin:sliders.vaadin:smiley-o.vaadin:sort.vaadin:sound-disable.vaadin:spark-line.vaadin:specialist.vaadin:spinner-arc.vaadin:spinner-third.vaadin:spinner.vaadin:spline-area-chart.vaadin:spline-chart.vaadin:split-h.vaadin:split-v.vaadin:split.vaadin:spoon.vaadin:square-shadow.vaadin:star-half-left-o.vaadin:star-half-left.vaadin:star-half-right-o.vaadin:star-half-right.vaadin:star-o.vaadin:star.vaadin:start-cog.vaadin:step-backward.vaadin:step-forward.vaadin:stethoscope.vaadin:stock.vaadin:stop-cog.vaadin:stop.vaadin:stopwatch.vaadin:storage.vaadin:strikethrough.vaadin:subscript.vaadin:suitcase.vaadin:sun-down.vaadin:sun-o.vaadin:sun-rise.vaadin:superscript.vaadin:sword.vaadin:tab-a.vaadin:tab.vaadin:table.vaadin:tablet.vaadin:tabs.vaadin:tag.vaadin:tags.vaadin:tasks.vaadin:taxi.vaadin:teeth.vaadin:terminal.vaadin:text-height.vaadin:text-input.vaadin:text-label.vaadin:text-width.vaadin:thin-square.vaadin:thumbs-down-o.vaadin:thumbs-down.vaadin:thumbs-up-o.vaadin:thumbs-up.vaadin:ticket.vaadin:time-backward.vaadin:time-forward.vaadin:timer.vaadin:toolbox.vaadin:tools.vaadin:tooth.vaadin:touch.vaadin:train.vaadin:trash.vaadin:tree-table.vaadin:trendind-down.vaadin:trending-down.vaadin:trending-up.vaadin:trophy.vaadin:truck.vaadin:twin-col-select.vaadin:twitter-square.vaadin:twitter.vaadin:umbrella.vaadin:underline.vaadin:unlink.vaadin:unlock.vaadin:upload-alt.vaadin:upload.vaadin:user-card.vaadin:user-check.vaadin:user-clock.vaadin:user-heart.vaadin:user-star.vaadin:user.vaadin:users.vaadin:vaadin-h.vaadin:vaadin-v.vaadin:viewport.vaadin:vimeo-square.vaadin:vimeo.vaadin:volume-down.vaadin:volume-off.vaadin:volume-up.vaadin:volume.vaadin:wallet.vaadin:warning.vaadin:workplace.vaadin:wrench.vaadin:youtube-square.vaadin:youtube`.split(`.`),Sd=null,Cd=()=>(Sd||=Promise.all([D(()=>import(`./vendor-ui5.js`).then(e=>e.n),__vite__mapDeps([5,1])),D(()=>import(`./vendor-ui5.js`).then(e=>e.t),__vite__mapDeps([5,1]))]),Sd),Q=class extends x{constructor(...e){super(...e),this.ui5FieldComponentsReady=!1,this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter=``,this.rendered=!1,this.renderColorPicker=()=>{this.loadUi5FieldComponents();let e=this.field?.fieldId;return E`
             <ui5-color-picker value="${this.state&&e in this.state?this.state[e]:this.field?.initialValue}" @change="${e=>this.colorPickerValue=e.target.value}">Picker</ui5-color-picker>
         `},this.saveColor=()=>{this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:this.colorPickerValue,fieldId:this.field.fieldId},bubbles:!0,composed:!0})),this.colorPickerOpened=!1},this.renderColorPickerFooter=()=>E`<vaadin-button @click="${()=>this.colorPickerOpened=!1}">Cancel</vaadin-button>
-        <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`,this.checked=e=>{let t=e.target;this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t.checked,fieldId:this.field.fieldId},bubbles:!0,composed:!0}))},this.convert=e=>this.field?.dataType==`integer`?Au(e,!0):e,this.multiComboBoxValueChanged=e=>{if(this.rendered){let t=this.field?.fieldId,n=this.state&&t in this.state?this.state[t]:this.field?.initialValue,r;e.detail.value&&(r=e.detail.value.map(e=>e.value),r&&r.length>0&&(this.data[this.id]||(this.data[this.id]={}),this.data[this.id].content||(this.data[this.id].content=[]),this.data[this.id]&&this.data[this.id].content&&e.detail.value.forEach(e=>{this.data[this.id].content?.find(t=>e.value==t.value)||this.data[this.id].content.push(e)}))),this.compareArrays(r,n)||this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.valueChanged=e=>{this.rendered&&e.detail.value!==void 0&&!ju(e.detail.value,this.state[this.field.fieldId])&&this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:this.convert(e.detail.value),fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.selectedItems=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.comboData&&this.comboData.length>0)return this.comboData?.filter(t=>e.indexOf(t.value)>=0);if(this.data[this.id]&&this.data[this.id].content&&this.data[this.id].content.length>0)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0)}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0);return[]},this.selectedIndex=e=>{if(e)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){let t=this.data[this.id].content.find(t=>t.value==e);if(t)return this.data[this.id].content.indexOf(t)}}else{let t=this.field?.options?.find(t=>t.value==e);if(t)return this.field?.options?.indexOf(t)}},this.selectedIndexes=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0).map(e=>this.data[this.id].content.indexOf(e))}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0).map(e=>this.field?.options?.indexOf(e));return[]},this.compareArrays=(e,t)=>this.falsy(e)&&this.falsy(t)||e&&t&&e.length===t.length&&e.every((e,n)=>e===t[n]),this.falsy=e=>!e||e.length==0,this.listItemsSelected=e=>{let t=this.field?.fieldId,n=this.state&&t in this.state?this.state[t]:this.field?.initialValue,r;this.rendered&&(e.detail.value&&(this.field?.remoteCoordinates?this.data[this.id]&&this.data[this.id].content&&(r=e.detail.value.map(e=>this.data[this.id].content[e].value)):r=e.detail.value.map(e=>this.field.options[e].value)),this.compareArrays(r,n)||this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r,fieldId:this.field?.fieldId},bubbles:!0,composed:!0})))},this.listItemSelected=e=>{let t;if(e.detail.value||e.detail.value==0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){let n=this.data[this.id].content[e.detail.value];n&&(t=n.value)}}else{let n=this.field.options[e.detail.value];n&&(t=n.value)}this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.mapPosition=e=>{switch(e){case`topStretch`:return`top-stretch`;case`topStart`:return`top-start`;case`topCenter`:return`top-center`;case`topEnd`:return`top-end`;case`middle`:return`middle`;case`bottomStart`:return`bottom-start`;case`bottomEnd`:return`bottom-end`;case`bottomStretch`:return`bottom-stretch`;case`bottomCenter`:return`bottom-center`}return`bottom-end`},this.helperShownInControl=!1,this.lastAnnouncedError=``,this.controlOwnsValidity=!1,this.fileUploaded=e=>{let t=this.field?.fieldId??``,n=this.state[t];n.push({id:e.detail.xhr.responseText,name:e.detail.file.name}),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:n,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.fileChanged=e=>{let t=this.field?.fieldId??``,n=(e.detail.value??[]).filter(e=>e.id).map(e=>e.id),r=(this.state[t]??[]).map(e=>e.id);if(!this.compareArrays(r,n)){let t=(e.detail.value??[]).filter(e=>e.id).map(e=>({id:e.id,name:e.name}));this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.triggerImageUpload=()=>{(this.renderRoot?.querySelector(`input[type="file"]`))?.click()},this.imageUpload=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>{this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r.result,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},r.readAsDataURL(n),t.value=``},this.imageDelete=()=>{this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:``,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.iconComboboxRenderer=e=>E`
+        <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`,this.checked=e=>{let t=e.target;this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t.checked,fieldId:this.field.fieldId},bubbles:!0,composed:!0}))},this.convert=e=>this.field?.dataType==`integer`?Mu(e,!0):e,this.multiComboBoxValueChanged=e=>{if(this.rendered){let t=this.field?.fieldId,n=this.state&&t in this.state?this.state[t]:this.field?.initialValue,r;e.detail.value&&(r=e.detail.value.map(e=>e.value),r&&r.length>0&&(this.data[this.id]||(this.data[this.id]={}),this.data[this.id].content||(this.data[this.id].content=[]),this.data[this.id]&&this.data[this.id].content&&e.detail.value.forEach(e=>{this.data[this.id].content?.find(t=>e.value==t.value)||this.data[this.id].content.push(e)}))),this.compareArrays(r,n)||this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.valueChanged=e=>{this.rendered&&e.detail.value!==void 0&&!Nu(e.detail.value,this.state[this.field.fieldId])&&this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:this.convert(e.detail.value),fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.selectedItems=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.comboData&&this.comboData.length>0)return this.comboData?.filter(t=>e.indexOf(t.value)>=0);if(this.data[this.id]&&this.data[this.id].content&&this.data[this.id].content.length>0)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0)}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0);return[]},this.selectedIndex=e=>{if(e)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){let t=this.data[this.id].content.find(t=>t.value==e);if(t)return this.data[this.id].content.indexOf(t)}}else{let t=this.field?.options?.find(t=>t.value==e);if(t)return this.field?.options?.indexOf(t)}},this.selectedIndexes=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0).map(e=>this.data[this.id].content.indexOf(e))}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0).map(e=>this.field?.options?.indexOf(e));return[]},this.compareArrays=(e,t)=>this.falsy(e)&&this.falsy(t)||e&&t&&e.length===t.length&&e.every((e,n)=>e===t[n]),this.falsy=e=>!e||e.length==0,this.listItemsSelected=e=>{let t=this.field?.fieldId,n=this.state&&t in this.state?this.state[t]:this.field?.initialValue,r;this.rendered&&(e.detail.value&&(this.field?.remoteCoordinates?this.data[this.id]&&this.data[this.id].content&&(r=e.detail.value.map(e=>this.data[this.id].content[e].value)):r=e.detail.value.map(e=>this.field.options[e].value)),this.compareArrays(r,n)||this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r,fieldId:this.field?.fieldId},bubbles:!0,composed:!0})))},this.listItemSelected=e=>{let t;if(e.detail.value||e.detail.value==0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){let n=this.data[this.id].content[e.detail.value];n&&(t=n.value)}}else{let n=this.field.options[e.detail.value];n&&(t=n.value)}this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.mapPosition=e=>{switch(e){case`topStretch`:return`top-stretch`;case`topStart`:return`top-start`;case`topCenter`:return`top-center`;case`topEnd`:return`top-end`;case`middle`:return`middle`;case`bottomStart`:return`bottom-start`;case`bottomEnd`:return`bottom-end`;case`bottomStretch`:return`bottom-stretch`;case`bottomCenter`:return`bottom-center`}return`bottom-end`},this.helperShownInControl=!1,this.lastAnnouncedError=``,this.controlOwnsValidity=!1,this.fileUploaded=e=>{let t=this.field?.fieldId??``,n=this.state[t];n.push({id:e.detail.xhr.responseText,name:e.detail.file.name}),this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:n,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.fileChanged=e=>{let t=this.field?.fieldId??``,n=(e.detail.value??[]).filter(e=>e.id).map(e=>e.id),r=(this.state[t]??[]).map(e=>e.id);if(!this.compareArrays(r,n)){let t=(e.detail.value??[]).filter(e=>e.id).map(e=>({id:e.id,name:e.name}));this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.triggerImageUpload=()=>{(this.renderRoot?.querySelector(`input[type="file"]`))?.click()},this.imageUpload=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>{this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:r.result,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},r.readAsDataURL(n),t.value=``},this.imageDelete=()=>{this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:``,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.iconComboboxRenderer=e=>E`
   <div style="display: flex;">
       <vaadin-icon
               icon="${e}"
@@ -9273,7 +9270,7 @@ ${i}
 
             </vaadin-horizontal-layout>
                             `:e.label}
-`,this.filteredIcons=[],this.navLinkOffset=null,this.iconFilterChanged=e=>{this.filteredIcons=yd.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}loadUi5FieldComponents(){this.ui5FieldComponentsReady||xd().then(()=>{this.ui5FieldComponentsReady=!0})}remoteComboDataProvider(e){return(t,n)=>{let{filter:i,page:a,pageSize:o}=t,s=i??``;this._comboFilter=s,this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{searchText:i,fieldId:this.field?.fieldId,size:o,page:a,sort:void 0},callback:e=>{if(s===this._comboFilter)if(e?.messages?.forEach(e=>{r.show(e.text,{position:e.position?this.mapPosition(e.position):void 0,theme:e.variant,duration:e.duration})}),!e.fragments||e.fragments.length==0)this.comboData=[],n([],0);else{let t=e.fragments[0].data?.[this.id];this.comboData=t?.content,n(t?.content,t?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}renderNavLink(){let e=this.field?.link;if(!e?.href)return y;let t=M(e.href,this.state,this.data)??e.href,n=M(e.title,this.state,this.data)||t,r=e.icon||(t.startsWith(`http`)?`vaadin:external-link`:`vaadin:link`),i=this.navLinkOffset??`calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)`;return E`<a
+`,this.filteredIcons=[],this.navLinkOffset=null,this.iconFilterChanged=e=>{this.filteredIcons=xd.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}loadUi5FieldComponents(){this.ui5FieldComponentsReady||Cd().then(()=>{this.ui5FieldComponentsReady=!0})}remoteComboDataProvider(e){return(t,n)=>{let{filter:i,page:a,pageSize:o}=t,s=i??``;this._comboFilter=s,this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{searchText:i,fieldId:this.field?.fieldId,size:o,page:a,sort:void 0},callback:e=>{if(s===this._comboFilter)if(e?.messages?.forEach(e=>{r.show(e.text,{position:e.position?this.mapPosition(e.position):void 0,theme:e.variant,duration:e.duration})}),!e.fragments||e.fragments.length==0)this.comboData=[],n([],0);else{let t=e.fragments[0].data?.[this.id];this.comboData=t?.content,n(t?.content,t?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}renderNavLink(){let e=this.field?.link;if(!e?.href)return y;let t=M(e.href,this.state,this.data)??e.href,n=M(e.title,this.state,this.data)||t,r=e.icon||(t.startsWith(`http`)?`vaadin:external-link`:`vaadin:link`),i=this.navLinkOffset??`calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)`;return E`<a
                 data-navlink
                 href="${t}"
                 title="${n}"
@@ -9287,7 +9284,7 @@ ${i}
             ${i?E`
                 <div role="alert"><ul>${r.map(e=>E`<li>${e}</li>`)}</ul></div>
             `:y}
-        </div>`}async firstUpdated(){this.filteredIcons=yd}update(e){e.has(`component`)&&(this.rendered=!1),super.update(e)}updated(e){super.updated(e),this.positionNavLink(),this.applyValidationState(),this.controlOwnsValidity=!!this.validatableControl()}renderField(){let e=this.field?.fieldId??``,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,n=M(this.field?.label+``,this.state,this.data),r=this.labelAlreadyRendered||!n||n==`null`?y:n;return this.field?.propertyRow?this.renderPropertyRowField(e,t,r,n):this.field?.stereotype==`badge`?this.renderBadgeField(e,t,r,n):this.field?.stereotype==`plainText`?this.renderPlainTextField(e,t,r,n):this.field?.stereotype==`bulletedList`?this.renderBulletedListField(e,t,r,n):this.field?.readOnly&&this.field.stereotype!=`grid`&&this.field.dataType!=`status`&&this.field?.dataType!=`money`?this.renderReadOnlyField(e,t,r,n):this.field?.dataType==`file`?this.renderFileField(e,t,r,n):this.field?.dataType==`string`?this.renderStringField(e,t,r,n):this.field?.dataType==`number`?this.renderNumberField(e,t,r,n):this.field?.dataType==`integer`?this.renderIntegerField(e,t,r,n):this.field?.dataType==`bool`||this.field?.dataType==`boolean`?this.renderBoolField(e,t,r,n):this.field?.dataType==`dateRange`?this.renderDateRangeField(e,t,r,n):this.field?.dataType==`date`?this.renderDateField(e,t,r,n):this.field?.dataType==`dateTime`?this.renderDateTimeField(e,t,r,n):this.field?.dataType==`time`?this.renderTimeField(e,t,r,n):this.field?.dataType==`array`?this.renderArrayField(e,t,r,n):this.field?.dataType==`money`?this.renderMoneyField(e,t,r,n):this.field?.dataType==`status`?this.renderStatusField(e,t,r,n):this.field?.dataType==`range`?this.renderRangeField(e,t,r,n):E`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,n,r){if(!this.field)return E``;let i=t===!0||t===`true`;return E`<vaadin-custom-field
+        </div>`}async firstUpdated(){this.filteredIcons=xd}update(e){e.has(`component`)&&(this.rendered=!1),super.update(e)}updated(e){super.updated(e),this.positionNavLink(),this.applyValidationState(),this.controlOwnsValidity=!!this.validatableControl()}renderField(){let e=this.field?.fieldId??``,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,n=M(this.field?.label+``,this.state,this.data),r=this.labelAlreadyRendered||!n||n==`null`?y:n;return this.field?.propertyRow?this.renderPropertyRowField(e,t,r,n):this.field?.stereotype==`badge`?this.renderBadgeField(e,t,r,n):this.field?.stereotype==`plainText`?this.renderPlainTextField(e,t,r,n):this.field?.stereotype==`bulletedList`?this.renderBulletedListField(e,t,r,n):this.field?.readOnly&&this.field.stereotype!=`grid`&&this.field.dataType!=`status`&&this.field?.dataType!=`money`?this.renderReadOnlyField(e,t,r,n):this.field?.dataType==`file`?this.renderFileField(e,t,r,n):this.field?.dataType==`string`?this.renderStringField(e,t,r,n):this.field?.dataType==`number`?this.renderNumberField(e,t,r,n):this.field?.dataType==`integer`?this.renderIntegerField(e,t,r,n):this.field?.dataType==`bool`||this.field?.dataType==`boolean`?this.renderBoolField(e,t,r,n):this.field?.dataType==`dateRange`?this.renderDateRangeField(e,t,r,n):this.field?.dataType==`date`?this.renderDateField(e,t,r,n):this.field?.dataType==`dateTime`?this.renderDateTimeField(e,t,r,n):this.field?.dataType==`time`?this.renderTimeField(e,t,r,n):this.field?.dataType==`array`?this.renderArrayField(e,t,r,n):this.field?.dataType==`money`?this.renderMoneyField(e,t,r,n):this.field?.dataType==`status`?this.renderStatusField(e,t,r,n):this.field?.dataType==`range`?this.renderRangeField(e,t,r,n):E`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,n,r){if(!this.field)return E``;let i=t===!0||t===`true`;return E`<vaadin-custom-field
                     id="${this.field.fieldId}"
                     .helperText="${this.helperText()}"
                     data-colspan="${this.field?.colspan}"
@@ -9775,7 +9772,7 @@ ${i}
                     >
                         <mateu-camera-capture .fieldId="${this.field.fieldId}" .value="${t}"></mateu-camera-capture>
                     </vaadin-custom-field>
-                `;if(this.field?.stereotype==`fileUpload`){let e=Du(this.field.attributes,`accept`);return E`
+                `;if(this.field?.stereotype==`fileUpload`){let e=ku(this.field.attributes,`accept`);return E`
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${n}"
@@ -10225,7 +10222,7 @@ ${i}
             text-overflow: clip;
             height: auto;
         }
-  `}};k([w()],Q.prototype,`ui5FieldComponentsReady`,void 0),k([b()],Q.prototype,`component`,void 0),k([b()],Q.prototype,`field`,void 0),k([b()],Q.prototype,`baseUrl`,void 0),k([b()],Q.prototype,`state`,void 0),k([b()],Q.prototype,`data`,void 0),k([b()],Q.prototype,`appState`,void 0),k([b()],Q.prototype,`appData`,void 0),k([b()],Q.prototype,`labelAlreadyRendered`,void 0),k([w()],Q.prototype,`colorPickerOpened`,void 0),k([w()],Q.prototype,`colorPickerValue`,void 0),k([w()],Q.prototype,`controlOwnsValidity`,void 0),k([w()],Q.prototype,`filteredIcons`,void 0),k([w()],Q.prototype,`navLinkOffset`,void 0),Q=k([_(`mateu-field`)],Q);var Sd=(e,t,n,r,i,a,o,s)=>{let c=t.metadata;return E`
+  `}};k([w()],Q.prototype,`ui5FieldComponentsReady`,void 0),k([b()],Q.prototype,`component`,void 0),k([b()],Q.prototype,`field`,void 0),k([b()],Q.prototype,`baseUrl`,void 0),k([b()],Q.prototype,`state`,void 0),k([b()],Q.prototype,`data`,void 0),k([b()],Q.prototype,`appState`,void 0),k([b()],Q.prototype,`appData`,void 0),k([b()],Q.prototype,`labelAlreadyRendered`,void 0),k([w()],Q.prototype,`colorPickerOpened`,void 0),k([w()],Q.prototype,`colorPickerValue`,void 0),k([w()],Q.prototype,`controlOwnsValidity`,void 0),k([w()],Q.prototype,`filteredIcons`,void 0),k([w()],Q.prototype,`navLinkOffset`,void 0),Q=k([_(`mateu-field`)],Q);var wd=(e,t,n,r,i,a,o,s)=>{let c=t.metadata;return E`
         <mateu-field
                 id="${t.id}"
                 .component="${t}"
@@ -10242,7 +10239,7 @@ ${i}
         >
             ${t.children?.map(t=>P(e,t,n,r,i,a,o,s))}
         </mateu-field>
-    `},Cd=(e,n,r,i,a,o,s)=>{let c=n.metadata;if(c.tree)return E`
+    `},Td=(e,n,r,i,a,o,s)=>{let c=n.metadata;if(c.tree)return E`
         <vaadin-grid style="${n.style}" class="${n.cssClasses}"
                      .itemHasChildrenPath="${`children`}" .dataProvider="${async(e,t)=>{let n=e.parentItem?e.parentItem.children:c.page.content;t(n,n.length)}}"
                      slot="${n.slot??y}"
@@ -10255,7 +10252,7 @@ ${i}
                                 flex-grow="${l?.flexGrow??y}"
                                 width="${l?.width??y}"
                                 .column="${n.metadata}"
-                                ${t((t,n,c)=>fd(t,n,c,l,e,r,i,a,o,s),[])}></vaadin-grid-column>
+                                ${t((t,n,c)=>md(t,n,c,l,e,r,i,a,o,s),[])}></vaadin-grid-column>
 `:E`
             <vaadin-grid-tree-column path="${n.id}"
                                 header="${l?.label??y}"
@@ -10273,9 +10270,9 @@ ${i}
                 .items="${l}"
                 all-rows-visible
         >
-            ${c?.content?.map(t=>ud(t,e,r,i,a,o,s))}
+            ${c?.content?.map(t=>fd(t,e,r,i,a,o,s))}
         </vaadin-grid>
-    `},$=class extends x{constructor(...e){super(...e),this.id=``,this.baseUrl=``,this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this._lastGridHeight=0,this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{let n=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let r=!1;n&&n.content&&(n.content.length>=(e.page+1)*e.pageSize||n.content.length==n.totalElements)&&(t(n.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),n.totalElements),r=!0,this.grid&&this.grid.recalculateColumnWidths()),r||this.pagesRequested.find(t=>t==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent(`fetch-more-elements`,{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{let e=this.metadata?.infiniteScrolling?n?.totalElements:n?.content?.length??0;t(n?.content??[],e),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{let t=e.detail,n=this.identifierFieldName;if(!n||!t.parameters||t.actionId?.startsWith(`action-on-row-`))return;let r=t.parameters[n];r!==void 0&&(this.state._selectedId=String(r),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t=``,{column:n,item:r}=e,i=this.metadata?.columns?.find(e=>e.metadata.id==n?.path);if(i?.metadata){let e=(i?.metadata).tooltipPath;e&&n&&r&&(t=r[e])}return t}}get identifierFieldName(){let e=this.metadata?.columns?.find(e=>e.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(e=>e.metadata?.id===`id`))return`id`}_applyCellPartNameGenerator(){if(!this.grid)return;let e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId,n=!!this.metadata?.groupBy;e&&t!==void 0||n?this.grid.cellPartNameGenerator=(n,r)=>{let i=r.item;return Mu(i)?`mateu-group-row`:e&&t!==void 0&&String(i[e])===String(t)?`selected-row`:``}:this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener(`action-requested`,this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener(`action-requested`,this._onActionRequested),this._resizeObserver?.disconnect(),this._resizeObserver=void 0}firstUpdated(){let e=this.grid;!e||this._resizeObserver||(this._resizeObserver=new ResizeObserver(()=>{let t=e.offsetHeight;t>0&&this._lastGridHeight===0&&requestAnimationFrame(()=>{e.recalculateColumnWidths(),e.requestContentUpdate(),e.notifyResize?.()}),this._lastGridHeight=t}),this._resizeObserver.observe(e))}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.requestContentUpdate(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}navigateToRowRoute(e){let t=(this.shadowRoot?.querySelector(`vaadin-grid`))?.getEventContext?.(e)?.item;if(!t||Mu(t)||e.composedPath().some(e=>e?.tagName&&/^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(e.tagName)))return;let n=on(this.metadata?.rowRoute,t,this.state,this.data);n&&sn(this,n)}render(){let e=this.data[this.id],r=e?.page,i=this.metadata?.groupBy,a=this.metadata?.infiniteScrolling?void 0:r?.content?Pu(r.content,i,e?.groups):r?.content,o=Ru((this.metadata?.columns??[]).flatMap(e=>e.metadata?.type===j.GridGroupColumn?(e.metadata.columns??[]).map(e=>e.metadata):[e.metadata]),e,i),s=``;return this.metadata?.wrapCellContent&&(s+=` wrap-cell-content`),this.metadata?.compact&&(s+=` compact`),this.metadata?.noBorder&&(s+=` no-border`),this.metadata?.noRowBorder&&(s+=` no-row-borders`),this.metadata?.columnBorders&&(s+=` column-borders`),this.metadata?.rowStripes&&(s+=` row-stripes`),E`
+    `},$=class extends x{constructor(...e){super(...e),this.id=``,this.baseUrl=``,this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this._lastGridHeight=0,this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{let n=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let r=!1;n&&n.content&&(n.content.length>=(e.page+1)*e.pageSize||n.content.length==n.totalElements)&&(t(n.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),n.totalElements),r=!0,this.grid&&this.grid.recalculateColumnWidths()),r||this.pagesRequested.find(t=>t==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent(`fetch-more-elements`,{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{let e=this.metadata?.infiniteScrolling?n?.totalElements:n?.content?.length??0;t(n?.content??[],e),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{let t=e.detail,n=this.identifierFieldName;if(!n||!t.parameters||t.actionId?.startsWith(`action-on-row-`))return;let r=t.parameters[n];r!==void 0&&(this.state._selectedId=String(r),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t=``,{column:n,item:r}=e,i=this.metadata?.columns?.find(e=>e.metadata.id==n?.path);if(i?.metadata){let e=(i?.metadata).tooltipPath;e&&n&&r&&(t=r[e])}return t}}get identifierFieldName(){let e=this.metadata?.columns?.find(e=>e.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(e=>e.metadata?.id===`id`))return`id`}_applyCellPartNameGenerator(){if(!this.grid)return;let e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId,n=!!this.metadata?.groupBy;e&&t!==void 0||n?this.grid.cellPartNameGenerator=(n,r)=>{let i=r.item;return Pu(i)?`mateu-group-row`:e&&t!==void 0&&String(i[e])===String(t)?`selected-row`:``}:this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener(`action-requested`,this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener(`action-requested`,this._onActionRequested),this._resizeObserver?.disconnect(),this._resizeObserver=void 0}firstUpdated(){let e=this.grid;!e||this._resizeObserver||(this._resizeObserver=new ResizeObserver(()=>{let t=e.offsetHeight;t>0&&this._lastGridHeight===0&&requestAnimationFrame(()=>{e.recalculateColumnWidths(),e.requestContentUpdate(),e.notifyResize?.()}),this._lastGridHeight=t}),this._resizeObserver.observe(e))}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.requestContentUpdate(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}navigateToRowRoute(e){let t=(this.shadowRoot?.querySelector(`vaadin-grid`))?.getEventContext?.(e)?.item;if(!t||Pu(t)||e.composedPath().some(e=>e?.tagName&&/^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(e.tagName)))return;let n=on(this.metadata?.rowRoute,t,this.state,this.data);n&&sn(this,n)}render(){let e=this.data[this.id],r=e?.page,i=this.metadata?.groupBy,a=this.metadata?.infiniteScrolling?void 0:r?.content?Iu(r.content,i,e?.groups):r?.content,o=Bu((this.metadata?.columns??[]).flatMap(e=>e.metadata?.type===j.GridGroupColumn?(e.metadata.columns??[]).map(e=>e.metadata):[e.metadata]),e,i),s=``;return this.metadata?.wrapCellContent&&(s+=` wrap-cell-content`),this.metadata?.compact&&(s+=` compact`),this.metadata?.noBorder&&(s+=` no-border`),this.metadata?.noRowBorder&&(s+=` no-row-borders`),this.metadata?.columnBorders&&(s+=` column-borders`),this.metadata?.rowStripes&&(s+=` row-stripes`),E`
             <vaadin-grid
                     .items="${a}"
                     item-id-path="_rowNumber"
@@ -10287,8 +10284,8 @@ ${i}
                     .dataProvider="${this.metadata?.infiniteScrolling?this.dataProvider:void 0}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
-                    @selected-items-changed="${e=>{let t=(e.detail.value??[]).filter(e=>!Mu(e));this.emptyArray(this.state[this.id+`_selected_items`])&&this.emptyArray(t)||(this.state[this.id+`_selected_items`]=t,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
-                    @active-item-changed="${C(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?e=>{let t=e.detail.value;t&&Mu(t)||(this.detailsOpenedItems=t?[t]:[])}:void 0)}"
+                    @selected-items-changed="${e=>{let t=(e.detail.value??[]).filter(e=>!Pu(e));this.emptyArray(this.state[this.id+`_selected_items`])&&this.emptyArray(t)||(this.state[this.id+`_selected_items`]=t,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
+                    @active-item-changed="${C(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?e=>{let t=e.detail.value;t&&Pu(t)||(this.detailsOpenedItems=t?[t]:[])}:void 0)}"
                     @click="${C(this.metadata?.rowRoute?e=>this.navigateToRowRoute(e):void 0)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
                     ${C(this.metadata?.detailPath?n(e=>this.renderRowDetail(e[this.metadata?.detailPath])):void 0)}
@@ -10298,7 +10295,7 @@ ${i}
                 ${this.metadata?.rowsSelectionEnabled?E`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:y}
-                ${this.metadata?.columns?.map(e=>ud(e,this,this.baseUrl,this.state,this.data,this.appState,this.appData,o))}
+                ${this.metadata?.columns?.map(e=>fd(e,this,this.baseUrl,this.state,this.data,this.appState,this.appData,o))}
                 ${this.metadata?.useButtonForDetail?E`
                     <vaadin-grid-column
                             width="44px"
@@ -10344,7 +10341,7 @@ ${i}
             background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));
             font-weight: 600;
         }
-  `}};k([b()],$.prototype,`id`,void 0),k([b()],$.prototype,`metadata`,void 0),k([b()],$.prototype,`baseUrl`,void 0),k([b()],$.prototype,`state`,void 0),k([b()],$.prototype,`data`,void 0),k([b()],$.prototype,`appState`,void 0),k([b()],$.prototype,`appData`,void 0),k([b()],$.prototype,`emptyStateMessage`,void 0),k([w()],$.prototype,`detailsOpenedItems`,void 0),k([S(`vaadin-grid`)],$.prototype,`grid`,void 0),$=k([_(`mateu-table`)],$);var wd=(e,t,n,r,i,a,o)=>E`
+  `}};k([b()],$.prototype,`id`,void 0),k([b()],$.prototype,`metadata`,void 0),k([b()],$.prototype,`baseUrl`,void 0),k([b()],$.prototype,`state`,void 0),k([b()],$.prototype,`data`,void 0),k([b()],$.prototype,`appState`,void 0),k([b()],$.prototype,`appData`,void 0),k([b()],$.prototype,`emptyStateMessage`,void 0),k([w()],$.prototype,`detailsOpenedItems`,void 0),k([S(`vaadin-grid`)],$.prototype,`grid`,void 0),$=k([_(`mateu-table`)],$);var Ed=(e,t,n,r,i,a,o)=>E`
     <mateu-table
             id="${t.id}"
             baseUrl="${n}"
@@ -10357,7 +10354,7 @@ ${i}
             slot="${t.slot??y}"
     >
         ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
-    </mateu-table>`,Td=(e,t,n,r,i,a)=>E`
+    </mateu-table>`,Dd=(e,t,n,r,i,a)=>E`
     <mateu-table id="${e.id}"
                  .metadata="${t?.metadata}"
                  .data="${e.data}"
@@ -10368,7 +10365,7 @@ ${i}
                  @sort-direction-changed="${e.directionChanged}"
                  @fetch-more-elements="${e.fetchMoreElements}"
                  baseUrl="${n}"
-    ></mateu-table>`,Ed=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
+    ></mateu-table>`,Od=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
         <div id="show-notifications" slot="${t.slot??y}">${P(e,s.wrapped,n,r,i,a,o)}</div>
         <vaadin-popover
                 for="show-notifications"
@@ -10380,14 +10377,14 @@ ${i}
                 ${h(()=>E`${P(e,s.content,n,r,i,a,o)}`,[])}
                 style="${t.style}" class="${t.cssClasses}"
         ></vaadin-popover>
-    `},Dd=(e,t,n)=>{let r=e;return E`
+    `},kd=(e,t,n)=>{let r=e;return E`
         <vaadin-button
                 data-action-id="${r.id}"
                 theme="${ln(e)||y}"
                 @click="${n}"
                 ?disabled="${r.disabled}"
         >${r.iconOnLeft?E`<vaadin-icon icon="${r.iconOnLeft}"></vaadin-icon>`:y}${t}${r.iconOnRight?E`<vaadin-icon icon="${r.iconOnRight}"></vaadin-icon>`:y}</vaadin-button>
-    `},Od=e=>E`
+    `},Ad=e=>E`
     <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
         <vaadin-button theme="tertiary icon" class="peer-nav-prev" title="${e.prevLabel??`Previous`}"
                 ?disabled="${!e.prevRoute}"
@@ -10399,7 +10396,7 @@ ${i}
                 @click="${()=>{e.nextRoute&&(window.location.href=e.nextRoute)}}">
             <vaadin-icon icon="vaadin:angle-right"></vaadin-icon>
         </vaadin-button>
-    </div>`,kd={"vaadin:wifi":`vaadin:connect`,"vaadin:pen":`vaadin:pencil`,"vaadin:automation":`vaadin:cogs`},Ad=(e,t,n)=>E`<vaadin-icon icon="${kd[e]??e}" style="${t??y}" class="${n??y}"></vaadin-icon>`,jd=(e,t,n)=>{let r=e.metadata,i=M(r.label,t,n),a=``;return r.buttonStyle&&(a+=` `+r.buttonStyle),r.color&&r.color!==`none`&&r.color!==`normal`&&(a+=` `+r.color),r.size&&r.size!==`none`&&r.size!==`normal`&&(a+=` `+r.size),E`<vaadin-button
+    </div>`,jd={"vaadin:wifi":`vaadin:connect`,"vaadin:pen":`vaadin:pencil`,"vaadin:automation":`vaadin:cogs`},Md=(e,t,n)=>E`<vaadin-icon icon="${jd[e]??e}" style="${t??y}" class="${n??y}"></vaadin-icon>`,Nd=(e,t,n)=>{let r=e.metadata,i=M(r.label,t,n),a=``;return r.buttonStyle&&(a+=` `+r.buttonStyle),r.color&&r.color!==`none`&&r.color!==`normal`&&(a+=` `+r.color),r.size&&r.size!==`none`&&r.size!==`normal`&&(a+=` `+r.size),E`<vaadin-button
             id="${e.id}"
             data-action-id="${r.actionId}"
             data-route="${ti(r,t,n)??y}"
@@ -10410,20 +10407,20 @@ ${i}
             ?disabled="${r.disabled}"
             title="${r.shortcut?`${i} (${$r(r.shortcut)})`:y}"
             slot="${e.slot??y}"
-    >${r.iconOnLeft?E`<vaadin-icon icon="${r.iconOnLeft}"></vaadin-icon>`:y}${i}${r.iconOnRight?E`<vaadin-icon icon="${r.iconOnRight}"></vaadin-icon>`:y}</vaadin-button>`},Md=e=>{let t=e.metadata;return E`
+    >${r.iconOnLeft?E`<vaadin-icon icon="${r.iconOnLeft}"></vaadin-icon>`:y}${i}${r.iconOnRight?E`<vaadin-icon icon="${r.iconOnRight}"></vaadin-icon>`:y}</vaadin-button>`},Pd=e=>{let t=e.metadata;return E`
         <vaadin-message-input
                 style="${e.style}" class="${e.cssClasses}"
                 slot="${e.slot??y}"
                 @submit="${e=>{let n=e.detail?.value??``;!t.actionId||!n.trim()||e.currentTarget.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:{message:n}},bubbles:!0,composed:!0}))}}"
         ></vaadin-message-input>
-    `},Nd=e=>{let t=(e.metadata.items??[]).map(e=>({text:e.text,time:e.time,userName:e.userName,userImg:e.userImg,userAbbr:e.userAbbr,userColorIndex:e.userColorIndex}));return E`
+    `},Fd=e=>{let t=(e.metadata.items??[]).map(e=>({text:e.text,time:e.time,userName:e.userName,userImg:e.userImg,userAbbr:e.userAbbr,userColorIndex:e.userColorIndex}));return E`
         <vaadin-message-list
                 markdown
                 style="${e.style}" class="${e.cssClasses}"
                 slot="${e.slot??y}"
                 .items="${t}"
         ></vaadin-message-list>
-    `},Pd=(e,t)=>{e&&e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},Fd=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=!1;if(s.openedCondition)try{c=Gt(s.openedCondition,r,i,a,o)}catch(e){console.error(`when evaluating `+s.openedCondition+` :`+e+`, where data is `+i+` and state is `+r)}return E`
+    `},Id=(e,t)=>{e&&e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},Ld=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=!1;if(s.openedCondition)try{c=Gt(s.openedCondition,r,i,a,o)}catch(e){console.error(`when evaluating `+s.openedCondition+` :`+e+`, where data is `+i+` and state is `+r)}return E`
         <vaadin-confirm-dialog
                 header="${s.header}"
                 ?cancel-button-visible="${s.canCancel}"
@@ -10431,15 +10428,15 @@ ${i}
                 reject-text="${s.rejectText}"
                 confirm-text="${s.confirmText}"
                 .opened="${c}"
-                @confirm="${e=>Pd(e.currentTarget,s.confirmActionId)}"
-                @reject="${e=>Pd(e.currentTarget,s.rejectActionId)}"
-                @cancel="${e=>Pd(e.currentTarget,s.cancelActionId)}"
+                @confirm="${e=>Id(e.currentTarget,s.confirmActionId)}"
+                @reject="${e=>Id(e.currentTarget,s.rejectActionId)}"
+                @cancel="${e=>Id(e.currentTarget,s.cancelActionId)}"
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??y}"
         >
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </vaadin-confirm-dialog>
-    `},Id=class extends x{constructor(...e){super(...e),this.panels=[],this.headerTitle=``,this.badges=[],this.navigation=null,this.overviewEditActionId=``,this._raf=0,this._snapping=!1,this._less=!1,this._more=!1,this._onScroll=()=>{this._raf||=requestAnimationFrame(()=>{this._raf=0,this._syncPin()})},this._onScrollEnd=()=>{this._snapping||this._snapToNearest()},this._fit=()=>{let e=this.getBoundingClientRect().top;this.style.setProperty(`--mateu-foldout-fill`,`${Math.max(240,window.innerHeight-e)}px`),this._syncPin()},this._onKeydown=e=>{if(e.key!==`ArrowRight`&&e.key!==`ArrowLeft`||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||this._isEditingContext())return;let t=this._rail;!t||t.scrollWidth<=t.clientWidth||(e.preventDefault(),this._step(e.key===`ArrowRight`?1:-1))}}navAction(e){e&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{}},bubbles:!0,composed:!0}))}_stride(){let e=this.renderRoot.querySelectorAll(`.section`);return e.length>1?e[1].offsetLeft:this._rail?.clientWidth??0}_boundaries(){let e=this._rail;if(!e)return[];let t=e.scrollWidth-e.clientWidth,n=[...this.renderRoot.querySelectorAll(`.section`)].map(e=>Math.max(0,Math.min(e.offsetLeft,t)));return[...new Set(n)]}_snapToNearest(){let e=this._rail;if(!e)return;let t=this._boundaries();if(!t.length)return;let n=t.reduce((t,n)=>Math.abs(n-e.scrollLeft)<Math.abs(t-e.scrollLeft)?n:t);Math.abs(n-e.scrollLeft)<1||(this._snapping=!0,e.scrollTo({left:n,behavior:`smooth`}),window.setTimeout(()=>{this._snapping=!1},400))}_syncPin(){let e=this._rail,t=this._first;if(!e||!t)return;let n=this._stride(),r=Math.min(e.scrollLeft,n);t.style.transform=r?`translateX(${r}px)`:``,t.classList.toggle(`floating`,e.scrollLeft>0);let i=e.scrollWidth-e.clientWidth,a=i>32;this._less=a&&e.scrollLeft>2,this._more=a&&e.scrollLeft<i-2}_step(e){let t=this._rail;if(!t)return;let n=this._boundaries();if(!n.length)return;let r=n.reduce((e,r,i)=>Math.abs(r-t.scrollLeft)<Math.abs(n[e]-t.scrollLeft)?i:e,0),i=n[Math.max(0,Math.min(r+e,n.length-1))];this._snapping=!0,t.scrollTo({left:i,behavior:`smooth`}),window.setTimeout(()=>{this._snapping=!1},400)}_isEditingContext(){let e=document.activeElement;for(;e&&e.shadowRoot&&e.shadowRoot.activeElement;)e=e.shadowRoot.activeElement;if(!e)return!1;let t=e.tagName;return t===`INPUT`||t===`TEXTAREA`||t===`SELECT`||e.isContentEditable}_sectionFlex(e,t){if(!e.width)return y;let n=parseFloat(e.width)||1;return t===this.panels.length-1&&n<22?`flex: 22 1 var(--mateu-foldout-overview-width, 22rem);`:`flex: ${n} 1 ${e.width};`}firstUpdated(){this._fit(),this._resizeObserver=new ResizeObserver(()=>this._syncPin()),this._rail&&this._resizeObserver.observe(this._rail);for(let e of this.renderRoot.querySelectorAll(`.section`))this._resizeObserver.observe(e)}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this._onKeydown),window.addEventListener(`resize`,this._fit)}disconnectedCallback(){document.removeEventListener(`keydown`,this._onKeydown),window.removeEventListener(`resize`,this._fit),this._resizeObserver?.disconnect(),this._resizeObserver=void 0,this._raf&&=(cancelAnimationFrame(this._raf),0),super.disconnectedCallback()}static{this.styles=g`
+    `},Rd=class extends x{constructor(...e){super(...e),this.panels=[],this.headerTitle=``,this.badges=[],this.navigation=null,this.overviewEditActionId=``,this._raf=0,this._snapping=!1,this._less=!1,this._more=!1,this._onScroll=()=>{this._raf||=requestAnimationFrame(()=>{this._raf=0,this._syncPin()})},this._onScrollEnd=()=>{this._snapping||this._snapToNearest()},this._fit=()=>{let e=this.getBoundingClientRect().top;this.style.setProperty(`--mateu-foldout-fill`,`${Math.max(240,window.innerHeight-e)}px`),this._syncPin()},this._onKeydown=e=>{if(e.key!==`ArrowRight`&&e.key!==`ArrowLeft`||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||this._isEditingContext())return;let t=this._rail;!t||t.scrollWidth<=t.clientWidth||(e.preventDefault(),this._step(e.key===`ArrowRight`?1:-1))}}navAction(e){e&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{}},bubbles:!0,composed:!0}))}_stride(){let e=this.renderRoot.querySelectorAll(`.section`);return e.length>1?e[1].offsetLeft:this._rail?.clientWidth??0}_boundaries(){let e=this._rail;if(!e)return[];let t=e.scrollWidth-e.clientWidth,n=[...this.renderRoot.querySelectorAll(`.section`)].map(e=>Math.max(0,Math.min(e.offsetLeft,t)));return[...new Set(n)]}_snapToNearest(){let e=this._rail;if(!e)return;let t=this._boundaries();if(!t.length)return;let n=t.reduce((t,n)=>Math.abs(n-e.scrollLeft)<Math.abs(t-e.scrollLeft)?n:t);Math.abs(n-e.scrollLeft)<1||(this._snapping=!0,e.scrollTo({left:n,behavior:`smooth`}),window.setTimeout(()=>{this._snapping=!1},400))}_syncPin(){let e=this._rail,t=this._first;if(!e||!t)return;let n=this._stride(),r=Math.min(e.scrollLeft,n);t.style.transform=r?`translateX(${r}px)`:``,t.classList.toggle(`floating`,e.scrollLeft>0);let i=e.scrollWidth-e.clientWidth,a=i>32;this._less=a&&e.scrollLeft>2,this._more=a&&e.scrollLeft<i-2}_step(e){let t=this._rail;if(!t)return;let n=this._boundaries();if(!n.length)return;let r=n.reduce((e,r,i)=>Math.abs(r-t.scrollLeft)<Math.abs(n[e]-t.scrollLeft)?i:e,0),i=n[Math.max(0,Math.min(r+e,n.length-1))];this._snapping=!0,t.scrollTo({left:i,behavior:`smooth`}),window.setTimeout(()=>{this._snapping=!1},400)}_isEditingContext(){let e=document.activeElement;for(;e&&e.shadowRoot&&e.shadowRoot.activeElement;)e=e.shadowRoot.activeElement;if(!e)return!1;let t=e.tagName;return t===`INPUT`||t===`TEXTAREA`||t===`SELECT`||e.isContentEditable}_sectionFlex(e,t){if(!e.width)return y;let n=parseFloat(e.width)||1;return t===this.panels.length-1&&n<22?`flex: 22 1 var(--mateu-foldout-overview-width, 22rem);`:`flex: ${n} 1 ${e.width};`}firstUpdated(){this._fit(),this._resizeObserver=new ResizeObserver(()=>this._syncPin()),this._rail&&this._resizeObserver.observe(this._rail);for(let e of this.renderRoot.querySelectorAll(`.section`))this._resizeObserver.observe(e)}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this._onKeydown),window.addEventListener(`resize`,this._fit)}disconnectedCallback(){document.removeEventListener(`keydown`,this._onKeydown),window.removeEventListener(`resize`,this._fit),this._resizeObserver?.disconnect(),this._resizeObserver=void 0,this._raf&&=(cancelAnimationFrame(this._raf),0),super.disconnectedCallback()}static{this.styles=g`
         :host {
             position: relative;
             display: flex;
@@ -10700,7 +10697,7 @@ ${i}
                     </svg>
                 </button>
             `:y}
-        `}};k([b({type:Array})],Id.prototype,`panels`,void 0),k([b({type:String})],Id.prototype,`headerTitle`,void 0),k([b({type:Array})],Id.prototype,`badges`,void 0),k([b({attribute:!1})],Id.prototype,`navigation`,void 0),k([b({type:String})],Id.prototype,`overviewEditActionId`,void 0),k([S(`.rail`)],Id.prototype,`_rail`,void 0),k([S(`.section--first`)],Id.prototype,`_first`,void 0),k([w()],Id.prototype,`_less`,void 0),k([w()],Id.prototype,`_more`,void 0),Id=k([_(`mateu-vaadin-foldout`)],Id);var Ld=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
+        `}};k([b({type:Array})],Rd.prototype,`panels`,void 0),k([b({type:String})],Rd.prototype,`headerTitle`,void 0),k([b({type:Array})],Rd.prototype,`badges`,void 0),k([b({attribute:!1})],Rd.prototype,`navigation`,void 0),k([b({type:String})],Rd.prototype,`overviewEditActionId`,void 0),k([S(`.rail`)],Rd.prototype,`_rail`,void 0),k([S(`.section--first`)],Rd.prototype,`_first`,void 0),k([w()],Rd.prototype,`_less`,void 0),k([w()],Rd.prototype,`_more`,void 0),Rd=k([_(`mateu-vaadin-foldout`)],Rd);var zd=(e,t,n,r,i,a,o)=>{let s=t.metadata;return E`
         <mateu-vaadin-foldout
                 .panels="${s.panels??[]}"
                 .headerTitle="${s.headerTitle??``}"
@@ -10713,7 +10710,7 @@ ${i}
         >
             ${t.children?.map(t=>P(e,t,n,r,i,a,o))}
         </mateu-vaadin-foldout>
-    `},Rd=class extends x{constructor(...e){super(...e),this.rows=[],this.columns=[],this.navigable=!1,this.expandedItems=[],this._normalized=[],this.dataProvider=(e,t)=>{let n=e.parentItem?e.parentItem.children??[]:this.normalized;t(n,n.length)}}get normalized(){return this._src!==this.rows&&(this._src=this.rows,this._normalized=this.normalizeRows(this.rows??[])),this._normalized}normalizeRows(e){return(e??[]).map(e=>{let t=Array.isArray(e.children)&&e.children.length?this.normalizeRows(e.children):void 0;return{...e,children:t}})}collectGroups(e,t=[]){return e.forEach(e=>{e.children&&e.children.length&&(t.push(e),this.collectGroups(e.children,t))}),t}willUpdate(){this._expandedSrc!==this.rows&&(this._expandedSrc=this.rows,this.expandedItems=this.collectGroups(this.normalized))}updated(e){e.has(`rows`)&&this._grid?.clearCache?.()}dispatch(e,t){this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:t},bubbles:!0,composed:!0}))}render(){let e=this.columns??[],n=e[0],r=e.slice(1);return E`
+    `},Bd=class extends x{constructor(...e){super(...e),this.rows=[],this.columns=[],this.navigable=!1,this.expandedItems=[],this._normalized=[],this.dataProvider=(e,t)=>{let n=e.parentItem?e.parentItem.children??[]:this.normalized;t(n,n.length)}}get normalized(){return this._src!==this.rows&&(this._src=this.rows,this._normalized=this.normalizeRows(this.rows??[])),this._normalized}normalizeRows(e){return(e??[]).map(e=>{let t=Array.isArray(e.children)&&e.children.length?this.normalizeRows(e.children):void 0;return{...e,children:t}})}collectGroups(e,t=[]){return e.forEach(e=>{e.children&&e.children.length&&(t.push(e),this.collectGroups(e.children,t))}),t}willUpdate(){this._expandedSrc!==this.rows&&(this._expandedSrc=this.rows,this.expandedItems=this.collectGroups(this.normalized))}updated(e){e.has(`rows`)&&this._grid?.clearCache?.()}dispatch(e,t){this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:t},bubbles:!0,composed:!0}))}render(){let e=this.columns??[],n=e[0],r=e.slice(1);return E`
             <vaadin-grid
                     theme="compact no-row-borders"
                     all-rows-visible
@@ -10743,11 +10740,11 @@ ${i}
             max-height: min(60vh, 32rem);
             min-width: 22rem;
         }
-    `}};k([b({attribute:!1})],Rd.prototype,`rows`,void 0),k([b({attribute:!1})],Rd.prototype,`columns`,void 0),k([b()],Rd.prototype,`idField`,void 0),k([b({type:Boolean})],Rd.prototype,`navigable`,void 0),k([b()],Rd.prototype,`selectedId`,void 0),k([w()],Rd.prototype,`expandedItems`,void 0),k([S(`vaadin-grid`)],Rd.prototype,`_grid`,void 0),Rd=k([_(`mateu-vaadin-tree`)],Rd);var zd={[j.VirtualList]:(e,t,n,r,i,a,o)=>ql(e,t,n,r,i,a,o),[j.Notification]:(e,t)=>Jl(t),[j.ProgressBar]:(e,t,n,r)=>Yl(t,r),[j.Details]:(e,t,n,r,i,a,o)=>Xl(e,t,n,r,i,a,o),[j.Avatar]:(e,t,n,r,i)=>Zl(t,r,i),[j.AvatarGroup]:(e,t)=>Ql(t),[j.Card]:(e,t,n,r,i,a,o)=>$l(e,t,n,r,i,a,o),[j.Button]:(e,t,n,r,i)=>jd(t,r,i),[j.MessageInput]:(e,t)=>Md(t),[j.MessageList]:(e,t)=>Nd(t),[j.ConfirmDialog]:(e,t,n,r,i,a,o)=>Fd(e,t,n,r,i,a,o),[j.FormLayout]:(e,t,n,r,i,a,o)=>nu(e,t,n,r,i,a,o),[j.HorizontalLayout]:(e,t,n,r,i,a,o)=>ou(e,t,n,r,i,a,o),[j.VerticalLayout]:(e,t,n,r,i,a,o)=>su(e,t,n,r,i,a,o),[j.SplitLayout]:(e,t,n,r,i,a,o)=>cu(e,t,n,r,i,a,o),[j.MasterDetailLayout]:(e,t,n,r,i,a,o)=>lu(e,t,n,r,i,a,o),[j.TabLayout]:(e,t,n,r,i,a,o)=>uu(e,t,n,r,i,a,o),[j.AccordionLayout]:(e,t,n,r,i,a,o)=>fu(e,t,n,r,i,a,o),[j.BoardLayout]:(e,t,n,r,i,a,o)=>hu(e,t,n,r,i,a,o),[j.BoardLayoutRow]:(e,t,n,r,i,a,o)=>gu(e,t,n,r,i,a,o),[j.BoardLayoutItem]:(e,t,n,r,i,a,o)=>_u(e,t,n,r,i,a,o),[j.Scroller]:(e,t,n,r,i,a,o)=>mu(e,t,n,r,i,a,o),[j.MenuBar]:(e,t,n,r,i)=>bu(e,t,n,r,i),[j.ContextMenu]:(e,t,n,r,i,a,o)=>yu(e,t,n,r,i,a,o),[j.FormField]:(e,t,n,r,i,a,o,s)=>Sd(e,t,n,r,i,a,o,s),[j.Grid]:(e,t,n,r,i,a,o)=>Cd(e,t,n,r,i,a,o),[j.Table]:(e,t,n,r,i,a,o)=>wd(e,t,n,r,i,a,o),[j.Popover]:(e,t,n,r,i,a,o)=>Ed(e,t,n,r,i,a,o),[j.FoldoutLayout]:(e,t,n,r,i,a,o)=>Ld(e,t,n,r,i,a,o)},Bd=class extends Kl{rendererName(){return`vaadin`}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type,l=c?zd[c]:void 0;return l&&t?l(e,t,n,r,i,a,o,s):super.renderClientSideComponent(e,t,n,r,i,a,o,s)}renderTableComponent(e,t,n,r,i,a,o){return Td(e,t,n,r,a,o)}renderTreeComponent(e,t){return E`
+    `}};k([b({attribute:!1})],Bd.prototype,`rows`,void 0),k([b({attribute:!1})],Bd.prototype,`columns`,void 0),k([b()],Bd.prototype,`idField`,void 0),k([b({type:Boolean})],Bd.prototype,`navigable`,void 0),k([b()],Bd.prototype,`selectedId`,void 0),k([w()],Bd.prototype,`expandedItems`,void 0),k([S(`vaadin-grid`)],Bd.prototype,`_grid`,void 0),Bd=k([_(`mateu-vaadin-tree`)],Bd);var Vd={[j.VirtualList]:(e,t,n,r,i,a,o)=>Yl(e,t,n,r,i,a,o),[j.Notification]:(e,t)=>Xl(t),[j.ProgressBar]:(e,t,n,r)=>Zl(t,r),[j.Details]:(e,t,n,r,i,a,o)=>Ql(e,t,n,r,i,a,o),[j.Avatar]:(e,t,n,r,i)=>$l(t,r,i),[j.AvatarGroup]:(e,t)=>eu(t),[j.Card]:(e,t,n,r,i,a,o)=>tu(e,t,n,r,i,a,o),[j.Button]:(e,t,n,r,i)=>Nd(t,r,i),[j.MessageInput]:(e,t)=>Pd(t),[j.MessageList]:(e,t)=>Fd(t),[j.ConfirmDialog]:(e,t,n,r,i,a,o)=>Ld(e,t,n,r,i,a,o),[j.FormLayout]:(e,t,n,r,i,a,o)=>iu(e,t,n,r,i,a,o),[j.HorizontalLayout]:(e,t,n,r,i,a,o)=>cu(e,t,n,r,i,a,o),[j.VerticalLayout]:(e,t,n,r,i,a,o)=>lu(e,t,n,r,i,a,o),[j.SplitLayout]:(e,t,n,r,i,a,o)=>uu(e,t,n,r,i,a,o),[j.MasterDetailLayout]:(e,t,n,r,i,a,o)=>du(e,t,n,r,i,a,o),[j.TabLayout]:(e,t,n,r,i,a,o)=>fu(e,t,n,r,i,a,o),[j.AccordionLayout]:(e,t,n,r,i,a,o)=>mu(e,t,n,r,i,a,o),[j.BoardLayout]:(e,t,n,r,i,a,o)=>_u(e,t,n,r,i,a,o),[j.BoardLayoutRow]:(e,t,n,r,i,a,o)=>vu(e,t,n,r,i,a,o),[j.BoardLayoutItem]:(e,t,n,r,i,a,o)=>yu(e,t,n,r,i,a,o),[j.Scroller]:(e,t,n,r,i,a,o)=>gu(e,t,n,r,i,a,o),[j.MenuBar]:(e,t,n,r,i)=>Su(e,t,n,r,i),[j.ContextMenu]:(e,t,n,r,i,a,o)=>xu(e,t,n,r,i,a,o),[j.FormField]:(e,t,n,r,i,a,o,s)=>wd(e,t,n,r,i,a,o,s),[j.Grid]:(e,t,n,r,i,a,o)=>Td(e,t,n,r,i,a,o),[j.Table]:(e,t,n,r,i,a,o)=>Ed(e,t,n,r,i,a,o),[j.Popover]:(e,t,n,r,i,a,o)=>Od(e,t,n,r,i,a,o),[j.FoldoutLayout]:(e,t,n,r,i,a,o)=>zd(e,t,n,r,i,a,o)},Hd=class extends Jl{rendererName(){return`vaadin`}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type,l=c?Vd[c]:void 0;return l&&t?l(e,t,n,r,i,a,o,s):super.renderClientSideComponent(e,t,n,r,i,a,o,s)}renderTableComponent(e,t,n,r,i,a,o){return Dd(e,t,n,r,a,o)}renderTreeComponent(e,t){return E`
             <mateu-vaadin-tree
                     .rows="${t.rows}"
                     .columns="${t.columns}"
                     .idField="${t.idField}"
                     .navigable="${t.navigable}"
                     .selectedId="${t.selectedId}"
-            ></mateu-vaadin-tree>`}renderToolbarButton(e,t,n){return Dd(e,t,n)}renderPeerNav(e){return Od(e)}renderIcon(e,t,n){return Ad(e,t,n)}renderTopNav(e,t,n){return vu(e,t,n)}};function Vd(e){switch(e){case`topStretch`:return`top-stretch`;case`topStart`:return`top-start`;case`topCenter`:return`top-center`;case`topEnd`:return`top-end`;case`middle`:return`middle`;case`bottomStart`:return`bottom-start`;case`bottomEnd`:return`bottom-end`;case`bottomStretch`:return`bottom-stretch`;case`bottomCenter`:return`bottom-center`}return`bottom-end`}function Hd(e,t){if(e.onAction)return{label:e.actionLabel??`Retry`,run:e.onAction};if(e.undoActionId)return{label:e.undoLabel??`Undo`,run:()=>t.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.undoActionId,parameters:e.undoParameters??{}},bubbles:!0,composed:!0}))}}function Ud(e,t){let n=new r;n.position=Vd(e.position),n.duration=e.duration??1e4,e.variant&&n.setAttribute(`theme`,e.variant),n.renderer=r=>{if(r.firstElementChild)return;let i=document.createElement(`span`);i.textContent=e.text;let a=Hd(e,t),o=document.createElement(`button`);o.textContent=a.label,o.style.cssText=`margin-left: 0.75rem; background: none; border: 1px solid currentColor; border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer; padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;`,o.addEventListener(`click`,()=>{a.run(),n.opened=!1}),r.append(i,o)},document.body.appendChild(n),n.opened=!0,n.addEventListener(`opened-changed`,e=>{e.detail.value||n.remove()})}N.set(new Bd),$o({show(e,t){if(Rt(e.text,{politeness:e.variant===`error`?`assertive`:`polite`}),e.undoActionId||e.onAction){Ud(e,t);return}r.show(e.text,{position:e.position?Vd(e.position):`bottom-end`,theme:e.variant,duration:e.duration})}});
+            ></mateu-vaadin-tree>`}renderToolbarButton(e,t,n){return kd(e,t,n)}renderPeerNav(e){return Ad(e)}renderIcon(e,t,n){return Md(e,t,n)}renderTopNav(e,t,n){return bu(e,t,n)}};function Ud(e){switch(e){case`topStretch`:return`top-stretch`;case`topStart`:return`top-start`;case`topCenter`:return`top-center`;case`topEnd`:return`top-end`;case`middle`:return`middle`;case`bottomStart`:return`bottom-start`;case`bottomEnd`:return`bottom-end`;case`bottomStretch`:return`bottom-stretch`;case`bottomCenter`:return`bottom-center`}return`bottom-end`}function Wd(e,t){if(e.onAction)return{label:e.actionLabel??`Retry`,run:e.onAction};if(e.undoActionId)return{label:e.undoLabel??`Undo`,run:()=>t.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.undoActionId,parameters:e.undoParameters??{}},bubbles:!0,composed:!0}))}}function Gd(e,t){let n=new r;n.position=Ud(e.position),n.duration=e.duration??1e4,e.variant&&n.setAttribute(`theme`,e.variant),n.renderer=r=>{if(r.firstElementChild)return;let i=document.createElement(`span`);i.textContent=e.text;let a=Wd(e,t),o=document.createElement(`button`);o.textContent=a.label,o.style.cssText=`margin-left: 0.75rem; background: none; border: 1px solid currentColor; border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer; padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;`,o.addEventListener(`click`,()=>{a.run(),n.opened=!1}),r.append(i,o)},document.body.appendChild(n),n.opened=!0,n.addEventListener(`opened-changed`,e=>{e.detail.value||n.remove()})}N.set(new Hd),$o({show(e,t){if(Rt(e.text,{politeness:e.variant===`error`?`assertive`:`polite`}),e.undoActionId||e.onAction){Gd(e,t);return}r.show(e.text,{position:e.position?Ud(e.position):`bottom-end`,theme:e.variant,duration:e.duration})}});

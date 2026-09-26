@@ -55,6 +55,26 @@ const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => ht
             ?disabled="${item.disabled}"
             @click="${() => onSelect(item)}">${item.text}</button>`
 
+/**
+ * The logo and the title, the header's brand. The title takes part in the row's baseline (see
+ * HEADER_ROW); the logo, which has no baseline of its own, is centred on the title's box instead —
+ * on its capitals — so it sits with the name rather than on the line under it. With no title there
+ * is no text to line up with, and the logo is simply centred.
+ */
+const renderBrand = (metadata: App) => html`
+    <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'};">
+        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:nothing}
+        ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
+    </div>`
+
+/**
+ * A header row's items — brand, menu, widgets — share one text baseline. Centring each box on its
+ * own left the 24px title 2.5px below the 16px menu and widgets: with centred boxes the baseline
+ * depends on the font size alone, so no line-height could fix it. The row lines its items up by
+ * baseline and is itself what gets centred in the bar.
+ */
+const HEADER_ROW = 'flex: 1; min-width: 0; align-items: baseline;'
+
 const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls = '') => html`
     <nav class="mateu-nav ${cls}">
         ${items.map(item => (item.children?.length ?? 0) > 0
@@ -335,13 +355,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${container.updateRoute}">
+                    <div class="m-hl" style="${HEADER_ROW}" theme="spacing">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                            ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </div>
+                        ${renderBrand(metadata)}
                         </a>
                         ${(() => {
                             const onSelect = fireSelect(container, container.itemSelected)
@@ -354,6 +371,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
@@ -385,19 +403,17 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${container.updateRoute}">
+                    <div class="m-hl" style="${HEADER_ROW}" theme="spacing">
                         <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                            ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </div>
+                        ${renderBrand(metadata)}
                         </a>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
                         <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
@@ -502,14 +518,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div>
                     <div>
                         <div class="m-hl" 
-                                style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
+                                style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
                             <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                            <div class="m-hl" style="align-items: center;">
-                                ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                                ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                            </div>
+                            ${renderBrand(metadata)}
                             </a>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${metadata.menu.map((option, i) => html`
