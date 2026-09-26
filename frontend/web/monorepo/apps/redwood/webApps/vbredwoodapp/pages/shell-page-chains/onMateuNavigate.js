@@ -165,6 +165,8 @@ define([
       const listingSummary = bridge.listingOf(host);
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
+      // otra pantalla, otra tabla: la selección de la anterior no se hereda
+      $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
 
       // mismo remontaje que en runMateuAction: si venimos de OTRO foldout, recrear el
       // subárbol para que los bindings internos no se queden con los bloques viejos

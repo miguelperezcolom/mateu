@@ -382,6 +382,13 @@ function spliceRemote(menu, answers) {
   for (const option of menu || []) {
     if (option.remote) {
       const app = answers.get(option)
+      // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
+      // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
+      // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
+      if (option.visible === false) {
+        if (app) adoptRemote(app.menu, option, app)
+        continue
+      }
       if (app) {
         adoptRemote(app.menu, option, app)
         out.push(...app.menu)
@@ -390,6 +397,8 @@ function spliceRemote(menu, answers) {
         // desaparece parece que nunca existió.
         out.push(option)
       }
+    } else if (option.visible === false) {
+      continue
     } else if (childrenOf(option).length) {
       out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
     } else {

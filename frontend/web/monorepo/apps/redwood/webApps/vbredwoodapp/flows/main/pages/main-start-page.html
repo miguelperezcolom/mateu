@@ -2054,6 +2054,8 @@
         display="[[ $application.variables.mateuListing.display ]]"
         data="[[ $variables.listingADP ]]"
         columns="[[ $application.variables.mateuListing.columns ]]"
+        selection-mode="[[ $application.variables.mateuListing.selectionMode ]]"
+        on-selected-changed="[[ $listeners.mateuListingSelectionChanged ]]"
         on-oj-row-action="[[ $listeners.mateuRowAction ]]">
         <template slot="noData">
           <oj-sp-empty-state

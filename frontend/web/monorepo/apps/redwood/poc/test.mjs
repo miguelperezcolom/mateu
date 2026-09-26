@@ -23,6 +23,7 @@ import {
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
+  selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
@@ -256,6 +257,48 @@ test('listing: listingOf proyecta el detalle de fila y si la fila es navegable',
     const navigable = listingOf(reduceContexts(empty(), content).contexts[HOST_ID])
     assert.equal(navigable.navigable, true)
   }
+})
+
+// 14 ter) Selección de filas (Listing.rowsSelectionEnabled): la tabla pone casillas y una acción
+//     del host lleva las filas marcadas en crud_selected_items — el contrato de Vaadin, que
+//     HttpRequest.getSelectedRows lee del componentState.
+test('listing: la selección de filas se proyecta y viaja en crud_selected_items', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, search)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.equal(listing.rowsSelectionEnabled, true)
+  assert.deepEqual(listing.selectionMode, { row: 'multiple' })
+  assert.deepEqual(listing.selectionRequired, ['delete'])
+
+  // el KeySet de oj-table: explícito, y "todas menos"
+  const explicit = { isAddAll: () => false, values: () => new Set([listing.rows[1]._rowNumber]) }
+  const allBut = { isAddAll: () => true, deletedValues: () => new Set([listing.rows[0]._rowNumber]) }
+  const one = selectionOfKeySet(explicit)
+  assert.deepEqual(selectedRowsOf(listing.rows, one).map((r) => r.name), ['Mouse'])
+  assert.deepEqual(selectedRowsOf(listing.rows, selectionOfKeySet(allBut)).map((r) => r.name), ['Mouse', 'Keyboard'])
+  assert.deepEqual(selectionOfKeySet(null), { all: false, keys: [], except: [] })
+
+  const state = withListingSelection({ page: 0 }, listing, listing.rows, one)
+  assert.equal(state.page, 0)
+  assert.deepEqual(state.crud_selected_items.map((r) => r.name), ['Mouse'])
+  // sin nada marcado viaja la lista vacía (el servidor distingue "ninguna" de "no aplica")
+  assert.deepEqual(withListingSelection({}, listing, listing.rows, null).crud_selected_items, [])
+  // un listado sin selección no toca el estado
+  const plain = { ...listing, rowsSelectionEnabled: false }
+  const untouched = { page: 1 }
+  assert.equal(withListingSelection(untouched, plain, listing.rows, one), untouched)
+})
+
+// el badge precomputado de @Status no viaja de vuelta en la fila seleccionada
+test('listing: una fila seleccionada con @Status se manda sin el badge precomputado', () => {
+  const rows = [{ _rowNumber: 0, name: 'A', outcome: { type: 'SUCCESS', message: 'Ok', badgeClass: 'oj-badge' } }]
+  const [row] = selectedRowsOf(rows, { all: false, keys: [0], except: [] })
+  assert.deepEqual(row.outcome, { type: 'SUCCESS', message: 'Ok' })
+  assert.equal(rows[0].outcome.badgeClass, 'oj-badge') // la fila pintada no se toca
 })
 
 // 15) CRUD en drawer (Fase 5): new→Add proyectable; view→drawer Edit con la fila;
@@ -959,6 +1002,42 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+  } finally { globalThis.fetch = original }
+})
+
+atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (deep-link)', async () => {
+  // `@Menu @Hidden RemoteMenu inbox`: se llega a ella desde un widget de la cabecera. Sin entrada
+  // en el menú, pero una recarga de /inbox/pending tiene que seguir yendo a su pod.
+  const original = globalThis.fetch
+  const asked = []
+  globalThis.fetch = async (url) => {
+    asked.push(url)
+    return String(url).indexOf('/_inbox') === 0
+      ? { ok: true, json: async () => remoteApp([{ label: 'Pending', route: '/inbox/pending' }], '/inbox', 'InboxHome') }
+      : { ok: true, json: async () => remoteApp([{ label: 'Bookings', route: '/booking/bookings' }], '/booking') }
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_booking', route: '/booking', label: 'Booking' },
+      { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
+    ])
+    assert.equal(asked.length, 2, 'la oculta también se pregunta: sus rutas hay que conocerlas')
+    assert.deepEqual(menu.map((o) => o.label), ['Bookings'])
+    const where = remoteRouteOf('/inbox/pending/n-7')
+    assert.ok(where, 'el deep-link bajo la remota oculta no quedó registrado')
+    assert.equal(where.baseUrl, '/_inbox')
+  } finally { globalThis.fetch = original }
+})
+
+atest('una remota oculta que no contesta tampoco deja su rótulo', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
+      { label: 'Local', route: '/local' },
+    ])
+    assert.deepEqual(menu.map((o) => o.label), ['Local'])
   } finally { globalThis.fetch = original }
 })
 

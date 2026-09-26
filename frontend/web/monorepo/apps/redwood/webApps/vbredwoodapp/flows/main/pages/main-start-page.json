@@ -122,6 +122,16 @@
         }
       ]
     },
+    "mateuListingSelectionChanged": {
+      "chains": [
+        {
+          "parameters": {
+            "event": "{{ $event }}"
+          },
+          "chain": "mateuListingSelected"
+        }
+      ]
+    },
     "mateuRowDetailClosed": {
       "chains": [
         {

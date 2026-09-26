@@ -37,6 +37,7 @@ const elementWith = (menu: unknown[]) => {
         getRemoteMenus: (ConnectedElement.prototype as any).getRemoteMenus,
         updateMenu: (ConnectedElement.prototype as any).updateMenu,
         changeBaseUrl: (ConnectedElement.prototype as any).changeBaseUrl,
+        withoutHidden: (ConnectedElement.prototype as any).withoutHidden,
     } as any
     return { element, clientSideComponent, app }
 }
@@ -172,5 +173,34 @@ describe('completeMenu', () => {
         expect(runAction).not.toHaveBeenCalled()
         expect(published).toHaveLength(0)
         expect(element.requestUpdate).not.toHaveBeenCalled()
+    })
+
+    it('leaves a hidden remote out of the menu and does not ask it for its screens', async () => {
+        // `@Menu @Hidden RemoteMenu inbox`: reached from a header widget, it resolves its deep links
+        // on the server and has no entry of its own. It travels (visible: false), and stops here.
+        const { element, clientSideComponent } = elementWith([
+            remote('/_booking', 'Booking'),
+            { ...remote('/_inbox', 'Inbox'), visible: false },
+            { label: 'Admin', remote: false, submenus: [{ ...remote('/_inbox2', 'Inbox'), visible: false }] },
+        ])
+        runAction.mockImplementation((baseUrl: string) =>
+            Promise.resolve(remoteAnswer(baseUrl, '', [{ label: 'Bookings', route: '/bookings' }])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        // gone before anything renders — not only once the remotes have answered
+        expect((clientSideComponent.metadata as any).menu.map((o: any) => o.label)).toEqual(['Booking', 'Admin'])
+        expect((clientSideComponent.metadata as any).menu[1].submenus).toEqual([])
+        await Promise.resolve(); await Promise.resolve()
+
+        expect(runAction.mock.calls.map((c: unknown[]) => c[0])).toEqual(['/_booking'])
+        expect((clientSideComponent.metadata as any).menu.map((o: any) => o.label)).toEqual(['Bookings', 'Admin'])
+    })
+
+    it('keeps the same metadata when nothing is hidden and there is no remote', async () => {
+        const { element, clientSideComponent, app } = elementWith([{ label: 'Local', route: '/local' }])
+
+        element.completeMenu(appFragment(clientSideComponent))
+
+        expect(clientSideComponent.metadata).toBe(app)
     })
 })

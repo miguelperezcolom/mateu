@@ -568,6 +568,9 @@ export function shellNavOf(reg) {
   const menuTree = []
   let hasGroups = false
   for (const option of shell.menu || []) {
+    // una opción que viaja sin pintarse (remota oculta): expandRemoteMenus ya la quita, pero un
+    // menú que no pase por ahí tampoco debe dibujarla
+    if (option.visible === false) continue
     const node = navNodeOf(option, '')
     items.push({ id: node.id, label: node.label, icon: node.icon })
     if (node.hasChildren) hasGroups = true
@@ -1518,6 +1521,15 @@ export function listingOf(ctx) {
     // el detalle es para los listados de consulta, donde el clic no tenía otro destino.
     detailPath: md.detailPath || null,
     navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
+    // SELECCIÓN de filas (Listing.rowsSelectionEnabled): casillas en la tabla, y las acciones de la
+    // toolbar reciben las filas marcadas en crud_selected_items — el mismo contrato que Vaadin
+    // (HttpRequest.getSelectedRows lo lee del componentState). El modo va PRECOMPUTADO (CSP de VB).
+    rowsSelectionEnabled: !!md.rowsSelectionEnabled,
+    selectionMode: { row: md.rowsSelectionEnabled ? 'multiple' : 'none' },
+    // las acciones que no tienen sentido sin selección (Action.rowsSelectedRequired: Delete…)
+    // (las acciones declaradas del ServerSide host, no los botones)
+    selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
+      .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
     rows: statusBadgeRows(page.content || [], md.columns || []),
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,
@@ -1532,6 +1544,50 @@ export function listingOf(ctx) {
     // no en el nodo Crud — se busca en todo el árbol)
     filters: filtersOf(ctx),
   }
+}
+
+/**
+ * La selección de la tabla, en una forma que sobrevive a un refresco: el KeySet de oj-table
+ * (`detail.value.row` de ojSelectedChanged) → { all, keys, except }. Un "seleccionar todo" es
+ * un KeySet de tipo addAll: todas menos las desmarcadas, no una lista de claves.
+ */
+export function selectionOfKeySet(keySet) {
+  if (!keySet) return { all: false, keys: [], except: [] }
+  if (typeof keySet.isAddAll === 'function' && keySet.isAddAll()) {
+    const deleted = typeof keySet.deletedValues === 'function' ? Array.from(keySet.deletedValues()) : []
+    return { all: true, keys: [], except: deleted }
+  }
+  const values = typeof keySet.values === 'function' ? Array.from(keySet.values()) : []
+  return { all: false, keys: values, except: [] }
+}
+
+/** Las filas marcadas, resueltas contra las filas ACTUALES por su clave (_rowNumber). Lo que se
+ *  manda es la fila tal como llegó: el badge precomputado de las columnas @Status no viaja. */
+export function selectedRowsOf(rows, selection) {
+  if (!selection) return []
+  const picked = selection.all
+    ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
+    : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
+  return picked.map((row) => {
+    const out = {}
+    for (const key of Object.keys(row)) {
+      const value = row[key]
+      if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
+        const { badgeClass, ...rest } = value
+        out[key] = rest
+      } else {
+        out[key] = value
+      }
+    }
+    return out
+  })
+}
+
+/** El componentState de una acción del host de un listado con selección: lleva las filas
+ *  marcadas en crud_selected_items, como Vaadin. Sin listado o sin selección, intacto. */
+export function withListingSelection(componentState, listing, rows, selection) {
+  if (!listing || !listing.rowsSelectionEnabled) return componentState
+  return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
 }
 
 // filas con columnas @Status: al valor {type, message} se le estampa la clase badge de
