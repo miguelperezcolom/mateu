@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context,forwardId=$application.variables.mateuWizardForwardId;forwardId&&(await Actions.callChain(context,{chain:"runMateuAction",params:{actionId:forwardId}}))}};});
-//# sourceMappingURL=wizardNext.js.map

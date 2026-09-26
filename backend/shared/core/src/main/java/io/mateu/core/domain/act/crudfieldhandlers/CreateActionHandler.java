@@ -6,10 +6,8 @@ import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -68,20 +66,14 @@ public class CreateActionHandler {
           new State(newState),
           wrap(
                   CrudFieldHandlerHelper.buildDetailForm(
-                      "New "
-                          + toUpperCaseFirst(
-                              getGenericClass(field, field.getType(), "E").getSimpleName()),
+                      CrudFieldHandlerHelper.detailTitle(
+                          "New", getGenericClass(field, field.getType(), "E")),
                       field,
                       httpRequest,
                       true,
                       null,
-                      List.<UserTrigger>of(
-                          Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
-                          Button.builder().label("Save").actionId(fid + "_create").build(),
-                          Button.builder()
-                              .label("Save and Add Another")
-                              .actionId(fid + "_create-and-stay")
-                              .build()),
+                      List.<UserTrigger>of(),
+                      CrudFieldHandlerHelper.rowEditorButtons(fid, "_create", true),
                       0),
                   newItem,
                   (String) httpRequest.getAttribute("baseUrl"),
