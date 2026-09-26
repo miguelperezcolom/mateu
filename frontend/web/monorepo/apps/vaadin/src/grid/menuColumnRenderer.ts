@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
+import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 import '@vaadin/icon';
 import '@vaadin/icons';
 
@@ -147,7 +148,8 @@ export const renderButtonCell = (item: any,
 ) => {
     const column = (vaadinColumn as XColumn).xcolumn ?? _column
     if (column.actionId) {
-        const label = column.text || item[vaadinColumn.path!]
+        // A label read off the row is a value like any other cell's: a UUID shows abbreviated.
+        const label = column.text || uuidAwareText(item[vaadinColumn.path!])
         return html`
             <vaadin-button theme="tertiary" @click="${(_e: any) => handleButtonColumnClick(vaadinColumn, column, item)}" .row="${item}">
                 ${label}

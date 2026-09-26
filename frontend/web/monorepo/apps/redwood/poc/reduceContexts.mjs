@@ -1507,6 +1507,13 @@ export function listingOf(ctx) {
       if (c.dataType === 'status') {
         def.template = 'cellStatusBadge'
       }
+      // UUID abreviado: una columna de texto cuyos valores son UUID se pinta "…-<último bloque>"
+      // con el UUID entero en el tooltip. La fila NO cambia: la celda lee un campo aparte,
+      // precomputado en uuidCellRows (CSP de VB: la plantilla no puede recortar el texto).
+      if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
+        def.field = c.id + UUID_CELL_SUFFIX
+        def.template = 'cellUuid'
+      }
       return def
     }),
     // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
@@ -1530,7 +1537,7 @@ export function listingOf(ctx) {
     // (las acciones declaradas del ServerSide host, no los botones)
     selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
       .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-    rows: statusBadgeRows(page.content || [], md.columns || []),
+    rows: uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []),
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,
     toolbar: (md.toolbar || []).map((b) => ({
@@ -1572,6 +1579,9 @@ export function selectedRowsOf(rows, selection) {
     const out = {}
     for (const key of Object.keys(row)) {
       const value = row[key]
+      if (key.endsWith(UUID_CELL_SUFFIX)) {
+        continue
+      }
       if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
         const { badgeClass, ...rest } = value
         out[key] = rest
@@ -1599,6 +1609,40 @@ const STATUS_BADGE = {
   INFO: 'oj-badge oj-badge-info oj-badge-subtle',
   NONE: 'oj-badge oj-badge-neutral oj-badge-subtle',
 }
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_CELL_SUFFIX = '__uuidCell'
+
+/** "…-<último bloque>" de un UUID canónico; cualquier otro valor, tal cual. */
+export function abbreviateUuid(value) {
+  return typeof value === 'string' && UUID.test(value)
+    ? '…-' + value.substring(value.lastIndexOf('-') + 1)
+    : value
+}
+
+// las columnas de TEXTO (sin plantilla propia, ni editables) con algún valor que es un UUID entero
+function uuidColumnIds(rows, columns) {
+  return columns
+    .map((col) => col.metadata || col)
+    .filter((c) => !c.editable && (!c.dataType || c.dataType === 'string'))
+    .filter((c) => rows.some((row) => typeof row[c.id] === 'string' && UUID.test(row[c.id])))
+    .map((c) => c.id)
+}
+
+// filas con columnas de UUID: a cada una se le añade <id>__uuidCell = {text, full}, que es lo que
+// pinta la celda; el valor original de la fila queda intacto (navegación, acciones, selección)
+function uuidCellRows(rows, columns) {
+  const ids = uuidColumnIds(rows, columns)
+  if (!ids.length) return rows
+  return rows.map((row) => {
+    const out = { ...row }
+    for (const id of ids) {
+      const value = row[id] == null ? '' : String(row[id])
+      out[id + UUID_CELL_SUFFIX] = { text: abbreviateUuid(value), full: value }
+    }
+    return out
+  })
+}
+
 function statusBadgeRows(rows, columns) {
   const statusCols = columns
     .map((col) => col.metadata || col)

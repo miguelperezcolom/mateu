@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import type { GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 import type GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
+import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 
 /**
  * Rich "primary" cell (coherence-plan #6): a leading avatar/icon + the title (the column value) with
@@ -16,7 +17,7 @@ export const renderPrimaryCell = (item: any, column: GridColumn, vaadinColumn: V
             ${leading ? html`<img src="${leading}" alt="" loading="lazy"
                 style="width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; flex-shrink: 0;" />` : nothing}
             <span style="display: flex; flex-direction: column; overflow: hidden;">
-                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${title}</span>
+                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${uuidAwareText(title)}</span>
                 ${caption ? html`<span style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${caption}</span>` : nothing}
             </span>
         </span>`
