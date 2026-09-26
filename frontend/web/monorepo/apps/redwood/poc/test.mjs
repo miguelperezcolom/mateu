@@ -1124,6 +1124,64 @@ atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
   }
 })
 
+atest('fetchWithPolicy ante un 401 pide reautenticar y reenvía UNA vez con el token nuevo', async () => {
+  // El token caduca entre dos refrescos (pestaña dormida): la petición vuelve 401. En vez de
+  // enseñar "tu sesión ya no es válida", se lanza mateu-session-expired; el bootstrap refresca,
+  // deja el token nuevo y llama a retry, y la petición sale otra vez — con ESE token.
+  connectivity.reset()
+  const sent = []
+  let token = 'caducado'
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    token = 'nuevo'
+    e.detail.retry()
+  })
+  globalThis.fetch = async (url, init) => {
+    sent.push(init.headers.Authorization)
+    return init.headers.Authorization === 'Bearer nuevo'
+      ? { ok: true, json: async () => ({}) }
+      : { ok: false, status: 401, text: async () => '' }
+  }
+  try {
+    await fetchWithPolicy('https://x/', {}, { actionId: 'save' })
+    assert.deepEqual(sent, ['Bearer caducado', 'Bearer nuevo'])
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy ante un 401 sin nadie que reautentique falla como siempre, y no reintenta en bucle', async () => {
+  connectivity.reset()
+  let calls = 0
+  const originalFetch = globalThis.fetch
+  const originalDocument = globalThis.document
+  globalThis.document = new EventTarget()
+  globalThis.fetch = async () => { calls++; return { ok: false, status: 401, text: async () => '' } }
+  try {
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
+      (e) => e.failure && e.failure.kind === 'unauthorized')
+    assert.equal(calls, 1)
+    // Con alguien que reautentica pero el 401 persiste: un reintento, no más.
+    calls = 0
+    globalThis.document.addEventListener('mateu-session-expired', (e) => { e.preventDefault(); e.detail.retry() })
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
+      (e) => e.failure && e.failure.kind === 'unauthorized')
+    assert.equal(calls, 2)
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
 atest('fetchWithPolicy llama sin cabecera cuando no hay token, en vez de no llamar', async () => {
   // Sin token se sigue adelante: que conteste el backend. Un 401 explicado es mejor que una
   // pantalla en blanco que no ha preguntado a nadie.

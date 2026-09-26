@@ -42,29 +42,54 @@ public class ${simpleClassName}Controller {
             realm: '${keycloak.realm}',
             clientId: '${keycloak.clientId}'
         });
-        keycloak.onTokenExpired = function () {
-            console.log('token expired')
-            keycloak.updateToken(30)
-                .then(function (refreshed) {
-                    if (refreshed) {
-                        console.log('token refreshed');
-                        // write any code you required here
-                        localStorage.setItem('__mateu_auth_token', keycloak.token);
-                        localStorage.setItem('__mateu_auth_subject', keycloak.subject);
-                    } else {
-                        console.log('token is still valid now');
-                    }
-                }).catch(function (e) {
+        // The token as the renderers read it: every request carries localStorage.__mateu_auth_token.
+        function storeToken() {
+            localStorage.setItem('__mateu_auth_token', keycloak.token);
+            localStorage.setItem('__mateu_auth_subject', keycloak.subject);
+        }
+        // Refreshes the token (minValidity seconds ahead; -1 forces it). A refresh that fails means the
+        // Keycloak session itself is gone — expired, revoked, or the realm was reset — and no request can
+        // succeed any more, so the page goes back to the login instead of leaving the user in front of
+        // "your session is no longer valid" with a retry that resends the same dead token.
+        function refreshToken(minValidity) {
+            return keycloak.updateToken(minValidity).then(function (refreshed) {
+                if (refreshed) {
+                    storeToken();
+                }
+                return refreshed;
+            }).catch(function (e) {
                 console.log('failed to refresh the token, or the session has expired', e);
+                keycloak.login();
+                throw e;
             });
         }
+        keycloak.onTokenExpired = function () {
+            refreshToken(30).catch(function () {});
+        }
+        // Timers do not run in a background tab or on a sleeping laptop, so onTokenExpired can fire too
+        // late: check again whenever the page comes back into view.
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && keycloak.authenticated) {
+                refreshToken(30).catch(function () {});
+            }
+        });
+        // A request answered 401 (the token expired between two checks): the renderers raise the
+        // cancelable 'mateu-session-expired' event with {retry, giveUp}. Take it, force a refresh and
+        // retry the request once — the action goes through and the user's work is not lost.
+        document.addEventListener('mateu-session-expired', function (e) {
+            e.preventDefault();
+            refreshToken(-1).then(function () {
+                e.detail.retry();
+            }, function () {
+                e.detail.giveUp();
+            });
+        });
         keycloak.init({
             onLoad: 'login-required',
         }).then(function(authenticated) {
             console.log(authenticated ? 'authenticated' : 'not authenticated');
             if (authenticated) {
-                localStorage.setItem('__mateu_auth_token', keycloak.token);
-                localStorage.setItem('__mateu_auth_subject', keycloak.subject);
+                storeToken();
                 const s = document.createElement('script');
                 s.setAttribute('type', 'module')
                 //s.setAttribute('src', 'https://unpkg.com/mateu-ui/dist/assets/mateu.js')

@@ -33,7 +33,12 @@ const repoRoot = join(rendererRoot, '..', '..', '..', '..', '..')
 const moduleResources = join(repoRoot, 'backend', 'shared', 'frontend', 'redwood', 'src', 'main', 'resources')
 const dests = [join(moduleResources, 'META-INF', 'resources'), join(moduleResources, 'static')]
 
-const DEV_BASE_URL = 'http://localhost:8595'
+// La URL de desarrollo del backend se lee del propio app-flow.json (constante mateuBaseUrl) en vez
+// de repetirla aquí: cuando alguien la cambió allí (8595 → 9005) y no aquí, el jar se publicó con
+// la de desarrollo cableada y toda app que no fuera demo-vb llamaba a un backend ajeno.
+const DEV_BASE_URL = JSON.parse(
+  readFileSync(join(rendererRoot, 'webApps', 'vbredwoodapp', 'app-flow.json'), 'utf8'),
+).constants.mateuBaseUrl.defaultValue
 const TEXT_EXTENSIONS = new Set(['.html', '.js', '.json', '.map', '.css'])
 
 if (!existsSync(join(src, 'index.html'))) {
