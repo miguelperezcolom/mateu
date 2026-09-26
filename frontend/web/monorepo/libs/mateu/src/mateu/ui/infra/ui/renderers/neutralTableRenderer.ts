@@ -1,6 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { html, nothing } from "lit";
+import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 
 /*
  * Design-system-neutral table renderer — a plain HTML <table>, no `@vaadin`. Shared by the core
@@ -40,7 +41,7 @@ export const renderNeutralTable = (component: ClientSideComponent, rows: any[], 
                 <tbody>
                     ${(rows ?? []).length === 0
                         ? html`<tr><td colspan="${Math.max(1, columns.length)}" style="padding:1.5rem; text-align:center; color: var(--lumo-secondary-text-color,#888);">${emptyMessage ?? 'No data.'}</td></tr>`
-                        : rows.map(row => html`<tr>${columns.map(c => html`<td style="${td}" title="${cellText(row, c.id)}">${cellText(row, c.id)}</td>`)}</tr>`)}
+                        : rows.map(row => html`<tr>${columns.map(c => html`<td style="${td}" title="${cellText(row, c.id)}">${uuidAwareText(cellText(row, c.id))}</td>`)}</tr>`)}
                 </tbody>
             </table>
         </div>

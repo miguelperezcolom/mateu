@@ -2084,6 +2084,11 @@
         <template slot="cellStatusBadge">
           <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
         </template>
+        <!-- UUID abreviado: la celda trae {text: "…-<último bloque>", full: el UUID}, precomputado
+             en listingOf; el UUID entero queda en el tooltip -->
+        <template slot="cellUuid">
+          <span :title="[[ ($current.data && $current.data.full) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+        </template>
         <!-- ACCIONES por fila (ColumnActionGroup): el valor de la celda trae actions[];
              el alias "cell" conserva el contexto de la fila dentro del for-each -->
         <template slot="cellRowActions" data-oj-as="cell">

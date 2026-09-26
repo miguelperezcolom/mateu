@@ -31,15 +31,39 @@ define([
     }
   }
 
+  // La navegación en curso: si arranca otra antes de que acabe ésta, es la última la que
+  // apaga mateuNavigating, no la primera en terminar.
+  let navigationSeq = 0;
+
   class onMateuNavigate extends ActionChain {
+
+    /**
+     * Envuelve la navegación para que mateuNavigating se apague siempre, también cuando la carga
+     * falla o se corta a medias: una pantalla vieja oculta para siempre sería peor que el fallo.
+     */
+    async run(context, params) {
+      const { $application } = context;
+      const seq = ++navigationSeq;
+      try {
+        return await this.navigate(context, params || {}, () => {
+          $application.variables.mateuNavigating = true;
+        });
+      } finally {
+        if (seq === navigationSeq) {
+          $application.variables.mateuNavigating = false;
+        }
+      }
+    }
 
     /**
      * @param {Object} context
      * @param {Object} params
      * @param {Object} params.event  spSelectionChanged ({currentId}) o mateuNavigate ({route})
      * @param {boolean} params.force recargar aunque sea la misma ruta (cambio de contexto)
+     * @param {Function} startsLoading se llama cuando de verdad va a cargarse otra pantalla —
+     *     pasados el eco del writeback y la confirmación de cambios sin guardar
      */
-    async run(context, { event, force, fromUrl }) {
+    async navigate(context, { event, force, fromUrl }, startsLoading) {
       const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
@@ -91,6 +115,7 @@ define([
       if (!fromUrl) {
         pushRouteToUrl($application, route);
       }
+      startsLoading();
 
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};

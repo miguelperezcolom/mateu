@@ -28,7 +28,7 @@ import {
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
-  filterDescriptorOf, filterChipsOf, multiValuesOf,
+  filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -257,6 +257,35 @@ test('listing: listingOf proyecta el detalle de fila y si la fila es navegable',
     const navigable = listingOf(reduceContexts(empty(), content).contexts[HOST_ID])
     assert.equal(navigable.navigable, true)
   }
+})
+
+// 14 ter) UUID abreviado: una columna de texto con UUIDs se pinta "…-<último bloque>" con el UUID
+//     en el tooltip; la fila conserva el valor entero (navegación, acciones, selección).
+test('listing: una columna de UUIDs se abrevia sin tocar la fila', () => {
+  const uuid = '750f3bce-b760-4370-9ceb-0994d4bb705b'
+  assert.equal(abbreviateUuid(uuid), '…-0994d4bb705b')
+  assert.equal(abbreviateUuid('CU838F'), 'CU838F')
+  assert.equal(abbreviateUuid('process ' + uuid), 'process ' + uuid)
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  const page = JSON.parse(JSON.stringify(search))
+  const data = page.fragments[0].data
+  const rows = data.crud.page.content
+  rows.forEach((r, i) => { r.id = i === 0 ? uuid : 'P-' + i })
+  reg = reduceContexts(reg, page)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  const idCol = listing.columns.find((c) => c.headerText && c.field.startsWith('id'))
+  assert.equal(idCol.field, 'id__uuidCell')
+  assert.equal(idCol.template, 'cellUuid')
+  assert.deepEqual(listing.rows[0].id__uuidCell, { text: '…-0994d4bb705b', full: uuid })
+  assert.deepEqual(listing.rows[1].id__uuidCell, { text: 'P-1', full: 'P-1' })
+  assert.equal(listing.rows[0].id, uuid) // la fila, intacta
+  assert.ok(listing.columns.find((c) => c.field === 'name').template === undefined) // no es UUID
+  const picked = selectedRowsOf(listing.rows, { all: true, keys: [], except: [] })
+  assert.ok(picked.every((r) => !('id__uuidCell' in r))) // la selección manda la fila tal cual
 })
 
 // 14 ter) Selección de filas (Listing.rowsSelectionEnabled): la tabla pone casillas y una acción
@@ -544,6 +573,29 @@ test('front-office: isla-App detectada e islandContentOf proyecta el wizard embe
   assert.ok(blocks.some((b) => b.isCard))
   assert.ok(atoms.every((a) => !a.isText || !a.text.includes('${'))) // interpolación hecha
   assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((btn) => btn.actionId === 'next')))
+})
+
+// 25 bis) Los chips de un EntityHeader llevan el tono de su color, también el chip normal: en
+// Vaadin es el primario, y aquí caía al neutro — un tier Platinum y uno Silver se veían iguales.
+test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
+  const island = JSON.parse(JSON.stringify(fx('fo-island-wizard')))
+  const find = (n) => n && typeof n === 'object'
+    ? ((n.metadata && n.metadata.type === 'EntityHeader') || n.type === 'EntityHeader' ? n
+      : Object.values(n).map(find).find(Boolean))
+    : null
+  const node = find(island)
+  assert.ok(node, 'el fixture trae un EntityHeader')
+  node.metadata.badges = [
+    { label: 'Platinum', color: 'normal' },
+    { label: 'Gold', color: 'warning' },
+    { label: 'Silver', color: 'contrast' },
+  ]
+  const header = islandContentOf(island).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  assert.deepEqual(header.badges.map((b) => b.badgeClass), [
+    'oj-badge oj-badge-info oj-badge-subtle',
+    'oj-badge oj-badge-warning oj-badge-subtle',
+    'oj-badge oj-badge-neutral oj-badge-subtle',
+  ])
 })
 
 // 26) Front-office: átomos de negocio — ResourceGrid/OfferCard (habitación), AddOnPicker/

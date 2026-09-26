@@ -24,6 +24,7 @@ import {
     renderMenuCell
 } from "./menuColumnRenderer.ts";
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
+import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
@@ -475,8 +476,8 @@ export const columnRenderer = (item: any,
                 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
                 @mouseover="${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline' }}"
                 @mouseout="${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none' }}"
-            >${cellValue}</a>`
+            >${uuidAwareText(cellValue)}</a>`
         }
     }
-    return html`<span title="${cellValue}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${cellValue}</span>`
+    return html`<span title="${cellValue}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${uuidAwareText(cellValue)}</span>`
 }

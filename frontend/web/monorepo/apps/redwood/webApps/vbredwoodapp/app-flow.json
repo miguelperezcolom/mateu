@@ -687,6 +687,11 @@
       "defaultValue": false,
       "description": "hay una peticion al backend en vuelo (lo pone el transporte via setTransportHooks)"
     },
+    "mateuNavigating": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "se esta cargando OTRA pantalla (onMateuNavigate): la vieja se oculta tras el retardo y la sustituye el esqueleto; una accion dentro de la misma pantalla no lo pone"
+    },
     "mateuOffline": {
       "type": "boolean",
       "defaultValue": false,

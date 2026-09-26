@@ -349,9 +349,30 @@ oj-sp-global-header oj-menu-button .oj-button-icon {
   50% { opacity: .85; }
 }
 
-/* Esqueleto de carga: sólo cuando la ruta aún no tiene NADA que enseñar. Con contenido ya
-   pintado se conserva bajo la barra de ocupado, porque contenido viejo conserva el contexto
-   y un esqueleto lo tira. */
+/* Esqueleto de carga: al cambiar de pantalla, y ocupando el sitio de la vieja. Antes se
+   pintaba cuando la ruta no tenía título, en el flujo y ENCIMA del contenido: al salir de una
+   pantalla sin título (la home) quedaban el esqueleto arriba a la izquierda y la pantalla vieja
+   debajo, las dos a la vez. Ahora la vieja se oculta y el esqueleto se pone en su lugar, los dos
+   pasado el mismo medio segundo que la barra: una navegación rápida no ve ninguno de los dos.
+   Una acción dentro de la misma pantalla no navega y conserva su contenido bajo la barra, porque
+   ahí el contenido viejo sí es el contexto de lo que se espera.
+
+   `visibility` y no `display`: la pantalla vieja sigue ocupando su sitio, así que nada salta al
+   ocultarla, y deja de recibir clics. Se anima para poder retrasarla sin temporizadores. */
+.mateu-content { position: relative; }
+.mateu-content.mateu-navigating > oj-vb-content {
+  animation: mateu-stale-hide 0s linear .5s forwards;
+}
+@keyframes mateu-stale-hide { to { visibility: hidden; } }
+.mateu-content > .mateu-skeleton {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  animation: mateu-busy-appear .2s linear .5s forwards;
+}
 .mateu-skeleton { padding: 1.25rem; max-width: 40rem; }
 .mateu-skeleton-bone {
   background: linear-gradient(90deg,
