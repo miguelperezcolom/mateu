@@ -699,6 +699,9 @@ define('resources/js/mateu-bridge',['ojs/ojarraydataprovider'], (ArrayDataProvid
     warning: 'oj-badge oj-badge-warning oj-badge-subtle',
     success: 'oj-badge oj-badge-success oj-badge-subtle',
     contrast: 'oj-badge oj-badge-neutral oj-badge-subtle',
+    // the plain chip — Vaadin paints it in the primary tone; entityHeaderOf already reads it as info
+    normal: 'oj-badge oj-badge-info oj-badge-subtle',
+    info: 'oj-badge oj-badge-info oj-badge-subtle',
   }
 
   /** Proyección del TaskQueue (cola de trabajo del front-office): grupos de cards con

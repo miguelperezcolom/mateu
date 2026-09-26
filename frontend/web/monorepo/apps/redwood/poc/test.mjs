@@ -575,6 +575,29 @@ test('front-office: isla-App detectada e islandContentOf proyecta el wizard embe
   assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((btn) => btn.actionId === 'next')))
 })
 
+// 25 bis) Los chips de un EntityHeader llevan el tono de su color, también el chip normal: en
+// Vaadin es el primario, y aquí caía al neutro — un tier Platinum y uno Silver se veían iguales.
+test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
+  const island = JSON.parse(JSON.stringify(fx('fo-island-wizard')))
+  const find = (n) => n && typeof n === 'object'
+    ? ((n.metadata && n.metadata.type === 'EntityHeader') || n.type === 'EntityHeader' ? n
+      : Object.values(n).map(find).find(Boolean))
+    : null
+  const node = find(island)
+  assert.ok(node, 'el fixture trae un EntityHeader')
+  node.metadata.badges = [
+    { label: 'Platinum', color: 'normal' },
+    { label: 'Gold', color: 'warning' },
+    { label: 'Silver', color: 'contrast' },
+  ]
+  const header = islandContentOf(island).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  assert.deepEqual(header.badges.map((b) => b.badgeClass), [
+    'oj-badge oj-badge-info oj-badge-subtle',
+    'oj-badge oj-badge-warning oj-badge-subtle',
+    'oj-badge oj-badge-neutral oj-badge-subtle',
+  ])
+})
+
 // 26) Front-office: átomos de negocio — ResourceGrid/OfferCard (habitación), AddOnPicker/
 // StatusList (extras/confirmar), Ledger/PaymentPicker (check-out), Meter/Stat (en casa).
 // Contratos de despacho = los del renderer web compartido (_item / _method / _added+_total).
