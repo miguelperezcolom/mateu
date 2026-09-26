@@ -21,6 +21,7 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
 import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 
@@ -126,6 +127,7 @@ export class MateuUx extends ConnectedElement {
      * on a timer does not re-walk its own tree three times a tick.
      */
     private lastStampedComponent: Component | undefined
+    private releaseFabAnchor: (() => void) | undefined
 
     /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
     private structureCacheKey(): string {
@@ -342,6 +344,8 @@ export class MateuUx extends ConnectedElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.releaseFabAnchor?.()
+        this.releaseFabAnchor = undefined
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
         this.removeEventListener('backend-call-failed', this.backendFailedListener)
         this.removeEventListener('history-pushed', this.historyPushed)
@@ -536,6 +540,11 @@ export class MateuUx extends ConnectedElement {
         }
         this.lastStampedComponent = component
         this.dataset.pageWidth = resolvePageWidth(component, { top: this.top })
+        // The content view — not the app shell around it — tells the FABs where the page's end edge is.
+        if (!this.top) {
+            this.releaseFabAnchor?.()
+            this.releaseFabAnchor = trackFabAnchor(this, this.dataset.pageWidth as 'fixed' | 'full' | 'edge')
+        }
         this.dataset.pageType = pageTypeOf(component) ?? ''
         this.dataset.hasWelcomeBanner = String(hasWelcomeBanner(component))
     }

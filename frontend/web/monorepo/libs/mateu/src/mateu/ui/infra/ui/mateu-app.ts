@@ -7,6 +7,7 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
+import { fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
@@ -805,7 +806,7 @@ export class MateuApp extends ComponentElement {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
     }
 
-    static styles = css`
+    static styles = [css`
         /* DS-neutral app chrome (replaces vaadin-app-layout / menu-bar / tabs / side-nav). */
         .m-hl { display: flex; flex-direction: row; }
         .m-vl { display: flex; flex-direction: column; }
@@ -1107,55 +1108,11 @@ export class MateuApp extends ComponentElement {
             font-size: var(--lumo-font-size-s);
         }
 
-        .app-fab, .page-fab {
-            position: fixed;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 50%;
-            background: var(--lumo-primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-            z-index: 900;
-            transition: background 0.2s, transform 0.1s;
-            font-size: 1rem;
-        }
+        /* The FABs' look and place are the rail's (layout/fabRail.ts): Lumo buttons, square, in the
+           corner the page width picks. */
 
-        .app-fab:hover, .page-fab:hover {
-            background: var(--lumo-primary-color-50pct);
-            transform: scale(1.08);
-        }
 
-        .ai-fab {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 50%;
-            background: var(--lumo-primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-            z-index: 900;
-            transition: background 0.2s, transform 0.1s;
-            font-size: 1rem;
-        }
-
-        .ai-fab:hover {
-            background: var(--lumo-primary-color-50pct);
-            transform: scale(1.08);
-        }
-
-  `
+  `, fabStyles('.app-fab, .page-fab, .ai-fab')]
 }
 
 declare global {

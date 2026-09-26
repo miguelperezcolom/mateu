@@ -4,6 +4,7 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
 import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
+import { fabPosition, fabStyles } from "@infra/ui/layout/fabRail.ts";
 
 // One hit of the app's GlobalSearchSupplier, mirrored from mateu-app's command palette.
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -35,8 +36,8 @@ export class MateuCommandCenter extends LitElement {
     @state() private dataHits: GlobalSearchHit[] = []
     @state() private loading = false
     @state() private selectedIndex = 0
-    // Extra bottom offset (rem) so the FAB sits ABOVE any sibling FAB already in the corner (the AI
-    // assistant's .ai-fab, page/app .app-fab). Measured from the DOM and kept in sync, so it adapts
+    // How many slots of the rail are taken below this FAB by sibling FABs already in the corner (the AI
+    // assistant's .ai-fab, the app's .app-fab). Measured from the DOM and kept in sync, so it adapts
     // per shell (the DS shells have no AI fab → 0) and reacts when the AI fab appears/disappears (the
     // chat opening hides it). This replaces the old appRenderer-side, Vaadin-only offset hack.
     @state() private fabOffset = 0
@@ -81,9 +82,9 @@ export class MateuCommandCenter extends LitElement {
 
     private measureFabStack() {
         const root = this.getRootNode() as ParentNode
-        // Our own FAB lives in this element's shadow root, so it is never matched here.
-        const siblings = root.querySelectorAll?.('.ai-fab, .app-fab, .page-fab').length ?? 0
-        const offset = siblings * 4 // rem — matches the shells' 4rem FAB stacking pitch
+        // Our own FAB lives in this element's shadow root, so it is never matched here; page FABs
+        // take the column to the left, so they are not below this one.
+        const offset = root.querySelectorAll?.('.ai-fab, .app-fab').length ?? 0
         if (offset !== this.fabOffset) this.fabOffset = offset
     }
 
@@ -210,7 +211,7 @@ export class MateuCommandCenter extends LitElement {
 
     render() {
         return html`
-            <button class="cc-fab" style="bottom: ${1.5 + this.fabOffset}rem;"
+            <button class="cc-fab" style="${fabPosition(this.fabOffset)} z-index: 950;"
                 @click=${() => this.openCenter()} title="Buscar y navegar (⌘K)" aria-label="Command center">
                 ${this.fabIcon()}
             </button>
@@ -334,18 +335,9 @@ export class MateuCommandCenter extends LitElement {
     private clearIcon() { return html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` }
     private aiIcon() { return html`<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2l1.9 4.7L19 8.5l-4.1 2.3L12 15l-1.9-4.2L6 8.5l5.1-1.8z"></path></svg>` }
 
-    static styles = css`
+    static styles = [css`
         :host { --cc-accent: var(--lumo-primary-color, #3b82f6); }
 
-        .cc-fab {
-            position: fixed; bottom: 1.5rem; right: 1.5rem;
-            width: 3.5rem; height: 3.5rem; border-radius: 50%;
-            background: var(--cc-accent); color: #fff; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 950;
-            transition: background 0.2s, transform 0.1s, bottom 0.2s ease;
-        }
-        .cc-fab:hover { background: var(--lumo-primary-color-50pct, #2563eb); transform: scale(1.08); }
 
         .cc-backdrop {
             position: fixed; inset: 0; background: rgba(15, 23, 33, 0.72);
@@ -413,13 +405,13 @@ export class MateuCommandCenter extends LitElement {
         @keyframes cc-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
         .cc-close {
-            position: fixed; bottom: 1.5rem; right: 1.5rem;
-            width: 3.5rem; height: 3.5rem; border-radius: 50%;
+            position: fixed; bottom: var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)); right: var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem));
+            width: var(--lumo-size-l, 2.75rem); height: var(--lumo-size-l, 2.75rem); border-radius: var(--lumo-border-radius-m, 0.25rem);
             background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1110;
         }
         .cc-close:hover { background: rgba(0,0,0,0.75); }
-    `
+    `, fabStyles('.cc-fab')]
 }
 
 declare global {

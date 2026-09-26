@@ -9,6 +9,7 @@ import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { fabPosition } from "@infra/ui/layout/fabRail.ts";
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -549,14 +550,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.fabs?.map((fab, idx) => html`
-                <button class="app-fab" style="bottom: ${(metadata.sseUrl ? 5.5 : 1.5) + idx * 4}rem; right: 1.5rem;"
+                <button class="app-fab" style="${fabPosition((metadata.sseUrl ? 1 : 0) + idx)}" aria-label="${fab.label}"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
                     ${icon(fab.icon)}
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
+                <button class="ai-fab" style="${fabPosition(0)}" @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
                     ${icon('vaadin:comments-o')}
                 </button>
             ` : nothing}
