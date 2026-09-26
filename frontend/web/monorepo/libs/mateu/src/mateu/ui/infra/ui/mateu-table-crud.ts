@@ -40,6 +40,15 @@ const directions: Record<string, string> = {
 }
 
 
+/**
+ * The row of the search field and the column chooser, in every way a listing is painted. The box
+ * around it clips (overflow: hidden, for its rounded border) and a focused search field's ring is
+ * drawn 2px outside the field, so the row keeps 3px of room on every side — one place for all the
+ * variants, or the ring is whole in one and cut in the next. The chooser stretches to the row and
+ * takes the search box's own vertical padding (mateu-column-chooser), so it is exactly as tall.
+ */
+const FILTER_ROW_STYLE = 'flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem); padding: 3px;'
+
 @customElement('mateu-table-crud')
 export class MateuTableCrud extends LitElement {
 
@@ -1310,9 +1319,7 @@ export class MateuTableCrud extends LitElement {
                             .appData="${this.appData}"
                         ></mateu-content-header>
                     </div>
-                    <!-- The box clips (overflow: hidden, for its rounded border), and a focused search
-                         field's ring is drawn outside the field: 3px of room keep it whole. -->
-                    <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem); padding: 3px;">
+                    <div style="${FILTER_ROW_STYLE}">
                         <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
                         ${this.renderColumnChooser()}
                     </div>
@@ -1358,7 +1365,7 @@ export class MateuTableCrud extends LitElement {
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
             <div data-crud-box style="${this.boxStyle()}">
-                <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
+                <div style="${FILTER_ROW_STYLE}">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
                 </div>
