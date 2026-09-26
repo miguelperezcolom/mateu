@@ -61,6 +61,14 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
     return { ...component, metadata: merged } as ClientSideComponent
 }
 
+/**
+ * A page takes the width it is given, and its own style caps it. The default page style is
+ * `max-width:900px; margin:auto` — a cap, not a width — so a page whose content does not stretch
+ * (a form of fixed-width fields) shrank to that content: a narrow column in the middle. The page's
+ * style comes after, so a style that sets its own width still wins.
+ */
+export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
+
 export const renderPage = (container: LitElement, rawComponent: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, standalone?: boolean) => {
     const component = hoistLeadingEntityHeader(rawComponent)
     const metadata = component.metadata as PageComponent
@@ -73,7 +81,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
             .appState="${appState}"
             .appdata="${appData}"
             slot="${component.slot??nothing}"
-            style="${component.style}"
+            style="${pageStyle(component.style)}"
             class="${component.cssClasses}"
             ?standalone="${standalone ?? false}"
     >
