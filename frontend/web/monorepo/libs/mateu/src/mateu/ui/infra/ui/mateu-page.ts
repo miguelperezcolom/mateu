@@ -11,6 +11,9 @@ import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.t
 import { requestAside } from "@infra/ui/layout/fabRail.ts"
 import type { AsidePlacement } from "@infra/ui/layout/fabRail.ts"
 
+/** Narrow viewports (the rail's NARROW_VIEWPORT): nothing pins but the section bar, and that compact. */
+const NARROW_QUERY = '(max-width: 599px)'
+
 /** Next ancestor element, crossing shadow-DOM boundaries via the host, for scroll-container lookup. */
 function nextAncestor(el: HTMLElement): HTMLElement | null {
     if (el.parentElement) return el.parentElement
@@ -331,7 +334,10 @@ export class MateuPage extends LitElement {
      */
     private _layoutStickyTops() {
         const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
-        const headerH = (this._tocVisible && header) ? header.offsetHeight : 0
+        // Below 600px the page header is not pinned (it would take a third of a phone's screen):
+        // only the section bar is.
+        const headerPinned = !window.matchMedia?.(NARROW_QUERY).matches
+        const headerH = (this._tocVisible && header && headerPinned) ? header.offsetHeight : 0
         this.style.setProperty('--mateu-header-h', headerH + 'px')
         // A folded index is a bar pinned under the header: what pins below it starts under the bar.
         this._headerH = headerH + (this._tocBar()?.offsetHeight ?? 0)
@@ -740,6 +746,23 @@ export class MateuPage extends LitElement {
         }
         .toc-bar .page-toc__key {
             display: none;
+        }
+
+        /* A phone: the page header scrolls away with the page and the section bar is one compact
+           line — pinned, scrolling sideways, still marking the active section. */
+        @media (max-width: 599px) {
+            .page-header-wrap.sticky-header {
+                position: static;
+            }
+            .toc-bar .page-toc {
+                top: 0;
+                margin-bottom: var(--lumo-space-s, 0.5rem);
+            }
+            .toc-bar .page-toc__item {
+                padding: 0.3rem 0.6rem;
+                font-size: var(--lumo-font-size-xs, 0.8125rem);
+                line-height: 1.4;
+            }
         }
 
         .page-banners {

@@ -539,7 +539,11 @@ export class MateuUx extends ConnectedElement {
             return
         }
         this.lastStampedComponent = component
-        this.dataset.pageWidth = resolvePageWidth(component, { top: this.top })
+        // A view holding an app nested in another (a remote shell's root) is a shell, not a page:
+        // it takes no width of its own — its content view applies the page's, once. Giving it the
+        // page width too stacked two 24px gutters on a full-width page.
+        const nestedShell = !this.top && isAppShell(component)
+        this.dataset.pageWidth = nestedShell ? 'edge' : resolvePageWidth(component, { top: this.top })
         // The content view — not the app shell around it, nor a widget in its header — owns the aside
         // channel the FABs (and a form's section index) live in: a view an app renders as its
         // content (data-content-view), or a top view with no app around it. A view holding an app
