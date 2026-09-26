@@ -18,7 +18,9 @@ repositories {
 // variants (pure local mode). Override with -Pmateu.idePath=/path to reuse a LOCAL install instead
 // (faster, no download — but Ultimate boots in a remote-dev-aware mode).
 val idePath = findProperty("mateu.idePath") as String?
-val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.5"
+// 2025.2.6.3 (not 2025.2.5): the 2025.2.5 macOS-aarch64 distribution fails bundled-plugin resolution
+// ("Could not find bundled plugin with ID: 'com.intellij.java'") — this newer 252.x patch resolves it.
+val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.6.3"
 
 dependencies {
     intellijPlatform {
@@ -134,8 +136,76 @@ tasks.runIde {
     doFirst {
         workspace.mkdirs()
         File(workspace, "README.txt").writeText(
-            "$productName — opened automatically by ./gradlew runIde.\n"
+            "$productName — opened automatically by ./gradlew runIde.\n" +
+                "Open specs/ui/playground.yaml to try the Visual Editor (palette + canvas + Layers).\n"
         )
+        // Seed a sample screen so the Visual Editor has something to open out of the box. A file under
+        // `specs/ui/` is what MateuVisualEditorProvider claims. Seed only when absent, so it never
+        // overwrites edits made in a previous runIde session (the editor saves back into this file).
+        val sample = File(workspace, "specs/ui/playground.yaml")
+        if (!sample.exists()) {
+            sample.parentFile.mkdirs()
+            sample.writeText(
+                """
+                # Playground screen — a plain layout page to try the Visual Editor (palette + canvas + Layers).
+                # It has no view model, so it renders as a bare layout: perfect for exercising the Layers tree,
+                # drag-drop and the properties panel without a backend behind it.
+                ${'$'}schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+                type: VerticalLayout
+                spacing: true
+                padding: true
+                content:
+                  - type: Text
+                    text: "Character profile"
+                    container: h2
+                  - type: Text
+                    text: "A sample screen to play with in the visual editor."
+                    size: s
+                  - type: FormLayout
+                    content:
+                      - type: FormField
+                        id: name
+                        label: "Name"
+                        dataType: string
+                      - type: FormField
+                        id: homeworld
+                        label: "Homeworld"
+                        dataType: string
+                      - type: FormField
+                        id: birthYear
+                        label: "Birth year"
+                        dataType: string
+                      - type: FormField
+                        id: gender
+                        label: "Gender"
+                        dataType: string
+                        stereotype: multiSelect
+                        options:
+                          - value: male
+                            label: Male
+                          - value: female
+                            label: Female
+                          - value: "n/a"
+                            label: "Droid (n/a)"
+                      - type: FormField
+                        id: bio
+                        label: "Biography"
+                        dataType: string
+                        stereotype: textarea
+                  - type: HorizontalLayout
+                    spacing: true
+                    content:
+                      - type: Button
+                        label: "Save"
+                        actionId: save
+                        buttonStyle: primary
+                      - type: Button
+                        label: "Cancel"
+                        actionId: cancel
+                        buttonStyle: secondary
+                """.trimIndent() + "\n"
+            )
+        }
     }
     systemProperty("mateu.productName", productName)
     // Forward the mateu.* connection properties from the gradle invocation to the IDE JVM —
