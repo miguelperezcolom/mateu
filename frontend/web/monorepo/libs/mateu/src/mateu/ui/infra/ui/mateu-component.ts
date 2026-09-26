@@ -813,7 +813,7 @@ export class MateuComponent extends ComponentElement {
         // server's getComponentState(EntityType.class) must see, not this ancestor's own state (the
         // crud list: filters/paging, no id). resolveComponentState prefers it when present; a direct
         // action has no initiatorState and keeps its own state.
-        const componentState = resolveComponentState(this.state, detail.parameters)
+        const componentState = resolveComponentState(this.state, detail.parameters, detail.actionId)
 
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {
