@@ -75,22 +75,33 @@ public class RemoteMenuHandler {
    * when the user clicks that menu entry). Stripping by convention alone mounts a route the remote
    * does not have, and the page renders "Not found" — the deep-link half of a screen that works
    * fine through the menu.
+   *
+   * <p>When the remote claims BOTH, the more specific claim wins — the candidate that lands on the
+   * longer menu route. A remote whose own menu repeats the shell's segment ({@code /partners}
+   * holding {@code /partners/partners}) owns the stripped {@code /partners} too, but only as its
+   * GROUP, which renders a section index; the verbatim route names the screen itself. Taking the
+   * stripped one first made a deep link to {@code /partners/partners} open the index while the menu
+   * opened the listing. A tie keeps the convention (stripped).
    */
   private String claimedRoute(AppDto appDto, RemoteMenu remoteMenu, String route) {
     if (route == null) {
       return null;
     }
     var routeWithinApp = routeWithinApp(remoteMenu, route);
-    if (ownsRoute(appDto, routeWithinApp)) {
-      return routeWithinApp;
+    int strippedClaim = claimLength(appDto, routeWithinApp);
+    int verbatimClaim = route.equals(routeWithinApp) ? -1 : claimLength(appDto, route);
+    if (strippedClaim < 0 && verbatimClaim < 0) {
+      return null;
     }
-    return ownsRoute(appDto, route) ? route : null;
+    return verbatimClaim > strippedClaim ? route : routeWithinApp;
   }
 
   /**
-   * Does the remote app claim this route? Every remote answers ANY route with its app shell (a
-   * fallback home with that route stamped), so "anything but the Not-found text" is too weak a test
-   * — the route must be one of the app's own menu routes, or live UNDER one.
+   * How specifically the remote app claims this route: the length of the longest of its menu routes
+   * that the route is, or lives under; -1 when it does not claim it. Every remote answers ANY route
+   * with its app shell (a fallback home with that route stamped), so "anything but the Not-found
+   * text" is too weak a test — the route must be one of the app's own menu routes, or live UNDER
+   * one.
    *
    * <p>Under one, because a menu route names a SCREEN and a link often names something inside it:
    * {@code /workflow/processes/5f7b6ac6…} is one record of the {@code /workflow/processes} listing,
@@ -99,11 +110,17 @@ public class RemoteMenuHandler {
    * whose routes carry the prefix — answered "Not found." The {@code /} boundary is what keeps
    * {@code /forms-archive} from being claimed by a remote that only owns {@code /forms}.
    */
-  private boolean ownsRoute(AppDto app, String route) {
+  private int claimLength(AppDto app, String route) {
+    if (route == null || route.isEmpty()) {
+      return -1;
+    }
     var path = withoutQuery(route);
     return menuRoutes(app.menu())
         .filter(menuRoute -> menuRoute != null && !menuRoute.isBlank())
-        .anyMatch(menuRoute -> path.equals(menuRoute) || path.startsWith(menuRoute + "/"));
+        .filter(menuRoute -> path.equals(menuRoute) || path.startsWith(menuRoute + "/"))
+        .mapToInt(String::length)
+        .max()
+        .orElse(-1);
   }
 
   /** The route alone: a deep link may carry query params, and no menu route ever does. */
