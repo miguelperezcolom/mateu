@@ -124,7 +124,7 @@ public class UIAnnotationProcessorTest {
         .thenAnswer(inv -> Set.of(element));
     when(roundEnv.processingOver()).thenReturn(false);
 
-    return new UITestContext(processor, filer, writer, annotations, roundEnv);
+    return new UITestContext(processor, filer, writer, annotations, roundEnv, element);
   }
 
   @Test
@@ -158,6 +158,25 @@ public class UIAnnotationProcessorTest {
     // The FreeMarker templates should interpolate className and path
     assertThat(content).contains("HelloWorld");
     assertThat(content).contains("/myapp");
+  }
+
+  /**
+   * A {@code @Script} is injected into the page's head as a whole tag. It used to be written
+   * without the {@code >} that closes the opening tag, so the browser read {@code </script} as an
+   * attribute and swallowed everything up to the next script's end tag — in a Redwood shell, the
+   * script that sets {@code vbInitConfig}, which left the app with no base URL and a blank page.
+   */
+  @Test
+  public void aScriptTagIsClosedBeforeItsEndTag() throws IOException {
+    var ctx = buildContext("com.example.HelloWorld", "HelloWorld", "/");
+    var script = mock(Script.class);
+    when(script.src()).thenReturn("/push/push.js");
+    when(script.type()).thenReturn("");
+    when(ctx.element.getAnnotationsByType(Script.class)).thenReturn(new Script[] {script});
+
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    assertThat(ctx.capturedContent()).contains("src=\\\"/push/push.js\\\"></script>");
   }
 
   @Test
@@ -218,7 +237,8 @@ public class UIAnnotationProcessorTest {
       Filer filer,
       StringWriter writer,
       Set<TypeElement> annotations,
-      RoundEnvironment roundEnv) {
+      RoundEnvironment roundEnv,
+      TypeElement element) {
 
     String capturedContent() {
       return writer.toString();

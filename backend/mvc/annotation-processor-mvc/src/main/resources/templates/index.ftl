@@ -280,7 +280,7 @@ public class ${simpleClassName}Controller {
         extraHead.append("<link rel=\"${l.rel}\" href=\"${l.href}\"<#if l.type?has_content> type=\"${l.type}\"</#if><#if l.as?has_content> as=\"${l.as}\"</#if><#if l.crossorigin> crossorigin</#if>>");
 </#list>
 <#list scripts as s>
-        extraHead.append("<script<#if s.type?has_content> type=\"${s.type}\"</#if> src=\"${s.src}\"<#if s.crossorigin> crossorigin</#if><#if s.defer> defer</#if><#if s.async> async</#if></script>");
+        extraHead.append("<script<#if s.type?has_content> type=\"${s.type}\"</#if> src=\"${s.src}\"<#if s.crossorigin> crossorigin</#if><#if s.defer> defer</#if><#if s.async> async</#if>></script>");
 </#list>
         html = html.replace("</head>", extraHead + "</head>");
 </#if>
