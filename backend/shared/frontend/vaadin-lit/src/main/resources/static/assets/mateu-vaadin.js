@@ -4953,7 +4953,9 @@ ${i}
                             .appData="${this.appData}"
                         ></mateu-content-header>
                     </div>
-                    <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
+                    <!-- The box clips (overflow: hidden, for its rounded border), and a focused search
+                         field's ring is drawn outside the field: 3px of room keep it whole. -->
+                    <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem); padding: 3px;">
                         <div style="flex: 1; min-width: 0;">${N.get()?.renderFilterBar(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData,!0)}</div>
                         ${this.renderColumnChooser()}
                     </div>
