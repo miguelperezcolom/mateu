@@ -1,0 +1,1 @@
+{"version":3,"names":["define"],"sources":["shell-page.js"],"sourcesContent":["/* Copyright (c) 2026, Oracle and/or its affiliates */\n\ndefine([], () => {\n  'use strict';\n  \n  class PageModule {\n  }\n    \n  return PageModule;\n});\n  "],"mappings":"aAEAA,MAAM,CAAC,EAAE,CAAE,IAAM,CACf,YAAY,CAKZ,MAHA,MAAiB,EAChB,CAGH,CAAC,CAAC","ignoreList":[]}

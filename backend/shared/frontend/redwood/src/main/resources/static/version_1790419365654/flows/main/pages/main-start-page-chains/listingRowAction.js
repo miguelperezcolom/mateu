@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{methodName,rowId}){methodName&&(await Actions.callChain(context,{chain:"runMateuAction",params:{actionId:"action-on-row-"+methodName,parameters:{id:rowId}}}))}};});
+//# sourceMappingURL=listingRowAction.js.map

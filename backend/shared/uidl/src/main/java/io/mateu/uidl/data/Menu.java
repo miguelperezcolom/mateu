@@ -19,8 +19,38 @@ public record Menu(
     boolean disabled,
     boolean disabledOnClick,
     Object itemData,
-    String description)
+    String description,
+    boolean hidden)
     implements Actionable {
+
+  /**
+   * An entry the menu does not draw, still resolving its route (deep links, reloads, navigation
+   * from elsewhere). Declared with {@code @Hidden} on the {@code @Menu} field.
+   */
+  public Menu(
+      String path,
+      String label,
+      List<Actionable> submenu,
+      boolean selected,
+      Component component,
+      String className,
+      boolean disabled,
+      boolean disabledOnClick,
+      Object itemData,
+      String description) {
+    this(
+        path,
+        label,
+        submenu,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        description,
+        false);
+  }
 
   public Menu(String label) {
     this(toCamelCase(label), label, List.of(), false, null, null, false, false, null, null);
@@ -36,5 +66,20 @@ public record Menu(
 
   public Menu(String path, String label, List<Actionable> submenu) {
     this(path, label, submenu, false, null, null, false, false, null, null);
+  }
+
+  public Menu withHidden(boolean hidden) {
+    return new Menu(
+        path,
+        label,
+        submenu,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        description,
+        hidden);
   }
 }

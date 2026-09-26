@@ -12,9 +12,11 @@ import io.mateu.core.domain.AudienceGate;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.EyesOnly;
+import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MethodLink;
+import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Rule;
 import io.mateu.uidl.data.RuleLink;
@@ -39,6 +41,27 @@ final class MenuEntryMapper {
   }
 
   static Actionable mapToMenu(
+      String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
+    var entry = mapFieldToMenu(appRoute, field, instance, route, httpRequest);
+    // @Hidden on any @Menu field: out of the menu, its route still resolving — a page reached from
+    // a button, a section reached from a header widget.
+    return MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Hidden.class)
+        ? hidden(entry)
+        : entry;
+  }
+
+  static Actionable hidden(Actionable entry) {
+    if (entry instanceof RemoteMenu remoteMenu) return remoteMenu.withHidden(true);
+    if (entry instanceof Menu menu) return menu.withHidden(true);
+    if (entry instanceof FieldLink fieldLink) return fieldLink.withHidden(true);
+    if (entry instanceof RouteLink routeLink) return routeLink.withHidden(true);
+    if (entry instanceof MethodLink methodLink) return methodLink.withHidden(true);
+    if (entry instanceof ContentLink contentLink) return contentLink.withHidden(true);
+    if (entry instanceof RuleLink ruleLink) return ruleLink.withHidden(true);
+    return entry;
+  }
+
+  private static Actionable mapFieldToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
     if ("/".equals(appRoute)) {
       appRoute = "";

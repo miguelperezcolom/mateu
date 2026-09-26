@@ -551,7 +551,9 @@ function navNodeOf(option, parentRoute) {
   const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
     ? raw.slice(parentRoute.length)
     : raw
-  const children = option.submenus || option.submenu || []
+  // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
+  // sigue resolviendo (la registra el transporte), pero el menú no la enseña
+  const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
   return {
     id,
     label: option.caption || option.label || id,

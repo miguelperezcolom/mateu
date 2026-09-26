@@ -31,6 +31,14 @@ public interface Actionable {
     return null;
   }
 
+  /**
+   * Whether the menu leaves this entry out while its route still resolves — {@code @Hidden} on a
+   * {@code @Menu} field.
+   */
+  default boolean hidden() {
+    return false;
+  }
+
   /** Optional description for AI assistants. Implementations may return null. */
   default String description() {
     return null;

@@ -1525,7 +1525,10 @@
         "disabledOnClick" : {
           "type" : "boolean"
         },
-        "itemData" : { }
+        "itemData" : { },
+        "hidden" : {
+          "type" : "boolean"
+        }
       }
     },
     "ContextMenu" : {
@@ -2187,6 +2190,9 @@
         "itemData" : { },
         "description" : {
           "type" : "string"
+        },
+        "hidden" : {
+          "type" : "boolean"
         }
       }
     },
@@ -3651,6 +3657,9 @@
         "itemData" : { },
         "description" : {
           "type" : "string"
+        },
+        "hidden" : {
+          "type" : "boolean"
         }
       }
     },
@@ -3831,7 +3840,10 @@
         "disabledOnClick" : {
           "type" : "boolean"
         },
-        "itemData" : { }
+        "itemData" : { },
+        "hidden" : {
+          "type" : "boolean"
+        }
       }
     },
     "MetricCard" : {
@@ -4941,6 +4953,9 @@
         },
         "icon" : {
           "type" : "string"
+        },
+        "hidden" : {
+          "type" : "boolean"
         }
       }
     },
@@ -5021,6 +5036,9 @@
         "itemData" : { },
         "description" : {
           "type" : "string"
+        },
+        "hidden" : {
+          "type" : "boolean"
         }
       }
     },

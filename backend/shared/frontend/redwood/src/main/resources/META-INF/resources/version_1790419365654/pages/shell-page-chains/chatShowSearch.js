@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],ActionChain=>{"use strict";return class extends ActionChain{async run(context){context.$application.variables.mateuChatMode=!1}};});
+//# sourceMappingURL=chatShowSearch.js.map

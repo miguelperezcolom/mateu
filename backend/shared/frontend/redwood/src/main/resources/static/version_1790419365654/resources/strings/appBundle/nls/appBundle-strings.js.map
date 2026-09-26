@@ -1,0 +1,1 @@
+{"version":3,"names":["define","root"],"sources":["appBundle-strings.js"],"sourcesContent":["define(function() {\n 'use strict';\n\n return {\n    \"root\": true\n};\n});"],"mappings":"aAAAA,MAAM,CAAC,UAAW,CACjB,YAAY,CAEZ,MAAO,CACJC,IAAA,GACJ,CAAC,CACD,CAAC,CAAC","ignoreList":[]}

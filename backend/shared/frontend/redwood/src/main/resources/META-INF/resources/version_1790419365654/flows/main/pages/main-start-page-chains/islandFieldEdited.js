@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],ActionChain=>{"use strict";return class extends ActionChain{async run(context,{fieldId,event}){const{$page}=context,detail=event&&(event.detail||event)||{};if(!(detail.updatedFrom&&"internal"!==detail.updatedFrom)&&fieldId){context.$application.variables.mateuDirty=!0;const draft=Object.assign({},$page.variables.mateuIslandDraft);draft[fieldId]=detail.value,$page.variables.mateuIslandDraft=draft}}};});
+//# sourceMappingURL=islandFieldEdited.js.map

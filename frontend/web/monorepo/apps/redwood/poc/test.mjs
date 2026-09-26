@@ -359,6 +359,19 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un grupo', () => {
+  // @Menu @Hidden en una página local: la alcanza el botón New del listado, no el menú
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Call center', path: '/callCenter', submenus: [
+      { label: 'Bookings', path: '/callCenter/bookings', route: '/callCenter/bookings' },
+      { label: 'New booking', path: '/callCenter/newBooking', route: '/callCenter/newBooking', visible: false },
+    ] },
+  ] } })
+  const group = nav.menuTree[0]
+  assert.deepEqual(group.children.map((c) => c.label), ['Bookings'])
+  assert.equal(group.hasChildren, true)
+})
+
 test('shellNavOf: grupos con rutas terminales + selectores de contexto + header actions', () => {
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })

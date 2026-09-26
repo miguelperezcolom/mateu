@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){const detail=event&&event.detail||{};if(detail.updatedFrom&&"internal"!==detail.updatedFrom)return;const filters=detail.value&&detail.value.value||[],searchText=filters.filter(f=>"keyword"===f.filter).map(f=>f.value).join(" ");await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText}})}};});
+//# sourceMappingURL=smartFiltersChanged.js.map
