@@ -17,6 +17,7 @@ import ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideCompone
 const ux = (over: Record<string, any> = {}) => ({
     id: 'target',
     top: false,
+    hasAttribute: (_name: string) => false,
     dataset: {} as Record<string, string>,
     fragment: undefined as UIFragment | undefined,
     lastStampedComponent: undefined as unknown,

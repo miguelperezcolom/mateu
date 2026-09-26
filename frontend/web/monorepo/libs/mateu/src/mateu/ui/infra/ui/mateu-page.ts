@@ -8,6 +8,8 @@ import './mateu-content-header'
 import { interpolate } from './interpolation'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.ts"
+import { requestAside } from "@infra/ui/layout/fabRail.ts"
+import type { AsidePlacement } from "@infra/ui/layout/fabRail.ts"
 
 /** Next ancestor element, crossing shadow-DOM boundaries via the host, for scroll-container lookup. */
 function nextAncestor(el: HTMLElement): HTMLElement | null {
@@ -58,6 +60,17 @@ export class MateuPage extends LitElement {
 
     @state()
     private _tocVisible = false
+
+    /**
+     * Where the index goes (layout/fabRail.ts): in the aside channel to the right of the work area,
+     * outside it, as Redwood's vertical anchor navigator does; in a bar over the form where there is
+     * no aside (edge-to-edge, narrow); in a column of its own for a page no content view holds (a
+     * page embedded in a drawer or dialog, a standalone page).
+     */
+    @state()
+    private _tocPlacement: AsidePlacement = 'column'
+    private _releaseAside?: () => void
+    private _workEnd?: number
 
     private _spyTarget?: HTMLElement | Window
     private _tocRebuildScheduled = false
@@ -115,6 +128,36 @@ export class MateuPage extends LitElement {
         document.removeEventListener('keydown', this._onTocKey)
         this._clearAllTimers()
         this._teardownScrollSpy()
+        this._syncAside(false)
+    }
+
+    /**
+     * The index in the channel starts one gap past the WORK AREA's end, not past this page's: a page
+     * capped narrower than the work area (its style's max-width) would otherwise put it inside.
+     */
+    private _alignAside() {
+        const body = this.shadowRoot?.querySelector('.page-body') as HTMLElement | null
+        if (!body || this._workEnd === undefined) return
+        const shift = Math.max(0, Math.round(this._workEnd - body.getBoundingClientRect().right))
+        this.style.setProperty('--mateu-toc-shift', `${shift}px`)
+    }
+
+    /** Asks for the aside channel while a top-level page shows its index; gives it back otherwise. */
+    private _syncAside(wanted: boolean) {
+        if (wanted && !this._releaseAside) {
+            this._releaseAside = requestAside(this, (placement, workEnd) => {
+                this._workEnd = workEnd
+                if (placement === 'aside') requestAnimationFrame(() => this._alignAside())
+                if (placement === this._tocPlacement) return
+                this._tocPlacement = placement
+                // The header pins and the sticky offsets differ per placement.
+                requestAnimationFrame(() => this._layoutStickyTops())
+            })
+        } else if (!wanted && this._releaseAside) {
+            this._releaseAside()
+            this._releaseAside = undefined
+            this._tocPlacement = 'column'
+        }
     }
 
     // When the index is shown, Ctrl+Alt+<1..9> jumps to the matching section (same as clicking the
@@ -133,6 +176,7 @@ export class MateuPage extends LitElement {
 
     updated(changedProperties: PropertyValues) {
         super.updated(changedProperties)
+        if (changedProperties.has('_activeToc')) this._revealActiveInBar()
         if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
             this._clearAllTimers()
             this.actionBanners = []
@@ -264,6 +308,7 @@ export class MateuPage extends LitElement {
 
         this._tocEntries = entries
         this._tocVisible = visible
+        this._syncAside(visible && !this.hasAttribute('data-nested'))
         if (this._activeToc >= entries.length) this._activeToc = 0
 
         this._teardownScrollSpy()
@@ -286,8 +331,10 @@ export class MateuPage extends LitElement {
      */
     private _layoutStickyTops() {
         const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
-        this._headerH = (this._tocVisible && header) ? header.offsetHeight : 0
-        this.style.setProperty('--mateu-header-h', this._headerH + 'px')
+        const headerH = (this._tocVisible && header) ? header.offsetHeight : 0
+        this.style.setProperty('--mateu-header-h', headerH + 'px')
+        // A folded index is a bar pinned under the header: what pins below it starts under the bar.
+        this._headerH = headerH + (this._tocBar()?.offsetHeight ?? 0)
         const gap = 12
         let offset = this._headerH + gap
         for (const card of this._sectionCards()) {
@@ -296,6 +343,24 @@ export class MateuPage extends LitElement {
             // Leave a gap below each pinned card so stacked sticky sections don't touch.
             offset += card.offsetHeight + gap
         }
+    }
+
+    /** In the folded bar, keeps the active section's entry in view as the reading position moves. */
+    private _revealActiveInBar() {
+        const nav = this._tocBar()?.querySelector('nav') as HTMLElement | null
+        const item = nav?.querySelector('.page-toc__item.is-active') as HTMLElement | null
+        if (!nav || !item) return
+        const start = item.offsetLeft - nav.offsetLeft
+        if (start < nav.scrollLeft || start + item.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+            nav.scrollTo({ left: Math.max(0, start - 16), behavior: 'smooth' })
+        }
+    }
+
+    /** The index when it is folded into a bar over the form. */
+    private _tocBar(): HTMLElement | null {
+        return this._tocVisible && this._tocPlacement === 'bar'
+            ? this.shadowRoot?.querySelector('.page-toc') as HTMLElement | null
+            : null
     }
 
     private _scrollContainer(): HTMLElement | null {
@@ -345,6 +410,8 @@ export class MateuPage extends LitElement {
         // sticky offsets having been computed yet.
         const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
         let pinnedBottom = header ? header.getBoundingClientRect().bottom : 0
+        const bar = this._tocBar()
+        if (bar) pinnedBottom = Math.max(pinnedBottom, bar.getBoundingClientRect().bottom)
         for (const card of cards) {
             if (!card.classList.contains('mateu-section--sticky')) continue
             const r = card.getBoundingClientRect()
@@ -419,9 +486,11 @@ export class MateuPage extends LitElement {
             ...this.actionBanners.map((banner, i) => ({ banner, onDismiss: () => this._dismissActionBanner(i) }))
         ]
         const inner = html`
-            <div class="page-header-wrap">
+            <!-- The pin goes on the wrapper, not on the header inside it: a sticky element only sticks
+                 within its parent, and the wrapper is exactly as tall as the header, so a pinned
+                 header scrolled away with it and the index's scrollspy never left its first entry. -->
+            <div class="page-header-wrap ${this._tocVisible ? 'sticky-header' : ''}">
                 <mateu-content-header
-                    class="${this._tocVisible ? 'sticky-header' : ''}"
                     .metadata="${metadata}"
                     .baseUrl="${this.baseUrl}"
                     .state="${this.state}"
@@ -438,7 +507,7 @@ export class MateuPage extends LitElement {
                     ${banners.map(({ banner, onDismiss }) => this._renderBanner(banner, onDismiss))}
                 </div>
             ` : nothing}
-            <div class="page-body ${this._tocVisible ? 'with-toc' : ''}">
+            <div class="page-body ${this._tocVisible ? `with-toc toc-${this._tocPlacement}` : ''}">
                 <div class="form-content">
                     <slot @slotchange=${this._onSlotChange}></slot>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem);" class="form-buttons">
@@ -446,7 +515,7 @@ export class MateuPage extends LitElement {
                     </div>
                 </div>
                 ${this._tocVisible ? html`
-                    <aside class="page-toc">
+                    <aside class="page-toc" aria-label="Sections">
                         <nav>
                             ${this._tocEntries.map((entry, i) => html`
                                 <a class="page-toc__item ${i === this._activeToc ? 'is-active' : ''}"
@@ -606,12 +675,71 @@ export class MateuPage extends LitElement {
         }
 
         @media (max-width: 900px) {
-            .page-body.with-toc {
+            .page-body.with-toc.toc-column {
                 grid-template-columns: 1fr;
             }
-            .page-toc {
+            .toc-column .page-toc {
                 display: none;
             }
+        }
+
+        /* In the aside channel: OUTSIDE the work area, to its right — the content view leaves the
+           room (fabRail.ts: an inset, the 15rem index and its 2rem gap), and the index takes it by
+           overflowing a zero-width track. Still sticky, under the pinned header, and short enough
+           to leave the FABs at the bottom of the same channel clear. */
+        .page-body.with-toc.toc-aside {
+            grid-template-columns: minmax(0, 1fr) 0;
+            gap: 0;
+        }
+        .toc-aside .page-toc {
+            width: 15rem;
+            box-sizing: border-box;
+            margin-inline-start: calc(2rem + var(--mateu-toc-shift, 0px));
+            max-height: calc(100vh - var(--mateu-header-h, 0px) - 8rem - var(--mateu-fab-slots, 0) * 3.25rem);
+        }
+
+        /* No aside (edge-to-edge, narrow): the index folds into a bar over the form — the sections
+           in a row that scrolls sideways, pinned under the header, the active one underlined. The
+           horizontal form of the same navigator, as Redwood does on a narrow screen: every section
+           one tap away, the reading position still shown, no width taken from the form. */
+        .page-body.with-toc.toc-bar {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+        }
+        .toc-bar .page-toc {
+            order: -1;
+            top: var(--mateu-header-h, 0px);
+            max-height: none;
+            overflow: visible;
+            z-index: 4;
+            background: var(--lumo-base-color, #fff);
+            margin-bottom: var(--lumo-space-m, 1rem);
+        }
+        .toc-bar .page-toc nav {
+            flex-direction: row;
+            overflow-x: auto;
+            scrollbar-width: none;
+            gap: 0.25rem;
+            border-left: none;
+            border-bottom: 1px solid var(--lumo-contrast-10pct);
+            padding-left: 0;
+        }
+        .toc-bar .page-toc__item {
+            flex: none;
+            margin-left: 0;
+            border-left: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            padding: 0.5rem 0.75rem;
+        }
+        .toc-bar .page-toc__item.is-active {
+            border-bottom-color: var(--lumo-primary-color);
+        }
+        .toc-bar .page-toc__label {
+            overflow: visible;
+        }
+        .toc-bar .page-toc__key {
+            display: none;
         }
 
         .page-banners {
