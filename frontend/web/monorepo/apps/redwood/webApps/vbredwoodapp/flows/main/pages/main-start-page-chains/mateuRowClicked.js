@@ -46,6 +46,19 @@ define([
       if (!row) {
         return;
       }
+      // DETALLE de fila (@Details) en un listado de consulta: el clic lo abre en su panel en vez
+      // de pedir un 'view' que no lleva a ninguna parte. Una fila navegable sigue abriendo el registro.
+      if (listing && listing.detailPath && !listing.navigable) {
+        const value = row[listing.detailPath];
+        const first = (listing.columns || [])[0];
+        const title = first && row[first.field] != null ? row[first.field] : '';
+        $application.variables.mateuRowDetail = {
+          title: typeof title === 'object' ? (title.message || '') : String(title),
+          text: value == null ? '' : (typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)),
+        };
+        $application.variables.mateuRowDetailOpen = true;
+        return;
+      }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
         params: { actionId: 'view', parameters: row },

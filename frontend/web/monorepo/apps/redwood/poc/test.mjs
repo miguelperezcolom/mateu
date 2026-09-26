@@ -22,7 +22,7 @@ import {
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
-  dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers,
+  dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
@@ -230,6 +230,32 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.equal(after.total, 3)
   assert.equal(after.isEmpty, false)
   assert.ok(after.toolbar.some((b) => b.label === 'New'))
+})
+
+// 14 bis) Detalle de fila (@Details): viaja como detailPath del Crud; listingOf lo proyecta, y
+//     distingue el listado de consulta (el clic abre el detalle) del navegable (el clic abre el
+//     registro: su primera columna lleva actionId 'view').
+test('listing: listingOf proyecta el detalle de fila y si la fila es navegable', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  assert.ok(crud)
+  const plain = listingOf(reduceContexts(empty(), content).contexts[HOST_ID])
+  assert.equal(plain.detailPath, null)
+
+  crud.metadata.detailPath = 'parameters'
+  const cols = crud.metadata.columns || []
+  const first = cols[0] && (cols[0].metadata || cols[0])
+  if (first) delete first.actionId
+  const detail = listingOf(reduceContexts(empty(), content).contexts[HOST_ID])
+  assert.equal(detail.detailPath, 'parameters')
+  assert.equal(detail.navigable, false)
+
+  if (first) {
+    first.actionId = 'view'
+    const navigable = listingOf(reduceContexts(empty(), content).contexts[HOST_ID])
+    assert.equal(navigable.navigable, true)
+  }
 })
 
 // 15) CRUD en drawer (Fase 5): new→Add proyectable; view→drawer Edit con la fila;

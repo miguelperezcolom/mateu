@@ -344,15 +344,7 @@ export class MateuTable extends LitElement {
                     }:undefined)}"
                     @click="${ifDefined(this.metadata?.rowRoute?(event: MouseEvent) => this.navigateToRowRoute(event):undefined)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${ifDefined(this.metadata?.detailPath?gridRowDetailsRenderer<any>((item) => html`${renderComponent(
-                                                    this, 
-                                                    item[this.metadata?.detailPath!], 
-                                                    this.baseUrl, 
-                                                    this.state, 
-                                                    this.data,
-                            this.appState,
-                            this.appData
-                        )}`):undefined)}
+                    ${ifDefined(this.metadata?.detailPath?gridRowDetailsRenderer<any>((item) => this.renderRowDetail(item[this.metadata?.detailPath!])):undefined)}
                     theme="${theme}"
                     style="${this.metadata?.gridStyle}"
             >
@@ -393,10 +385,33 @@ export class MateuTable extends LitElement {
        `
     }
 
+    /**
+     * The row detail (a `@Details` field of the row). A component is rendered as one; a plain
+     * value — a message, a JSON payload — is text, kept as written: line breaks and indentation
+     * are the point of a payload, and a row's detail is where the long ones go.
+     */
+    renderRowDetail(value: any) {
+        if (value === undefined || value === null || value === '') {
+            return html``
+        }
+        if (typeof value === 'object' && value.type) {
+            return html`${renderComponent(this, value, this.baseUrl, this.state, this.data, this.appState, this.appData)}`
+        }
+        const text = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
+        return html`<div class="row-detail">${text}</div>`
+    }
+
     static styles = css`
         ${badge}
         vaadin-grid[data-clickable-rows]::part(row) {
             cursor: pointer;
+        }
+        .row-detail {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: var(--lumo-font-family-monospace, monospace);
+            font-size: var(--lumo-font-size-s);
+            padding: var(--lumo-space-s) var(--lumo-space-m);
         }
         vaadin-grid[data-clickable-rows]::part(row):hover {
             background-color: var(--lumo-primary-color-10pct);

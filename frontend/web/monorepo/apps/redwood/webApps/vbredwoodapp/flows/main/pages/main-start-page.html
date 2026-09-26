@@ -2564,6 +2564,18 @@
   </div>
 </oj-drawer-popup>
 
+<!-- DETALLE de fila (@Details): lo que no cabe en una celda (un payload, un mensaje) se abre en
+     un panel end al pulsar la fila, tal cual se escribió — saltos de línea e indentación
+     incluidos. Solo lectura; cerrar con ✕/Esc. -->
+<oj-drawer-popup id="mateuRowDetailPanel" edge="end" modality="modal"
+  opened="[[ $application.variables.mateuRowDetailOpen ]]"
+  on-oj-before-close="[[ $listeners.mateuRowDetailClosed ]]">
+  <div class="oj-sm-padding-6x" style="width: 36rem; max-width: 90vw; min-height: 100vh; box-sizing: border-box;">
+    <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $application.variables.mateuRowDetail.title ]]"></oj-bind-text></h2>
+    <pre class="oj-sm-margin-4x-top oj-typography-body-sm" style="white-space: pre-wrap; overflow-wrap: anywhere; margin: 0;"><oj-bind-text value="[[ $application.variables.mateuRowDetail.text ]]"></oj-bind-text></pre>
+  </div>
+</oj-drawer-popup>
+
 <!-- Wizard (Fase 8): el tren + panel del oj-sp-guided-process auténtico; el form del paso
      (widgetFor) y los botones Back/Next del wire van DENTRO de su slot de contenido -->
 <oj-bind-if test="[[ !!$application.variables.mateuWizard ]]">

@@ -122,6 +122,13 @@
         }
       ]
     },
+    "mateuRowDetailClosed": {
+      "chains": [
+        {
+          "chain": "mateuRowDetailDismissed"
+        }
+      ]
+    },
     "mateuSearchAction": {
       "chains": [
         {

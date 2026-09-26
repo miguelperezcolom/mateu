@@ -1513,6 +1513,11 @@ export function listingOf(ctx) {
     display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
     // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
     editable: (md.columns || []).some((col) => (col.metadata || col).editable),
+    // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
+    // fila. Una fila NAVEGABLE (primera columna con actionId 'view') sigue abriendo el registro:
+    // el detalle es para los listados de consulta, donde el clic no tenía otro destino.
+    detailPath: md.detailPath || null,
+    navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
     rows: statusBadgeRows(page.content || [], md.columns || []),
     total: page.totalElements == null ? null : page.totalElements,
     isEmpty: (page.content || []).length === 0,

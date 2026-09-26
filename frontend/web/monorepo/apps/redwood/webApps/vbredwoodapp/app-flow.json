@@ -326,6 +326,15 @@
       "type": "boolean",
       "defaultValue": false
     },
+    "mateuRowDetailOpen": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "mateuRowDetail": {
+      "type": "any",
+      "defaultValue": { "title": "", "text": "" },
+      "description": "el detalle de fila abierto (@Details): título (la primera columna) y el texto tal cual"
+    },
     "mateuAppState": {
       "type": "any",
       "defaultValue": {},
