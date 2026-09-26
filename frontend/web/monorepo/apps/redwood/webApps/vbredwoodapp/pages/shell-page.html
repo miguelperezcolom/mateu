@@ -277,17 +277,20 @@
 
         <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
 
-        <oj-bind-if test="[[ $application.variables.mateuBusy && !$application.variables.mateuHostTitle ]]">
-          <div class="mateu-skeleton" aria-hidden="true">
-            <div class="mateu-skeleton-bone mateu-skeleton-title"></div>
-            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-            <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
-          </div>
-        </oj-bind-if>
-
-        <div class="oj-flex">
+        <!-- Cambiar de pantalla: pasado el mismo retardo que la barra de ocupado, la pantalla
+             vieja se oculta y el esqueleto ocupa SU sitio, encima — no se apila sobre ella.
+             Una acción dentro de la misma pantalla no navega: sólo la barra, y el contenido se
+             queda, que es el contexto de lo que se está esperando. -->
+        <div class="oj-flex mateu-content" :class="[[ $application.variables.mateuNavigating ? 'mateu-navigating' : '' ]]">
+          <oj-bind-if test="[[ $application.variables.mateuNavigating ]]">
+            <div class="mateu-skeleton" aria-hidden="true">
+              <div class="mateu-skeleton-bone mateu-skeleton-title"></div>
+              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+              <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
+            </div>
+          </oj-bind-if>
           <!-- Renders flow content. min-width:0 = fix estándar flexbox (min-width:auto):
                sin él, contenido ancho (foldout, tablas) DESBORDA el área en vez de quedar
                acotado — y la lógica responsive de los oj-sp-* nunca se activa -->
