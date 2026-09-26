@@ -62,9 +62,9 @@ const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => ht
  * is no text to line up with, and the logo is simply centred.
  */
 const renderBrand = (metadata: App) => html`
-    <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'};">
+    <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'}; min-width: 0;">
         ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:nothing}
-        ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
+        ${metadata.title?html`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
     </div>`
 
 /**
@@ -74,6 +74,8 @@ const renderBrand = (metadata: App) => html`
  * baseline and is itself what gets centred in the bar.
  */
 const HEADER_ROW = 'flex: 1; min-width: 0; align-items: baseline;'
+/** Class of that row: mateu-app's styles make it fit a narrow viewport (see .mateu-app-header). */
+const HEADER_ROW_CLASS = 'm-hl mateu-app-header'
 
 const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls = '') => html`
     <nav class="mateu-nav ${cls}">
@@ -356,8 +358,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
-                    <div class="m-hl" style="${HEADER_ROW}" theme="spacing">
-                        <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
+                    <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
+                        <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata)}
                         </a>
                         ${(() => {
@@ -367,7 +369,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top')
                                 ?? renderNeutralNav(items, onSelect, 'menu-on-top')
                         })()}
-                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
@@ -404,12 +406,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
-                    <div class="m-hl" style="${HEADER_ROW}" theme="spacing">
-                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
+                    <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
+                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata)}
                         </a>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
-                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
@@ -517,11 +519,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
                 <div>
                     <div>
-                        <div class="m-hl" 
+                        <div class="${HEADER_ROW_CLASS}" 
                                 style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
-                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
+                            <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
                             </a>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
@@ -530,7 +532,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}
                             </nav>
-                            <div class="m-hl" style="flex-shrink: 0; align-items: center;">
+                            <div class="m-hl mateu-app-widgets" style="align-items: center;">
                                 <slot name="widgets"></slot>
                                 ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                             </div>
