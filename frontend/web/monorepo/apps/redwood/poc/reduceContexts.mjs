@@ -527,6 +527,11 @@ const OJ_ICONS = {
   'vaadin:cart': 'oj-ux-ico-cart',
   'vaadin:check': 'oj-ux-ico-check',
   'vaadin:clock': 'oj-ux-ico-clock',
+  // la campana del badge de la bandeja (widget de cabecera)
+  'vaadin:bell': 'oj-ux-ico-notification',
+  'vaadin:bell-o': 'oj-ux-ico-notification',
+  'vaadin:envelope': 'oj-ux-ico-email',
+  'vaadin:sign-out': 'oj-ux-ico-logout',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined
@@ -1888,6 +1893,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         homeRoute: md.homeRoute || '',
         // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
         sseUrl: md.sseUrl || '',
+        // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
+        // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
+        widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
       }
       continue
     }

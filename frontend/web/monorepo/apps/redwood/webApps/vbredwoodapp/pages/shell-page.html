@@ -97,6 +97,69 @@
           </oj-bind-if>
         </template>
       </oj-bind-for-each>
+      <!-- WIDGETS de cabecera del App (WidgetSupplier): la zona de ACCIONES de la cabecera global.
+           HTML de un Text y HTML vivo de un MicroFrontend (el badge de la bandeja, que se refresca
+           con sus triggers) van a un hueco que rellena el bridge — VB no estampa HTML crudo desde
+           un binding; cualquier otro Popover, botón + oj-popup. oj-color-invert: texto e iconos
+           claros sobre el header oscuro, como el icono home del propio global-header. -->
+      <div class="mateu-header-widgets oj-color-invert oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+        <oj-bind-for-each data="[[ $application.variables.mateuHeaderWidgets ]]">
+          <template>
+            <oj-bind-if test="[[ !$current.data.isPopover ]]">
+              <span class="mateu-header-widget oj-sm-margin-2x-start" :data-widget-id="[[ $current.data.id ]]"></span>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $current.data.isPopover ]]">
+              <oj-button class="oj-sm-margin-1x-start" chroming="borderless"
+                :id="[[ $current.data.buttonId ]]"
+                :data-popup-id="[[ $current.data.popupId ]]"
+                on-oj-action="[[ $listeners.widgetPopoverClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+              <oj-popup class="mateu-widget-popup" :id="[[ $current.data.popupId ]]" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless">
+                <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;">
+                  <oj-bind-for-each data="[[ $current.data.rows ]]">
+                    <template>
+                      <oj-bind-if test="[[ $current.data.isText ]]">
+                        <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.isLink ]]">
+                        <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
+                      </oj-bind-if>
+                    </template>
+                  </oj-bind-for-each>
+                </div>
+              </oj-popup>
+            </oj-bind-if>
+          </template>
+        </oj-bind-for-each>
+      </div>
+    </div>
+    <!-- ÁREA DE PERFIL (slot usermenu del global-header, donde FA pone el avatar del usuario): el
+         widget Popover(Text) del App — el saludo — como avatar con iniciales + nombre; al pulsarlo,
+         su contenido (email, Logout) en un popup anclado. En pantalla estrecha, solo el avatar. -->
+    <div slot="usermenu" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <oj-bind-if test="[[ !!$application.variables.mateuUserWidget ]]">
+        <oj-button id="mateuUserButton" class="mateu-user-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless"
+          :aria-label="[[ $application.variables.mateuUserWidget.label ]]"
+          on-oj-action="[[ $listeners.userWidgetClicked ]]">
+          <span class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center" style="gap: .5rem;">
+            <oj-avatar size="2xs" background="neutral" :initials="[[ $application.variables.mateuUserWidget.initials ]]"></oj-avatar>
+            <span class="mateu-user-label oj-sm-only-hide"><oj-bind-text value="[[ $application.variables.mateuUserWidget.label ]]"></oj-bind-text></span>
+          </span>
+        </oj-button>
+        <oj-popup id="mateuUserPopup" class="mateu-widget-popup" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless">
+          <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;">
+            <oj-bind-for-each data="[[ $application.variables.mateuUserWidget.rows ]]">
+              <template>
+                <oj-bind-if test="[[ $current.data.isText ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isLink ]]">
+                  <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </div>
+        </oj-popup>
+      </oj-bind-if>
     </div>
   </oj-sp-global-header>
 

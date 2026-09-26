@@ -23,7 +23,7 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent })
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
   return res.json()
 }
 
@@ -319,6 +319,24 @@ export function remoteRouteOf(route) {
     }
   }
   return best || undefined
+}
+
+/**
+ * Registra a qué pod va una ruta que NO vino del menú: la navegación que pide un widget remoto
+ * (el enlace del badge de la bandeja emite navigation-requested con su baseUrl y su
+ * serverSideType). Una ruta que el menú ya registró se queda como está — el menú manda.
+ */
+export function registerRemoteRoute(route, descriptor) {
+  if (!route || !descriptor || !descriptor.baseUrl || remoteRouteOf(route)) return false
+  const entry = {
+    baseUrl: descriptor.baseUrl,
+    consumedRoute: descriptor.consumedRoute || '',
+    serverSideType: descriptor.serverSideType,
+    uriPrefix: descriptor.uriPrefix || '',
+  }
+  remoteRoutes.set(route, entry)
+  remoteRoutes.set(String(route).replace(/^\//, ''), entry)
+  return true
 }
 
 const childrenOf = (option) => option.submenus || option.submenu || []

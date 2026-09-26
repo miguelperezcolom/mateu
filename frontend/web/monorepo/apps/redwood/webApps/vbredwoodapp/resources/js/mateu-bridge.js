@@ -532,6 +532,11 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
     'vaadin:clock': 'oj-ux-ico-clock',
+    // la campana del badge de la bandeja (widget de cabecera)
+    'vaadin:bell': 'oj-ux-ico-notification',
+    'vaadin:bell-o': 'oj-ux-ico-notification',
+    'vaadin:envelope': 'oj-ux-ico-email',
+    'vaadin:sign-out': 'oj-ux-ico-logout',
   }
   function ojIconOf(icon) {
     if (!icon) return undefined
@@ -1893,6 +1898,9 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
           sseUrl: md.sseUrl || '',
+          // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
+          // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
+          widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
         }
         continue
       }
@@ -2329,14 +2337,17 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     }
     const actionId = options.actionId
     const idempotent = isIdempotentAction(actionId, options.idempotent)
-    notify('onStart', { actionId })
+    // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
+    // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario
+    const notifyUnlessQuiet = (hook, payload) => { if (!options.quiet) notify(hook, payload) }
+    notifyUnlessQuiet('onStart', { actionId })
     let attempt = 0
     let reauthenticated = false
     for (;;) {
       try {
         const res = await sendOnce(url, withAuth(), options.timeoutMillis)
         connectivity.noteReachable()
-        notify('onSettle', { actionId, failure: null })
+        notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
         // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
@@ -2354,7 +2365,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
           // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
           // fetch", y decide si ofrecer reintentar.
           error.failure = failure
-          notify('onSettle', { actionId, failure })
+          notifyUnlessQuiet('onSettle', { actionId, failure })
           throw error
         }
         await delay(retryDelayMs(attempt))
@@ -2961,7 +2972,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
     return res.json()
   }
 
@@ -3259,6 +3270,24 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     return best || undefined
   }
 
+  /**
+   * Registra a qué pod va una ruta que NO vino del menú: la navegación que pide un widget remoto
+   * (el enlace del badge de la bandeja emite navigation-requested con su baseUrl y su
+   * serverSideType). Una ruta que el menú ya registró se queda como está — el menú manda.
+   */
+  function registerRemoteRoute(route, descriptor) {
+    if (!route || !descriptor || !descriptor.baseUrl || remoteRouteOf(route)) return false
+    const entry = {
+      baseUrl: descriptor.baseUrl,
+      consumedRoute: descriptor.consumedRoute || '',
+      serverSideType: descriptor.serverSideType,
+      uriPrefix: descriptor.uriPrefix || '',
+    }
+    remoteRoutes.set(route, entry)
+    remoteRoutes.set(String(route).replace(/^\//, ''), entry)
+    return true
+  }
+
   const childrenOf = (option) => option.submenus || option.submenu || []
 
   /** Las opciones remotas del árbol, a cualquier profundidad.
@@ -3372,6 +3401,311 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
       }
     }))
     return spliceRemote(menu, answers)
+  }
+
+
+  // Widgets de CABECERA del App (WidgetSupplier.widgets / @Widget): llegan como hijos del App con
+  // slot "widgets" — un layout con, típicamente, un MicroFrontend (el badge de la bandeja, otro pod
+  // que se refresca solo) y un Popover sobre un Text (el saludo al usuario, que abre su email y el
+  // Logout). El renderer Vaadin los pinta tal cual en su barra; aquí se reparten entre las DOS zonas
+  // que declara oj-sp-global-header:
+  //
+  //  - slot `usermenu`: el área de perfil de la cabecera global de Redwood (FA pone ahí el avatar del
+  //    usuario, y al pulsarlo su menú). Un Popover cuyo disparador es un TEXT es el idioma Mateu de
+  //    "quién soy + un menú": un texto no es un control, así que lo único que puede estar diciendo es
+  //    un rótulo — y en la cabecera, el del usuario. El PRIMERO de esos va al área de perfil como
+  //    avatar con iniciales + nombre, y su contenido a un oj-popup anclado. Es un reconocimiento de
+  //    FORMA, no de valores: no se mira qué dice el texto.
+  //  - slot `end` (zona de acciones): todo lo demás, en orden — HTML de un Text, el HTML vivo de un
+  //    MicroFrontend, y cualquier otro Popover como botón + oj-popup.
+  //
+  // El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
+  // navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
+  // por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+
+
+  const CONTAINERS = new Set([
+    'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
+    'SplitLayout', 'FlexLayout',
+  ])
+
+  const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
+
+  /** El texto visible de un fragmento HTML: sin etiquetas, entidades resueltas, blancos plegados. */
+  function plainTextOf(html) {
+    return String(html == null ? '' : html)
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&(nbsp|amp|lt|gt|quot|apos|#39);/g, (all, name) => ENTITIES[name])
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  /** Iniciales para el avatar: del nombre que sigue al saludo ("Hola, Demo User" → "DU"). */
+  function initialsOf(label) {
+    const text = plainTextOf(label)
+    const who = text.indexOf(',') >= 0 ? text.slice(text.lastIndexOf(',') + 1) : text
+    const words = who.trim().split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w))
+    if (!words.length) return ''
+    const first = words[0][0]
+    const last = words.length > 1 ? words[words.length - 1][0] : (words[0][1] || '')
+    return (first + last).toUpperCase()
+  }
+
+  const attrOf = (attrs, name) => {
+    const m = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, 'i').exec(attrs || '')
+    return m ? (m[2] != null ? m[2] : m[3]) : null
+  }
+
+  /**
+   * El HTML de un widget, apto para Redwood: cada <vaadin-icon icon="vaadin:x"> pasa a un
+   * <span class="oj-ux-ico-…"> (fuente de iconos de Redwood) conservando su style — su tamaño, su
+   * alineación y su color (p.ej. el rojo del badge cuando hay algo urgente). Un icono sin
+   * equivalente se quita: un elemento desconocido no pinta nada y ocupa su sitio igual.
+   */
+  function redwoodHtmlOf(html) {
+    const swap = (all, attrs) => {
+      const cls = ojIconOf(attrOf(attrs, 'icon'))
+      if (!cls) return ''
+      const style = attrOf(attrs, 'style')
+      return `<span class="${cls} mateu-widget-icon" aria-hidden="true"${style ? ` style="${style}"` : ''}></span>`
+    }
+    return String(html == null ? '' : html)
+      .replace(/<vaadin-icon\b([^>]*?)\/>/gi, swap)
+      .replace(/<vaadin-icon\b([^>]*)>\s*<\/vaadin-icon>/gi, swap)
+  }
+
+  /** El contenido de un Popover → filas del popup (texto, enlace), en orden. */
+  function popoverContentOf(node) {
+    const out = []
+    const visit = (n) => {
+      if (!n) return
+      if (Array.isArray(n)) { n.forEach(visit); return }
+      const md = n.metadata || {}
+      if (md.type === 'Text') {
+        const text = plainTextOf(md.text)
+        if (text) out.push({ id: 'r' + out.length, isText: true, text })
+        return
+      }
+      if (md.type === 'Anchor') {
+        out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: md.url || '#', target: md.target || '' })
+        return
+      }
+      if (md.type === 'Button') {
+        // un botón en el popup de un widget solo puede navegar o ejecutar JS del cliente: sin
+        // contexto propio no tiene a quién mandar una acción de servidor
+        const label = md.label || md.text || ''
+        if (label) out.push({ id: 'r' + out.length, isText: true, text: label })
+        return
+      }
+      for (const child of n.children || []) visit(child)
+      if (md.content) visit(md.content)
+    }
+    visit(node)
+    return out
+  }
+
+  /**
+   * La proyección de los widgets de cabecera del registro: `user` (el área de perfil) o null, e
+   * `items` (la zona de acciones), cada uno con un id estable por POSICIÓN — el mismo en cada
+   * bootstrap, que es lo que deja al DOM y al refresco reencontrar su hueco.
+   */
+  function headerWidgetsOf(reg) {
+    const nodes = (reg && reg.shell && reg.shell.widgets) || []
+    let user = null
+    const items = []
+    const visit = (node, path) => {
+      if (!node) return
+      const md = node.metadata || {}
+      const id = 'mateu-widget-' + path
+      if (CONTAINERS.has(md.type)) {
+        (node.children || []).forEach((child, i) => visit(child, path + '-' + i))
+        if (md.content) (Array.isArray(md.content) ? md.content : [md.content]).forEach((c, i) => visit(c, path + '-c' + i))
+        return
+      }
+      if (md.type === 'Popover') {
+        const wrapped = md.wrapped || {}
+        const wmd = wrapped.metadata || {}
+        const label = wmd.type === 'Text' ? plainTextOf(wmd.text) : plainTextOf(wmd.label || wmd.text || '')
+        const rows = popoverContentOf(md.content)
+        if (!user && wmd.type === 'Text' && label) {
+          user = { id, label, initials: initialsOf(label), rows }
+        } else {
+          items.push({ id, isPopover: true, label: label || '…', rows, buttonId: id + '-button', popupId: id + '-popup' })
+        }
+        return
+      }
+      if (md.type === 'MicroFrontend') {
+        items.push({
+          id,
+          isRemote: true,
+          baseUrl: md.baseUrl || '',
+          route: md.route || '',
+          consumedRoute: md.consumedRoute || '',
+          serverSideType: md.serverSideType || undefined,
+          appState: md.appState || null,
+        })
+        return
+      }
+      if (md.type === 'Text') {
+        const html = redwoodHtmlOf(md.text)
+        if (plainTextOf(html) || /<span class="oj-ux-ico-/.test(html)) items.push({ id, isHtml: true, html })
+        return
+      }
+      if (md.type === 'Anchor') {
+        items.push({ id, isHtml: true, html: `<a href="${String(md.url || '#').replace(/"/g, '&quot;')}"${md.target ? ` target="${md.target}"` : ''}>${md.text || ''}</a>` })
+      }
+    }
+    nodes.forEach((node, i) => visit(node, String(i)))
+    return { user, items }
+  }
+
+  /** El HTML de un widget remoto ya cargado: sus Text, interpolados contra su state. */
+  function remoteWidgetHtmlOf(tree, state) {
+    const parts = []
+    const visit = (n) => {
+      if (!n) return
+      const md = n.metadata || {}
+      if (md.type === 'Text') parts.push(redwoodHtmlOf(interpolate(md.text, state)))
+      for (const child of n.children || []) visit(child)
+    }
+    visit(tree)
+    return parts.join('')
+  }
+
+  const widgetRuntimes = new Map()
+
+  /**
+   * Carga un MicroFrontend de cabecera y lo mantiene vivo con SUS triggers: OnLoad al cargar y
+   * OnSuccess tras cada acción que los nombre (el badge: `refresh` cada 10 s, encadenado). Es el
+   * mismo contrato que el renderer web — si un refresco falla, no se reprograma (OnSuccess).
+   *
+   * Las peticiones van en modo `quiet`: un refresco de fondo cada pocos segundos no debe encender la
+   * barra de ocupado ni la banda de error de la pantalla, que hablan de lo que el usuario hace.
+   *
+   * `deps` existe para los tests (call/schedule/cancel); `onHtml(html)` recibe cada repintado.
+   * Arrancar de nuevo el mismo id para el anterior: un rebootstrap no deja dos bucles.
+   */
+  function startRemoteWidget(item, onHtml, deps = {}) {
+    const call = deps.call || callMateu
+    const schedule = deps.schedule || ((fn, ms) => setTimeout(fn, ms))
+    const cancel = deps.cancel || ((h) => clearTimeout(h))
+    const appState = deps.appState || (() => ({}))
+    stopRemoteWidget(item.id, cancel)
+    const rt = { stopped: false, timers: new Set(), ctx: null, outbound: {} }
+    widgetRuntimes.set(item.id, rt)
+
+    const request = (actionId, extra = {}) => call(item.baseUrl || '', {
+      route: item.route || '',
+      consumedRoute: rt.outbound.consumedRoute != null ? rt.outbound.consumedRoute : (item.consumedRoute || ''),
+      serverSideType: rt.outbound.serverSideType || (rt.ctx && rt.ctx.tree && rt.ctx.tree.serverSideType) || item.serverSideType,
+      actionId,
+      initiatorComponentId: item.id,
+      componentState: (rt.ctx && rt.ctx.state) || {},
+      appState: Object.assign({}, appState(), item.appState || {}),
+      ...extra,
+    }, { quiet: true, idempotent: true })
+
+    const apply = (increment) => {
+      for (const fr of (increment && increment.fragments) || []) {
+        if (fr.component) {
+          rt.ctx = { tree: fr.component, state: fr.state || fr.component.initialData || {} }
+        } else if (fr.state && rt.ctx) {
+          rt.ctx = { tree: rt.ctx.tree, state: Object.assign({}, rt.ctx.state, fr.state) }
+        }
+      }
+      if (!rt.stopped && rt.ctx) onHtml(remoteWidgetHtmlOf(rt.ctx.tree, rt.ctx.state))
+    }
+
+    const plan = (trigger) => {
+      if (rt.stopped) return
+      const handle = schedule(() => { rt.timers.delete(handle); run(trigger.actionId) }, trigger.timeoutMillis || 0)
+      rt.timers.add(handle)
+    }
+    const triggers = () => (rt.ctx && rt.ctx.tree && rt.ctx.tree.triggers) || []
+
+    const run = async (actionId) => {
+      if (rt.stopped) return
+      try {
+        apply(await request(actionId))
+      } catch (e) {
+        return
+      }
+      for (const t of triggers()) if (t.type === 'OnSuccess' && t.calledActionId === actionId) plan(t)
+    }
+
+    const load = (async () => {
+      try {
+        apply(await request(''))
+        // un remoto que conteste con un mediador (App chromeless) trae el contenido en un 2º salto
+        const info = rt.ctx && mediatorOf(rt.ctx)
+        if (info) {
+          rt.outbound = { consumedRoute: info.rootRoute || item.route || '', serverSideType: info.serverSideType }
+          apply(await request('', { consumedRoute: rt.outbound.consumedRoute, serverSideType: info.serverSideType }))
+        }
+      } catch (e) {
+        return
+      }
+      for (const t of triggers()) if (t.type === 'OnLoad' && t.actionId) plan(t)
+    })()
+
+    return {
+      loaded: load,
+      stop: () => stopRemoteWidget(item.id, cancel),
+      // para los tests: cuántos refrescos hay programados
+      pending: () => rt.timers.size,
+    }
+  }
+
+  function stopRemoteWidget(id, cancel = (h) => clearTimeout(h)) {
+    const previous = widgetRuntimes.get(id)
+    if (!previous) return
+    previous.stopped = true
+    for (const h of previous.timers) cancel(h)
+    previous.timers.clear()
+    widgetRuntimes.delete(id)
+  }
+
+  function stopRemoteWidgets() {
+    for (const [id, rt] of widgetRuntimes) {
+      rt.stopped = true
+      for (const h of rt.timers) clearTimeout(h)
+      widgetRuntimes.delete(id)
+    }
+  }
+
+  // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
+  // VB no sabe estampar HTML crudo desde un binding: el hueco (<span class="mateu-header-widget"
+  // data-widget-id>) lo pinta la plantilla y el HTML lo pone el bridge, como con los componentes web
+  // de terceros (elements.mjs). Se recuerda el último HTML de cada hueco: si VB lo re-estampa, el
+  // siguiente montaje lo rellena otra vez; si no cambió, no se toca (un clic en curso sobre el
+  // enlace no pierde su elemento cada 10 s).
+
+  const lastHtml = {}
+
+  function mountHeaderHtml(id, html) {
+    if (html != null) lastHtml[id] = html
+    if (typeof document === 'undefined') return false
+    const hole = document.querySelector(`.mateu-header-widget[data-widget-id="${id}"]`)
+    if (!hole) return false
+    const next = lastHtml[id] || ''
+    if (hole.__mateuHtml !== next) {
+      hole.innerHTML = next
+      hole.__mateuHtml = next
+    }
+    return true
+  }
+
+  /** Igual, esperando a que VB pinte el hueco (sus bindings son asíncronos). */
+  function mountHeaderHtmlSoon(id, html, frames = 30) {
+    if (html != null) lastHtml[id] = html
+    if (typeof requestAnimationFrame === 'undefined') return
+    let left = frames
+    const tick = () => {
+      if (mountHeaderHtml(id)) return
+      left -= 1
+      if (left > 0) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
   }
 
 
@@ -3596,7 +3930,15 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,
+    registerRemoteRoute,
     baseOf,
+    // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
+    headerWidgetsOf,
+    startRemoteWidget,
+    stopRemoteWidgets,
+    mountHeaderHtml,
+    mountHeaderHtmlSoon,
+    redwoodHtmlOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión

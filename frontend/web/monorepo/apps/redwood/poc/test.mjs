@@ -7,7 +7,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
+import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu } from './transport.mjs'
+import {
+  headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
+} from './widgets.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -1786,6 +1789,163 @@ test('custom component: placeholder visible + hijos slotted (escape hatch #14)',
   assert.ok(placeholder, 'el custom component muestra un placeholder con su nombre')
   // y los hijos slotted se pintan igualmente
   assert.ok(atoms.some((a) => a.isText && a.text === 'fallback content'), 'los hijos slotted se renderizan')
+})
+
+// ── Widgets de cabecera del App (WidgetSupplier) ────────────────────────────────────────────
+// Fixture real: el App de la shell de ec-demo1 (Vaadin) — un HorizontalLayout con slot
+// "widgets": MicroFrontend /_inbox/badge + Popover(Text "Hola, …") con Email y Logout.
+test('widgets: el App los guarda en la shell (hijos con slot "widgets")', () => {
+  const { shell, contexts } = reduceContexts(empty(), fx('app-widgets'))
+  assert.equal(Object.keys(contexts).length, 0)
+  assert.equal(shell.widgets.length, 1)
+  assert.equal(shell.widgets[0].metadata.type, 'HorizontalLayout')
+  // un App sin widgets no inventa ninguno
+  assert.deepEqual(reduceContexts(empty(), fx('app')).shell.widgets, [])
+})
+
+test('widgets: Popover(Text) → área de perfil (iniciales + nombre + email/Logout); MicroFrontend → acciones', () => {
+  const reg = reduceContexts(empty(), fx('app-widgets'))
+  const { user, items } = headerWidgetsOf(reg)
+  // el saludo, sin el HTML de pantalla estrecha (el <vaadin-icon vaadin:user> y su <span>)
+  assert.equal(user.label, 'Hola, Demo User')
+  assert.equal(user.initials, 'DU')
+  assert.deepEqual(user.rows.map((r) => r.isText ? r.text : `${r.label} → ${r.href}`),
+    ['Email: demo@mateu.io', 'Logout → javascript: window.logout();'])
+  // el badge: remoto, con su pod y su ruta; el Popover de usuario NO se repite en la zona de acciones
+  assert.equal(items.length, 1)
+  assert.equal(items[0].isRemote, true)
+  assert.equal(items[0].baseUrl, '/_inbox')
+  assert.equal(items[0].route, '/badge')
+  // ids por POSICIÓN: el mismo en cada bootstrap
+  assert.equal(items[0].id, headerWidgetsOf(reduceContexts(empty(), fx('app-widgets'))).items[0].id)
+})
+
+test('widgets: un 2º Popover, o uno sobre un botón, es botón + popup en la zona de acciones', () => {
+  const popover = (wrapped, text) => ({ type: 'ClientSide', metadata: { type: 'Popover', wrapped,
+    content: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
+      { type: 'ClientSide', metadata: { type: 'Text', text } , children: [] }] } }, children: [] })
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const reg = { shell: { widgets: [
+    { type: 'ClientSide', slot: 'widgets', metadata: { type: 'HorizontalLayout' }, children: [
+      popover(text('Hola, Ana'), 'Email: ana@x.io'),
+      popover(text('Ayuda'), 'Llama al 900'),
+      popover({ type: 'ClientSide', metadata: { type: 'Button', label: 'Más' } }, 'Algo'),
+      text('<b>v1.2</b>'),
+    ] }] } }
+  const { user, items } = headerWidgetsOf(reg)
+  assert.equal(user.label, 'Hola, Ana')
+  assert.equal(user.initials, 'AN')
+  assert.deepEqual(items.map((i) => i.isPopover ? `popover:${i.label}` : `html:${i.html}`),
+    ['popover:Ayuda', 'popover:Más', 'html:<b>v1.2</b>'])
+  assert.deepEqual(items[0].rows.map((r) => r.text), ['Llama al 900'])
+  assert.ok(items[0].buttonId && items[0].popupId && items[0].buttonId !== items[0].popupId)
+})
+
+test('widgets: <vaadin-icon> → icono de fuente Redwood, conservando el style (el rojo de urgente)', () => {
+  const html = '<a href="#"><vaadin-icon icon="vaadin:bell" style="width: 1em; color: var(--lumo-error-color);"></vaadin-icon><span>Inbox (3)</span></a>'
+  assert.equal(redwoodHtmlOf(html),
+    '<a href="#"><span class="oj-ux-ico-notification mateu-widget-icon" aria-hidden="true" style="width: 1em; color: var(--lumo-error-color);"></span><span>Inbox (3)</span></a>')
+  // autocerrado, y un icono sin equivalente se quita en vez de dejar un elemento que no pinta
+  assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:user"/>x'), '<span class="oj-ux-ico-contact mateu-widget-icon" aria-hidden="true"></span>x')
+  assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:no-such-icon"></vaadin-icon>x'), 'x')
+  assert.equal(plainTextOf('<span>Hola,&nbsp;Demo</span>  <i>User</i>'), 'Hola, Demo User')
+  assert.equal(initialsOf('Hola, José Luis Pérez'), 'JP')
+  assert.equal(initialsOf('demo'), 'DE')
+})
+
+test('widgets: el HTML del badge (fixture real) interpola su state y lleva el enlace que emite navigation-requested', () => {
+  const inc = fx('widget-badge')
+  const fr = inc.fragments[0]
+  const html = remoteWidgetHtmlOf(fr.component, fr.state)
+  assert.match(html, /navigation-requested/)
+  assert.match(html, /route: '\/inbox\/pending'/)
+  assert.match(html, /baseUrl: '\/_inbox'/)
+  assert.match(html, /class="oj-ux-ico-notification mateu-widget-icon"/)
+  assert.doesNotMatch(html, /vaadin-icon/)
+  assert.doesNotMatch(html, /\$\{state\./)
+})
+
+atest('widgets: el MicroFrontend se carga de SU pod y se refresca con sus triggers (OnLoad → OnSuccess encadenado)', async () => {
+  const badge = fx('widget-badge')
+  const calls = []
+  let count = 16
+  const call = async (base, body, options) => {
+    calls.push({ base, body, options })
+    if (body.actionId === '') return badge
+    // refresh → fragmento SOLO-ESTADO (como State(this) del server)
+    count += 1
+    return { fragments: [{ targetComponentId: body.initiatorComponentId, state: { content: `<a href="#">Inbox (${count})</a>` } }] }
+  }
+  const timers = []
+  const schedule = (fn, ms) => { timers.push({ fn, ms }); return timers.length }
+  const htmls = []
+  const { items } = headerWidgetsOf(reduceContexts(empty(), fx('app-widgets')))
+  const rt = startRemoteWidget(items[0], (h) => htmls.push(h), { call, schedule, cancel: () => {} })
+  await rt.loaded
+  assert.equal(calls[0].base, '/_inbox')
+  assert.equal(calls[0].body.route, '/badge')
+  assert.equal(calls[0].body.actionId, '')
+  assert.equal(calls[0].body.initiatorComponentId, items[0].id)
+  // de fondo: ni barra de ocupado ni banda de error
+  assert.equal(calls[0].options.quiet, true)
+  assert.match(htmls[0], /Inbox \(16\)/)
+  // OnLoad: refresh a los 10 s
+  assert.equal(timers.length, 1)
+  assert.equal(timers[0].ms, 10000)
+  await timers[0].fn()
+  assert.equal(calls[1].body.actionId, 'refresh')
+  assert.equal(calls[1].body.serverSideType, 'io.mateu.ecdemo1.communication.ui.inbox.InboxBadge')
+  assert.match(calls[1].body.componentState.content, /Inbox \(16\)/)
+  assert.equal(htmls[1], '<a href="#">Inbox (17)</a>')
+  // OnSuccess(refresh) → otro refresh a los 10 s, y así sucesivamente
+  assert.equal(timers.length, 2)
+  assert.equal(timers[1].ms, 10000)
+  await timers[1].fn()
+  assert.equal(htmls[2], '<a href="#">Inbox (18)</a>')
+  assert.equal(timers.length, 3)
+  // parar corta el bucle: un refresco ya programado no pinta ni reprograma
+  stopRemoteWidgets()
+  await timers[2].fn()
+  assert.equal(htmls.length, 3)
+  assert.equal(timers.length, 3)
+})
+
+atest('widgets: un refresco que falla no se reprograma (OnSuccess), y no tumba nada', async () => {
+  const badge = fx('widget-badge')
+  const call = async (base, body) => { if (body.actionId === '') return badge; throw new Error('503') }
+  const timers = []
+  const { items } = headerWidgetsOf(reduceContexts(empty(), fx('app-widgets')))
+  const rt = startRemoteWidget(items[0], () => {}, { call, schedule: (fn, ms) => { timers.push(fn); return timers.length }, cancel: () => {} })
+  await rt.loaded
+  await timers[0]()
+  assert.equal(timers.length, 1)
+  stopRemoteWidgets()
+})
+
+atest('widgets: las peticiones quiet no avisan a los ganchos de ocupado/error', async () => {
+  const seen = []
+  setTransportHooks({ onStart: () => seen.push('start'), onSettle: () => seen.push('settle') })
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ fragments: [] }) })
+  try {
+    await callMateu('/_inbox', { route: '/badge', actionId: 'refresh' }, { quiet: true })
+    assert.deepEqual(seen, [])
+    await callMateu('/_inbox', { route: '/badge', actionId: 'refresh' })
+    assert.deepEqual(seen, ['start', 'settle'])
+  } finally {
+    globalThis.fetch = realFetch
+    setTransportHooks({})
+  }
+})
+
+test('widgets: navigation-requested registra la ruta en su pod si el menú no la conoce; el menú manda', () => {
+  assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_inbox', serverSideType: 'x.InboxHome', consumedRoute: '' }), true)
+  assert.deepEqual(remoteRouteOf('/inbox/widget-only'), { baseUrl: '/_inbox', consumedRoute: '', serverSideType: 'x.InboxHome', uriPrefix: '' })
+  // ya registrada (p.ej. por el menú): no se pisa
+  assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_otro' }), false)
+  assert.equal(remoteRouteOf('/inbox/widget-only').baseUrl, '/_inbox')
+  // sin pod, nada que registrar
+  assert.equal(registerRemoteRoute('/local', { route: '/local' }), false)
 })
 
 await queue

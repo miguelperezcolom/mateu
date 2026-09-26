@@ -98,6 +98,23 @@ define([
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
       $application.variables.mateuHeaderActions = nav.headerActions;
+
+      // Widgets de cabecera del App (WidgetSupplier): el de usuario al área de perfil, el resto a
+      // la zona de acciones. El HTML lo pone el bridge en el hueco que estampa la plantilla; un
+      // MicroFrontend se carga de SU pod y sigue vivo con sus triggers (el badge: cada 10 s).
+      const widgets = bridge.headerWidgetsOf(reg);
+      $application.variables.mateuUserWidget = widgets.user;
+      $application.variables.mateuHeaderWidgets = widgets.items;
+      bridge.stopRemoteWidgets();
+      for (const item of widgets.items) {
+        if (item.isHtml) {
+          bridge.mountHeaderHtmlSoon(item.id, item.html);
+        } else if (item.isRemote) {
+          bridge.startRemoteWidget(item, (html) => bridge.mountHeaderHtmlSoon(item.id, html), {
+            appState: () => $application.variables.mateuAppState || {},
+          });
+        }
+      }
       $application.variables.mateuShellSST = nav.serverSideType || '';
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
@@ -143,6 +160,23 @@ define([
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: startRoute } }, fromUrl: !!deepLink },
+        });
+      }
+
+      // navigation-requested: lo emite el HTML de un widget (el enlace del badge de la bandeja) y
+      // burbujea hasta el documento — el mismo evento que escucha el renderer web. Trae su pod
+      // (baseUrl + serverSideType): si el menú no conoce la ruta, se registra antes de navegar.
+      if (!window.__mateuNavRequestWired) {
+        window.__mateuNavRequestWired = true;
+        document.addEventListener('navigation-requested', (event) => {
+          const detail = (event && event.detail) || {};
+          if (detail.route == null) return;
+          event.stopPropagation();
+          bridge.registerRemoteRoute(detail.route, detail);
+          Actions.callChain(context, {
+            chain: 'onMateuNavigate',
+            params: { event: { detail: { route: detail.route } } },
+          });
         });
       }
 

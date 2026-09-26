@@ -350,6 +350,16 @@
       "defaultValue": [],
       "description": "selectores @AppContext ({fieldName, label, value, options}) para el header"
     },
+    "mateuHeaderWidgets": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "widgets de cabecera del App (WidgetSupplier) para la zona de acciones: HTML, MicroFrontend vivo, Popover"
+    },
+    "mateuUserWidget": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "widget de usuario del App (Popover sobre un Text) para el área de perfil del global-header: label, initials, rows"
+    },
     "mateuHeaderActions": {
       "type": "any",
       "defaultValue": [],

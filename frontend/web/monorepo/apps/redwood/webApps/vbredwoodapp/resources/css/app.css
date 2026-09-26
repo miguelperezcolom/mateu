@@ -426,3 +426,60 @@ oj-sp-simple-ui-shell > div:first-of-type > div:not([class*="globalheader"]) > d
    tabla la ponen el runtime de VB y el drawer-layout de JET, y tocarla desde fuera descoloca
    la tarjeta. Queda anotado en DESIGN-NOTES; el hueco que queda bajo el listado es lienzo,
    no un corte. */
+
+/* Widgets de cabecera del App (WidgetSupplier) en la zona de acciones del global-header. Su HTML
+   viene del servidor escrito para cualquier renderer: los enlaces toman el color del header (claro,
+   por oj-color-invert) en vez del azul de enlace, y las variables que el header web expone para
+   pantalla ancha/estrecha (--mateu-header-wide-only / -narrow-only: el badge enseña "Inbox (n)" o
+   solo "n") y el rojo de "urgente" (--lumo-error-color) se definen aquí con valores Redwood. */
+.mateu-header-widgets {
+  --mateu-header-wide-only: inline;
+  --mateu-header-narrow-only: none;
+  --lumo-error-color: var(--oj-core-danger-3, #f0b8b0);
+}
+@media (max-width: 767px) {
+  .mateu-header-widgets {
+    --mateu-header-wide-only: none;
+    --mateu-header-narrow-only: inline;
+  }
+}
+.mateu-header-widget {
+  color: var(--oj-core-text-color-primary);
+  white-space: nowrap;
+  font-size: var(--oj-typography-body-md-font-size, 1rem);
+}
+.mateu-header-widget a {
+  color: inherit;
+  text-decoration: none;
+}
+.mateu-header-widget a:hover {
+  text-decoration: underline;
+}
+.mateu-header-widget a:focus-visible {
+  outline: 1px dotted currentColor;
+  outline-offset: 2px;
+}
+/* el icono traducido de <vaadin-icon>: glifo de la fuente Redwood, del tamaño del texto */
+.mateu-widget-icon {
+  display: inline-block;
+  font-size: 1.25em;
+  line-height: 1;
+}
+
+/* Con widgets en la cabecera, la navegación de primer nivel (MENU_ON_TOP) y la zona de acciones
+   compiten por el ancho: el slot start no encogía (min-width:auto = su contenido) y en una consola
+   con muchas secciones, o en pantalla estrecha, empujaba el badge, el usuario y el home FUERA de la
+   pantalla, con scroll horizontal de toda la página. Encoge la navegación (se desplaza en su sitio,
+   sin barra visible); la zona de acciones y el área de perfil no encogen nunca. */
+oj-sp-global-header [id$='_GHStartSlot'] {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+oj-sp-global-header [id$='_GHStartSlot']::-webkit-scrollbar {
+  display: none;
+}
+oj-sp-global-header .oj-sp-global-header-panel-container > div:last-child {
+  flex-shrink: 0;
+}

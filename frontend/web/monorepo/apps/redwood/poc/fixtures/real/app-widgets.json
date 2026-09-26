@@ -1,0 +1,162 @@
+{
+ "commands": [],
+ "messages": [],
+ "fragments": [
+  {
+   "targetComponentId": null,
+   "component": {
+    "type": "ClientSide",
+    "metadata": {
+     "type": "App",
+     "route": "",
+     "variant": "MENU_ON_TOP",
+     "title": "Data plane",
+     "homeRoute": "_no_home_route",
+     "serverSideType": "io.mateu.ecdemo1.shell.infra.in.ui.ShellHome",
+     "rootRoute": "",
+     "contextSelectors": [],
+     "contextActions": [],
+     "menu": []
+    },
+    "id": "cf073208-0a81-4f99-bb79-cd53b51a2ccb",
+    "children": [
+     {
+      "type": "ClientSide",
+      "metadata": {
+       "type": "HorizontalLayout",
+       "spacing": false,
+       "padding": false,
+       "margin": false,
+       "spacingVariant": null,
+       "verticalAlignment": null,
+       "justification": null,
+       "wrap": false,
+       "flexGrows": null,
+       "fullWidth": false,
+       "style": null
+      },
+      "id": null,
+      "children": [
+       {
+        "type": "ClientSide",
+        "metadata": {
+         "type": "MicroFrontend",
+         "baseUrl": "/_inbox",
+         "route": "/badge",
+         "consumedRoute": null,
+         "style": null,
+         "cssClasses": null,
+         "serverSideType": null,
+         "appState": null,
+         "actionId": null
+        },
+        "id": "fieldId",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": null,
+        "sizing": null
+       },
+       {
+        "type": "ClientSide",
+        "metadata": {
+         "type": "Popover",
+         "content": {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "VerticalLayout",
+           "spacing": true,
+           "padding": true,
+           "margin": false,
+           "spacingVariant": null,
+           "horizontalAlignment": null,
+           "justification": null,
+           "wrap": false,
+           "flexGrows": null,
+           "fullWidth": false,
+           "style": null
+          },
+          "id": null,
+          "children": [
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "Text",
+             "container": "div",
+             "attributes": {},
+             "text": "Email: demo@mateu.io",
+             "size": null,
+             "noMargins": false
+            },
+            "id": "bf6089c7-4987-4759-97a6-626fb765a168",
+            "children": [],
+            "style": "",
+            "cssClasses": "",
+            "slot": null,
+            "sizing": null
+           },
+           {
+            "type": "ClientSide",
+            "metadata": {
+             "type": "Anchor",
+             "text": "Logout",
+             "url": "javascript: window.logout();",
+             "target": null
+            },
+            "id": "fieldId",
+            "children": [],
+            "style": "",
+            "cssClasses": "",
+            "slot": null,
+            "sizing": null
+           }
+          ],
+          "style": null,
+          "cssClasses": null,
+          "slot": null,
+          "sizing": null
+         },
+         "wrapped": {
+          "type": "ClientSide",
+          "metadata": {
+           "type": "Text",
+           "container": "div",
+           "attributes": {},
+           "text": "<vaadin-icon icon=\"vaadin:user\" style=\"display: var(--mateu-header-narrow-only, none); width: 1em; height: 1em; vertical-align: -0.125em;\"></vaadin-icon><span style=\"display: var(--mateu-header-wide-only, inline)\">Hola, Demo User</span>",
+           "size": null,
+           "noMargins": false
+          },
+          "id": "7e0b1287-ef66-4052-baed-7867214ad9ec",
+          "children": [],
+          "style": "margin-right: 20px;",
+          "cssClasses": null,
+          "slot": null,
+          "sizing": null
+         }
+        },
+        "id": "fieldId",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": null,
+        "sizing": null
+       }
+      ],
+      "style": "align-items: flex-end;",
+      "cssClasses": null,
+      "slot": "widgets",
+      "sizing": null
+     }
+    ],
+    "style": "width: 100%;",
+    "cssClasses": null,
+    "slot": null,
+    "sizing": null
+   },
+   "state": null,
+   "data": null,
+   "action": "Replace"
+  }
+ ],
+ "banners": []
+}

@@ -20,7 +20,7 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -94,7 +94,15 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,
+    registerRemoteRoute,
     baseOf,
+    // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
+    headerWidgetsOf,
+    startRemoteWidget,
+    stopRemoteWidgets,
+    mountHeaderHtml,
+    mountHeaderHtmlSoon,
+    redwoodHtmlOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión
