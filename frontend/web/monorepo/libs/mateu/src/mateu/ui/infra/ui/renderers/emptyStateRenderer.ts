@@ -3,6 +3,27 @@ import EmptyState from "@mateu/shared/apiClients/dtos/componentmetadata/EmptySta
 import Skeleton from "@mateu/shared/apiClients/dtos/componentmetadata/Skeleton";
 import { html, nothing, TemplateResult } from "lit";
 import "@infra/ui/mateu-skeleton.ts";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { icon as renderIcon } from "@infra/ui/renderers/neutralIcon.ts";
+
+/** The glyph of an empty listing when the page names none: an icon of the design system, not an emoji. */
+const DEFAULT_EMPTY_ICON = 'vaadin:ban'
+
+/**
+ * An icon name ('vaadin:ban', 'lumo:search') goes through the icon port, so each design system draws
+ * its own; anything else (an emoji a page chose) is shown as text. A renderer with no icon hook would
+ * draw the port's empty placeholder, so the default falls back to a glyph there.
+ */
+const emptyIcon = (icon?: string): TemplateResult => {
+    const name = icon ?? DEFAULT_EMPTY_ICON
+    if (name.includes(':')) {
+        if (componentRenderer.get()?.renderIcon) {
+            return renderIcon(name, 'width: 1.8rem; height: 1.8rem;')
+        }
+        return html`${icon ? nothing : '🗂'}`
+    }
+    return html`${name}`
+}
 
 const requestAction = (event: Event, actionId?: string) => {
     if (!actionId) {
@@ -23,7 +44,7 @@ export const emptyStateTemplate = (message?: string, icon?: string, title?: stri
     return html`
         <div class="mateu-empty-state"
              style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; padding: var(--lumo-space-l, 1.5rem); text-align: center; color: var(--lumo-secondary-text-color, #666);">
-            <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${icon ?? '🗂'}</span>
+            <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${emptyIcon(icon)}</span>
             ${title?html`<span style="font-weight: 600; color: var(--lumo-body-text-color, #333);">${title}</span>`:nothing}
             <span style="font-size: var(--lumo-font-size-s, .875rem);">${description ?? message ?? 'Nothing here yet.'}</span>
             ${actionId && actionLabel?html`
