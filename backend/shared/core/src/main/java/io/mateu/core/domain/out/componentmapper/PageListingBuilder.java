@@ -75,6 +75,7 @@ public class PageListingBuilder {
                         initiatorComponentId,
                         httpRequest)))
             .filtersLayout(filtersLayout)
+            .detailPath(getDetailPath(getRowClass(instance)))
             .gridLayout(getGridLayout(instance))
             .rowsSource(getRestListingSource(instance))
             .style(getStyle(instance, httpRequest));
@@ -255,6 +256,14 @@ public class PageListingBuilder {
       HttpRequest httpRequest) {
     return ListingColumnBuilder.getColumns(
         rowClass, instance, baseUrl, route, initiatorComponentId, httpRequest);
+  }
+
+  /**
+   * The row's {@code @Details} field, opened under the row on a click. A navigable row keeps its
+   * navigation on the first column's link, so the two do not compete for the same click.
+   */
+  public static String getDetailPath(Class rowClass) {
+    return ListingColumnBuilder.getDetailPath(rowClass);
   }
 
   public static Collection<FormField> getFilters(

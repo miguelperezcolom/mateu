@@ -16,6 +16,10 @@ export default interface MenuOption {
 
     remote: boolean
 
+    // false for an option that travels but is not drawn: a hidden remote section
+    // (`@Menu @Hidden RemoteMenu`), which resolves deep links on the server and has no entry
+    visible?: boolean
+
     path: string
 
     baseUrl: string

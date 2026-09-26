@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.AppMetadataExtractor.getL
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toCamelCase;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.MethodLink;
@@ -34,6 +35,11 @@ final class ActionableCompleter {
 
   static Actionable completeActionable(String appRoute, Field field, Object instance) {
     var actionable = (Actionable) getValue(field, instance);
+    // @Hidden on a remote section: it resolves deep links but has no entry in the menu
+    if (actionable instanceof RemoteMenu remoteMenu
+        && MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Hidden.class)) {
+      actionable = remoteMenu.withHidden(true);
+    }
     if (actionable.label() == null || actionable.label().isEmpty()) {
       if (actionable instanceof RouteLink routeLink) {
         actionable = routeLink.withLabel(getLabel(field));

@@ -47,6 +47,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     summarizeHost,
     findByType,
     listingOf,
+    // selección de filas del listing → crud_selected_items de las acciones del host
+    selectionOfKeySet,
+    selectedRowsOf,
+    withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget y su fila de chips
     filterChipsOf,

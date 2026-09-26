@@ -136,6 +136,9 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                                 orchestrator.rowClass())
                             .groupBy())
                     .columns(columns)
+                    .detailPath(
+                        io.mateu.core.domain.out.componentmapper.PageListingBuilder.getDetailPath(
+                            orchestrator.rowClass()))
                     .filters(
                         getFilters(
                             orchestrator.filtersClass(),

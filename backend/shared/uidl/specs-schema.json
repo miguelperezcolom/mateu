@@ -4817,6 +4817,9 @@
         },
         "path" : {
           "type" : "string"
+        },
+        "hidden" : {
+          "type" : "boolean"
         }
       }
     },

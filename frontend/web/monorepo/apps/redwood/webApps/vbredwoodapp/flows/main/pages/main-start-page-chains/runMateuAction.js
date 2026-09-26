@@ -59,9 +59,23 @@ define([
       const host = before.contexts[bridge.HOST_ID];
       const route = $application.variables.mateuSelectedRoute;
       const overlayBefore = bridge.overlayOf(before);
-      const componentState = overlayBefore
+      let componentState = overlayBefore
         ? Object.assign({}, overlayBefore.state, $page.variables.mateuDrawerDraft)
         : Object.assign({}, host && host.state, $page.variables.mateuDraft);
+
+      // Una acción del host de un listado con selección lleva las filas marcadas
+      // (crud_selected_items), como en Vaadin. Las del drawer no: van sobre SU registro.
+      const listing = $application.variables.mateuListing;
+      if (!overlayBefore && listing && listing.rowsSelectionEnabled) {
+        componentState = bridge.withListingSelection(componentState, listing,
+          $application.variables.mateuListingRows, $application.variables.mateuListingSelection);
+        if ((listing.selectionRequired || []).indexOf(id) >= 0
+            && !componentState.crud_selected_items.length) {
+          $page.variables.mateuToastText = 'You first need to select some rows';
+          await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
+          return;
+        }
+      }
 
       const appState = $application.variables.mateuAppState || {};
       // acciones anunciadas Action.sse(true) del HOST (p.ej. opFirma → tablet) van por el

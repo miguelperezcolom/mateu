@@ -9,6 +9,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ColumnWidth;
+import io.mateu.uidl.annotations.Details;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.InlineEditing;
@@ -63,12 +64,28 @@ final class ListingColumnBuilder {
     return columns;
   }
 
+  /**
+   * The row detail of a listing: the first field of the row marked {@link Details}. It is left out
+   * of the columns and shown under the row when the row is clicked — the place for what is too long
+   * for a cell (a payload, a message body) and only wanted one row at a time.
+   */
+  static String getDetailPath(Class<?> rowClass) {
+    if (rowClass == null) return null;
+    return getAllFields(rowClass).stream()
+        .filter(field -> MetaAnnotations.isPresent(field, Details.class))
+        .map(Field::getName)
+        .findFirst()
+        .orElse(null);
+  }
+
   private static boolean filterColumn(Field field, Object instance, HttpRequest httpRequest) {
     if (instance instanceof VisibilitySupplier visibilitySupplier
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) return false;
     if (MetaAnnotations.isPresent(field, Hidden.class)) return false;
     if (MetaAnnotations.isPresent(field, HiddenInList.class)) return false;
     if (MetaAnnotations.isPresent(field, Menu.class)) return false;
+    // the row detail is not a column: it is what opens under the row (see detailPath)
+    if (MetaAnnotations.isPresent(field, Details.class)) return false;
     if (Collection.class.isAssignableFrom(field.getType())) return false;
     return true;
   }

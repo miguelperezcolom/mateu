@@ -326,6 +326,20 @@
       "type": "boolean",
       "defaultValue": false
     },
+    "mateuListingSelection": {
+      "type": "any",
+      "defaultValue": { "all": false, "keys": [], "except": [] },
+      "description": "las filas marcadas del listing (claves _rowNumber, o todas menos except): las acciones del host las mandan en crud_selected_items"
+    },
+    "mateuRowDetailOpen": {
+      "type": "boolean",
+      "defaultValue": false
+    },
+    "mateuRowDetail": {
+      "type": "any",
+      "defaultValue": { "title": "", "text": "" },
+      "description": "el detalle de fila abierto (@Details): título (la primera columna) y el texto tal cual"
+    },
     "mateuAppState": {
       "type": "any",
       "defaultValue": {},

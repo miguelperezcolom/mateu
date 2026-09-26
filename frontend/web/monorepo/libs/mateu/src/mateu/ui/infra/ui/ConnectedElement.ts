@@ -59,7 +59,15 @@ export default abstract class ConnectedElement extends LitElement {
             const clientSideComponent = fragment.component as ClientSideComponent
             const metadata = clientSideComponent.metadata
             if (metadata?.type == ComponentMetadataType.App) {
-                const app = metadata as App
+                let app = metadata as App
+                // Options that travel but are not drawn go before anything renders the menu:
+                // synchronously, while the fragment just applied is still waiting for its update.
+                // A hidden remote resolves its deep links on the server, so it is not fetched either.
+                const visibleMenu = this.withoutHidden(app.menu ?? [])
+                if (visibleMenu !== app.menu) {
+                    app = { ...app, menu: visibleMenu } as App
+                    clientSideComponent.metadata = app
+                }
                 const remoteMenus = this.getRemoteMenus(app.menu)
                 if (remoteMenus.length > 0) {
                     const requests = remoteMenus
@@ -150,6 +158,31 @@ export default abstract class ConnectedElement extends LitElement {
                 }
             }
         })
+    }
+
+    /**
+     * The menu without the options the server sent as not visible, at any depth. The same array
+     * when there is nothing to take out, so the caller can tell whether anything changed.
+     */
+    private withoutHidden(menu: MenuOption[]): MenuOption[] {
+        let changed = false
+        const kept: MenuOption[] = []
+        menu.forEach(option => {
+            if (option.visible === false) {
+                changed = true
+                return
+            }
+            if (option.submenus && option.submenus.length > 0) {
+                const submenus = this.withoutHidden(option.submenus)
+                if (submenus !== option.submenus) {
+                    changed = true
+                    kept.push({ ...option, submenus })
+                    return
+                }
+            }
+            kept.push(option)
+        })
+        return changed ? kept : menu
     }
 
     /**
