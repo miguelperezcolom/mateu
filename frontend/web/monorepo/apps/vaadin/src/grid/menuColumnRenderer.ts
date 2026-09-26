@@ -66,7 +66,21 @@ export const renderMenuCell = (item: any,
                                  _model: GridItemModel<any>,
                                  column: VaadinGridColumn
 ) => {
-    const actions = item[column.path!]?.actions?.map((a: any) => {
+    // A group of one is not a menu: a single action is drawn as its button, so "Open" reads as
+    // Open rather than hiding behind "···" (Redwood already draws a group's actions as buttons).
+    const group = item[column.path!]?.actions
+    if (group?.length == 1) {
+        const action: ActionItem = group[0]
+        const iconOnly = action.icon && !action.label
+        return html`
+         <vaadin-button theme="tertiary${iconOnly ? ' icon' : ''}" title="${action.label || nothing}" ?disabled=${action.disabled}
+                        @click="${clicked}" .row="${item}" .action="${action}" data-testid="action-${column.path}">
+             ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+             ${action.label ? action.label : nothing}
+         </vaadin-button>
+    `
+    }
+    const actions = group?.map((a: any) => {
         if (a.icon) {
             return {
                 component: createItem(a),

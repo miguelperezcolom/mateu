@@ -50,6 +50,7 @@ import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingI
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
+import { fabStyles } from '@infra/ui/layout/fabRail.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -1101,7 +1102,7 @@ export class MateuComponent extends ComponentElement {
         `
     }
 
-    static styles = css`
+    static styles = [css`
         :host {
         }
 
@@ -1154,7 +1155,7 @@ export class MateuComponent extends ComponentElement {
             padding-block: var(--lumo-space-xs);
             box-shadow: 0 1px 0 0 var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
         }
-  `
+  `, fabStyles('.page-fab')]
 }
 
 declare global {

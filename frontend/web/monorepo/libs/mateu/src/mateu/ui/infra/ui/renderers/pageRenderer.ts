@@ -8,6 +8,7 @@ import EntityHeader from "@mateu/shared/apiClients/dtos/componentmetadata/Entity
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { FAB_PAGE_COLUMN, fabPosition } from "@infra/ui/layout/fabRail.ts";
 
 /** Hoists a page's leading EntityHeader into the canonical page header (the Redwood
  *  "General Overview" anatomy): its title/subtitle become the page title/subtitle, its
@@ -60,6 +61,14 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
     return { ...component, metadata: merged } as ClientSideComponent
 }
 
+/**
+ * A page takes the width it is given, and its own style caps it. The default page style is
+ * `max-width:900px; margin:auto` — a cap, not a width — so a page whose content does not stretch
+ * (a form of fixed-width fields) shrank to that content: a narrow column in the middle. The page's
+ * style comes after, so a style that sets its own width still wins.
+ */
+export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
+
 export const renderPage = (container: LitElement, rawComponent: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, standalone?: boolean) => {
     const component = hoistLeadingEntityHeader(rawComponent)
     const metadata = component.metadata as PageComponent
@@ -72,7 +81,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
             .appState="${appState}"
             .appdata="${appData}"
             slot="${component.slot??nothing}"
-            style="${component.style}"
+            style="${pageStyle(component.style)}"
             class="${component.cssClasses}"
             ?standalone="${standalone ?? false}"
     >
@@ -86,7 +95,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
         } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
         ${fabs.map((fab, idx) => html`
-            <button class="page-fab" style="position: fixed; bottom: ${1.5 + idx * 4}rem; right: 5.5rem;"
+            <button class="page-fab" style="${fabPosition(idx, FAB_PAGE_COLUMN)}" aria-label="${fab.label}"
                 @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
                     detail: { actionId: fab.actionId },
                     bubbles: true,
