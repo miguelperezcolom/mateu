@@ -891,19 +891,29 @@ ${i}
                 `:y}
             </div>
         `}static{this.styles=g`
+        /* As tall as the search box beside it, and square: it stretches to the filter row's height
+           instead of sizing itself, so a taller search field does not leave it half its height. */
         :host {
             display: block;
             flex: none;
+            align-self: stretch;
         }
         .chooser {
             position: relative;
+            height: 100%;
         }
         .trigger {
             border: none;
             background: var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.06));
             border-radius: var(--lumo-border-radius-m, 0.25rem);
             cursor: pointer;
-            padding: 0.45rem 0.55rem;
+            height: 100%;
+            min-height: var(--lumo-size-m, 2.25rem);
+            aspect-ratio: 1;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             line-height: 0;
             color: var(--lumo-secondary-text-color, #555);
         }
