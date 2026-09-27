@@ -128,27 +128,101 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return out
   }
 
-  /** Helper de RENDER: lista de campos para el switch widgetFor (isText/isNumber/isBoolean
-   *  PRECOMPUTADOS — los bindings VB deben ser paths simples), con el valor sacado del state. */
-  function fieldListOf(tree, state) {
-    const metadata = dynFormMetadataOf(tree)
-    if (!metadata) return []
+  /** Helper de RENDER: lista de campos para el switch widgetFor (isText/isNumber/isBoolean/
+   *  isSelect/isDate/isDateTime PRECOMPUTADOS — los bindings VB deben ser paths simples), con el
+   *  valor sacado del state. Es la MISMA resolución de widget que el editor de fila
+   *  (fieldWidgetOf): un select con opciones (options/OptionsSupplier/enum) se pinta como
+   *  oj-select-one y una fecha como oj-input-date también en el formulario de página, el drawer
+   *  y la isla, no sólo en el diálogo de la fila. Un lookup REMOTO sin opciones todavía se queda
+   *  en texto: aquí nadie lanza su búsqueda (sólo el editor de fila lo hace). */
+  function fieldListOf(tree, state, data) {
+    if (!dynFormMetadataOf(tree)) return []
     const s = state || {}
-    return Object.keys(metadata).map((fieldId) => {
-      const f = metadata[fieldId]
-      const isTextArea = f.stereotype === 'textarea'
-      return {
-        fieldId,
-        label: f.displayName,
-        required: f.required,
-        readonly: f.readonly,
-        isNumber: f.type === 'number',
-        isBoolean: f.type === 'boolean',
-        isTextArea,
-        isText: f.type !== 'number' && f.type !== 'boolean' && !isTextArea,
-        value: s[fieldId] == null ? null : s[fieldId],
+    const seen = {}
+    const out = []
+    for (const f of collectFields(tree)) {
+      if (!f.dataType || seen[f.fieldId]) continue
+      seen[f.fieldId] = true
+      if (f.dataType === 'array' || (f.columns || []).length) continue
+      const widget = fieldWidgetOf(f, data, { lookups: false })
+      const raw = s[f.fieldId]
+      out.push({
+        ...widget,
+        value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
+      })
+    }
+    return out
+  }
+
+  /** ¿Es este nodo una SECCIÓN del formulario (@Section)? El wire la manda como una Card con la
+   *  clase mateu-section, su título en un Text de cabecera (h3) y sus campos en un FormLayout. */
+  function isSectionNode(n) {
+    return !!(n && n.metadata && n.metadata.type === 'Card' && /(^|\s)mateu-section(\s|$)/.test(n.cssClasses || ''))
+  }
+
+  /** El título y las columnas de una sección: el primer Text de cabecera y el primer FormLayout
+   *  de SU contenido (sin bajar a una sección anidada ni a otra isla). */
+  function sectionHeadOf(card) {
+    let title = ''
+    let columns = 0
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (!isRoot && (n.type === 'ServerSide' || isSectionNode(n))) return
+      const md = n.metadata
+      if (md && md.type === 'Text' && !title && /^h[1-6]$/.test(md.container || '') && md.text) title = String(md.text)
+      if (md && md.type === 'FormLayout' && !columns) columns = md.maxColumns || md.columns || 0
+      for (const v of Object.values(n)) {
+        if (Array.isArray(v)) v.forEach((x) => walk(x, false))
+        else if (v && typeof v === 'object') walk(v, false)
       }
-    })
+    }
+    walk(card, true)
+    return { title, columns: columns > 0 ? Math.min(columns, 4) : 1 }
+  }
+
+  /**
+   * Helper de RENDER: los campos del formulario AGRUPADOS por sus secciones (@Section), en el
+   * orden del wire → [{ key, title, hasTitle, columns, fields }]. Los campos fuera de toda
+   * sección van a un grupo sin título; un formulario sin secciones es UN grupo sin título, así
+   * que el template pinta siempre secciones → campos. [] si el árbol no tiene formulario.
+   */
+  function formSectionsOf(tree, state, data) {
+    const fields = fieldListOf(tree, state, data)
+    if (!fields.length) return []
+    const byId = {}
+    for (const f of fields) byId[f.fieldId] = f
+    const sections = []
+    const placed = {}
+    let loose = null
+    const walk = (n, isRoot, section) => {
+      if (!n || typeof n !== 'object') return
+      if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
+      let here = section
+      if (isSectionNode(n)) {
+        here = { key: 's' + sections.length, ...sectionHeadOf(n), fields: [] }
+        sections.push(here)
+      }
+      if (n.fieldId && byId[n.fieldId] && !placed[n.fieldId]) {
+        placed[n.fieldId] = true
+        if (here) {
+          here.fields.push(byId[n.fieldId])
+        } else {
+          if (!loose || sections[sections.length - 1] !== loose) {
+            loose = { key: 's' + sections.length, title: '', columns: 1, fields: [] }
+            sections.push(loose)
+          }
+          loose.fields.push(byId[n.fieldId])
+        }
+      }
+      for (const v of Object.values(n)) {
+        if (Array.isArray(v)) v.forEach((x) => walk(x, false, here))
+        else if (v && typeof v === 'object') walk(v, false, here)
+      }
+    }
+    walk(tree, true, null)
+    return sections
+      .filter((sec) => sec.fields.length)
+      .map((sec) => ({ ...sec, hasTitle: !!sec.title }))
   }
 
   /** Proyección del OVERLAY superior del stack (drawer del crud): título + campos + acciones.
@@ -194,7 +268,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       position: ctx.position || 'end',
       width: ctx.width,
       state: ctx.state || {},
-      fields: fieldListOf(ctx.tree, ctx.state),
+      fields: fieldListOf(ctx.tree, ctx.state, ctx.data),
+      sections: formSectionsOf(ctx.tree, ctx.state, ctx.data),
       actions: actionsOf(ctx.tree).filter((a) => !contentActionIds.has(a.actionId)),
       content: content,
       hasContent: !!content.length,
@@ -1432,6 +1507,37 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return null
   }
 
+  /**
+   * El botón del toolbar que eligió una ACCIÓN SECUNDARIA de un header oj-sp (spSecondaryAction),
+   * o null. Los items que les pasamos son { id: actionId, value: actionId, label }, y el header
+   * devuelve el item por su id (p.ej. 'walkIn') — o, según la variante, el objeto entero o su
+   * label —, así que se resuelve PRIMERO por actionId y sólo después por el rótulo. Buscarlo
+   * sólo por label dejaba muertas las secundarias de un listado: el id nunca es el rótulo.
+   */
+  function secondaryActionOf(detail, toolbar) {
+    const d = detail || {}
+    const item = d.secondaryItem != null ? d.secondaryItem : (d.item != null ? d.item : d.value)
+    const keys = []
+    const add = (k) => { if (k != null && k !== '' && typeof k !== 'object') keys.push(String(k)) }
+    if (item && typeof item === 'object') {
+      add(item.id); add(item.value); add(item.actionId); add(item.key); add(item.label)
+    } else {
+      add(item)
+    }
+    add(d.id)
+    if (!keys.length) return null
+    const buttons = (toolbar || []).filter((b) => b && b.actionId)
+    for (const k of keys) {
+      const byId = buttons.find((b) => String(b.actionId) === k)
+      if (byId) return byId
+    }
+    for (const k of keys) {
+      const byLabel = buttons.find((b) => b.label === k)
+      if (byLabel) return byLabel
+    }
+    return null
+  }
+
   /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
@@ -1488,7 +1594,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
     const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
     const state = host.state || {}
-    const fields = formMetadata ? fieldListOf(host.tree, state) : []
+    const fields = formMetadata ? fieldListOf(host.tree, state, host.data) : []
+    const sections = formMetadata ? formSectionsOf(host.tree, state, host.data) : []
     return {
       // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
       // está, en el rótulo del menú
@@ -1496,6 +1603,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
+      sections,
       formValue: formMetadata ? { ...state } : null,
       actions: host.tree ? actionsOf(host.tree) : [],
     }
@@ -2390,33 +2498,49 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
       if (f.dataType === 'array' || (f.columns || []).length) continue
-      const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
-      const isSelect = !!lookupActionId || (f.options || []).length > 0
-      const isBoolean = f.dataType === 'bool' || f.dataType === 'boolean'
-      const isDate = !isSelect && f.dataType === 'date'
-      const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
-      const isTextArea = !isSelect && f.stereotype === 'textarea'
+      const widget = fieldWidgetOf(f, ctx.data, { lookups: true })
       const raw = plainValueOf(state[f.fieldId])
       const error = errors && errors[f.fieldId]
       out.push({
-        fieldId: f.fieldId,
-        label: f.label || f.fieldId,
-        required: !!f.required,
-        readonly: !!f.readOnly,
-        isSelect,
-        isLookup: !!lookupActionId,
-        lookupActionId,
-        options: isSelect ? optionsOf(f, ctx.data) : [],
-        isBoolean,
-        isDate,
-        isNumber,
-        isTextArea,
-        isText: !isSelect && !isBoolean && !isDate && !isNumber && !isTextArea,
-        value: isBoolean ? !!raw : (raw == null || raw === '' ? null : (isNumber ? Number(raw) : raw)),
+        ...widget,
+        value: widget.isBoolean ? !!raw : (raw == null || raw === '' ? null : (widget.isNumber ? Number(raw) : raw)),
         messagesCustom: error ? [{ severity: 'error', summary: error, detail: '' }] : [],
       })
     }
     return out
+  }
+
+  /**
+   * El WIDGET que le toca a un FormField (flags PRECOMPUTADOS: el CSP de VB no evalúa
+   * expresiones), compartido por el editor de fila y los formularios de página/drawer/isla:
+   * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
+   * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
+   */
+  function fieldWidgetOf(f, data, { lookups }) {
+    const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
+    const options = optionsOf(f, data)
+    const isSelect = (lookups && !!lookupActionId) || options.length > 0
+    const isBoolean = !isSelect && (f.dataType === 'bool' || f.dataType === 'boolean')
+    const isDate = !isSelect && f.dataType === 'date'
+    const isDateTime = !isSelect && f.dataType === 'dateTime'
+    const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
+    const isTextArea = !isSelect && f.stereotype === 'textarea'
+    return {
+      fieldId: f.fieldId,
+      label: f.label || f.fieldId,
+      required: !!f.required,
+      readonly: !!f.readOnly,
+      isSelect,
+      isLookup: lookups && !!lookupActionId,
+      lookupActionId: lookups ? lookupActionId : '',
+      options: isSelect ? options : [],
+      isBoolean,
+      isDate,
+      isDateTime,
+      isNumber,
+      isTextArea,
+      isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
+    }
   }
 
   /** Los obligatorios vacíos de la fila → { fieldId: mensaje }; {} si está bien. */
@@ -4512,6 +4636,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
+    secondaryActionOf,
+    formSectionsOf,
     // editor de filas modal de una lista del formulario (@DetailFormCustomisation modal)
     listActionOf,
     listActionRequestOf,

@@ -241,7 +241,7 @@ define([
 
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], actions: [], blocks: [], texts: [], state: {} };
+      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} };
       // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer
       const esModal = !!(overlayNow && overlayNow.isDialog);
       $application.variables.mateuDrawerOpen = !!overlayNow && !esModal;
@@ -305,6 +305,7 @@ define([
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;
       $application.variables.mateuFormFieldsList = summary.fields;
+      $application.variables.mateuFormSections = summary.sections;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
       const wizardNow = $application.variables.mateuWizard;
@@ -347,7 +348,8 @@ define([
       $application.variables.mateuIslandSeed = islandSeed;
       const islandCtxAfter = islandAfter ? reg.contexts[islandAfter.id] : null;
       $application.variables.mateuIsland = islandCtxAfter
-        ? { fields: bridge.fieldListOf(islandCtxAfter.tree, islandCtxAfter.state),
+        ? { fields: bridge.fieldListOf(islandCtxAfter.tree, islandCtxAfter.state, islandCtxAfter.data),
+            sections: bridge.formSectionsOf(islandCtxAfter.tree, islandCtxAfter.state, islandCtxAfter.data),
             actions: bridge.actionsOf(islandCtxAfter.tree),
             content: bridge.islandContentOf(islandCtxAfter) }
         : null;
@@ -414,6 +416,7 @@ define([
         // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
         $application.variables.mateuFormActions = [];
       }
       // contenido display del HOST / de los pasos del wizard (detalle standalone)
@@ -466,6 +469,7 @@ define([
       if (hostBlocksRicos2) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
@@ -477,6 +481,7 @@ define([
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow))) {
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
       }
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los

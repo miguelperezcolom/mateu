@@ -1,12 +1,16 @@
-/* Header de colección: acción secundaria (Delete…) — el detail trae el ITEM (por label);
- * se resuelve contra la toolbar del crud y se despacha su actionId. */
+/* Header de colección: acción secundaria (＋ Walk-in, Delete…). El header devuelve el item
+ * por su id — el actionId que le estampamos en mateuListSecondary — (o el item entero / su
+ * label, según la variante): se resuelve contra la toolbar del crud por actionId y, si no,
+ * por rótulo (bridge.secondaryActionOf), y se despacha su actionId. */
 
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -20,14 +24,11 @@ define([
     async run(context, { event }) {
       const { $application } = context;
 
-      const detail = (event && event.detail) || {};
-      const label = detail.secondaryItem && detail.secondaryItem.label
-        ? detail.secondaryItem.label : detail.secondaryItem;
       const listing = $application.variables.mateuListing;
-      if (!listing || label == null) {
+      if (!listing) {
         return;
       }
-      const match = (listing.toolbar || []).find((b) => b.label === label);
+      const match = bridge.secondaryActionOf((event && event.detail) || {}, listing.toolbar);
       if (!match) {
         return;
       }

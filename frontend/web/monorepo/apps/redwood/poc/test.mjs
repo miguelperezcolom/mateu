@@ -37,7 +37,7 @@ import {
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
-  isModalRowEditor, fieldListOf, interpolate, ROW_VALIDATING_VERBS,
+  isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2502,6 +2502,90 @@ test('ask FAB: brandAskFab con la marca del App (inicial, imagen) — idempotent
 test('interpolate: ${state.x} y ${state[\'x\']}', () => {
   assert.equal(interpolate("${state['_position']} de ${state.total}", { _position: '2/3', total: 4 }), '2/3 de 4')
   assert.equal(interpolate('${state["a"]}', { a: 'x' }), 'x')
+})
+
+// Formularios de PÁGINA (no sólo el editor de fila): el walk-in del front-office de ec-demo1
+// (fixture real) — selects con opciones del OptionsSupplier, fechas y tres @Section.
+test('page form: el walk-in pinta selects con sus opciones, fechas y sus secciones', () => {
+  const reg = reduceContexts(empty(), fx('fo-walkin-form'))
+  const summary = summarizeHost(reg, '/walk-in')
+  assert.equal(summary.title, 'Walk-in')
+  const byId = Object.fromEntries(summary.fields.map((f) => [f.fieldId, f]))
+  for (const id of ['habitacion', 'tarifa', 'regimen', 'tipoDocumento']) {
+    assert.ok(byId[id].isSelect && !byId[id].isText, id + ' es un select')
+  }
+  assert.ok(byId.habitacion.options.some((o) => o.value === 'STD-KING' && o.label === 'Estándar con cama king (STD-KING)'))
+  assert.equal(byId.habitacion.value, 'STD-KING')
+  assert.deepEqual(byId.tipoDocumento.options.map((o) => o.value), ['PASSPORT', 'ID_CARD', 'DRIVING_LICENSE'])
+  assert.ok(byId.llegada.isDate && !byId.llegada.isText)
+  assert.equal(byId.llegada.value, '2026-09-27')
+  assert.ok(byId.salida.isDate)
+  assert.ok(byId.adultos.isNumber)
+  assert.ok(byId.nombre.isText)
+  assert.ok(byId.precio.isText && byId.precio.readonly)
+  assert.equal(byId.habitacion.isLookup, false, 'en una página nadie lanza búsquedas de lookup')
+  // las secciones, en el orden del wire, con su título y sus columnas
+  assert.deepEqual(summary.sections.map((s) => [s.title, s.hasTitle, s.columns]),
+    [['Estancia', true, 2], ['Titular', true, 2], ['Precio del CRS', true, 1]])
+  assert.deepEqual(summary.sections[0].fields.map((f) => f.fieldId),
+    ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
+  assert.deepEqual(summary.sections[2].fields.map((f) => f.fieldId), ['precio'])
+  // ningún campo se pierde ni se repite al agrupar
+  assert.deepEqual(summary.sections.flatMap((s) => s.fields.map((f) => f.fieldId)).sort(),
+    summary.fields.map((f) => f.fieldId).sort())
+})
+
+test('page form: sin @Section es un único grupo sin título; el drawer también agrupa', () => {
+  let reg = reduceContexts(empty(), fx('app'))
+  reg = reduceContexts(reg, fx('load-form'))
+  const form = summarizeHost(reg, '/person')
+  assert.deepEqual(form.sections.map((s) => [s.title, s.hasTitle, s.fields.map((f) => f.fieldId)]),
+    [['', false, ['name', 'age']]])
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reduceContexts(empty(), content), fx('open-drawer'))
+  const overlay = overlayOf(reg)
+  assert.deepEqual(overlay.sections.flatMap((s) => s.fields.map((f) => f.fieldId)), ['id', 'name', 'price', 'active'])
+  assert.ok(overlay.sections[0].fields.find((f) => f.fieldId === 'active').isBoolean)
+})
+
+test('page form: fecha-hora, enum con opciones y lookup remoto sin opciones', () => {
+  const field = (fieldId, extra) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, ...extra } })
+  const tree = { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'Page' }, children: [
+    field('at', { dataType: 'dateTime', stereotype: 'regular' }),
+    field('status', { dataType: 'string', stereotype: 'radio', options: [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED' }] }),
+    field('hotel', { dataType: 'string', stereotype: 'combobox', remoteCoordinates: { action: 'search-hotel' } }),
+    field('vip', { dataType: 'bool', stereotype: 'regular' }),
+  ] }] }
+  const byId = Object.fromEntries(fieldListOf(tree, { at: '2026-09-27T10:30:00', status: 'OPEN', hotel: { value: 'H1', label: 'Hotel 1' } })
+    .map((f) => [f.fieldId, f]))
+  assert.ok(byId.at.isDateTime && !byId.at.isDate && !byId.at.isText)
+  assert.equal(byId.at.value, '2026-09-27T10:30:00')
+  assert.ok(byId.status.isSelect)
+  assert.deepEqual(byId.status.options, [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED', label: 'CLOSED' }])
+  // un lookup remoto sin opciones sigue siendo texto en la página (un select vacío sería peor)
+  assert.ok(byId.hotel.isText && !byId.hotel.isSelect)
+  assert.ok(byId.vip.isBoolean)
+  // sin secciones en el árbol: un grupo sin título con todo
+  assert.deepEqual(formSectionsOf(tree, {}).map((s) => s.fields.length), [4])
+})
+
+test('secondaryActionOf: la secundaria del header se resuelve por su actionId (y si no, por rótulo)', () => {
+  const toolbar = [
+    { actionId: 'seedDemo', label: '＋ 10 reservas demo' },
+    { actionId: 'walkIn', label: '＋ Walk-in' },
+  ]
+  // el header devuelve el id del item que le dimos (mateuListSecondary: {id, value, label})
+  assert.equal(secondaryActionOf({ secondaryItem: 'walkIn' }, toolbar).actionId, 'walkIn')
+  const items = toolbar.map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }))
+  assert.equal(secondaryActionOf({ secondaryItem: items[1] }, toolbar).actionId, 'walkIn')
+  // variantes viejas: el rótulo
+  assert.equal(secondaryActionOf({ secondaryItem: { label: '＋ Walk-in' } }, toolbar).actionId, 'walkIn')
+  assert.equal(secondaryActionOf({ secondaryItem: '＋ 10 reservas demo' }, toolbar).actionId, 'seedDemo')
+  // nada que casar
+  assert.equal(secondaryActionOf({ secondaryItem: 'nope' }, toolbar), null)
+  assert.equal(secondaryActionOf({}, toolbar), null)
+  assert.equal(secondaryActionOf(null, null), null)
 })
 
 await queue
