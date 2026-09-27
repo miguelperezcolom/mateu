@@ -206,7 +206,11 @@ define([
         ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
         : { overview: { blocks: [] }, panels: [] };
       $application.variables.mateuFoldout = foldoutProjection;
+      $application.variables.mateuSelectPlaceholder = bridge.selectPlaceholder(
+        document.documentElement.lang || navigator.language);
       $application.variables.mateuWizard = bridge.wizardOf(host);
+      // el guided process no avanza por su cuenta: el paso lo decide Mateu (ver el bridge)
+      if ($application.variables.mateuWizard) bridge.guardGuidedProcess();
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
         ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state, islandContext.data),

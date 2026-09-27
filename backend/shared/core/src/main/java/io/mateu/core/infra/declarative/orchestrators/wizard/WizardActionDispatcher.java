@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.WizardCompletionAction;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
@@ -45,6 +46,12 @@ final class WizardActionDispatcher {
           MateuBeanProvider.getBean(InstanceFactory.class)
               .newInstance(
                   stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
+      // A step is left only with its required fields filled in: the browser checks them first
+      // (the action is validationRequired), and the server checks them again.
+      var missing = requiredMissing(wizard, httpRequest);
+      if (missing != null) {
+        return missing;
+      }
       // Branching: move to the next applicable non-result step (skipped steps don't apply given
       // the answers so far). The result step is only reached through the completion action.
       var next = wizard.nextApplicable(wizard.position);
@@ -93,6 +100,10 @@ final class WizardActionDispatcher {
             MateuBeanProvider.getBean(InstanceFactory.class)
                 .newInstance(
                     stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
+        var missing = requiredMissing(wizard, httpRequest);
+        if (missing != null) {
+          return missing;
+        }
         var method = found.get();
         if (!Modifier.isPublic(method.getModifiers())) {
           method.setAccessible(true);
@@ -105,6 +116,21 @@ final class WizardActionDispatcher {
       }
     }
     return wizard;
+  }
+
+  /**
+   * An error naming the current step's required fields that are empty, or null when there are none.
+   * The step must already be hydrated from the request's state.
+   */
+  static Message requiredMissing(Wizard wizard, HttpRequest httpRequest) {
+    var missing = WizardStepValidator.missingRequired(wizard.getStep(), httpRequest);
+    if (missing.isEmpty()) {
+      return null;
+    }
+    return Message.error(
+        Wizard.translate("Fill in the required fields", httpRequest)
+            + ": "
+            + String.join(", ", missing));
   }
 
   private WizardActionDispatcher() {}

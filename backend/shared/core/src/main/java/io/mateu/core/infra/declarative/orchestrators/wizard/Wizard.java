@@ -84,6 +84,18 @@ public abstract class Wizard
             .container(TextContainer.h2)
             .style("margin: 0;")
             .build());
+    var subtitle = subtitle();
+    if (subtitle != null && !subtitle.isBlank()) {
+      // the process's subtitle: under the title, and in Redwood's Guided Process overview under
+      // the process title (the class is how the renderer tells it from the step's own texts)
+      content.add(
+          Text.builder()
+              .text(subtitle)
+              .container(TextContainer.p)
+              .cssClasses("mateu-wizard-subtitle")
+              .style("margin: 0;")
+              .build());
+    }
     if (!rail) {
       content.add(progressIndicator());
     }
@@ -157,6 +169,17 @@ public abstract class Wizard
                 + " border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));"
                 + " padding-left: 1.5rem;")
         .build();
+  }
+
+  /** The wizard's subtitle — {@code SubtitleSupplier} first, then {@code @Subtitle} — or null. */
+  private String subtitle() {
+    if (this instanceof SubtitleSupplier supplier) {
+      return TranslatorContext.translate(supplier.subtitle());
+    }
+    var ann =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(
+            getClass(), io.mateu.uidl.annotations.Subtitle.class);
+    return ann != null ? TranslatorContext.translate(ann.value()) : null;
   }
 
   private WizardLayoutMode layoutMode() {

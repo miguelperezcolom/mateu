@@ -89,6 +89,12 @@ const transform = (file) => {
       // bundles a /version_<ts>/ desde cualquier ruta
       .replace(/BASE_URL_TOKEN: '([^']+)'/, "BASE_URL: '/$1/',\n        BASE_URL_TOKEN: '$1'")
       .replace('<title>Oracle Applications</title>', '<title>AQUIELTITULODELAPAGINA</title>')
+      // El idioma de JET (los textos de sus componentes: el Empezar/Continuar/Cancelar del
+      // guided process, el «Introduzca un valor.» de un obligatorio, los formatos de fecha) es
+      // el del NAVEGADOR, como en el renderer Vaadin — no el `lang="en"` fijo de la plantilla
+      .replace('window.vbInitParams.locale = html.lang;',
+               "html.lang = (navigator.languages && navigator.languages[0]) || navigator.language || html.lang;\n"
+               + '      window.vbInitParams.locale = html.lang;')
       .replace('</head>', '    <style>mateu-ui { display: none !important; }</style>\n  </head>')
       .replace('</body>', '    <!-- AQUIUI --><!-- HASTAAQUIUI -->\n  </body>')
       // El marcador donde el controlador generado inyecta el script que obtiene el token.

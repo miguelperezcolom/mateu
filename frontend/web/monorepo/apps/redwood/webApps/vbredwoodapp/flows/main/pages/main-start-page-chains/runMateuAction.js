@@ -77,6 +77,20 @@ define([
         }
       }
 
+      // validationRequired (el next de un wizard, el save de un formulario): los obligatorios
+      // vacíos del formulario se marcan en su campo — el mensaje del propio componente, como en
+      // cualquier formulario Redwood —, el foco va al primero y la acción no sale. Es lo que
+      // Vaadin hace en el navegador; el servidor lo vuelve a comprobar.
+      const validation = !overlayBefore && bridge.validationOf(host, id);
+      if (validation) {
+        const missing = bridge.formErrorsOf($application.variables.mateuFormSections,
+          $page.variables.mateuDraft, validation.fields);
+        if (missing.length) {
+          await bridge.showFieldErrors(missing);
+          return;
+        }
+      }
+
       // ACCIONES DE LISTA: el "+" / Editar / Quitar de una lista del formulario y los botones
       // de su editor modal (Save, Save and add another, Cancel, Prev/Next). Van al ServerSide
       // del CONTENEDOR (el formulario o el wizard) con SU estado, y la fila del diálogo en
@@ -239,6 +253,20 @@ define([
 
       $application.variables.mateuRegistry = reg;
 
+      // Una respuesta que SÓLO trae mensajes (p.ej. el «falta la tarifa» con el que un wizard
+      // no deja salir del paso) no cambia la pantalla: re-proyectarla volvía a pintar el
+      // formulario con el estado del servidor y se llevaba lo que el usuario había escrito.
+      const onlyMessages = !hostRepainted && !flipRoute && !allEvents.length && !overlayBefore
+        && !bridge.overlayOf(reg) && lastIncrement && !(lastIncrement.fragments || []).length
+        && !(lastIncrement.commands || []).length;
+      if (onlyMessages) {
+        for (const toast of allToasts) {
+          $page.variables.mateuToastText = toast.text;
+          await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
+        }
+        return;
+      }
+
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
       $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} };
@@ -292,6 +320,7 @@ define([
         }
       }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
+      if ($application.variables.mateuWizard) bridge.guardGuidedProcess();
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       const toolbar = listingSummary ? listingSummary.toolbar : [];

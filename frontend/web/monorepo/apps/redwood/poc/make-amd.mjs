@@ -77,6 +77,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     rowEditorOf,
     rowFieldsOf,
     validateRow,
+    // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos
+    validationOf,
+    formErrorsOf,
+    selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,
     ROW_VALIDATING_VERBS,
@@ -163,6 +167,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setLastRetry,
     hasLastRetry,
     takeLastRetry,
+    // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
+    showFieldErrors,
+    clearFieldError,
+    guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
     effectiveChatUrl,
     buildChatBody,
