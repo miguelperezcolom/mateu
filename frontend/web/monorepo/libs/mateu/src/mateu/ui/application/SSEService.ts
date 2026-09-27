@@ -210,7 +210,8 @@ export class SSEService implements Service {
                 fragment: undefined,
                 ui: undefined,
                 error: undefined,
-                callbackToken
+                callbackToken,
+                initiator
             })
         })
         uiIncrement?.fragments?.forEach(fragment => {
@@ -219,7 +220,8 @@ export class SSEService implements Service {
                 fragment,
                 ui: undefined,
                 error: undefined,
-                callbackToken
+                callbackToken,
+                initiator
             })
         })
         if (uiIncrement?.appState) {

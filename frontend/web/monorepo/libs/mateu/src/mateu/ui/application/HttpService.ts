@@ -21,7 +21,8 @@ export class HttpService implements Service {
                 fragment,
                 ui: undefined,
                 error: undefined,
-                callbackToken
+                callbackToken,
+                initiator
             })
         })
         if (uiIncrement?.appState) {
@@ -65,7 +66,8 @@ export class HttpService implements Service {
                 fragment: undefined,
                 ui: undefined,
                 error: undefined,
-                callbackToken
+                callbackToken,
+                initiator
             })
         })
     }

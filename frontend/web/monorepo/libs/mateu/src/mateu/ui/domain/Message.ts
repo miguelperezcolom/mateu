@@ -8,4 +8,7 @@ export default interface Message {
     ui:UI | undefined,
     error: undefined,
     callbackToken: string
+    /** The element whose request this message answers, when it answers one: the callback token
+     *  only guards that element (see callbackTokenGuard). */
+    initiator?: HTMLElement
 }

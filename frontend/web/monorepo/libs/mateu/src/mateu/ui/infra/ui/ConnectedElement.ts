@@ -14,6 +14,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { announce } from "@infra/a11y/announcer.ts";
+import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -38,7 +39,7 @@ export default abstract class ConnectedElement extends LitElement {
                     this.applyCommand(command)
                 }
             }
-            if (!message.callbackToken || !this.callbackToken || message.callbackToken === this.callbackToken) {
+            if (fragmentIsCurrent(this, message)) {
                 if (message.fragment) {
                     const fragment = message.fragment
                     if (this.id == fragment.targetComponentId) {
