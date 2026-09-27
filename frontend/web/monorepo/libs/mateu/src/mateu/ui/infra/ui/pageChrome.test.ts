@@ -17,6 +17,7 @@ import ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideCompone
 const ux = (over: Record<string, any> = {}) => ({
     id: 'target',
     top: false,
+    hasAttribute: (_name: string) => false,
     dataset: {} as Record<string, string>,
     fragment: undefined as UIFragment | undefined,
     lastStampedComponent: undefined as unknown,
@@ -103,6 +104,18 @@ describe('page chrome', () => {
         el.applyFragment(routeLoad(undefined, { status: 'Running (66%)' }))
 
         expect(el.dataset.pageWidth).toBe('tampered')
+    })
+
+    it('gives a nested app shell no width of its own, so its page applies the gutter once', () => {
+        // a remote app's root view: the wire declares fullWidth on it, but it only holds an App
+        const shell = { ...page('fullWidth'), children: [{
+            id: nextId(), type: ComponentType.ClientSide, metadata: { type: ComponentMetadataType.App }, children: [],
+        }] } as unknown as ServerSideComponent
+        const el = ux()
+
+        el.applyFragment(routeLoad(shell))
+
+        expect(el.dataset.pageWidth).toBe('edge')
     })
 
     it('stamps the coarse page type beside the width', () => {
