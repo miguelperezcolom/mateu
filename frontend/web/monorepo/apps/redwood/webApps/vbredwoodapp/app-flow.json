@@ -309,6 +309,11 @@
       "defaultValue": [],
       "description": "FormFields del host como lista para el switch widgetFor (isText/isNumber/isBoolean precomputados)"
     },
+    "mateuFormSections": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "los mismos campos agrupados por sus secciones (@Section): [{title, hasTitle, columns, fields}] \u2014 lo que pinta el form de la p\u00e1gina y el del wizard"
+    },
     "mateuFormActions": {
       "type": "any",
       "defaultValue": []
@@ -400,6 +405,7 @@
       "defaultValue": {
         "title": "",
         "fields": [],
+        "sections": [],
         "actions": [],
         "blocks": [],
         "state": {},

@@ -657,3 +657,9 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
     border-radius: 0;
   }
 }
+
+/* SECCIONES de un formulario (@Section → bridge.formSectionsOf): cada una con su título y su
+   oj-form-layout; el aire entre ellas separa los grupos como en Vaadin. */
+.mateu-form-section + .mateu-form-section {
+  margin-top: 1.5rem;
+}

@@ -616,6 +616,12 @@
       },
       "oj-input-date": {
         "path": "ojs/ojdatetimepicker"
+      },
+      "oj-input-date-time": {
+        "path": "ojs/ojdatetimepicker"
+      },
+      "oj-text-area": {
+        "path": "ojs/ojinputtext"
       }
     }
   }

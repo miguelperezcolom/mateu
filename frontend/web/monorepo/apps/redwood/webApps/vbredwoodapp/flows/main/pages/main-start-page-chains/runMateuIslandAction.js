@@ -194,7 +194,8 @@ define([
       // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
       // $current — leer $application.variables en templates profundos no re-liga)
       $application.variables.mateuIsland = islandNow
-        ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state),
+        ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state, islandNow.data),
+            sections: bridge.formSectionsOf(islandNow.tree, islandNow.state, islandNow.data),
             actions: bridge.actionsOf(islandNow.tree),
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;

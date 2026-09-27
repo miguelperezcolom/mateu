@@ -209,7 +209,8 @@ define([
       $application.variables.mateuWizard = bridge.wizardOf(host);
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
-        ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state),
+        ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state, islandContext.data),
+            sections: bridge.formSectionsOf(islandContext.tree, islandContext.state, islandContext.data),
             actions: bridge.actionsOf(islandContext.tree),
             content: bridge.islandContentOf(islandContext) }
         : null;
@@ -264,6 +265,7 @@ define([
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;
       $application.variables.mateuFormFieldsList = summary.fields;
+      $application.variables.mateuFormSections = summary.sections;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
       const wizardNow = $application.variables.mateuWizard;
@@ -325,6 +327,7 @@ define([
         // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
         $application.variables.mateuFormActions = [];
       }
       // contenido display del HOST (detalle standalone) / de los pasos del wizard:
@@ -395,6 +398,7 @@ define([
       if (hostBlocksRicos) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
@@ -406,6 +410,7 @@ define([
         || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
         || a.isStat || a.isNotice || a.isPropertyRow))) {
         $application.variables.mateuFormFieldsList = [];
+        $application.variables.mateuFormSections = [];
       }
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los

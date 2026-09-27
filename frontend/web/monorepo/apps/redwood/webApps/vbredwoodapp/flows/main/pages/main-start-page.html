@@ -168,6 +168,16 @@
               :data-field-id="[[ $current.data.fieldId ]]"
               on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-date>
           </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isDateTime ]]">
+            <oj-input-date-time class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-date-time>
+          </oj-bind-if>
           <oj-bind-if test="[[ $current.data.isBoolean ]]">
             <oj-switch class="oj-form-control-full-width"
               label-hint="[[ $current.data.label ]]"
@@ -2520,48 +2530,88 @@
         </oj-bind-for-each>
       </div>
     </oj-bind-if>
-    <oj-form-layout id="mateuDrawerForm">
-      <oj-bind-for-each data="[[ $application.variables.mateuDrawer.fields ]]">
-        <template>
-          <oj-bind-if test="[[ $current.data.isText ]]">
-            <oj-input-text
-              label-hint="[[ $current.data.label ]]"
-              value="[[ $current.data.value ]]"
-              required="[[ $current.data.required ]]"
-              readonly="[[ $current.data.readonly ]]"
-              :data-field-id="[[ $current.data.fieldId ]]"
-              on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+    <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
+         bridge.formSectionsOf): sin secciones es un único grupo sin título -->
+    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sections ]]">
+      <template>
+        <div class="mateu-form-section">
+          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+            <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
-          <oj-bind-if test="[[ $current.data.isTextArea ]]">
-            <oj-text-area
-              label-hint="[[ $current.data.label ]]"
-              value="[[ $current.data.value ]]"
-              rows="4"
-              required="[[ $current.data.required ]]"
-              readonly="[[ $current.data.readonly ]]"
-              :data-field-id="[[ $current.data.fieldId ]]"
-              on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
-          </oj-bind-if>
-          <oj-bind-if test="[[ $current.data.isNumber ]]">
-            <oj-input-number
-              label-hint="[[ $current.data.label ]]"
-              value="[[ $current.data.value ]]"
-              required="[[ $current.data.required ]]"
-              readonly="[[ $current.data.readonly ]]"
-              :data-field-id="[[ $current.data.fieldId ]]"
-              on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
-          </oj-bind-if>
-          <oj-bind-if test="[[ $current.data.isBoolean ]]">
-            <oj-switch
-              label-hint="[[ $current.data.label ]]"
-              value="[[ $current.data.value ]]"
-              readonly="[[ $current.data.readonly ]]"
-              :data-field-id="[[ $current.data.fieldId ]]"
-              on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
-          </oj-bind-if>
-        </template>
-      </oj-bind-for-each>
-    </oj-form-layout>
+          <oj-form-layout max-columns="1" direction="row">
+            <oj-bind-for-each data="[[ $current.data.fields ]]">
+              <template>
+                <oj-bind-if test="[[ $current.data.isText ]]">
+                  <oj-input-text
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                  <oj-text-area
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    rows="4"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isNumber ]]">
+                  <oj-input-number
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDate ]]">
+                  <oj-input-date
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                  <oj-input-date-time
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                  <oj-switch
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isSelect ]]">
+                  <oj-select-one
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    options="[[ $current.data.options ]]"
+                    placeholder="Select a value"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </oj-form-layout>
+        </div>
+      </template>
+    </oj-bind-for-each>
     <!-- barra de acciones del drawer: ANCLADA abajo (pauta Redwood), con divisor -->
     <oj-bind-if test="[[ $application.variables.mateuDrawer.actions.length > 0 ]]">
       <div class="oj-flex oj-divider-top oj-sm-padding-4x-top" style="margin-top: auto; padding-top: 16px;">
@@ -3414,38 +3464,88 @@
           </template>
         </oj-bind-for-each>
       </oj-bind-if>
-      <oj-form-layout id="mateuWizardForm">
-        <oj-bind-for-each data="[[ $application.variables.mateuFormFieldsList ]]">
-          <template>
-            <oj-bind-if test="[[ $current.data.isText ]]">
-              <oj-input-text
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+      <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
+           bridge.formSectionsOf): sin secciones es un único grupo sin título -->
+      <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
+        <template>
+          <div class="mateu-form-section">
+            <oj-bind-if test="[[ $current.data.hasTitle ]]">
+              <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isNumber ]]">
-              <oj-input-number
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
-            </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isBoolean ]]">
-              <oj-switch
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
-            </oj-bind-if>
-          </template>
-        </oj-bind-for-each>
-      </oj-form-layout>
+            <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+              <oj-bind-for-each data="[[ $current.data.fields ]]">
+                <template>
+                  <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-input-text
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                    <oj-text-area
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      rows="4"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isNumber ]]">
+                    <oj-input-number
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDate ]]">
+                    <oj-input-date
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                    <oj-input-date-time
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                    <oj-switch
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isSelect ]]">
+                    <oj-select-one
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      options="[[ $current.data.options ]]"
+                      placeholder="Select a value"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+                  </oj-bind-if>
+                </template>
+              </oj-bind-for-each>
+            </oj-form-layout>
+          </div>
+        </template>
+      </oj-bind-for-each>
       <div class="oj-flex oj-sm-margin-6x-top">
         <oj-bind-for-each data="[[ $application.variables.mateuFormActions ]]">
           <template>
@@ -3463,38 +3563,88 @@
 <oj-bind-if test="[[ !!$application.variables.mateuFormMetadata && !$application.variables.mateuWizard ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
-      <oj-form-layout id="mateuForm">
-        <oj-bind-for-each data="[[ $application.variables.mateuFormFieldsList ]]">
-          <template>
-            <oj-bind-if test="[[ $current.data.isText ]]">
-              <oj-input-text
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+      <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
+           bridge.formSectionsOf): sin secciones es un único grupo sin título -->
+      <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
+        <template>
+          <div class="mateu-form-section">
+            <oj-bind-if test="[[ $current.data.hasTitle ]]">
+              <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isNumber ]]">
-              <oj-input-number
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
-            </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isBoolean ]]">
-              <oj-switch
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
-            </oj-bind-if>
-          </template>
-        </oj-bind-for-each>
-      </oj-form-layout>
+            <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+              <oj-bind-for-each data="[[ $current.data.fields ]]">
+                <template>
+                  <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-input-text
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                    <oj-text-area
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      rows="4"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isNumber ]]">
+                    <oj-input-number
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDate ]]">
+                    <oj-input-date
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                    <oj-input-date-time
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                    <oj-switch
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isSelect ]]">
+                    <oj-select-one
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      options="[[ $current.data.options ]]"
+                      placeholder="Select a value"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+                  </oj-bind-if>
+                </template>
+              </oj-bind-for-each>
+            </oj-form-layout>
+          </div>
+        </template>
+      </oj-bind-for-each>
       <div class="oj-flex oj-sm-margin-6x-top">
         <oj-bind-for-each data="[[ $application.variables.mateuFormActions ]]">
           <template>
@@ -6817,38 +6967,88 @@
 <oj-bind-if test="[[ !!$application.variables.mateuIsland && !$application.variables.mateuIsland.content ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
-      <oj-form-layout id="mateuIslandForm">
-        <oj-bind-for-each data="[[ $application.variables.mateuIsland.fields ]]">
-          <template>
-            <oj-bind-if test="[[ $current.data.isText ]]">
-              <oj-input-text
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-text>
+      <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
+           bridge.formSectionsOf): sin secciones es un único grupo sin título -->
+      <oj-bind-for-each data="[[ $application.variables.mateuIsland.sections ]]">
+        <template>
+          <div class="mateu-form-section">
+            <oj-bind-if test="[[ $current.data.hasTitle ]]">
+              <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isNumber ]]">
-              <oj-input-number
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                required="[[ $current.data.required ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-number>
-            </oj-bind-if>
-            <oj-bind-if test="[[ $current.data.isBoolean ]]">
-              <oj-switch
-                label-hint="[[ $current.data.label ]]"
-                value="[[ $current.data.value ]]"
-                readonly="[[ $current.data.readonly ]]"
-                :data-field-id="[[ $current.data.fieldId ]]"
-                on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-switch>
-            </oj-bind-if>
-          </template>
-        </oj-bind-for-each>
-      </oj-form-layout>
+            <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+              <oj-bind-for-each data="[[ $current.data.fields ]]">
+                <template>
+                  <oj-bind-if test="[[ $current.data.isText ]]">
+                    <oj-input-text
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-text>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                    <oj-text-area
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      rows="4"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-text-area>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isNumber ]]">
+                    <oj-input-number
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-number>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDate ]]">
+                    <oj-input-date
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-date>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                    <oj-input-date-time
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-date-time>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                    <oj-switch
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-switch>
+                  </oj-bind-if>
+                  <oj-bind-if test="[[ $current.data.isSelect ]]">
+                    <oj-select-one
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      options="[[ $current.data.options ]]"
+                      placeholder="Select a value"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-select-one>
+                  </oj-bind-if>
+                </template>
+              </oj-bind-for-each>
+            </oj-form-layout>
+          </div>
+        </template>
+      </oj-bind-for-each>
       <div class="oj-flex oj-sm-margin-4x-top">
         <oj-bind-for-each data="[[ $application.variables.mateuIsland.actions ]]">
           <template>

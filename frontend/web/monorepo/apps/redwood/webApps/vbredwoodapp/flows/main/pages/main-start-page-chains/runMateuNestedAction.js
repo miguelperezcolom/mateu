@@ -114,7 +114,8 @@ define([
         : null;
       const islandNow = islandId ? reg.contexts[islandId] : null;
       $application.variables.mateuIsland = islandNow
-        ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state),
+        ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state, islandNow.data),
+            sections: bridge.formSectionsOf(islandNow.tree, islandNow.state, islandNow.data),
             actions: bridge.actionsOf(islandNow.tree),
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;

@@ -66,6 +66,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
+    secondaryActionOf,
+    formSectionsOf,
     // editor de filas modal de una lista del formulario (@DetailFormCustomisation modal)
     listActionOf,
     listActionRequestOf,
