@@ -18,6 +18,7 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
+  authHeadersOf,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
@@ -1824,6 +1825,60 @@ test('cabecera oscura: los estados del menú superior son un velo blanco, sin el
     assert.match(vars, new RegExp('--oj-button-borderless-chrome-text-color' + v + ': var\\(--oj-core-text-color-inverse, #fff\\)'))
   }
   assert.match(vars, /--oj-core-focus-border-color: rgb\(255 255 255 \/ 0\.6\)/, 'foco visible pero discreto')
+})
+
+test('chat: FAB propio y drawer a la izquierda — Ask Oracle ya no lleva el chat dentro', () => {
+  const shell = webApp('pages/shell-page.html')
+  const dialog = shell.match(/<oj-dialog id="mateuAskOracle"[\s\S]*?<\/oj-dialog>/)[0]
+  assert.equal(/mateuChatInput|mateuChatMode|chatShowChat/.test(dialog), false, 'la paleta es sólo el buscador')
+  // el FAB del chat: su icono Redwood y su etiqueta (display=icons → aria-label + tooltip)
+  const fab = shell.match(/<oj-button id="mateuChatFab"[\s\S]*?<\/oj-button>/)[0]
+  assert.match(fab, /display="icons"/)
+  assert.match(fab, /oj-ux-ico-chat/)
+  assert.match(fab, /Chat con el asistente/)
+  assert.match(fab, /\$listeners\.chatToggle/)
+  // el drawer: START de un oj-drawer-layout (reflow en ancho, overlay en estrecho) que envuelve
+  // el contenido — no un oj-drawer-popup, que taparía la pantalla
+  const layout = shell.match(/<oj-drawer-layout id="mateuChatDrawer"[\s\S]*?>/)[0]
+  assert.match(layout, /start-opened="\[\[ \$application\.variables\.mateuChatOpen \]\]"/)
+  assert.match(layout, /on-oj-before-close="\[\[ \$listeners\.chatClose \]\]"/)
+  assert.equal(/start-display="overlay"/.test(layout), false)
+  assert.ok(shell.indexOf('id="mateuChatDrawer"') < shell.indexOf('id="mateuNavDrawer"'), 'envuelve al contenido')
+  assert.ok(shell.indexOf('slot="globalHeader"') < shell.indexOf('id="mateuChatDrawer"'), 'la cabecera queda fuera')
+  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"/)
+  assert.match(shell, /id="mateuChatInput"/)
+  assert.match(shell, /aria-live="polite"/)
+  // cableado: listeners y cadena
+  const page = JSON.parse(webApp('pages/shell-page.json'))
+  assert.equal(page.eventListeners.chatToggle.chains[0].chain, 'toggleMateuChat')
+  assert.equal(page.eventListeners.chatClose.chains[0].parameters.open, false)
+  assert.equal(page.eventListeners.chatShowChat, undefined)
+  const flow = JSON.parse(webApp('app-flow.json'))
+  assert.equal(flow.variables.mateuChatOpen.defaultValue, false)
+  assert.equal(flow.variables.mateuChatMode, undefined)
+  // el envío conserva streaming + agente por ruta y ahora presenta el token
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /currentRoute: \$application\.variables\.mateuSelectedRoute/)
+  assert.match(send, /headers: bridge\.authHeadersOf\(\)/)
+  assert.match(send, /onText:/)
+})
+
+test('chat: el cuerpo lleva la ruta de la pantalla (el plano de control elige el agente por ella)', () => {
+  assert.deepEqual(buildChatBody({ message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' }),
+    { message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' })
+  assert.equal('currentRoute' in buildChatBody({ message: 'hola', sessionId: 's1', currentRoute: '' }), false)
+})
+
+test('chat: el stream presenta el token de la sesión; sin token, sin cabecera', () => {
+  const original = globalThis.localStorage
+  try {
+    globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'tk' : null) }
+    assert.deepEqual(authHeadersOf(), { Authorization: 'Bearer tk' })
+    globalThis.localStorage = { getItem: () => null }
+    assert.deepEqual(authHeadersOf(), {})
+  } finally {
+    globalThis.localStorage = original
+  }
 })
 
 // ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────

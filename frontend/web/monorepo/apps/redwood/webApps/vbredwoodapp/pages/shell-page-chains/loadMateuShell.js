@@ -30,6 +30,34 @@ define([
     });
   };
 
+  /**
+   * Pone nombre (y teclado) al FAB de Ask Oracle.
+   *
+   * Lo estampa oj-sp-simple-ui-shell como un `<a>` SIN href ni rol: no se alcanza con el
+   * tabulador y un lector de pantalla sólo oye el "Ask" de su icono. Ahora que hay DOS FABs
+   * (Ask Oracle y el del chat del agente) cada uno tiene que decir cuál es. Como con los iconos
+   * del menú, no es marcado nuestro: se nombra después, cuando el shell lo ha pintado.
+   */
+  const nameAskOracleFab = (attempt = 0) => {
+    const fab = document.querySelector('oj-sp-simple-ui-shell .oj-sp-rw-chat-icon-cont');
+    if (!fab) {
+      if (attempt < 20) setTimeout(() => nameAskOracleFab(attempt + 1), 500);
+      return;
+    }
+    if (fab.__mateuNamed) return;
+    fab.__mateuNamed = true;
+    fab.setAttribute('role', 'button');
+    fab.setAttribute('tabindex', '0');
+    fab.setAttribute('aria-label', 'Ask Oracle');
+    fab.setAttribute('title', 'Ask Oracle');
+    fab.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fab.click();
+      }
+    });
+  };
+
   class loadMateuShell extends ActionChain {
 
     async run(context) {
@@ -120,9 +148,10 @@ define([
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';
       // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
-      // Con esto puesto, Ask Oracle ofrece el modo Chat.
+      // Con esto puesto sale el FAB del chat (su drawer a la izquierda), junto al de Ask Oracle.
       $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
         ? base + reg.shell.sseUrl : '';
+      nameAskOracleFab();
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
       }

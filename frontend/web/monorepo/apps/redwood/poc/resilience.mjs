@@ -298,6 +298,15 @@ function authHeaders(init) {
 }
 
 /**
+ * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
+ * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
+ * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+ */
+export function authHeadersOf() {
+  return authHeaders(null) || {}
+}
+
+/**
  * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
  * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
  * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token

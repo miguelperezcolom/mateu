@@ -65,26 +65,11 @@ define([
       const { $application, $page } = context;
       $page.variables.mateuAskResults = buildResults($application, '');
       await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'open' });
+      // Ask Oracle es sólo el buscador de destinos: el chat del agente tiene su propio FAB y
+      // su drawer (toggleMateuChat)
       setTimeout(() => {
-        // Foco al input que toca según el modo (chat vs buscar) → en CADA apertura, no solo la 1ª.
-        if ($application.variables.mateuChatMode) {
-          const el = document.querySelector('#mateuChatInput input');
-          if (!el) return;
-          el.focus();
-          if (!el.__mateuEnterWired) {
-            el.__mateuEnterWired = true;
-            el.addEventListener('keydown', (e) => {
-              if ((e.key === 'Enter' || e.keyCode === 13) && !e.shiftKey) {
-                e.preventDefault();
-                const btn = document.querySelector('#mateuChatSend');
-                if (btn) btn.click();
-              }
-            });
-          }
-        } else {
-          const input = document.querySelector('#mateuAskInput input');
-          if (input) input.focus();
-        }
+        const input = document.querySelector('#mateuAskInput input');
+        if (input) input.focus();
       }, 300);
     }
   }

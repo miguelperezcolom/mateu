@@ -49,9 +49,15 @@ define([
       try {
         await bridge.streamChat({
           url: $application.variables.mateuChatSseUrl,
+          // el agente actúa como quien pregunta: el token de la sesión (el stream no pasa por
+          // fetchWithPolicy, que es quien lo pone en el resto del tráfico)
+          headers: bridge.authHeadersOf(),
+          // currentRoute: la pantalla desde la que se pregunta — el plano de control elige el
+          // agente por ella (en /mapping, el de mapeado)
           body: bridge.buildChatBody({
             message: text,
             sessionId: $application.variables.mateuChatSessionId,
+            currentRoute: $application.variables.mateuSelectedRoute || undefined,
           }),
           onText: (accumulated) => setAgent(accumulated),
           onEvent: (ev) => {

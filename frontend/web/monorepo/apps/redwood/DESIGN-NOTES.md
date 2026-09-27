@@ -1756,3 +1756,39 @@ zona `start` del global-header (menú superior y hamburguesa), y sólo para ello
 (también el triángulo del desplegable, que salía casi negro) y el contorno de foco de JET en
 blanco al 60 %. Seleccionado+hover pintaba además otra capa detrás del propio icono (un cuadrado
 más claro alrededor del triángulo): anulada con un selector más específico que el de JET.
+
+## Chat del agente: FAB propio y drawer a la izquierda (2026-09-27)
+
+El chat vivía como pestaña "💬 Chat" dentro de la paleta de Ask Oracle (un oj-dialog modal): el
+usuario tenía que abrir "Ask Oracle" para hablar con el agente, y el diálogo tapaba justo la
+pantalla sobre la que preguntaba. Fue un error de diseño: son dos cosas distintas.
+
+- **Dos FABs**, apilados en la esquina. Abajo el de Ask Oracle: lo estampa oj-sp-simple-ui-shell
+  (`oj-ux-ico-oracle-chat`, evento `ojSpChatAction`) y abre la paleta, que ahora es SÓLO el
+  buscador de destinos. Ese `<a>` del shell no tiene href ni rol (no se alcanzaba con el
+  tabulador y sólo decía "Ask"): `loadMateuShell` le pone `role=button`, `tabindex=0`,
+  `aria-label`/`title` "Ask Oracle" y Enter/Espacio. Encima, el del chat: `oj-button
+  display="icons"` `oj-ux-ico-chat` "Chat con el asistente" (la etiqueta es su aria-label y su
+  tooltip), sólo si el App declara `sseUrl`. Sigue la geometría del FAB del shell: 72px a 24px del
+  borde desde 1024px (pegado al borde con barra de pestañas) y 52px pegado al borde por debajo.
+- **Drawer a la IZQUIERDA en modo push**: `oj-drawer-layout#mateuChatDrawer` con START drawer,
+  envolviendo al layout del navigator y al contenido. Es el patrón JET para un panel lateral que
+  convive con la página: en ancho (`start-display` auto, ≥1024px) es REFLOW — el contenido se
+  estrecha y se desplaza a la derecha, nada queda tapado —; en estrecho JET lo pasa a OVERLAY, y
+  el panel ocupa todo el ancho bajo la cabecera. oj-drawer-popup se descartó: siempre es overlay y
+  taparía la pantalla. El layout vive en `stretchingContents`, así que la cabecera global no se
+  mueve, y la barra de pestañas es un overlay fijo de su componente (tampoco se mueve): el panel
+  le descuenta su alto. El envoltorio reflow de JET es `sticky` (no el panel: el envoltorio tiene
+  overflow:auto y un sticky dentro se pegaría a él) y así la conversación sigue a la vista al
+  hacer scroll la página.
+- **Foco**: al abrir, al campo de escribir; en overlay JET se lleva el foco a la ✕ al terminar
+  de abrir (~0,5 s) y `toggleMateuChat` lo devuelve mientras siga dentro del panel. Al cerrar
+  (✕, Escape en overlay → ojBeforeClose → `chatClose`, o el propio FAB), vuelve al FAB.
+- **Lo que hace el chat se conserva**: streaming SSE, historial (variables de app, sobrevive a
+  cerrar/abrir), `render-screen`, errores como texto del asistente. Y dos cosas que NO hacía y
+  el usuario daba por hechas: el cuerpo lleva `currentRoute` (el plano de control elige el
+  agente por la pantalla: en /mapping/dictionary contesta "Soy el agente de mapeado…",
+  verificado) y el stream presenta el token de la sesión (`bridge.authHeadersOf()`; sin él, el
+  agente del cluster contestaba 401 — el stream no pasa por fetchWithPolicy).
+- Borrados `mateuChatMode`, `chatShowChat` y `chatShowSearch`; nuevos `mateuChatOpen` y
+  `toggleMateuChat` (listeners `chatToggle`/`chatClose`).

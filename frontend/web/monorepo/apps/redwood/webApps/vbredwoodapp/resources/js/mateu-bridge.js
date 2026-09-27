@@ -2512,6 +2512,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
+   * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
+   * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
+   * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+   */
+  function authHeadersOf() {
+    return authHeaders(null) || {}
+  }
+
+  /**
    * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
    * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
    * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
@@ -4001,10 +4010,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
-  function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext }) {
+  function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
     return {
       message: message ?? '',
       sessionId,
+      // la ruta de la pantalla desde la que se pregunta: las reglas de enrutado del plano de control
+      // eligen el agente por ella
+      ...(currentRoute ? { currentRoute } : {}),
       ...(attachments && attachments.length ? { attachments } : {}),
       ...(context !== undefined && context !== null ? { context } : {}),
       ...(mcpUrl ? { mcpUrl } : {}),
@@ -4178,6 +4190,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     connectivity,
     pendingActions,
     setTransportHooks,
+    authHeadersOf,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
