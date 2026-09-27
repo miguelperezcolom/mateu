@@ -1287,8 +1287,9 @@ pide SOLO las pendientes.
   boot de la shell la PREFIERE sobre la primera opción del menú (deep-link sigue mandando).
   Tiles = 3 `MetricCard` @Panel(title="") con contadores VIVOS (instancia por request) →
   `welcomeOf` extrae el MetricCard del panel (isKpi/kpiTitle/kpiValue/kpiCaption) y el
-  tile pinta el KPI (valor heading-lg + caption). El menú TABS se OCULTA en la home
-  (bind-if selectedRoute !== homeRoute) y el icono casa del oj-sp-global-header navega a
+  tile pinta el KPI (valor heading-lg + caption). ~~El menú TABS se OCULTA en la home~~
+  (SUSTITUIDO 2026-09-27: la barra sale en todas las páginas, ver "Filtros dentro de la
+  cabecera y pestañas en la home") y el icono casa del oj-sp-global-header navega a
   la home (evento ojSpHomeClick → onMateuNavigate).
 - **@AppContext en drawer lateral (2026-07-28)**: los oj-select-one directos no casaban
   con el header oscuro → un icono (oj-ux-ico-settings, borderless) abre un
@@ -1693,3 +1694,101 @@ Regla: un ÚNICO card SIN TÍTULO que envuelve todo el contenido se aplana. Con 
 tarjeta de verdad y se respeta, igual que cuando hay varias (la 360 y sus zonas siguen con sus
 paneles). El título de una tarjeta es reconocible porque `visit()` lo mete como primer átomo de
 texto con la clase del subencabezado.
+
+## Filtros dentro de la cabecera y pestañas en la home (2026-09-27)
+
+### Filtros: por la API `smartFilters` de oj-sp-smart-filter-search
+
+La fila "Filtrar por" se pintaba DESPUÉS del cierre de `<oj-sp-smart-filter-search>`, y la franja de
+color de Redwood (`div.oj-sp-header-general-overview-header-strip`) está al PIE de la cabecera del
+componente: quedaba en mitad de la página, entre el buscador y los filtros+tabla. Ahora los filtros
+viajan por la API del componente (loader de oj-sp 2604.1.0) y los pinta él, por encima de la franja:
+
+- `value` → los aplicados, como chips DENTRO del campo (con su ✕); el texto libre va ahí mismo
+  como chips `keyword`. `bridge.smartFilterValueOf` los saca del estado de Mateu y
+  `bridge.filterStateOfSmartFilters` hace lo inverso (texto + valores del componentState).
+- `suggestionFilters` → los NO aplicados, un chip por filtro bajo el buscador. Es un DataProvider
+  local mínimo (`suggestionFiltersProviderOf`): el componente pide `fetchFirst` con
+  `{op:'$ne', value:{filters}}` y quita los ya aplicados; un único bloque con `done: true`.
+- `filtersMetadata` → un `JsonMetadataProvider` de oj-dynamic polimórfico por `filter` (el
+  fieldId): el editor que abre el popup del componente. Por kind: texto `oj-input-text`, número
+  `oj-input-number`, select/booleano `oj-select-single`, multi (enum) `oj-checkboxset` (array),
+  rango `{gte,lte}` de `oj-input-date(-time)`/`oj-input-number` — con ESA forma exacta el
+  componente reconoce el rango y pinta el chip "desde - hasta" formateado. El provider se carga
+  bajo demanda (`require` en el AMD) sólo si el listado declara filtros.
+- Los de opciones llevan `filterLabel` (el chip se lee "Vista Llegadas hoy"); texto y rango NO
+  (con filterLabel el componente enseñaría la etiqueta en vez de lo tecleado).
+- La sugerencia de un rango lleva `value: {gte:null, lte:null}`: el popup saca sus campos de las
+  claves del valor (sin ellas sale vacío). El componente la pintaría "Llegada -": app.css oculta
+  la parte de valor de los chips SIN aplicar dentro del smart search (Mateu no usa contadores).
+- La config se proyecta SÓLO al navegar (`onMateuNavigate`). Las búsquedas que lanza el propio
+  componente (`smartFiltersChanged` → `runMateuSearch`) NO la reasignan: le cerrarían el popup del
+  filtro que se está editando. Un chip recién sacado de las sugerencias aún no tiene valor → no
+  cambia el estado → no se busca.
+- Se borraron la fila propia, su editor por kind y las cadenas mateuFilterApplied/DraftChanged/
+  Opened/FiltersCleared/RangeApplied (y sus variables de app).
+
+Verificado contra el cluster con el bundle local: /booking/bookings (Status multi, Arrival y
+Departure rango de fecha, Hotel texto — filtran), front /reservas "Vista" 20→8 filas a 1440 y a
+390 (a 390 el componente usa su diálogo a pantalla completa). /partners/partners manda
+`type: ["Company"]`/`status: ["Inactive"]` igual que la fila antigua y el backend devuelve las 259
+filas con el bundle desplegado también: el Crud declara esos filtros como enum simple y Mateu los
+publica como multiSelect — es del backend, no del renderer.
+
+### Menú TABS: la barra sale también en la home
+
+Antes `oj-sp-in-app-navigation` se ocultaba en la home (`mateuSelectedRoute !== mateuHomeRoute`).
+Ahora sale en TODAS las páginas: la navegación de la app no desaparece según dónde estés. En la
+home no hay pestaña seleccionada (su ruta no es una opción del menú). La barra real es un overlay
+fijo que estampa el componente; su elemento host va al final del contenido y su caja en flujo
+reserva los 64px, así que la home no queda tapada al hacer scroll al fondo (comprobado a 1440 y
+390).
+
+## Menú superior sobre la cabecera oscura: estados seleccionado/pulsado/foco (2026-09-27)
+
+Con el desplegable abierto, el oj-menu-button (half-chrome) pasa a `oj-selected` y JET le pone el
+fondo seleccionado de superficie CLARA — rgb(228,241,247) con borde rgb(34,126,158) — con el
+texto blanco de app.css encima: la etiqueta casi desaparecía. En half-chrome (oj-redwood-min.css
+de JET 18.1) hover y pulsado son una CAPA `background-image` de `--oj-core-bg-color-hover/-active`,
+y seleccionado el fondo `--oj-button-borderless-chrome-bg-color-selected`. Para los botones de la
+zona `start` del global-header (menú superior y hamburguesa), y sólo para ellos: velo blanco
+0.10 hover / 0.14 seleccionado / 0.22 pulsado, bordes transparentes, texto e icono blancos
+(también el triángulo del desplegable, que salía casi negro) y el contorno de foco de JET en
+blanco al 60 %. Seleccionado+hover pintaba además otra capa detrás del propio icono (un cuadrado
+más claro alrededor del triángulo): anulada con un selector más específico que el de JET.
+
+## Chat del agente: FAB propio y drawer a la izquierda (2026-09-27)
+
+El chat vivía como pestaña "💬 Chat" dentro de la paleta de Ask Oracle (un oj-dialog modal): el
+usuario tenía que abrir "Ask Oracle" para hablar con el agente, y el diálogo tapaba justo la
+pantalla sobre la que preguntaba. Fue un error de diseño: son dos cosas distintas.
+
+- **Dos FABs**, apilados en la esquina. Abajo el de Ask Oracle: lo estampa oj-sp-simple-ui-shell
+  (`oj-ux-ico-oracle-chat`, evento `ojSpChatAction`) y abre la paleta, que ahora es SÓLO el
+  buscador de destinos. Ese `<a>` del shell no tiene href ni rol (no se alcanzaba con el
+  tabulador y sólo decía "Ask"): `loadMateuShell` le pone `role=button`, `tabindex=0`,
+  `aria-label`/`title` "Ask Oracle" y Enter/Espacio. Encima, el del chat: `oj-button
+  display="icons"` `oj-ux-ico-chat` "Chat con el asistente" (la etiqueta es su aria-label y su
+  tooltip), sólo si el App declara `sseUrl`. Sigue la geometría del FAB del shell: 72px a 24px del
+  borde desde 1024px (pegado al borde con barra de pestañas) y 52px pegado al borde por debajo.
+- **Drawer a la IZQUIERDA en modo push**: `oj-drawer-layout#mateuChatDrawer` con START drawer,
+  envolviendo al layout del navigator y al contenido. Es el patrón JET para un panel lateral que
+  convive con la página: en ancho (`start-display` auto, ≥1024px) es REFLOW — el contenido se
+  estrecha y se desplaza a la derecha, nada queda tapado —; en estrecho JET lo pasa a OVERLAY, y
+  el panel ocupa todo el ancho bajo la cabecera. oj-drawer-popup se descartó: siempre es overlay y
+  taparía la pantalla. El layout vive en `stretchingContents`, así que la cabecera global no se
+  mueve, y la barra de pestañas es un overlay fijo de su componente (tampoco se mueve): el panel
+  le descuenta su alto. El envoltorio reflow de JET es `sticky` (no el panel: el envoltorio tiene
+  overflow:auto y un sticky dentro se pegaría a él) y así la conversación sigue a la vista al
+  hacer scroll la página.
+- **Foco**: al abrir, al campo de escribir; en overlay JET se lleva el foco a la ✕ al terminar
+  de abrir (~0,5 s) y `toggleMateuChat` lo devuelve mientras siga dentro del panel. Al cerrar
+  (✕, Escape en overlay → ojBeforeClose → `chatClose`, o el propio FAB), vuelve al FAB.
+- **Lo que hace el chat se conserva**: streaming SSE, historial (variables de app, sobrevive a
+  cerrar/abrir), `render-screen`, errores como texto del asistente. Y dos cosas que NO hacía y
+  el usuario daba por hechas: el cuerpo lleva `currentRoute` (el plano de control elige el
+  agente por la pantalla: en /mapping/dictionary contesta "Soy el agente de mapeado…",
+  verificado) y el stream presenta el token de la sesión (`bridge.authHeadersOf()`; sin él, el
+  agente del cluster contestaba 401 — el stream no pasa por fetchWithPolicy).
+- Borrados `mateuChatMode`, `chatShowChat` y `chatShowSearch`; nuevos `mateuChatOpen` y
+  `toggleMateuChat` (listeners `chatToggle`/`chatClose`).

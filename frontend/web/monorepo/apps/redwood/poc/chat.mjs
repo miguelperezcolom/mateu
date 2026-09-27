@@ -70,10 +70,13 @@ export function effectiveChatUrl({ localAgentAlive, localAgentUrl, sseUrl }) {
 }
 
 /** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
-export function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext }) {
+export function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
   return {
     message: message ?? '',
     sessionId,
+    // la ruta de la pantalla desde la que se pregunta: las reglas de enrutado del plano de control
+    // eligen el agente por ella
+    ...(currentRoute ? { currentRoute } : {}),
     ...(attachments && attachments.length ? { attachments } : {}),
     ...(context !== undefined && context !== null ? { context } : {}),
     ...(mcpUrl ? { mcpUrl } : {}),

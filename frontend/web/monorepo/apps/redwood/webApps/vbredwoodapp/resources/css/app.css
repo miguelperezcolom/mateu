@@ -308,6 +308,41 @@ oj-sp-global-header oj-menu-button .oj-button-icon {
   color: var(--oj-core-text-color-inverse, #fff);
 }
 
+/* Los estados de esos mismos botones sobre la cabecera OSCURA. Con su menú abierto, un
+   oj-menu-button pasa a oj-selected y el tema le pone el fondo seleccionado de superficie CLARA
+   (rgb(228,241,247) con borde de marca rgb(34,126,158)) — con el texto blanco de arriba, la
+   etiqueta casi desaparecía justo cuando el usuario baja al desplegable. Sobre fondo oscuro,
+   todos los estados son un velo blanco translúcido de intensidad creciente (hover <
+   seleccionado < seleccionado+hover < pulsado), sin borde, y el texto sigue blanco. El foco de
+   teclado: el contorno punteado de JET en blanco a media opacidad, visible sin gritar.
+   Qué variable pinta cada estado en half-chrome (oj-redwood-min.css de JET 18.1): hover y
+   pulsado son una CAPA (background-image) de --oj-core-bg-color-hover/-active, seleccionado es
+   el fondo --oj-button-borderless-chrome-bg-color-selected (y con hover, la capa encima).
+   Sólo los del NAV de la cabecera (su zona start: menú superior y hamburguesa): ni las
+   acciones de la derecha, ni los botones del contenido, ni el oj-menu desplegado (JET lo saca
+   a la capa de popups, fuera de la cabecera) cambian. */
+oj-sp-global-header [slot="start"] oj-button,
+oj-sp-global-header [slot="start"] oj-menu-button {
+  --oj-core-bg-color-hover: rgb(255 255 255 / 0.10);
+  --oj-core-bg-color-active: rgb(255 255 255 / 0.22);
+  --oj-button-borderless-chrome-bg-color-selected: rgb(255 255 255 / 0.14);
+  --oj-button-borderless-chrome-border-color-hover: transparent;
+  --oj-button-borderless-chrome-border-color-selected: transparent;
+  --oj-button-borderless-chrome-border-color-active: transparent;
+  --oj-button-borderless-chrome-text-color: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-hover: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-selected: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-selected-hover: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-active: var(--oj-core-text-color-inverse, #fff);
+  --oj-core-focus-border-color: rgb(255 255 255 / 0.6);
+}
+/* el triángulo del desplegable es un icono de fuente que toma el color de esas variables (y
+   seleccionado+hover le pone al propio icono otra capa de hover: un cuadrado más claro detrás
+   del triángulo, que aquí sobra) */
+oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover .oj-button-icon {
+  background-image: none;
+}
+
 /* Salto al contenido (WCAG 2.4.1): primer elemento tabulable del documento, invisible hasta
    que recibe foco. Oculto con transform y NO con display:none, porque un elemento
    display:none no puede recibir foco y el enlace sería inalcanzable. */
@@ -482,4 +517,126 @@ oj-sp-global-header [id$='_GHStartSlot']::-webkit-scrollbar {
 }
 oj-sp-global-header .oj-sp-global-header-panel-container > div:last-child {
   flex-shrink: 0;
+}
+
+/* Las SUGERENCIAS de filtro de la cabecera del buscador (smart-filters) son sólo el nombre del
+   filtro: su valor se elige en el popup. Un rango necesita llevar {gte,lte} vacíos en la
+   sugerencia (el formulario del popup saca sus campos de esas claves) y el componente, que
+   reconoce el rango, lo pinta como "desde - hasta" formateado: "Llegada -" con los dos a null.
+   Aquí la parte de valor de un chip SIN aplicar no se enseña (Mateu no usa contadores en las
+   sugerencias) y la etiqueta recupera el margen final que el componente sólo le pone cuando no
+   hay valor. Los chips aplicados no cambian. */
+oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-applied-value-count-focusable {
+  display: none;
+}
+oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-applied-label-focusable {
+  padding-inline-end: var(--oj-core-spacing-2x, 0.5rem);
+}
+
+/* ── Chat del agente: FAB propio + drawer izquierdo ─────────────────────────────────────
+   Dos FABs distintos, apilados en la esquina: abajo el de Ask Oracle (lo estampa el propio
+   oj-sp-simple-ui-shell) y encima el del chat (oj-ux-ico-chat), más pequeño, centrado sobre él
+   y en el color de acción. El del shell mide 72px a 24px del borde desde 1024px (pegado al
+   borde si hay barra de pestañas) y 52px pegado al borde por debajo: el del chat lo sigue. */
+.mateu-chat-fab {
+  position: fixed;
+  right: 32px;
+  bottom: 84px;
+  z-index: 100;
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+.mateu-chat-fab .oj-button-button {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: var(--oj-core-border-radius-lg, 8px);
+  box-shadow: var(--oj-core-box-shadow-md, 0 4px 8px rgb(0 0 0 / 0.16));
+}
+.mateu-chat-fab .oj-button-icon {
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.mateu-chat-fab.mateu-over-tabs {
+  right: 8px;
+}
+@media (max-width: 1023px) {
+  .mateu-chat-fab,
+  .mateu-chat-fab.mateu-over-tabs {
+    right: 2px;
+    bottom: 60px;
+    width: 48px;
+    height: 48px;
+  }
+  .mateu-chat-fab .oj-button-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+  .mateu-chat-fab .oj-button-icon {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* El panel del drawer (start de oj-drawer-layout). Pegado arriba mientras la página hace
+   scroll (el documento es quien hace scroll y la cabecera global se va con él): así la
+   conversación y el campo de escribir están siempre a la vista. Lo pegajoso es el envoltorio
+   reflow que pone JET y no el panel: ese envoltorio tiene overflow:auto (recorta la animación
+   de abrir/cerrar) y un sticky DENTRO de él se pegaría a él, no a la página. Su alto descuenta
+   la cabecera (50px) y, si hay barra de pestañas fija, sus 64px: el campo de escribir nunca
+   queda debajo. */
+#mateuChatDrawer > .oj-drawer-reflow-wrapper.oj-drawer-start {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+.mateu-chat-panel {
+  width: 400px;
+  box-sizing: border-box;
+  height: calc(100vh - 50px);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--oj-core-bg-color-content, #fff);
+  border-inline-end: 1px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
+}
+.mateu-chat-panel.mateu-over-tabs {
+  height: calc(100vh - 50px - 64px);
+}
+.mateu-chat-panel-header,
+.mateu-chat-composer {
+  flex: 0 0 auto;
+}
+.mateu-chat-panel-header {
+  border-bottom: 1px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
+}
+.mateu-chat-composer {
+  border-top: 1px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
+}
+.mateu-chat-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.mateu-chat-bubble {
+  border-radius: 14px;
+  max-width: 85%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* En estrecho oj-drawer-layout pasa el drawer a OVERLAY: a todo el ancho, bajo la cabecera
+   (la capa del overlay tapa también el FAB de Ask Oracle). El FAB del chat se aparta mientras
+   está abierto (estorbaría al campo de escribir); se cierra con la ✕ del panel o Escape. */
+@media (max-width: 1023px) {
+  .mateu-chat-panel {
+    width: 100vw;
+  }
+  .mateu-chat-fab.mateu-chat-open {
+    display: none;
+  }
 }

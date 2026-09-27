@@ -221,17 +221,20 @@
         }
       ]
     },
-    "chatShowSearch": {
+    "chatToggle": {
       "chains": [
         {
-          "chain": "chatShowSearch"
+          "chain": "toggleMateuChat"
         }
       ]
     },
-    "chatShowChat": {
+    "chatClose": {
       "chains": [
         {
-          "chain": "chatShowChat"
+          "chain": "toggleMateuChat",
+          "parameters": {
+            "open": false
+          }
         }
       ]
     },

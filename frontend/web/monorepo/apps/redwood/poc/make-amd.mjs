@@ -25,11 +25,18 @@ const body = `${strip('reduceContexts.mjs')}\n\n${strip('resilience.mjs')}\n\n${
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
+define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   'use strict';
 ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
+  // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
+  // sólo cuando un listado declara filtros
+  setMetadataProviderFactory((data) => new Promise((resolve, reject) => {
+    require(['oj-dynamic/providers/JsonMetadataProvider'], (JsonMetadataProvider) => {
+      resolve(new JsonMetadataProvider({ data }));
+    }, reject);
+  }));
 
   return {
     HOST_ID,
@@ -52,9 +59,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     selectedRowsOf,
     withListingSelection,
     onLoadTriggers,
-    // filtros del listado: descriptores ya resueltos a widget y su fila de chips
+    // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
+    // cabecera del buscador (sugerencias, aplicados y editores) con su vuelta a estado Mateu
     filterChipsOf,
     multiValuesOf,
+    smartFiltersOf,
+    filterStateOfSmartFilters,
     fieldListOf,
     overlayOf,
     eventTriggersOf,
@@ -112,6 +122,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     connectivity,
     pendingActions,
     setTransportHooks,
+    authHeadersOf,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,

@@ -165,24 +165,16 @@
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 
-    <!-- ASK ORACLE: el FAB de chat del shell abre esta paleta — buscador que filtra la
-         navegación y las vistas rápidas del listado; cada fila navega y cierra -->
+    <!-- ASK ORACLE: el FAB del propio shell (oj-ux-ico-oracle-chat) abre esta paleta —
+         buscador que filtra la navegación y las vistas rápidas del listado; cada fila navega y
+         cierra. El chat del agente NO vive aquí: tiene su FAB y su drawer (abajo). -->
     <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none"
       dialog-title="Ask Oracle">
       <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">
 
-        <!-- toggle Buscar / Chat (solo cuando la app declara un sseUrl de chat de IA) -->
-        <oj-bind-if test="[[ $application.variables.mateuChatSseUrl ]]">
-          <div class="oj-flex oj-sm-margin-2x-bottom" style="gap: .5rem;">
-            <oj-button chroming="[[ $application.variables.mateuChatMode ? 'outlined' : 'callToAction' ]]"
-              on-oj-action="[[ $listeners.chatShowSearch ]]">Buscar</oj-button>
-            <oj-button chroming="[[ $application.variables.mateuChatMode ? 'callToAction' : 'outlined' ]]"
-              on-oj-action="[[ $listeners.chatShowChat ]]">💬 Chat</oj-button>
-          </div>
-        </oj-bind-if>
-
-        <!-- BUSCAR (modo por defecto) -->
-        <oj-bind-if test="[[ !$application.variables.mateuChatMode ]]">
+        <!-- BUSCAR: Ask Oracle es sólo el buscador de destinos (el chat del agente tiene su
+             propio FAB y su drawer, ver abajo) -->
+        <div>
           <oj-input-search id="mateuAskInput" class="oj-form-control-full-width"
             placeholder="Buscar o ir a…"
             on-raw-value-changed="[[ $listeners.askOracleTyped ]]"></oj-input-search>
@@ -200,31 +192,7 @@
               </template>
             </oj-bind-for-each>
           </div>
-        </oj-bind-if>
-
-        <!-- CHAT DE IA -->
-        <oj-bind-if test="[[ $application.variables.mateuChatMode ]]">
-          <div style="height: 340px; overflow-y: auto; padding: .25rem;">
-            <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
-              <template>
-                <div class="oj-flex oj-sm-margin-3x-bottom"
-                  :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
-                  <div class="oj-sm-padding-3x oj-typography-body-md"
-                    :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10' : 'oj-bg-neutral-20' ]]"
-                    style="border-radius: 14px; max-width: 78%; white-space: pre-wrap; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
-                    <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
-                  </div>
-                </div>
-              </template>
-            </oj-bind-for-each>
-          </div>
-          <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top" style="gap: .5rem;">
-            <oj-input-text id="mateuChatInput" class="oj-flex-item" placeholder="Escribe un mensaje…"
-              value="{{ $application.variables.mateuChatInput }}"></oj-input-text>
-            <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]"
-              :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button>
-          </div>
-        </oj-bind-if>
+        </div>
 
       </div>
     </oj-dialog>
@@ -251,6 +219,63 @@
         </oj-bind-for-each>
       </div>
     </oj-drawer-popup>
+
+    <!-- CHAT DEL AGENTE: su propio FAB (apilado sobre el de Ask Oracle, que estampa el shell)
+         abre un drawer a la IZQUIERDA. Patrón JET: oj-drawer-layout con START drawer, que en
+         pantalla ancha es REFLOW (el contenido se estrecha y se desplaza a la derecha, nada
+         queda tapado) y en estrecha OVERLAY (start-display "auto", el corte de JET) — ahí el
+         panel ocupa todo el ancho. Va DENTRO de stretchingContents: la cabecera global queda
+         fuera del layout y no se mueve, y la barra de pestañas es un overlay fijo que estampa
+         su componente (tampoco se mueve; el panel le reserva su alto). oj-drawer-popup no
+         sirve: es siempre overlay y taparía el contenido que el usuario le está preguntando. -->
+    <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
+      <oj-button id="mateuChatFab" chroming="callToAction" display="icons"
+        :class="[[ 'mateu-chat-fab' + ($application.variables.mateuChatOpen ? ' mateu-chat-open' : '') + ($application.variables.mateuMenuTabs ? ' mateu-over-tabs' : '') ]]"
+        on-oj-action="[[ $listeners.chatToggle ]]">
+        <span slot="startIcon" class="oj-ux-ico-chat"></span>
+        <oj-bind-text value="[[ $application.variables.mateuChatOpen ? 'Cerrar el chat del asistente' : 'Chat con el asistente' ]]"></oj-bind-text>
+      </oj-button>
+    </oj-bind-if>
+    <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0"
+      start-opened="[[ $application.variables.mateuChatOpen ]]"
+      on-oj-before-close="[[ $listeners.chatClose ]]">
+      <div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"
+        :class="[[ $application.variables.mateuMenuTabs ? 'mateu-chat-panel mateu-over-tabs' : 'mateu-chat-panel' ]]">
+        <oj-bind-if test="[[ $application.variables.mateuChatOpen ]]">
+          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header">
+            <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span>
+            <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0">Asistente</h2>
+            <oj-button chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatClose ]]">
+              <span slot="startIcon" class="oj-ux-ico-close"></span>
+              Cerrar el chat
+            </oj-button>
+          </div>
+          <div class="mateu-chat-messages oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical"
+            aria-live="polite">
+            <oj-bind-if test="[[ ($application.variables.mateuChatMessages || []).length === 0 ]]">
+              <p class="oj-typography-body-sm oj-text-color-secondary">Pregunta lo que necesites sobre esta pantalla o la aplicación.</p>
+            </oj-bind-if>
+            <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
+              <template>
+                <div class="oj-flex oj-sm-margin-3x-bottom"
+                  :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
+                  <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
+                    :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
+                    <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
+                  </div>
+                </div>
+              </template>
+            </oj-bind-for-each>
+          </div>
+          <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
+            <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…"
+              label-hint="Mensaje para el asistente" label-edge="none"
+              value="{{ $application.variables.mateuChatInput }}"></oj-input-text>
+            <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]"
+              :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button>
+          </div>
+        </oj-bind-if>
+      </div>
 
     <!-- Navigator PERSISTENTE (HAMBURGUER_MENU): oj-drawer-layout (reflow) DEBAJO del
          header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
@@ -364,11 +389,15 @@
         </div>
       </div>
     </oj-drawer-layout>
+    </oj-drawer-layout>
 
     <!-- Menú PLANO (variante TABS): in-app navigation Redwood (su barra REAL es un overlay
          fijo abajo que estampa el propio componente; el elemento host va al FINAL del
-         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo) -->
-    <oj-bind-if test="[[ $application.variables.mateuMenuTabs && $application.variables.mateuSelectedRoute !== $application.variables.mateuHomeRoute ]]">
+         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo).
+         Sale en TODAS las páginas, la home incluida: la navegación de la app no desaparece
+         según dónde estés. En la home no hay ninguna pestaña seleccionada (su ruta no es
+         una opción del menú) y a ella se vuelve por el icono casa del global-header. -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
         selection="[[ $application.variables.mateuSelectedRoute ]]"
