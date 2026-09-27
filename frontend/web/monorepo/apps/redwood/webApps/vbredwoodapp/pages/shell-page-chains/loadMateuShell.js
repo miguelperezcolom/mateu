@@ -30,6 +30,34 @@ define([
     });
   };
 
+  /**
+   * Pone nombre (y teclado) al FAB de Ask Oracle.
+   *
+   * Lo estampa oj-sp-simple-ui-shell como un `<a>` SIN href ni rol: no se alcanza con el
+   * tabulador y un lector de pantalla sólo oye el "Ask" de su icono. Ahora que hay DOS FABs
+   * (Ask Oracle y el del chat del agente) cada uno tiene que decir cuál es. Como con los iconos
+   * del menú, no es marcado nuestro: se nombra después, cuando el shell lo ha pintado.
+   */
+  const nameAskOracleFab = (attempt = 0) => {
+    const fab = document.querySelector('oj-sp-simple-ui-shell .oj-sp-rw-chat-icon-cont');
+    if (!fab) {
+      if (attempt < 20) setTimeout(() => nameAskOracleFab(attempt + 1), 500);
+      return;
+    }
+    if (fab.__mateuNamed) return;
+    fab.__mateuNamed = true;
+    fab.setAttribute('role', 'button');
+    fab.setAttribute('tabindex', '0');
+    fab.setAttribute('aria-label', 'Ask Oracle');
+    fab.setAttribute('title', 'Ask Oracle');
+    fab.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fab.click();
+      }
+    });
+  };
+
   class loadMateuShell extends ActionChain {
 
     async run(context) {
@@ -98,14 +126,32 @@ define([
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
       $application.variables.mateuHeaderActions = nav.headerActions;
+
+      // Widgets de cabecera del App (WidgetSupplier): el de usuario al área de perfil, el resto a
+      // la zona de acciones. El HTML lo pone el bridge en el hueco que estampa la plantilla; un
+      // MicroFrontend se carga de SU pod y sigue vivo con sus triggers (el badge: cada 10 s).
+      const widgets = bridge.headerWidgetsOf(reg);
+      $application.variables.mateuUserWidget = widgets.user;
+      $application.variables.mateuHeaderWidgets = widgets.items;
+      bridge.stopRemoteWidgets();
+      for (const item of widgets.items) {
+        if (item.isHtml) {
+          bridge.mountHeaderHtmlSoon(item.id, item.html);
+        } else if (item.isRemote) {
+          bridge.startRemoteWidget(item, (html) => bridge.mountHeaderHtmlSoon(item.id, html), {
+            appState: () => $application.variables.mateuAppState || {},
+          });
+        }
+      }
       $application.variables.mateuShellSST = nav.serverSideType || '';
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';
       // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
-      // Con esto puesto, Ask Oracle ofrece el modo Chat.
+      // Con esto puesto sale el FAB del chat (su drawer a la izquierda), junto al de Ask Oracle.
       $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
         ? base + reg.shell.sseUrl : '';
+      nameAskOracleFab();
       if (reg.shell && reg.shell.title) {
         document.title = reg.shell.title;
       }
@@ -143,6 +189,23 @@ define([
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: startRoute } }, fromUrl: !!deepLink },
+        });
+      }
+
+      // navigation-requested: lo emite el HTML de un widget (el enlace del badge de la bandeja) y
+      // burbujea hasta el documento — el mismo evento que escucha el renderer web. Trae su pod
+      // (baseUrl + serverSideType): si el menú no conoce la ruta, se registra antes de navegar.
+      if (!window.__mateuNavRequestWired) {
+        window.__mateuNavRequestWired = true;
+        document.addEventListener('navigation-requested', (event) => {
+          const detail = (event && event.detail) || {};
+          if (detail.route == null) return;
+          event.stopPropagation();
+          bridge.registerRemoteRoute(detail.route, detail);
+          Actions.callChain(context, {
+            chain: 'onMateuNavigate',
+            params: { event: { detail: { route: detail.route } } },
+          });
         });
       }
 

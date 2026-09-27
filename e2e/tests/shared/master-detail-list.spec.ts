@@ -101,13 +101,13 @@ test.describe('@MasterDetail list — Edit opens the detail editor (UI)', () => 
     await page.waitForSelector('vaadin-grid', { timeout: 20000 });
 
     // The editor is not shown before clicking Edit.
-    await expect(page.getByText('Update Guest')).toHaveCount(0);
+    await expect(page.getByText('Edit guest', { exact: true })).toHaveCount(0);
 
     // Click the first row's Edit button (must open the editor, NOT just select the row).
     await page.getByRole('button', { name: 'Edit', exact: true }).first().click();
 
     // The detail editor opens and is visible with the row's data.
-    await expect(page.getByText('Update Guest')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Edit guest', { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('Ada Lovelace');
   });
 

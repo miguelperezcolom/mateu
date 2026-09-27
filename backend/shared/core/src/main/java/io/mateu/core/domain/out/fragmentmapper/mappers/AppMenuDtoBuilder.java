@@ -33,9 +33,9 @@ final class AppMenuDtoBuilder {
                   .icon(option.icon())
                   .path(path)
                   .selected(isSelected(option, appRoute, route))
-                  // a hidden remote section still travels: the renderer needs to know where its
-                  // routes live (deep links, reloads), and leaves it out of the menu it draws
-                  .visible(!(option instanceof RemoteMenu remoteMenu && remoteMenu.hidden()))
+                  // a hidden entry still travels: the renderer needs to know where its routes
+                  // live (deep links, reloads), and leaves it out of the menu it draws
+                  .visible(!option.hidden())
                   .itemData(option.itemData())
                   .submenus(
                       option instanceof Menu asMenu

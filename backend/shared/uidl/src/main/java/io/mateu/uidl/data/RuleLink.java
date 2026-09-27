@@ -25,8 +25,38 @@ public record RuleLink(
     boolean disabled,
     boolean disabledOnClick,
     Object itemData,
-    String description)
+    String description,
+    boolean hidden)
     implements Actionable {
+
+  /**
+   * An entry the menu does not draw, still resolving its route (deep links, reloads, navigation
+   * from elsewhere). Declared with {@code @Hidden} on the {@code @Menu} field.
+   */
+  public RuleLink(
+      String path,
+      String label,
+      List<Rule> rules,
+      boolean selected,
+      Component component,
+      String className,
+      boolean disabled,
+      boolean disabledOnClick,
+      Object itemData,
+      String description) {
+    this(
+        path,
+        label,
+        rules,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        description,
+        false);
+  }
 
   public RuleLink {
     rules = rules == null ? List.of() : List.copyOf(rules);

@@ -94,7 +94,7 @@ export const hasWelcomeBanner = (component: Component | undefined): boolean =>
 
 /** An App shell always takes the whole viewport (global header/nav/footer are full-bleed in the
  * RDS app anatomy) — the template width applies to the pages mounted INSIDE it. */
-const isAppShell = (component: Component): boolean => {
+export const isAppShell = (component: Component): boolean => {
     if (metadataOf(component)?.type == ComponentMetadataType.App) return true
     return (component.children ?? [])
         .some(child => metadataOf(child)?.type == ComponentMetadataType.App)

@@ -350,6 +350,16 @@
       "defaultValue": [],
       "description": "selectores @AppContext ({fieldName, label, value, options}) para el header"
     },
+    "mateuHeaderWidgets": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "widgets de cabecera del App (WidgetSupplier) para la zona de acciones: HTML, MicroFrontend vivo, Popover"
+    },
+    "mateuUserWidget": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "widget de usuario del App (Popover sobre un Text) para el área de perfil del global-header: label, initials, rows"
+    },
     "mateuHeaderActions": {
       "type": "any",
       "defaultValue": [],
@@ -618,39 +628,13 @@
       "defaultValue": {},
       "description": "filtros aplicados del listado activo: {fieldId: valor} (un rango ocupa <campo>_from/<campo>_to). Viajan en el componentState de la b\u00fasqueda"
     },
-    "mateuFilterChips": {
+    "mateuSmartFilters": {
       "type": "any",
-      "defaultValue": [],
-      "description": "un chip por filtro declarado, aplicado o no (bridge.filterChipsOf) \u2014 la fila bajo el smart search"
-    },
-    "mateuHasAppliedFilters": {
-      "type": "boolean",
-      "defaultValue": false,
-      "description": "hay al menos un filtro aplicado \u2014 PRECOMPUTADO: el evaluador de expresiones de VB corre bajo CSP y no ejecuta un .filter() en la plantilla"
-    },
-    "mateuBoolChoices": {
-      "type": "any",
-      "defaultValue": [
-        {
-          "value": "true",
-          "label": "Yes"
-        },
-        {
-          "value": "false",
-          "label": "No"
-        }
-      ],
-      "description": "las dos opciones de un filtro booleano (mismo par que la barra compartida)"
-    },
-    "mateuFilterEditing": {
-      "type": "any",
-      "defaultValue": null,
-      "description": "el filtro cuyo editor est\u00e1 abierto (descriptor de bridge), null si ninguno"
-    },
-    "mateuFilterDraft": {
-      "type": "any",
-      "defaultValue": {},
-      "description": "lo tecleado en el editor abierto antes de aplicarlo: {text, from, to}"
+      "defaultValue": {
+        "askHint": "Buscar\u2026",
+        "value": []
+      },
+      "description": "config smart-filters del header de colecci\u00f3n (bridge.smartFiltersOf): los filtros sin aplicar como sugerencias, los aplicados y el texto como chips, y el editor de cada uno (filtersMetadata). Se proyecta al navegar; las b\u00fasquedas que lanza el propio componente NO la reasignan (cerrar\u00eda su popup)"
     },
     "mateuLastSearchText": {
       "type": "string",
@@ -705,12 +689,12 @@
     "mateuChatSseUrl": {
       "type": "string",
       "defaultValue": "",
-      "description": "endpoint SSE del chat de IA (App.sseUrl); si esta puesto, Ask Oracle ofrece modo Chat"
+      "description": "endpoint SSE del chat de IA (App.sseUrl); si est\u00e1 puesto, sale el FAB del chat"
     },
-    "mateuChatMode": {
+    "mateuChatOpen": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "Ask Oracle muestra el chat de IA en vez del buscador"
+      "description": "el drawer izquierdo del chat del agente est\u00e1 abierto (lo abre su FAB, distinto del de Ask Oracle)"
     },
     "mateuChatMessages": {
       "type": "any",

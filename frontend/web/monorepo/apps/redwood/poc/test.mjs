@@ -7,7 +7,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, baseOf, runMateuAction } from './transport.mjs'
+import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu } from './transport.mjs'
+import {
+  headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
+} from './widgets.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
@@ -15,6 +18,7 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
+  authHeadersOf,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
@@ -29,6 +33,8 @@ import {
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
+  smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
+  suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -359,6 +365,19 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un grupo', () => {
+  // @Menu @Hidden en una página local: la alcanza el botón New del listado, no el menú
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Call center', path: '/callCenter', submenus: [
+      { label: 'Bookings', path: '/callCenter/bookings', route: '/callCenter/bookings' },
+      { label: 'New booking', path: '/callCenter/newBooking', route: '/callCenter/newBooking', visible: false },
+    ] },
+  ] } })
+  const group = nav.menuTree[0]
+  assert.deepEqual(group.children.map((c) => c.label), ['Bookings'])
+  assert.equal(group.hasChildren, true)
+})
+
 test('shellNavOf: grupos con rutas terminales + selectores de contexto + header actions', () => {
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })
@@ -1657,6 +1676,211 @@ test('multi: los valores llegan como lista o como cadena separada por comas', ()
   assert.deepEqual(multiValuesOf(null), [])
 })
 
+// ── Filtros DENTRO de la cabecera del buscador (smartFilters de oj-sp-smart-filter-search) ──
+// Los filtros ya no son una fila propia bajo el componente —quedaba al otro lado de la franja
+// de color de Redwood—: viajan por su API. Sugerencias = filtros sin aplicar; value = los
+// aplicados (y el texto libre como keyword); filtersMetadata = el editor de cada uno.
+
+const BOOKING_FILTERS = [
+  { fieldId: 'hotel', label: 'Hotel', stereotype: 'select', dataType: 'string', options: [] },
+  { fieldId: 'status', label: 'Status', stereotype: 'multiSelect', dataType: 'string',
+    options: [{ value: 'Pending', label: 'Pending' }, { value: 'Confirmed', label: 'Confirmed' }] },
+  { fieldId: 'arrival', label: 'Arrival', stereotype: 'dateRange', dataType: 'date' },
+  { fieldId: 'vista', label: 'Vista', stereotype: 'select', dataType: 'string',
+    options: [{ value: 'LLEGADAS_HOY', label: 'Llegadas hoy' }, { value: 'IN_HOUSE', label: 'In house' }] },
+  { fieldId: 'vip', label: 'VIP', dataType: 'bool' },
+  { fieldId: 'nights', label: 'Nights', stereotype: 'numberRange', dataType: 'integer' },
+].map((f) => filterDescriptorOf(f))
+
+test('smart filters: el editor de cada kind es el widget de oj-dynamic que toca', () => {
+  const meta = smartFiltersMetadataOf(BOOKING_FILTERS)
+  assert.equal(meta.discriminator, 'filter', 'el componente busca el editor por el fieldId del chip')
+  const valueOf = (id) => meta.polymorphicTypes[id].properties.value
+  assert.equal(valueOf('hotel').componentType, 'oj-input-text', 'un select sin opciones se teclea')
+  assert.equal(valueOf('status').componentType, 'oj-checkboxset')
+  assert.equal(valueOf('status').type, 'array')
+  assert.deepEqual(valueOf('status').options.map((o) => o.value), ['Pending', 'Confirmed'])
+  assert.equal(valueOf('vista').componentType, 'oj-select-single')
+  assert.deepEqual(valueOf('vip').options.map((o) => o.value), ['true', 'false'])
+  // gte/lte con esa forma exacta: el componente reconoce el rango y lo pinta "desde - hasta"
+  const arrival = valueOf('arrival')
+  assert.equal(arrival.type, 'object')
+  assert.equal(arrival.properties.gte.componentType, 'oj-input-date')
+  assert.equal(arrival.properties.lte.type, 'string')
+  assert.equal(valueOf('nights').properties.gte.componentType, 'oj-input-number')
+  assert.equal(valueOf('nights').properties.gte.type, 'number')
+})
+
+test('smart filters: una sugerencia por filtro declarado, y el rango lleva sus dos claves', () => {
+  const sugg = smartFilterSuggestionsOf(BOOKING_FILTERS)
+  assert.deepEqual(sugg.map((s) => s.filter), ['hotel', 'status', 'arrival', 'vista', 'vip', 'nights'])
+  const by = (id) => sugg.filter((s) => s.filter === id)[0]
+  assert.equal(by('vista').filterLabel, 'Vista', 'con filterLabel el chip se lee "Vista Llegadas hoy"')
+  assert.equal(by('hotel').filterLabel, undefined, 'un texto con filterLabel escondería lo tecleado')
+  assert.deepEqual(by('arrival').value, { gte: null, lte: null },
+    'sin claves en el valor, el popup de un rango sale vacío')
+})
+
+test('smart filters: el estado de Mateu se pinta como chips aplicados, keyword incluido', () => {
+  const value = smartFilterValueOf(BOOKING_FILTERS, {
+    vista: 'LLEGADAS_HOY', status: 'Pending,Confirmed', arrival_from: '2026-09-01', vip: true, hotel: '  ',
+  }, 'garcía')
+  assert.deepEqual(value[0], { filter: KEYWORD_FILTER, label: 'garcía', value: 'garcía' })
+  const by = (id) => value.filter((c) => c.filter === id)[0]
+  assert.deepEqual(by('status'), { filter: 'status', label: 'Pending', filterLabel: 'Status', value: ['Pending', 'Confirmed'] })
+  assert.deepEqual(by('arrival').value, { gte: '2026-09-01', lte: null })
+  assert.equal(by('vista').label, 'Llegadas hoy')
+  assert.equal(by('vip').value, 'true')
+  assert.equal(by('hotel'), undefined, 'en blanco no es un filtro aplicado')
+})
+
+test('smart filters: los chips del componente vuelven a texto + valores del componentState', () => {
+  const state = filterStateOfSmartFilters(BOOKING_FILTERS, [
+    { filter: 'keyword', label: 'sale', value: 'sale' },
+    { filter: 'keyword', label: 'hoy', value: 'hoy' },
+    { filter: 'arrival', label: 'Arrival', value: { gte: '2026-09-01', lte: '2026-09-30' } },
+    { filter: 'status', label: 'Pending', filterLabel: 'Status', value: ['Pending'] },
+    { filter: 'vista', label: 'Vista', filterLabel: 'Vista' }, // recién sugerido: aún sin valor
+    { filter: 'desconocido', label: 'x', value: 'y' },
+  ])
+  assert.equal(state.searchText, 'sale hoy')
+  assert.deepEqual(state.values, { arrival_from: '2026-09-01', arrival_to: '2026-09-30', status: ['Pending'] })
+})
+
+test('smart filters: ida y vuelta sin perder nada', () => {
+  const values = { vista: 'IN_HOUSE', status: ['Confirmed'], nights_to: 3, hotel: 'Riu' }
+  const back = filterStateOfSmartFilters(BOOKING_FILTERS, smartFilterValueOf(BOOKING_FILTERS, values, 'x'))
+  assert.deepEqual(back, { searchText: 'x', values })
+})
+
+atest('smart filters: las sugerencias excluyen los filtros aplicados y filtran por texto', async () => {
+  const rows = smartFilterSuggestionsOf(BOOKING_FILTERS)
+  const dp = suggestionFiltersProviderOf(rows)
+  const criterion = { op: '$and', criteria: [{ op: '$ne', value: { filters: [{ filter: 'vista' }] } }, { text: '' }] }
+  const it = dp.fetchFirst({ filterCriterion: criterion })[Symbol.asyncIterator]()
+  const first = await it.next()
+  assert.equal(first.done, true, 'un único bloque: dataProviderToArray de oj-sp itera hasta done')
+  assert.equal(first.value.data.some((r) => r.filter === 'vista'), false)
+  assert.equal(first.value.data.length, rows.length - 1)
+  assert.deepEqual(suggestionRowsFor(rows, { text: 'arr' }).map((r) => r.filter), ['arrival'])
+  const byKeys = await dp.fetchByKeys({ keys: new Set(['status']) })
+  assert.equal(byKeys.results.get('status').data.label, 'Status')
+})
+
+atest('smart filters: la config completa lleva sugerencias y metadata; sin filtros, sólo el buscador', async () => {
+  setMetadataProviderFactory(async (data) => ({ provided: data }))
+  try {
+    const config = await smartFiltersOf(BOOKING_FILTERS, { vista: 'IN_HOUSE' }, '')
+    assert.equal(config.value.length, 1)
+    assert.equal(typeof config.suggestionFilters.fetchFirst, 'function')
+    assert.equal(config.filtersMetadata.provided.discriminator, 'filter')
+    const bare = await smartFiltersOf([], {}, 'hola')
+    assert.deepEqual(Object.keys(bare).sort((a, b) => a.localeCompare(b)), ['askHint', 'value'])
+  } finally {
+    setMetadataProviderFactory(null)
+  }
+})
+
+const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')
+
+test('smart filters: las plantillas pintan los filtros DENTRO de la cabecera, no en una fila tras ella', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const headers = html.match(/<oj-sp-smart-filter-search[\s\S]*?<\/oj-sp-smart-filter-search>/g) || []
+  assert.equal(headers.length, 2, 'la cabecera de colección a sangre y la inline')
+  for (const h of headers) {
+    assert.match(h, /smart-filters="\[\[ \$application\.variables\.mateuSmartFilters \]\]"/)
+    assert.match(h, /on-smart-filters-changed="\[\[ \$listeners\.smartFiltersChanged \]\]"/)
+  }
+  // ningún chip de filtro propio fuera del componente (quedaba bajo la franja de color)
+  const outside = headers.reduce((acc, h) => acc.replace(h, ''), html)
+  assert.equal(/<oj-sp-filter-chip/.test(outside), false, 'no hay fila de filtros fuera del componente')
+  assert.equal(/mateuFilterChips|mateuFilterEditing/.test(html), false)
+  // la navegación proyecta la config; la búsqueda lanzada por el componente no la reasigna
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateuSmartFilters = await bridge\.smartFiltersOf\(/)
+  assert.equal(/mateuSmartFilters\s*=/.test(webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')), false)
+  // las sugerencias (sin aplicar) no enseñan la parte de valor: un rango vacío se leería "Llegada -"
+  assert.match(webApp('resources/css/app.css'),
+    /oj-sp-smart-filter-search \.oj-sp-filter-chip-non-applied \.oj-sp-filter-chip-non-applied-value-count-focusable \{\s*display: none;/)
+})
+
+test('menú TABS: la barra de pestañas sale en todas las páginas, la home incluida', () => {
+  const shell = webApp('pages/shell-page.html')
+  const nav = shell.match(/<oj-bind-if test="([^"]*)">\s*<oj-sp-in-app-navigation/)
+  assert.ok(nav, 'la barra in-app navigation está en la shell')
+  assert.equal(nav[1], '[[ $application.variables.mateuMenuTabs ]]', 'nada de ocultarla en la home')
+})
+
+test('cabecera oscura: los estados del menú superior son un velo blanco, sin el fondo claro ni el borde de marca', () => {
+  const css = webApp('resources/css/app.css')
+  const block = css.match(/oj-sp-global-header \[slot="start"\] oj-button,\s*oj-sp-global-header \[slot="start"\] oj-menu-button \{([^}]*)\}/)
+  assert.ok(block, 'sólo los botones del NAV de la cabecera (zona start)')
+  const vars = block[1]
+  for (const v of ['--oj-core-bg-color-hover', '--oj-core-bg-color-active', '--oj-button-borderless-chrome-bg-color-selected']) {
+    assert.match(vars, new RegExp(v + ': rgb\\(255 255 255 / 0\\.\\d+\\)'), v + ' es un velo blanco translúcido')
+  }
+  for (const v of ['hover', 'selected', 'active']) {
+    assert.match(vars, new RegExp('--oj-button-borderless-chrome-border-color-' + v + ': transparent'))
+  }
+  for (const v of ['', '-hover', '-selected', '-selected-hover', '-active']) {
+    assert.match(vars, new RegExp('--oj-button-borderless-chrome-text-color' + v + ': var\\(--oj-core-text-color-inverse, #fff\\)'))
+  }
+  assert.match(vars, /--oj-core-focus-border-color: rgb\(255 255 255 \/ 0\.6\)/, 'foco visible pero discreto')
+})
+
+test('chat: FAB propio y drawer a la izquierda — Ask Oracle ya no lleva el chat dentro', () => {
+  const shell = webApp('pages/shell-page.html')
+  const dialog = shell.match(/<oj-dialog id="mateuAskOracle"[\s\S]*?<\/oj-dialog>/)[0]
+  assert.equal(/mateuChatInput|mateuChatMode|chatShowChat/.test(dialog), false, 'la paleta es sólo el buscador')
+  // el FAB del chat: su icono Redwood y su etiqueta (display=icons → aria-label + tooltip)
+  const fab = shell.match(/<oj-button id="mateuChatFab"[\s\S]*?<\/oj-button>/)[0]
+  assert.match(fab, /display="icons"/)
+  assert.match(fab, /oj-ux-ico-chat/)
+  assert.match(fab, /Chat con el asistente/)
+  assert.match(fab, /\$listeners\.chatToggle/)
+  // el drawer: START de un oj-drawer-layout (reflow en ancho, overlay en estrecho) que envuelve
+  // el contenido — no un oj-drawer-popup, que taparía la pantalla
+  const layout = shell.match(/<oj-drawer-layout id="mateuChatDrawer"[\s\S]*?>/)[0]
+  assert.match(layout, /start-opened="\[\[ \$application\.variables\.mateuChatOpen \]\]"/)
+  assert.match(layout, /on-oj-before-close="\[\[ \$listeners\.chatClose \]\]"/)
+  assert.equal(/start-display="overlay"/.test(layout), false)
+  assert.ok(shell.indexOf('id="mateuChatDrawer"') < shell.indexOf('id="mateuNavDrawer"'), 'envuelve al contenido')
+  assert.ok(shell.indexOf('slot="globalHeader"') < shell.indexOf('id="mateuChatDrawer"'), 'la cabecera queda fuera')
+  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"/)
+  assert.match(shell, /id="mateuChatInput"/)
+  assert.match(shell, /aria-live="polite"/)
+  // cableado: listeners y cadena
+  const page = JSON.parse(webApp('pages/shell-page.json'))
+  assert.equal(page.eventListeners.chatToggle.chains[0].chain, 'toggleMateuChat')
+  assert.equal(page.eventListeners.chatClose.chains[0].parameters.open, false)
+  assert.equal(page.eventListeners.chatShowChat, undefined)
+  const flow = JSON.parse(webApp('app-flow.json'))
+  assert.equal(flow.variables.mateuChatOpen.defaultValue, false)
+  assert.equal(flow.variables.mateuChatMode, undefined)
+  // el envío conserva streaming + agente por ruta y ahora presenta el token
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /currentRoute: \$application\.variables\.mateuSelectedRoute/)
+  assert.match(send, /headers: bridge\.authHeadersOf\(\)/)
+  assert.match(send, /onText:/)
+})
+
+test('chat: el cuerpo lleva la ruta de la pantalla (el plano de control elige el agente por ella)', () => {
+  assert.deepEqual(buildChatBody({ message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' }),
+    { message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' })
+  assert.equal('currentRoute' in buildChatBody({ message: 'hola', sessionId: 's1', currentRoute: '' }), false)
+})
+
+test('chat: el stream presenta el token de la sesión; sin token, sin cabecera', () => {
+  const original = globalThis.localStorage
+  try {
+    globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'tk' : null) }
+    assert.deepEqual(authHeadersOf(), { Authorization: 'Bearer tk' })
+    globalThis.localStorage = { getItem: () => null }
+    assert.deepEqual(authHeadersOf(), {})
+  } finally {
+    globalThis.localStorage = original
+  }
+})
+
 // ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────
 test('chat: buildChatMenuContext aplana el menú a path + navigation (salta separador/remoto)', () => {
   const menu = [
@@ -1773,6 +1997,163 @@ test('custom component: placeholder visible + hijos slotted (escape hatch #14)',
   assert.ok(placeholder, 'el custom component muestra un placeholder con su nombre')
   // y los hijos slotted se pintan igualmente
   assert.ok(atoms.some((a) => a.isText && a.text === 'fallback content'), 'los hijos slotted se renderizan')
+})
+
+// ── Widgets de cabecera del App (WidgetSupplier) ────────────────────────────────────────────
+// Fixture real: el App de la shell de ec-demo1 (Vaadin) — un HorizontalLayout con slot
+// "widgets": MicroFrontend /_inbox/badge + Popover(Text "Hola, …") con Email y Logout.
+test('widgets: el App los guarda en la shell (hijos con slot "widgets")', () => {
+  const { shell, contexts } = reduceContexts(empty(), fx('app-widgets'))
+  assert.equal(Object.keys(contexts).length, 0)
+  assert.equal(shell.widgets.length, 1)
+  assert.equal(shell.widgets[0].metadata.type, 'HorizontalLayout')
+  // un App sin widgets no inventa ninguno
+  assert.deepEqual(reduceContexts(empty(), fx('app')).shell.widgets, [])
+})
+
+test('widgets: Popover(Text) → área de perfil (iniciales + nombre + email/Logout); MicroFrontend → acciones', () => {
+  const reg = reduceContexts(empty(), fx('app-widgets'))
+  const { user, items } = headerWidgetsOf(reg)
+  // el saludo, sin el HTML de pantalla estrecha (el <vaadin-icon vaadin:user> y su <span>)
+  assert.equal(user.label, 'Hola, Demo User')
+  assert.equal(user.initials, 'DU')
+  assert.deepEqual(user.rows.map((r) => r.isText ? r.text : `${r.label} → ${r.href}`),
+    ['Email: demo@mateu.io', 'Logout → javascript: window.logout();'])
+  // el badge: remoto, con su pod y su ruta; el Popover de usuario NO se repite en la zona de acciones
+  assert.equal(items.length, 1)
+  assert.equal(items[0].isRemote, true)
+  assert.equal(items[0].baseUrl, '/_inbox')
+  assert.equal(items[0].route, '/badge')
+  // ids por POSICIÓN: el mismo en cada bootstrap
+  assert.equal(items[0].id, headerWidgetsOf(reduceContexts(empty(), fx('app-widgets'))).items[0].id)
+})
+
+test('widgets: un 2º Popover, o uno sobre un botón, es botón + popup en la zona de acciones', () => {
+  const popover = (wrapped, text) => ({ type: 'ClientSide', metadata: { type: 'Popover', wrapped,
+    content: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
+      { type: 'ClientSide', metadata: { type: 'Text', text } , children: [] }] } }, children: [] })
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const reg = { shell: { widgets: [
+    { type: 'ClientSide', slot: 'widgets', metadata: { type: 'HorizontalLayout' }, children: [
+      popover(text('Hola, Ana'), 'Email: ana@x.io'),
+      popover(text('Ayuda'), 'Llama al 900'),
+      popover({ type: 'ClientSide', metadata: { type: 'Button', label: 'Más' } }, 'Algo'),
+      text('<b>v1.2</b>'),
+    ] }] } }
+  const { user, items } = headerWidgetsOf(reg)
+  assert.equal(user.label, 'Hola, Ana')
+  assert.equal(user.initials, 'AN')
+  assert.deepEqual(items.map((i) => i.isPopover ? `popover:${i.label}` : `html:${i.html}`),
+    ['popover:Ayuda', 'popover:Más', 'html:<b>v1.2</b>'])
+  assert.deepEqual(items[0].rows.map((r) => r.text), ['Llama al 900'])
+  assert.ok(items[0].buttonId && items[0].popupId && items[0].buttonId !== items[0].popupId)
+})
+
+test('widgets: <vaadin-icon> → icono de fuente Redwood, conservando el style (el rojo de urgente)', () => {
+  const html = '<a href="#"><vaadin-icon icon="vaadin:bell" style="width: 1em; color: var(--lumo-error-color);"></vaadin-icon><span>Inbox (3)</span></a>'
+  assert.equal(redwoodHtmlOf(html),
+    '<a href="#"><span class="oj-ux-ico-notification mateu-widget-icon" aria-hidden="true" style="width: 1em; color: var(--lumo-error-color);"></span><span>Inbox (3)</span></a>')
+  // autocerrado, y un icono sin equivalente se quita en vez de dejar un elemento que no pinta
+  assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:user"/>x'), '<span class="oj-ux-ico-contact mateu-widget-icon" aria-hidden="true"></span>x')
+  assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:no-such-icon"></vaadin-icon>x'), 'x')
+  assert.equal(plainTextOf('<span>Hola,&nbsp;Demo</span>  <i>User</i>'), 'Hola, Demo User')
+  assert.equal(initialsOf('Hola, José Luis Pérez'), 'JP')
+  assert.equal(initialsOf('demo'), 'DE')
+})
+
+test('widgets: el HTML del badge (fixture real) interpola su state y lleva el enlace que emite navigation-requested', () => {
+  const inc = fx('widget-badge')
+  const fr = inc.fragments[0]
+  const html = remoteWidgetHtmlOf(fr.component, fr.state)
+  assert.match(html, /navigation-requested/)
+  assert.match(html, /route: '\/inbox\/pending'/)
+  assert.match(html, /baseUrl: '\/_inbox'/)
+  assert.match(html, /class="oj-ux-ico-notification mateu-widget-icon"/)
+  assert.doesNotMatch(html, /vaadin-icon/)
+  assert.doesNotMatch(html, /\$\{state\./)
+})
+
+atest('widgets: el MicroFrontend se carga de SU pod y se refresca con sus triggers (OnLoad → OnSuccess encadenado)', async () => {
+  const badge = fx('widget-badge')
+  const calls = []
+  let count = 16
+  const call = async (base, body, options) => {
+    calls.push({ base, body, options })
+    if (body.actionId === '') return badge
+    // refresh → fragmento SOLO-ESTADO (como State(this) del server)
+    count += 1
+    return { fragments: [{ targetComponentId: body.initiatorComponentId, state: { content: `<a href="#">Inbox (${count})</a>` } }] }
+  }
+  const timers = []
+  const schedule = (fn, ms) => { timers.push({ fn, ms }); return timers.length }
+  const htmls = []
+  const { items } = headerWidgetsOf(reduceContexts(empty(), fx('app-widgets')))
+  const rt = startRemoteWidget(items[0], (h) => htmls.push(h), { call, schedule, cancel: () => {} })
+  await rt.loaded
+  assert.equal(calls[0].base, '/_inbox')
+  assert.equal(calls[0].body.route, '/badge')
+  assert.equal(calls[0].body.actionId, '')
+  assert.equal(calls[0].body.initiatorComponentId, items[0].id)
+  // de fondo: ni barra de ocupado ni banda de error
+  assert.equal(calls[0].options.quiet, true)
+  assert.match(htmls[0], /Inbox \(16\)/)
+  // OnLoad: refresh a los 10 s
+  assert.equal(timers.length, 1)
+  assert.equal(timers[0].ms, 10000)
+  await timers[0].fn()
+  assert.equal(calls[1].body.actionId, 'refresh')
+  assert.equal(calls[1].body.serverSideType, 'io.mateu.ecdemo1.communication.ui.inbox.InboxBadge')
+  assert.match(calls[1].body.componentState.content, /Inbox \(16\)/)
+  assert.equal(htmls[1], '<a href="#">Inbox (17)</a>')
+  // OnSuccess(refresh) → otro refresh a los 10 s, y así sucesivamente
+  assert.equal(timers.length, 2)
+  assert.equal(timers[1].ms, 10000)
+  await timers[1].fn()
+  assert.equal(htmls[2], '<a href="#">Inbox (18)</a>')
+  assert.equal(timers.length, 3)
+  // parar corta el bucle: un refresco ya programado no pinta ni reprograma
+  stopRemoteWidgets()
+  await timers[2].fn()
+  assert.equal(htmls.length, 3)
+  assert.equal(timers.length, 3)
+})
+
+atest('widgets: un refresco que falla no se reprograma (OnSuccess), y no tumba nada', async () => {
+  const badge = fx('widget-badge')
+  const call = async (base, body) => { if (body.actionId === '') return badge; throw new Error('503') }
+  const timers = []
+  const { items } = headerWidgetsOf(reduceContexts(empty(), fx('app-widgets')))
+  const rt = startRemoteWidget(items[0], () => {}, { call, schedule: (fn, ms) => { timers.push(fn); return timers.length }, cancel: () => {} })
+  await rt.loaded
+  await timers[0]()
+  assert.equal(timers.length, 1)
+  stopRemoteWidgets()
+})
+
+atest('widgets: las peticiones quiet no avisan a los ganchos de ocupado/error', async () => {
+  const seen = []
+  setTransportHooks({ onStart: () => seen.push('start'), onSettle: () => seen.push('settle') })
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ fragments: [] }) })
+  try {
+    await callMateu('/_inbox', { route: '/badge', actionId: 'refresh' }, { quiet: true })
+    assert.deepEqual(seen, [])
+    await callMateu('/_inbox', { route: '/badge', actionId: 'refresh' })
+    assert.deepEqual(seen, ['start', 'settle'])
+  } finally {
+    globalThis.fetch = realFetch
+    setTransportHooks({})
+  }
+})
+
+test('widgets: navigation-requested registra la ruta en su pod si el menú no la conoce; el menú manda', () => {
+  assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_inbox', serverSideType: 'x.InboxHome', consumedRoute: '' }), true)
+  assert.deepEqual(remoteRouteOf('/inbox/widget-only'), { baseUrl: '/_inbox', consumedRoute: '', serverSideType: 'x.InboxHome', uriPrefix: '' })
+  // ya registrada (p.ej. por el menú): no se pisa
+  assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_otro' }), false)
+  assert.equal(remoteRouteOf('/inbox/widget-only').baseUrl, '/_inbox')
+  // sin pod, nada que registrar
+  assert.equal(registerRemoteRoute('/local', { route: '/local' }), false)
 })
 
 await queue

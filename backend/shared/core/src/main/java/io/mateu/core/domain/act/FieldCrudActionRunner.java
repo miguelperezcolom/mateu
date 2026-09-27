@@ -6,6 +6,7 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
@@ -66,6 +67,11 @@ public class FieldCrudActionRunner implements ActionRunner {
         return crudOrchestrator.viewClass();
       }
       return crudOrchestrator.entityClass();
+    }
+    // A wizard's lists live in its steps: the list is a field of the step the user is on, not of
+    // the wizard, whose field of that name (if any) is the step itself.
+    if (instance instanceof Wizard wizard) {
+      return wizard.currentStepField().getType();
     }
     return instance.getClass();
   }

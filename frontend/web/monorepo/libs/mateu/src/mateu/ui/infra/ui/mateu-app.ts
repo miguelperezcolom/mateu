@@ -826,6 +826,25 @@ export class MateuApp extends ComponentElement {
         .drawer-toggle:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
         .drawer-search { padding: .4rem .6rem; border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.2)); border-radius: var(--lumo-border-radius-m, 6px); box-sizing: border-box; font: inherit; }
 
+        /* The app header's row (.mateu-app-header, see appRenderer) on a narrow viewport. The brand
+           and the widgets may shrink, and the menu takes what is left with room kept for at least its
+           overflow button: vaadin-menu-bar moves what does not fit into "···" by itself, so a width
+           to measure is all it needs. Before, brand and widgets would not shrink, the menu was left
+           0px wide and the widgets ran off the right edge. */
+        .mateu-app-header > .mateu-app-brand { flex: 0 1 auto; min-width: 0; }
+        .mateu-app-header > .menu-on-top { flex: 1 1 0; min-width: var(--lumo-size-m, 2.25rem); }
+        .mateu-app-header > .mateu-app-widgets { flex: 0 1 auto; min-width: 0; }
+        /* Below 600px the title goes (the logo still says whose app this is) and the header turns
+           compact. What a widget shows then is the widget's to say, and a class could not reach it —
+           widgets are other components, in shadow roots of their own — but a custom property is
+           inherited through those, so the header sets two:
+             display: var(--mateu-header-wide-only, inline)   shown except when compact
+             display: var(--mateu-header-narrow-only, none)   shown only when compact (inline-flex, what a vaadin-icon needs to keep its size and place) */
+        @media (max-width: 600px) {
+            .mateu-app-header .mateu-app-title { display: none; }
+            .mateu-app-header { --mateu-header-wide-only: none; --mateu-header-narrow-only: inline-flex; }
+        }
+
         /* top nav (menu-on-top) */
         .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }
         .app-nav-item { border: none; background: transparent; font: inherit; padding: .4rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); cursor: pointer; color: var(--lumo-body-text-color, #1a1a1a); white-space: nowrap; }

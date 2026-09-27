@@ -435,7 +435,7 @@ export class MateuComponent extends ComponentElement {
             // declared action must not be shadowed by a catch-all '*' listed before it
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
                 ?? serverSideComponent.actions?.find(action =>
-                    action.id.endsWith('*') && detail.actionId.startsWith(action.id.replace('*', '')))
+                    action.id.endsWith('*') && detail.actionId.startsWith(action.id.slice(0, -1)))
 
             if (action) {
 
@@ -813,7 +813,7 @@ export class MateuComponent extends ComponentElement {
         // server's getComponentState(EntityType.class) must see, not this ancestor's own state (the
         // crud list: filters/paging, no id). resolveComponentState prefers it when present; a direct
         // action has no initiatorState and keeps its own state.
-        const componentState = resolveComponentState(this.state, detail.parameters)
+        const componentState = resolveComponentState(this.state, detail.parameters, detail.actionId)
 
         this.dispatchEvent(new CustomEvent('server-side-action-requested', {
             detail: {

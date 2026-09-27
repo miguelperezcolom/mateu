@@ -9,7 +9,7 @@ import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { fabPosition } from "@infra/ui/layout/fabRail.ts";
+import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -54,6 +54,28 @@ const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => ht
     <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''}"
             ?disabled="${item.disabled}"
             @click="${() => onSelect(item)}">${item.text}</button>`
+
+/**
+ * The logo and the title, the header's brand. The title takes part in the row's baseline (see
+ * HEADER_ROW); the logo, which has no baseline of its own, is centred on the title's box instead —
+ * on its capitals — so it sits with the name rather than on the line under it. With no title there
+ * is no text to line up with, and the logo is simply centred.
+ */
+const renderBrand = (metadata: App) => html`
+    <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'}; min-width: 0;">
+        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:nothing}
+        ${metadata.title?html`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
+    </div>`
+
+/**
+ * A header row's items — brand, menu, widgets — share one text baseline. Centring each box on its
+ * own left the 24px title 2.5px below the 16px menu and widgets: with centred boxes the baseline
+ * depends on the font size alone, so no line-height could fix it. The row lines its items up by
+ * baseline and is itself what gets centred in the bar.
+ */
+const HEADER_ROW = 'flex: 1; min-width: 0; align-items: baseline;'
+/** Class of that row: mateu-app's styles make it fit a narrow viewport (see .mateu-app-header). */
+const HEADER_ROW_CLASS = 'm-hl mateu-app-header'
 
 const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls = '') => html`
     <nav class="mateu-nav ${cls}">
@@ -177,6 +199,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
     // Stable content-ux id (see contentUxId): reused across shell remounts so in-flight load/search
     // responses are not orphaned.
     const cuid = contentUxId(container, metadata)
+    // Every content ux below carries data-content-view: the view the app renders as its content is
+    // the one that owns the aside channel its FABs sit in (layout/fabRail.ts).
 
     // Chromeless: no header, no menu — the content fills the viewport and the command-center FAB is
     // the only navigation. "Prescindir de la barra de aplicación" for a clean, focused UI.
@@ -188,6 +212,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <div class="m-scroll" style="height: 100%;">
                             <mateu-api-caller>
                                 <mateu-ux
+                                        data-content-view
                                         route="${chooseRoute(_state, container, metadata)}"
                                         id="${cuid}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -218,6 +243,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
         ? _splitDetailRoute.substring(_splitConsumedRoute.length + 1).split('/')[0]
         : undefined
 
+    // The AI assistant's FAB takes the lowest slot while it shows; the app's FABs stack above it.
+    const aiFabShown = metadata.sseUrl && !container.chatOpen ? 1 : 0
+
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
 
@@ -226,6 +254,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller>
                                     <div style="display: block; width: calc(100% - 1rem);">
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseConsumedRoute(container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -243,6 +272,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRouteForDetail(_state, container, metadata)}"
                                             id="${cuid}_detail"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -262,6 +292,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         `:html`
                             <mateu-api-caller>
                                 <mateu-ux
+                                        data-content-view
                                         route="${chooseRoute(_state, container, metadata)}"
                                         id="${cuid}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -309,6 +340,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 <div class="m-scroll" style="height: 100%;">
                                     <mateu-api-caller>
                                         <mateu-ux
+                                                data-content-view
                                                 route="${chooseRoute(_state, container, metadata)}"
                                                 id="${cuid}"
                                                 baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -335,13 +367,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${container.updateRoute}">
-                        <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                            ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </div>
+                    <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
+                        <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        ${renderBrand(metadata)}
                         </a>
                         ${(() => {
                             const onSelect = fireSelect(container, container.itemSelected)
@@ -350,16 +379,18 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top')
                                 ?? renderNeutralNav(items, onSelect, 'menu-on-top')
                         })()}
-                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRoute(_state, container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -385,19 +416,17 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
-                            theme="spacing"
                             @navigation-requested="${container.updateRoute}">
-                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                        <div class="m-hl" style="align-items: center;">
-                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                            ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                        </div>
+                    <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
+                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        ${renderBrand(metadata)}
                         </a>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
-                        <div class="m-hl" style="margin-left: auto; flex-shrink: 0; align-items: center;">
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
+                    </div>
                     </div>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
@@ -405,6 +434,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRoute(_state, container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -435,6 +465,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRoute(_state, container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -470,6 +501,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRoute(_state, container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -501,15 +533,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
                 <div>
                     <div>
-                        <div class="m-hl" 
-                                style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
+                        <div class="${HEADER_ROW_CLASS}" 
+                                style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
-                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
-                            <div class="m-hl" style="align-items: center;">
-                                ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
-                                ${metadata.title?html`<h2 style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
-                            </div>
+                            <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                            ${renderBrand(metadata)}
                             </a>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${metadata.menu.map((option, i) => html`
@@ -517,7 +546,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}
                             </nav>
-                            <div class="m-hl" style="flex-shrink: 0; align-items: center;">
+                            <div class="m-hl mateu-app-widgets" style="align-items: center;">
                                 <slot name="widgets"></slot>
                                 ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                             </div>
@@ -528,6 +557,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <div class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
+                                            data-content-view
                                             route="${chooseRoute(_state, container, metadata)}"
                                             id="${cuid}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
@@ -550,14 +580,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.fabs?.map((fab, idx) => html`
-                <button class="app-fab" style="${fabPosition((metadata.sseUrl ? 1 : 0) + idx)}" aria-label="${fab.label}"
+                <button class="app-fab" style="${fabPosition(aiFabShown + idx)}" ${onFabRail('shell', aiFabShown + idx)} aria-label="${fab.label}"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
                     ${icon(fab.icon)}
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" style="${fabPosition(0)}" @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
+                <button class="ai-fab" style="${fabPosition(0)}" ${onFabRail('shell', 0)} @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
                     ${icon('vaadin:comments-o')}
                 </button>
             ` : nothing}

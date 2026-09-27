@@ -4,7 +4,6 @@ import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;
@@ -65,18 +64,16 @@ public class SelectActionHandler {
         new State(newState),
         wrap(
                 CrudFieldHandlerHelper.buildDetailForm(
-                    "Update "
-                        + toUpperCaseFirst(
-                            getGenericClass(field, field.getType(), "E").getSimpleName()),
+                    CrudFieldHandlerHelper.detailTitle(
+                        "Edit", getGenericClass(field, field.getType(), "E")),
                     field,
                     httpRequest,
                     false,
                     List.of(Text.builder().text("${state['_position']}").build()),
                     List.<UserTrigger>of(
                         Button.builder().label("Prev").actionId(fid + "_prev").build(),
-                        Button.builder().label("Next").actionId(fid + "_next").build(),
-                        Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
-                        Button.builder().label("Save").actionId(fid + "_save").build()),
+                        Button.builder().label("Next").actionId(fid + "_next").build()),
+                    CrudFieldHandlerHelper.rowEditorButtons(fid, "_save", false),
                     0),
                 item,
                 (String) httpRequest.getAttribute("baseUrl"),

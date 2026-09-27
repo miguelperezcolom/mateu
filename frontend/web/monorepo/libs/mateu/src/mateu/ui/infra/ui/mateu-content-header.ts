@@ -104,7 +104,12 @@ export class MateuContentHeader extends LitElement {
     /** After each render, move one more secondary into the "…" menu while the action cluster still
      *  overflows the header (wrapped to a new line or past the right edge). Monotonic → converges. */
     protected updated(changed: Map<PropertyKey, unknown>) {
+        if (changed.has('_overflowOpen') && this._overflowOpen) this._placeOverflowMenu()
         if (changed.has('metadata') || changed.has('data')) { this._resetOverflow(); return }
+        // Inside a dialog the header is as wide as its content, and moving a button into the menu
+        // narrows the dialog, which "overflows" again: every secondary ended in "…". There the
+        // actions wrap instead of collapsing.
+        if (this._inDialog()) { if (this._overflowN !== 0) this._overflowN = 0; return }
         const cluster = this.renderRoot.querySelector('.actions-cluster') as HTMLElement | null
         if (!cluster || this._secCount === 0) return
         const row = cluster.closest('.form-header, .no-header-row') as HTMLElement | null
@@ -113,6 +118,26 @@ export class MateuContentHeader extends LitElement {
         const rr = row.getBoundingClientRect()
         const overflowing = cr.top - rr.top > 8 || cr.right > rr.right + 1
         if (overflowing && this._overflowN < this._secCount) this._overflowN += 1
+    }
+
+    /** Whether this header is drawn inside a dialog (crossing shadow roots on the way up). */
+    private _inDialog(): boolean {
+        let node: any = this
+        while (node) {
+            const tag = node.tagName
+            if (tag === 'VAADIN-DIALOG-OVERLAY' || tag === 'DIALOG' || node.getAttribute?.('role') === 'dialog') return true
+            node = node.parentElement ?? (node.getRootNode?.() as ShadowRoot | undefined)?.host
+        }
+        return false
+    }
+
+    /** The "…" menu opens toward the side it fits: anchored right by default, flipped to the left
+     *  edge when that would take it past the viewport's left border. */
+    private _placeOverflowMenu() {
+        const menu = this.renderRoot.querySelector('.overflow-menu') as HTMLElement | null
+        if (!menu) return
+        menu.classList.remove('flip')
+        if (menu.getBoundingClientRect().left < 0) menu.classList.add('flip')
     }
 
     handleButtonClick = (button: Button) => {
@@ -498,6 +523,10 @@ export class MateuContentHeader extends LitElement {
             display: flex;
             flex-direction: column;
             z-index: 30;
+        }
+        .overflow-menu.flip {
+            right: auto;
+            left: 0;
         }
         .overflow-item {
             text-align: left;

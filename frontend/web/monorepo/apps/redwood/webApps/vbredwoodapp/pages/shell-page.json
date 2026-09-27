@@ -221,17 +221,20 @@
         }
       ]
     },
-    "chatShowSearch": {
+    "chatToggle": {
       "chains": [
         {
-          "chain": "chatShowSearch"
+          "chain": "toggleMateuChat"
         }
       ]
     },
-    "chatShowChat": {
+    "chatClose": {
       "chains": [
         {
-          "chain": "chatShowChat"
+          "chain": "toggleMateuChat",
+          "parameters": {
+            "open": false
+          }
         }
       ]
     },
@@ -263,6 +266,28 @@
       "chains": [
         {
           "chain": "retryMateuAction"
+        }
+      ]
+    },
+    "userWidgetClicked": {
+      "chains": [
+        {
+          "chain": "toggleMateuWidgetPopup",
+          "parameters": {
+            "popupId": "mateuUserPopup",
+            "anchorId": "mateuUserButton"
+          }
+        }
+      ]
+    },
+    "widgetPopoverClicked": {
+      "chains": [
+        {
+          "chain": "toggleMateuWidgetPopup",
+          "parameters": {
+            "popupId": "{{ $current.data.popupId }}",
+            "anchorId": "{{ $current.data.buttonId }}"
+          }
         }
       ]
     }
@@ -316,6 +341,12 @@
       },
       "oj-action-card": {
         "path": "ojs/ojactioncard"
+      },
+      "oj-avatar": {
+        "path": "ojs/ojavatar"
+      },
+      "oj-popup": {
+        "path": "ojs/ojpopup"
       }
     }
   },

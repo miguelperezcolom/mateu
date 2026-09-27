@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
+define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   'use strict';
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
@@ -532,6 +532,11 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
     'vaadin:clock': 'oj-ux-ico-clock',
+    // la campana del badge de la bandeja (widget de cabecera)
+    'vaadin:bell': 'oj-ux-ico-notification',
+    'vaadin:bell-o': 'oj-ux-ico-notification',
+    'vaadin:envelope': 'oj-ux-ico-email',
+    'vaadin:sign-out': 'oj-ux-ico-logout',
   }
   function ojIconOf(icon) {
     if (!icon) return undefined
@@ -556,7 +561,9 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
       ? raw.slice(parentRoute.length)
       : raw
-    const children = option.submenus || option.submenu || []
+    // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
+    // sigue resolviendo (la registra el transporte), pero el menú no la enseña
+    const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
     return {
       id,
       label: option.caption || option.label || id,
@@ -1777,6 +1784,226 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     return text === '' ? [] : text.split(',').map((s) => s.trim()).filter((s) => s)
   }
 
+  // ── Filtros DENTRO de la cabecera del buscador ────────────────────────────────────────────
+  // Los filtros viajan por la API `smartFilters` de oj-sp-smart-filter-search, no en una fila
+  // propia debajo: el componente pinta su cabecera (título + buscador + filtros) y, al pie, la
+  // franja de color de Redwood. Una fila de filtros FUERA del componente quedaba al otro lado de
+  // la franja, que así parecía una ilustración suelta en mitad de la página.
+  //
+  // La API cubre todos los kinds de Mateu, cada uno con el editor que el propio componente abre
+  // en su popup (un oj-dynamic-form alimentado por `filtersMetadata`):
+  //   - `suggestionFilters`: los filtros SIN aplicar — un chip por filtro declarado bajo el
+  //     buscador; el componente quita de ahí los que ya están aplicados.
+  //   - `value`: los aplicados — chips DENTRO del campo de búsqueda, con su ✕; el texto libre
+  //     viaja ahí mismo como chips `keyword`.
+  //   - `filtersMetadata`: un JsonMetadataProvider de oj-dynamic, polimórfico por `filter` (el
+  //     fieldId): el editor del valor de cada filtro.
+
+  const KEYWORD_FILTER = 'keyword'
+  const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
+
+  /** El editor del valor de un filtro, en el vocabulario de oj-dynamic (lo que abre el popup). */
+  function smartFilterValueMetadataOf(f) {
+    const labelHint = f.label
+    if (f.isRange) {
+      // gte/lte oj-input-date (string) u oj-input-number (number): con esa forma exacta el
+      // componente reconoce el rango y pinta el chip como "desde - hasta" formateado
+      const numeric = f.inputType === 'number'
+      const componentType = numeric ? 'oj-input-number'
+        : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
+      const type = numeric ? 'number' : 'string'
+      return {
+        type: 'object',
+        labelHint,
+        properties: {
+          gte: { type, componentType, labelHint: 'Desde' },
+          lte: { type, componentType, labelHint: 'Hasta' },
+        },
+      }
+    }
+    const options = (f.options || []).map((o) => ({ value: String(o.value), label: o.label }))
+    if (f.isMulti) {
+      return { type: 'array', items: { type: 'string' }, componentType: 'oj-checkboxset', labelHint, options }
+    }
+    if (f.isOptions) return { type: 'string', componentType: 'oj-select-single', labelHint, options }
+    if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: BOOL_CHOICES }
+    if (f.inputType === 'number') return { type: 'number', componentType: 'oj-input-number', labelHint }
+    return { type: 'string', componentType: 'oj-input-text', labelHint }
+  }
+
+  /**
+   * `filtersMetadata` en crudo (JSON de oj-dynamic): polimórfico por `filter`, un tipo por filtro
+   * declarado. El componente lo consulta con getMetadataByDiscriminator('filter', fieldId).
+   */
+  function smartFiltersMetadataOf(filters) {
+    const polymorphicTypes = {}
+    for (const f of filters || []) {
+      polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
+    }
+    return {
+      type: 'object',
+      properties: { filter: { type: 'string' }, label: { type: 'string' } },
+      discriminator: 'filter',
+      polymorphicTypes,
+    }
+  }
+
+  // Los de opciones llevan `filterLabel` (el nombre del campo): el componente pone en `label` la
+  // etiqueta de la opción elegida y el chip se lee "Vista Llegadas hoy". Un texto o un rango NO:
+  // con filterLabel el componente enseña la etiqueta en vez del valor tecleado.
+  const usesFilterLabel = (f) => f.isOptions || f.isMulti || f.isBool
+
+  /** Los chips de `suggestionFilters`: uno por filtro declarado, sin valor. */
+  function smartFilterSuggestionsOf(filters) {
+    return (filters || []).map((f) => {
+      const chip = { filter: f.fieldId, label: f.label }
+      if (usesFilterLabel(f)) chip.filterLabel = f.label
+      // el formulario del popup saca sus campos de las claves del valor: sin ellas, un rango
+      // abre un popup vacío
+      if (f.isRange) chip.value = { gte: null, lte: null }
+      return chip
+    })
+  }
+
+  /** El `value` del componente (los chips aplicados) a partir del estado de Mateu. */
+  function smartFilterValueOf(filters, values, searchText) {
+    const v = values || {}
+    const out = []
+    const text = searchText == null ? '' : String(searchText).trim()
+    if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
+    for (const f of filters || []) {
+      if (f.isRange) {
+        const from = v[f.fromKey]
+        const to = v[f.toKey]
+        if (isBlank(from) && isBlank(to)) continue
+        out.push({ filter: f.fieldId, label: f.label,
+          value: { gte: isBlank(from) ? null : from, lte: isBlank(to) ? null : to } })
+        continue
+      }
+      const value = v[f.fieldId]
+      if (isBlank(value)) continue
+      if (f.isMulti) {
+        const selected = multiValuesOf(value)
+        if (!selected.length) continue
+        out.push({ filter: f.fieldId, label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
+      } else if (f.isBool) {
+        const bool = value === true || value === 'true' ? 'true' : 'false'
+        out.push({ filter: f.fieldId, label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
+      } else if (f.isOptions) {
+        out.push({ filter: f.fieldId, label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
+      } else {
+        out.push({ filter: f.fieldId, label: f.label, value })
+      }
+    }
+    return out
+  }
+
+  /**
+   * Lo inverso: los chips aplicados del componente → el texto buscado (los keywords, en orden) y
+   * los valores de filtro que viajan en el componentState. Un chip recién sacado de las
+   * sugerencias todavía no tiene valor: no filtra hasta que se elige uno en su popup.
+   */
+  function filterStateOfSmartFilters(filters, chips) {
+    const byId = {}
+    for (const f of filters || []) byId[f.fieldId] = f
+    const values = {}
+    const keywords = []
+    for (const chip of chips || []) {
+      if (!chip) continue
+      if (chip.filter === KEYWORD_FILTER) {
+        if (!isBlank(chip.value)) keywords.push(String(chip.value))
+        continue
+      }
+      const f = byId[chip.filter]
+      if (!f) continue
+      if (f.isRange) {
+        const range = chip.value || {}
+        if (!isBlank(range.gte)) values[f.fromKey] = range.gte
+        if (!isBlank(range.lte)) values[f.toKey] = range.lte
+      } else if (f.isMulti) {
+        const selected = multiValuesOf(chip.value)
+        if (selected.length) values[f.fieldId] = selected
+      } else if (!isBlank(chip.value)) {
+        values[f.fieldId] = chip.value
+      }
+    }
+    return { searchText: keywords.join(' '), values }
+  }
+
+  /**
+   * Las sugerencias que tocan para un fetch del componente: fuera las de los filtros ya
+   * aplicados (el criterio trae `{op:'$ne', value:{filters}}`) y, si hay texto, las que no lo
+   * contienen. Es el contrato del SuggestionFiltersDataProvider de oj-sp, que es REST; aquí las
+   * sugerencias son locales.
+   */
+  function suggestionRowsFor(rows, criterion) {
+    const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
+    let applied = []
+    let text = ''
+    for (const c of parts) {
+      if (c && c.op === '$ne' && c.value && Array.isArray(c.value.filters)) applied = c.value.filters
+      if (c && typeof c.text === 'string') text = c.text.trim().toLowerCase()
+    }
+    const taken = applied.map((a) => a && a.filter)
+    return (rows || [])
+      .filter((r) => taken.indexOf(r.filter) < 0)
+      .filter((r) => !text || String(r.filterLabel || r.label).toLowerCase().indexOf(text) >= 0)
+  }
+
+  /** Un DataProvider (la parte que usa oj-sp-smart-filters) sobre las sugerencias locales. */
+  function suggestionFiltersProviderOf(rows) {
+    const all = rows || []
+    const block = (data, params) => ({
+      done: true,
+      value: { data, metadata: data.map((r) => ({ key: r.filter })), fetchParameters: params },
+    })
+    return {
+      fetchFirst(params) {
+        const data = suggestionRowsFor(all, params && params.filterCriterion)
+        return { [Symbol.asyncIterator]: () => ({ next: () => Promise.resolve(block(data, params)) }) }
+      },
+      fetchByKeys(params) {
+        const results = new Map()
+        for (const key of (params && params.keys) || []) {
+          const row = all.filter((r) => r.filter === key)[0]
+          if (row) results.set(key, { data: row, metadata: { key } })
+        }
+        return Promise.resolve({ fetchParameters: params, results })
+      },
+      containsKeys(params) {
+        const results = new Set()
+        for (const key of (params && params.keys) || []) {
+          if (all.some((r) => r.filter === key)) results.add(key)
+        }
+        return Promise.resolve({ containsParameters: params, results })
+      },
+      getCapability() { return null },
+      getTotalSize() { return Promise.resolve(all.length) },
+      isEmpty() { return all.length ? 'no' : 'yes' },
+      addEventListener() {},
+      removeEventListener() {},
+      dispatchEvent() { return true },
+    }
+  }
+
+  // el JsonMetadataProvider de oj-dynamic: lo pone el módulo AMD (el core no depende de JET)
+  let metadataProviderFactory = null
+  function setMetadataProviderFactory(factory) { metadataProviderFactory = factory }
+
+  /**
+   * La configuración ENTERA de `smart-filters` para un listado: sugerencias, aplicados y el
+   * editor de cada filtro. Sin filtros declarados, sólo el buscador de texto (como siempre).
+   */
+  async function smartFiltersOf(filters, values, searchText) {
+    const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
+    if (!filters || !filters.length) return config
+    config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+    if (metadataProviderFactory) {
+      config.filtersMetadata = await metadataProviderFactory(smartFiltersMetadataOf(filters))
+    }
+    return config
+  }
+
   function labelOfOption(filter, value) {
     const hit = (filter.options || []).filter((o) => String(o.value) === String(value))[0]
     return hit ? hit.label : String(value)
@@ -1891,6 +2118,9 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
           sseUrl: md.sseUrl || '',
+          // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
+          // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
+          widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
         }
         continue
       }
@@ -2282,6 +2512,15 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
   }
 
   /**
+   * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
+   * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
+   * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+   */
+  function authHeadersOf() {
+    return authHeaders(null) || {}
+  }
+
+  /**
    * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
    * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
    * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
@@ -2327,14 +2566,17 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     }
     const actionId = options.actionId
     const idempotent = isIdempotentAction(actionId, options.idempotent)
-    notify('onStart', { actionId })
+    // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
+    // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario
+    const notifyUnlessQuiet = (hook, payload) => { if (!options.quiet) notify(hook, payload) }
+    notifyUnlessQuiet('onStart', { actionId })
     let attempt = 0
     let reauthenticated = false
     for (;;) {
       try {
         const res = await sendOnce(url, withAuth(), options.timeoutMillis)
         connectivity.noteReachable()
-        notify('onSettle', { actionId, failure: null })
+        notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
         // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
@@ -2352,7 +2594,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
           // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
           // fetch", y decide si ofrecer reintentar.
           error.failure = failure
-          notify('onSettle', { actionId, failure })
+          notifyUnlessQuiet('onSettle', { actionId, failure })
           throw error
         }
         await delay(retryDelayMs(attempt))
@@ -2959,7 +3201,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
     return res.json()
   }
 
@@ -3257,6 +3499,24 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     return best || undefined
   }
 
+  /**
+   * Registra a qué pod va una ruta que NO vino del menú: la navegación que pide un widget remoto
+   * (el enlace del badge de la bandeja emite navigation-requested con su baseUrl y su
+   * serverSideType). Una ruta que el menú ya registró se queda como está — el menú manda.
+   */
+  function registerRemoteRoute(route, descriptor) {
+    if (!route || !descriptor || !descriptor.baseUrl || remoteRouteOf(route)) return false
+    const entry = {
+      baseUrl: descriptor.baseUrl,
+      consumedRoute: descriptor.consumedRoute || '',
+      serverSideType: descriptor.serverSideType,
+      uriPrefix: descriptor.uriPrefix || '',
+    }
+    remoteRoutes.set(route, entry)
+    remoteRoutes.set(String(route).replace(/^\//, ''), entry)
+    return true
+  }
+
   const childrenOf = (option) => option.submenus || option.submenu || []
 
   /** Las opciones remotas del árbol, a cualquier profundidad.
@@ -3373,6 +3633,311 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
   }
 
 
+  // Widgets de CABECERA del App (WidgetSupplier.widgets / @Widget): llegan como hijos del App con
+  // slot "widgets" — un layout con, típicamente, un MicroFrontend (el badge de la bandeja, otro pod
+  // que se refresca solo) y un Popover sobre un Text (el saludo al usuario, que abre su email y el
+  // Logout). El renderer Vaadin los pinta tal cual en su barra; aquí se reparten entre las DOS zonas
+  // que declara oj-sp-global-header:
+  //
+  //  - slot `usermenu`: el área de perfil de la cabecera global de Redwood (FA pone ahí el avatar del
+  //    usuario, y al pulsarlo su menú). Un Popover cuyo disparador es un TEXT es el idioma Mateu de
+  //    "quién soy + un menú": un texto no es un control, así que lo único que puede estar diciendo es
+  //    un rótulo — y en la cabecera, el del usuario. El PRIMERO de esos va al área de perfil como
+  //    avatar con iniciales + nombre, y su contenido a un oj-popup anclado. Es un reconocimiento de
+  //    FORMA, no de valores: no se mira qué dice el texto.
+  //  - slot `end` (zona de acciones): todo lo demás, en orden — HTML de un Text, el HTML vivo de un
+  //    MicroFrontend, y cualquier otro Popover como botón + oj-popup.
+  //
+  // El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
+  // navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
+  // por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+
+
+  const CONTAINERS = new Set([
+    'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
+    'SplitLayout', 'FlexLayout',
+  ])
+
+  const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
+
+  /** El texto visible de un fragmento HTML: sin etiquetas, entidades resueltas, blancos plegados. */
+  function plainTextOf(html) {
+    return String(html == null ? '' : html)
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&(nbsp|amp|lt|gt|quot|apos|#39);/g, (all, name) => ENTITIES[name])
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  /** Iniciales para el avatar: del nombre que sigue al saludo ("Hola, Demo User" → "DU"). */
+  function initialsOf(label) {
+    const text = plainTextOf(label)
+    const who = text.indexOf(',') >= 0 ? text.slice(text.lastIndexOf(',') + 1) : text
+    const words = who.trim().split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w))
+    if (!words.length) return ''
+    const first = words[0][0]
+    const last = words.length > 1 ? words[words.length - 1][0] : (words[0][1] || '')
+    return (first + last).toUpperCase()
+  }
+
+  const attrOf = (attrs, name) => {
+    const m = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, 'i').exec(attrs || '')
+    return m ? (m[2] != null ? m[2] : m[3]) : null
+  }
+
+  /**
+   * El HTML de un widget, apto para Redwood: cada <vaadin-icon icon="vaadin:x"> pasa a un
+   * <span class="oj-ux-ico-…"> (fuente de iconos de Redwood) conservando su style — su tamaño, su
+   * alineación y su color (p.ej. el rojo del badge cuando hay algo urgente). Un icono sin
+   * equivalente se quita: un elemento desconocido no pinta nada y ocupa su sitio igual.
+   */
+  function redwoodHtmlOf(html) {
+    const swap = (all, attrs) => {
+      const cls = ojIconOf(attrOf(attrs, 'icon'))
+      if (!cls) return ''
+      const style = attrOf(attrs, 'style')
+      return `<span class="${cls} mateu-widget-icon" aria-hidden="true"${style ? ` style="${style}"` : ''}></span>`
+    }
+    return String(html == null ? '' : html)
+      .replace(/<vaadin-icon\b([^>]*?)\/>/gi, swap)
+      .replace(/<vaadin-icon\b([^>]*)>\s*<\/vaadin-icon>/gi, swap)
+  }
+
+  /** El contenido de un Popover → filas del popup (texto, enlace), en orden. */
+  function popoverContentOf(node) {
+    const out = []
+    const visit = (n) => {
+      if (!n) return
+      if (Array.isArray(n)) { n.forEach(visit); return }
+      const md = n.metadata || {}
+      if (md.type === 'Text') {
+        const text = plainTextOf(md.text)
+        if (text) out.push({ id: 'r' + out.length, isText: true, text })
+        return
+      }
+      if (md.type === 'Anchor') {
+        out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: md.url || '#', target: md.target || '' })
+        return
+      }
+      if (md.type === 'Button') {
+        // un botón en el popup de un widget solo puede navegar o ejecutar JS del cliente: sin
+        // contexto propio no tiene a quién mandar una acción de servidor
+        const label = md.label || md.text || ''
+        if (label) out.push({ id: 'r' + out.length, isText: true, text: label })
+        return
+      }
+      for (const child of n.children || []) visit(child)
+      if (md.content) visit(md.content)
+    }
+    visit(node)
+    return out
+  }
+
+  /**
+   * La proyección de los widgets de cabecera del registro: `user` (el área de perfil) o null, e
+   * `items` (la zona de acciones), cada uno con un id estable por POSICIÓN — el mismo en cada
+   * bootstrap, que es lo que deja al DOM y al refresco reencontrar su hueco.
+   */
+  function headerWidgetsOf(reg) {
+    const nodes = (reg && reg.shell && reg.shell.widgets) || []
+    let user = null
+    const items = []
+    const visit = (node, path) => {
+      if (!node) return
+      const md = node.metadata || {}
+      const id = 'mateu-widget-' + path
+      if (CONTAINERS.has(md.type)) {
+        (node.children || []).forEach((child, i) => visit(child, path + '-' + i))
+        if (md.content) (Array.isArray(md.content) ? md.content : [md.content]).forEach((c, i) => visit(c, path + '-c' + i))
+        return
+      }
+      if (md.type === 'Popover') {
+        const wrapped = md.wrapped || {}
+        const wmd = wrapped.metadata || {}
+        const label = wmd.type === 'Text' ? plainTextOf(wmd.text) : plainTextOf(wmd.label || wmd.text || '')
+        const rows = popoverContentOf(md.content)
+        if (!user && wmd.type === 'Text' && label) {
+          user = { id, label, initials: initialsOf(label), rows }
+        } else {
+          items.push({ id, isPopover: true, label: label || '…', rows, buttonId: id + '-button', popupId: id + '-popup' })
+        }
+        return
+      }
+      if (md.type === 'MicroFrontend') {
+        items.push({
+          id,
+          isRemote: true,
+          baseUrl: md.baseUrl || '',
+          route: md.route || '',
+          consumedRoute: md.consumedRoute || '',
+          serverSideType: md.serverSideType || undefined,
+          appState: md.appState || null,
+        })
+        return
+      }
+      if (md.type === 'Text') {
+        const html = redwoodHtmlOf(md.text)
+        if (plainTextOf(html) || /<span class="oj-ux-ico-/.test(html)) items.push({ id, isHtml: true, html })
+        return
+      }
+      if (md.type === 'Anchor') {
+        items.push({ id, isHtml: true, html: `<a href="${String(md.url || '#').replace(/"/g, '&quot;')}"${md.target ? ` target="${md.target}"` : ''}>${md.text || ''}</a>` })
+      }
+    }
+    nodes.forEach((node, i) => visit(node, String(i)))
+    return { user, items }
+  }
+
+  /** El HTML de un widget remoto ya cargado: sus Text, interpolados contra su state. */
+  function remoteWidgetHtmlOf(tree, state) {
+    const parts = []
+    const visit = (n) => {
+      if (!n) return
+      const md = n.metadata || {}
+      if (md.type === 'Text') parts.push(redwoodHtmlOf(interpolate(md.text, state)))
+      for (const child of n.children || []) visit(child)
+    }
+    visit(tree)
+    return parts.join('')
+  }
+
+  const widgetRuntimes = new Map()
+
+  /**
+   * Carga un MicroFrontend de cabecera y lo mantiene vivo con SUS triggers: OnLoad al cargar y
+   * OnSuccess tras cada acción que los nombre (el badge: `refresh` cada 10 s, encadenado). Es el
+   * mismo contrato que el renderer web — si un refresco falla, no se reprograma (OnSuccess).
+   *
+   * Las peticiones van en modo `quiet`: un refresco de fondo cada pocos segundos no debe encender la
+   * barra de ocupado ni la banda de error de la pantalla, que hablan de lo que el usuario hace.
+   *
+   * `deps` existe para los tests (call/schedule/cancel); `onHtml(html)` recibe cada repintado.
+   * Arrancar de nuevo el mismo id para el anterior: un rebootstrap no deja dos bucles.
+   */
+  function startRemoteWidget(item, onHtml, deps = {}) {
+    const call = deps.call || callMateu
+    const schedule = deps.schedule || ((fn, ms) => setTimeout(fn, ms))
+    const cancel = deps.cancel || ((h) => clearTimeout(h))
+    const appState = deps.appState || (() => ({}))
+    stopRemoteWidget(item.id, cancel)
+    const rt = { stopped: false, timers: new Set(), ctx: null, outbound: {} }
+    widgetRuntimes.set(item.id, rt)
+
+    const request = (actionId, extra = {}) => call(item.baseUrl || '', {
+      route: item.route || '',
+      consumedRoute: rt.outbound.consumedRoute != null ? rt.outbound.consumedRoute : (item.consumedRoute || ''),
+      serverSideType: rt.outbound.serverSideType || (rt.ctx && rt.ctx.tree && rt.ctx.tree.serverSideType) || item.serverSideType,
+      actionId,
+      initiatorComponentId: item.id,
+      componentState: (rt.ctx && rt.ctx.state) || {},
+      appState: Object.assign({}, appState(), item.appState || {}),
+      ...extra,
+    }, { quiet: true, idempotent: true })
+
+    const apply = (increment) => {
+      for (const fr of (increment && increment.fragments) || []) {
+        if (fr.component) {
+          rt.ctx = { tree: fr.component, state: fr.state || fr.component.initialData || {} }
+        } else if (fr.state && rt.ctx) {
+          rt.ctx = { tree: rt.ctx.tree, state: Object.assign({}, rt.ctx.state, fr.state) }
+        }
+      }
+      if (!rt.stopped && rt.ctx) onHtml(remoteWidgetHtmlOf(rt.ctx.tree, rt.ctx.state))
+    }
+
+    const plan = (trigger) => {
+      if (rt.stopped) return
+      const handle = schedule(() => { rt.timers.delete(handle); run(trigger.actionId) }, trigger.timeoutMillis || 0)
+      rt.timers.add(handle)
+    }
+    const triggers = () => (rt.ctx && rt.ctx.tree && rt.ctx.tree.triggers) || []
+
+    const run = async (actionId) => {
+      if (rt.stopped) return
+      try {
+        apply(await request(actionId))
+      } catch (e) {
+        return
+      }
+      for (const t of triggers()) if (t.type === 'OnSuccess' && t.calledActionId === actionId) plan(t)
+    }
+
+    const load = (async () => {
+      try {
+        apply(await request(''))
+        // un remoto que conteste con un mediador (App chromeless) trae el contenido en un 2º salto
+        const info = rt.ctx && mediatorOf(rt.ctx)
+        if (info) {
+          rt.outbound = { consumedRoute: info.rootRoute || item.route || '', serverSideType: info.serverSideType }
+          apply(await request('', { consumedRoute: rt.outbound.consumedRoute, serverSideType: info.serverSideType }))
+        }
+      } catch (e) {
+        return
+      }
+      for (const t of triggers()) if (t.type === 'OnLoad' && t.actionId) plan(t)
+    })()
+
+    return {
+      loaded: load,
+      stop: () => stopRemoteWidget(item.id, cancel),
+      // para los tests: cuántos refrescos hay programados
+      pending: () => rt.timers.size,
+    }
+  }
+
+  function stopRemoteWidget(id, cancel = (h) => clearTimeout(h)) {
+    const previous = widgetRuntimes.get(id)
+    if (!previous) return
+    previous.stopped = true
+    for (const h of previous.timers) cancel(h)
+    previous.timers.clear()
+    widgetRuntimes.delete(id)
+  }
+
+  function stopRemoteWidgets() {
+    for (const [id, rt] of widgetRuntimes) {
+      rt.stopped = true
+      for (const h of rt.timers) clearTimeout(h)
+      widgetRuntimes.delete(id)
+    }
+  }
+
+  // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
+  // VB no sabe estampar HTML crudo desde un binding: el hueco (<span class="mateu-header-widget"
+  // data-widget-id>) lo pinta la plantilla y el HTML lo pone el bridge, como con los componentes web
+  // de terceros (elements.mjs). Se recuerda el último HTML de cada hueco: si VB lo re-estampa, el
+  // siguiente montaje lo rellena otra vez; si no cambió, no se toca (un clic en curso sobre el
+  // enlace no pierde su elemento cada 10 s).
+
+  const lastHtml = {}
+
+  function mountHeaderHtml(id, html) {
+    if (html != null) lastHtml[id] = html
+    if (typeof document === 'undefined') return false
+    const hole = document.querySelector(`.mateu-header-widget[data-widget-id="${id}"]`)
+    if (!hole) return false
+    const next = lastHtml[id] || ''
+    if (hole.__mateuHtml !== next) {
+      hole.innerHTML = next
+      hole.__mateuHtml = next
+    }
+    return true
+  }
+
+  /** Igual, esperando a que VB pinte el hueco (sus bindings son asíncronos). */
+  function mountHeaderHtmlSoon(id, html, frames = 30) {
+    if (html != null) lastHtml[id] = html
+    if (typeof requestAnimationFrame === 'undefined') return
+    let left = frames
+    const tick = () => {
+      if (mountHeaderHtml(id)) return
+      left -= 1
+      if (left > 0) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }
+
+
   // poc/chat.mjs — núcleo de transporte del CHAT de IA, renderer-neutral (paridad Redwood/VB).
   //
   // El chat compartido (libs/mateu/.../mateu-chat.ts, ~939 líneas) mezcla transporte y UI de Lit. Para
@@ -3445,10 +4010,13 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
   }
 
   /** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
-  function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext }) {
+  function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
     return {
       message: message ?? '',
       sessionId,
+      // la ruta de la pantalla desde la que se pregunta: las reglas de enrutado del plano de control
+      // eligen el agente por ella
+      ...(currentRoute ? { currentRoute } : {}),
       ...(attachments && attachments.length ? { attachments } : {}),
       ...(context !== undefined && context !== null ? { context } : {}),
       ...(mcpUrl ? { mcpUrl } : {}),
@@ -3530,6 +4098,13 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
 
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
+  // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
+  // sólo cuando un listado declara filtros
+  setMetadataProviderFactory((data) => new Promise((resolve, reject) => {
+    require(['oj-dynamic/providers/JsonMetadataProvider'], (JsonMetadataProvider) => {
+      resolve(new JsonMetadataProvider({ data }));
+    }, reject);
+  }));
 
   return {
     HOST_ID,
@@ -3552,9 +4127,12 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     selectedRowsOf,
     withListingSelection,
     onLoadTriggers,
-    // filtros del listado: descriptores ya resueltos a widget y su fila de chips
+    // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
+    // cabecera del buscador (sugerencias, aplicados y editores) con su vuelta a estado Mateu
     filterChipsOf,
     multiValuesOf,
+    smartFiltersOf,
+    filterStateOfSmartFilters,
     fieldListOf,
     overlayOf,
     eventTriggersOf,
@@ -3594,7 +4172,15 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
     remoteRouteOf,
+    registerRemoteRoute,
     baseOf,
+    // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
+    headerWidgetsOf,
+    startRemoteWidget,
+    stopRemoteWidgets,
+    mountHeaderHtml,
+    mountHeaderHtmlSoon,
+    redwoodHtmlOf,
     runMateuAction,
     runMateuActionSse,
     // resiliencia: la app las usa para pintar el estado de carga, la banda de sin-conexión
@@ -3604,6 +4190,7 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     connectivity,
     pendingActions,
     setTransportHooks,
+    authHeadersOf,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,

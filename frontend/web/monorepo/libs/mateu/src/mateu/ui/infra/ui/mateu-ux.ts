@@ -20,7 +20,7 @@ import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCo
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import type ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {nanoid} from "nanoid";
-import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
@@ -539,10 +539,19 @@ export class MateuUx extends ConnectedElement {
             return
         }
         this.lastStampedComponent = component
-        this.dataset.pageWidth = resolvePageWidth(component, { top: this.top })
-        // The content view — not the app shell around it — tells the FABs where the page's end edge is.
-        if (!this.top) {
-            this.releaseFabAnchor?.()
+        // A view holding an app nested in another (a remote shell's root) is a shell, not a page:
+        // it takes no width of its own — its content view applies the page's, once. Giving it the
+        // page width too stacked two 24px gutters on a full-width page.
+        const nestedShell = !this.top && isAppShell(component)
+        this.dataset.pageWidth = nestedShell ? 'edge' : resolvePageWidth(component, { top: this.top })
+        // The content view — not the app shell around it, nor a widget in its header — owns the aside
+        // channel the FABs (and a form's section index) live in: a view an app renders as its
+        // content (data-content-view), or a top view with no app around it. A view holding an app
+        // is a shell, and its own content view takes the channel.
+        this.releaseFabAnchor?.()
+        this.releaseFabAnchor = undefined
+        const top = this.top === true || String(this.top) === 'true'
+        if ((top || this.hasAttribute('data-content-view')) && !isAppShell(component)) {
             this.releaseFabAnchor = trackFabAnchor(this, this.dataset.pageWidth as 'fixed' | 'full' | 'edge')
         }
         this.dataset.pageType = pageTypeOf(component) ?? ''
@@ -611,6 +620,18 @@ export class MateuUx extends ConnectedElement {
         :host([data-page-width='full']) {
             box-sizing: border-box;
             padding-inline: 24px;
+        }
+
+        /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the
+           content view leaves room at its end for them, so they sit OUTSIDE the work area. Fixed:
+           narrowed only as much as its margin lacks for the channel, both sides alike to stay
+           centred (the Redwood shell's box is the 1408px column plus a channel each side). Full: the channel is
+           its end padding. The values are measured and set by the view that owns the channel. */
+        :host([data-page-width='fixed'][data-aside]) {
+            max-width: min(1408px, 100% - 2 * var(--mateu-aside-squeeze, 0px));
+        }
+        :host([data-page-width='full'][data-aside]) {
+            padding-inline-end: var(--mateu-aside-pad-end, 24px);
         }
 
         /* Loading placeholder for a route with nothing on screen yet. */

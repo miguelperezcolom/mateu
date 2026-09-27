@@ -4,7 +4,7 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
 import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
-import { fabPosition, fabStyles } from "@infra/ui/layout/fabRail.ts";
+import { fabPosition, fabStyles, onFabRail } from "@infra/ui/layout/fabRail.ts";
 
 // One hit of the app's GlobalSearchSupplier, mirrored from mateu-app's command palette.
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -83,7 +83,7 @@ export class MateuCommandCenter extends LitElement {
     private measureFabStack() {
         const root = this.getRootNode() as ParentNode
         // Our own FAB lives in this element's shadow root, so it is never matched here; page FABs
-        // take the column to the left, so they are not below this one.
+        // stack above the shell's (the rail's --mateu-fab-shell-slots), so they are not below this one.
         const offset = root.querySelectorAll?.('.ai-fab, .app-fab').length ?? 0
         if (offset !== this.fabOffset) this.fabOffset = offset
     }
@@ -211,7 +211,7 @@ export class MateuCommandCenter extends LitElement {
 
     render() {
         return html`
-            <button class="cc-fab" style="${fabPosition(this.fabOffset)} z-index: 950;"
+            <button class="cc-fab" style="${fabPosition(this.fabOffset)} z-index: 950;" ${onFabRail('shell', this.fabOffset)}
                 @click=${() => this.openCenter()} title="Buscar y navegar (⌘K)" aria-label="Command center">
                 ${this.fabIcon()}
             </button>
@@ -405,7 +405,7 @@ export class MateuCommandCenter extends LitElement {
         @keyframes cc-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
         .cc-close {
-            position: fixed; bottom: var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)); right: var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem));
+            position: fixed; bottom: var(--mateu-fab-inset-bottom, var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem))); right: var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem));
             width: var(--lumo-size-l, 2.75rem); height: var(--lumo-size-l, 2.75rem); border-radius: var(--lumo-border-radius-m, 0.25rem);
             background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1110;

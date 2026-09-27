@@ -23,8 +23,46 @@ public record RouteLink(
     String serverSideType,
     String consumedRoute,
     String description,
-    String icon)
+    String icon,
+    boolean hidden)
     implements Actionable {
+
+  /**
+   * An entry the menu does not draw, still resolving its route (deep links, reloads, navigation
+   * from elsewhere). Declared with {@code @Hidden} on the {@code @Menu} field.
+   */
+  public RouteLink(
+      String path,
+      String route,
+      String label,
+      RouteTarget target,
+      boolean selected,
+      Component component,
+      String className,
+      boolean disabled,
+      boolean disabledOnClick,
+      Object itemData,
+      String serverSideType,
+      String consumedRoute,
+      String description,
+      String icon) {
+    this(
+        path,
+        route,
+        label,
+        target,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        serverSideType,
+        consumedRoute,
+        description,
+        icon,
+        false);
+  }
 
   public RouteLink(String label) {
     this(

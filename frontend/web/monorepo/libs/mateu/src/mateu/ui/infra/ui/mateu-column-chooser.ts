@@ -185,12 +185,16 @@ export class MateuColumnChooser extends LitElement {
     }
 
     static styles = css`
-        /* As tall as the search box beside it, and square: it stretches to the filter row's height
-           instead of sizing itself, so a taller search field does not leave it half its height. */
+        /* Exactly as tall as the search box beside it, and square: it stretches to the filter row
+           and takes the same vertical padding the search box sits in (mateu-filter-bar's
+           .smart-search), so a taller search field does not leave it half its height and it does
+           not reach past the field to touch the table. */
         :host {
             display: block;
             flex: none;
             align-self: stretch;
+            box-sizing: border-box;
+            padding-block: var(--lumo-space-xs, 0.25rem);
         }
         .chooser {
             position: relative;

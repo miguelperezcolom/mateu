@@ -298,6 +298,15 @@ function authHeaders(init) {
 }
 
 /**
+ * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
+ * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
+ * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+ */
+export function authHeadersOf() {
+  return authHeaders(null) || {}
+}
+
+/**
  * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
  * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
  * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
@@ -343,14 +352,17 @@ export async function fetchWithPolicy(url, init, options = {}) {
   }
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
-  notify('onStart', { actionId })
+  // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
+  // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario
+  const notifyUnlessQuiet = (hook, payload) => { if (!options.quiet) notify(hook, payload) }
+  notifyUnlessQuiet('onStart', { actionId })
   let attempt = 0
   let reauthenticated = false
   for (;;) {
     try {
       const res = await sendOnce(url, withAuth(), options.timeoutMillis)
       connectivity.noteReachable()
-      notify('onSettle', { actionId, failure: null })
+      notifyUnlessQuiet('onSettle', { actionId, failure: null })
       return res
     } catch (error) {
       // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
@@ -368,7 +380,7 @@ export async function fetchWithPolicy(url, init, options = {}) {
         // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
         // fetch", y decide si ofrecer reintentar.
         error.failure = failure
-        notify('onSettle', { actionId, failure })
+        notifyUnlessQuiet('onSettle', { actionId, failure })
         throw error
       }
       await delay(retryDelayMs(attempt))

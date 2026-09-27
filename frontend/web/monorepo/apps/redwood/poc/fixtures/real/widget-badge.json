@@ -1,0 +1,101 @@
+{
+ "commands": [],
+ "messages": [],
+ "fragments": [
+  {
+   "targetComponentId": "w1",
+   "component": {
+    "type": "ServerSide",
+    "id": "a1a18dfb-d20c-4d59-a94e-acaf8a5b2672",
+    "serverSideType": "io.mateu.ecdemo1.communication.ui.inbox.InboxBadge",
+    "route": "",
+    "children": [
+     {
+      "type": "ClientSide",
+      "metadata": {
+       "type": "Text",
+       "container": "div",
+       "attributes": {},
+       "text": "${state.content}",
+       "size": null,
+       "noMargins": false
+      },
+      "id": "858f3626-ade3-4b51-885d-7210e31f3a1e",
+      "children": [],
+      "style": null,
+      "cssClasses": null,
+      "slot": null,
+      "sizing": null
+     }
+    ],
+    "initialData": {
+     "content": "<a href=\"#\" onclick=\"event.preventDefault(); this.dispatchEvent(new CustomEvent('navigation-requested', {detail: {route: '/inbox/pending', consumedRoute: '', baseUrl: '/_inbox', uriPrefix: '', serverSideType: 'io.mateu.ecdemo1.communication.ui.inbox.InboxHome'}, bubbles: true, composed: true}))\" style=\"text-decoration: none; white-space: nowrap;\"><vaadin-icon icon=\"vaadin:bell\" style=\"width: 1em; height: 1em; vertical-align: -0.125em; margin-inline-end: 0.3em;\"></vaadin-icon><span style=\"display: var(--mateu-header-wide-only, inline)\">Inbox (16)</span><span style=\"display: var(--mateu-header-narrow-only, none)\">16</span></a>&nbsp;&nbsp;"
+    },
+    "style": "max-width:900px;margin: auto;",
+    "cssClasses": null,
+    "actions": [
+     {
+      "id": "refresh",
+      "validationRequired": false,
+      "confirmationRequired": false,
+      "rowsSelectedRequired": false,
+      "confirmationTexts": null,
+      "modalStyle": null,
+      "modalTitle": null,
+      "customEvent": null,
+      "href": "",
+      "js": "",
+      "background": false,
+      "sse": false,
+      "fieldsToValidate": "",
+      "bubble": false,
+      "shortcut": null,
+      "timeoutMillis": 0,
+      "idempotent": false,
+      "restAction": null,
+      "commands": null
+     }
+    ],
+    "triggers": [
+     {
+      "type": "OnLoad",
+      "actionId": "refresh",
+      "timeoutMillis": 10000,
+      "times": 1,
+      "condition": "",
+      "background": false
+     },
+     {
+      "type": "OnSuccess",
+      "actionId": "refresh",
+      "calledActionId": "refresh",
+      "condition": "",
+      "timeoutMillis": 10000,
+      "background": false
+     }
+    ],
+    "rules": [],
+    "validations": [],
+    "slot": null,
+    "containerId": null,
+    "confirmOnNavigationIfDirty": false,
+    "emitsName": null,
+    "pageWidth": null,
+    "pageType": "form",
+    "staticView": false,
+    "structureHash": "d939bb298852edd8cd650c3646d9e2611df0329d07fb4e9cc8d06bb2c2376ea3"
+   },
+   "state": {
+    "content": "<a href=\"#\" onclick=\"event.preventDefault(); this.dispatchEvent(new CustomEvent('navigation-requested', {detail: {route: '/inbox/pending', consumedRoute: '', baseUrl: '/_inbox', uriPrefix: '', serverSideType: 'io.mateu.ecdemo1.communication.ui.inbox.InboxHome'}, bubbles: true, composed: true}))\" style=\"text-decoration: none; white-space: nowrap;\"><vaadin-icon icon=\"vaadin:bell\" style=\"width: 1em; height: 1em; vertical-align: -0.125em; margin-inline-end: 0.3em;\"></vaadin-icon><span style=\"display: var(--mateu-header-wide-only, inline)\">Inbox (16)</span><span style=\"display: var(--mateu-header-narrow-only, none)\">16</span></a>&nbsp;&nbsp;"
+   },
+   "data": {},
+   "action": "Replace",
+   "containerId": null
+  }
+ ],
+ "banners": [],
+ "appendBanners": false,
+ "appData": null,
+ "appState": null,
+ "wireVersion": "3.0"
+}

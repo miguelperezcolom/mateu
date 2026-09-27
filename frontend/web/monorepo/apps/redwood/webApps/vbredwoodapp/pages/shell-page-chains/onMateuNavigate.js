@@ -425,15 +425,14 @@ define([
         $application.variables.mateuFilterValues = {};
         $application.variables.mateuLastSearchText = '';
       }
-      // los chips son proyección de (filtros declarados × valores aplicados): se recalculan
-      // en cuanto cambia cualquiera de los dos, y una navegación cambia los dos
-      $application.variables.mateuFilterEditing = null;
-      $application.variables.mateuFilterDraft = {};
-      $application.variables.mateuFilterChips = bridge.filterChipsOf(
+      // los filtros van DENTRO de la cabecera del buscador (smart-filters): la config es
+      // proyección de (filtros declarados × valores aplicados × texto), y una navegación
+      // cambia los tres. Sólo aquí: las búsquedas que lanza el propio componente no la
+      // reasignan, que le cerraría el popup del filtro que se está editando
+      $application.variables.mateuSmartFilters = await bridge.smartFiltersOf(
         (($application.variables.mateuListing || {}).filters) || [],
-        $application.variables.mateuFilterValues || {});
-      $application.variables.mateuHasAppliedFilters =
-        $application.variables.mateuFilterChips.filter((c) => c.applied).length > 0;
+        $application.variables.mateuFilterValues || {},
+        $application.variables.mateuLastSearchText || '');
       const banners = bridge.bannersOf(host);
       const staleKeys = $application.variables.mateuBannerKeys || [];
       if (staleKeys.length) {

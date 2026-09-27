@@ -8,7 +8,7 @@ import EntityHeader from "@mateu/shared/apiClients/dtos/componentmetadata/Entity
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { FAB_PAGE_COLUMN, fabPosition } from "@infra/ui/layout/fabRail.ts";
+import { onFabRail, pageFabPosition } from "@infra/ui/layout/fabRail.ts";
 
 /** Hoists a page's leading EntityHeader into the canonical page header (the Redwood
  *  "General Overview" anatomy): its title/subtitle become the page title/subtitle, its
@@ -95,7 +95,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
         } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
         ${fabs.map((fab, idx) => html`
-            <button class="page-fab" style="${fabPosition(idx, FAB_PAGE_COLUMN)}" aria-label="${fab.label}"
+            <button class="page-fab" style="${pageFabPosition(idx)}" ${onFabRail('page', idx)} aria-label="${fab.label}"
                 @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
                     detail: { actionId: fab.actionId },
                     bubbles: true,
