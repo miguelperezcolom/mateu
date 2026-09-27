@@ -1830,16 +1830,32 @@ test('cabecera oscura: los estados del menú superior son un velo blanco, sin el
   assert.match(vars, /--oj-core-focus-border-color: rgb\(255 255 255 \/ 0\.6\)/, 'foco visible pero discreto')
 })
 
-test('chat: FAB propio y drawer a la izquierda — Ask Oracle ya no lleva el chat dentro', () => {
+test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no lleva el chat dentro', () => {
   const shell = webApp('pages/shell-page.html')
   const dialog = shell.match(/<oj-dialog id="mateuAskOracle"[\s\S]*?<\/oj-dialog>/)[0]
   assert.equal(/mateuChatInput|mateuChatMode|chatShowChat/.test(dialog), false, 'la paleta es sólo el buscador')
-  // el FAB del chat: su icono Redwood y su etiqueta (display=icons → aria-label + tooltip)
-  const fab = shell.match(/<oj-button id="mateuChatFab"[\s\S]*?<\/oj-button>/)[0]
-  assert.match(fab, /display="icons"/)
-  assert.match(fab, /oj-ux-ico-chat/)
-  assert.match(fab, /Chat con el asistente/)
-  assert.match(fab, /\$listeners\.chatToggle/)
+  // ya no hay FAB del chat: el que queda en la esquina es sólo el de Ask Oracle
+  assert.equal(/mateuChatFab|mateu-chat-fab/.test(shell), false, 'sin FAB del chat')
+  assert.equal(/mateu-chat-fab/.test(webApp('resources/css/app.css')), false)
+  // el botón: en las acciones de la cabecera global (slot end), antes de los widgets del App,
+  // sólo si la app declara el chat; su icono Redwood y su etiqueta (display=icons → aria-label +
+  // tooltip), y marcado mientras el panel está abierto
+  const header = shell.match(/<oj-sp-global-header[\s\S]*?<\/oj-sp-global-header>/)[0]
+  const end = header.match(/<div slot="end"[\s\S]*?<!-- ÁREA DE PERFIL/)[0]
+  const toggle = end.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatSseUrl \]\]">\s*<oj-button id="mateuChatToggle"[\s\S]*?<\/oj-button>/)
+  assert.ok(toggle, 'el botón del chat está en la zona de acciones, sólo con sseUrl')
+  assert.ok(end.indexOf('id="mateuChatToggle"') < end.indexOf('mateu-header-widgets'), 'antes de los widgets')
+  assert.match(toggle[0], /display="icons"/)
+  assert.match(toggle[0], /chroming="borderless"/)
+  assert.match(toggle[0], /oj-ux-ico-chat/)
+  assert.match(toggle[0], /aria-controls="mateuChatPanel"/)
+  assert.match(toggle[0], /<span slot="startIcon" class="oj-ux-ico-chat"><\/span>\s*Chat\s*<\/oj-button>/)
+  assert.match(toggle[0], /mateuChatOpen \? ' mateu-chat-open' : ''/)
+  assert.match(toggle[0], /\$listeners\.chatToggle/)
+  assert.match(webApp('resources/css/app.css'), /oj-button\.mateu-chat-toggle\.mateu-chat-open \.oj-button-button \{/)
+  const chain = webApp('pages/shell-page-chains/toggleMateuChat.js')
+  assert.match(chain, /#mateuChatToggle button/, 'al cerrar, el foco vuelve al botón')
+  assert.match(chain, /setAttribute\('aria-expanded', open \? 'true' : 'false'\)/)
   // el drawer: START de un oj-drawer-layout (reflow en ancho, overlay en estrecho) que envuelve
   // el contenido — no un oj-drawer-popup, que taparía la pantalla
   const layout = shell.match(/<oj-drawer-layout id="mateuChatDrawer"[\s\S]*?>/)[0]

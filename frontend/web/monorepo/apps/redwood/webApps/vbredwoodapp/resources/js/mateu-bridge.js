@@ -2145,7 +2145,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
           // primera opción del menú
           homeRoute: md.homeRoute || '',
-          // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el FAB del chat del agente
+          // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
           sseUrl: md.sseUrl || '',
           // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = la marca de Ask Oracle
           askLabel: md.askLabel || '',

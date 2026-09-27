@@ -566,53 +566,21 @@ oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-
   }
 }
 
-/* ── Chat del agente: FAB propio + drawer izquierdo ─────────────────────────────────────
-   Dos FABs distintos, apilados en la esquina: abajo el de Ask Oracle (lo estampa el propio
-   oj-sp-simple-ui-shell) y encima el del chat (oj-ux-ico-chat), más pequeño, centrado sobre él
-   y en el color de acción. El del shell mide 72px a 24px del borde desde 1024px (pegado al
-   borde si hay barra de pestañas) y 52px pegado al borde por debajo: el del chat lo sigue. */
-.mateu-chat-fab {
-  position: fixed;
-  right: 32px;
-  bottom: 84px;
-  z-index: 100;
-  display: block;
-  width: 56px;
-  height: 56px;
+/* ── Chat del agente: botón en la cabecera + drawer izquierdo ──────────────────────────
+   El botón (oj-ux-ico-chat, sólo icono) está en las acciones de la cabecera global, antes de
+   los widgets del App. Sobre la cabecera OSCURA sus estados son el mismo velo blanco que los del
+   menú superior; mientras el panel está abierto (mateu-chat-open) lleva el velo de
+   «seleccionado» y una raya blanca abajo, que dice qué abrió el panel de la izquierda. */
+oj-sp-global-header oj-button.mateu-chat-toggle {
+  --oj-core-bg-color-hover: rgb(255 255 255 / 0.10);
+  --oj-core-bg-color-active: rgb(255 255 255 / 0.22);
+  --oj-button-borderless-chrome-border-color-hover: transparent;
+  --oj-button-borderless-chrome-border-color-active: transparent;
+  --oj-core-focus-border-color: rgb(255 255 255 / 0.6);
 }
-.mateu-chat-fab .oj-button-button {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  border-radius: var(--oj-core-border-radius-lg, 8px);
-  box-shadow: var(--oj-core-box-shadow-md, 0 4px 8px rgb(0 0 0 / 0.16));
-}
-.mateu-chat-fab .oj-button-icon {
-  font-size: 1.75rem;
-  width: 1.75rem;
-  height: 1.75rem;
-}
-.mateu-chat-fab.mateu-over-tabs {
-  right: 8px;
-}
-@media (max-width: 1023px) {
-  .mateu-chat-fab,
-  .mateu-chat-fab.mateu-over-tabs {
-    right: 2px;
-    bottom: 60px;
-    width: 48px;
-    height: 48px;
-  }
-  .mateu-chat-fab .oj-button-button {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-  }
-  .mateu-chat-fab .oj-button-icon {
-    font-size: 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-  }
+oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-button {
+  background-color: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 -2px 0 var(--oj-core-text-color-inverse, #fff);
 }
 
 /* El panel del drawer (start de oj-drawer-layout). Pegado arriba mientras la página hace
@@ -663,14 +631,11 @@ oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-
 }
 
 /* En estrecho oj-drawer-layout pasa el drawer a OVERLAY: a todo el ancho, bajo la cabecera
-   (la capa del overlay tapa también el FAB de Ask Oracle). El FAB del chat se aparta mientras
-   está abierto (estorbaría al campo de escribir); se cierra con la ✕ del panel o Escape. */
+   (la capa del overlay tapa también el FAB de Ask Oracle). Se cierra con el mismo botón de la
+   cabecera, con la ✕ del panel o con Escape. */
 @media (max-width: 1023px) {
   .mateu-chat-panel {
     width: 100vw;
-  }
-  .mateu-chat-fab.mateu-chat-open {
-    display: none;
   }
 }
 

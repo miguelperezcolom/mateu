@@ -1821,3 +1821,18 @@ distintas, y el de abajo no abre ninguna conversación sino el buscador.
 - Verificado con el bundle servido sobre front.ec1 y rw.ec1 a 1440 y 390: la "O" abajo y el
   bocadillo del chat encima (rw), y con el App reescrito a `askLabel="Ask RIU"` la "R"/el logo y
   la paleta titulada "Ask RIU".
+
+## El chat del agente se abre desde la cabecera, no desde un FAB (2026-09-27)
+
+Dos FABs apilados en la esquina (Ask Oracle y el chat) competían por el mismo sitio y el del chat
+tapaba contenido. El chat pasa a ser un botón de la cabecera global, como en el renderer Vaadin:
+
+- `oj-button#mateuChatToggle` (`chroming="borderless"`, `display="icons"`, `oj-ux-ico-chat`) en
+  las acciones de `oj-sp-global-header` (slot `end`), justo antes de los widgets del App (la
+  campana de la bandeja…), sólo si el App declara `sseUrl`. La etiqueta "Chat" es su nombre
+  accesible y su tooltip (fija: oj-button no repinta un texto enlazado dentro);
+  `aria-controls="mateuChatPanel"`, y `toggleMateuChat` pone `aria-expanded` en su `<button>`.
+- Mientras el panel está abierto lleva `mateu-chat-open`: el velo blanco de "seleccionado" de la
+  cabecera oscura y una raya blanca abajo. Hover/pulsado: el mismo velo que el menú superior.
+- El drawer izquierdo (reflow en ancho, overlay a todo el ancho en estrecho) no cambia; al cerrar
+  el foco vuelve al botón. El FAB de Ask Oracle no cambia. Borrado `#mateuChatFab` y su CSS.

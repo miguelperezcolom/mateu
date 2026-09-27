@@ -694,7 +694,7 @@
     "mateuChatSseUrl": {
       "type": "string",
       "defaultValue": "",
-      "description": "endpoint SSE del chat de IA (App.sseUrl); si est\u00e1 puesto, sale el FAB del chat"
+      "description": "endpoint SSE del chat de IA (App.sseUrl); si est\u00e1 puesto, sale el bot\u00f3n del chat en la cabecera"
     },
     "mateuChatOpen": {
       "type": "boolean",

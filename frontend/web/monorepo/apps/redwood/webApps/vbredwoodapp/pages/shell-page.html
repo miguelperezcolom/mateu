@@ -97,6 +97,20 @@
           </oj-bind-if>
         </template>
       </oj-bind-for-each>
+      <!-- CHAT DEL AGENTE: un botón de la cabecera (no un FAB), justo antes de los widgets del App
+           (la campana de la bandeja…), que abre y cierra el drawer izquierdo del chat (abajo).
+           Solo si la app declara el chat. display=icons → la etiqueta ("Chat", fija: oj-button no
+           repinta un texto enlazado) es su nombre accesible y su tooltip; mientras el panel está
+           abierto queda marcado (mateu-chat-open) y su botón lleva aria-expanded (toggleMateuChat). -->
+      <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
+        <oj-button id="mateuChatToggle" chroming="borderless" display="icons"
+          :class="[[ 'mateu-chat-toggle oj-color-invert oj-sm-margin-1x-start' + ($application.variables.mateuChatOpen ? ' mateu-chat-open' : '') ]]"
+          aria-controls="mateuChatPanel"
+          on-oj-action="[[ $listeners.chatToggle ]]">
+          <span slot="startIcon" class="oj-ux-ico-chat"></span>
+          Chat
+        </oj-button>
+      </oj-bind-if>
       <!-- WIDGETS de cabecera del App (WidgetSupplier): la zona de ACCIONES de la cabecera global.
            HTML de un Text y HTML vivo de un MicroFrontend (el badge de la bandeja, que se refresca
            con sus triggers) van a un hueco que rellena el bridge — VB no estampa HTML crudo desde
@@ -168,13 +182,13 @@
     <!-- ASK ORACLE: el FAB del propio shell (con el glifo de Ask Oracle, oj-ux-ico-oracle-o, o la
          marca del @App(askLabel, askIcon): bridge.brandAskFab) abre esta paleta —
          buscador que filtra la navegación y las vistas rápidas del listado; cada fila navega y
-         cierra. El chat del agente NO vive aquí: tiene su FAB y su drawer (abajo). -->
+         cierra. El chat del agente NO vive aquí: tiene su botón en la cabecera y su drawer (abajo). -->
     <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none"
       dialog-title="[[ $application.variables.mateuAskLabel ]]">
       <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">
 
         <!-- BUSCAR: Ask Oracle es sólo el buscador de destinos (el chat del agente tiene su
-             propio FAB y su drawer, ver abajo) -->
+             propio botón en la cabecera y su drawer, ver abajo) -->
         <div>
           <oj-input-search id="mateuAskInput" class="oj-form-control-full-width"
             placeholder="Buscar o ir a…"
@@ -221,22 +235,14 @@
       </div>
     </oj-drawer-popup>
 
-    <!-- CHAT DEL AGENTE: su propio FAB (apilado sobre el de Ask Oracle, que estampa el shell)
-         abre un drawer a la IZQUIERDA. Patrón JET: oj-drawer-layout con START drawer, que en
+    <!-- CHAT DEL AGENTE: su botón en las acciones de la cabecera global (ver arriba, antes de
+         los widgets) abre un drawer a la IZQUIERDA. Patrón JET: oj-drawer-layout con START drawer, que en
          pantalla ancha es REFLOW (el contenido se estrecha y se desplaza a la derecha, nada
          queda tapado) y en estrecha OVERLAY (start-display "auto", el corte de JET) — ahí el
          panel ocupa todo el ancho. Va DENTRO de stretchingContents: la cabecera global queda
          fuera del layout y no se mueve, y la barra de pestañas es un overlay fijo que estampa
          su componente (tampoco se mueve; el panel le reserva su alto). oj-drawer-popup no
          sirve: es siempre overlay y taparía el contenido que el usuario le está preguntando. -->
-    <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
-      <oj-button id="mateuChatFab" chroming="callToAction" display="icons"
-        :class="[[ 'mateu-chat-fab' + ($application.variables.mateuChatOpen ? ' mateu-chat-open' : '') + ($application.variables.mateuMenuTabs ? ' mateu-over-tabs' : '') ]]"
-        on-oj-action="[[ $listeners.chatToggle ]]">
-        <span slot="startIcon" class="oj-ux-ico-chat"></span>
-        <oj-bind-text value="[[ $application.variables.mateuChatOpen ? 'Cerrar el chat del asistente' : 'Chat con el asistente' ]]"></oj-bind-text>
-      </oj-button>
-    </oj-bind-if>
     <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0"
       start-opened="[[ $application.variables.mateuChatOpen ]]"
       on-oj-before-close="[[ $listeners.chatClose ]]">

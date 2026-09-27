@@ -1,6 +1,6 @@
-/* El CHAT del agente (FAB propio, distinto del de Ask Oracle): abre/cierra su drawer izquierdo.
+/* El CHAT del agente (botón de la cabecera, distinto del FAB de Ask Oracle): abre/cierra su drawer izquierdo.
  * Al abrir, foco al input y Enter→Enviar (imperativo: el on-keydown declarativo de VB no engancha
- * el keydown del oj-input-text); al cerrar, el foco vuelve al FAB que lo abrió. */
+ * el keydown del oj-input-text); al cerrar, el foco vuelve al botón que lo abrió. */
 define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
@@ -37,23 +37,31 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
     }
   };
 
-  const focusFab = () => setTimeout(() => {
-    const fab = document.querySelector('#mateuChatFab button');
-    if (fab) fab.focus();
+  const focusToggle = () => setTimeout(() => {
+    const toggle = document.querySelector('#mateuChatToggle button');
+    if (toggle) toggle.focus();
   }, 50);
+
+  // el estado del botón de la cabecera para tecnologías de apoyo: oj-button no expone uno propio,
+  // así que se marca su <button> interno (el velo de «abierto» lo pone la clase mateu-chat-open)
+  const markToggle = (open) => {
+    const toggle = document.querySelector('#mateuChatToggle button');
+    if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
 
   class toggleMateuChat extends ActionChain {
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.open  sin valor = alternar (el FAB abre y cierra)
+     * @param {boolean} params.open  sin valor = alternar (el botón abre y cierra)
      */
     async run(context, { open }) {
       const { $application } = context;
       const next = open == null ? !$application.variables.mateuChatOpen : !!open;
       if (next === $application.variables.mateuChatOpen) return;
       $application.variables.mateuChatOpen = next;
-      if (next) focusAndWireEnter(); else focusFab();
+      markToggle(next);
+      if (next) focusAndWireEnter(); else focusToggle();
     }
   }
   toggleMateuChat.focusAndWireEnter = focusAndWireEnter;

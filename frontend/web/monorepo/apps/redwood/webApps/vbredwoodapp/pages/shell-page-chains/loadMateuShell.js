@@ -135,7 +135,7 @@ define([
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';
       // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
-      // Con esto puesto sale el FAB del chat (su drawer a la izquierda), junto al de Ask Oracle.
+      // Con esto puesto sale el botón del chat en la cabecera (su drawer a la izquierda).
       $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
         ? base + reg.shell.sseUrl : '';
       // el FAB de "ask": Ask Oracle con su glifo, o el rótulo/icono del @App(askLabel, askIcon)
