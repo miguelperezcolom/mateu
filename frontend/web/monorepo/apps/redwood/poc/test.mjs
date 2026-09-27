@@ -32,6 +32,8 @@ import {
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
+  smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
+  suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -1671,6 +1673,133 @@ test('multi: los valores llegan como lista o como cadena separada por comas', ()
   assert.deepEqual(multiValuesOf('A, B'), ['A', 'B'], 'así vuelven tras restaurar desde la URL')
   assert.deepEqual(multiValuesOf(''), [])
   assert.deepEqual(multiValuesOf(null), [])
+})
+
+// ── Filtros DENTRO de la cabecera del buscador (smartFilters de oj-sp-smart-filter-search) ──
+// Los filtros ya no son una fila propia bajo el componente —quedaba al otro lado de la franja
+// de color de Redwood—: viajan por su API. Sugerencias = filtros sin aplicar; value = los
+// aplicados (y el texto libre como keyword); filtersMetadata = el editor de cada uno.
+
+const BOOKING_FILTERS = [
+  { fieldId: 'hotel', label: 'Hotel', stereotype: 'select', dataType: 'string', options: [] },
+  { fieldId: 'status', label: 'Status', stereotype: 'multiSelect', dataType: 'string',
+    options: [{ value: 'Pending', label: 'Pending' }, { value: 'Confirmed', label: 'Confirmed' }] },
+  { fieldId: 'arrival', label: 'Arrival', stereotype: 'dateRange', dataType: 'date' },
+  { fieldId: 'vista', label: 'Vista', stereotype: 'select', dataType: 'string',
+    options: [{ value: 'LLEGADAS_HOY', label: 'Llegadas hoy' }, { value: 'IN_HOUSE', label: 'In house' }] },
+  { fieldId: 'vip', label: 'VIP', dataType: 'bool' },
+  { fieldId: 'nights', label: 'Nights', stereotype: 'numberRange', dataType: 'integer' },
+].map((f) => filterDescriptorOf(f))
+
+test('smart filters: el editor de cada kind es el widget de oj-dynamic que toca', () => {
+  const meta = smartFiltersMetadataOf(BOOKING_FILTERS)
+  assert.equal(meta.discriminator, 'filter', 'el componente busca el editor por el fieldId del chip')
+  const valueOf = (id) => meta.polymorphicTypes[id].properties.value
+  assert.equal(valueOf('hotel').componentType, 'oj-input-text', 'un select sin opciones se teclea')
+  assert.equal(valueOf('status').componentType, 'oj-checkboxset')
+  assert.equal(valueOf('status').type, 'array')
+  assert.deepEqual(valueOf('status').options.map((o) => o.value), ['Pending', 'Confirmed'])
+  assert.equal(valueOf('vista').componentType, 'oj-select-single')
+  assert.deepEqual(valueOf('vip').options.map((o) => o.value), ['true', 'false'])
+  // gte/lte con esa forma exacta: el componente reconoce el rango y lo pinta "desde - hasta"
+  const arrival = valueOf('arrival')
+  assert.equal(arrival.type, 'object')
+  assert.equal(arrival.properties.gte.componentType, 'oj-input-date')
+  assert.equal(arrival.properties.lte.type, 'string')
+  assert.equal(valueOf('nights').properties.gte.componentType, 'oj-input-number')
+  assert.equal(valueOf('nights').properties.gte.type, 'number')
+})
+
+test('smart filters: una sugerencia por filtro declarado, y el rango lleva sus dos claves', () => {
+  const sugg = smartFilterSuggestionsOf(BOOKING_FILTERS)
+  assert.deepEqual(sugg.map((s) => s.filter), ['hotel', 'status', 'arrival', 'vista', 'vip', 'nights'])
+  const by = (id) => sugg.filter((s) => s.filter === id)[0]
+  assert.equal(by('vista').filterLabel, 'Vista', 'con filterLabel el chip se lee "Vista Llegadas hoy"')
+  assert.equal(by('hotel').filterLabel, undefined, 'un texto con filterLabel escondería lo tecleado')
+  assert.deepEqual(by('arrival').value, { gte: null, lte: null },
+    'sin claves en el valor, el popup de un rango sale vacío')
+})
+
+test('smart filters: el estado de Mateu se pinta como chips aplicados, keyword incluido', () => {
+  const value = smartFilterValueOf(BOOKING_FILTERS, {
+    vista: 'LLEGADAS_HOY', status: 'Pending,Confirmed', arrival_from: '2026-09-01', vip: true, hotel: '  ',
+  }, 'garcía')
+  assert.deepEqual(value[0], { filter: KEYWORD_FILTER, label: 'garcía', value: 'garcía' })
+  const by = (id) => value.filter((c) => c.filter === id)[0]
+  assert.deepEqual(by('status'), { filter: 'status', label: 'Pending', filterLabel: 'Status', value: ['Pending', 'Confirmed'] })
+  assert.deepEqual(by('arrival').value, { gte: '2026-09-01', lte: null })
+  assert.equal(by('vista').label, 'Llegadas hoy')
+  assert.equal(by('vip').value, 'true')
+  assert.equal(by('hotel'), undefined, 'en blanco no es un filtro aplicado')
+})
+
+test('smart filters: los chips del componente vuelven a texto + valores del componentState', () => {
+  const state = filterStateOfSmartFilters(BOOKING_FILTERS, [
+    { filter: 'keyword', label: 'sale', value: 'sale' },
+    { filter: 'keyword', label: 'hoy', value: 'hoy' },
+    { filter: 'arrival', label: 'Arrival', value: { gte: '2026-09-01', lte: '2026-09-30' } },
+    { filter: 'status', label: 'Pending', filterLabel: 'Status', value: ['Pending'] },
+    { filter: 'vista', label: 'Vista', filterLabel: 'Vista' }, // recién sugerido: aún sin valor
+    { filter: 'desconocido', label: 'x', value: 'y' },
+  ])
+  assert.equal(state.searchText, 'sale hoy')
+  assert.deepEqual(state.values, { arrival_from: '2026-09-01', arrival_to: '2026-09-30', status: ['Pending'] })
+})
+
+test('smart filters: ida y vuelta sin perder nada', () => {
+  const values = { vista: 'IN_HOUSE', status: ['Confirmed'], nights_to: 3, hotel: 'Riu' }
+  const back = filterStateOfSmartFilters(BOOKING_FILTERS, smartFilterValueOf(BOOKING_FILTERS, values, 'x'))
+  assert.deepEqual(back, { searchText: 'x', values })
+})
+
+atest('smart filters: las sugerencias excluyen los filtros aplicados y filtran por texto', async () => {
+  const rows = smartFilterSuggestionsOf(BOOKING_FILTERS)
+  const dp = suggestionFiltersProviderOf(rows)
+  const criterion = { op: '$and', criteria: [{ op: '$ne', value: { filters: [{ filter: 'vista' }] } }, { text: '' }] }
+  const it = dp.fetchFirst({ filterCriterion: criterion })[Symbol.asyncIterator]()
+  const first = await it.next()
+  assert.equal(first.done, true, 'un único bloque: dataProviderToArray de oj-sp itera hasta done')
+  assert.equal(first.value.data.some((r) => r.filter === 'vista'), false)
+  assert.equal(first.value.data.length, rows.length - 1)
+  assert.deepEqual(suggestionRowsFor(rows, { text: 'arr' }).map((r) => r.filter), ['arrival'])
+  const byKeys = await dp.fetchByKeys({ keys: new Set(['status']) })
+  assert.equal(byKeys.results.get('status').data.label, 'Status')
+})
+
+atest('smart filters: la config completa lleva sugerencias y metadata; sin filtros, sólo el buscador', async () => {
+  setMetadataProviderFactory(async (data) => ({ provided: data }))
+  try {
+    const config = await smartFiltersOf(BOOKING_FILTERS, { vista: 'IN_HOUSE' }, '')
+    assert.equal(config.value.length, 1)
+    assert.equal(typeof config.suggestionFilters.fetchFirst, 'function')
+    assert.equal(config.filtersMetadata.provided.discriminator, 'filter')
+    const bare = await smartFiltersOf([], {}, 'hola')
+    assert.deepEqual(Object.keys(bare).sort(), ['askHint', 'value'])
+  } finally {
+    setMetadataProviderFactory(null)
+  }
+})
+
+const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')
+
+test('smart filters: las plantillas pintan los filtros DENTRO de la cabecera, no en una fila tras ella', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const headers = html.match(/<oj-sp-smart-filter-search[\s\S]*?<\/oj-sp-smart-filter-search>/g) || []
+  assert.equal(headers.length, 2, 'la cabecera de colección a sangre y la inline')
+  for (const h of headers) {
+    assert.match(h, /smart-filters="\[\[ \$application\.variables\.mateuSmartFilters \]\]"/)
+    assert.match(h, /on-smart-filters-changed="\[\[ \$listeners\.smartFiltersChanged \]\]"/)
+  }
+  // ningún chip de filtro propio fuera del componente (quedaba bajo la franja de color)
+  const outside = headers.reduce((acc, h) => acc.replace(h, ''), html)
+  assert.equal(/<oj-sp-filter-chip/.test(outside), false, 'no hay fila de filtros fuera del componente')
+  assert.equal(/mateuFilterChips|mateuFilterEditing/.test(html), false)
+  // la navegación proyecta la config; la búsqueda lanzada por el componente no la reasigna
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateuSmartFilters = await bridge\.smartFiltersOf\(/)
+  assert.equal(/mateuSmartFilters\s*=/.test(webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')), false)
+  // las sugerencias (sin aplicar) no enseñan la parte de valor: un rango vacío se leería "Llegada -"
+  assert.match(webApp('resources/css/app.css'),
+    /oj-sp-smart-filter-search \.oj-sp-filter-chip-non-applied \.oj-sp-filter-chip-non-applied-value-count-focusable \{\s*display: none;/)
 })
 
 // ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────

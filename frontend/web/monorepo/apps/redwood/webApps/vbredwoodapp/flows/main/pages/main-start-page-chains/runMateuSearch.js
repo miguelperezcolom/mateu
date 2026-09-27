@@ -38,7 +38,7 @@ define([
         page: 0,
         size: listing.pageSize,
       });
-      // filtros aplicados (los chips bajo el smart search) → viajan en el componentState,
+      // filtros aplicados (los chips del smart search) → viajan en el componentState,
       // que es donde SearchActionHandler los lee; un rango ocupa dos claves
       const applied = $application.variables.mateuFilterValues || {};
       for (const key of Object.keys(applied)) {
@@ -53,12 +53,8 @@ define([
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];
-      // los filtros declarados viajan en cada respuesta del listado: re-proyectar los chips
-      // aquí es lo que hace que el estado aplicado y lo que se ve no se separen nunca
-      $application.variables.mateuFilterChips = bridge.filterChipsOf(
-        (refreshed && refreshed.filters) || [], applied);
-      $application.variables.mateuHasAppliedFilters =
-        $application.variables.mateuFilterChips.filter((c) => c.applied).length > 0;
+      // los chips de filtro NO se re-proyectan aquí: los lleva el propio smart-filters, que es
+      // quien ha lanzado esta búsqueda (reasignarle la config le cerraría el popup abierto)
     }
   }
 

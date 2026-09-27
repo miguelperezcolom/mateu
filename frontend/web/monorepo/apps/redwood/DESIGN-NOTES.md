@@ -1693,3 +1693,43 @@ Regla: un ÚNICO card SIN TÍTULO que envuelve todo el contenido se aplana. Con 
 tarjeta de verdad y se respeta, igual que cuando hay varias (la 360 y sus zonas siguen con sus
 paneles). El título de una tarjeta es reconocible porque `visit()` lo mete como primer átomo de
 texto con la clase del subencabezado.
+
+## Filtros dentro de la cabecera del buscador (2026-09-27)
+
+### Filtros: por la API `smartFilters` de oj-sp-smart-filter-search
+
+La fila "Filtrar por" se pintaba DESPUÉS del cierre de `<oj-sp-smart-filter-search>`, y la franja de
+color de Redwood (`div.oj-sp-header-general-overview-header-strip`) está al PIE de la cabecera del
+componente: quedaba en mitad de la página, entre el buscador y los filtros+tabla. Ahora los filtros
+viajan por la API del componente (loader de oj-sp 2604.1.0) y los pinta él, por encima de la franja:
+
+- `value` → los aplicados, como chips DENTRO del campo (con su ✕); el texto libre va ahí mismo
+  como chips `keyword`. `bridge.smartFilterValueOf` los saca del estado de Mateu y
+  `bridge.filterStateOfSmartFilters` hace lo inverso (texto + valores del componentState).
+- `suggestionFilters` → los NO aplicados, un chip por filtro bajo el buscador. Es un DataProvider
+  local mínimo (`suggestionFiltersProviderOf`): el componente pide `fetchFirst` con
+  `{op:'$ne', value:{filters}}` y quita los ya aplicados; un único bloque con `done: true`.
+- `filtersMetadata` → un `JsonMetadataProvider` de oj-dynamic polimórfico por `filter` (el
+  fieldId): el editor que abre el popup del componente. Por kind: texto `oj-input-text`, número
+  `oj-input-number`, select/booleano `oj-select-single`, multi (enum) `oj-checkboxset` (array),
+  rango `{gte,lte}` de `oj-input-date(-time)`/`oj-input-number` — con ESA forma exacta el
+  componente reconoce el rango y pinta el chip "desde - hasta" formateado. El provider se carga
+  bajo demanda (`require` en el AMD) sólo si el listado declara filtros.
+- Los de opciones llevan `filterLabel` (el chip se lee "Vista Llegadas hoy"); texto y rango NO
+  (con filterLabel el componente enseñaría la etiqueta en vez de lo tecleado).
+- La sugerencia de un rango lleva `value: {gte:null, lte:null}`: el popup saca sus campos de las
+  claves del valor (sin ellas sale vacío). El componente la pintaría "Llegada -": app.css oculta
+  la parte de valor de los chips SIN aplicar dentro del smart search (Mateu no usa contadores).
+- La config se proyecta SÓLO al navegar (`onMateuNavigate`). Las búsquedas que lanza el propio
+  componente (`smartFiltersChanged` → `runMateuSearch`) NO la reasignan: le cerrarían el popup del
+  filtro que se está editando. Un chip recién sacado de las sugerencias aún no tiene valor → no
+  cambia el estado → no se busca.
+- Se borraron la fila propia, su editor por kind y las cadenas mateuFilterApplied/DraftChanged/
+  Opened/FiltersCleared/RangeApplied (y sus variables de app).
+
+Verificado contra el cluster con el bundle local: /booking/bookings (Status multi, Arrival y
+Departure rango de fecha, Hotel texto — filtran), front /reservas "Vista" 20→8 filas a 1440 y a
+390 (a 390 el componente usa su diálogo a pantalla completa). /partners/partners manda
+`type: ["Company"]`/`status: ["Inactive"]` igual que la fila antigua y el backend devuelve las 259
+filas con el bundle desplegado también: el Crud declara esos filtros como enum simple y Mateu los
+publica como multiSelect — es del backend, no del renderer.

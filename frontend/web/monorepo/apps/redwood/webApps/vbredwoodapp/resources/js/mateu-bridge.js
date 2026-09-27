@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
+define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   'use strict';
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
@@ -1782,6 +1782,226 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     if (Array.isArray(value)) return value.map(String)
     const text = String(value).trim()
     return text === '' ? [] : text.split(',').map((s) => s.trim()).filter((s) => s)
+  }
+
+  // ── Filtros DENTRO de la cabecera del buscador ────────────────────────────────────────────
+  // Los filtros viajan por la API `smartFilters` de oj-sp-smart-filter-search, no en una fila
+  // propia debajo: el componente pinta su cabecera (título + buscador + filtros) y, al pie, la
+  // franja de color de Redwood. Una fila de filtros FUERA del componente quedaba al otro lado de
+  // la franja, que así parecía una ilustración suelta en mitad de la página.
+  //
+  // La API cubre todos los kinds de Mateu, cada uno con el editor que el propio componente abre
+  // en su popup (un oj-dynamic-form alimentado por `filtersMetadata`):
+  //   - `suggestionFilters`: los filtros SIN aplicar — un chip por filtro declarado bajo el
+  //     buscador; el componente quita de ahí los que ya están aplicados.
+  //   - `value`: los aplicados — chips DENTRO del campo de búsqueda, con su ✕; el texto libre
+  //     viaja ahí mismo como chips `keyword`.
+  //   - `filtersMetadata`: un JsonMetadataProvider de oj-dynamic, polimórfico por `filter` (el
+  //     fieldId): el editor del valor de cada filtro.
+
+  const KEYWORD_FILTER = 'keyword'
+  const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
+
+  /** El editor del valor de un filtro, en el vocabulario de oj-dynamic (lo que abre el popup). */
+  function smartFilterValueMetadataOf(f) {
+    const labelHint = f.label
+    if (f.isRange) {
+      // gte/lte oj-input-date (string) u oj-input-number (number): con esa forma exacta el
+      // componente reconoce el rango y pinta el chip como "desde - hasta" formateado
+      const numeric = f.inputType === 'number'
+      const componentType = numeric ? 'oj-input-number'
+        : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
+      const type = numeric ? 'number' : 'string'
+      return {
+        type: 'object',
+        labelHint,
+        properties: {
+          gte: { type, componentType, labelHint: 'Desde' },
+          lte: { type, componentType, labelHint: 'Hasta' },
+        },
+      }
+    }
+    const options = (f.options || []).map((o) => ({ value: String(o.value), label: o.label }))
+    if (f.isMulti) {
+      return { type: 'array', items: { type: 'string' }, componentType: 'oj-checkboxset', labelHint, options }
+    }
+    if (f.isOptions) return { type: 'string', componentType: 'oj-select-single', labelHint, options }
+    if (f.isBool) return { type: 'string', componentType: 'oj-select-single', labelHint, options: BOOL_CHOICES }
+    if (f.inputType === 'number') return { type: 'number', componentType: 'oj-input-number', labelHint }
+    return { type: 'string', componentType: 'oj-input-text', labelHint }
+  }
+
+  /**
+   * `filtersMetadata` en crudo (JSON de oj-dynamic): polimórfico por `filter`, un tipo por filtro
+   * declarado. El componente lo consulta con getMetadataByDiscriminator('filter', fieldId).
+   */
+  function smartFiltersMetadataOf(filters) {
+    const polymorphicTypes = {}
+    for (const f of filters || []) {
+      polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
+    }
+    return {
+      type: 'object',
+      properties: { filter: { type: 'string' }, label: { type: 'string' } },
+      discriminator: 'filter',
+      polymorphicTypes,
+    }
+  }
+
+  // Los de opciones llevan `filterLabel` (el nombre del campo): el componente pone en `label` la
+  // etiqueta de la opción elegida y el chip se lee "Vista Llegadas hoy". Un texto o un rango NO:
+  // con filterLabel el componente enseña la etiqueta en vez del valor tecleado.
+  const usesFilterLabel = (f) => f.isOptions || f.isMulti || f.isBool
+
+  /** Los chips de `suggestionFilters`: uno por filtro declarado, sin valor. */
+  function smartFilterSuggestionsOf(filters) {
+    return (filters || []).map((f) => {
+      const chip = { filter: f.fieldId, label: f.label }
+      if (usesFilterLabel(f)) chip.filterLabel = f.label
+      // el formulario del popup saca sus campos de las claves del valor: sin ellas, un rango
+      // abre un popup vacío
+      if (f.isRange) chip.value = { gte: null, lte: null }
+      return chip
+    })
+  }
+
+  /** El `value` del componente (los chips aplicados) a partir del estado de Mateu. */
+  function smartFilterValueOf(filters, values, searchText) {
+    const v = values || {}
+    const out = []
+    const text = searchText == null ? '' : String(searchText).trim()
+    if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
+    for (const f of filters || []) {
+      if (f.isRange) {
+        const from = v[f.fromKey]
+        const to = v[f.toKey]
+        if (isBlank(from) && isBlank(to)) continue
+        out.push({ filter: f.fieldId, label: f.label,
+          value: { gte: isBlank(from) ? null : from, lte: isBlank(to) ? null : to } })
+        continue
+      }
+      const value = v[f.fieldId]
+      if (isBlank(value)) continue
+      if (f.isMulti) {
+        const selected = multiValuesOf(value)
+        if (!selected.length) continue
+        out.push({ filter: f.fieldId, label: labelOfOption(f, selected[0]), filterLabel: f.label, value: selected })
+      } else if (f.isBool) {
+        const bool = value === true || value === 'true' ? 'true' : 'false'
+        out.push({ filter: f.fieldId, label: bool === 'true' ? 'Yes' : 'No', filterLabel: f.label, value: bool })
+      } else if (f.isOptions) {
+        out.push({ filter: f.fieldId, label: labelOfOption(f, value), filterLabel: f.label, value: String(value) })
+      } else {
+        out.push({ filter: f.fieldId, label: f.label, value })
+      }
+    }
+    return out
+  }
+
+  /**
+   * Lo inverso: los chips aplicados del componente → el texto buscado (los keywords, en orden) y
+   * los valores de filtro que viajan en el componentState. Un chip recién sacado de las
+   * sugerencias todavía no tiene valor: no filtra hasta que se elige uno en su popup.
+   */
+  function filterStateOfSmartFilters(filters, chips) {
+    const byId = {}
+    for (const f of filters || []) byId[f.fieldId] = f
+    const values = {}
+    const keywords = []
+    for (const chip of chips || []) {
+      if (!chip) continue
+      if (chip.filter === KEYWORD_FILTER) {
+        if (!isBlank(chip.value)) keywords.push(String(chip.value))
+        continue
+      }
+      const f = byId[chip.filter]
+      if (!f) continue
+      if (f.isRange) {
+        const range = chip.value || {}
+        if (!isBlank(range.gte)) values[f.fromKey] = range.gte
+        if (!isBlank(range.lte)) values[f.toKey] = range.lte
+      } else if (f.isMulti) {
+        const selected = multiValuesOf(chip.value)
+        if (selected.length) values[f.fieldId] = selected
+      } else if (!isBlank(chip.value)) {
+        values[f.fieldId] = chip.value
+      }
+    }
+    return { searchText: keywords.join(' '), values }
+  }
+
+  /**
+   * Las sugerencias que tocan para un fetch del componente: fuera las de los filtros ya
+   * aplicados (el criterio trae `{op:'$ne', value:{filters}}`) y, si hay texto, las que no lo
+   * contienen. Es el contrato del SuggestionFiltersDataProvider de oj-sp, que es REST; aquí las
+   * sugerencias son locales.
+   */
+  function suggestionRowsFor(rows, criterion) {
+    const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
+    let applied = []
+    let text = ''
+    for (const c of parts) {
+      if (c && c.op === '$ne' && c.value && Array.isArray(c.value.filters)) applied = c.value.filters
+      if (c && typeof c.text === 'string') text = c.text.trim().toLowerCase()
+    }
+    const taken = applied.map((a) => a && a.filter)
+    return (rows || [])
+      .filter((r) => taken.indexOf(r.filter) < 0)
+      .filter((r) => !text || String(r.filterLabel || r.label).toLowerCase().indexOf(text) >= 0)
+  }
+
+  /** Un DataProvider (la parte que usa oj-sp-smart-filters) sobre las sugerencias locales. */
+  function suggestionFiltersProviderOf(rows) {
+    const all = rows || []
+    const block = (data, params) => ({
+      done: true,
+      value: { data, metadata: data.map((r) => ({ key: r.filter })), fetchParameters: params },
+    })
+    return {
+      fetchFirst(params) {
+        const data = suggestionRowsFor(all, params && params.filterCriterion)
+        return { [Symbol.asyncIterator]: () => ({ next: () => Promise.resolve(block(data, params)) }) }
+      },
+      fetchByKeys(params) {
+        const results = new Map()
+        for (const key of (params && params.keys) || []) {
+          const row = all.filter((r) => r.filter === key)[0]
+          if (row) results.set(key, { data: row, metadata: { key } })
+        }
+        return Promise.resolve({ fetchParameters: params, results })
+      },
+      containsKeys(params) {
+        const results = new Set()
+        for (const key of (params && params.keys) || []) {
+          if (all.some((r) => r.filter === key)) results.add(key)
+        }
+        return Promise.resolve({ containsParameters: params, results })
+      },
+      getCapability() { return null },
+      getTotalSize() { return Promise.resolve(all.length) },
+      isEmpty() { return all.length ? 'no' : 'yes' },
+      addEventListener() {},
+      removeEventListener() {},
+      dispatchEvent() { return true },
+    }
+  }
+
+  // el JsonMetadataProvider de oj-dynamic: lo pone el módulo AMD (el core no depende de JET)
+  let metadataProviderFactory = null
+  function setMetadataProviderFactory(factory) { metadataProviderFactory = factory }
+
+  /**
+   * La configuración ENTERA de `smart-filters` para un listado: sugerencias, aplicados y el
+   * editor de cada filtro. Sin filtros declarados, sólo el buscador de texto (como siempre).
+   */
+  async function smartFiltersOf(filters, values, searchText) {
+    const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
+    if (!filters || !filters.length) return config
+    config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+    if (metadataProviderFactory) {
+      config.filtersMetadata = await metadataProviderFactory(smartFiltersMetadataOf(filters))
+    }
+    return config
   }
 
   function labelOfOption(filter, value) {
@@ -3866,6 +4086,13 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
 
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
+  // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
+  // sólo cuando un listado declara filtros
+  setMetadataProviderFactory((data) => new Promise((resolve, reject) => {
+    require(['oj-dynamic/providers/JsonMetadataProvider'], (JsonMetadataProvider) => {
+      resolve(new JsonMetadataProvider({ data }));
+    }, reject);
+  }));
 
   return {
     HOST_ID,
@@ -3888,9 +4115,12 @@ define(['ojs/ojarraydataprovider'], (ArrayDataProvider) => {
     selectedRowsOf,
     withListingSelection,
     onLoadTriggers,
-    // filtros del listado: descriptores ya resueltos a widget y su fila de chips
+    // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
+    // cabecera del buscador (sugerencias, aplicados y editores) con su vuelta a estado Mateu
     filterChipsOf,
     multiValuesOf,
+    smartFiltersOf,
+    filterStateOfSmartFilters,
     fieldListOf,
     overlayOf,
     eventTriggersOf,

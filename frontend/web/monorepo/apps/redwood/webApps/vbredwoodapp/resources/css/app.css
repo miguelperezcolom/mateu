@@ -483,3 +483,17 @@ oj-sp-global-header [id$='_GHStartSlot']::-webkit-scrollbar {
 oj-sp-global-header .oj-sp-global-header-panel-container > div:last-child {
   flex-shrink: 0;
 }
+
+/* Las SUGERENCIAS de filtro de la cabecera del buscador (smart-filters) son sólo el nombre del
+   filtro: su valor se elige en el popup. Un rango necesita llevar {gte,lte} vacíos en la
+   sugerencia (el formulario del popup saca sus campos de esas claves) y el componente, que
+   reconoce el rango, lo pinta como "desde - hasta" formateado: "Llegada -" con los dos a null.
+   Aquí la parte de valor de un chip SIN aplicar no se enseña (Mateu no usa contadores en las
+   sugerencias) y la etiqueta recupera el margen final que el componente sólo le pone cuando no
+   hay valor. Los chips aplicados no cambian. */
+oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-applied-value-count-focusable {
+  display: none;
+}
+oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-applied-label-focusable {
+  padding-inline-end: var(--oj-core-spacing-2x, 0.5rem);
+}
