@@ -3570,8 +3570,9 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
   /** Los widgets de un campo del formulario de la página (no los de un diálogo o un drawer). */
   function fieldElementsOf(fieldId) {
     if (typeof document === 'undefined') return []
-    const esc = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(fieldId) : String(fieldId).replace(/"/g, '\\"')
-    return [...document.querySelectorAll('[data-field-id="' + esc + '"]')]
+    // comparando el atributo, sin montar un selector con el id: nada que escapar
+    return [...document.querySelectorAll('[data-field-id]')]
+      .filter((el) => el.getAttribute('data-field-id') === String(fieldId))
       .filter((el) => !el.closest('oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'))
   }
 
