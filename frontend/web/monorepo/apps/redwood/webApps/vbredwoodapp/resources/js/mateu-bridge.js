@@ -388,26 +388,120 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
-  /** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → tren del guided-process
-   *  ({id,label} + currentStep por id). null si la página no es un wizard. En la pantalla de
-   *  resultado todos los pasos van 'done' → currentStep = el último. */
+  /** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → pasos ({id,label} + currentStep
+   *  por id). null si la página no es un wizard. En la pantalla de resultado todos los pasos van
+   *  'done' → currentStep = el último.
+   *
+   *  ORIENTACIÓN: la decide el propio wizard con @WizardProgress — RAIL manda un ProgressSteps
+   *  VERTICAL (el rail lateral: el oj-sp-guided-process auténtico, con su columna de pasos a la
+   *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
+   *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
+   *  tren de 4-5 rótulos no cabe en un móvil). */
   function wizardOf(ctx) {
     const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
     if (!node) return null
     const md = node.metadata
+    const wire = md.steps || []
     // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on';
     // el status de Mateu NO se emite (el indicador del rail espera otro enum)
-    const steps = (md.steps || []).map((s) => ({
+    const steps = wire.map((s) => ({
       id: s.id,
       label: s.title || s.id,
       title: s.title || s.id,
       display: 'on',
     }))
-    const current = (md.steps || []).find((s) => s.status === 'current')
+    const current = wire.find((s) => s.status === 'current')
+    const currentStep = current ? current.id : (steps.length ? steps[steps.length - 1].id : null)
+    const currentIndex = Math.max(0, steps.findIndex((s) => s.id === currentStep))
+    const statusOf = (s, i) => s.status || (i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'upcoming')
     return {
       steps,
-      currentStep: current ? current.id : (steps.length ? steps[steps.length - 1].id : null),
+      currentStep,
+      horizontal: !md.vertical,
+      currentIndex,
+      currentLabel: steps.length ? steps[currentIndex].label : '',
+      total: steps.length,
+      // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
+      // se avanza con el botón del paso, que valida
+      trainSteps: wire.map((s, i) => {
+        const status = statusOf(s, i)
+        return {
+          id: s.id,
+          label: s.title || s.id,
+          visited: status === 'done',
+          disabled: status === 'upcoming',
+        }
+      }),
+      // la misma lista, para la variante vertical (pantallas estrechas): número o ✓ + rótulo
+      listSteps: wire.map((s, i) => {
+        const status = statusOf(s, i)
+        return {
+          id: s.id,
+          label: s.title || s.id,
+          marker: status === 'done' ? '✓' : String(i + 1),
+          cls: 'mateu-wizard-step mateu-wizard-step-' + status,
+        }
+      }),
     }
+  }
+
+  /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
+   *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+  function isRichAtom(a) {
+    return !!(a && (a.isEntityHeader || a.isTaskProgress || a.isMeter || a.isStatusList || a.isLedger
+      || a.isPayment || a.isResourceGrid || a.isAddOns || a.isStat || a.isNotice || a.isPropertyRow))
+  }
+
+  /** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
+  function isWizardNavAtom(a) {
+    return !!(a && a.isButtons && (a.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next'))
+  }
+
+  /**
+   * El PASO actual de un wizard, listo para pintar: { title, content, sections, nav }.
+   *
+   * - content: los bloques display del paso (hostContentOf en modo wizard, con la isla fusionada).
+   * - sections: los campos del paso agrupados por @Section (formSectionsOf), o [] si el contenido
+   *   es RICO (la misma regla que el host: el header/las property rows ya muestran esos datos).
+   * - Cada campo UNA vez: los FormFields que el formulario pinta (con su widget de verdad: select,
+   *   fecha…) salen del contenido, donde sólo serían un oj-input-text de texto — antes salían dos
+   *   veces, arriba como texto y abajo con su desplegable. Los de una isla fusionada (fromNested)
+   *   son de otro contexto y se quedan.
+   * - En HORIZONTAL (tren arriba) el pie Back/Next del wire sale del contenido a `nav` (la barra
+   *   del pie), y el título del wizard (su h2) sale a `title` si la página no trae otro.
+   */
+  function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
+    const wizard = wizardOf(ctx)
+    if (!wizard) return null
+    let content = hostContentOf(ctx, islandBlocks,
+      { forWizard: true, keepWizardNav: wizard.horizontal, title: opts.title || '' }) || []
+    let sections = opts.sections || []
+    if (content.some((block) => (block.items || []).some(isRichAtom))) sections = []
+    const onForm = new Set()
+    for (const section of sections) for (const f of section.fields || []) onForm.add(f.fieldId)
+    let title = opts.title || ''
+    let nav = []
+    content = content.map((block) => {
+      let movedToForm = 0
+      const items = block.items.filter((a) => {
+        if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
+        if (wizard.horizontal) {
+          if (!title && a.isText && a.isH2) { title = a.text; return false }
+          if (isWizardNavAtom(a)) { nav = a.buttons; return false }
+        }
+        return true
+      })
+      // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
+      // ya pinta esa sección con su encabezado — fuera la tarjeta vacía
+      const onlyHeadings = items.every((a) => a.isText && a.isHeading)
+      return { ...block, items: movedToForm && onlyHeadings ? [] : items }
+    }).filter((block) => block.items.length)
+    // la acción de AVANCE (Next, o la de completar) es la llamada a la acción del pie
+    nav = nav.map((b) => ({
+      ...b,
+      chroming: b.actionId === 'back' ? 'outlined' : 'callToAction',
+    }))
+    return { wizard, title, content, sections, nav }
   }
 
   /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
@@ -797,6 +891,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const buttonOf = (m) => ({
       actionId: m.actionId,
       label: m.label || m.actionId,
+      disabled: !!m.disabled,
       chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: m.parameters || {},
     })
@@ -1361,7 +1456,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           }
           if (opts.forWizard) {
             if (atom.isProgress) return false
-            if (atom.isButtons && atom.buttons.length
+            if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
           }
           return true
@@ -4638,6 +4733,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     fieldListOf,
     secondaryActionOf,
     formSectionsOf,
+    // el paso de un wizard: contenido + campos (cada uno una vez) + el pie Back/Next
+    wizardStepViewOf,
+    isRichAtom,
     // editor de filas modal de una lista del formulario (@DetailFormCustomisation modal)
     listActionOf,
     listActionRequestOf,

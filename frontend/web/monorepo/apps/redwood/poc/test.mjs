@@ -38,6 +38,7 @@ import {
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
+  wizardStepViewOf, isRichAtom,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2586,6 +2587,93 @@ test('secondaryActionOf: la secundaria del header se resuelve por su actionId (y
   assert.equal(secondaryActionOf({ secondaryItem: 'nope' }, toolbar), null)
   assert.equal(secondaryActionOf({}, toolbar), null)
   assert.equal(secondaryActionOf(null, null), null)
+})
+
+// WIZARD: cada campo UNA vez, y el tren ARRIBA con @WizardProgress(STEPS). El walk-in del front
+// office de ec-demo1 (fixture real): antes los FormFields salían dos veces — arriba como átomos
+// isInput (texto) del contenido y abajo en el form de secciones, con su desplegable.
+test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arriba', () => {
+  const reg = reduceContexts(empty(), fx('fo-walkin-wizard'))
+  const host = reg.contexts[HOST_ID]
+  const summary = summarizeHost(reg, '/walk-in')
+  const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
+  // STEPS → horizontal: tren arriba, no el rail del guided process
+  assert.equal(view.wizard.horizontal, true)
+  assert.deepEqual(view.wizard.trainSteps.map((s) => [s.id, s.disabled, s.visited]),
+    [['estancia', false, false], ['precio', true, false], ['titular', true, false], ['confirmar', true, false]])
+  assert.equal(view.wizard.currentLabel, 'Estancia')
+  assert.deepEqual(view.wizard.listSteps.map((s) => s.marker), ['1', '2', '3', '4'])
+  assert.match(view.wizard.listSteps[0].cls, /mateu-wizard-step-current/)
+  // el título del wizard (su h2) sube a la cabecera y no se repite en el contenido
+  assert.equal(view.title, 'Walk-in')
+  const atoms = view.content.flatMap((b) => b.items)
+  assert.ok(!atoms.some((a) => a.isText && a.text === 'Walk-in'))
+  // ningún campo del form queda además como input de texto en el contenido
+  assert.ok(!atoms.some((a) => a.isInput), 'sin inputs duplicados en el contenido')
+  const fields = view.sections.flatMap((sec) => sec.fields)
+  assert.deepEqual(fields.map((f) => f.fieldId),
+    ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
+  assert.ok(fields.find((f) => f.fieldId === 'habitacion').isSelect)
+  assert.ok(fields.find((f) => f.fieldId === 'llegada').isDate)
+  // el pie Back/Next del wire va a la barra del pie (Back deshabilitado en el primer paso),
+  // con los rótulos que manda el servidor
+  assert.deepEqual(view.nav.map((b) => [b.actionId, b.label, b.disabled, b.chroming]),
+    [['back', 'Back', true, 'outlined'], ['next', 'Next', false, 'callToAction']])
+  assert.ok(!atoms.some((a) => a.isButtons && a.buttons.some((b) => b.actionId === 'next')))
+})
+
+test('wizard: el check-in (contenido rico) conserva su contenido y sus acciones de página', () => {
+  const reg = reduceContexts(empty(), fx('fo-checkin-wizard'))
+  const host = reg.contexts[HOST_ID]
+  const summary = summarizeHost(reg, '/checkin/V5M48N')
+  const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
+  assert.equal(view.wizard.horizontal, true)
+  assert.equal(view.wizard.currentStep, 'identidad')
+  assert.equal(view.title, 'Check-In')
+  const atoms = view.content.flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isNotice))
+  assert.ok(atoms.some(isRichAtom))
+  assert.deepEqual(view.sections, []) // rico → sin form genérico (misma regla que el host)
+  // los botones de pax son acciones de página (con parámetros): se quedan en el contenido
+  assert.ok(atoms.some((a) => (a.buttons || []).some((b) => b.actionId === 'selectPax')))
+  assert.deepEqual(view.nav.map((b) => b.actionId), ['back', 'next'])
+})
+
+test('wizard: con RAIL (ProgressSteps vertical) sigue el guided process — sin pie ni título fuera', () => {
+  const increment = fx('load-wizard')
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (n.metadata && n.metadata.type === 'ProgressSteps') n.metadata.vertical = true
+    for (const v of Object.values(n)) {
+      if (Array.isArray(v)) v.forEach(walk)
+      else if (v && typeof v === 'object') walk(v)
+    }
+  }
+  walk(increment)
+  const reg = reduceContexts(empty(), increment)
+  const summary = summarizeHost(reg, '/wizard')
+  const view = wizardStepViewOf(reg.contexts[HOST_ID], null, { title: summary.title, sections: summary.sections })
+  assert.equal(view.wizard.horizontal, false)
+  assert.deepEqual(view.nav, [])
+  const atoms = view.content.flatMap((b) => b.items)
+  // el pie back/next lo aporta el guided process: fuera del contenido, como siempre
+  assert.ok(!atoms.some((a) => a.isButtons && a.buttons.every((b) => b.actionId === 'back' || b.actionId === 'next')))
+  // y también aquí cada campo una vez
+  assert.ok(!atoms.some((a) => a.isInput))
+  assert.deepEqual(view.sections.flatMap((sec) => sec.fields.map((f) => f.fieldId)), ['name', 'email'])
+})
+
+test('wizard: el alta de reserva (secciones en tarjetas) no deja tarjetas vacías tras mover sus campos', () => {
+  const reg = reduceContexts(empty(), fx('booking-new-wizard'))
+  const summary = summarizeHost(reg, '/booking/newBooking')
+  const view = wizardStepViewOf(reg.contexts[HOST_ID], null, { title: summary.title, sections: summary.sections })
+  assert.equal(view.wizard.horizontal, true)
+  assert.equal(view.title, 'New booking')
+  // cada @Section va al form con su título; su tarjeta (sólo con el título) no se repite arriba
+  assert.deepEqual(view.content, [])
+  assert.deepEqual(view.sections.map((sec) => sec.title), ['Stay', 'Holder', 'Comments'])
+  assert.ok(view.sections[0].fields.find((f) => f.fieldId === 'arrival').isDate)
+  assert.deepEqual(view.nav.map((b) => b.actionId), ['back', 'next'])
 })
 
 await queue

@@ -207,9 +207,14 @@ define([
         if (hostChanged) {
           $application.variables.mateuWizard = bridge.wizardOf(hostFinal);
         }
-        $application.variables.mateuWizardContent = bridge.hostContentOf(
-          hostFinal, islandRawBlocksNow,
-          { forWizard: true, title: $application.variables.mateuHostTitle }) || [];
+        const stepNow = bridge.wizardStepViewOf(hostFinal, islandRawBlocksNow,
+          { title: $application.variables.mateuHostTitle, sections: $application.variables.mateuFormSections });
+        if (stepNow && stepNow.wizard.horizontal) {
+          // tren arriba: el contenido del paso vive en la rama del contenido del host
+          $application.variables.mateuHostContent = stepNow.content;
+        } else {
+          $application.variables.mateuWizardContent = (stepNow && stepNow.content) || [];
+        }
       } else if (($application.variables.mateuHostContent || []).length) {
         // mismas opts que runMateuAction: sin ellas el título de página y el EntityHeader
         // reaparecían DUPLICADOS en el contenido tras una acción de la isla

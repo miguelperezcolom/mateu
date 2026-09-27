@@ -2640,9 +2640,11 @@
   </div>
 </oj-drawer-popup>
 
-<!-- Wizard (Fase 8): el tren + panel del oj-sp-guided-process auténtico; el form del paso
-     (widgetFor) y los botones Back/Next del wire van DENTRO de su slot de contenido -->
-<oj-bind-if test="[[ !!$application.variables.mateuWizard ]]">
+<!-- Wizard con RAIL (@WizardProgress RAIL, Fase 8): el tren + panel del oj-sp-guided-process
+     auténtico (pasos en columna, a la derecha); el form del paso (widgetFor) va DENTRO de su
+     slot de contenido. El wizard con el tren ARRIBA (STEPS) va más abajo, junto al contenido
+     del host: mateuWizardStep -->
+<oj-bind-if test="[[ !!$application.variables.mateuWizard && !$application.variables.mateuWizard.horizontal ]]">
   <oj-sp-guided-process id="mateuWizardEl"
     process-title="[[ $application.variables.mateuHostTitle ]]"
     steps="[[ $application.variables.mateuWizard.steps ]]"
@@ -6145,6 +6147,32 @@
 
 
 
+<!-- Wizard HORIZONTAL (@WizardProgress STEPS): el título y el TREN de pasos ARRIBA (oj-train:
+     los hechos se pueden visitar para volver, los que faltan se alcanzan con el botón del paso);
+     en pantallas estrechas el tren no cabe y los pasos van en VERTICAL (lista numerada). El
+     contenido display del paso lo pinta la rama del contenido del host (justo debajo), y sus
+     campos + el pie Back/Next del wire, el bloque que la sigue -->
+<oj-bind-if test="[[ $application.variables.mateuWizardStep.on ]]">
+  <div class="mateu-wizard-top oj-sm-padding-12x-horizontal oj-sm-padding-6x-top">
+    <h1 class="oj-typography-heading-md oj-sm-margin-6x-bottom"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
+    <oj-train id="mateuWizardTrain" class="mateu-wizard-train oj-sm-margin-6x-bottom"
+      steps="[[ $application.variables.mateuWizard.trainSteps ]]"
+      selected-step="[[ $application.variables.mateuWizard.currentStep ]]"
+      on-selected-step-changed="[[ $listeners.mateuWizardTrainSelect ]]"></oj-train>
+    <ol class="mateu-wizard-steps oj-sm-margin-6x-bottom">
+      <oj-bind-for-each data="[[ $application.variables.mateuWizard.listSteps ]]">
+        <template>
+          <li :class="[[ $current.data.cls ]]">
+            <span class="mateu-wizard-step-marker"><oj-bind-text value="[[ $current.data.marker ]]"></oj-bind-text></span>
+            <span class="mateu-wizard-step-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+          </li>
+        </template>
+      </oj-bind-for-each>
+    </ol>
+    <h2 class="oj-typography-heading-sm oj-sm-margin-0 oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $application.variables.mateuWizardStep.stepLabel ]]"></oj-bind-text></h2>
+  </div>
+</oj-bind-if>
+
 <oj-bind-if test="[[ $application.variables.mateuHostContent.length ]]">
   <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex">
@@ -6958,6 +6986,107 @@
         </oj-bind-if>
       </template>
     </oj-bind-for-each>
+    </div>
+  </div>
+</oj-bind-if>
+
+<!-- Wizard HORIZONTAL: los campos del paso (cada uno UNA vez, con su widget: select, fecha…) y
+     el PIE con los botones del wire (Back / Next / la acción de completar, con los rótulos que
+     manda el servidor — traducibles) -->
+<oj-bind-if test="[[ $application.variables.mateuWizardStep.on ]]">
+  <div class="mateu-wizard-body oj-sm-padding-12x-horizontal oj-sm-padding-6x-bottom">
+    <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
+         bridge.formSectionsOf): sin secciones es un único grupo sin título -->
+    <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
+      <template>
+        <div class="mateu-form-section">
+          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+            <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+          </oj-bind-if>
+          <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+            <oj-bind-for-each data="[[ $current.data.fields ]]">
+              <template>
+                <oj-bind-if test="[[ $current.data.isText ]]">
+                  <oj-input-text
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                  <oj-text-area
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    rows="4"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isNumber ]]">
+                  <oj-input-number
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDate ]]">
+                  <oj-input-date
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                  <oj-input-date-time
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                  <oj-switch
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isSelect ]]">
+                  <oj-select-one
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    options="[[ $current.data.options ]]"
+                    placeholder="Select a value"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </oj-form-layout>
+        </div>
+      </template>
+    </oj-bind-for-each>
+    <div class="mateu-wizard-nav oj-flex oj-sm-justify-content-flex-end oj-sm-margin-6x-top">
+      <oj-bind-for-each data="[[ $application.variables.mateuWizardStep.nav ]]">
+        <template>
+          <oj-button class="oj-sm-margin-2x-start"
+            :data-action-id="[[ $current.data.actionId ]]"
+            chroming="[[ $current.data.chroming ]]"
+            disabled="[[ $current.data.disabled ]]"
+            on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+        </template>
+      </oj-bind-for-each>
     </div>
   </div>
 </oj-bind-if>
