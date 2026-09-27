@@ -7,7 +7,7 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
-import { fabStyles } from "@infra/ui/layout/fabRail.ts";
+import { cornerFabStyles, fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
@@ -1128,10 +1128,10 @@ export class MateuApp extends ComponentElement {
         }
 
         /* The FABs' look and place are the rail's (layout/fabRail.ts): Lumo buttons, square, in the
-           corner the page width picks. */
+           column the page width picks; the AI assistant's, inverted, flush in the viewport's corner. */
 
 
-  `, fabStyles('.app-fab, .page-fab, .ai-fab')]
+  `, fabStyles('.app-fab, .page-fab'), cornerFabStyles('.ai-fab')]
 }
 
 declare global {
