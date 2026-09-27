@@ -2246,7 +2246,7 @@ test('rowedit: Save valida los obligatorios de la fila en el diálogo; con ellos
   const row = reg.contexts['rooms-container']
   assert.ok(ROW_VALIDATING_VERBS.create && ROW_VALIDATING_VERBS.save && !ROW_VALIDATING_VERBS.cancel)
   const errors = validateRow(row, {})
-  assert.deepEqual(Object.keys(errors).sort(), ['boardCode', 'ratePlanCode', 'roomTypeCode'])
+  assert.deepEqual(Object.keys(errors).sort((a, b) => a.localeCompare(b)), ['boardCode', 'ratePlanCode', 'roomTypeCode'])
   const fields = rowFieldsOf(row, {}, errors)
   assert.equal(fields.find((f) => f.fieldId === 'roomTypeCode').messagesCustom[0].severity, 'error')
   assert.deepEqual(fields.find((f) => f.fieldId === 'adults').messagesCustom, [])
