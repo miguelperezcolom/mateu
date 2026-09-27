@@ -37,6 +37,29 @@ public @interface App {
   boolean chromeless() default false;
 
   /**
+   * The label of the shell's own "ask" FAB — the always-present button that opens the destination
+   * search (the Ask-Oracle pattern). It is the button's accessible name, its tooltip and the title
+   * of the palette it opens. Blank (the default) keeps the renderer's own brand: on Redwood, "Ask
+   * Oracle". Set it to put the app's brand there instead, e.g. {@code askLabel = "Ask RIU"}.
+   */
+  String askLabel() default "";
+
+  /**
+   * The icon of the shell's own "ask" FAB, for an app that does not want the renderer's brand on
+   * it. Blank (the default) keeps the renderer's glyph: on Redwood, the Oracle "O" that Fusion's
+   * Ask Oracle carries. Otherwise one of:
+   *
+   * <ul>
+   *   <li>an initial — one or two characters, e.g. {@code "R"} — drawn as a letter on the FAB;
+   *   <li>an image — a path relative to the app (like {@link Logo}, e.g. {@code "/images/riu.svg"})
+   *       or an absolute/data url;
+   *   <li>an icon — a Redwood icon-font class ({@code "oj-ux-ico-…"}) or a Mateu icon name ({@code
+   *       "vaadin:…"}).
+   * </ul>
+   */
+  String askIcon() default "";
+
+  /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the
    * ones derived automatically from the app's metadata. A host embedding the app checks it provides
    * all of them and reports what is missing instead of rendering a broken screen — compatibility by

@@ -45,6 +45,16 @@ public record AppDto(
     boolean commandCenterEnabled,
     boolean chromeless,
     /**
+     * The label of the shell's own "ask" FAB ({@code @App(askLabel)}); blank = the renderer's own
+     * (Redwood: "Ask Oracle").
+     */
+    String askLabel,
+    /**
+     * The icon of the shell's own "ask" FAB ({@code @App(askIcon)}): an initial, an image path/url
+     * or an icon name; blank = the renderer's own (Redwood: the Oracle "O").
+     */
+    String askIcon,
+    /**
      * The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it travels with the shell rather than on every response.
      */

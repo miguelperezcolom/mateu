@@ -89,6 +89,28 @@ en otra ruta).
 Los componentes JET/oj-sp y el visual-runtime se cargan del CDN de Oracle en runtime: el jar no
 vendoriza nada de `static.oracle.com` (ver `NOTICE.md`) y el navegador necesita acceso al CDN.
 
+## El FAB de "Ask Oracle" y la marca del App
+
+La shell tiene dos FABs en la esquina: el de **Ask Oracle** (el propio de `oj-sp-simple-ui-shell`;
+abre el buscador de destinos: navegación + vistas rápidas) y, si el App declara `@AI`, encima, el
+del **chat del agente** (bocadillo `oj-ux-ico-chat`). Por defecto el de Ask Oracle lleva la marca
+de Oracle: el glifo de Ask Oracle de Redwood (`oj-ux-ico-oracle-o`, la "O" que lleva el botón de
+`oj-sp-ask-oracle` en la cabecera de Fusion) y el rótulo "Ask Oracle" (nombre accesible, tooltip y
+título de la paleta).
+
+Una app que no quiera la marca Oracle pone la suya en su `@App`:
+
+```java
+@App(askLabel = "Ask RIU", askIcon = "R")            // la inicial, en blanco sobre el FAB
+@App(askLabel = "Ask RIU", askIcon = "/images/riu.svg") // su logo (ruta del backend, como @Logo), en un círculo blanco
+```
+
+`askIcon` admite una o dos letras (la inicial), una imagen (ruta relativa al backend o url
+absoluta/`data:`) o un icono (`oj-ux-ico-…` o un nombre Mateu `vaadin:…` con equivalente);
+cualquier otra cosa, o vacío, deja el glifo de Ask Oracle. `askLabel` vacío deja "Ask Oracle".
+Viajan en el `AppDto` (`askLabel`/`askIcon`); la proyección es `askFabOf` y el marcado del FAB
+del shell `brandAskFab` (`poc/widgets.mjs`).
+
 ## Entregable VB hosteado (kit)
 
 El mismo `webApps/vbredwoodapp` es importable en una app VB alojada en Oracle (VB Studio):

@@ -370,6 +370,11 @@
       "defaultValue": "",
       "description": "serverSideType del App \u2014 las acciones de cabecera se despachan app-level con \u00e9l"
     },
+    "mateuAskLabel": {
+      "type": "string",
+      "defaultValue": "Ask Oracle",
+      "description": "r\u00f3tulo del FAB de ask del shell y t\u00edtulo de su paleta (@App(askLabel); por defecto Ask Oracle)"
+    },
     "mateuShellLogo": {
       "type": "string",
       "defaultValue": "",

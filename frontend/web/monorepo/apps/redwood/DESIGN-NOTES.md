@@ -1764,7 +1764,8 @@ usuario tenía que abrir "Ask Oracle" para hablar con el agente, y el diálogo t
 pantalla sobre la que preguntaba. Fue un error de diseño: son dos cosas distintas.
 
 - **Dos FABs**, apilados en la esquina. Abajo el de Ask Oracle: lo estampa oj-sp-simple-ui-shell
-  (`oj-ux-ico-oracle-chat`, evento `ojSpChatAction`) y abre la paleta, que ahora es SÓLO el
+  (`oj-ux-ico-oracle-chat`, evento `ojSpChatAction` — el glifo lo cambia después la sección
+  "El FAB de Ask Oracle lleva la marca de Ask Oracle") y abre la paleta, que ahora es SÓLO el
   buscador de destinos. Ese `<a>` del shell no tiene href ni rol (no se alcanzaba con el
   tabulador y sólo decía "Ask"): `loadMateuShell` le pone `role=button`, `tabindex=0`,
   `aria-label`/`title` "Ask Oracle" y Enter/Espacio. Encima, el del chat: `oj-button
@@ -1792,3 +1793,31 @@ pantalla sobre la que preguntaba. Fue un error de diseño: son dos cosas distint
   agente del cluster contestaba 401 — el stream no pasa por fetchWithPolicy).
 - Borrados `mateuChatMode`, `chatShowChat` y `chatShowSearch`; nuevos `mateuChatOpen` y
   `toggleMateuChat` (listeners `chatToggle`/`chatClose`).
+
+## El FAB de Ask Oracle lleva la marca de Ask Oracle, no un bocadillo (2026-09-27)
+
+El usuario veía en ese FAB "el símbolo de conversación" y preguntaba por qué, si lo que abre es
+Ask Oracle. El glifo era `oj-ux-ico-oracle-chat`: el que `oj-sp-simple-ui-shell` estampa en su
+FAB de chat (`$properties.chat`, título "Ask") — el bocadillo con puntos del asistente DIGITAL de
+Oracle. Mientras el chat vivía dentro de la paleta tenía sentido; desde que el chat del agente
+tiene su propio FAB (`oj-ux-ico-chat`, otro bocadillo) había dos bocadillos para dos cosas
+distintas, y el de abajo no abre ninguna conversación sino el buscador.
+
+- **Glifo por defecto**: `oj-ux-ico-oracle-o`, la "O" de Oracle. Es el que usa el propio
+  `oj-sp-ask-oracle` para su botón de marca (`oj-sp-rw-ask-oracle-branding-icon-image`, visto en
+  `oj-sp/2604.1.0/ask-oracle/loader.js`); está en la fuente de iconos de Redwood que ya carga la
+  app (`ojuxIconFont`), así que no se dibuja nada a mano ni se vendoriza nada. El rótulo "Ask
+  Oracle" es el nombre accesible del FAB, su tooltip y el título de la paleta (variable
+  `mateuAskLabel`).
+- **Marca del App**: `@App(askLabel, askIcon)` → `AppDto.askLabel/askIcon` → `askFabOf(shell,
+  base)` (poc/widgets.mjs, testeado) decide `{ label, kind: glyph | initial | image }`; en blanco,
+  Ask Oracle. Se eligió `@App` y no `@AI` porque el FAB existe sin agente (el chat es el OTRO FAB).
+  `brandAskFab` marca el `<a>` del shell después de pintado (como antes el nombre y el teclado,
+  que siguen ahí): quita `oj-ux-ico-oracle-chat`, pone el glifo o mete la marca dentro del mismo
+  `div role=img` — así los `oj-sp-ux-icon-size-*` del shell siguen dimensionándola en cada ancho —
+  y es idempotente. La inicial va en blanco sobre el fondo del FAB (como el glifo); una imagen en
+  un círculo blanco, porque un logo suele ser de color sobre transparente y sobre el rojo del FAB
+  se perdía (el de RIU es rojo).
+- Verificado con el bundle servido sobre front.ec1 y rw.ec1 a 1440 y 390: la "O" abajo y el
+  bocadillo del chat encima (rw), y con el App reescrito a `askLabel="Ask RIU"` la "R"/el logo y
+  la paleta titulada "Ask RIU".

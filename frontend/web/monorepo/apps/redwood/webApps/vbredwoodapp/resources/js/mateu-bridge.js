@@ -2145,8 +2145,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
           // primera opción del menú
           homeRoute: md.homeRoute || '',
-          // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
+          // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el FAB del chat del agente
           sseUrl: md.sseUrl || '',
+          // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = la marca de Ask Oracle
+          askLabel: md.askLabel || '',
+          askIcon: md.askIcon || '',
           // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
           // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
           widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
@@ -4222,6 +4225,96 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     requestAnimationFrame(tick)
   }
 
+  // ── FAB de "ask" del shell ──────────────────────────────────────────────────────────────────
+  // oj-sp-simple-ui-shell estampa su propio FAB (evento ojSpChatAction) con `oj-ux-ico-oracle-chat`:
+  // el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre Ask Oracle — el
+  // buscador de destinos —, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos
+  // bocadillos para dos cosas distintas. Así que el del shell lleva la marca de Ask Oracle, el glifo
+  // que usa el propio oj-sp-ask-oracle en la cabecera de Fusion (`oj-ux-ico-oracle-o`, la "O" de
+  // Oracle), y su rótulo. Un App que no quiera la marca Oracle pone la suya con @App(askLabel,
+  // askIcon): una inicial, una imagen (su logo) o un icono.
+
+  const ASK_FAB_LABEL = 'Ask Oracle'
+  const ASK_FAB_GLYPH = 'oj-ux-ico-oracle-o'
+  /** El glifo con el que lo estampa el shell (el que se quita). */
+  const SHELL_CHAT_GLYPH = 'oj-ux-ico-oracle-chat'
+
+  const isImageRef = (value) => /^(data:|https?:|\/\/)/i.test(value) || /[/.]/.test(value)
+
+  /**
+   * Qué lleva el FAB de "ask" del shell: `{ label, kind, glyph?, text?, src? }`.
+   *  - sin @App(askIcon): el glifo de Ask Oracle de Redwood (kind 'glyph');
+   *  - una o dos letras ("R"): la inicial (kind 'initial');
+   *  - una ruta o url ("/images/riu.svg"): la imagen (kind 'image'), relativa al backend como el logo;
+   *  - `oj-ux-ico-…` o un nombre Mateu (`vaadin:…`) con equivalente: ese icono (kind 'glyph').
+   * Un askIcon que no es nada de eso (un icono sin equivalente, una palabra) no deja el FAB vacío:
+   * vuelve al glifo de Ask Oracle.
+   */
+  function askFabOf(shell, base = '') {
+    const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
+    const raw = String((shell && shell.askIcon) || '').trim()
+    const glyph = (cls) => ({ label, kind: 'glyph', glyph: cls })
+    if (!raw) return glyph(ASK_FAB_GLYPH)
+    if (isImageRef(raw)) {
+      const absolute = /^(data:|https?:|\/\/)/i.test(raw)
+      return { label, kind: 'image', src: absolute ? raw : base + raw }
+    }
+    if (raw.startsWith('oj-ux-') || raw.includes(':')) return glyph(ojIconOf(raw) || ASK_FAB_GLYPH)
+    const letters = Array.from(raw)
+    if (letters.length <= 2) return { label, kind: 'initial', text: raw.toUpperCase() }
+    return glyph(ASK_FAB_GLYPH)
+  }
+
+  const MARK_CLASS = 'mateu-ask-fab-mark'
+  const BRANDED_CLASS = 'mateu-ask-fab-branded'
+
+  /**
+   * Pone la marca y el nombre al FAB del shell (`fab`, el `<a>`; dentro, el `div role=img` del
+   * glifo). Idempotente: se puede volver a aplicar con otra marca. Además le da lo que el shell no le
+   * da: sin href ni rol, no se alcanzaba con el tabulador y sólo decía "Ask".
+   */
+  function brandAskFab(fab, spec) {
+    if (!fab || !spec) return false
+    const icon = fab.querySelector('.oj-sp-rw-chat-icon-image')
+    if (!icon) return false
+    fab.setAttribute('role', 'button')
+    fab.setAttribute('tabindex', '0')
+    fab.setAttribute('aria-label', spec.label)
+    fab.setAttribute('title', spec.label)
+    if (!fab.__mateuKeys) {
+      fab.__mateuKeys = true
+      fab.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          fab.click()
+        }
+      })
+    }
+    icon.setAttribute('aria-label', spec.label)
+    icon.classList.remove(SHELL_CHAT_GLYPH, BRANDED_CLASS)
+    if (icon.__mateuGlyph) icon.classList.remove(icon.__mateuGlyph)
+    icon.__mateuGlyph = null
+    const old = icon.querySelector(`.${MARK_CLASS}`)
+    if (old) old.remove()
+    if (spec.kind === 'glyph') {
+      icon.classList.add(spec.glyph)
+      icon.__mateuGlyph = spec.glyph
+      return true
+    }
+    const mark = icon.ownerDocument.createElement(spec.kind === 'image' ? 'img' : 'span')
+    mark.className = `${MARK_CLASS} ${MARK_CLASS}-${spec.kind}`
+    mark.setAttribute('aria-hidden', 'true')
+    if (spec.kind === 'image') {
+      mark.setAttribute('alt', '')
+      mark.setAttribute('src', spec.src)
+    } else {
+      mark.textContent = spec.text
+    }
+    icon.classList.add(BRANDED_CLASS)
+    icon.appendChild(mark)
+    return true
+  }
+
 
   // poc/chat.mjs — núcleo de transporte del CHAT de IA, renderer-neutral (paridad Redwood/VB).
   //
@@ -4470,6 +4563,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     baseOf,
     // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
     headerWidgetsOf,
+    // el FAB de "ask" del shell: su marca (Ask Oracle por defecto, o la del @App) y su nombre
+    askFabOf,
+    brandAskFab,
     startRemoteWidget,
     stopRemoteWidgets,
     mountHeaderHtml,

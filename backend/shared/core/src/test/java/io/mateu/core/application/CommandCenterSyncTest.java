@@ -44,11 +44,21 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/cc-branded")
+  @Title("Branded")
+  @App(askLabel = "Ask RIU", askIcon = " R ")
+  public static class BrandedAskApp {
+    @Menu String home = "/";
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(PlainApp.class, CommandCenterApp.class, ChromelessApp.class);
+    mateu =
+        TestMateu.withUis(
+            PlainApp.class, CommandCenterApp.class, ChromelessApp.class, BrandedAskApp.class);
   }
 
   @AfterAll
@@ -80,5 +90,15 @@ class CommandCenterSyncTest {
     var app = app("/cc-chromeless");
     assertThat(app.chromeless()).isTrue();
     assertThat(app.commandCenterEnabled()).isTrue();
+  }
+
+  @Test
+  void theAskFabKeepsTheRenderersBrandUnlessTheAppNamesItsOwn() {
+    var plain = app("/cc-plain");
+    assertThat(plain.askLabel()).isNull();
+    assertThat(plain.askIcon()).isNull();
+    var branded = app("/cc-branded");
+    assertThat(branded.askLabel()).isEqualTo("Ask RIU");
+    assertThat(branded.askIcon()).isEqualTo("R");
   }
 }

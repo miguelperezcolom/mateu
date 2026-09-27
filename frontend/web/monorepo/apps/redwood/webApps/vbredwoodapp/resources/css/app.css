@@ -533,6 +533,39 @@ oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-
   padding-inline-end: var(--oj-core-spacing-2x, 0.5rem);
 }
 
+/* ── FAB de "ask" del shell con la marca del App (@App(askIcon)) ──────────────────────────
+   Por defecto lleva el glifo de Ask Oracle (oj-ux-ico-oracle-o) y no necesita nada de aquí. Con
+   una inicial o una imagen, bridge.brandAskFab quita el glifo y mete la marca dentro del mismo
+   div del shell (el que dimensionan sus clases oj-sp-ux-icon-size-*): la inicial en blanco sobre
+   el fondo del FAB, como el glifo; la imagen (un logo suele ser de color sobre transparente, y
+   sobre el fondo del FAB se perdería) en un círculo blanco. */
+.oj-sp-rw-chat-icon-image.mateu-ask-fab-branded {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mateu-ask-fab-mark-initial {
+  color: #fff;
+  font-family: var(--oj-typography-heading-font-family, inherit);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+}
+.mateu-ask-fab-mark-image {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 18%;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+}
+@media (max-width: 1023px) {
+  .mateu-ask-fab-mark-initial {
+    font-size: 22px;
+  }
+}
+
 /* ── Chat del agente: FAB propio + drawer izquierdo ─────────────────────────────────────
    Dos FABs distintos, apilados en la esquina: abajo el de Ask Oracle (lo estampa el propio
    oj-sp-simple-ui-shell) y encima el del chat (oj-ux-ico-chat), más pequeño, centrado sobre él

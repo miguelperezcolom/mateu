@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path'
 import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
+  askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
 } from './widgets.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
@@ -2369,6 +2370,117 @@ test('rowedit (edición): los otros editores — New guest (select de opciones, 
   assert.ok(p.methodCode.isLookup)
   assert.ok(p.amount.isNumber && p.amount.required)
   assert.ok(p.paymentId.readonly)
+})
+
+// ── FAB de "ask" del shell: Ask Oracle con su glifo, o la marca del @App(askLabel, askIcon) ──
+const brandedApp = (askLabel, askIcon) => {
+  const increment = fx('app')
+  for (const fr of increment.fragments) {
+    if (fr.component?.metadata?.type === 'App') Object.assign(fr.component.metadata, { askLabel, askIcon })
+  }
+  return reduceContexts(empty(), increment).shell
+}
+
+test('ask FAB: sin @App(askLabel/askIcon) es Ask Oracle con el glifo de Ask Oracle, no el bocadillo', () => {
+  const shell = reduceContexts(empty(), fx('app')).shell
+  assert.equal(shell.askLabel, '')
+  assert.equal(shell.askIcon, '')
+  assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Ask Oracle', kind: 'glyph', glyph: 'oj-ux-ico-oracle-o' })
+  assert.equal(ASK_FAB_GLYPH, 'oj-ux-ico-oracle-o')
+  assert.notEqual(ASK_FAB_GLYPH, SHELL_CHAT_GLYPH)
+  // ni el App del shell: un registro sin shell tampoco rompe
+  assert.equal(askFabOf(null).label, 'Ask Oracle')
+})
+
+test('ask FAB: @App(askLabel="Ask RIU", askIcon="R") → la inicial, con el rótulo del App', () => {
+  const shell = brandedApp('Ask RIU', 'R')
+  assert.equal(shell.askLabel, 'Ask RIU')
+  assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Ask RIU', kind: 'initial', text: 'R' })
+  assert.deepEqual(askFabOf({ askIcon: 'ri' }), { label: 'Ask Oracle', kind: 'initial', text: 'RI' })
+})
+
+test('ask FAB: askIcon imagen (relativa al backend como el logo, o absoluta) e iconos', () => {
+  assert.deepEqual(askFabOf(brandedApp('Ask RIU', '/images/riu.svg'), 'http://b'),
+    { label: 'Ask RIU', kind: 'image', src: 'http://b/images/riu.svg' })
+  assert.equal(askFabOf({ askIcon: 'https://cdn.x/riu.png' }, 'http://b').src, 'https://cdn.x/riu.png')
+  assert.equal(askFabOf({ askIcon: 'data:image/svg+xml;base64,AAA' }, 'http://b').src, 'data:image/svg+xml;base64,AAA')
+  assert.deepEqual(askFabOf({ askIcon: 'oj-ux-ico-search' }), { label: 'Ask Oracle', kind: 'glyph', glyph: 'oj-ux-ico-search' })
+  assert.equal(askFabOf({ askIcon: 'vaadin:cog' }).glyph, 'oj-ux-ico-settings')
+  // lo que no es nada de eso no deja el FAB vacío: vuelve al glifo de Ask Oracle
+  assert.equal(askFabOf({ askIcon: 'vaadin:no-existe' }).glyph, ASK_FAB_GLYPH)
+  assert.equal(askFabOf({ askIcon: 'RIU Hotels' }).glyph, ASK_FAB_GLYPH)
+})
+
+// un DOM mínimo: el <a> del shell con su div role=img
+const fakeEl = (tag, classes = []) => {
+  const el = {
+    tagName: tag, attrs: {}, children: [], listeners: {}, textContent: '', parent: null,
+    classList: {
+      set: new Set(classes),
+      add(...c) { c.forEach((x) => this.set.add(x)) },
+      remove(...c) { c.forEach((x) => this.set.delete(x)) },
+      contains(c) { return this.set.has(c) },
+    },
+    setAttribute(k, v) { el.attrs[k] = String(v) },
+    getAttribute(k) { return el.attrs[k] },
+    addEventListener(t, fn) { (el.listeners[t] = el.listeners[t] || []).push(fn) },
+    appendChild(c) { c.parent = el; el.children.push(c); return c },
+    remove() { if (el.parent) el.parent.children = el.parent.children.filter((c) => c !== el) },
+    querySelector(sel) {
+      const cls = sel.replace(/^\./, '')
+      const walk = (n) => { for (const c of n.children) { if (c.classList.contains(cls)) return c; const r = walk(c); if (r) return r } return null }
+      return walk(el)
+    },
+    click() { el.clicked = (el.clicked || 0) + 1 },
+  }
+  Object.defineProperty(el, 'className', { set(v) { el.classList.set = new Set(v.split(/\s+/)) } })
+  el.ownerDocument = { createElement: (t) => fakeEl(t) }
+  return el
+}
+const shellFab = () => {
+  const fab = fakeEl('a', ['oj-sp-rw-chat-icon-cont'])
+  const icon = fab.appendChild(fakeEl('div', ['oj-sp-rw-chat-icon-image', SHELL_CHAT_GLYPH, 'oj-sp-ux-icon-size-11x']))
+  icon.ownerDocument = fab.ownerDocument
+  return { fab, icon }
+}
+
+test('ask FAB: brandAskFab cambia el bocadillo por el glifo de Ask Oracle y le da nombre y teclado', () => {
+  const { fab, icon } = shellFab()
+  assert.equal(brandAskFab(fab, askFabOf(null)), true)
+  assert.ok(icon.classList.contains('oj-ux-ico-oracle-o'))
+  assert.ok(!icon.classList.contains(SHELL_CHAT_GLYPH))
+  assert.ok(icon.classList.contains('oj-sp-ux-icon-size-11x')) // el tamaño lo sigue poniendo el shell
+  assert.equal(fab.attrs.role, 'button')
+  assert.equal(fab.attrs.tabindex, '0')
+  assert.equal(fab.attrs['aria-label'], 'Ask Oracle')
+  assert.equal(fab.attrs.title, 'Ask Oracle')
+  let prevented = false
+  fab.listeners.keydown[0]({ key: 'Enter', preventDefault: () => { prevented = true } })
+  assert.ok(prevented && fab.clicked === 1)
+  // sin el FAB (el shell aún no lo pintó) no hace nada y lo dice
+  assert.equal(brandAskFab(null, askFabOf(null)), false)
+  assert.equal(brandAskFab(fakeEl('a'), askFabOf(null)), false)
+})
+
+test('ask FAB: brandAskFab con la marca del App (inicial, imagen) — idempotente y reaplicable', () => {
+  const { fab, icon } = shellFab()
+  brandAskFab(fab, askFabOf({ askLabel: 'Ask RIU', askIcon: 'R' }))
+  assert.equal(fab.attrs['aria-label'], 'Ask RIU')
+  assert.ok(!icon.classList.contains(SHELL_CHAT_GLYPH) && !icon.classList.contains(ASK_FAB_GLYPH))
+  assert.ok(icon.classList.contains('mateu-ask-fab-branded'))
+  assert.equal(icon.children.length, 1)
+  assert.equal(icon.children[0].textContent, 'R')
+  assert.equal(icon.children[0].attrs['aria-hidden'], 'true')
+  // otra vez, con una imagen: no se acumulan marcas ni manejadores de teclado
+  brandAskFab(fab, askFabOf({ askLabel: 'Ask RIU', askIcon: '/images/riu.svg' }, 'http://b'))
+  assert.equal(icon.children.length, 1)
+  assert.equal(icon.children[0].tagName, 'img')
+  assert.equal(icon.children[0].attrs.src, 'http://b/images/riu.svg')
+  assert.equal(fab.listeners.keydown.length, 1)
+  // y de vuelta al glifo: sin marca
+  brandAskFab(fab, askFabOf(null))
+  assert.equal(icon.children.length, 0)
+  assert.ok(icon.classList.contains(ASK_FAB_GLYPH) && !icon.classList.contains('mateu-ask-fab-branded'))
 })
 
 test('interpolate: ${state.x} y ${state[\'x\']}', () => {

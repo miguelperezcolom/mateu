@@ -165,11 +165,12 @@
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 
-    <!-- ASK ORACLE: el FAB del propio shell (oj-ux-ico-oracle-chat) abre esta paleta —
+    <!-- ASK ORACLE: el FAB del propio shell (con el glifo de Ask Oracle, oj-ux-ico-oracle-o, o la
+         marca del @App(askLabel, askIcon): bridge.brandAskFab) abre esta paleta —
          buscador que filtra la navegación y las vistas rápidas del listado; cada fila navega y
          cierra. El chat del agente NO vive aquí: tiene su FAB y su drawer (abajo). -->
     <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none"
-      dialog-title="Ask Oracle">
+      dialog-title="[[ $application.variables.mateuAskLabel ]]">
       <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">
 
         <!-- BUSCAR: Ask Oracle es sólo el buscador de destinos (el chat del agente tiene su

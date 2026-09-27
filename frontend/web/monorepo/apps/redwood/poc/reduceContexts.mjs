@@ -2140,8 +2140,11 @@ export function reduceContexts(reg, increment, opts = {}) {
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
         // primera opción del menú
         homeRoute: md.homeRoute || '',
-        // chat de IA (@AI → App.sseUrl): si viene, la shell ofrece el modo Chat en Ask Oracle
+        // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el FAB del chat del agente
         sseUrl: md.sseUrl || '',
+        // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = la marca de Ask Oracle
+        askLabel: md.askLabel || '',
+        askIcon: md.askIcon || '',
         // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
         // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
         widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
