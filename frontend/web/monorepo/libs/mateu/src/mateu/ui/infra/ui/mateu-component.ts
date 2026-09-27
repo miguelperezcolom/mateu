@@ -435,7 +435,7 @@ export class MateuComponent extends ComponentElement {
             // declared action must not be shadowed by a catch-all '*' listed before it
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
                 ?? serverSideComponent.actions?.find(action =>
-                    action.id.endsWith('*') && detail.actionId.startsWith(action.id.replace('*', '')))
+                    action.id.endsWith('*') && detail.actionId.startsWith(action.id.slice(0, -1)))
 
             if (action) {
 

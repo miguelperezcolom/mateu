@@ -6612,7 +6612,7 @@ define('pages/shell-page-chains/chatSend',[
       if (!text || $application.variables.mateuChatBusy) return;
 
       if (!$application.variables.mateuChatSessionId) {
-        $application.variables.mateuChatSessionId = 'chat-' + Math.random().toString(36).slice(2, 10);
+        $application.variables.mateuChatSessionId = 'chat-' + crypto.randomUUID();
       }
 
       const msgs = ($application.variables.mateuChatMessages || []).slice();

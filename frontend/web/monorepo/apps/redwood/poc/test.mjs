@@ -1775,7 +1775,7 @@ atest('smart filters: la config completa lleva sugerencias y metadata; sin filtr
     assert.equal(typeof config.suggestionFilters.fetchFirst, 'function')
     assert.equal(config.filtersMetadata.provided.discriminator, 'filter')
     const bare = await smartFiltersOf([], {}, 'hola')
-    assert.deepEqual(Object.keys(bare).sort(), ['askHint', 'value'])
+    assert.deepEqual(Object.keys(bare).sort((a, b) => a.localeCompare(b)), ['askHint', 'value'])
   } finally {
     setMetadataProviderFactory(null)
   }
