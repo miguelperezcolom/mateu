@@ -35,12 +35,23 @@ import type { ResolvedPageWidth } from "@infra/ui/layout/pageWidth.ts";
  * <p>Who is on the rail: each FAB registers itself (`onFabRail`), so the content view knows whether
  * there is anything to leave room for, and page FABs stack above the shell's in the same column
  * (`--mateu-fab-shell-slots`).
+ *
+ * <p>The corner FAB — the app's AI assistant — is not in the column: it is the shell's, not the
+ * page's, so it sits flush in the viewport's bottom-right corner whatever the page width, and
+ * inverts the theme (the text colour as its background, the base colour as its icon) so it reads as
+ * the app's own control. When the column is over the corner (edge-to-edge, full width, a phone:
+ * the column's end inset is less than a FAB), the column starts above it (`--mateu-fab-stack-bottom`);
+ * when the column is elsewhere (a fixed page's channel, away from the corner) the two do not meet.
  */
 
-/** Distance from the bottom edge. */
-const INSET = 'var(--mateu-fab-inset-bottom, var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)))'
 const SIZE = 'var(--mateu-fab-size, var(--lumo-size-l, 2.75rem))'
 const GAP = 'var(--mateu-fab-gap, var(--lumo-space-s, 0.5rem))'
+/** Distance from the bottom edge. */
+const INSET = 'var(--mateu-fab-inset-bottom, var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)))'
+/** Where the column starts: above the corner FAB when it shares the corner, the bottom inset otherwise. */
+const STACK_BOTTOM = `var(--mateu-fab-stack-bottom, ${INSET})`
+/** The value `--mateu-fab-stack-bottom` takes when the column is over the corner FAB: one FAB and a gap up. */
+const ABOVE_CORNER = `calc(${SIZE} + ${GAP})`
 
 /** The end inset every FAB reads: published on the document root, the corner until then. */
 export const FAB_INSET_END = 'var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem))'
@@ -54,17 +65,20 @@ export const TOC_ASIDE_VIEWPORT = 1200
 const REM = { inset: 1, size: 2.75, gap: 0.5, toc: 15, tocGap: 2 }
 
 /** `bottom` of the FAB in the given slot of the shell's column (0 = the lowest). */
-export const fabBottom = (slot: number): string => `calc(${INSET} + ${slot} * (${SIZE} + ${GAP}))`
+export const fabBottom = (slot: number): string => `calc(${STACK_BOTTOM} + ${slot} * (${SIZE} + ${GAP}))`
 
 /** `bottom` of a page FAB: same column, above every FAB of the shell. */
 export const pageFabBottom = (index: number): string =>
-    `calc(${INSET} + (var(--mateu-fab-shell-slots, 0) + ${index}) * (${SIZE} + ${GAP}))`
+    `calc(${STACK_BOTTOM} + (var(--mateu-fab-shell-slots, 0) + ${index}) * (${SIZE} + ${GAP}))`
 
 /** Inline position of a shell FAB: its slot in the column. The look comes from `fabStyles`. */
 export const fabPosition = (slot: number): string => `bottom: ${fabBottom(slot)}; right: ${FAB_INSET_END};`
 
 /** Inline position of a page FAB: stacked above the shell's. */
 export const pageFabPosition = (index: number): string => `bottom: ${pageFabBottom(index)}; right: ${FAB_INSET_END};`
+
+/** Inline position of the corner FAB: flush in the viewport's bottom-right corner. */
+export const cornerFabPosition = (): string => 'bottom: 0; right: 0;'
 
 /**
  * The look of a FAB (the class goes on a plain <button>, so the core stays free of any design
@@ -102,9 +116,39 @@ export const fabStyles = (selector: string) => css`
     }
 `
 
+/**
+ * The look of the corner FAB (the AI assistant): the rail's FAB, flush in the corner — so rounded
+ * only where it does not meet the viewport's edges — and inverted: the theme's text colour
+ * (Lumo's full contrast, opaque, where the body text colour is not) as its background, the base
+ * colour as its icon, in the light and the dark theme alike. Hover and press move the background
+ * towards the base colour; the keyboard focus ring is drawn inside, as the outside is off screen.
+ */
+export const cornerFabStyles = (selector: string) => css`
+    ${fabStyles(selector)}
+    ${unsafeSelector(selector)} {
+        bottom: 0;
+        right: 0;
+        border-radius: var(--lumo-border-radius-m, 0.25rem) 0 0 0;
+        background-color: var(--lumo-contrast, var(--lumo-body-text-color, hsl(214, 35%, 15%)));
+        color: var(--lumo-base-color, #fff);
+        z-index: 960;
+    }
+    ${unsafeSelector(selector)}:hover {
+        background-image: linear-gradient(color-mix(in srgb, var(--lumo-base-color, #fff) 14%, transparent), color-mix(in srgb, var(--lumo-base-color, #fff) 14%, transparent));
+    }
+    ${unsafeSelector(selector)}:active {
+        background-image: linear-gradient(color-mix(in srgb, var(--lumo-base-color, #fff) 26%, transparent), color-mix(in srgb, var(--lumo-base-color, #fff) 26%, transparent));
+    }
+    ${unsafeSelector(selector)}:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--lumo-primary-color, #1676f3), inset 0 0 0 4px var(--lumo-base-color, #fff);
+    }
+`
+
 // ---- who is on the rail ---------------------------------------------------------------------
 
-type FabKind = 'shell' | 'page'
+/** shell: the app's column; page: stacked above it; corner: the AI assistant, flush in the corner. */
+type FabKind = 'shell' | 'page' | 'corner'
 type FabEntry = { kind: FabKind, slot: number }
 
 /** Where a page's section index goes: the channel, a bar over the form, or its own column. */
@@ -114,17 +158,34 @@ const fabs = new Map<Element, FabEntry>()
 const asides = new Map<Element, (placement: AsidePlacement, workEnd?: number) => void>()
 const railListeners = new Set<() => void>()
 let notifyScheduled = false
+/** The column's end inset in px, as last published (undefined: the default corner inset). */
+let columnInsetEnd: number | undefined
+
+/** Whether the column is over the corner FAB: its end inset is less than a FAB (and its gap). */
+export const columnOverCorner = (insetEnd: number, rem: number): boolean => insetEnd < (REM.size + REM.gap) * rem
+
+const rootRem = () => parseFloat(getComputedStyle(document.documentElement).fontSize || '16') || 16
+
+/** Publishes how high the column goes and where it starts, from who is on the rail and where the column is. */
+const publishSlots = () => {
+    const root = document.documentElement.style
+    const entries = [...fabs.values()]
+    const shellSlots = entries.filter(f => f.kind === 'shell').reduce((max, f) => Math.max(max, f.slot + 1), 0)
+    const pageFabs = entries.filter(f => f.kind === 'page').length
+    const rem = rootRem()
+    const underColumn = entries.some(f => f.kind === 'corner') && columnOverCorner(columnInsetEnd ?? REM.inset * rem, rem) ? 1 : 0
+    root.setProperty('--mateu-fab-shell-slots', String(shellSlots))
+    root.setProperty('--mateu-fab-slots', String(underColumn + shellSlots + pageFabs))
+    if (underColumn) root.setProperty('--mateu-fab-stack-bottom', ABOVE_CORNER)
+    else root.removeProperty('--mateu-fab-stack-bottom')
+}
 
 const railChanged = () => {
     if (notifyScheduled) return
     notifyScheduled = true
     queueMicrotask(() => {
         notifyScheduled = false
-        const root = document.documentElement.style
-        const shellSlots = [...fabs.values()].filter(f => f.kind === 'shell').reduce((max, f) => Math.max(max, f.slot + 1), 0)
-        const pageFabs = [...fabs.values()].filter(f => f.kind === 'page').length
-        root.setProperty('--mateu-fab-shell-slots', String(shellSlots))
-        root.setProperty('--mateu-fab-slots', String(shellSlots + pageFabs))
+        publishSlots()
         railListeners.forEach(listener => listener())
     })
 }
@@ -175,7 +236,8 @@ class OnFabRail extends AsyncDirective {
 
 /**
  * Puts a FAB on the rail: `<button class="app-fab" ${onFabRail('shell', slot)}>`. A shell FAB
- * declares its slot, so page FABs know how high the shell's stack goes; a page FAB stacks above it.
+ * declares its slot, so page FABs know how high the shell's stack goes; a page FAB stacks above it;
+ * the corner FAB (`onFabRail('corner')`) is under the column when the column is over the corner.
  */
 export const onFabRail = directive(OnFabRail)
 
@@ -316,11 +378,13 @@ const publish = () => {
     if (!owner) {
         root.style.removeProperty('--mateu-fab-inset-end')
         root.style.removeProperty('--mateu-fab-inset-bottom')
+        columnInsetEnd = undefined
+        publishSlots()
         placeAsides('column')
         return
     }
     const candidate = candidates.get(owner)!
-    const rem = parseFloat(getComputedStyle(root).fontSize || '16') || 16
+    const rem = rootRem()
     const viewportWidth = root.clientWidth || window.innerWidth
     const contentEnd = owner.getBoundingClientRect().right
     const layout = channelLayout({
@@ -341,6 +405,8 @@ const publish = () => {
         clearView(owner)
     }
     root.style.setProperty('--mateu-fab-inset-end', `${layout.insetEnd}px`)
+    columnInsetEnd = layout.insetEnd
+    publishSlots()
     if (layout.insetBottom !== undefined) root.style.setProperty('--mateu-fab-inset-bottom', `${layout.insetBottom}px`)
     else root.style.removeProperty('--mateu-fab-inset-bottom')
     placeAsides(layout.toc, contentEnd - (parseFloat(getComputedStyle(owner).paddingRight) || 0))

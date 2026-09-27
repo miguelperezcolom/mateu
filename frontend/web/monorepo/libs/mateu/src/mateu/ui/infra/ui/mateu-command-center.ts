@@ -36,10 +36,10 @@ export class MateuCommandCenter extends LitElement {
     @state() private dataHits: GlobalSearchHit[] = []
     @state() private loading = false
     @state() private selectedIndex = 0
-    // How many slots of the rail are taken below this FAB by sibling FABs already in the corner (the AI
-    // assistant's .ai-fab, the app's .app-fab). Measured from the DOM and kept in sync, so it adapts
-    // per shell (the DS shells have no AI fab → 0) and reacts when the AI fab appears/disappears (the
-    // chat opening hides it). This replaces the old appRenderer-side, Vaadin-only offset hack.
+    // How many slots of the rail's column are taken below this FAB by the app's FABs (.app-fab).
+    // Measured from the DOM and kept in sync. The AI assistant's .ai-fab is not counted: it is the
+    // rail's corner FAB, flush in the viewport's corner, and the column starts above it by itself
+    // when the two meet (layout/fabRail.ts, --mateu-fab-stack-bottom).
     @state() private fabOffset = 0
 
     @query('.cc-input') private inputEl?: HTMLInputElement
@@ -83,8 +83,9 @@ export class MateuCommandCenter extends LitElement {
     private measureFabStack() {
         const root = this.getRootNode() as ParentNode
         // Our own FAB lives in this element's shadow root, so it is never matched here; page FABs
-        // stack above the shell's (the rail's --mateu-fab-shell-slots), so they are not below this one.
-        const offset = root.querySelectorAll?.('.ai-fab, .app-fab').length ?? 0
+        // stack above the shell's (the rail's --mateu-fab-shell-slots), so they are not below this
+        // one; the AI FAB is the corner's, under the column only when the column is over the corner.
+        const offset = root.querySelectorAll?.('.app-fab').length ?? 0
         if (offset !== this.fabOffset) this.fabOffset = offset
     }
 
