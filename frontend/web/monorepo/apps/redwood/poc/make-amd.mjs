@@ -68,6 +68,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     fieldListOf,
     secondaryActionOf,
     formSectionsOf,
+    // el paso de un wizard: contenido + campos (cada uno una vez) + el pie Back/Next
+    wizardStepViewOf,
+    isRichAtom,
     // editor de filas modal de una lista del formulario (@DetailFormCustomisation modal)
     listActionOf,
     listActionRequestOf,

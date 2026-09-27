@@ -445,6 +445,11 @@
       "type": "any",
       "description": "proyecci\u00f3n del wizard ({steps,currentStep} para el guided-process); null = no es un wizard"
     },
+    "mateuWizardStep": {
+      "type": "any",
+      "defaultValue": { "on": false, "title": "", "stepLabel": "", "nav": [] },
+      "description": "el wizard HORIZONTAL (tren arriba, @WizardProgress STEPS): t\u00edtulo, r\u00f3tulo del paso y el pie Back/Next del wire; on=false con el rail (guided process) o sin wizard"
+    },
     "mateuWizardForwardId": {
       "type": "string",
       "defaultValue": "",

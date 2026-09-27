@@ -402,15 +402,24 @@ define([
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
-      $application.variables.mateuWizardContent = (esWizard
-        ? bridge.hostContentOf(host, islandRawBlocks, { forWizard: true, title: summary.title }) : null) || [];
-      // si los bloques del paso son RICOS, el form genérico del paso sobra (duplica lo
-      // que ya muestran el header/las property rows) — misma regla que en el host
-      if (($application.variables.mateuWizardContent || []).some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
-        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow))) {
-        $application.variables.mateuFormFieldsList = [];
-        $application.variables.mateuFormSections = [];
+      // el PASO del wizard: contenido display + campos (cada uno UNA vez: los que pinta el
+      // form salen del contenido) + el pie Back/Next. Con el rail (@WizardProgress RAIL) va al
+      // guided process; con el tren arriba (STEPS) a la rama del contenido del host + la barra
+      // del pie. Contenido RICO → sin form genérico (misma regla que en el host)
+      const wizardStep = esWizard ? bridge.wizardStepViewOf(host, islandRawBlocks,
+        { title: summary.title, sections: $application.variables.mateuFormSections }) : null;
+      const wizardH = !!(wizardStep && wizardStep.wizard.horizontal);
+      $application.variables.mateuWizardContent = (wizardStep && !wizardH ? wizardStep.content : null) || [];
+      $application.variables.mateuWizardStep = wizardH
+        ? { on: true, title: wizardStep.title, stepLabel: wizardStep.wizard.currentLabel, nav: wizardStep.nav }
+        : { on: false, title: '', stepLabel: '', nav: [] };
+      if (wizardStep) {
+        $application.variables.mateuFormSections = wizardStep.sections;
+        if (!wizardStep.sections.length) $application.variables.mateuFormFieldsList = [];
+      }
+      if (wizardH) {
+        $application.variables.mateuHostContent = wizardStep.content;
+        bridge.mountElementsSoon(bridge.elementAtomsOf(wizardStep.content));
       }
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los

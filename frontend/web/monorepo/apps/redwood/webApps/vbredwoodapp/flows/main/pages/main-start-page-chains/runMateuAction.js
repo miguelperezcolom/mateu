@@ -473,15 +473,22 @@ define([
         $application.variables.mateuFormActions = [];
         $application.variables.mateuHostText = '';
       }
-      $application.variables.mateuWizardContent = (esWizard2
-        ? bridge.hostContentOf(hostAfter, islandRawBlocks2, { forWizard: true, title: summary.title }) : null) || [];
-      // si los bloques del paso son RICOS, el form genérico del paso sobra (duplica lo
-      // que ya muestran el header/las property rows) — misma regla que en el host
-      if (($application.variables.mateuWizardContent || []).some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
-        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow))) {
-        $application.variables.mateuFormFieldsList = [];
-        $application.variables.mateuFormSections = [];
+      // el PASO del wizard (mismo reparto que onMateuNavigate): cada campo UNA vez, el pie
+      // Back/Next a la barra del pie con el tren arriba, contenido RICO → sin form genérico
+      const wizardStep2 = esWizard2 ? bridge.wizardStepViewOf(hostAfter, islandRawBlocks2,
+        { title: summary.title, sections: $application.variables.mateuFormSections }) : null;
+      const wizardH2 = !!(wizardStep2 && wizardStep2.wizard.horizontal);
+      $application.variables.mateuWizardContent = (wizardStep2 && !wizardH2 ? wizardStep2.content : null) || [];
+      $application.variables.mateuWizardStep = wizardH2
+        ? { on: true, title: wizardStep2.title, stepLabel: wizardStep2.wizard.currentLabel, nav: wizardStep2.nav }
+        : { on: false, title: '', stepLabel: '', nav: [] };
+      if (wizardStep2) {
+        $application.variables.mateuFormSections = wizardStep2.sections;
+        if (!wizardStep2.sections.length) $application.variables.mateuFormFieldsList = [];
+      }
+      if (wizardH2) {
+        $application.variables.mateuHostContent = wizardStep2.content;
+        bridge.mountElementsSoon(bridge.elementAtomsOf(wizardStep2.content));
       }
 
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los

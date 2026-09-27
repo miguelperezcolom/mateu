@@ -663,3 +663,59 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
 .mateu-form-section + .mateu-form-section {
   margin-top: 1.5rem;
 }
+
+/* WIZARD con el tren ARRIBA (@WizardProgress STEPS → mateuWizardStep): en ancho de escritorio
+   el oj-train horizontal; en pantallas estrechas (un tren de 4-5 rótulos no cabe) los mismos
+   pasos en VERTICAL, como lista numerada — ✓ los hechos, resaltado el actual. */
+.mateu-wizard-steps {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mateu-wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  color: var(--oj-core-text-color-secondary);
+}
+.mateu-wizard-step-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--oj-core-divider-color, rgba(0, 0, 0, 0.2));
+  font-size: 0.875rem;
+}
+.mateu-wizard-step-current {
+  color: var(--oj-core-text-color-primary);
+  font-weight: 600;
+}
+.mateu-wizard-step-current .mateu-wizard-step-marker {
+  background: var(--oj-core-text-color-primary);
+  border-color: var(--oj-core-text-color-primary);
+  color: var(--oj-core-bg-color-content, #fff);
+}
+.mateu-wizard-step-done .mateu-wizard-step-marker {
+  color: var(--oj-core-success-2, #2b7f36);
+  border-color: currentColor;
+}
+.mateu-wizard-nav oj-button:first-child {
+  margin-inline-start: 0;
+}
+@media (max-width: 767px) {
+  .mateu-wizard-train {
+    display: none;
+  }
+  .mateu-wizard-steps {
+    display: block;
+  }
+  .mateu-wizard-top.oj-sm-padding-12x-horizontal,
+  .mateu-wizard-body.oj-sm-padding-12x-horizontal {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

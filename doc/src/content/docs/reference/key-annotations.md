@@ -680,6 +680,7 @@ These are also part of the public DSL and are worth knowing:
 - `@KPI` — render a numeric field as a dashboard KPI card
 - `@WizardCompletionAction` — the method that completes a `Wizard` (shown on the penultimate step)
 - `@WizardProgress` — the wizard's progress style: `BAR` (default), `STEPS` (connected step bullets) or `RAIL` (sticky lateral band: `current | total` counter over the vertical step list)
+- `@WizardLabels(back = …, next = …)` — the labels of the wizard's built-in Back / Next buttons (default "Back" / "Next", translated through the app's `Translator`)
 - `@AutoSave`
 - `@Icon`
 - `@PageTitle`

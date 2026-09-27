@@ -6,6 +6,8 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormCo
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
+import io.mateu.core.domain.out.componentmapper.TranslatorContext;
+import io.mateu.uidl.annotations.WizardLabels;
 import io.mateu.uidl.annotations.WizardLayoutMode;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -231,7 +233,7 @@ public abstract class Wizard
     var body = new ArrayList<Component>();
     body.add(
         Text.builder()
-            .text("Previous answers")
+            .text(translate("Previous answers", null))
             .container(TextContainer.h4)
             .style("margin: 0 0 0.25rem 0;")
             .build());
@@ -416,6 +418,50 @@ public abstract class Wizard
 
   public Field currentStepField() {
     return WizardStepInspector.currentStepField(this);
+  }
+
+  /**
+   * The label of the built-in "Back" button: {@code @WizardLabels(back = …)} when set, "Back"
+   * otherwise — either way through the app's {@code Translator} (messages bundle, request locale).
+   * Override to decide it per request.
+   */
+  protected String backLabel(HttpRequest httpRequest) {
+    var labels =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(getClass(), WizardLabels.class);
+    return translate(
+        labels != null && !labels.back().isBlank() ? labels.back() : "Back", httpRequest);
+  }
+
+  /**
+   * The label of the built-in "Next" button: {@code @WizardLabels(next = …)} when set, "Next"
+   * otherwise — either way through the app's {@code Translator}. Override to decide it per request.
+   */
+  protected String nextLabel(HttpRequest httpRequest) {
+    var labels =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(getClass(), WizardLabels.class);
+    return translate(
+        labels != null && !labels.next().isBlank() ? labels.next() : "Next", httpRequest);
+  }
+
+  /**
+   * A built-in text through the app's {@code Translator} bean for this request (the same i18n hook
+   * as every other Mateu text), or the mapping's translator context when no bean is reachable.
+   */
+  static String translate(String text, HttpRequest httpRequest) {
+    if (text == null || text.isBlank()) {
+      return text;
+    }
+    Translator translator = null;
+    if (httpRequest != null) {
+      try {
+        translator = MateuBeanProvider.getBean(Translator.class);
+      } catch (RuntimeException ignored) {
+        // no bean provider (e.g. a plain unit test): fall back to the translator context
+      }
+    }
+    return translator != null
+        ? translator.translate(text, httpRequest)
+        : TranslatorContext.translate(text);
   }
 
   @Override
