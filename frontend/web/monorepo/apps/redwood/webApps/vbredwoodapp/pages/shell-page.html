@@ -367,8 +367,11 @@
 
     <!-- Menú PLANO (variante TABS): in-app navigation Redwood (su barra REAL es un overlay
          fijo abajo que estampa el propio componente; el elemento host va al FINAL del
-         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo) -->
-    <oj-bind-if test="[[ $application.variables.mateuMenuTabs && $application.variables.mateuSelectedRoute !== $application.variables.mateuHomeRoute ]]">
+         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo).
+         Sale en TODAS las páginas, la home incluida: la navegación de la app no desaparece
+         según dónde estés. En la home no hay ninguna pestaña seleccionada (su ruta no es
+         una opción del menú) y a ella se vuelve por el icono casa del global-header. -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
         selection="[[ $application.variables.mateuSelectedRoute ]]"

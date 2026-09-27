@@ -1802,6 +1802,13 @@ test('smart filters: las plantillas pintan los filtros DENTRO de la cabecera, no
     /oj-sp-smart-filter-search \.oj-sp-filter-chip-non-applied \.oj-sp-filter-chip-non-applied-value-count-focusable \{\s*display: none;/)
 })
 
+test('menú TABS: la barra de pestañas sale en todas las páginas, la home incluida', () => {
+  const shell = webApp('pages/shell-page.html')
+  const nav = shell.match(/<oj-bind-if test="([^"]*)">\s*<oj-sp-in-app-navigation/)
+  assert.ok(nav, 'la barra in-app navigation está en la shell')
+  assert.equal(nav[1], '[[ $application.variables.mateuMenuTabs ]]', 'nada de ocultarla en la home')
+})
+
 // ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────
 test('chat: buildChatMenuContext aplana el menú a path + navigation (salta separador/remoto)', () => {
   const menu = [

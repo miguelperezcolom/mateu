@@ -1287,8 +1287,9 @@ pide SOLO las pendientes.
   boot de la shell la PREFIERE sobre la primera opción del menú (deep-link sigue mandando).
   Tiles = 3 `MetricCard` @Panel(title="") con contadores VIVOS (instancia por request) →
   `welcomeOf` extrae el MetricCard del panel (isKpi/kpiTitle/kpiValue/kpiCaption) y el
-  tile pinta el KPI (valor heading-lg + caption). El menú TABS se OCULTA en la home
-  (bind-if selectedRoute !== homeRoute) y el icono casa del oj-sp-global-header navega a
+  tile pinta el KPI (valor heading-lg + caption). ~~El menú TABS se OCULTA en la home~~
+  (SUSTITUIDO 2026-09-27: la barra sale en todas las páginas, ver "Filtros dentro de la
+  cabecera y pestañas en la home") y el icono casa del oj-sp-global-header navega a
   la home (evento ojSpHomeClick → onMateuNavigate).
 - **@AppContext en drawer lateral (2026-07-28)**: los oj-select-one directos no casaban
   con el header oscuro → un icono (oj-ux-ico-settings, borderless) abre un
@@ -1694,7 +1695,7 @@ tarjeta de verdad y se respeta, igual que cuando hay varias (la 360 y sus zonas 
 paneles). El título de una tarjeta es reconocible porque `visit()` lo mete como primer átomo de
 texto con la clase del subencabezado.
 
-## Filtros dentro de la cabecera del buscador (2026-09-27)
+## Filtros dentro de la cabecera y pestañas en la home (2026-09-27)
 
 ### Filtros: por la API `smartFilters` de oj-sp-smart-filter-search
 
@@ -1733,3 +1734,12 @@ Departure rango de fecha, Hotel texto — filtran), front /reservas "Vista" 20�
 `type: ["Company"]`/`status: ["Inactive"]` igual que la fila antigua y el backend devuelve las 259
 filas con el bundle desplegado también: el Crud declara esos filtros como enum simple y Mateu los
 publica como multiSelect — es del backend, no del renderer.
+
+### Menú TABS: la barra sale también en la home
+
+Antes `oj-sp-in-app-navigation` se ocultaba en la home (`mateuSelectedRoute !== mateuHomeRoute`).
+Ahora sale en TODAS las páginas: la navegación de la app no desaparece según dónde estés. En la
+home no hay pestaña seleccionada (su ruta no es una opción del menú). La barra real es un overlay
+fijo que estampa el componente; su elemento host va al final del contenido y su caja en flujo
+reserva los 64px, así que la home no queda tapada al hacer scroll al fondo (comprobado a 1440 y
+390).
