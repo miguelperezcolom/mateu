@@ -37,9 +37,8 @@ export class MateuCommandCenter extends LitElement {
     @state() private loading = false
     @state() private selectedIndex = 0
     // How many slots of the rail's column are taken below this FAB by the app's FABs (.app-fab).
-    // Measured from the DOM and kept in sync. The AI assistant's .ai-fab is not counted: it is the
-    // rail's corner FAB, flush in the viewport's corner, and the column starts above it by itself
-    // when the two meet (layout/fabRail.ts, --mateu-fab-stack-bottom).
+    // Measured from the DOM and kept in sync. (The agent's chat has no FAB: its toggle is a header
+    // widget.)
     @state() private fabOffset = 0
 
     @query('.cc-input') private inputEl?: HTMLInputElement
@@ -83,8 +82,7 @@ export class MateuCommandCenter extends LitElement {
     private measureFabStack() {
         const root = this.getRootNode() as ParentNode
         // Our own FAB lives in this element's shadow root, so it is never matched here; page FABs
-        // stack above the shell's (the rail's --mateu-fab-shell-slots), so they are not below this
-        // one; the AI FAB is the corner's, under the column only when the column is over the corner.
+        // stack above the shell's (the rail's --mateu-fab-shell-slots), so they are not below this one.
         const offset = root.querySelectorAll?.('.app-fab').length ?? 0
         if (offset !== this.fabOffset) this.fabOffset = offset
     }

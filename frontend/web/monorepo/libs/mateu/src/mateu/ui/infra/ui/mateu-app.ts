@@ -7,7 +7,7 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
-import { cornerFabStyles, fabStyles } from "@infra/ui/layout/fabRail.ts";
+import { fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
@@ -813,10 +813,26 @@ export class MateuApp extends ComponentElement {
         .m-scroll { overflow: auto; }
         .m-md { display: flex; width: 100%; height: 100%; }
         .m-md > .m-scroll { flex: 1; min-width: 0; }
-        /* the AI chat panel: shown when open (slot="detail"), hidden when closed — replaces the
-           vaadin-master-detail-layout detail slot that used to toggle it. */
+        /* The agent's chat panel: shown when open (slot="detail"), hidden when closed. It opens on
+           the content row's START (order -1: the left), under the header, which it never covers
+           or moves; the header's chat toggle (appRenderer, renderChatToggle) opens and closes it.
+           On a wide viewport it pushes the content aside; on a narrow one it covers the content
+           area, full width — a 24rem column would leave the page nothing. Its own full-screen mode
+           ([expanded], mateu-chat's styles) is left alone. */
         mateu-chat[slot="detail-hidden"] { display: none; }
-        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; }
+        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; order: -1; box-sizing: border-box; padding-top: 0.5rem; border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        /* pushed aside, a fixed-width page fills what is left and would touch the panel: keep a gutter */
+        @media (min-width: 601px) {
+            .m-md:has(> mateu-chat[slot="detail"]) > .m-scroll { padding-inline: var(--lumo-space-m, 1rem); }
+        }
+        @media (max-width: 600px) {
+            .m-md:has(> mateu-chat[slot="detail"]) { position: relative; }
+            mateu-chat[slot="detail"]:not([expanded]) { position: absolute; inset: 0; z-index: 1000; width: 100%; border-inline-end: none; }
+        }
+        /* The chat toggle, pressed while the panel is open. */
+        .mateu-chat-toggle { color: var(--lumo-body-text-color, #1a1a1a); margin-left: 0.5rem; flex-shrink: 0; }
+        .mateu-chat-toggle--open, .mateu-chat-toggle--open:hover { color: var(--lumo-primary-text-color, #1676f3); background: var(--lumo-primary-color-10pct, rgba(22,118,243,.1)); }
+        .mateu-chat-toggle:focus-visible { outline: 2px solid var(--lumo-primary-color-50pct, rgba(22,118,243,.5)); outline-offset: 1px; }
         .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
         .m-app-layout > .app-navbar { display: flex; align-items: center; gap: .5rem; height: 4rem; flex-shrink: 0; padding: 0 .75rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
         .m-app-layout > .app-body { display: flex; flex: 1; min-height: 0; }
@@ -1128,10 +1144,10 @@ export class MateuApp extends ComponentElement {
         }
 
         /* The FABs' look and place are the rail's (layout/fabRail.ts): Lumo buttons, square, in the
-           column the page width picks; the AI assistant's, inverted, flush in the viewport's corner. */
+           column the page width picks. The agent's chat has none: its toggle is in the header. */
 
 
-  `, fabStyles('.app-fab, .page-fab'), cornerFabStyles('.ai-fab')]
+  `, fabStyles('.app-fab, .page-fab')]
 }
 
 declare global {
