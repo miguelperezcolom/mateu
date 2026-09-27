@@ -54,11 +54,27 @@ class WizardStepListSyncTest {
     Done done;
   }
 
+  public record Guest(String name) {}
+
+  public static class GuestsStep implements WizardStep {
+    public List<Guest> guests = new ArrayList<>();
+  }
+
+  /** Two steps with lists of different rows, one after the other — ec-demo1's new booking. */
+  @SuppressWarnings("unused")
+  @UI("/probe-two-lists-wizard")
+  @Title("Probe")
+  public static class TwoListsWizard extends Wizard {
+    RoomsStep roomsStep = new RoomsStep();
+    GuestsStep guestsStep = new GuestsStep();
+    Done done;
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ListWizard.class);
+    mateu = TestMateu.withUis(ListWizard.class, TwoListsWizard.class);
   }
 
   @AfterAll
@@ -103,13 +119,58 @@ class WizardStepListSyncTest {
     assertThat(kept).hasSize(1);
   }
 
+  /**
+   * The guests step's "+" answers with a GUEST editor, sent to guests-container, even though the
+   * state still carries the rooms step's keys. The server was right all along when ec-demo1's new
+   * booking showed the room editor there: the Vaadin client dropped this fragment (see
+   * callbackTokenGuard.ts in libs/mateu). This pins the server's half.
+   */
+  @Test
+  void theSecondStepsAddOpensAnEditorForItsOwnRows() throws Exception {
+    var first = mateu.sync("/probe-two-lists-wizard");
+    var added = run(TwoListsWizard.class, "rooms_add", wire(state(first)), Map.of());
+    assertThat(editorType(added, "rooms-container")).isEqualTo(Room.class.getName());
+    var created =
+        run(
+            TwoListsWizard.class,
+            "rooms_create",
+            wire(mergedState(added)),
+            Map.of("initiatorState", Map.of("type", "SWU", "adults", 2)));
+    var second = run(TwoListsWizard.class, "next", wire(mergedState(created)), Map.of());
+    assertThat(state(second)).containsEntry("position", 1);
+
+    // the state still carries the rooms step's keys (rooms, rooms_rowClass) beside the guests'
+    var guestAdded = run(TwoListsWizard.class, "guests_add", wire(state(second)), Map.of());
+    assertThat(editorType(guestAdded, "guests-container")).isEqualTo(Guest.class.getName());
+    assertThat(guestAdded.fragments())
+        .noneMatch(f -> "rooms-container".equals(f.targetComponentId()));
+  }
+
+  /** The row class of the editor an increment sends to a list's detail container. */
+  private static String editorType(UIIncrementDto increment, String containerId) {
+    var fragment =
+        increment.fragments().stream()
+            .filter(f -> containerId.equals(f.targetComponentId()))
+            .findFirst()
+            .orElseThrow();
+    return ((io.mateu.dtos.ServerSideComponentDto) fragment.component()).serverSideType();
+  }
+
   private UIIncrementDto run(
       String actionId, Map<String, Object> state, Map<String, Object> params) {
+    return run(ListWizard.class, actionId, state, params);
+  }
+
+  private UIIncrementDto run(
+      Class<? extends Wizard> wizard,
+      String actionId,
+      Map<String, Object> state,
+      Map<String, Object> params) {
     return mateu.run(
         RunActionRqDto.builder()
-            .route("/probe-list-wizard")
+            .route(wizard == ListWizard.class ? "/probe-list-wizard" : "/probe-two-lists-wizard")
             .actionId(actionId)
-            .serverSideType(ListWizard.class.getName())
+            .serverSideType(wizard.getName())
             .componentState(state)
             .parameters(params)
             .build());
@@ -125,7 +186,10 @@ class WizardStepListSyncTest {
   private static Map<String, Object> mergedState(UIIncrementDto increment) {
     var merged = new HashMap<String, Object>();
     increment.fragments().stream()
-        .filter(f -> !"rooms-container".equals(f.targetComponentId()) && f.state() instanceof Map)
+        .filter(
+            f ->
+                !String.valueOf(f.targetComponentId()).endsWith("-container")
+                    && f.state() instanceof Map)
         .forEach(f -> merged.putAll((Map<String, Object>) f.state()));
     return merged;
   }

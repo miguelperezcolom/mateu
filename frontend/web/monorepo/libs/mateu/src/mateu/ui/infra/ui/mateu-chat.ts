@@ -619,7 +619,7 @@ export class MateuChat extends LitElement {
                padding-top so the panel clears the header). Under the default content-box that
                padding is ADDED to the 100%, so the panel ends up taller than the slot that holds
                it and the overflow falls off the bottom of the viewport — which is where the input
-               bar lives, so the mic, the field and Send were all clipped when opened from the FAB. */
+               bar lives, so the mic, the field and Send were all clipped when opened. */
             box-sizing: border-box;
         }
 
@@ -632,7 +632,7 @@ export class MateuChat extends LitElement {
             max-width: none !important;
             height: 100vh;
             z-index: 1000;
-            border-left: none !important;
+            border: none !important;
         }
         :host([expanded]) .message-list,
         :host([expanded]) .input-bar,

@@ -117,6 +117,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     baseOf,
     // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
     headerWidgetsOf,
+    // el FAB de "ask" del shell: su marca (Ask Oracle por defecto, o la del @App) y su nombre
+    askFabOf,
+    brandAskFab,
     startRemoteWidget,
     stopRemoteWidgets,
     mountHeaderHtml,

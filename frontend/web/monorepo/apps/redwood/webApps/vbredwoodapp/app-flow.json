@@ -370,6 +370,11 @@
       "defaultValue": "",
       "description": "serverSideType del App \u2014 las acciones de cabecera se despachan app-level con \u00e9l"
     },
+    "mateuAskLabel": {
+      "type": "string",
+      "defaultValue": "Ask Oracle",
+      "description": "r\u00f3tulo del FAB de ask del shell y t\u00edtulo de su paleta (@App(askLabel); por defecto Ask Oracle)"
+    },
     "mateuShellLogo": {
       "type": "string",
       "defaultValue": "",
@@ -689,7 +694,7 @@
     "mateuChatSseUrl": {
       "type": "string",
       "defaultValue": "",
-      "description": "endpoint SSE del chat de IA (App.sseUrl); si est\u00e1 puesto, sale el FAB del chat"
+      "description": "endpoint SSE del chat de IA (App.sseUrl); si est\u00e1 puesto, sale el bot\u00f3n del chat en la cabecera"
     },
     "mateuChatOpen": {
       "type": "boolean",

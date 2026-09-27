@@ -90,6 +90,8 @@ public final class AppMapper {
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
+            .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
+            .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
@@ -336,6 +338,20 @@ public final class AppMapper {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).chromeless();
     }
     return false;
+  }
+
+  /**
+   * A string attribute of the app class's {@code @App}, or null when it is blank or there is no
+   * {@code @App} — the renderer then keeps its own default.
+   */
+  private static String appAnnotationValue(
+      AppShell app, java.util.function.Function<io.mateu.uidl.annotations.App, String> attribute) {
+    if (app.serverSideType() == null) return null;
+    var appClass = forName(app.serverSideType());
+    if (!MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) return null;
+    var value =
+        attribute.apply(MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class));
+    return notBlank(value) ? value.trim() : null;
   }
 
   private static String getMcpUrl(AppShell app) {

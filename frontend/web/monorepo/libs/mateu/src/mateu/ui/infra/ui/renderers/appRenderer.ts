@@ -9,11 +9,11 @@ import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { cornerFabPosition, fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
+import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
-// is on the AI/app FABs stack 4rem higher; and in chromeless mode the whole nav chrome is dropped.
+// is on the app FABs stack above it; and in chromeless mode the whole nav chrome is dropped.
 // Application-level context selectors (@AppContext fields on the app class): compact pickers on
 // the header that fix a value for every screen. This shared appRenderer is the VAADIN shell, so
 // they render with Vaadin's own widgets (vaadin-select / searchable vaadin-combo-box) — the other
@@ -100,6 +100,34 @@ const renderThemeToggle = (metadata: App, container: MateuApp) =>
             ${icon(container.isDark ? 'vaadin:sun-o' : 'vaadin:moon', 'color: var(--lumo-body-text-color);')}
         </button>
     ` : nothing
+
+/**
+ * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
+ * own widgets (the inbox bell…), shown only when the app declares the chat (sseUrl). It opens and
+ * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
+ */
+export const renderChatToggle = (metadata: App, container: MateuApp) =>
+    metadata.sseUrl ? html`
+        <button class="app-chrome-icon-btn mateu-chat-toggle ${container.chatOpen ? 'mateu-chat-toggle--open' : ''}"
+            @click="${container.showHideIa}"
+            title="${container.chatOpen ? 'Cerrar el chat' : 'Chat'}" aria-label="Chat"
+            aria-pressed="${container.chatOpen ? 'true' : 'false'}">
+            ${icon('vaadin:comments', 'color: currentColor;')}
+        </button>` : nothing
+
+/** The header's widget zone: the chat toggle, the app's widgets, the context pickers and actions, the theme toggle. */
+const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
+    ${renderChatToggle(metadata, container)}
+    <slot name="widgets"></slot>
+    ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}`
+
+/**
+ * The agent's chat panel. It sits in the content row (.m-md), under the header, and mateu-app's
+ * styles put it on the row's START: on a wide viewport it pushes the content aside, on a narrow one
+ * it covers the content area — never the header.
+ */
+const renderChat = (metadata: App, container: MateuApp, appState: ComponentState, appData: ComponentData) =>
+    metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
@@ -227,7 +255,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ></mateu-ux>
                             </mateu-api-caller>
                         </div>
-                        ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                        ${renderChat(metadata, container, appState, appData)}
                     </div>
                 </div>
                 <slot></slot>
@@ -243,8 +271,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
         ? _splitDetailRoute.substring(_splitConsumedRoute.length + 1).split('/')[0]
         : undefined
 
-    // The app's FABs take the rail's column from its lowest slot; the AI assistant's is the rail's
-    // corner FAB, flush in the viewport's corner, and the column starts above it when they meet.
+    // The app's FABs take the rail's column from its lowest slot. The agent's chat is not a FAB: its
+    // toggle is a header widget (renderChatToggle) and its panel opens on the content's left.
 
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
@@ -319,8 +347,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </button>
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${metadata.title}</h2><p style="margin: 0;">${metadata.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
-                            <slot name="widgets"></slot>
-                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                            ${renderHeaderWidgets(metadata, container)}
                         </div>
                     </header>
                     <div class="app-body">
@@ -355,7 +382,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         ></mateu-ux>
                                     </mateu-api-caller>
                                 </div>
-                                ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                                ${renderChat(metadata, container, appState, appData)}
                             </div>
                         </div>
                     </div>
@@ -380,8 +407,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ?? renderNeutralNav(items, onSelect, 'menu-on-top')
                         })()}
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
-                            <slot name="widgets"></slot>
-                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                            ${renderHeaderWidgets(metadata, container)}
                         </div>
                     </div>
                     </div>
@@ -405,7 +431,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            ${renderChat(metadata, container, appState, appData)}
                         </div>
                     </div>
                 </div>
@@ -423,8 +449,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </a>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
-                            <slot name="widgets"></slot>
-                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                            ${renderHeaderWidgets(metadata, container)}
                         </div>
                     </div>
                     </div>
@@ -449,7 +474,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            ${renderChat(metadata, container, appState, appData)}
                         </div>
                         `}
                     </div>
@@ -480,7 +505,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            ${renderChat(metadata, container, appState, appData)}
                         </div>
                     </div>
                 </div>
@@ -493,7 +518,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <div class="m-vl"
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
-                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                            ${renderChatToggle(metadata, container)}${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </div>
                     </div>
                     <div role="main" class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
@@ -516,7 +541,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            ${renderChat(metadata, container, appState, appData)}
                         </div>
                     </div>
                 </div>
@@ -547,8 +572,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 >${option.label}</button>`)}
                             </nav>
                             <div class="m-hl mateu-app-widgets" style="align-items: center;">
-                                <slot name="widgets"></slot>
-                                ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
+                                ${renderHeaderWidgets(metadata, container)}
                             </div>
                         </div>
                     </div>
@@ -572,7 +596,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                            ${renderChat(metadata, container, appState, appData)}
                         </div>
                     </div>
                 </div>
@@ -586,11 +610,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     ${icon(fab.icon)}
                 </button>
             `)}
-            ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" style="${cornerFabPosition()}" ${onFabRail('corner')} @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
-                    ${icon('vaadin:comments-o')}
-                </button>
-            ` : nothing}
             ${container.renderCommandPalette()}
             <slot></slot>
        `
