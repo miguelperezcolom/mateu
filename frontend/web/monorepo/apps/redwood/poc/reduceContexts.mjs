@@ -89,6 +89,8 @@ export function dynFormMetadataOf(tree) {
   const metadata = {}
   for (const f of collectFields(tree)) {
     if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
+    // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
+    if (f.dataType === 'array' || (f.columns || []).length) continue
     metadata[f.fieldId] = {
       type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
         : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -669,9 +671,14 @@ export function emptyStateOf(tree) {
 
 /** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
 export function interpolate(text, state) {
+  // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
+  // llega como ${state['_position']})
   return String(text == null ? '' : text).replace(
-    /\$\{state\.([A-Za-z0-9_]+)\}/g,
-    (all, key) => (state && state[key] != null ? String(state[key]) : ''),
+    /\$\{state(?:\.([A-Za-z0-9_]+)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+    (all, dotted, quoted) => {
+      const key = dotted || quoted
+      return state && state[key] != null ? String(state[key]) : ''
+    },
   )
 }
 
@@ -789,20 +796,42 @@ export function islandContentOf(ctx, opts = {}) {
       // búsqueda—, es una tabla más del contenido.
       if ((m.columns || []).length) {
         const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
+        // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
+        // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
+        const rowEditable = isModalRowEditor(m)
+        const columns = m.columns
+          .map((col) => col.metadata || col)
+          // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
+          .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
+          .map((c) => {
+            const def = { headerText: c.label || c.id, field: c.id }
+            if (c.dataType === 'status') def.template = 'cellStatusBadge'
+            return def
+          })
+        if (rowEditable) {
+          columns.push({ headerText: '', field: '__rowActions', template: 'cellListRowActions', sortable: 'disabled' })
+        }
+        const shown = statusBadgeRows(rows, m.columns).map((row, i) => (rowEditable
+          ? {
+            ...row,
+            _rowNumber: row._rowNumber == null ? i : row._rowNumber,
+            __rowKey: String(row._rowNumber == null ? i : row._rowNumber),
+            __editActionId: fieldId + '_select',
+            __removeActionId: fieldId + '_remove',
+          }
+          : row))
         atom({
           isGrid: true,
           fieldId,
           label: m.label || '',
-          columns: m.columns.map((col) => {
-            const c = col.metadata || col
-            const def = { headerText: c.label || c.id, field: c.id }
-            if (c.dataType === 'status') def.template = 'cellStatusBadge'
-            return def
-          }),
-          rows: statusBadgeRows(rows, m.columns),
+          columns,
+          rows: shown,
           // el data provider lo construye la app (JET); en Node no hay, y el atom viaja igual
-          adp: dataProviderFactory ? dataProviderFactory(statusBadgeRows(rows, m.columns)) : null,
+          adp: dataProviderFactory ? dataProviderFactory(shown) : null,
           isEmpty: rows.length === 0,
+          rowEditable,
+          addActionId: rowEditable ? fieldId + '_add' : '',
+          addLabel: 'Add',
         }, container)
         return
       }
@@ -2204,4 +2233,260 @@ export function reduceContexts(reg, increment, opts = {}) {
   }
 
   return { contexts, stack, shell, effects }
+}
+
+// ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
+//
+// Contrato del wire (fixtures/real/rowedit-*.json, capturados contra el booking de ec-demo1):
+//  - `<campo>_add` / `<campo>_select` (con parameters._rowNumber) contestan DOS fragmentos: el
+//    State del contenedor (con `_show_detail[campo] = true`) y un ServerSide con el formulario
+//    de la fila dirigido a `<campo>-container` (title "New room"/"Edit room", `buttons` al pie:
+//    Save —primary—, "Save and add another" al crear, Cancel —tertiary—; Prev/Next en
+//    `toolbar` al editar, y la posición "1/3" como Text de `header`).
+//  - Save/Create/Cancel/Prev/Next viajan con el estado del CONTENEDOR (el formulario o el
+//    wizard) y la fila en parameters.initiatorState — como Vaadin desde 367
+//    (libs/mateu … common.ts resolveComponentState/isOwnListAction). Mandar la fila como
+//    componentState reconstruía el contenedor desde una habitación: el wizard volvía vacío a
+//    su primer paso.
+//  - El contenedor contesta un State con la lista nueva y `_show_detail[campo] = false`
+//    (cierra); `_create-and-stay` contesta además una fila nueva en `<campo>-container`.
+//  - Prev/Next contestan un State-only a `<campo>-container` (la fila vecina).
+//  - Los lookups de la fila (`search-<campo>`) los resuelve el ServerSide de la FILA con el
+//    estado de la fila: su respuesta es un fragmento data-only a su id.
+
+/** Las acciones que el editor de una fila manda al contenedor de la lista: `rooms_create`… */
+export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
+
+/** Verbos que llevan la fila del diálogo en parameters.initiatorState. */
+const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
+
+/** Verbos que validan la fila antes de salir (los obligatorios vacíos). */
+export const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
+
+/** ¿El FormField es una lista cuyo editor de fila se abre en un diálogo? */
+export function isModalRowEditor(field) {
+  return !!(field && !field.readOnly && !field.inlineEditing
+    && (field.columns || []).length && /^modal/.test(field.formPosition || ''))
+}
+
+/** Las listas con editor modal de un árbol (sin cruzar islas): fieldId → FormField. */
+function modalListsOf(tree) {
+  const out = {}
+  for (const f of collectFields(tree)) if (isModalRowEditor(f)) out[f.fieldId] = f
+  return out
+}
+
+/**
+ * ¿`actionId` es una acción de una lista del contenedor? → { fieldId, verb } o null. La lista
+ * se reconoce como en Vaadin (el `<campo>_rowClass` que su estado lleva por cada lista) o, si
+ * el estado no lo trae, por un FormField lista con ese id en el árbol del contenedor.
+ */
+export function listActionOf(state, actionId, tree) {
+  const match = actionId ? LIST_ACTION.exec(actionId) : null
+  if (!match) return null
+  const fieldId = match[1]
+  const known = (state && (fieldId + '_rowClass') in state)
+    || collectFields(tree || {}).some((f) => f.fieldId === fieldId && (f.dataType === 'array' || (f.columns || []).length))
+  return known ? { fieldId, verb: match[2] } : null
+}
+
+/** El contexto de transporte del contenedor: las acciones de sus listas van a SU ServerSide
+ *  (el formulario, el wizard), no al mediador por el que se cargó la pantalla — el crud
+ *  orquestador no sabe qué es `rooms_add` ("component() … DtoSupplier"). */
+function holderTransportOf(holder) {
+  const outbound = holder.outbound || {}
+  const tree = holder.tree || {}
+  return {
+    ...holder,
+    outbound: {
+      ...outbound,
+      serverSideType: tree.type === 'ServerSide' && tree.serverSideType ? tree.serverSideType : outbound.serverSideType,
+    },
+  }
+}
+
+/** El _rowNumber REAL (número o uuid) de la fila cuyo texto es `key` — el DOM sólo da texto,
+ *  y el servidor compara con equals: "0" no es 0. */
+function rowOf(rows, key) {
+  return (rows || []).find((row) => row && String(row._rowNumber) === String(key)) || null
+}
+
+/**
+ * La request de una acción de lista: componentState = el estado del CONTENEDOR (+ su borrador),
+ * y la fila del diálogo (+ su borrador) en parameters.initiatorState para los verbos del
+ * editor. `_select` lleva el _rowNumber real; `_remove` de una fila, la fila en
+ * `<campo>_selected_items` (el servidor quita las filas iguales). null si no es de una lista.
+ */
+export function listActionRequestOf(reg, actionId, opts = {}) {
+  const holderId = opts.holderId || HOST_ID
+  const holder = reg && reg.contexts && reg.contexts[holderId]
+  if (!holder) return null
+  const componentState = { ...(holder.state || {}), ...(opts.hostDraft || {}) }
+  const hit = listActionOf(componentState, actionId, holder.tree)
+  if (!hit) return null
+  const { fieldId, verb } = hit
+  const parameters = { ...(opts.parameters || {}) }
+  const rowCtx = reg.contexts[fieldId + '-container']
+  if (ROW_EDITOR_VERBS[verb] && rowCtx) {
+    parameters.initiatorState = { ...(rowCtx.state || {}), ...(opts.rowDraft || {}) }
+  }
+  if ((verb === 'select' || verb === 'remove') && parameters._rowNumber != null) {
+    const row = rowOf(componentState[fieldId], parameters._rowNumber)
+    if (verb === 'select') {
+      if (row) parameters._rowNumber = row._rowNumber
+    } else {
+      delete parameters._rowNumber
+      componentState[fieldId + '_selected_items'] = row ? [row] : []
+    }
+  }
+  return { fieldId, verb, componentState, parameters, ctx: holderTransportOf(holder) }
+}
+
+const ROW_CHROMING = { primary: 'callToAction', tertiary: 'borderless' }
+
+function rowButtonOf(b) {
+  return {
+    actionId: b.actionId,
+    label: b.label || b.actionId,
+    chroming: ROW_CHROMING[b.buttonStyle] || 'outlined',
+  }
+}
+
+/** Opciones de un select/lookup: las estáticas del campo o las que trajo su búsqueda. */
+function optionsOf(field, data) {
+  const found = data && data[field.fieldId] && data[field.fieldId].content
+  const raw = (field.options && field.options.length) ? field.options : (found || [])
+  return raw.map((o) => ({ value: o.value, label: o.label == null ? String(o.value) : o.label }))
+}
+
+/** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
+function plainValueOf(value) {
+  if (value && typeof value === 'object' && !Array.isArray(value) && 'value' in value) return value.value
+  return value
+}
+
+const NUMERIC_TYPES = { integer: true, int: true, long: true, number: true, double: true, float: true, money: true }
+
+/**
+ * Los campos del formulario de la fila, cada uno resuelto al widget que le toca (flags
+ * PRECOMPUTADOS: el CSP de VB no evalúa expresiones) con su valor, sus opciones y sus
+ * errores (messagesCustom de JET). Las listas anidadas (p.ej. las edades de los niños) no
+ * se editan aquí.
+ */
+export function rowFieldsOf(ctx, values, errors) {
+  if (!ctx || !ctx.tree) return []
+  const state = { ...(ctx.state || {}), ...(values || {}) }
+  const seen = {}
+  const out = []
+  for (const f of collectFields(ctx.tree)) {
+    if (!f.dataType || seen[f.fieldId]) continue
+    seen[f.fieldId] = true
+    if (f.dataType === 'array' || (f.columns || []).length) continue
+    const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
+    const isSelect = !!lookupActionId || (f.options || []).length > 0
+    const isBoolean = f.dataType === 'bool' || f.dataType === 'boolean'
+    const isDate = !isSelect && f.dataType === 'date'
+    const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
+    const isTextArea = !isSelect && f.stereotype === 'textarea'
+    const raw = plainValueOf(state[f.fieldId])
+    const error = errors && errors[f.fieldId]
+    out.push({
+      fieldId: f.fieldId,
+      label: f.label || f.fieldId,
+      required: !!f.required,
+      readonly: !!f.readOnly,
+      isSelect,
+      isLookup: !!lookupActionId,
+      lookupActionId,
+      options: isSelect ? optionsOf(f, ctx.data) : [],
+      isBoolean,
+      isDate,
+      isNumber,
+      isTextArea,
+      isText: !isSelect && !isBoolean && !isDate && !isNumber && !isTextArea,
+      value: isBoolean ? !!raw : (raw == null || raw === '' ? null : (isNumber ? Number(raw) : raw)),
+      messagesCustom: error ? [{ severity: 'error', summary: error, detail: '' }] : [],
+    })
+  }
+  return out
+}
+
+/** Los obligatorios vacíos de la fila → { fieldId: mensaje }; {} si está bien. */
+export function validateRow(ctx, values) {
+  const errors = {}
+  for (const f of rowFieldsOf(ctx, values)) {
+    if (f.required && !f.readonly && !f.isBoolean && isBlank(f.value)) errors[f.fieldId] = 'Required'
+  }
+  return errors
+}
+
+/** Los lookups de la fila que aún no tienen opciones → [{ fieldId, actionId }]. */
+export function pendingLookupsOf(ctx) {
+  if (!ctx || !ctx.tree) return []
+  return rowFieldsOf(ctx)
+    .filter((f) => f.isLookup && !(ctx.data && ctx.data[f.fieldId]))
+    .map((f) => ({ fieldId: f.fieldId, actionId: f.lookupActionId }))
+}
+
+/**
+ * La request de la búsqueda de un lookup de la fila: la resuelve el ServerSide de la FILA
+ * (su serverSideType, su id como initiator) con el estado de la fila; la ruta y el backend
+ * son los del contenedor.
+ */
+export function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
+  const row = reg && reg.contexts && reg.contexts[rowCtxId]
+  if (!row || !row.tree) return null
+  const field = collectFields(row.tree).find((f) => f.fieldId === fieldId)
+  const actionId = field && field.remoteCoordinates && field.remoteCoordinates.action
+  if (!actionId) return null
+  const holder = reg.contexts[opts.holderId || HOST_ID] || {}
+  return {
+    actionId,
+    componentState: { ...(row.state || {}), ...(opts.rowDraft || {}) },
+    parameters: { searchText: opts.searchText || '', fieldId, size: 200, page: 0 },
+    ctx: {
+      id: row.id,
+      tree: row.tree,
+      state: row.state,
+      outbound: { ...(holder.outbound || {}), serverSideType: row.tree.serverSideType },
+    },
+  }
+}
+
+/**
+ * Proyección del EDITOR DE FILA abierto (el oj-dialog): null si ninguna lista modal del
+ * contenedor tiene su detalle abierto (`_show_detail[campo]`) con el formulario ya recibido
+ * en `<campo>-container`.
+ */
+export function rowEditorOf(reg, opts = {}) {
+  const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
+  if (!holder || !holder.tree) return null
+  const state = holder.state || {}
+  const show = state._show_detail || {}
+  const lists = modalListsOf(holder.tree)
+  for (const fieldId of Object.keys(lists)) {
+    if (!(show[fieldId] === true || state[fieldId + '_show_detail'] === true)) continue
+    const id = fieldId + '-container'
+    const ctx = reg.contexts[id]
+    if (!ctx || !ctx.tree) continue
+    const form = findByType(ctx.tree, 'Form')
+    const md = (form && form.metadata) || {}
+    const rowState = { ...(ctx.state || {}), ...(opts.rowDraft || {}) }
+    const header = (md.header || [])
+      .map((h) => (h && h.metadata && h.metadata.type === 'Text') ? interpolate(h.metadata.text, rowState) : '')
+      .filter(Boolean)
+    const buttons = (md.buttons || []).filter((b) => b && b.actionId).map(rowButtonOf)
+    return {
+      id,
+      fieldId,
+      formPosition: lists[fieldId].formPosition,
+      title: interpolate(md.title || lists[fieldId].label || '', rowState),
+      subtitle: header.join(' · '),
+      toolbar: (md.toolbar || []).filter((b) => b && b.actionId).map(rowButtonOf),
+      // pie Redwood: la primaria a la DERECHA del todo — el wire la manda primera
+      buttons: buttons.slice().reverse(),
+      fields: rowFieldsOf(ctx, opts.rowDraft, opts.errors),
+    }
+  }
+  return null
 }

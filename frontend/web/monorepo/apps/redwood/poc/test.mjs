@@ -35,6 +35,8 @@ import {
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
+  listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
+  isModalRowEditor, fieldListOf, interpolate, ROW_VALIDATING_VERBS,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2154,6 +2156,224 @@ test('widgets: navigation-requested registra la ruta en su pod si el menú no la
   assert.equal(remoteRouteOf('/inbox/widget-only').baseUrl, '/_inbox')
   // sin pod, nada que registrar
   assert.equal(registerRemoteRoute('/local', { route: '/local' }), false)
+})
+
+
+// ── Editor de filas modal (@DetailFormCustomisation position = modal) — wire real del booking
+// de ec-demo1 (fixtures/real/rowedit-*.json): el wizard de nueva reserva en su paso Rooms y el
+// formulario de edición de una reserva.
+const WIZ_ID = '5c242863-bc33-4be8-8aeb-cac417f95673'
+// el host del wizard en el paso Rooms: la respuesta real del Next, sobre un host cuyo árbol
+// tenía el id al que el Next se mandó
+const wizardAtRooms = () => {
+  const seeded = { contexts: { [HOST_ID]: { id: HOST_ID, kind: 'host', state: {}, data: {},
+    tree: { type: 'ServerSide', id: 'c1e58725-6bda-42a7-8f80-e51c95f9f6dc' },
+    outbound: { route: '/booking/newBooking', consumedRoute: '', serverSideType: 'io.mateu.ecdemo1.booking.infra.in.ui.BookingHome', baseUrl: '/_booking' } } },
+  stack: [], shell: null }
+  return reduceContexts(seeded, fx('rowedit-wizard-rooms'))
+}
+// la captura del "+" se mandó con el id previo al Next como initiator; el renderer manda el
+// id del árbol que tiene (tree.id) y el servidor lo ECOA — se reescribe el eco en consecuencia
+const echoTo = (inc, from, to) => ({ ...inc, fragments: inc.fragments.map((f) => (f.targetComponentId === from ? { ...f, targetComponentId: to } : f)) })
+const wizardAddInc = () => echoTo(fx('rowedit-wizard-add'), 'c1e58725-6bda-42a7-8f80-e51c95f9f6dc', WIZ_ID)
+
+test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila, sin la columna _select', () => {
+  const reg = wizardAtRooms()
+  const host = reg.contexts[HOST_ID]
+  assert.equal(host.tree.id, WIZ_ID)
+  const rooms = collectFields(host.tree).find((f) => f.fieldId === 'rooms')
+  assert.equal(rooms.formPosition, 'modal')
+  assert.ok(isModalRowEditor(rooms))
+  const atoms = (islandContentOf(host) || []).flatMap((b) => b.items)
+  const grid = atoms.find((a) => a.isGrid && a.fieldId === 'rooms')
+  assert.ok(grid.rowEditable)
+  assert.equal(grid.addActionId, 'rooms_add')
+  assert.ok(!grid.columns.some((c) => c.field === '_select'), 'la columna-botón del wire no se pinta como columna de datos')
+  assert.equal(grid.columns[grid.columns.length - 1].template, 'cellListRowActions')
+  // la lista no es un campo de texto del form genérico (salía un input "Rooms" bajo la tabla)
+  assert.ok(!fieldListOf(host.tree, host.state).some((f) => f.fieldId === 'rooms'))
+})
+
+test('rowedit: una lista NO modal (o de solo lectura) sigue siendo una tabla sin acciones', () => {
+  assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'bottom' }), false)
+  assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modal', readOnly: true }), false)
+  assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modal', inlineEditing: true }), false)
+  assert.equal(isModalRowEditor({ columns: [{}], formPosition: 'modalRight' }), true)
+})
+
+test('rowedit: las acciones de lista se reconocen por <campo>_rowClass (como Vaadin) o por el árbol', () => {
+  const reg = wizardAtRooms()
+  const host = reg.contexts[HOST_ID]
+  assert.deepEqual(listActionOf(host.state, 'rooms_create-and-stay'), { fieldId: 'rooms', verb: 'create-and-stay' })
+  assert.equal(listActionOf(host.state, 'next'), null)
+  assert.equal(listActionOf({}, 'rooms_add'), null)
+  assert.deepEqual(listActionOf({}, 'rooms_add', host.tree), { fieldId: 'rooms', verb: 'add' })
+})
+
+test('rowedit: "+" en el wizard va al SERVERSIDE del wizard con su estado — no al mediador', () => {
+  const reg = wizardAtRooms()
+  const rq = listActionRequestOf(reg, 'rooms_add', { hostDraft: {} })
+  assert.equal(rq.verb, 'add')
+  assert.equal(rq.componentState.position, 1)
+  assert.equal(rq.componentState.stay.hotelCode, 'MRU01')
+  assert.equal(rq.parameters.initiatorState, undefined)
+  assert.equal(rq.ctx.outbound.serverSideType, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.NewBookingWizard')
+  assert.equal(rq.ctx.outbound.route, '/booking/newBooking')
+  assert.equal(rq.ctx.tree.id, WIZ_ID)
+})
+
+test('rowedit: la respuesta del "+" abre el editor — "New room", pie Cancel · Save and add another · Save', () => {
+  const reg = reduceContexts(wizardAtRooms(), wizardAddInc())
+  assert.deepEqual(reg.contexts[HOST_ID].state._show_detail, { rooms: true })
+  assert.equal(reg.contexts[HOST_ID].state.position, 1, 'el wizard sigue en Rooms')
+  const editor = rowEditorOf(reg)
+  assert.equal(editor.id, 'rooms-container')
+  assert.equal(editor.title, 'New room')
+  assert.deepEqual(editor.buttons.map((b) => [b.actionId, b.chroming]), [
+    ['rooms_cancel', 'borderless'], ['rooms_create-and-stay', 'outlined'], ['rooms_create', 'callToAction']])
+  assert.deepEqual(editor.toolbar, [])
+  const byId = Object.fromEntries(editor.fields.map((f) => [f.fieldId, f]))
+  assert.ok(byId.roomTypeCode.isLookup && byId.roomTypeCode.isSelect && byId.roomTypeCode.required)
+  assert.equal(byId.roomTypeCode.lookupActionId, 'search-roomTypeCode')
+  assert.ok(byId.adults.isNumber)
+  assert.equal(byId.adults.value, 2)
+  assert.ok(byId.line.readonly)
+  assert.ok(!byId.childrenAges, 'una lista anidada no se edita en el diálogo')
+})
+
+test('rowedit: Save valida los obligatorios de la fila en el diálogo; con ellos rellenos, pasa', () => {
+  const reg = reduceContexts(wizardAtRooms(), wizardAddInc())
+  const row = reg.contexts['rooms-container']
+  assert.ok(ROW_VALIDATING_VERBS.create && ROW_VALIDATING_VERBS.save && !ROW_VALIDATING_VERBS.cancel)
+  const errors = validateRow(row, {})
+  assert.deepEqual(Object.keys(errors).sort(), ['boardCode', 'ratePlanCode', 'roomTypeCode'])
+  const fields = rowFieldsOf(row, {}, errors)
+  assert.equal(fields.find((f) => f.fieldId === 'roomTypeCode').messagesCustom[0].severity, 'error')
+  assert.deepEqual(fields.find((f) => f.fieldId === 'adults').messagesCustom, [])
+  assert.deepEqual(validateRow(row, { roomTypeCode: 'DBLSV', ratePlanCode: 'BAR', boardCode: 'AD' }), {})
+})
+
+test('rowedit: Save viaja con el estado del CONTENEDOR y la fila en initiatorState (wizard)', () => {
+  const reg = reduceContexts(wizardAtRooms(), wizardAddInc())
+  const rq = listActionRequestOf(reg, 'rooms_create', {
+    hostDraft: {}, rowDraft: { roomTypeCode: 'DBLSV', ratePlanCode: 'BAR', boardCode: 'AD' } })
+  assert.equal(rq.componentState.position, 1)
+  assert.equal(rq.componentState.stay.arrival, '2026-11-10')
+  assert.equal(rq.componentState.rooms_rowClass, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.RoomViewModel')
+  assert.equal(rq.parameters.initiatorState.roomTypeCode, 'DBLSV')
+  assert.equal(rq.parameters.initiatorState.adults, 2)
+  assert.equal(rq.componentState.roomTypeCode, undefined, 'la fila NO es el componentState')
+})
+
+test('rowedit: los lookups de la fila los resuelve el ServerSide de la FILA con su estado', () => {
+  const reg = reduceContexts(wizardAtRooms(), wizardAddInc())
+  assert.deepEqual(pendingLookupsOf(reg.contexts['rooms-container']).map((l) => l.actionId),
+    ['search-roomTypeCode', 'search-ratePlanCode', 'search-boardCode'])
+  const rq = lookupRequestOf(reg, 'rooms-container', 'roomTypeCode')
+  assert.equal(rq.actionId, 'search-roomTypeCode')
+  assert.deepEqual(rq.parameters, { searchText: '', fieldId: 'roomTypeCode', size: 200, page: 0 })
+  assert.equal(rq.ctx.outbound.serverSideType, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.RoomViewModel')
+  assert.equal(rq.ctx.outbound.route, '/booking/newBooking')
+  assert.equal(rq.ctx.tree.id, 'f0a221bf-453e-450a-927f-5b5327774174')
+  assert.equal(rq.componentState.adults, 2)
+})
+
+// el formulario de EDICIÓN de una reserva: host '_edit' (BookingViewModel) con la lista rooms
+const editForm = () => {
+  const wiz = wizardAtRooms().contexts[HOST_ID]
+  const holderState = JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'rowedit-add.json'), 'utf8'))
+    .fragments[0].state
+  const state = { ...holderState, _show_detail: {}, _editing: {} }
+  return { contexts: { [HOST_ID]: { id: HOST_ID, kind: 'host', data: {}, state,
+    tree: { ...wiz.tree, id: '_edit', serverSideType: 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingViewModel' },
+    outbound: { route: '/booking/bookings/XZ6GDG/edit', consumedRoute: '/booking/bookings',
+      serverSideType: 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingCrudOrchestrator', baseUrl: '/_booking' } } },
+  stack: [], shell: null }
+}
+
+test('rowedit (edición): buscar un lookup llena las opciones del diálogo', () => {
+  let reg = reduceContexts(editForm(), fx('rowedit-add'))
+  assert.equal(rowEditorOf(reg).title, 'New room')
+  reg = reduceContexts(reg, fx('rowedit-search'))
+  const row = reg.contexts['rooms-container']
+  assert.equal(pendingLookupsOf(row).length, 2)
+  const roomType = rowFieldsOf(row).find((f) => f.fieldId === 'roomTypeCode')
+  assert.ok(roomType.options.some((o) => o.value === 'JSUSV' && o.label === 'JSUSV — Junior suite vista mar'))
+  // el contenedor no se toca con la búsqueda
+  assert.deepEqual(reg.contexts[HOST_ID].state._show_detail, { rooms: true })
+})
+
+test('rowedit (edición): Editar una fila manda su _rowNumber REAL y abre "Edit room" con su posición', () => {
+  const reg0 = editForm()
+  const rq = listActionRequestOf(reg0, 'rooms_select', { parameters: { _rowNumber: '0' } })
+  assert.strictEqual(rq.parameters._rowNumber, 0, 'el servidor compara con equals: "0" no es 0')
+  assert.equal(rq.ctx.outbound.serverSideType, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingViewModel')
+  const reg = reduceContexts(reg0, fx('rowedit-select'))
+  const editor = rowEditorOf(reg)
+  assert.equal(editor.title, 'Edit room')
+  assert.equal(editor.subtitle, '1/1')
+  assert.deepEqual(editor.toolbar.map((b) => b.actionId), ['rooms_prev', 'rooms_next'])
+  assert.deepEqual(editor.buttons.map((b) => b.actionId), ['rooms_cancel', 'rooms_save'])
+  const byId = Object.fromEntries(editor.fields.map((f) => [f.fieldId, f]))
+  assert.equal(byId.roomTypeCode.value, 'JSUSV')
+  assert.equal(byId.total.value, 1247)
+})
+
+test('rowedit (edición): Save actualiza la fila en la lista y cierra; Cancel cierra sin cambiar nada', () => {
+  const opened = reduceContexts(editForm(), fx('rowedit-select'))
+  const rq = listActionRequestOf(opened, 'rooms_save', { rowDraft: { adults: 3 } })
+  assert.equal(rq.parameters.initiatorState.adults, 3)
+  assert.equal(rq.parameters.initiatorState._rowNumber, 0)
+  const saved = reduceContexts(opened, fx('rowedit-save'))
+  assert.equal(rowEditorOf(saved), null)
+  assert.equal(saved.contexts[HOST_ID].state.rooms[0].adults, 3)
+  const cancelled = reduceContexts(opened, fx('rowedit-cancel'))
+  assert.equal(rowEditorOf(cancelled), null)
+  assert.equal(cancelled.contexts[HOST_ID].state.rooms.length, 1)
+  assert.equal(cancelled.contexts[HOST_ID].state.rooms[0].adults, 2)
+})
+
+test('rowedit (edición): Create añade la fila y cierra; "Save and add another" la añade y sigue con una nueva', () => {
+  const opened = reduceContexts(editForm(), fx('rowedit-add'))
+  const created = reduceContexts(opened, fx('rowedit-create'))
+  assert.equal(created.contexts[HOST_ID].state.rooms.length, 2)
+  assert.equal(created.contexts[HOST_ID].state.rooms[1].roomTypeCode, 'DBLSV')
+  assert.equal(rowEditorOf(created), null)
+  const again = reduceContexts(opened, fx('rowedit-create-and-stay'))
+  assert.equal(again.contexts[HOST_ID].state.rooms.length, 2)
+  const editor = rowEditorOf(again)
+  assert.equal(editor.title, 'New room')
+  assert.equal(editor.fields.find((f) => f.fieldId === 'roomTypeCode').value, null, 'fila NUEVA, vacía')
+  // la fila nueva vuelve a necesitar sus opciones (su ServerSide es otro)
+  assert.equal(pendingLookupsOf(again.contexts['rooms-container']).length, 3)
+})
+
+test('rowedit (edición): Quitar una fila la manda en <campo>_selected_items, tal cual está en la lista', () => {
+  const reg = editForm()
+  const rq = listActionRequestOf(reg, 'rooms_remove', { parameters: { _rowNumber: '0' } })
+  assert.deepEqual(rq.componentState.rooms_selected_items, [reg.contexts[HOST_ID].state.rooms[0]])
+  assert.equal(rq.parameters._rowNumber, undefined)
+})
+
+test('rowedit (edición): los otros editores — New guest (select de opciones, fecha) y New payment (lookup)', () => {
+  const guest = rowEditorOf(reduceContexts(editForm(), fx('rowedit-guests-add')))
+  // guests no es modal en el árbol sembrado (el del wizard sólo trae rooms): se usa la fila
+  assert.equal(guest, null)
+  const guestRow = reduceContexts(editForm(), fx('rowedit-guests-add')).contexts['guests-container']
+  const g = Object.fromEntries(rowFieldsOf(guestRow).map((f) => [f.fieldId, f]))
+  assert.ok(g.type.isSelect && !g.type.isLookup)
+  assert.deepEqual(g.type.options.map((o) => o.value), ['Adult', 'Child'])
+  assert.ok(g.birthDate.isDate)
+  const payRow = reduceContexts(editForm(), fx('rowedit-payments-add')).contexts['payments-container']
+  const p = Object.fromEntries(rowFieldsOf(payRow).map((f) => [f.fieldId, f]))
+  assert.ok(p.methodCode.isLookup)
+  assert.ok(p.amount.isNumber && p.amount.required)
+  assert.ok(p.paymentId.readonly)
+})
+
+test('interpolate: ${state.x} y ${state[\'x\']}', () => {
+  assert.equal(interpolate("${state['_position']} de ${state.total}", { _position: '2/3', total: 4 }), '2/3 de 4')
+  assert.equal(interpolate('${state["a"]}', { a: 'x' }), 'x')
 })
 
 await queue

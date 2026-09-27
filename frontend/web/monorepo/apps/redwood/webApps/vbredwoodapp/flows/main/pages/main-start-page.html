@@ -98,6 +98,112 @@
   </div>
 </oj-dialog>
 
+<!-- EDITOR DE FILA de una lista del formulario con @DetailFormCustomisation(position = modal):
+     el "+" o el Editar de la tabla abren aquí el formulario de la fila (bridge.rowEditorOf).
+     Cabecera = el título que manda el backend ("New room", "Edit guest") + la posición y
+     Prev/Next al editar; cuerpo = los campos de la fila con los widgets JET del renderer
+     (los lookups como select con las opciones de su búsqueda); pie = los botones del backend,
+     la primaria (callToAction) a la derecha. ✕ / Esc = Cancel. A pantalla completa en anchos
+     estrechos (app.css). -->
+<oj-dialog id="mateuRowEditor" class="mateu-row-editor" cancel-behavior="icon" drag-affordance="none"
+  aria-labelledby="mateuRowEditorTitle"
+  on-oj-before-close="[[ $listeners.mateuRowEditorClosed ]]">
+  <div slot="header" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap" style="flex: 1; min-width: 0;">
+    <span id="mateuRowEditorTitle" class="oj-dialog-title oj-flex-item"><oj-bind-text value="[[ $variables.mateuRowEditor.title ]]"></oj-bind-text></span>
+    <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-horizontal"><oj-bind-text value="[[ $variables.mateuRowEditor.subtitle ]]"></oj-bind-text></span>
+    <oj-bind-for-each data="[[ $variables.mateuRowEditor.toolbar ]]">
+      <template>
+        <oj-button chroming="borderless" class="oj-button-sm"
+          :data-action-id="[[ $current.data.actionId ]]"
+          on-oj-action="[[ $listeners.mateuListAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+      </template>
+    </oj-bind-for-each>
+  </div>
+  <div slot="body">
+    <!-- rejilla de dos columnas con utilidades JET (no oj-form-layout: al re-pintar la lista de
+         campos con el diálogo abierto —fila nueva, Prev/Next— su reordenado del DOM deja al
+         for-each sin sus nodos) -->
+    <div id="mateuRowEditorForm" class="oj-flex">
+      <oj-bind-for-each data="[[ $variables.mateuRowEditor.fields ]]">
+        <template>
+          <div class="oj-flex-item oj-sm-12 oj-md-6 oj-sm-padding-2x-horizontal oj-sm-padding-1x-bottom">
+          <oj-bind-if test="[[ $current.data.isText ]]">
+            <oj-input-text class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-text>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isNumber ]]">
+            <oj-input-number class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-number>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isTextArea ]]">
+            <oj-text-area class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              rows="3"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-text-area>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isDate ]]">
+            <oj-input-date class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-date>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isBoolean ]]">
+            <oj-switch class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              readonly="[[ $current.data.readonly ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-switch>
+          </oj-bind-if>
+          <oj-bind-if test="[[ $current.data.isSelect ]]">
+            <oj-select-one class="oj-form-control-full-width"
+              label-hint="[[ $current.data.label ]]"
+              value="[[ $current.data.value ]]"
+              required="[[ $current.data.required ]]"
+              readonly="[[ $current.data.readonly ]]"
+              messages-custom="[[ $current.data.messagesCustom ]]"
+              :data-field-id="[[ $current.data.fieldId ]]"
+              options="[[ $current.data.options ]]"
+              placeholder="Select a value"
+              on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-select-one>
+          </oj-bind-if>
+          </div>
+        </template>
+      </oj-bind-for-each>
+    </div>
+  </div>
+  <div slot="footer" class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap">
+    <oj-bind-for-each data="[[ $variables.mateuRowEditor.buttons ]]">
+      <template>
+        <oj-button class="oj-sm-margin-2x-start" chroming="[[ $current.data.chroming ]]"
+          :data-action-id="[[ $current.data.actionId ]]"
+          on-oj-action="[[ $listeners.mateuListAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-dialog>
+
 <!-- regla general: TODA página pinta su header con el header de vb
      (oj-sp-header-general-overview sin switcher) salvo los templates que ya lo
      integran: guided process, general overview, welcome banner y el
@@ -493,7 +599,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -880,7 +1002,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -1288,7 +1426,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -1675,7 +1829,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -2292,7 +2462,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -2769,7 +2955,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -3154,7 +3356,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -3664,7 +3882,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -4027,7 +4261,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -4457,7 +4707,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -4844,7 +5110,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -5245,7 +5527,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -5632,7 +5930,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -6033,7 +6347,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
@@ -6420,7 +6750,23 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
+                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
+                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <template slot="cellListRowActions">
+                            <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                              <oj-button display="icons" chroming="borderless"
+                                :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                            </div>
+                          </template>
                         </oj-table>
+                        <oj-bind-if test="[[ $current.data.rowEditable ]]">
+                          <oj-button class="oj-sm-margin-2x-top" chroming="outlined" :data-action-id="[[ $current.data.addActionId ]]"
+                            on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-plus"></span><oj-bind-text value="[[ $current.data.addLabel ]]"></oj-bind-text></oj-button>
+                        </oj-bind-if>
                       </div>
                     </oj-bind-if>
                     <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
