@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { html, render } from 'lit'
 import {
-    channelLayout, fabBottom, fabCount, fabPosition, onFabRail, pageFabBottom, pageFabPosition, requestAside,
-    trackFabAnchor, FAB_INSET_END,
+    channelLayout, columnOverCorner, cornerFabPosition, fabBottom, fabCount, fabPosition, onFabRail, pageFabBottom,
+    pageFabPosition, requestAside, trackFabAnchor, FAB_INSET_END,
 } from './fabRail'
 import type { AsidePlacement, ChannelInput } from './fabRail'
 
@@ -95,6 +95,9 @@ describe('fabRail', () => {
         expect(fabPosition(1)).toBe(`bottom: ${fabBottom(1)}; right: ${FAB_INSET_END};`)
         expect(pageFabBottom(1)).toContain('(var(--mateu-fab-shell-slots, 0) + 1) * (')
         expect(pageFabPosition(0)).toBe(`bottom: ${pageFabBottom(0)}; right: ${FAB_INSET_END};`)
+        // the column starts above the corner FAB when it is over it, at the bottom inset otherwise
+        expect(fabBottom(0)).toContain('var(--mateu-fab-stack-bottom, var(--mateu-fab-inset-bottom')
+        expect(pageFabBottom(0)).toContain('var(--mateu-fab-stack-bottom, var(--mateu-fab-inset-bottom')
     })
 
     it('knows which FABs are on the rail, and how high the shell stack goes', async () => {
@@ -188,5 +191,43 @@ describe('fabRail', () => {
         expect(placements.at(-1)).toBe('column')
         withdraw()
         content.remove()
+    })
+
+    it('puts the AI FAB flush in the corner, and the column above it only where the two meet', async () => {
+        expect(cornerFabPosition()).toBe('bottom: 0; right: 0;')
+        // the column is over the corner when its end inset is less than a FAB and its gap (52px)
+        expect(columnOverCorner(0, 16)).toBe(true)
+        expect(columnOverCorner(16, 16)).toBe(true)
+        expect(columnOverCorner(204, 16)).toBe(false)
+
+        const fabHost = document.createElement('div')
+        document.body.appendChild(fabHost)
+        render(html`<button ${onFabRail('corner')}></button><button ${onFabRail('page', 0)}></button>`, fabHost)
+        await settle()
+        // no content view: the column is in the corner, so it starts above the AI FAB
+        expect(root().getPropertyValue('--mateu-fab-stack-bottom')).not.toBe('')
+        expect(root().getPropertyValue('--mateu-fab-shell-slots')).toBe('0')
+        expect(root().getPropertyValue('--mateu-fab-slots')).toBe('2')
+
+        // a fixed page: the column is in its channel, away from the corner — no stacking
+        const content = document.createElement('div')
+        document.body.appendChild(content)
+        content.getBoundingClientRect = () => ({ right: 1664 } as DOMRect)
+        Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true })
+        const release = trackFabAnchor(content, 'fixed')
+        expect(root().getPropertyValue('--mateu-fab-inset-end')).toBe('204px')
+        expect(root().getPropertyValue('--mateu-fab-stack-bottom')).toBe('')
+        release()
+
+        // an edge-to-edge page: the column is the corner's, so it starts above the AI FAB
+        const releaseEdge = trackFabAnchor(content, 'edge')
+        expect(root().getPropertyValue('--mateu-fab-stack-bottom')).not.toBe('')
+        releaseEdge()
+
+        render('', fabHost)
+        await settle()
+        expect(root().getPropertyValue('--mateu-fab-stack-bottom')).toBe('')
+        content.remove()
+        fabHost.remove()
     })
 })

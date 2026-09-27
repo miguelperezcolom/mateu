@@ -68,6 +68,33 @@
     "mateuModalOpen": {
       "type": "boolean",
       "defaultValue": false
+    },
+    "mateuRowEditor": {
+      "type": "any",
+      "defaultValue": {
+        "id": "",
+        "fieldId": "",
+        "title": "",
+        "subtitle": "",
+        "toolbar": [],
+        "buttons": [],
+        "fields": []
+      },
+      "description": "editor de fila abierto de una lista modal (bridge.rowEditorOf)"
+    },
+    "mateuRowDraft": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "edici\u00f3n en curso de la fila del editor modal ({fieldId: valor})"
+    },
+    "mateuRowErrors": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "obligatorios vac\u00edos de la fila ({fieldId: mensaje})"
+    },
+    "mateuRowEditorOpen": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "metadata": {},
@@ -477,6 +504,34 @@
           "chain": "runMateuAction"
         }
       ]
+    },
+    "mateuListAction": {
+      "chains": [
+        {
+          "chain": "mateuListAction",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuRowFieldChanged": {
+      "chains": [
+        {
+          "chain": "mateuRowFieldEdited",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuRowEditorClosed": {
+      "chains": [
+        {
+          "chain": "mateuRowEditorDismissed"
+        }
+      ]
     }
   },
   "imports": {
@@ -552,6 +607,15 @@
       },
       "oj-chart": {
         "path": "ojs/ojchart"
+      },
+      "oj-dialog": {
+        "path": "ojs/ojdialog"
+      },
+      "oj-select-one": {
+        "path": "ojs/ojselectcombobox"
+      },
+      "oj-input-date": {
+        "path": "ojs/ojdatetimepicker"
       }
     }
   }

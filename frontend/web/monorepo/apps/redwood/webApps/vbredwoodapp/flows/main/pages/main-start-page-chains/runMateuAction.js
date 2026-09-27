@@ -77,6 +77,39 @@ define([
         }
       }
 
+      // ACCIONES DE LISTA: el "+" / Editar / Quitar de una lista del formulario y los botones
+      // de su editor modal (Save, Save and add another, Cancel, Prev/Next). Van al ServerSide
+      // del CONTENEDOR (el formulario o el wizard) con SU estado, y la fila del diálogo en
+      // parameters.initiatorState — como Vaadin desde 367. Con la fila como componentState el
+      // wizard volvía vacío a su primer paso.
+      const listReq = !overlayBefore && bridge.listActionRequestOf(before, id, {
+        hostDraft: $page.variables.mateuDraft,
+        rowDraft: $page.variables.mateuRowDraft,
+        parameters: parameters || {},
+      });
+      let transportCtx = host;
+      if (listReq) {
+        // Save / Create validan la fila EN el diálogo: los obligatorios vacíos marcan su
+        // campo y la acción no sale (lo que en Vaadin hace validationRequired)
+        if (bridge.ROW_VALIDATING_VERBS[listReq.verb]) {
+          const rowCtx = before.contexts[listReq.fieldId + '-container'];
+          const rowErrors = bridge.validateRow(rowCtx, $page.variables.mateuRowDraft);
+          if (Object.keys(rowErrors).length) {
+            $page.variables.mateuRowErrors = rowErrors;
+            const withErrors = bridge.rowEditorOf(before, {
+              rowDraft: $page.variables.mateuRowDraft, errors: rowErrors,
+            });
+            if (withErrors) {
+              $page.variables.mateuRowEditor = withErrors;
+            }
+            return;
+          }
+        }
+        componentState = listReq.componentState;
+        parameters = listReq.parameters;
+        transportCtx = listReq.ctx;
+      }
+
       const appState = $application.variables.mateuAppState || {};
       // acciones anunciadas Action.sse(true) del HOST (p.ej. opFirma → tablet) van por el
       // endpoint /sse: se aplican TODOS los increments del stream y se ACUMULAN los
@@ -137,7 +170,7 @@ define([
         }
       } else {
         applyInc(await bridge.runMateuAction(
-          base, host, route, id, componentState, { parameters: parameters || {}, appState }));
+          base, transportCtx, route, id, componentState, { parameters: parameters || {}, appState }));
       }
       // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
       // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
@@ -522,6 +555,45 @@ define([
         $application.variables.mateuBandBoxMargin = '0 auto';
       }
       $application.variables.mateuDirty = false;
+
+      // EDITOR DE FILA (oj-dialog): abierto mientras el contenedor tenga `_show_detail[campo]`
+      // y el formulario de la fila haya llegado a `<campo>-container`. Sus lookups se cargan al
+      // abrirse (y con cada fila nueva: "Save and add another" trae otro ServerSide) contra el
+      // ServerSide de la FILA, con el estado de la fila.
+      reg = $application.variables.mateuRegistry;
+      if (listReq) {
+        $page.variables.mateuRowDraft = {};
+        $page.variables.mateuRowErrors = {};
+      }
+      let rowEditorNow = bridge.rowEditorOf(reg);
+      if (rowEditorNow) {
+        const pendingLookups = bridge.pendingLookupsOf(reg.contexts[rowEditorNow.id]);
+        if (pendingLookups.length) {
+          const editorId = rowEditorNow.id;
+          const found = await Promise.all(pendingLookups.map((lookup) => {
+            const rq = bridge.lookupRequestOf(reg, editorId, lookup.fieldId);
+            return rq
+              ? bridge.runMateuAction(base, rq.ctx, route, rq.actionId, rq.componentState,
+                { parameters: rq.parameters, appState, idempotent: true }).catch(() => null)
+              : null;
+          }));
+          for (const inc of found) {
+            if (inc) reg = bridge.reduceContexts(reg, inc);
+          }
+          $application.variables.mateuRegistry = reg;
+          rowEditorNow = bridge.rowEditorOf(reg);
+        }
+      }
+      $page.variables.mateuRowEditor = rowEditorNow
+        || { id: '', fieldId: '', title: '', subtitle: '', toolbar: [], buttons: [], fields: [] };
+      if (rowEditorNow && !$page.variables.mateuRowEditorOpen) {
+        $page.variables.mateuRowEditorOpen = true;
+        await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'open' });
+      } else if (!rowEditorNow && $page.variables.mateuRowEditorOpen) {
+        // la marca baja ANTES del close: el ojBeforeClose que dispara no es un descarte del usuario
+        $page.variables.mateuRowEditorOpen = false;
+        await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'close' });
+      }
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
       for (const toast of allToasts) {

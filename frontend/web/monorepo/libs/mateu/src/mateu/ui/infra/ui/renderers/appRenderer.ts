@@ -9,7 +9,7 @@ import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
+import { cornerFabPosition, fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -243,8 +243,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
         ? _splitDetailRoute.substring(_splitConsumedRoute.length + 1).split('/')[0]
         : undefined
 
-    // The AI assistant's FAB takes the lowest slot while it shows; the app's FABs stack above it.
-    const aiFabShown = metadata.sseUrl && !container.chatOpen ? 1 : 0
+    // The app's FABs take the rail's column from its lowest slot; the AI assistant's is the rail's
+    // corner FAB, flush in the viewport's corner, and the column starts above it when they meet.
 
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
@@ -580,14 +580,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.fabs?.map((fab, idx) => html`
-                <button class="app-fab" style="${fabPosition(aiFabShown + idx)}" ${onFabRail('shell', aiFabShown + idx)} aria-label="${fab.label}"
+                <button class="app-fab" style="${fabPosition(idx)}" ${onFabRail('shell', idx)} aria-label="${fab.label}"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
                     ${icon(fab.icon)}
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" style="${fabPosition(0)}" ${onFabRail('shell', 0)} @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
+                <button class="ai-fab" style="${cornerFabPosition()}" ${onFabRail('corner')} @click="${container.showHideIa}" title="Asistente IA" aria-label="Asistente IA">
                     ${icon('vaadin:comments-o')}
                 </button>
             ` : nothing}
