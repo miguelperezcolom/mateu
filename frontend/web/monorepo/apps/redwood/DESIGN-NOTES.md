@@ -1743,3 +1743,16 @@ home no hay pestaña seleccionada (su ruta no es una opción del menú). La barr
 fijo que estampa el componente; su elemento host va al final del contenido y su caja en flujo
 reserva los 64px, así que la home no queda tapada al hacer scroll al fondo (comprobado a 1440 y
 390).
+
+## Menú superior sobre la cabecera oscura: estados seleccionado/pulsado/foco (2026-09-27)
+
+Con el desplegable abierto, el oj-menu-button (half-chrome) pasa a `oj-selected` y JET le pone el
+fondo seleccionado de superficie CLARA — rgb(228,241,247) con borde rgb(34,126,158) — con el
+texto blanco de app.css encima: la etiqueta casi desaparecía. En half-chrome (oj-redwood-min.css
+de JET 18.1) hover y pulsado son una CAPA `background-image` de `--oj-core-bg-color-hover/-active`,
+y seleccionado el fondo `--oj-button-borderless-chrome-bg-color-selected`. Para los botones de la
+zona `start` del global-header (menú superior y hamburguesa), y sólo para ellos: velo blanco
+0.10 hover / 0.14 seleccionado / 0.22 pulsado, bordes transparentes, texto e icono blancos
+(también el triángulo del desplegable, que salía casi negro) y el contorno de foco de JET en
+blanco al 60 %. Seleccionado+hover pintaba además otra capa detrás del propio icono (un cuadrado
+más claro alrededor del triángulo): anulada con un selector más específico que el de JET.

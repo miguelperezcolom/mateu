@@ -308,6 +308,41 @@ oj-sp-global-header oj-menu-button .oj-button-icon {
   color: var(--oj-core-text-color-inverse, #fff);
 }
 
+/* Los estados de esos mismos botones sobre la cabecera OSCURA. Con su menú abierto, un
+   oj-menu-button pasa a oj-selected y el tema le pone el fondo seleccionado de superficie CLARA
+   (rgb(228,241,247) con borde de marca rgb(34,126,158)) — con el texto blanco de arriba, la
+   etiqueta casi desaparecía justo cuando el usuario baja al desplegable. Sobre fondo oscuro,
+   todos los estados son un velo blanco translúcido de intensidad creciente (hover <
+   seleccionado < seleccionado+hover < pulsado), sin borde, y el texto sigue blanco. El foco de
+   teclado: el contorno punteado de JET en blanco a media opacidad, visible sin gritar.
+   Qué variable pinta cada estado en half-chrome (oj-redwood-min.css de JET 18.1): hover y
+   pulsado son una CAPA (background-image) de --oj-core-bg-color-hover/-active, seleccionado es
+   el fondo --oj-button-borderless-chrome-bg-color-selected (y con hover, la capa encima).
+   Sólo los del NAV de la cabecera (su zona start: menú superior y hamburguesa): ni las
+   acciones de la derecha, ni los botones del contenido, ni el oj-menu desplegado (JET lo saca
+   a la capa de popups, fuera de la cabecera) cambian. */
+oj-sp-global-header [slot="start"] oj-button,
+oj-sp-global-header [slot="start"] oj-menu-button {
+  --oj-core-bg-color-hover: rgb(255 255 255 / 0.10);
+  --oj-core-bg-color-active: rgb(255 255 255 / 0.22);
+  --oj-button-borderless-chrome-bg-color-selected: rgb(255 255 255 / 0.14);
+  --oj-button-borderless-chrome-border-color-hover: transparent;
+  --oj-button-borderless-chrome-border-color-selected: transparent;
+  --oj-button-borderless-chrome-border-color-active: transparent;
+  --oj-button-borderless-chrome-text-color: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-hover: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-selected: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-selected-hover: var(--oj-core-text-color-inverse, #fff);
+  --oj-button-borderless-chrome-text-color-active: var(--oj-core-text-color-inverse, #fff);
+  --oj-core-focus-border-color: rgb(255 255 255 / 0.6);
+}
+/* el triángulo del desplegable es un icono de fuente que toma el color de esas variables (y
+   seleccionado+hover le pone al propio icono otra capa de hover: un cuadrado más claro detrás
+   del triángulo, que aquí sobra) */
+oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover .oj-button-icon {
+  background-image: none;
+}
+
 /* Salto al contenido (WCAG 2.4.1): primer elemento tabulable del documento, invisible hasta
    que recibe foco. Oculto con transform y NO con display:none, porque un elemento
    display:none no puede recibir foco y el enlace sería inalcanzable. */

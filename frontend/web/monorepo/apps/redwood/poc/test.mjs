@@ -1809,6 +1809,23 @@ test('menú TABS: la barra de pestañas sale en todas las páginas, la home incl
   assert.equal(nav[1], '[[ $application.variables.mateuMenuTabs ]]', 'nada de ocultarla en la home')
 })
 
+test('cabecera oscura: los estados del menú superior son un velo blanco, sin el fondo claro ni el borde de marca', () => {
+  const css = webApp('resources/css/app.css')
+  const block = css.match(/oj-sp-global-header \[slot="start"\] oj-button,\s*oj-sp-global-header \[slot="start"\] oj-menu-button \{([^}]*)\}/)
+  assert.ok(block, 'sólo los botones del NAV de la cabecera (zona start)')
+  const vars = block[1]
+  for (const v of ['--oj-core-bg-color-hover', '--oj-core-bg-color-active', '--oj-button-borderless-chrome-bg-color-selected']) {
+    assert.match(vars, new RegExp(v + ': rgb\\(255 255 255 / 0\\.\\d+\\)'), v + ' es un velo blanco translúcido')
+  }
+  for (const v of ['hover', 'selected', 'active']) {
+    assert.match(vars, new RegExp('--oj-button-borderless-chrome-border-color-' + v + ': transparent'))
+  }
+  for (const v of ['', '-hover', '-selected', '-selected-hover', '-active']) {
+    assert.match(vars, new RegExp('--oj-button-borderless-chrome-text-color' + v + ': var\\(--oj-core-text-color-inverse, #fff\\)'))
+  }
+  assert.match(vars, /--oj-core-focus-border-color: rgb\(255 255 255 \/ 0\.6\)/, 'foco visible pero discreto')
+})
+
 // ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────
 test('chat: buildChatMenuContext aplana el menú a path + navigation (salta separador/remoto)', () => {
   const menu = [
