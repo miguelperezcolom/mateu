@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path'
 import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
-  askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
+  askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH, shellChatOf,
 } from './widgets.mjs'
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
@@ -2735,7 +2735,9 @@ test('wizard: el guided process lleva título, subtítulo y el estado de cada pa
         && c.metadata.type === 'Text' && c.metadata.container === 'h2')) {
       const at = n.children.findIndex((c) => c.metadata && c.metadata.container === 'h2')
       n.children.splice(at + 1, 0, { type: 'ClientSide', id: 'sub', children: [], cssClasses: 'mateu-wizard-subtitle',
-        metadata: { type: 'Text', container: 'p', text: 'Un cliente sin reserva, paso a paso' } })
+        metadata: { type: 'Text', container: 'p', text: 'Un cliente sin reserva, paso a paso' } },
+        // el rail de Vaadin: su contador sobre la lista de pasos
+        { type: 'ClientSide', id: 'counter', children: [], metadata: { type: 'Text', text: '2 | 4' } })
       subtitleAdded = true
     }
   })
@@ -2756,6 +2758,8 @@ test('wizard: el guided process lleva título, subtítulo y el estado de cada pa
   assert.equal(view.title, 'Walk-in')
   const atoms = view.content.flatMap((b) => b.items)
   assert.ok(!atoms.some((a) => a.isText && (a.text === 'Walk-in' || a.text === wizard.subtitle)))
+  // ni el contador «2 | 4» del rail de Vaadin: el guided process pinta el suyo
+  assert.ok(!atoms.some((a) => a.isText && /\|/.test(a.text)), JSON.stringify(atoms.filter((a) => a.isText)))
   // en el primer paso aún no hay nada que reanudar
   const fresh = reduceContexts(empty(), fx('fo-walkin-wizard'))
   assert.equal(wizardOf(fresh.contexts[HOST_ID]).resumeStepId, '')
@@ -2767,6 +2771,12 @@ test('selectPlaceholder: el del idioma del navegador, inglés si no se conoce', 
   assert.equal(selectPlaceholder('en-US'), 'Select a value')
   assert.equal(selectPlaceholder('xx'), 'Select a value')
   assert.equal(selectPlaceholder(undefined), 'Select a value')
+})
+
+test('shellChatOf: con el chat del agente en la cabecera, el FAB del shell (Ask Oracle) no se pinta', () => {
+  assert.deepEqual(shellChatOf({ sseUrl: '/mateu/v3/chat' }), { display: 'off' })
+  assert.deepEqual(shellChatOf({ sseUrl: '' }), { display: 'on' })
+  assert.deepEqual(shellChatOf(null), { display: 'on' })
 })
 
 await queue

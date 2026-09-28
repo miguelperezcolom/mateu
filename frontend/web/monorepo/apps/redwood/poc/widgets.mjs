@@ -344,6 +344,15 @@ export function askFabOf(shell, base = '') {
   return glyph(ASK_FAB_GLYPH)
 }
 
+/**
+ * El `chat` del oj-sp-simple-ui-shell, que decide si estampa su FAB (el de Ask Oracle). Un App con
+ * el chat del agente (sseUrl) lo lleva en la CABECERA, y allí va también Ask Oracle: un segundo
+ * botón flotante abajo a la derecha, rojo, parecía otro chat. Sin chat, el FAB se queda.
+ */
+export function shellChatOf(shell) {
+  return { display: shell && shell.sseUrl ? 'off' : 'on' }
+}
+
 const MARK_CLASS = 'mateu-ask-fab-mark'
 const BRANDED_CLASS = 'mateu-ask-fab-branded'
 

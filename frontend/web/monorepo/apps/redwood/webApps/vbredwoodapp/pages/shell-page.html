@@ -2,7 +2,11 @@
      por el componente). El contenido del starter (banner, toast, router) va en el slot
      stretchingContents. Cero HTML/CSS propio: solo composición de componentes oj-sp. -->
 
+<!-- chat.display: el FAB del shell (Ask Oracle, el buscador de destinos) se apaga cuando el App
+     lleva el chat del agente en la CABECERA — entonces Ask Oracle también va a la cabecera (el
+     botón de buscar junto al del chat), en vez de un segundo botón flotante -->
 <oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]"
+  chat="[[ $application.variables.mateuShellChat ]]"
   on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader"
@@ -102,6 +106,18 @@
            Solo si la app declara el chat. display=icons → la etiqueta ("Chat", fija: oj-button no
            repinta un texto enlazado) es su nombre accesible y su tooltip; mientras el panel está
            abierto queda marcado (mateu-chat-open) y su botón lleva aria-expanded (toggleMateuChat). -->
+      <!-- ASK ORACLE en la cabecera: con el chat del agente arriba, el buscador de destinos (el
+           mismo diálogo que abría el FAB del shell) se abre desde aquí y el FAB no se pinta -->
+      <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
+        <oj-button id="mateuAskToggle" chroming="borderless" display="icons"
+          class="mateu-ask-toggle oj-color-invert oj-sm-margin-1x-start"
+          :title="[[ $application.variables.mateuAskLabel ]]"
+          :aria-label="[[ $application.variables.mateuAskLabel ]]"
+          on-oj-action="[[ $listeners.askOracleOpen ]]">
+          <span slot="startIcon" class="oj-ux-ico-search"></span>
+          Ask
+        </oj-button>
+      </oj-bind-if>
       <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
         <oj-button id="mateuChatToggle" chroming="borderless" display="icons"
           :class="[[ 'mateu-chat-toggle oj-color-invert oj-sm-margin-1x-start' + ($application.variables.mateuChatOpen ? ' mateu-chat-open' : '') ]]"

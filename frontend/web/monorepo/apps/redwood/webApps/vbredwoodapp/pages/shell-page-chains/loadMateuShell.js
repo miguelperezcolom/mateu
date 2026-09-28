@@ -138,6 +138,8 @@ define([
       // Con esto puesto sale el botón del chat en la cabecera (su drawer a la izquierda).
       $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
         ? base + reg.shell.sseUrl : '';
+      // con el chat en la cabecera, Ask Oracle también: fuera el FAB del shell
+      $application.variables.mateuShellChat = bridge.shellChatOf(reg.shell);
       // el FAB de "ask": Ask Oracle con su glifo, o el rótulo/icono del @App(askLabel, askIcon)
       const askFab = bridge.askFabOf(reg.shell, base);
       $application.variables.mateuAskLabel = askFab.label;

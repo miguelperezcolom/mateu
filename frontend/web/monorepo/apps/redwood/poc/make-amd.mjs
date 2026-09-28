@@ -128,6 +128,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     headerWidgetsOf,
     // el FAB de "ask" del shell: su marca (Ask Oracle por defecto, o la del @App) y su nombre
     askFabOf,
+    shellChatOf,
     brandAskFab,
     startRemoteWidget,
     stopRemoteWidgets,

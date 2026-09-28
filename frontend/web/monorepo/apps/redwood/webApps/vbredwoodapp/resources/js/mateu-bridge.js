@@ -510,6 +510,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           return false
         }
         if (wizard.horizontal && isWizardNavAtom(a)) { nav = a.buttons; return false }
+        // el contador «1 | 4» del rail (el que Vaadin pinta sobre su lista de pasos): el guided
+        // process ya pinta el suyo, grande, en su panel de pasos — no se repite en el paso
+        if (!wizard.horizontal && a.isText && !a.isHeading && /^\s*\d+\s*\|\s*\d+\s*$/.test(a.text)) return false
         return true
       })
       // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
@@ -4644,6 +4647,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return glyph(ASK_FAB_GLYPH)
   }
 
+  /**
+   * El `chat` del oj-sp-simple-ui-shell, que decide si estampa su FAB (el de Ask Oracle). Un App con
+   * el chat del agente (sseUrl) lo lleva en la CABECERA, y allí va también Ask Oracle: un segundo
+   * botón flotante abajo a la derecha, rojo, parecía otro chat. Sin chat, el FAB se queda.
+   */
+  function shellChatOf(shell) {
+    return { display: shell && shell.sseUrl ? 'off' : 'on' }
+  }
+
   const MARK_CLASS = 'mateu-ask-fab-mark'
   const BRANDED_CLASS = 'mateu-ask-fab-branded'
 
@@ -4953,6 +4965,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     headerWidgetsOf,
     // el FAB de "ask" del shell: su marca (Ask Oracle por defecto, o la del @App) y su nombre
     askFabOf,
+    shellChatOf,
     brandAskFab,
     startRemoteWidget,
     stopRemoteWidgets,

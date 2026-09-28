@@ -464,6 +464,11 @@
       "defaultValue": false,
       "description": "false = mostrando el OVERVIEW del guided-process (currentStep vac\u00edo); el primer Continue arranca"
     },
+    "mateuShellChat": {
+      "type": "any",
+      "defaultValue": { "display": "on" },
+      "description": "el chat del oj-sp-simple-ui-shell (su FAB, que abre Ask Oracle): off cuando el App lleva el chat del agente en la cabecera — Ask Oracle se abre entonces desde un botón de la cabecera"
+    },
     "mateuSelectPlaceholder": {
       "type": "string",
       "defaultValue": "Select a value",

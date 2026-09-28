@@ -505,6 +505,9 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
         return false
       }
       if (wizard.horizontal && isWizardNavAtom(a)) { nav = a.buttons; return false }
+      // el contador «1 | 4» del rail (el que Vaadin pinta sobre su lista de pasos): el guided
+      // process ya pinta el suyo, grande, en su panel de pasos — no se repite en el paso
+      if (!wizard.horizontal && a.isText && !a.isHeading && /^\s*\d+\s*\|\s*\d+\s*$/.test(a.text)) return false
       return true
     })
     // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
