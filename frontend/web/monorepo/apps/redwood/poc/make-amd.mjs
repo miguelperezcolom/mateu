@@ -180,6 +180,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     buildChatMenuContext,
     streamChat,
     uploadChatFiles,
+    // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
+    mergeTurnUsage,
+    addUsage,
+    chatStatusText,
+    speechRecognitionCtor,
+    transcriptOf,
   };
 });
 `

@@ -290,6 +290,13 @@
           }
         }
       ]
+    },
+    "chatMic": {
+      "chains": [
+        {
+          "chain": "chatMic"
+        }
+      ]
     }
   },
   "imports": {
@@ -347,6 +354,12 @@
       },
       "oj-popup": {
         "path": "ojs/ojpopup"
+      },
+      "oj-input-text": {
+        "path": "ojs/ojinputtext"
+      },
+      "oj-progress-circle": {
+        "path": "ojs/ojprogress-circle"
       }
     }
   },

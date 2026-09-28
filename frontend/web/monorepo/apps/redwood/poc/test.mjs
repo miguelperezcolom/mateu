@@ -23,7 +23,8 @@ import {
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
-  tryParseCustomEvent, streamChat,
+  tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
+  speechRecognitionCtor, transcriptOf,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -1900,6 +1901,45 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.match(send, /onText:/)
 })
 
+test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
+  const shell = webApp('pages/shell-page.html')
+  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- Navigator PERSISTENTE/)[0]
+  // la respuesta vacía no se pinta; la fila de estado, con el progress circle de JET, sí
+  assert.match(panel, /<oj-bind-if test="\[\[ \$current\.data\.role === 'user' \|\| !!\$current\.data\.text \]\]">/)
+  const status = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatStatus \]\]">[\s\S]*?<\/oj-bind-if>/)[0]
+  assert.match(status, /<oj-progress-circle size="sm" value="-1"/)
+  assert.match(status, /role="status"/)
+  // tokens: badges de JET, sólo cuando hay alguno
+  const tokens = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatTokens \]\]">[\s\S]*?id="mateuChatTokens"/)
+  assert.ok(tokens, 'la fila de tokens sale sólo con tokens')
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
+  // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
+  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
+  assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
+  assert.match(mic[0], /oj-ux-ico-mic-on/)
+  assert.match(mic[0], /\$listeners\.chatMic/)
+  assert.ok(panel.indexOf('id="mateuChatMic"') < panel.indexOf('id="mateuChatInput"'))
+  // cableado: listener, imports, variables y cadenas
+  const page = JSON.parse(webApp('pages/shell-page.json'))
+  assert.equal(page.eventListeners.chatMic.chains[0].chain, 'chatMic')
+  assert.equal(page.imports.components['oj-progress-circle'].path, 'ojs/ojprogress-circle')
+  const flow = JSON.parse(webApp('app-flow.json'))
+  assert.equal(flow.variables.mateuChatStatus.defaultValue, '')
+  assert.equal(flow.variables.mateuChatTokens.defaultValue, null)
+  assert.equal(flow.variables.mateuChatMicAvailable.defaultValue, false)
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /bridge\.chatStatusText\(/)
+  assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
+  assert.match(send, /mateuChatTokens = bridge\.addUsage\(/)
+  assert.match(send, /clearInterval\(ticking\)/)
+  assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
+  const mc = webApp('pages/shell-page-chains/chatMic.js')
+  assert.match(mc, /bridge\.speechRecognitionCtor\(window\)/)
+  assert.match(mc, /bridge\.transcriptOf\(event\)/)
+  assert.match(mc, /#mateuChatSend/)
+})
+
 test('chat: el cuerpo lleva la ruta de la pantalla (el plano de control elige el agente por ella)', () => {
   assert.deepEqual(buildChatBody({ message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' }),
     { message: 'hola', sessionId: 's1', currentRoute: '/mapping/dictionary' })
@@ -2845,6 +2885,39 @@ test('selectPlaceholder: el del idioma del navegador, inglés si no se conoce', 
   assert.equal(selectPlaceholder('en-US'), 'Select a value')
   assert.equal(selectPlaceholder('xx'), 'Select a value')
   assert.equal(selectPlaceholder(undefined), 'Select a value')
+})
+
+test('chat: el uso de una respuesta se queda con el último valor de cada contador', () => {
+  let turn = mergeTurnUsage(null, { inputTokens: 120 })
+  turn = mergeTurnUsage(turn, { inputTokens: 130, outputTokens: 40 })
+  assert.deepEqual(turn, { inputTokens: 130, outputTokens: 40 })
+})
+
+test('chat: los totales de la conversación suman cada respuesta; sin contadores, nada', () => {
+  assert.equal(addUsage(null, {}), null)
+  assert.equal(addUsage(null, null), null)
+  let total = addUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
+  total = addUsage(total, { inputTokens: 200, outputTokens: 60, totalTokens: 260 })
+  assert.deepEqual(total, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  // una respuesta sin uso no borra lo que había
+  assert.deepEqual(addUsage(total, {}), total)
+})
+
+test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
+  assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Pensando… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Respondiendo…')
+})
+
+test('chat: el dictado usa el reconocimiento del navegador si existe, y el último resultado', () => {
+  function Rec() {}
+  assert.equal(speechRecognitionCtor({}), null)
+  assert.equal(speechRecognitionCtor({ webkitSpeechRecognition: Rec }), Rec)
+  assert.equal(speechRecognitionCtor({ SpeechRecognition: Rec, webkitSpeechRecognition: () => {} }), Rec)
+  assert.equal(transcriptOf({ results: [[{ transcript: 'hola' }], [{ transcript: ' llegadas de hoy ' }]] }), 'llegadas de hoy')
+  assert.equal(transcriptOf({ results: [] }), '')
+  assert.equal(transcriptOf(null), '')
 })
 
 await queue

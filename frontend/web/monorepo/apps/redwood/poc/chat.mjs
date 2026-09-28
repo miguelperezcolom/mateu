@@ -174,3 +174,56 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
   }
   return accumulated
 }
+
+// ---- El estado del panel mientras el asistente trabaja, los tokens y el dictado ------------------
+
+/**
+ * El uso de UNA respuesta: el stream puede mandar más de un objeto de uso; dentro de una respuesta
+ * manda el último valor de cada contador, como en el chat compartido (merge, no suma).
+ */
+export function mergeTurnUsage(turn, usage) {
+  return { ...(turn || {}), ...(usage || {}) }
+}
+
+/**
+ * Los totales de la conversación: se suma el uso de cada respuesta ya terminada. Solo los
+ * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
+ */
+export function addUsage(total, turn) {
+  const keys = ['inputTokens', 'outputTokens', 'totalTokens']
+  const out = { ...(total || {}) }
+  let any = total ? keys.some((k) => typeof total[k] === 'number') : false
+  for (const k of keys) {
+    const v = turn && turn[k]
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      out[k] = (typeof out[k] === 'number' ? out[k] : 0) + v
+      any = true
+    }
+  }
+  return any ? out : null
+}
+
+/**
+ * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; «Pensando…»
+ * con los segundos mientras no ha llegado nada (la espera larga es la que inquieta); «Respondiendo…»
+ * en cuanto llega el primer texto.
+ */
+export function chatStatusText({ busy, hasText, elapsedSeconds }) {
+  if (!busy) return ''
+  if (hasText) return 'Respondiendo…'
+  const s = Math.max(0, Math.floor(elapsedSeconds || 0))
+  return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+}
+
+/** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
+export function speechRecognitionCtor(win = globalThis) {
+  return (win && (win.SpeechRecognition || win.webkitSpeechRecognition)) || null
+}
+
+/** El texto dictado: el último resultado reconocido (mismo criterio que el chat compartido). */
+export function transcriptOf(event) {
+  const results = event && event.results
+  if (!results || !results.length) return ''
+  const last = results[results.length - 1]
+  return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
+}
