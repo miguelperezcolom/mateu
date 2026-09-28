@@ -397,19 +397,32 @@ export function wizardOf(ctx) {
   if (!node) return null
   const md = node.metadata
   const wire = md.steps || []
-  // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on';
-  // el status de Mateu NO se emite (el indicador del rail espera otro enum)
-  const steps = wire.map((s) => ({
+  const current = wire.find((s) => s.status === 'current')
+  const currentId = current ? current.id : (wire.length ? wire[wire.length - 1].id : null)
+  const currentIndex = Math.max(0, wire.findIndex((s) => s.id === currentId))
+  const statusOf = (s, i) => s.status || (i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'upcoming')
+  // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on'. El
+  // status es el del TEMPLATE (success | error | none), no el de Mateu: un paso hecho es
+  // 'success' — el overview pinta «Completado» al pie de su columna y el rail su marca
+  const steps = wire.map((s, i) => ({
     id: s.id,
     label: s.title || s.id,
     title: s.title || s.id,
     display: 'on',
+    status: statusOf(s, i) === 'done' ? 'success' : 'none',
   }))
-  const current = wire.find((s) => s.status === 'current')
-  const currentStep = current ? current.id : (steps.length ? steps[steps.length - 1].id : null)
-  const currentIndex = Math.max(0, steps.findIndex((s) => s.id === currentStep))
-  const statusOf = (s, i) => s.status || (i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'upcoming')
+  const currentStep = currentId
+  // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
+  // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
+  const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
+    && n.metadata.container === 'h2' && !!n.metadata.text) : null
+  const subtitleNode = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
+    && /(^|\s)mateu-wizard-subtitle(\s|$)/.test(n.cssClasses || '')) : null
   return {
+    title: heading ? String(heading.metadata.text) : '',
+    subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
+    // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
+    resumeStepId: currentIndex > 0 && currentId ? currentId : '',
     steps,
     currentStep,
     horizontal: !md.vertical,
@@ -476,14 +489,22 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
   for (const section of sections) for (const f of section.fields || []) onForm.add(f.fieldId)
   let title = opts.title || ''
   let nav = []
+  let subtitleDropped = false
   content = content.map((block) => {
     let movedToForm = 0
     const items = block.items.filter((a) => {
       if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
-      if (wizard.horizontal) {
-        if (!title && a.isText && a.isH2) { title = a.text; return false }
-        if (isWizardNavAtom(a)) { nav = a.buttons; return false }
+      // el título del wizard (su h2) va a la cabecera — el h1 sobre el tren, o el título del
+      // proceso del guided process —, y su subtítulo con él: ninguno se repite en el paso
+      if (a.isText && a.isH2 && (!title || a.text === title || a.text === wizard.title)) {
+        if (!title) title = a.text
+        return false
       }
+      if (!subtitleDropped && wizard.subtitle && a.isText && !a.isHeading && a.text === wizard.subtitle) {
+        subtitleDropped = true
+        return false
+      }
+      if (wizard.horizontal && isWizardNavAtom(a)) { nav = a.buttons; return false }
       return true
     })
     // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
@@ -491,12 +512,19 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
     const onlyHeadings = items.every((a) => a.isText && a.isHeading)
     return { ...block, items: movedToForm && onlyHeadings ? [] : items }
   }).filter((block) => block.items.length)
+  // el rótulo del paso ya lo pinta la cabecera del paso (el h2 bajo el tren, o el título del
+  // paso del guided process): una @Section que se llama igual que su paso no lo repite
+  const stepLabel = wizard.currentLabel
+  sections = sections.map((section) => (
+    stepLabel && section.title && section.title.trim() === stepLabel.trim()
+      ? { ...section, title: '', hasTitle: false }
+      : section))
   // la acción de AVANCE (Next, o la de completar) es la llamada a la acción del pie
   nav = nav.map((b) => ({
     ...b,
     chroming: b.actionId === 'back' ? 'outlined' : 'callToAction',
   }))
-  return { wizard, title, content, sections, nav }
+  return { wizard, title: title || wizard.title, subtitle: wizard.subtitle, content, sections, nav }
 }
 
 /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
@@ -1714,6 +1742,13 @@ export function findByType(tree, type) {
   return found
 }
 
+/** Primer nodo de la SUPERFICIE (sin cruzar islas) que cumple `test`; null si ninguno. */
+function findFirst(tree, test) {
+  let found = null
+  walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
+  return found
+}
+
 /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
  *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
  *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
@@ -2640,6 +2675,57 @@ export function validateRow(ctx, values) {
     if (f.required && !f.readonly && !f.isBoolean && isBlank(f.value)) errors[f.fieldId] = 'Required'
   }
   return errors
+}
+
+/**
+ * ¿Pide la acción `actionId` del contexto validar el formulario antes de salir? Es el
+ * validationRequired de las acciones del ServerSide (p.ej. el `next` de un wizard, el `save`
+ * de un formulario): lo que Vaadin comprueba en el navegador antes de llamar al servidor.
+ * → { fields } (los fieldsToValidate de la acción; [] = todos) o null si no pide validar.
+ * La acción EXACTA gana a un comodín ('*', 'prefijo*'), como en Vaadin.
+ */
+export function validationOf(ctx, actionId) {
+  const actions = (ctx && ctx.tree && ctx.tree.actions) || []
+  const action = actions.find((a) => a && a.id === actionId)
+    || actions.find((a) => a && typeof a.id === 'string' && a.id.endsWith('*')
+      && String(actionId || '').startsWith(a.id.slice(0, -1)))
+  if (!action || !action.validationRequired) return null
+  return { fields: Array.isArray(action.fieldsToValidate) ? action.fieldsToValidate : [] }
+}
+
+/**
+ * Los obligatorios vacíos del formulario de la página (sus secciones, tal como se pintan) con
+ * lo que el usuario ha escrito (el borrador gana al estado) → [fieldId] en el orden del
+ * formulario: el primero es el que recibe el foco. `only` restringe a esos campos.
+ */
+export function formErrorsOf(sections, draft, only) {
+  const restrict = Array.isArray(only) && only.length ? new Set(only) : null
+  const d = draft || {}
+  const out = []
+  for (const section of sections || []) {
+    for (const f of section.fields || []) {
+      if (!f.required || f.readonly || f.isBoolean) continue
+      if (restrict && !restrict.has(f.fieldId)) continue
+      const value = Object.prototype.hasOwnProperty.call(d, f.fieldId) ? d[f.fieldId] : f.value
+      if (isBlank(plainValueOf(value)) && out.indexOf(f.fieldId) < 0) out.push(f.fieldId)
+    }
+  }
+  return out
+}
+
+const SELECT_PLACEHOLDERS = {
+  en: 'Select a value', es: 'Seleccione un valor', ca: 'Seleccioneu un valor', fr: 'Sélectionnez une valeur',
+  de: 'Wert auswählen', it: 'Selezionare un valore', pt: 'Selecione um valor', nl: 'Selecteer een waarde',
+}
+
+/**
+ * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
+ * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
+ * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
+ */
+export function selectPlaceholder(lang) {
+  const base = String(lang || '').toLowerCase().split(/[-_]/)[0]
+  return SELECT_PLACEHOLDERS[base] || SELECT_PLACEHOLDERS.en
 }
 
 /** Los lookups de la fila que aún no tienen opciones → [{ fieldId, actionId }]. */

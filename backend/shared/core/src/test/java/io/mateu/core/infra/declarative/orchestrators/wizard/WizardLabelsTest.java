@@ -69,6 +69,27 @@ class WizardLabelsTest {
         .containsEntry("next", "Siguiente");
   }
 
+  /**
+   * Whatever the label says, the buttons run {@code back} and {@code next}: with a localized label
+   * and no action id the wire derived the action from the label, and «Siguiente» sent {@code
+   * siguiente}, which no wizard knows — the walk-in did not move and showed nothing.
+   */
+  @Test
+  void localizedButtonsStillRunBackAndNext() {
+    var buttons =
+        WizardButtonBuilder.createButtons(new SpanishWizard(), null).stream()
+            .map(Button.class::cast)
+            .toList();
+    assertThat(buttons)
+        .extracting(Button::id, Button::actionId, Button::label)
+        .containsExactly(
+            org.assertj.core.groups.Tuple.tuple("back", "back", "Atrás"),
+            org.assertj.core.groups.Tuple.tuple("next", "next", "Siguiente"));
+    // back is disabled on the first step; next is the call to action
+    assertThat(buttons.get(0).disabled()).isTrue();
+    assertThat(buttons.get(1).buttonStyle()).isEqualTo(io.mateu.uidl.data.ButtonStyle.primary);
+  }
+
   @Test
   void aWizardCanSetItsOwnLabels() {
     assertThat(labels(new SpanishWizard()))

@@ -282,3 +282,77 @@ export function takeLastRetry() {
   lastRetry = null
   return descriptor
 }
+
+// ── campos obligatorios ───────────────────────────────────────────────────────────────────
+
+/** Los widgets de un campo del formulario de la página (no los de un diálogo o un drawer). */
+function fieldElementsOf(fieldId) {
+  if (typeof document === 'undefined') return []
+  // comparando el atributo, sin montar un selector con el id: nada que escapar
+  return [...document.querySelectorAll('[data-field-id]')]
+    .filter((el) => el.getAttribute('data-field-id') === String(fieldId))
+    .filter((el) => !el.closest('oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'))
+}
+
+/**
+ * Marca los obligatorios vacíos como lo hace un formulario Redwood y lleva el foco al primero.
+ *
+ * El mensaje es el del propio componente: `validate()` corre su validador de obligatorio (el
+ * `required` que ya pinta «Obligatorio» bajo el campo) y enseña su texto — «Introduzca un
+ * valor.», en el idioma de JET —, igual que al salir de un campo vacío. Si un componente no se
+ * da por inválido (su valor no ha llegado aún al widget), el mensaje va por `messagesCustom`.
+ * Devuelve cuántos campos marcó.
+ */
+export async function showFieldErrors(fieldIds, fallbackMessage) {
+  let first = null
+  let marked = 0
+  for (const fieldId of fieldIds || []) {
+    for (const el of fieldElementsOf(fieldId)) {
+      let invalid = false
+      if (typeof el.validate === 'function') {
+        try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
+      }
+      if (!invalid) {
+        try {
+          el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
+        } catch (ignored) { /* no es un componente JET */ }
+      }
+      marked++
+      if (!first) first = el
+    }
+  }
+  if (first) {
+    try { first.scrollIntoView({ block: 'center' }) } catch (ignored) { /* jsdom */ }
+    const input = first.querySelector && first.querySelector('input, textarea, [tabindex="0"]')
+    try { (input || first).focus() } catch (ignored) { /* sin caja */ }
+  }
+  return marked
+}
+
+/** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */
+export function clearFieldError(element) {
+  if (element && Array.isArray(element.messagesCustom) && element.messagesCustom.length) {
+    element.messagesCustom = []
+  }
+}
+
+let guidedProcessGuarded = false
+
+/**
+ * El guided process (oj-sp-guided-process) avanza SOLO al pulsar Continue o un paso del rail,
+ * antes de saber si Mateu deja salir del paso: sus eventos spBeforeNext/spBeforeStepNavigate se
+ * pueden cancelar, pero sólo en el momento, y las chains de VB corren después. Aquí se cancelan
+ * siempre, en captura (no burbujean: la captura los ve igual), y el paso que se enseña lo manda
+ * el servidor (current-step ← el paso del wire tras cada acción): si el paso no valida, el
+ * proceso no se mueve. Las chains siguen recibiendo el evento y lanzan la acción.
+ */
+export function guardGuidedProcess() {
+  if (guidedProcessGuarded || typeof document === 'undefined') return
+  guidedProcessGuarded = true
+  const cancel = (event) => {
+    const target = event.target
+    if (target && target.id === 'mateuWizardEl') event.preventDefault()
+  }
+  document.addEventListener('spBeforeNext', cancel, true)
+  document.addEventListener('spBeforeStepNavigate', cancel, true)
+}

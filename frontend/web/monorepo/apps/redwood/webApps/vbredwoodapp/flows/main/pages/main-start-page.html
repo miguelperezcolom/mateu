@@ -195,7 +195,7 @@
               messages-custom="[[ $current.data.messagesCustom ]]"
               :data-field-id="[[ $current.data.fieldId ]]"
               options="[[ $current.data.options ]]"
-              placeholder="Select a value"
+              placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
               on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-select-one>
           </oj-bind-if>
           </div>
@@ -2600,7 +2600,7 @@
                     label-hint="[[ $current.data.label ]]"
                     value="[[ $current.data.value ]]"
                     options="[[ $current.data.options ]]"
-                    placeholder="Select a value"
+                    placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                     required="[[ $current.data.required ]]"
                     readonly="[[ $current.data.readonly ]]"
                     :data-field-id="[[ $current.data.fieldId ]]"
@@ -2646,7 +2646,9 @@
      del host: mateuWizardStep -->
 <oj-bind-if test="[[ !!$application.variables.mateuWizard && !$application.variables.mateuWizard.horizontal ]]">
   <oj-sp-guided-process id="mateuWizardEl"
-    process-title="[[ $application.variables.mateuHostTitle ]]"
+    process-title="[[ $application.variables.mateuWizard.title || $application.variables.mateuHostTitle ]]"
+    process-subtitle="[[ $application.variables.mateuWizard.subtitle ]]"
+    resume-step-id="[[ $application.variables.mateuWizard.resumeStepId ]]"
     steps="[[ $application.variables.mateuWizard.steps ]]"
     current-step="[[ $application.variables.mateuWizardShownStep ]]"
     primary-action="[[ $application.variables.mateuWizardPrimary ]]"
@@ -3536,7 +3538,7 @@
                       label-hint="[[ $current.data.label ]]"
                       value="[[ $current.data.value ]]"
                       options="[[ $current.data.options ]]"
-                      placeholder="Select a value"
+                      placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                       required="[[ $current.data.required ]]"
                       readonly="[[ $current.data.readonly ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"
@@ -3635,7 +3637,7 @@
                       label-hint="[[ $current.data.label ]]"
                       value="[[ $current.data.value ]]"
                       options="[[ $current.data.options ]]"
-                      placeholder="Select a value"
+                      placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                       required="[[ $current.data.required ]]"
                       readonly="[[ $current.data.readonly ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"
@@ -6154,7 +6156,10 @@
      campos + el pie Back/Next del wire, el bloque que la sigue -->
 <oj-bind-if test="[[ $application.variables.mateuWizardStep.on ]]">
   <div class="mateu-wizard-top oj-sm-padding-12x-horizontal oj-sm-padding-6x-top">
-    <h1 class="oj-typography-heading-md oj-sm-margin-6x-bottom"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
+    <h1 class="oj-typography-heading-md" :class="[[ $application.variables.mateuWizard.subtitle ? 'oj-sm-margin-2x-bottom' : 'oj-sm-margin-6x-bottom' ]]"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
+    <oj-bind-if test="[[ $application.variables.mateuWizard.subtitle ]]">
+      <p class="oj-typography-body-md oj-text-color-secondary oj-sm-margin-0 oj-sm-margin-6x-bottom"><oj-bind-text value="[[ $application.variables.mateuWizard.subtitle ]]"></oj-bind-text></p>
+    </oj-bind-if>
     <oj-train id="mateuWizardTrain" class="mateu-wizard-train oj-sm-margin-6x-bottom"
       steps="[[ $application.variables.mateuWizard.trainSteps ]]"
       selected-step="[[ $application.variables.mateuWizard.currentStep ]]"
@@ -7065,7 +7070,7 @@
                     label-hint="[[ $current.data.label ]]"
                     value="[[ $current.data.value ]]"
                     options="[[ $current.data.options ]]"
-                    placeholder="Select a value"
+                    placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                     required="[[ $current.data.required ]]"
                     readonly="[[ $current.data.readonly ]]"
                     :data-field-id="[[ $current.data.fieldId ]]"
@@ -7166,7 +7171,7 @@
                       label-hint="[[ $current.data.label ]]"
                       value="[[ $current.data.value ]]"
                       options="[[ $current.data.options ]]"
-                      placeholder="Select a value"
+                      placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
                       required="[[ $current.data.required ]]"
                       readonly="[[ $current.data.readonly ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"

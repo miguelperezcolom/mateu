@@ -17,6 +17,7 @@ import io.mateu.uidl.interfaces.RequiredSupplier;
 import io.mateu.uidl.interfaces.StyleSupplier;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.AnnotatedElement;
@@ -140,9 +141,10 @@ public class FieldMetadataExtractor {
     return attributes;
   }
 
-  static boolean isRequired(Field field, Object instance, HttpRequest httpRequest) {
+  public static boolean isRequired(Field field, Object instance, HttpRequest httpRequest) {
     return MetaAnnotations.isPresent(field, NotNull.class)
         || MetaAnnotations.isPresent(field, NotEmpty.class)
+        || MetaAnnotations.isPresent(field, NotBlank.class)
         || (instance instanceof RequiredSupplier rs && rs.isRequired(field.getName(), httpRequest));
   }
 

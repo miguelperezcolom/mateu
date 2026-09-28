@@ -38,7 +38,7 @@ import {
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
-  wizardStepViewOf, isRichAtom,
+  wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2669,11 +2669,104 @@ test('wizard: el alta de reserva (secciones en tarjetas) no deja tarjetas vacía
   const view = wizardStepViewOf(reg.contexts[HOST_ID], null, { title: summary.title, sections: summary.sections })
   assert.equal(view.wizard.horizontal, true)
   assert.equal(view.title, 'New booking')
-  // cada @Section va al form con su título; su tarjeta (sólo con el título) no se repite arriba
+  // cada @Section va al form con su título; su tarjeta (sólo con el título) no se repite arriba.
+  // La que se llama como su paso («Stay») no repite el rótulo del paso que va encima
   assert.deepEqual(view.content, [])
-  assert.deepEqual(view.sections.map((sec) => sec.title), ['Stay', 'Holder', 'Comments'])
+  assert.deepEqual(view.sections.map((sec) => [sec.title, sec.hasTitle]),
+    [['', false], ['Holder', true], ['Comments', true]])
   assert.ok(view.sections[0].fields.find((f) => f.fieldId === 'arrival').isDate)
   assert.deepEqual(view.nav.map((b) => b.actionId), ['back', 'next'])
+})
+
+// El Next de un wizard es validationRequired (como en Vaadin): con los obligatorios vacíos la
+// acción no sale — se marcan los campos, el primero con el foco. El alta de reserva de ec-demo1
+// avanzaba con hotel, canal, fechas y titular vacíos.
+test('wizard: el Next valida los obligatorios del paso antes de salir', () => {
+  const reg = reduceContexts(empty(), fx('booking-new-wizard'))
+  const host = reg.contexts[HOST_ID]
+  const summary = summarizeHost(reg, '/booking/newBooking')
+  const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
+  assert.deepEqual(validationOf(host, 'next'), { fields: [] })
+  assert.equal(validationOf(host, 'back'), null) // el comodín '*' no pide validar
+  assert.deepEqual(formErrorsOf(view.sections, {}),
+    ['hotelCode', 'channelCode', 'arrival', 'departure', 'holderFirstName', 'holderLastName'])
+  // lo escrito (el borrador) cuenta, aunque el estado del servidor siga vacío
+  assert.deepEqual(formErrorsOf(view.sections, {
+    hotelCode: 'H1', channelCode: { value: 'WEB', label: 'Web' }, arrival: '2026-10-01',
+    departure: '2026-10-03', holderFirstName: 'Ana', holderLastName: '  ',
+  }), ['holderLastName'])
+  // fieldsToValidate restringe
+  assert.deepEqual(formErrorsOf(view.sections, {}, ['arrival']), ['arrival'])
+})
+
+test('validationOf: la acción exacta gana al comodín, y sin validationRequired no valida', () => {
+  const ctx = { tree: { actions: [
+    { id: 'save*', validationRequired: true, fieldsToValidate: ['name'] },
+    { id: 'saveDraft', validationRequired: false },
+  ] } }
+  assert.equal(validationOf(ctx, 'saveDraft'), null)
+  assert.deepEqual(validationOf(ctx, 'saveAll'), { fields: ['name'] })
+  assert.equal(validationOf(ctx, 'other'), null)
+  assert.equal(validationOf(null, 'next'), null)
+})
+
+// El guided process (@WizardProgress RAIL) de Redwood: su OVERVIEW enseña el título del proceso
+// (el h2 del wizard) y su subtítulo sobre las columnas de los pasos, y cada columna hecha lleva
+// el status del template ('success' → «Completado»).
+test('wizard: el guided process lleva título, subtítulo y el estado de cada paso', () => {
+  const increment = fx('fo-walkin-wizard')
+  const walk = (n, fn) => {
+    if (!n || typeof n !== 'object') return
+    fn(n)
+    for (const v of Object.values(n)) {
+      if (Array.isArray(v)) v.forEach((x) => walk(x, fn))
+      else if (v && typeof v === 'object') walk(v, fn)
+    }
+  }
+  let subtitleAdded = false
+  walk(increment, (n) => {
+    if (n.metadata && n.metadata.type === 'ProgressSteps') {
+      n.metadata.vertical = true
+      // en el paso 2: el primero hecho
+      n.metadata.steps = n.metadata.steps.map((st, i) => ({ ...st, status: i === 0 ? 'done' : i === 1 ? 'current' : 'upcoming' }))
+    }
+    // el subtítulo del wizard (@Subtitle) viaja como un Text con la clase mateu-wizard-subtitle
+    if (!subtitleAdded && Array.isArray(n.children) && n.children.some((c) => c && c.metadata
+        && c.metadata.type === 'Text' && c.metadata.container === 'h2')) {
+      const at = n.children.findIndex((c) => c.metadata && c.metadata.container === 'h2')
+      n.children.splice(at + 1, 0, { type: 'ClientSide', id: 'sub', children: [], cssClasses: 'mateu-wizard-subtitle',
+        metadata: { type: 'Text', container: 'p', text: 'Un cliente sin reserva, paso a paso' } })
+      subtitleAdded = true
+    }
+  })
+  assert.ok(subtitleAdded)
+  const reg = reduceContexts(empty(), increment)
+  const host = reg.contexts[HOST_ID]
+  const wizard = wizardOf(host)
+  assert.equal(wizard.horizontal, false)
+  assert.equal(wizard.title, 'Walk-in')
+  assert.equal(wizard.subtitle, 'Un cliente sin reserva, paso a paso')
+  assert.deepEqual(wizard.steps.map((st) => [st.id, st.status, st.display]),
+    [['estancia', 'success', 'on'], ['precio', 'none', 'on'], ['titular', 'none', 'on'], ['confirmar', 'none', 'on']])
+  assert.equal(wizard.currentStep, 'precio')
+  assert.equal(wizard.resumeStepId, 'precio') // ya empezado: «Reanudar» en su paso
+  const summary = summarizeHost(reg, '/walk-in')
+  const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
+  // el título y el subtítulo son del proceso: no se repiten dentro del paso
+  assert.equal(view.title, 'Walk-in')
+  const atoms = view.content.flatMap((b) => b.items)
+  assert.ok(!atoms.some((a) => a.isText && (a.text === 'Walk-in' || a.text === wizard.subtitle)))
+  // en el primer paso aún no hay nada que reanudar
+  const fresh = reduceContexts(empty(), fx('fo-walkin-wizard'))
+  assert.equal(wizardOf(fresh.contexts[HOST_ID]).resumeStepId, '')
+})
+
+test('selectPlaceholder: el del idioma del navegador, inglés si no se conoce', () => {
+  assert.equal(selectPlaceholder('es-ES'), 'Seleccione un valor')
+  assert.equal(selectPlaceholder('ca'), 'Seleccioneu un valor')
+  assert.equal(selectPlaceholder('en-US'), 'Select a value')
+  assert.equal(selectPlaceholder('xx'), 'Select a value')
+  assert.equal(selectPlaceholder(undefined), 'Select a value')
 })
 
 await queue

@@ -11,12 +11,12 @@
     <link rel="preconnect" href="https://static.oracle.com">
     <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/default/css/redwood/oj-redwood-min.css" id="css" type="text/css"/>
 <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css" id="css-theme" type="text/css"/>
-    <link rel="stylesheet" href="version_1790530521054/resources/css/app.css">
+    <link rel="stylesheet" href="version_1790542514977/resources/css/app.css">
       <style>mateu-ui { display: none !important; }</style>
   </head>
   <body class="oj-body">
     <oj-vb-content config="[[vbApplication]]"></oj-vb-content>
-    <!-- application built by grunt-vb-build version 2510.4.0 at 2026-09-27T17:35:21.054Z -->
+    <!-- application built by grunt-vb-build version 2510.4.0 at 2026-09-27T20:55:14.977Z -->
 
 <noscript>
     <div style="font-size: 18px; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; width: 80%; margin:20% auto;">
@@ -38,8 +38,8 @@
         VB_SERVER: '%{env.vbServer.url}%',
         APP_PATH: 'webApps/vbredwoodapp',
         TRACE_CONFIG: {},
-        BASE_URL: '/version_1790530521054/',
-        BASE_URL_TOKEN: 'version_1790530521054',
+        BASE_URL: '/version_1790542514977/',
+        BASE_URL_TOKEN: 'version_1790542514977',
         INJECTED: {
             security: {}
         },
@@ -52,6 +52,7 @@
 
       // Set the locale on initParams
       window.vbInitParams = window.vbInitParams || {};
+      html.lang = (navigator.languages && navigator.languages[0]) || navigator.language || html.lang;
       window.vbInitParams.locale = html.lang;
 </script>
 

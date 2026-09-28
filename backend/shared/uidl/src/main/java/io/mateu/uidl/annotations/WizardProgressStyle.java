@@ -14,9 +14,13 @@ public enum WizardProgressStyle {
   STEPS,
 
   /**
-   * A lateral progress rail (the Oracle Redwood "Guided Process" template): the step form on the
-   * left and a sticky right-hand band showing a big {@code current | total} counter over the
-   * vertical list of steps with done-checks and the current step highlighted.
+   * The Oracle Redwood "Guided Process". In the Redwood renderer it is the {@code
+   * oj-sp-guided-process} page template itself: the process opens on its overview — the title and
+   * {@code @Subtitle} over the steps as tall columns side by side (01, 02, …), each marked completed
+   * once done — and Start opens the steps one at a time, with the step list on the right. In
+   * Vaadin it is a lateral progress rail: the step form on the left and a sticky right-hand band
+   * showing a big {@code current | total} counter over the vertical list of steps with done-checks
+   * and the current step highlighted.
    */
   RAIL
 }

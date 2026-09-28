@@ -464,6 +464,11 @@
       "defaultValue": false,
       "description": "false = mostrando el OVERVIEW del guided-process (currentStep vac\u00edo); el primer Continue arranca"
     },
+    "mateuSelectPlaceholder": {
+      "type": "string",
+      "defaultValue": "Select a value",
+      "description": "el placeholder de los desplegables, en el idioma del navegador (sin placeholder, oj-select-one elige la primera opción por su cuenta)"
+    },
     "mateuWizardShownStep": {
       "type": "string",
       "defaultValue": "",

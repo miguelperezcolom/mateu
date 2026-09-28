@@ -26,12 +26,22 @@ final class WizardButtonBuilder {
       buttons.add(
           Button.builder()
               .id("back")
+              // the action is "back" whatever the label says: without it the wire derived the
+              // action from the label, and a localized "Atrás" sent "atrÁs", which no wizard knows
+              .actionId("back")
               .label(wizard.backLabel(httpRequest))
               .disabled(wizard.position == 0)
               .build());
     }
     if (wizard.nextApplicable(wizard.position) >= 0) {
-      buttons.add(Button.builder().id("next").label(wizard.nextLabel(httpRequest)).build());
+      // the step's way forward is the page's call to action, like the completion action below
+      buttons.add(
+          Button.builder()
+              .id("next")
+              .actionId("next")
+              .label(wizard.nextLabel(httpRequest))
+              .buttonStyle(ButtonStyle.primary)
+              .build());
     } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))

@@ -5,9 +5,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -28,6 +30,10 @@ define([
       }
       if (!fieldId) {
         return;
+      }
+      // un campo marcado como obligatorio vacío deja de estarlo en cuanto se escribe en él
+      if (event && event.target) {
+        bridge.clearFieldError(event.target);
       }
       context.$application.variables.mateuDirty = true;
       if ($application.variables.mateuDrawerOpen) {
