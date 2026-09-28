@@ -35,6 +35,7 @@ import {
 } from "@vaadin/grid/all-imports";
 import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
 import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
+import { detailIndicatorColumn } from "./detailIndicatorColumn.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { renderColumnOrGroup } from "./renderColumn.ts";
@@ -351,6 +352,7 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
+                ${this.metadata?.detailPath && !this.metadata?.useButtonForDetail ? detailIndicatorColumn(isGroupRow) : nothing}
                 ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData, footers))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column

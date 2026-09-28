@@ -19,6 +19,7 @@ import {GridActiveItemChangedEvent, GridItemToggleEvent, GridSelectedItemsChange
 import { badge } from "@infra/ui/badgeStyles.ts";
 import {ifDefined} from "lit/directives/if-defined.js";
 import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
+import { detailIndicatorColumn } from "../grid/detailIndicatorColumn.ts";
 import '@vaadin/icon';
 import '@vaadin/icons';
 import {dialogRenderer} from "@vaadin/dialog/lit";
@@ -381,6 +382,7 @@ export class MateuGrid extends MetadataDrivenElement {
                 ${(this.field?.readOnly || this.field?.inlineEditing)?nothing:html`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
+                ${this.field?.detailPath && !this.field?.useButtonForDetail ? detailIndicatorColumn() : nothing}
                 ${this.field?.columns?.map(column =>
             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
 
