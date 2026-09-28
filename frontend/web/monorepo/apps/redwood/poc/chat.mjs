@@ -101,16 +101,35 @@ export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {
  * se ACUMULA en el mensaje del asistente. `agent-error` se muestra como el texto del asistente.
  * Devuelve el texto acumulado. `fetchImpl` es inyectable para tests.
  *
+ * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
+ * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
+ * una función: se evalúa en cada envío, y el reenvío lleva el token NUEVO, no el que acaba de ser
+ * rechazado — o el que faltaba: en ec1 el chat llegó a salir sin token porque en ese instante no
+ * había ninguno en localStorage, y enseñaba "Servidor respondió 401" mientras las pantallas, que sí
+ * reautentican, seguían funcionando. Sin nadie que reautentique, o si el reenvío vuelve a dar 401,
+ * falla como siempre.
+ *
+ * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
+ * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
+ *
  * @param onText   (accumulatedText) => void   — en cada trozo de texto (para repintar el mensaje)
  * @param onEvent  ({event, detail}) => void   — evento personalizado del agente (≠ agent-error)
  * @param onUsage  (usage) => void             — objeto de uso de tokens
  */
-export async function streamChat({ url, body, headers = {}, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
-  const response = await fetchImpl(url, {
+export async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
+  const payload = typeof body === 'string' ? body : JSON.stringify(body)
+  const send = () => fetchImpl(url, {
     method: 'POST',
-    headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json', ...headers },
-    body: typeof body === 'string' ? body : JSON.stringify(body),
+    headers: {
+      Accept: 'text/event-stream', 'Content-Type': 'application/json',
+      ...((typeof headers === 'function' ? headers() : headers) || {}),
+    },
+    body: payload,
   })
+  let response = await send()
+  if (response.status === 401 && reauthenticate && await reauthenticate()) {
+    response = await send()
+  }
   if (!response.ok) {
     const errorText = response.text ? await response.text() : ''
     throw new Error(`Servidor respondió ${response.status}: ${errorText}`)

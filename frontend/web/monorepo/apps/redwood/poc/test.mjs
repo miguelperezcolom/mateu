@@ -19,7 +19,7 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
-  authHeadersOf,
+  authHeadersOf, askForReauthentication,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
@@ -1891,10 +1891,12 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   const flow = JSON.parse(webApp('app-flow.json'))
   assert.equal(flow.variables.mateuChatOpen.defaultValue, false)
   assert.equal(flow.variables.mateuChatMode, undefined)
-  // el envío conserva streaming + agente por ruta y ahora presenta el token
+  // el envío conserva streaming + agente por ruta y presenta el token, leído en CADA envío y
+  // recuperando un 401 como el resto del tráfico
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /currentRoute: \$application\.variables\.mateuSelectedRoute/)
-  assert.match(send, /headers: bridge\.authHeadersOf\(\)/)
+  assert.match(send, /headers: \(\) => bridge\.authHeadersOf\(\)/)
+  assert.match(send, /reauthenticate: bridge\.askForReauthentication/)
   assert.match(send, /onText:/)
 })
 
@@ -2004,6 +2006,65 @@ atest('chat: streamChat lanza un error legible ante una respuesta no-ok', async 
     streamChat({ url: '/sse', body: {}, fetchImpl: async () => ({ ok: false, status: 503, text: async () => 'caído' }) }),
     /503/,
   )
+})
+
+// El chat no pasa por fetchWithPolicy, y un 401 lo dejaba en "Servidor respondió 401" mientras las
+// pantallas reautenticaban y seguían: en ec1 salió sin token porque en ese instante localStorage no
+// tenía ninguno. Ahora se recupera igual: reautenticar y reenviar UNA vez, con el token de ENTONCES.
+atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el token nuevo', async () => {
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  let token = null
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    token = 'nuevo'
+    e.detail.retry()
+  })
+  const sent = []
+  try {
+    const out = await streamChat({
+      url: '/sse', body: { message: 'hola' },
+      headers: () => authHeadersOf(),
+      reauthenticate: askForReauthentication,
+      fetchImpl: async (url, init) => {
+        sent.push(init.headers.Authorization)
+        return init.headers.Authorization === 'Bearer nuevo'
+          ? sseResponse(['data: hola\n'])
+          : { ok: false, status: 401, text: async () => '' }
+      },
+    })
+    assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
+    assert.equal(out, 'hola')
+  } finally {
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+  }
+})
+
+atest('chat: streamChat ante un 401 sin nadie que reautentique falla como siempre, sin reenviar', async () => {
+  const originalDocument = globalThis.document
+  globalThis.document = new EventTarget()
+  let calls = 0
+  try {
+    await assert.rejects(streamChat({
+      url: '/sse', body: {}, reauthenticate: askForReauthentication,
+      fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
+    }), /Servidor respondió 401/)
+    assert.equal(calls, 1)
+  } finally {
+    globalThis.document = originalDocument
+  }
+})
+
+atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle', async () => {
+  let calls = 0
+  await assert.rejects(streamChat({
+    url: '/sse', body: {}, reauthenticate: async () => true,
+    fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
+  }), /Servidor respondió 401/)
+  assert.equal(calls, 2)
 })
 
 // ── Custom components (#14) en VB: placeholder + hijos slotted ──────────────────

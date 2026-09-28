@@ -146,6 +146,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pendingActions,
     setTransportHooks,
     authHeadersOf,
+    askForReauthentication,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
