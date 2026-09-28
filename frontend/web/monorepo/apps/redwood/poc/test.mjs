@@ -26,7 +26,7 @@ import {
   tryParseCustomEvent, streamChat,
 } from './chat.mjs'
 import {
-  reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
+  reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
@@ -435,9 +435,10 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.equal(bloques[0].isCard, false)
   assert.equal(bloques[0].isPlain, true)
   const items = bloques.flatMap((b) => b.items)
-  // los campos que están FUERA de las pestañas
-  assert.ok(items.some((a) => a.isInput && a.fieldId === 'id'))
-  assert.ok(items.some((a) => a.isInput && a.fieldId === 'name'))
+  // los campos que están FUERA de las pestañas: en el form layout de JET de su FormLayout
+  const campos = items.filter((a) => a.isFormLayout).flatMap((a) => a.fields)
+  assert.ok(campos.some((f) => f.fieldId === 'id'))
+  assert.ok(campos.some((f) => f.fieldId === 'name'))
   // la barra de pestañas, entera y con la primera activa
   const tabs = items.find((a) => a.isTabs)
   assert.ok(tabs, 'no se proyectó la barra de pestañas')
@@ -2624,6 +2625,7 @@ test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arri
   assert.ok(!atoms.some((a) => a.isText && a.text === 'Walk-in'))
   // ningún campo del form queda además como input de texto en el contenido
   assert.ok(!atoms.some((a) => a.isInput), 'sin inputs duplicados en el contenido')
+  assert.ok(!atoms.some((a) => a.isFormLayout), 'ni un form layout con los mismos campos')
   const fields = view.sections.flatMap((sec) => sec.fields)
   assert.deepEqual(fields.map((f) => f.fieldId),
     ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
@@ -2674,6 +2676,7 @@ test('wizard: con RAIL (ProgressSteps vertical) sigue el guided process — sin 
   assert.ok(!atoms.some((a) => a.isButtons && a.buttons.every((b) => b.actionId === 'back' || b.actionId === 'next')))
   // y también aquí cada campo una vez
   assert.ok(!atoms.some((a) => a.isInput))
+  assert.ok(!atoms.some((a) => a.isFormLayout))
   assert.deepEqual(view.sections.flatMap((sec) => sec.fields.map((f) => f.fieldId)), ['name', 'email'])
 })
 
@@ -2785,3 +2788,56 @@ test('selectPlaceholder: el del idioma del navegador, inglés si no se conoce', 
 
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
+
+// CRUD de ec-demo1 (booking del CRS, fixtures reales): sus @Section son Cards con un FormLayout
+// (maxColumns 2) de FormRows. Antes cada FormField salía como un oj-input-text suelto — editable
+// aunque la vista de detalle los manda todos readOnly, sin columnas de verdad y sin las fechas.
+const layoutsOf = (name) => {
+  const reg = reduceContexts(empty(), fx(name))
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, {}) || []
+  return blocks.flatMap((b) => b.items).filter((a) => a.isFormLayout)
+}
+
+test('crud: la vista de detalle pinta cada sección con el form layout de JET, de sólo lectura', () => {
+  const layouts = layoutsOf('crud-view-booking')
+  const booking = layouts.find((l) => l.fields.some((f) => f.fieldId === 'partnerCode'))
+  assert.equal(booking.columns, 2)
+  assert.deepEqual(booking.fields.map((f) => f.fieldId),
+    ['hotelCode-label', 'channelCode-label', 'partnerCode', 'externalReference', 'arrival', 'departure'])
+  // todo readonly: el propio layout también, y JET pinta valores, no cajas
+  assert.ok(layouts.every((l) => l.readonly && l.fields.every((f) => f.readonly)))
+  // las fechas ya salen, con su widget
+  assert.ok(booking.fields.find((f) => f.fieldId === 'arrival').isDate)
+  // la etiqueta de un lookup de sólo lectura viene en data, no en el state
+  assert.match(String(booking.fields.find((f) => f.fieldId === 'hotelCode-label').value), /MRU01/)
+  // cada campo ocupa su colspan del wire, sin pasar de las columnas del layout
+  assert.ok(layouts.every((l) => l.fields.every((f) => f.colspan >= 1 && f.colspan <= l.columns)))
+  // los grids de la sección siguen siendo tablas, fuera del layout
+  const atoms = (hostContentOf(reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID], null, {}) || [])
+    .flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isGrid && a.fieldId === 'rooms'))
+  assert.ok(!layouts.some((l) => l.fields.some((f) => f.fieldId === 'rooms')))
+})
+
+test('crud: el formulario de edición es editable salvo lo que el wire manda readOnly', () => {
+  const layouts = layoutsOf('crud-edit-booking')
+  const field = (id) => layouts.flatMap((l) => l.fields).find((f) => f.fieldId === id)
+  assert.equal(field('holderFirstName').readonly, false)
+  assert.equal(field('arrival').readonly, false)
+  assert.ok(field('arrival').isDate)
+  assert.equal(field('id').readonly, true)
+  const holder = layouts.find((l) => l.fields.some((f) => f.fieldId === 'holderFirstName'))
+  assert.equal(holder.columns, 2)
+  assert.equal(holder.readonly, false)
+})
+
+test('crud: el colspan de un campo viaja acotado a las columnas del layout', () => {
+  const md = { type: 'FormField', fieldId: 'comments', dataType: 'string', label: 'Comments', colspan: 2 }
+  const wide = layoutFieldOf(md, { comments: 'x' }, {}, 2)
+  assert.equal(wide.colspan, 2)
+  assert.equal(layoutFieldOf({ ...md, colspan: 5 }, {}, {}, 2).colspan, 2)
+  assert.equal(layoutFieldOf({ ...md, colspan: 1 }, {}, {}, 2).colspan, 1)
+  // un grid o una property row no son campos del layout
+  assert.equal(layoutFieldOf({ ...md, columns: [{}] }, {}, {}, 2), null)
+  assert.equal(layoutFieldOf({ ...md, dataType: 'array' }, {}, {}, 2), null)
+})
