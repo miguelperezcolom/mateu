@@ -30,7 +30,7 @@ import {
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
-  welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
+  welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
@@ -522,6 +522,20 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
 })
 
 // 22) Arquetipos compuestos: welcome, general overview e item overview se proyectan del núcleo.
+test('welcomeLookOf: el hero rota al entrar en la welcome y se queda mientras se sigue en ella', () => {
+  const ctx = reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID]
+  const key = welcomeKeyOf(ctx)
+  assert.ok(key, 'la welcome tiene una clave')
+  const first = welcomeLookOf(key, null, () => 0.5)
+  assert.equal(first.theme, 'dark-plum')
+  assert.ok(first.illu.endsWith('illust-welcome-banner-fg-03.png'))
+  // la respuesta de una acción lanzada desde ella (un CTA que navega) la reproyecta: mismo aspecto
+  assert.equal(welcomeLookOf(key, first, () => 0), first)
+  // otra welcome, o volver a entrar tras otra pantalla (no había welcome pintada): rota
+  assert.equal(welcomeLookOf('otra.Welcome', first, () => 0).theme, 'dark-ocean')
+  assert.equal(welcomeLookOf(key, null, () => 0.99).theme, 'dark-teal')
+})
+
 test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos', () => {
   const welcome = welcomeOf(reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID])
   assert.equal(welcome.title, 'VB Demo front desk')

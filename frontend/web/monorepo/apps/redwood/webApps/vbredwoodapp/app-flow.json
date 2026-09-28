@@ -667,6 +667,11 @@
       "defaultValue": false,
       "description": "una vista r\u00e1pida del Ask Oracle (o un deep-link ?campo=valor) dej\u00f3 filtros puestos: onMateuNavigate los aplica en vez de resetearlos"
     },
+    "mateuWelcomeKey": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "qu\u00e9 welcome pinta el hero (welcomeKeyOf): con la misma, su aspecto no rota"
+    },
     "mateuWelcomeTheme": {
       "type": "string",
       "defaultValue": "auto",

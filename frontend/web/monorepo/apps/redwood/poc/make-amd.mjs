@@ -93,6 +93,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     findAllByType,
     cardOf,
     welcomeOf,
+    welcomeKeyOf,
+    welcomeLookOf,
     generalOverviewOf,
     itemOverviewOf,
     itemOverviewPageOf,

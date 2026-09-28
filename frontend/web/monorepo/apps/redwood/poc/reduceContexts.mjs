@@ -550,6 +550,42 @@ export function cardOf(node) {
 }
 
 /** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
+/** Los pares color + ilustración del hero de la welcome: las 5 parejas bg+fg de la galería OFICIAL
+ *  (fnd/gallery illust-welcome-banner-*-01..05), cada una con su tono de la paleta oscura RDS. */
+export const WELCOME_LOOKS = [
+  ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+  ['dark-sienna', '04'], ['dark-teal', '05'],
+]
+const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
+
+/** Qué welcome es la que se pinta: su clase de servidor (o, sin ella, el id del árbol). */
+export function welcomeKeyOf(ctx) {
+  const tree = ctx && ctx.tree
+  return tree ? (tree.serverSideType || tree.id || '') : ''
+}
+
+/**
+ * El aspecto del hero: uno al azar al ENTRAR en una welcome, y el mismo mientras se siga en ella.
+ *
+ * Rotaba en cada proyección, y una welcome se reproyecta con la respuesta de cada acción que se
+ * lanza desde ella — también la de un CTA que devuelve una ruta ("Ir a Reservas"): el hero cambiaba
+ * de color justo antes de navegar, durante todo lo que tardara en llegar la página siguiente.
+ * Ahora sólo rota en una visita nueva: no había welcome pintada (`previous` nulo) o era otra.
+ *
+ * @param key       welcomeKeyOf del contexto que se proyecta
+ * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
+ */
+export function welcomeLookOf(key, previous, random = Math.random) {
+  if (previous && previous.theme && previous.key === key) return previous
+  const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
+  return {
+    key,
+    theme,
+    illuBg: WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png',
+    illu: WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png',
+  }
+}
+
 export function welcomeOf(ctx) {
   const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
   if (!hero) return null
