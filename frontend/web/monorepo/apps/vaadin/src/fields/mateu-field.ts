@@ -869,22 +869,29 @@ export class MateuField extends LitElement {
                 </vaadin-custom-field>`
             }
             const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
+            // The copy icon is always rendered and only hidden, never added or removed: a Lit
+            // expression as the last child of vaadin-text-field owns everything up to the end of
+            // the element, which includes the <input slot="input"> vaadin appends there. Switching
+            // that expression from `nothing` to the icon (a value growing past 15 chars after an
+            // action) cleared the part and took the input with it — the icon appeared, the text
+            // never did.
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
                         label="${label}"
-                        value="${valueToDisplay}"
+                        .value="${strValue}"
                         readonly
                         style="${this.field.style}"
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
-                >${strValue.length > 15 ? html`<vaadin-icon
+                ><vaadin-icon
                         slot="suffix"
                         icon="vaadin:copy"
                         title="Copiar"
+                        ?hidden="${strValue.length <= 15}"
                         style="cursor: pointer; color: var(--lumo-secondary-text-color);"
                         @click="${() => this.copyValue(strValue)}"
-                ></vaadin-icon>` : nothing}</vaadin-text-field>
+                ></vaadin-icon></vaadin-text-field>
 `
     }
 
