@@ -251,7 +251,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       .map((block) => ({
         ...block,
         items: block.items
-          .filter((a) => !a.isInput)
+          .filter((a) => !a.isInput && !a.isFormLayout)
           .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(keepInContent) } : a))
           .filter((a) => !a.isButtons || a.buttons.length),
       }))
@@ -497,7 +497,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     let subtitleDropped = false
     content = content.map((block) => {
       let movedToForm = 0
-      const items = block.items.filter((a) => {
+      const items = block.items.map((a) => {
+        if (!a.isFormLayout || a.fromNested) return a
+        const kept = a.fields.filter((f) => !onForm.has(f.fieldId))
+        movedToForm += a.fields.length - kept.length
+        return kept.length === a.fields.length ? a : { ...a, fields: kept }
+      }).filter((a) => {
+        if (a.isFormLayout && !a.fields.length) return false
         if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
         // el título del wizard (su h2) va a la cabecera — el h1 sobre el tren, o el título del
         // proceso del guided process —, y su subtítulo con él: ninguno se repite en el paso
@@ -555,6 +561,42 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
+  /** Los pares color + ilustración del hero de la welcome: las 5 parejas bg+fg de la galería OFICIAL
+   *  (fnd/gallery illust-welcome-banner-*-01..05), cada una con su tono de la paleta oscura RDS. */
+  const WELCOME_LOOKS = [
+    ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+    ['dark-sienna', '04'], ['dark-teal', '05'],
+  ]
+  const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
+
+  /** Qué welcome es la que se pinta: su clase de servidor (o, sin ella, el id del árbol). */
+  function welcomeKeyOf(ctx) {
+    const tree = ctx && ctx.tree
+    return tree ? (tree.serverSideType || tree.id || '') : ''
+  }
+
+  /**
+   * El aspecto del hero: uno al azar al ENTRAR en una welcome, y el mismo mientras se siga en ella.
+   *
+   * Rotaba en cada proyección, y una welcome se reproyecta con la respuesta de cada acción que se
+   * lanza desde ella — también la de un CTA que devuelve una ruta ("Ir a Reservas"): el hero cambiaba
+   * de color justo antes de navegar, durante todo lo que tardara en llegar la página siguiente.
+   * Ahora sólo rota en una visita nueva: no había welcome pintada (`previous` nulo) o era otra.
+   *
+   * @param key       welcomeKeyOf del contexto que se proyecta
+   * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
+   */
+  function welcomeLookOf(key, previous, random = Math.random) {
+    if (previous && previous.theme && previous.key === key) return previous
+    const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
+    return {
+      key,
+      theme,
+      illuBg: WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png',
+      illu: WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png',
+    }
+  }
+
   function welcomeOf(ctx) {
     const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
     if (!hero) return null
@@ -990,6 +1032,41 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
         // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
         atom({ isNested: true, islandId: node.id }, container)
+        return
+      }
+      // FORMULARIO (FormLayout: sus FormRow de FormFields, con maxColumns y el colspan de cada
+      // campo) → UN atom isFormLayout que la plantilla pinta con el oj-form-layout de JET
+      // (max-columns / direction=row / colspan en cada hijo): el reparto en columnas es el de
+      // JET, no una rejilla propia. Cada campo lleva su widget de verdad (texto, número, fecha,
+      // booleano, select) y su readonly — la vista de detalle de un crud manda todos sus campos
+      // readOnly y se tienen que ver como tales, no como inputs editables. Lo que no es un
+      // campo escalar (un grid, una property row, otro componente) corta el grupo y se proyecta
+      // como siempre, en su sitio.
+      if (t === 'FormLayout') {
+        const columns = Math.min(4, Math.max(1, m.maxColumns || m.columns || 1))
+        const layouts = []
+        let layout = null
+        const walkLayout = (n) => {
+          if (!n || typeof n !== 'object') return
+          const md = n.metadata
+          if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+          const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
+          if (field) {
+            if (!layout) {
+              layout = { isFormLayout: true, columns, fields: [] }
+              layouts.push(layout)
+              atom(layout, container)
+            }
+            layout.fields.push(field)
+            return
+          }
+          layout = null
+          visit(n, container)
+        }
+        kidsOf(node).forEach(walkLayout)
+        // todo de sólo lectura (la vista de detalle): el propio form layout va readonly y JET
+        // pinta cada campo como valor, sin caja de input
+        for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
         return
       }
       if (t === 'FormField') {
@@ -1434,6 +1511,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       .map((a) => {
         const marked = { ...a, fromNested: true }
         if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
+        if (a.fields) marked.fields = a.fields.map((f) => ({ ...f, fromNested: true }))
         return marked
       })
     return islandBlocks.map((block) => (
@@ -2638,6 +2716,38 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       })
     }
     return out
+  }
+
+  /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
+  const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
+    float: true, date: true, dateTime: true, bool: true, boolean: true }
+
+  /**
+   * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
+   * su valor y su colspan. El valor sale del state o, si no está, de data — ahí manda el server
+   * la etiqueta de un lookup de sólo lectura (hotelCode-label), que antes salía vacía. null si
+   * no es un campo que el layout pinte (un grid, una property row, un tipo sin widget).
+   */
+  function layoutFieldOf(md, state, data, columns = 1) {
+    const fieldId = md.fieldId || md.id
+    if (!fieldId || (md.columns || []).length || md.propertyRow || !LAYOUT_TYPES[md.dataType]) return null
+    const s = state || {}
+    const d = data || {}
+    const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
+    const widget = fieldWidgetOf(md, data, { lookups: false })
+    let value = raw == null || raw === '' ? null : raw
+    if (widget.isBoolean) value = !!raw
+    else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
+    else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (value != null && typeof value === 'object') value = plainValueOf(value)
+    return {
+      ...widget,
+      value,
+      // el del wire, acotado a las columnas del layout. La plantilla (oj-form-layout clásico, con
+      // los labels dentro) aún no lo aplica: eso pide oj-c-form-layout y sus column-span
+      colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+      messagesCustom: [],
+    }
   }
 
   /**
@@ -4798,16 +4908,35 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * se ACUMULA en el mensaje del asistente. `agent-error` se muestra como el texto del asistente.
    * Devuelve el texto acumulado. `fetchImpl` es inyectable para tests.
    *
+   * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
+   * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
+   * una función: se evalúa en cada envío, y el reenvío lleva el token NUEVO, no el que acaba de ser
+   * rechazado — o el que faltaba: en ec1 el chat llegó a salir sin token porque en ese instante no
+   * había ninguno en localStorage, y enseñaba "Servidor respondió 401" mientras las pantallas, que sí
+   * reautentican, seguían funcionando. Sin nadie que reautentique, o si el reenvío vuelve a dar 401,
+   * falla como siempre.
+   *
+   * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
+   * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
+   *
    * @param onText   (accumulatedText) => void   — en cada trozo de texto (para repintar el mensaje)
    * @param onEvent  ({event, detail}) => void   — evento personalizado del agente (≠ agent-error)
    * @param onUsage  (usage) => void             — objeto de uso de tokens
    */
-  async function streamChat({ url, body, headers = {}, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
-    const response = await fetchImpl(url, {
+  async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
+    const payload = typeof body === 'string' ? body : JSON.stringify(body)
+    const send = () => fetchImpl(url, {
       method: 'POST',
-      headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json', ...headers },
-      body: typeof body === 'string' ? body : JSON.stringify(body),
+      headers: {
+        Accept: 'text/event-stream', 'Content-Type': 'application/json',
+        ...((typeof headers === 'function' ? headers() : headers) || {}),
+      },
+      body: payload,
     })
+    let response = await send()
+    if (response.status === 401 && reauthenticate && await reauthenticate()) {
+      response = await send()
+    }
     if (!response.ok) {
       const errorText = response.text ? await response.text() : ''
       throw new Error(`Servidor respondió ${response.status}: ${errorText}`)
@@ -4851,6 +4980,59 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     return accumulated
+  }
+
+  // ---- El estado del panel mientras el asistente trabaja, los tokens y el dictado ------------------
+
+  /**
+   * El uso de UNA respuesta: el stream puede mandar más de un objeto de uso; dentro de una respuesta
+   * manda el último valor de cada contador, como en el chat compartido (merge, no suma).
+   */
+  function mergeTurnUsage(turn, usage) {
+    return { ...(turn || {}), ...(usage || {}) }
+  }
+
+  /**
+   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada. Solo los
+   * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
+   */
+  function addUsage(total, turn) {
+    const keys = ['inputTokens', 'outputTokens', 'totalTokens']
+    const out = { ...(total || {}) }
+    let any = total ? keys.some((k) => typeof total[k] === 'number') : false
+    for (const k of keys) {
+      const v = turn && turn[k]
+      if (typeof v === 'number' && Number.isFinite(v)) {
+        out[k] = (typeof out[k] === 'number' ? out[k] : 0) + v
+        any = true
+      }
+    }
+    return any ? out : null
+  }
+
+  /**
+   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; «Pensando…»
+   * con los segundos mientras no ha llegado nada (la espera larga es la que inquieta); «Respondiendo…»
+   * en cuanto llega el primer texto.
+   */
+  function chatStatusText({ busy, hasText, elapsedSeconds }) {
+    if (!busy) return ''
+    if (hasText) return 'Respondiendo…'
+    const s = Math.max(0, Math.floor(elapsedSeconds || 0))
+    return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+  }
+
+  /** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
+  function speechRecognitionCtor(win = globalThis) {
+    return (win && (win.SpeechRecognition || win.webkitSpeechRecognition)) || null
+  }
+
+  /** El texto dictado: el último resultado reconocido (mismo criterio que el chat compartido). */
+  function transcriptOf(event) {
+    const results = event && event.results
+    if (!results || !results.length) return ''
+    const last = results[results.length - 1]
+    return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
   }
 
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
@@ -4918,6 +5100,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     findAllByType,
     cardOf,
     welcomeOf,
+    welcomeKeyOf,
+    welcomeLookOf,
     generalOverviewOf,
     itemOverviewOf,
     itemOverviewPageOf,
@@ -4969,6 +5153,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     pendingActions,
     setTransportHooks,
     authHeadersOf,
+    askForReauthentication,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
@@ -5002,5 +5187,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     buildChatMenuContext,
     streamChat,
     uploadChatFiles,
+    // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
+    mergeTurnUsage,
+    addUsage,
+    chatStatusText,
+    speechRecognitionCtor,
+    transcriptOf,
   };
 });
