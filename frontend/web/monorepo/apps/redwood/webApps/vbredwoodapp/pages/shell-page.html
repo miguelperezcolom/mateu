@@ -264,17 +264,56 @@
             </oj-bind-if>
             <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
               <template>
-                <div class="oj-flex oj-sm-margin-3x-bottom"
-                  :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
-                  <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
-                    :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
-                    <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
+                <!-- la respuesta del asistente todavía vacía no se pinta: lo que pasa lo dice la
+                     fila de estado de abajo -->
+                <oj-bind-if test="[[ $current.data.role === 'user' || !!$current.data.text ]]">
+                  <div class="oj-flex oj-sm-margin-3x-bottom"
+                    :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
+                    <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
+                      :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
+                      <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
+                    </div>
                   </div>
-                </div>
+                </oj-bind-if>
               </template>
             </oj-bind-for-each>
+            <!-- el asistente trabaja: «Pensando… N s» hasta el primer texto, «Respondiendo…» después -->
+            <oj-bind-if test="[[ !!$application.variables.mateuChatStatus ]]">
+              <div id="mateuChatStatus" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-margin-3x-bottom"
+                role="status">
+                <oj-progress-circle size="sm" value="-1" aria-hidden="true"></oj-progress-circle>
+                <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start">
+                  <oj-bind-text value="[[ $application.variables.mateuChatStatus ]]"></oj-bind-text>
+                </span>
+              </div>
+            </oj-bind-if>
           </div>
+          <!-- tokens de la conversación, sumados respuesta a respuesta -->
+          <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]">
+            <div id="mateuChatTokens" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top">
+              <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end">Tokens</span>
+              <oj-bind-if test="[[ $application.variables.mateuChatTokens.inputTokens != null ]]">
+                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">entrada <oj-bind-text value="[[ $application.variables.mateuChatTokens.inputTokens ]]"></oj-bind-text></span>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $application.variables.mateuChatTokens.outputTokens != null ]]">
+                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">salida <oj-bind-text value="[[ $application.variables.mateuChatTokens.outputTokens ]]"></oj-bind-text></span>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $application.variables.mateuChatTokens.totalTokens != null ]]">
+                <span class="oj-badge oj-badge-info oj-badge-subtle">total <oj-bind-text value="[[ $application.variables.mateuChatTokens.totalTokens ]]"></oj-bind-text></span>
+              </oj-bind-if>
+            </div>
+          </oj-bind-if>
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
+            <!-- dictar: solo donde el navegador reconoce la voz; lo dictado se envía -->
+            <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]">
+              <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end"
+                :chroming="[[ $application.variables.mateuChatListening ? 'callToAction' : 'borderless' ]]"
+                :disabled="[[ $application.variables.mateuChatBusy ]]"
+                on-oj-action="[[ $listeners.chatMic ]]">
+                <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
+                <oj-bind-text value="[[ $application.variables.mateuChatListening ? 'Parar el dictado' : 'Dictar el mensaje' ]]"></oj-bind-text>
+              </oj-button>
+            </oj-bind-if>
             <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…"
               label-hint="Mensaje para el asistente" label-edge="none"
               value="{{ $application.variables.mateuChatInput }}"></oj-input-text>

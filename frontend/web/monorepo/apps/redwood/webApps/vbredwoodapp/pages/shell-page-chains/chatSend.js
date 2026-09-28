@@ -1,6 +1,10 @@
 /* Envío del chat de IA. Lee el valor VIVO del input del DOM (oj-input-text commitea `value` al
  * change/blur, que va por detrás de un Enter), postea al sseUrl y ACUMULA la respuesta del agente
- * en el último mensaje. Al terminar, limpia el input y devuelve el foco. */
+ * en el último mensaje. Al terminar, limpia el input y devuelve el foco.
+ *
+ * Mientras tanto dice qué pasa: «Pensando… N s» hasta que llega el primer texto (la espera larga es
+ * la que inquieta), «Respondiendo…» después — la fila de estado del panel (mateuChatStatus). Y suma
+ * a la conversación los tokens de cada respuesta (mateuChatTokens). */
 define([
   'vb/action/actionChain',
   'vb/action/actions',
@@ -36,10 +40,22 @@ define([
       clearInput($application);
       $application.variables.mateuChatBusy = true;
 
+      const startedAt = Date.now();
+      let hasText = false;
+      let turnUsage = null;
+      const showStatus = () => {
+        $application.variables.mateuChatStatus = bridge.chatStatusText({
+          busy: true, hasText, elapsedSeconds: (Date.now() - startedAt) / 1000,
+        });
+      };
+      showStatus();
+      const ticking = setInterval(showStatus, 1000);
+
       const setAgent = (value) => {
         const next = ($application.variables.mateuChatMessages || []).slice();
         if (next[agentIdx]) next[agentIdx] = { role: 'agent', text: value };
         $application.variables.mateuChatMessages = next;
+        if (!hasText && value) { hasText = true; showStatus(); }
       };
 
       // El agente puede emitir un evento `render-screen` con la definición (YAML) que ha autorado.
@@ -50,8 +66,10 @@ define([
         await bridge.streamChat({
           url: $application.variables.mateuChatSseUrl,
           // el agente actúa como quien pregunta: el token de la sesión (el stream no pasa por
-          // fetchWithPolicy, que es quien lo pone en el resto del tráfico)
-          headers: bridge.authHeadersOf(),
+          // fetchWithPolicy, que es quien lo pone en el resto del tráfico). Una función, leída en
+          // cada envío: tras un 401 se pide reautenticar y el reenvío lleva el token nuevo
+          headers: () => bridge.authHeadersOf(),
+          reauthenticate: bridge.askForReauthentication,
           // currentRoute: la pantalla desde la que se pregunta — el plano de control elige el
           // agente por ella (en /mapping, el de mapeado)
           body: bridge.buildChatBody({
@@ -60,6 +78,7 @@ define([
             currentRoute: $application.variables.mateuSelectedRoute || undefined,
           }),
           onText: (accumulated) => setAgent(accumulated),
+          onUsage: (usage) => { turnUsage = bridge.mergeTurnUsage(turnUsage, usage); },
           onEvent: (ev) => {
             if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
               renderYaml = ev.detail.yaml;
@@ -69,6 +88,9 @@ define([
       } catch (e) {
         setAgent('⚠️ ' + (e && e.message ? e.message : 'Error'));
       } finally {
+        clearInterval(ticking);
+        $application.variables.mateuChatStatus = '';
+        $application.variables.mateuChatTokens = bridge.addUsage($application.variables.mateuChatTokens, turnUsage);
         $application.variables.mateuChatBusy = false;
         focusInput();
       }

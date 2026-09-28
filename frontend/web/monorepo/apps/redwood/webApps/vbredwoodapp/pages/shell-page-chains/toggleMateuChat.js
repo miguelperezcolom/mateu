@@ -1,7 +1,7 @@
 /* El CHAT del agente (botón de la cabecera, distinto del FAB de Ask Oracle): abre/cierra su drawer izquierdo.
  * Al abrir, foco al input y Enter→Enviar (imperativo: el on-keydown declarativo de VB no engancha
  * el keydown del oj-input-text); al cerrar, el foco vuelve al botón que lo abrió. */
-define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
+define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge'], (ActionChain, Actions, bridge) => {
   'use strict';
 
   // en estrecho el drawer es OVERLAY y JET, al acabar de abrirlo (~0,5 s), lleva el foco al
@@ -60,6 +60,8 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
       const next = open == null ? !$application.variables.mateuChatOpen : !!open;
       if (next === $application.variables.mateuChatOpen) return;
       $application.variables.mateuChatOpen = next;
+      // el micrófono solo donde el navegador reconoce la voz (no en Firefox)
+      if (next) $application.variables.mateuChatMicAvailable = !!bridge.speechRecognitionCtor(window);
       markToggle(next);
       if (next) focusAndWireEnter(); else focusToggle();
     }

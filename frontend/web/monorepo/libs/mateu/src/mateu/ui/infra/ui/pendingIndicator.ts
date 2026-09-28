@@ -82,6 +82,22 @@ const rootOf = (element: Element): Document | ShadowRoot | undefined => {
 }
 
 /**
+ * The controls marked busy, so the global veil can tell whether the user already sees the wait
+ * where they pressed. Pruned on read: a control that left the page (the screen was navigated away)
+ * or was cleared no longer counts, so a mark that is never cleared cannot pin the veil's delay.
+ */
+const marked = new Set<Element>()
+
+/** Whether some control on the page is showing its own busy state right now. */
+export const anyPending = (): boolean => {
+    for (const element of marked) {
+        if (element.isConnected && element.hasAttribute('data-mateu-pending')) return true
+        marked.delete(element)
+    }
+    return false
+}
+
+/**
  * Marks `element` busy. Idempotent — marking an already-busy element changes nothing, so the
  * repeat presses the guard rejects do not disturb the indicator.
  */
@@ -91,6 +107,7 @@ export const markPending = (element: Element | null | undefined): void => {
     if (root) ensureStyles(root)
     element.setAttribute('data-mateu-pending', '')
     element.setAttribute('aria-busy', 'true')
+    marked.add(element)
 }
 
 /** Clears the busy state. Safe on an element that was never marked. */
@@ -98,6 +115,7 @@ export const clearPending = (element: Element | null | undefined): void => {
     if (!element) return
     element.removeAttribute('data-mateu-pending')
     element.removeAttribute('aria-busy')
+    marked.delete(element)
 }
 
 /**

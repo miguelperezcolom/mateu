@@ -19,18 +19,19 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
-  authHeadersOf,
+  authHeadersOf, askForReauthentication,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
-  tryParseCustomEvent, streamChat,
+  tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
+  speechRecognitionCtor, transcriptOf,
 } from './chat.mjs'
 import {
-  reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID,
+  reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
-  welcomeOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
+  welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
@@ -435,9 +436,10 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.equal(bloques[0].isCard, false)
   assert.equal(bloques[0].isPlain, true)
   const items = bloques.flatMap((b) => b.items)
-  // los campos que están FUERA de las pestañas
-  assert.ok(items.some((a) => a.isInput && a.fieldId === 'id'))
-  assert.ok(items.some((a) => a.isInput && a.fieldId === 'name'))
+  // los campos que están FUERA de las pestañas: en el form layout de JET de su FormLayout
+  const campos = items.filter((a) => a.isFormLayout).flatMap((a) => a.fields)
+  assert.ok(campos.some((f) => f.fieldId === 'id'))
+  assert.ok(campos.some((f) => f.fieldId === 'name'))
   // la barra de pestañas, entera y con la primera activa
   const tabs = items.find((a) => a.isTabs)
   assert.ok(tabs, 'no se proyectó la barra de pestañas')
@@ -522,6 +524,20 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
 })
 
 // 22) Arquetipos compuestos: welcome, general overview e item overview se proyectan del núcleo.
+test('welcomeLookOf: el hero rota al entrar en la welcome y se queda mientras se sigue en ella', () => {
+  const ctx = reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID]
+  const key = welcomeKeyOf(ctx)
+  assert.ok(key, 'la welcome tiene una clave')
+  const first = welcomeLookOf(key, null, () => 0.5)
+  assert.equal(first.theme, 'dark-plum')
+  assert.ok(first.illu.endsWith('illust-welcome-banner-fg-03.png'))
+  // la respuesta de una acción lanzada desde ella (un CTA que navega) la reproyecta: mismo aspecto
+  assert.equal(welcomeLookOf(key, first, () => 0), first)
+  // otra welcome, o volver a entrar tras otra pantalla (no había welcome pintada): rota
+  assert.equal(welcomeLookOf('otra.Welcome', first, () => 0).theme, 'dark-ocean')
+  assert.equal(welcomeLookOf(key, null, () => 0.99).theme, 'dark-teal')
+})
+
 test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos', () => {
   const welcome = welcomeOf(reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID])
   assert.equal(welcome.title, 'VB Demo front desk')
@@ -1876,11 +1892,52 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   const flow = JSON.parse(webApp('app-flow.json'))
   assert.equal(flow.variables.mateuChatOpen.defaultValue, false)
   assert.equal(flow.variables.mateuChatMode, undefined)
-  // el envío conserva streaming + agente por ruta y ahora presenta el token
+  // el envío conserva streaming + agente por ruta y presenta el token, leído en CADA envío y
+  // recuperando un 401 como el resto del tráfico
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /currentRoute: \$application\.variables\.mateuSelectedRoute/)
-  assert.match(send, /headers: bridge\.authHeadersOf\(\)/)
+  assert.match(send, /headers: \(\) => bridge\.authHeadersOf\(\)/)
+  assert.match(send, /reauthenticate: bridge\.askForReauthentication/)
   assert.match(send, /onText:/)
+})
+
+test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
+  const shell = webApp('pages/shell-page.html')
+  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- Navigator PERSISTENTE/)[0]
+  // la respuesta vacía no se pinta; la fila de estado, con el progress circle de JET, sí
+  assert.match(panel, /<oj-bind-if test="\[\[ \$current\.data\.role === 'user' \|\| !!\$current\.data\.text \]\]">/)
+  const status = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatStatus \]\]">[\s\S]*?<\/oj-bind-if>/)[0]
+  assert.match(status, /<oj-progress-circle size="sm" value="-1"/)
+  assert.match(status, /role="status"/)
+  // tokens: badges de JET, sólo cuando hay alguno
+  const tokens = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatTokens \]\]">[\s\S]*?id="mateuChatTokens"/)
+  assert.ok(tokens, 'la fila de tokens sale sólo con tokens')
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
+  // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
+  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
+  assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
+  assert.match(mic[0], /oj-ux-ico-mic-on/)
+  assert.match(mic[0], /\$listeners\.chatMic/)
+  assert.ok(panel.indexOf('id="mateuChatMic"') < panel.indexOf('id="mateuChatInput"'))
+  // cableado: listener, imports, variables y cadenas
+  const page = JSON.parse(webApp('pages/shell-page.json'))
+  assert.equal(page.eventListeners.chatMic.chains[0].chain, 'chatMic')
+  assert.equal(page.imports.components['oj-progress-circle'].path, 'ojs/ojprogress-circle')
+  const flow = JSON.parse(webApp('app-flow.json'))
+  assert.equal(flow.variables.mateuChatStatus.defaultValue, '')
+  assert.equal(flow.variables.mateuChatTokens.defaultValue, null)
+  assert.equal(flow.variables.mateuChatMicAvailable.defaultValue, false)
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /bridge\.chatStatusText\(/)
+  assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
+  assert.match(send, /mateuChatTokens = bridge\.addUsage\(/)
+  assert.match(send, /clearInterval\(ticking\)/)
+  assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
+  const mc = webApp('pages/shell-page-chains/chatMic.js')
+  assert.match(mc, /bridge\.speechRecognitionCtor\(window\)/)
+  assert.match(mc, /bridge\.transcriptOf\(event\)/)
+  assert.match(mc, /#mateuChatSend/)
 })
 
 test('chat: el cuerpo lleva la ruta de la pantalla (el plano de control elige el agente por ella)', () => {
@@ -1989,6 +2046,65 @@ atest('chat: streamChat lanza un error legible ante una respuesta no-ok', async 
     streamChat({ url: '/sse', body: {}, fetchImpl: async () => ({ ok: false, status: 503, text: async () => 'caído' }) }),
     /503/,
   )
+})
+
+// El chat no pasa por fetchWithPolicy, y un 401 lo dejaba en "Servidor respondió 401" mientras las
+// pantallas reautenticaban y seguían: en ec1 salió sin token porque en ese instante localStorage no
+// tenía ninguno. Ahora se recupera igual: reautenticar y reenviar UNA vez, con el token de ENTONCES.
+atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el token nuevo', async () => {
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  let token = null
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    token = 'nuevo'
+    e.detail.retry()
+  })
+  const sent = []
+  try {
+    const out = await streamChat({
+      url: '/sse', body: { message: 'hola' },
+      headers: () => authHeadersOf(),
+      reauthenticate: askForReauthentication,
+      fetchImpl: async (url, init) => {
+        sent.push(init.headers.Authorization)
+        return init.headers.Authorization === 'Bearer nuevo'
+          ? sseResponse(['data: hola\n'])
+          : { ok: false, status: 401, text: async () => '' }
+      },
+    })
+    assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
+    assert.equal(out, 'hola')
+  } finally {
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+  }
+})
+
+atest('chat: streamChat ante un 401 sin nadie que reautentique falla como siempre, sin reenviar', async () => {
+  const originalDocument = globalThis.document
+  globalThis.document = new EventTarget()
+  let calls = 0
+  try {
+    await assert.rejects(streamChat({
+      url: '/sse', body: {}, reauthenticate: askForReauthentication,
+      fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
+    }), /Servidor respondió 401/)
+    assert.equal(calls, 1)
+  } finally {
+    globalThis.document = originalDocument
+  }
+})
+
+atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle', async () => {
+  let calls = 0
+  await assert.rejects(streamChat({
+    url: '/sse', body: {}, reauthenticate: async () => true,
+    fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
+  }), /Servidor respondió 401/)
+  assert.equal(calls, 2)
 })
 
 // ── Custom components (#14) en VB: placeholder + hijos slotted ──────────────────
@@ -2610,6 +2726,7 @@ test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arri
   assert.ok(!atoms.some((a) => a.isText && a.text === 'Walk-in'))
   // ningún campo del form queda además como input de texto en el contenido
   assert.ok(!atoms.some((a) => a.isInput), 'sin inputs duplicados en el contenido')
+  assert.ok(!atoms.some((a) => a.isFormLayout), 'ni un form layout con los mismos campos')
   const fields = view.sections.flatMap((sec) => sec.fields)
   assert.deepEqual(fields.map((f) => f.fieldId),
     ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
@@ -2660,6 +2777,7 @@ test('wizard: con RAIL (ProgressSteps vertical) sigue el guided process — sin 
   assert.ok(!atoms.some((a) => a.isButtons && a.buttons.every((b) => b.actionId === 'back' || b.actionId === 'next')))
   // y también aquí cada campo una vez
   assert.ok(!atoms.some((a) => a.isInput))
+  assert.ok(!atoms.some((a) => a.isFormLayout))
   assert.deepEqual(view.sections.flatMap((sec) => sec.fields.map((f) => f.fieldId)), ['name', 'email'])
 })
 
@@ -2769,5 +2887,91 @@ test('selectPlaceholder: el del idioma del navegador, inglés si no se conoce', 
   assert.equal(selectPlaceholder(undefined), 'Select a value')
 })
 
+test('chat: el uso de una respuesta se queda con el último valor de cada contador', () => {
+  let turn = mergeTurnUsage(null, { inputTokens: 120 })
+  turn = mergeTurnUsage(turn, { inputTokens: 130, outputTokens: 40 })
+  assert.deepEqual(turn, { inputTokens: 130, outputTokens: 40 })
+})
+
+test('chat: los totales de la conversación suman cada respuesta; sin contadores, nada', () => {
+  assert.equal(addUsage(null, {}), null)
+  assert.equal(addUsage(null, null), null)
+  let total = addUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
+  total = addUsage(total, { inputTokens: 200, outputTokens: 60, totalTokens: 260 })
+  assert.deepEqual(total, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  // una respuesta sin uso no borra lo que había
+  assert.deepEqual(addUsage(total, {}), total)
+})
+
+test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
+  assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Pensando… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Respondiendo…')
+})
+
+test('chat: el dictado usa el reconocimiento del navegador si existe, y el último resultado', () => {
+  function Rec() {}
+  assert.equal(speechRecognitionCtor({}), null)
+  assert.equal(speechRecognitionCtor({ webkitSpeechRecognition: Rec }), Rec)
+  assert.equal(speechRecognitionCtor({ SpeechRecognition: Rec, webkitSpeechRecognition: () => {} }), Rec)
+  assert.equal(transcriptOf({ results: [[{ transcript: 'hola' }], [{ transcript: ' llegadas de hoy ' }]] }), 'llegadas de hoy')
+  assert.equal(transcriptOf({ results: [] }), '')
+  assert.equal(transcriptOf(null), '')
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
+
+// CRUD de ec-demo1 (booking del CRS, fixtures reales): sus @Section son Cards con un FormLayout
+// (maxColumns 2) de FormRows. Antes cada FormField salía como un oj-input-text suelto — editable
+// aunque la vista de detalle los manda todos readOnly, sin columnas de verdad y sin las fechas.
+const layoutsOf = (name) => {
+  const reg = reduceContexts(empty(), fx(name))
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, {}) || []
+  return blocks.flatMap((b) => b.items).filter((a) => a.isFormLayout)
+}
+
+test('crud: la vista de detalle pinta cada sección con el form layout de JET, de sólo lectura', () => {
+  const layouts = layoutsOf('crud-view-booking')
+  const booking = layouts.find((l) => l.fields.some((f) => f.fieldId === 'partnerCode'))
+  assert.equal(booking.columns, 2)
+  assert.deepEqual(booking.fields.map((f) => f.fieldId),
+    ['hotelCode-label', 'channelCode-label', 'partnerCode', 'externalReference', 'arrival', 'departure'])
+  // todo readonly: el propio layout también, y JET pinta valores, no cajas
+  assert.ok(layouts.every((l) => l.readonly && l.fields.every((f) => f.readonly)))
+  // las fechas ya salen, con su widget
+  assert.ok(booking.fields.find((f) => f.fieldId === 'arrival').isDate)
+  // la etiqueta de un lookup de sólo lectura viene en data, no en el state
+  assert.match(String(booking.fields.find((f) => f.fieldId === 'hotelCode-label').value), /MRU01/)
+  // cada campo ocupa su colspan del wire, sin pasar de las columnas del layout
+  assert.ok(layouts.every((l) => l.fields.every((f) => f.colspan >= 1 && f.colspan <= l.columns)))
+  // los grids de la sección siguen siendo tablas, fuera del layout
+  const atoms = (hostContentOf(reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID], null, {}) || [])
+    .flatMap((b) => b.items)
+  assert.ok(atoms.some((a) => a.isGrid && a.fieldId === 'rooms'))
+  assert.ok(!layouts.some((l) => l.fields.some((f) => f.fieldId === 'rooms')))
+})
+
+test('crud: el formulario de edición es editable salvo lo que el wire manda readOnly', () => {
+  const layouts = layoutsOf('crud-edit-booking')
+  const field = (id) => layouts.flatMap((l) => l.fields).find((f) => f.fieldId === id)
+  assert.equal(field('holderFirstName').readonly, false)
+  assert.equal(field('arrival').readonly, false)
+  assert.ok(field('arrival').isDate)
+  assert.equal(field('id').readonly, true)
+  const holder = layouts.find((l) => l.fields.some((f) => f.fieldId === 'holderFirstName'))
+  assert.equal(holder.columns, 2)
+  assert.equal(holder.readonly, false)
+})
+
+test('crud: el colspan de un campo viaja acotado a las columnas del layout', () => {
+  const md = { type: 'FormField', fieldId: 'comments', dataType: 'string', label: 'Comments', colspan: 2 }
+  const wide = layoutFieldOf(md, { comments: 'x' }, {}, 2)
+  assert.equal(wide.colspan, 2)
+  assert.equal(layoutFieldOf({ ...md, colspan: 5 }, {}, {}, 2).colspan, 2)
+  assert.equal(layoutFieldOf({ ...md, colspan: 1 }, {}, {}, 2).colspan, 1)
+  // un grid o una property row no son campos del layout
+  assert.equal(layoutFieldOf({ ...md, columns: [{}] }, {}, {}, 2), null)
+  assert.equal(layoutFieldOf({ ...md, dataType: 'array' }, {}, {}, 2), null)
+})

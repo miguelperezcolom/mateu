@@ -667,6 +667,11 @@
       "defaultValue": false,
       "description": "una vista r\u00e1pida del Ask Oracle (o un deep-link ?campo=valor) dej\u00f3 filtros puestos: onMateuNavigate los aplica en vez de resetearlos"
     },
+    "mateuWelcomeKey": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "qu\u00e9 welcome pinta el hero (welcomeKeyOf): con la misma, su aspecto no rota"
+    },
     "mateuWelcomeTheme": {
       "type": "string",
       "defaultValue": "auto",
@@ -736,6 +741,26 @@
       "type": "boolean",
       "defaultValue": false,
       "description": "hay una respuesta del agente en streaming"
+    },
+    "mateuChatStatus": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "la fila de estado mientras el asistente trabaja: 'Pensando… N s' hasta el primer texto, 'Respondiendo…' despues ('' si no trabaja)"
+    },
+    "mateuChatTokens": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "tokens de la conversacion, sumados por respuesta: {inputTokens, outputTokens, totalTokens} (null hasta la primera respuesta que los mande)"
+    },
+    "mateuChatMicAvailable": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "el navegador tiene reconocimiento de voz (SpeechRecognition): sale el boton de dictar"
+    },
+    "mateuChatListening": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "el dictado esta escuchando"
     }
   },
   "userConfig": {

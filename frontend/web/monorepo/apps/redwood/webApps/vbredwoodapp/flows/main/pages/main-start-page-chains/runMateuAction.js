@@ -422,19 +422,22 @@ define([
         welcome && welcome.trend ? welcome.trend.items : [];
       const overviewProjection = bridge.generalOverviewOf(hostAfter);
       const itemProjection = bridge.itemOverviewOf(hostAfter);
+      // el aspecto del hero rota al ENTRAR en una welcome y se conserva mientras se siga en ella:
+      // la respuesta de una acción lanzada desde ella (un CTA que navega) la reproyecta, y un
+      // tono nuevo en ese instante era el hero cambiando de color antes de irse (welcomeLookOf)
+      const previousLook = $application.variables.mateuWelcome ? {
+        key: $application.variables.mateuWelcomeKey,
+        theme: $application.variables.mateuWelcomeTheme,
+        illuBg: $application.variables.mateuWelcomeIlluBg,
+        illu: $application.variables.mateuWelcomeIllu,
+      } : null;
       $application.variables.mateuWelcome = welcome;
       if (welcome) {
-// los PARES color+ilustración del hero: las 5 parejas bg+fg de la galería
-        // OFICIAL (fnd/gallery illust-welcome-banner-*-01..05) rotando con su tono
-        const GALERIA = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/';
-        const LOOKS = [
-          ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
-          ['dark-sienna', '04'], ['dark-teal', '05'],
-        ];
-        const look = LOOKS[Math.floor(Math.random() * LOOKS.length)];
-        $application.variables.mateuWelcomeTheme = look[0];
-        $application.variables.mateuWelcomeIlluBg = GALERIA + 'illust-welcome-banner-bg-' + look[1] + '.png';
-        $application.variables.mateuWelcomeIllu = GALERIA + 'illust-welcome-banner-fg-' + look[1] + '.png';
+        const look = bridge.welcomeLookOf(bridge.welcomeKeyOf(hostAfter), previousLook);
+        $application.variables.mateuWelcomeKey = look.key;
+        $application.variables.mateuWelcomeTheme = look.theme;
+        $application.variables.mateuWelcomeIlluBg = look.illuBg;
+        $application.variables.mateuWelcomeIllu = look.illu;
       }
       $application.variables.mateuOverview = overviewProjection;
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];

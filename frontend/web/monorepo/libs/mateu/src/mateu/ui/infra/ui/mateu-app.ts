@@ -830,7 +830,7 @@ export class MateuApp extends ComponentElement {
             mateu-chat[slot="detail"]:not([expanded]) { position: absolute; inset: 0; z-index: 1000; width: 100%; border-inline-end: none; }
         }
         /* The chat toggle, pressed while the panel is open. */
-        .mateu-chat-toggle { color: var(--lumo-body-text-color, #1a1a1a); margin-left: 0.5rem; flex-shrink: 0; }
+        .mateu-chat-toggle { color: var(--lumo-body-text-color, #1a1a1a); flex-shrink: 0; }
         .mateu-chat-toggle--open, .mateu-chat-toggle--open:hover { color: var(--lumo-primary-text-color, #1676f3); background: var(--lumo-primary-color-10pct, rgba(22,118,243,.1)); }
         .mateu-chat-toggle:focus-visible { outline: 2px solid var(--lumo-primary-color-50pct, rgba(22,118,243,.5)); outline-offset: 1px; }
         .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
@@ -850,6 +850,11 @@ export class MateuApp extends ComponentElement {
         .mateu-app-header > .mateu-app-brand { flex: 0 1 auto; min-width: 0; }
         .mateu-app-header > .menu-on-top { flex: 1 1 0; min-width: var(--lumo-size-m, 2.25rem); }
         .mateu-app-header > .mateu-app-widgets { flex: 0 1 auto; min-width: 0; }
+        /* One spacing between everything in the widget zone — the chat toggle, the app's own widgets
+           (slotted: a slot is display: contents, so they are items of this row too), the context
+           pickers and actions, the theme toggle. Each used to bring its own margin, or none: the
+           app's widgets and the pickers had none and sat against each other. */
+        .mateu-app-widgets { gap: var(--lumo-space-m, 1rem); }
         /* Below 600px the title goes (the logo still says whose app this is) and the header turns
            compact. What a widget shows then is the widget's to say, and a class could not reach it —
            widgets are other components, in shadow roots of their own — but a custom property is
@@ -859,6 +864,8 @@ export class MateuApp extends ComponentElement {
         @media (max-width: 600px) {
             .mateu-app-header .mateu-app-title { display: none; }
             .mateu-app-header { --mateu-header-wide-only: none; --mateu-header-narrow-only: inline-flex; }
+            /* compact header: every pixel of the row is the menu's */
+            .mateu-app-widgets { gap: var(--lumo-space-s, .5rem); }
         }
 
         /* top nav (menu-on-top) */

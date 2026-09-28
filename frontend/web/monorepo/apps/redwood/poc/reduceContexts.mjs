@@ -246,7 +246,7 @@ export function overlayOf(reg) {
     .map((block) => ({
       ...block,
       items: block.items
-        .filter((a) => !a.isInput)
+        .filter((a) => !a.isInput && !a.isFormLayout)
         .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(keepInContent) } : a))
         .filter((a) => !a.isButtons || a.buttons.length),
     }))
@@ -492,7 +492,13 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
   let subtitleDropped = false
   content = content.map((block) => {
     let movedToForm = 0
-    const items = block.items.filter((a) => {
+    const items = block.items.map((a) => {
+      if (!a.isFormLayout || a.fromNested) return a
+      const kept = a.fields.filter((f) => !onForm.has(f.fieldId))
+      movedToForm += a.fields.length - kept.length
+      return kept.length === a.fields.length ? a : { ...a, fields: kept }
+    }).filter((a) => {
+      if (a.isFormLayout && !a.fields.length) return false
       if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
       // el título del wizard (su h2) va a la cabecera — el h1 sobre el tren, o el título del
       // proceso del guided process —, y su subtítulo con él: ninguno se repite en el paso
@@ -550,6 +556,42 @@ export function cardOf(node) {
 }
 
 /** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
+/** Los pares color + ilustración del hero de la welcome: las 5 parejas bg+fg de la galería OFICIAL
+ *  (fnd/gallery illust-welcome-banner-*-01..05), cada una con su tono de la paleta oscura RDS. */
+export const WELCOME_LOOKS = [
+  ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
+  ['dark-sienna', '04'], ['dark-teal', '05'],
+]
+const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
+
+/** Qué welcome es la que se pinta: su clase de servidor (o, sin ella, el id del árbol). */
+export function welcomeKeyOf(ctx) {
+  const tree = ctx && ctx.tree
+  return tree ? (tree.serverSideType || tree.id || '') : ''
+}
+
+/**
+ * El aspecto del hero: uno al azar al ENTRAR en una welcome, y el mismo mientras se siga en ella.
+ *
+ * Rotaba en cada proyección, y una welcome se reproyecta con la respuesta de cada acción que se
+ * lanza desde ella — también la de un CTA que devuelve una ruta ("Ir a Reservas"): el hero cambiaba
+ * de color justo antes de navegar, durante todo lo que tardara en llegar la página siguiente.
+ * Ahora sólo rota en una visita nueva: no había welcome pintada (`previous` nulo) o era otra.
+ *
+ * @param key       welcomeKeyOf del contexto que se proyecta
+ * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
+ */
+export function welcomeLookOf(key, previous, random = Math.random) {
+  if (previous && previous.theme && previous.key === key) return previous
+  const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
+  return {
+    key,
+    theme,
+    illuBg: WELCOME_GALLERY + 'illust-welcome-banner-bg-' + n + '.png',
+    illu: WELCOME_GALLERY + 'illust-welcome-banner-fg-' + n + '.png',
+  }
+}
+
 export function welcomeOf(ctx) {
   const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
   if (!hero) return null
@@ -985,6 +1027,41 @@ export function islandContentOf(ctx, opts = {}) {
       // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
       // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
       atom({ isNested: true, islandId: node.id }, container)
+      return
+    }
+    // FORMULARIO (FormLayout: sus FormRow de FormFields, con maxColumns y el colspan de cada
+    // campo) → UN atom isFormLayout que la plantilla pinta con el oj-form-layout de JET
+    // (max-columns / direction=row / colspan en cada hijo): el reparto en columnas es el de
+    // JET, no una rejilla propia. Cada campo lleva su widget de verdad (texto, número, fecha,
+    // booleano, select) y su readonly — la vista de detalle de un crud manda todos sus campos
+    // readOnly y se tienen que ver como tales, no como inputs editables. Lo que no es un
+    // campo escalar (un grid, una property row, otro componente) corta el grupo y se proyecta
+    // como siempre, en su sitio.
+    if (t === 'FormLayout') {
+      const columns = Math.min(4, Math.max(1, m.maxColumns || m.columns || 1))
+      const layouts = []
+      let layout = null
+      const walkLayout = (n) => {
+        if (!n || typeof n !== 'object') return
+        const md = n.metadata
+        if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
+        const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
+        if (field) {
+          if (!layout) {
+            layout = { isFormLayout: true, columns, fields: [] }
+            layouts.push(layout)
+            atom(layout, container)
+          }
+          layout.fields.push(field)
+          return
+        }
+        layout = null
+        visit(n, container)
+      }
+      kidsOf(node).forEach(walkLayout)
+      // todo de sólo lectura (la vista de detalle): el propio form layout va readonly y JET
+      // pinta cada campo como valor, sin caja de input
+      for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
       return
     }
     if (t === 'FormField') {
@@ -1429,6 +1506,7 @@ export function mergeNestedContent(islandBlocks, nestedBlocks) {
     .map((a) => {
       const marked = { ...a, fromNested: true }
       if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
+      if (a.fields) marked.fields = a.fields.map((f) => ({ ...f, fromNested: true }))
       return marked
     })
   return islandBlocks.map((block) => (
@@ -2633,6 +2711,38 @@ export function rowFieldsOf(ctx, values, errors) {
     })
   }
   return out
+}
+
+/** Tipos de campo que el form layout sabe pintar con un widget de JET. */
+const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
+  float: true, date: true, dateTime: true, bool: true, boolean: true }
+
+/**
+ * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
+ * su valor y su colspan. El valor sale del state o, si no está, de data — ahí manda el server
+ * la etiqueta de un lookup de sólo lectura (hotelCode-label), que antes salía vacía. null si
+ * no es un campo que el layout pinte (un grid, una property row, un tipo sin widget).
+ */
+export function layoutFieldOf(md, state, data, columns = 1) {
+  const fieldId = md.fieldId || md.id
+  if (!fieldId || (md.columns || []).length || md.propertyRow || !LAYOUT_TYPES[md.dataType]) return null
+  const s = state || {}
+  const d = data || {}
+  const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
+  const widget = fieldWidgetOf(md, data, { lookups: false })
+  let value = raw == null || raw === '' ? null : raw
+  if (widget.isBoolean) value = !!raw
+  else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
+  else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (value != null && typeof value === 'object') value = plainValueOf(value)
+  return {
+    ...widget,
+    value,
+    // el del wire, acotado a las columnas del layout. La plantilla (oj-form-layout clásico, con
+    // los labels dentro) aún no lo aplica: eso pide oj-c-form-layout y sus column-span
+    colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
+    messagesCustom: [],
+  }
 }
 
 /**

@@ -660,6 +660,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
           </div>
@@ -1062,6 +1146,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -1487,6 +1655,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
           </div>
@@ -1889,6 +2141,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -2523,6 +2859,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
             </div>
@@ -3060,6 +3480,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
               </div>
@@ -3460,6 +3964,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -4087,6 +4675,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
               </div>
@@ -4465,6 +5137,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -4912,6 +5668,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
           </div>
@@ -5314,6 +6154,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -5732,6 +6656,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
           </div>
@@ -6134,6 +7142,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
@@ -6581,6 +7673,90 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
+                    </oj-bind-if>
                   </template>
                 </oj-bind-for-each>
           </div>
@@ -6983,6 +8159,90 @@
                         :data-field-id="[[ $current.data.fieldId ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
+                    </oj-bind-if>
+                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
+                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
+                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
+                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <oj-bind-if test="[[ $current.data.isFormLayout ]]">
+                      <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
+                        readonly="[[ $current.data.readonly ]]">
+                        <oj-bind-for-each data="[[ $current.data.fields ]]">
+                          <template>
+                            <oj-bind-if test="[[ $current.data.isText ]]">
+                              <oj-input-text
+                                  on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isNumber ]]">
+                              <oj-input-number
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                              <oj-text-area
+                                  rows="3"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDate ]]">
+                              <oj-input-date
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                              <oj-input-date-time
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isSelect ]]">
+                              <oj-select-one
+                                  options="[[ $current.data.options ]]"
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  messages-custom="[[ $current.data.messagesCustom ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
+                            </oj-bind-if>
+                            <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                              <oj-switch
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-switch>
+                            </oj-bind-if>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-form-layout>
                     </oj-bind-if>
                   </template>
                 </oj-bind-for-each>

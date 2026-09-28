@@ -3,6 +3,7 @@ import { css, html, LitElement } from "lit";
 import { notify } from "@application/Notifier.ts";
 import { classifyRequestFailure, RequestFailure } from "@infra/http/requestPolicy.ts";
 import { connectivity } from "@infra/http/connectivity.ts";
+import { anyPending } from "@infra/ui/pendingIndicator.ts";
 
 /**
  * The global busy affordance — the LAST resort, not the first.
@@ -22,9 +23,20 @@ export class MateuApiCaller extends LitElement {
     @state()
     loading: boolean | undefined
 
+    /**
+     * Whether the pressed control is already showing the wait (pendingIndicator). Then the veil
+     * holds back much longer: veiling the whole screen at 600ms on top of a pulsing button repainted
+     * everything behind it — on a welcome page, the hero visibly changed colour between the press
+     * of "Ir a Reservas" and the next screen. It still comes, for a wait long enough that the
+     * screen itself has gone stale.
+     */
+    @state()
+    localFeedback = false
+
     fetchStarted: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
+        this.localFeedback = anyPending()
         this.loading = true
     }
 
@@ -81,7 +93,7 @@ export class MateuApiCaller extends LitElement {
         return html`<div class="loader-container">
             <div style="display: flex; flex-direction: column;">
                 <slot></slot>
-                <div class="loader-frame ${this.loading?'delayed-show':''}" style="${this.loading?'pointer-events: all;':'display: none;'}"><div class="loader"></div></div>
+                <div class="loader-frame ${this.loading?(this.localFeedback?'delayed-show late':'delayed-show'):''}" style="${this.loading?'pointer-events: all;':'display: none;'}"><div class="loader"></div></div>
             </div>
         </div>`
     }
@@ -119,6 +131,11 @@ export class MateuApiCaller extends LitElement {
          */
         .delayed-show {
             animation: showLoader .25s ease .6s forwards;
+        }
+
+        /* The pressed control already pulses: the veil is for a wait that has made the screen stale. */
+        .delayed-show.late {
+            animation-delay: 3s;
         }
 
         @keyframes showLoader {

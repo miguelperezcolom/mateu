@@ -101,16 +101,35 @@ export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {
  * se ACUMULA en el mensaje del asistente. `agent-error` se muestra como el texto del asistente.
  * Devuelve el texto acumulado. `fetchImpl` es inyectable para tests.
  *
+ * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
+ * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
+ * una función: se evalúa en cada envío, y el reenvío lleva el token NUEVO, no el que acaba de ser
+ * rechazado — o el que faltaba: en ec1 el chat llegó a salir sin token porque en ese instante no
+ * había ninguno en localStorage, y enseñaba "Servidor respondió 401" mientras las pantallas, que sí
+ * reautentican, seguían funcionando. Sin nadie que reautentique, o si el reenvío vuelve a dar 401,
+ * falla como siempre.
+ *
+ * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
+ * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
+ *
  * @param onText   (accumulatedText) => void   — en cada trozo de texto (para repintar el mensaje)
  * @param onEvent  ({event, detail}) => void   — evento personalizado del agente (≠ agent-error)
  * @param onUsage  (usage) => void             — objeto de uso de tokens
  */
-export async function streamChat({ url, body, headers = {}, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
-  const response = await fetchImpl(url, {
+export async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
+  const payload = typeof body === 'string' ? body : JSON.stringify(body)
+  const send = () => fetchImpl(url, {
     method: 'POST',
-    headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json', ...headers },
-    body: typeof body === 'string' ? body : JSON.stringify(body),
+    headers: {
+      Accept: 'text/event-stream', 'Content-Type': 'application/json',
+      ...((typeof headers === 'function' ? headers() : headers) || {}),
+    },
+    body: payload,
   })
+  let response = await send()
+  if (response.status === 401 && reauthenticate && await reauthenticate()) {
+    response = await send()
+  }
   if (!response.ok) {
     const errorText = response.text ? await response.text() : ''
     throw new Error(`Servidor respondió ${response.status}: ${errorText}`)
@@ -154,4 +173,57 @@ export async function streamChat({ url, body, headers = {}, fetchImpl = globalTh
     }
   }
   return accumulated
+}
+
+// ---- El estado del panel mientras el asistente trabaja, los tokens y el dictado ------------------
+
+/**
+ * El uso de UNA respuesta: el stream puede mandar más de un objeto de uso; dentro de una respuesta
+ * manda el último valor de cada contador, como en el chat compartido (merge, no suma).
+ */
+export function mergeTurnUsage(turn, usage) {
+  return { ...(turn || {}), ...(usage || {}) }
+}
+
+/**
+ * Los totales de la conversación: se suma el uso de cada respuesta ya terminada. Solo los
+ * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
+ */
+export function addUsage(total, turn) {
+  const keys = ['inputTokens', 'outputTokens', 'totalTokens']
+  const out = { ...(total || {}) }
+  let any = total ? keys.some((k) => typeof total[k] === 'number') : false
+  for (const k of keys) {
+    const v = turn && turn[k]
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      out[k] = (typeof out[k] === 'number' ? out[k] : 0) + v
+      any = true
+    }
+  }
+  return any ? out : null
+}
+
+/**
+ * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; «Pensando…»
+ * con los segundos mientras no ha llegado nada (la espera larga es la que inquieta); «Respondiendo…»
+ * en cuanto llega el primer texto.
+ */
+export function chatStatusText({ busy, hasText, elapsedSeconds }) {
+  if (!busy) return ''
+  if (hasText) return 'Respondiendo…'
+  const s = Math.max(0, Math.floor(elapsedSeconds || 0))
+  return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+}
+
+/** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
+export function speechRecognitionCtor(win = globalThis) {
+  return (win && (win.SpeechRecognition || win.webkitSpeechRecognition)) || null
+}
+
+/** El texto dictado: el último resultado reconocido (mismo criterio que el chat compartido). */
+export function transcriptOf(event) {
+  const results = event && event.results
+  if (!results || !results.length) return ''
+  const last = results[results.length - 1]
+  return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
 }

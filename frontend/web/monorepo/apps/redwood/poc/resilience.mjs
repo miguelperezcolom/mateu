@@ -313,7 +313,7 @@ export function authHeadersOf() {
  * de Keycloak y llama a retry, o manda al login si la sesión ya no existe. Resuelve true si hay
  * que reenviar la petición; false si nadie lo reclamó o la página desistió.
  */
-function askForReauthentication() {
+export function askForReauthentication() {
   return new Promise((resolve) => {
     if (typeof document === 'undefined' || typeof CustomEvent === 'undefined') {
       resolve(false)

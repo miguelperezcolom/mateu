@@ -4,6 +4,7 @@ import {nanoid} from "nanoid";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {neutralButtonStyles, iconClose, iconMicrophone} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
+import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
 import "./mateu-markdown";
 
 /** One chat message (design-system-neutral replacement for Vaadin's MessageListItem). */
@@ -388,14 +389,19 @@ export class MateuChat extends LitElement {
 
         let accumulatedText = '';
         try {
-            const headers: Record<string, string> = {
-                'Accept': 'text/event-stream',
-                'Content-Type': 'application/json',
+            // Built per attempt: after a 401 the page refreshes the token into localStorage, and the
+            // retry must carry the new one, not the one that was just refused.
+            const headers = (): Record<string, string> => {
+                const h: Record<string, string> = {
+                    'Accept': 'text/event-stream',
+                    'Content-Type': 'application/json',
+                };
+                const token = localStorage.getItem('__mateu_auth_token');
+                if (token) h['Authorization'] = 'Bearer ' + token;
+                const sessionId = sessionStorage.getItem('__mateu_sesion_id');
+                if (sessionId) h['X-Session-Id'] = sessionId;
+                return h;
             };
-            const token = localStorage.getItem('__mateu_auth_token');
-            if (token) headers['Authorization'] = 'Bearer ' + token;
-            const sessionId = sessionStorage.getItem('__mateu_sesion_id');
-            if (sessionId) headers['X-Session-Id'] = sessionId;
 
             // The screen rides with every message: the assistant should know what
             // the user is LOOKING AT (route, app/component state), not just what
@@ -417,7 +423,16 @@ export class MateuChat extends LitElement {
             });
             this.menuContextSent = true;
 
-            const response = await fetch(effectiveSseUrl, { method: 'POST', headers, body });
+            const send = () => fetch(effectiveSseUrl, { method: 'POST', headers: headers(), body });
+            let response = await send();
+            // The token expired while the panel sat open (a sleeping laptop, a background tab, a long
+            // recording): every other request of the page recovers from that — sessionGuard lets the
+            // page refresh the token and retries once — and this fetch, outside the axios client,
+            // used to show the 401 instead. Same contract here; if nobody re-authenticates, the
+            // original 401 is what the user sees, as before.
+            if (response.status === 401) {
+                response = await handleSessionExpired(new Error('401'), send).catch(() => response);
+            }
 
             if (!response.ok) {
                 const errorText = await response.text();

@@ -93,6 +93,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     findAllByType,
     cardOf,
     welcomeOf,
+    welcomeKeyOf,
+    welcomeLookOf,
     generalOverviewOf,
     itemOverviewOf,
     itemOverviewPageOf,
@@ -144,6 +146,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pendingActions,
     setTransportHooks,
     authHeadersOf,
+    askForReauthentication,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
@@ -177,6 +180,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     buildChatMenuContext,
     streamChat,
     uploadChatFiles,
+    // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
+    mergeTurnUsage,
+    addUsage,
+    chatStatusText,
+    speechRecognitionCtor,
+    transcriptOf,
   };
 });
 `

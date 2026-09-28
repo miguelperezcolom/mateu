@@ -36,14 +36,14 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     return html`${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
-        <details class="mateu-nav-group" style="margin-left: 0.5rem; flex-shrink: 0;">
+        <details class="mateu-nav-group" style="flex-shrink: 0;">
             <summary class="app-header-action-btn">${action.label} ▾</summary>
             <div class="mateu-nav-panel" style="right: 0; left: auto;">
                 ${action.children!.map(child => html`
                     <button class="mateu-nav-item" @click="${() => child.actionId && runHeaderAction(metadata, container, child.actionId)}">${child.label}</button>`)}
             </div>
         </details>` : html`
-        <button class="app-header-action-btn" style="margin-left: 0.5rem; flex-shrink: 0;"
+        <button class="app-header-action-btn" style="flex-shrink: 0;"
             @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.icon ? icon(action.icon) : nothing}${action.label}</button>`)}`
 }
 
@@ -96,7 +96,7 @@ const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
         <button class="app-chrome-icon-btn" @click="${container.toggleTheme}"
             title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
-            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
+            style="margin-right: 0.5rem; flex-shrink: 0;">
             ${icon(container.isDark ? 'vaadin:sun-o' : 'vaadin:moon', 'color: var(--lumo-body-text-color);')}
         </button>
     ` : nothing
