@@ -14,6 +14,24 @@ export type InterpolationContext = Record<string, unknown>
 const evalTemplate = (text: string, ctx: InterpolationContext): string =>
     new Function(...Object.keys(ctx), 'return `' + text + '`')(...Object.values(ctx))
 
+/**
+ * Tag for texts that are SHOWN: a null/undefined substitution renders as nothing. An untagged
+ * template literal turns them into the words "null"/"undefined", so a field left null painted
+ * "null" in a label, a notice or a text — and a {@code @Notice} whose blank value should hide it
+ * showed a banner saying "null" instead.
+ */
+const blankNullish = (strings: TemplateStringsArray, ...values: unknown[]): string =>
+    strings.reduce((out, s, i) => out + s + (i < values.length ? (values[i] ?? '') : ''), '')
+
+/**
+ * Like {@link evalTemplate} for a text that is displayed (see {@link blankNullish}). Not for a
+ * text that is evaluated afterwards as an expression — {@link interpolateAndEvaluate} keeps the
+ * raw form, where {@code null} must stay a literal.
+ */
+const evalDisplayTemplate = (text: string, ctx: InterpolationContext): string =>
+    new Function('__mateuBlankNullish', ...Object.keys(ctx), 'return __mateuBlankNullish`' + text + '`')(
+        blankNullish, ...Object.values(ctx))
+
 const buildContext = (
     state?: ComponentState,
     data?: ComponentData,
@@ -43,7 +61,7 @@ export function interpolate(
 ): string | undefined {
     if (!text?.includes('${')) return text
     try {
-        return evalTemplate(text, buildContext(state, data, extra))
+        return evalDisplayTemplate(text, buildContext(state, data, extra))
     } catch (e) {
         console.warn(`Mateu: could not interpolate "${text}":`, e)
         return text
@@ -62,7 +80,7 @@ export const possiblyHtml = (
 ): string | undefined => {
     if (text && text.indexOf("${") >= 0) {
         try {
-            return evalTemplate(text, buildContext(state, data))
+            return evalDisplayTemplate(text, buildContext(state, data))
         } catch (e) {
             return (e as Error).message
         }
@@ -89,10 +107,10 @@ export const interpolateNested = (
     const ctx = buildContext(state, data, { appState: appState ?? {}, appData: appData ?? {} })
     let content = text
     try {
-        content = evalTemplate(text, ctx)
+        content = evalDisplayTemplate(text, ctx)
         if (content.includes('${')) {
             try {
-                content = evalTemplate(content, ctx)
+                content = evalDisplayTemplate(content, ctx)
             } catch (e) {
                 content = 'when evaluating nested ' + text + ' :' + e + ', where data is ' + data
                     + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
@@ -156,4 +174,4 @@ export const evaluateTemplate = (
     state?: ComponentState,
     data?: ComponentData,
     extra?: InterpolationContext
-): string => evalTemplate(text, buildContext(state, data, extra))
+): string => evalDisplayTemplate(text, buildContext(state, data, extra))

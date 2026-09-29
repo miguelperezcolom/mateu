@@ -2107,6 +2107,34 @@ atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle',
   assert.equal(calls, 2)
 })
 
+// ── @Notice: un campo a null o en blanco oculta el aviso (paridad con el web) ─────
+test('notice: a null el aviso no se pinta; con valor, sí', () => {
+  const noticesWith = (state) => {
+    const inc = {
+      commands: [], messages: [], banners: [],
+      fragments: [{
+        targetComponentId: '', action: 'Replace', state, data: {},
+        component: {
+          type: 'ServerSide', metadata: null,
+          children: [{
+            type: 'ClientSide', metadata: { type: 'Page', title: '' },
+            children: [
+              { type: 'ClientSide', metadata: { type: 'Notice', text: '${state.quejas}', theme: 'warning' }, children: [] },
+            ],
+          }],
+        },
+      }],
+    }
+    const reg = reduceContexts(empty(), inc)
+    return (hostContentOf(reg.contexts[HOST_ID], null, { title: '' }) || []).flatMap((b) => b.items).filter((a) => a.isNotice)
+  }
+  assert.equal(noticesWith({ quejas: null }).length, 0)
+  assert.equal(noticesWith({ quejas: '  ' }).length, 0)
+  assert.equal(noticesWith({}).length, 0)
+  const [shown] = noticesWith({ quejas: '2 quejas pendientes' })
+  assert.equal(shown.text, '2 quejas pendientes')
+})
+
 // ── Custom components (#14) en VB: placeholder + hijos slotted ──────────────────
 test('custom component: placeholder visible + hijos slotted (escape hatch #14)', () => {
   const inc = {

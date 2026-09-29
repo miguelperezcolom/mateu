@@ -1259,9 +1259,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         return
       }
       if (t === 'Notice') {
+        // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
+        // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
+        const noticeText = interp(m.text)
+        if (!noticeText.trim() && !kidsOf(node).length) return
         atom({
           isNotice: true,
-          text: interp(m.text),
+          text: noticeText,
           noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
           buttons: collectButtons({ children: kidsOf(node) }, []),
         }, container)
