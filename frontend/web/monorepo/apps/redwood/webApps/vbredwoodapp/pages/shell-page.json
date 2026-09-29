@@ -360,6 +360,9 @@
       },
       "oj-progress-circle": {
         "path": "ojs/ojprogress-circle"
+      },
+      "oj-bind-dom": {
+        "path": "ojs/ojbinddom"
       }
     }
   },

@@ -625,9 +625,37 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
 .mateu-chat-bubble {
   border-radius: 14px;
   max-width: 85%;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+/* lo que escribe la persona conserva sus saltos de línea; la respuesta del asistente es markdown */
+.mateu-chat-user-text {
+  white-space: pre-wrap;
+}
+/* el markdown del asistente dentro de la burbuja: los márgenes del navegador, apretados a una
+   burbuja (sin margen antes del primer bloque ni después del último), y las tablas y el código con
+   los colores del tema */
+.mateu-chat-markdown > :first-child { margin-top: 0; }
+.mateu-chat-markdown > :last-child { margin-bottom: 0; }
+.mateu-chat-markdown :is(p, ul, ol, pre, table, blockquote, h3, h4, h5, h6) { margin-block: 0.5em; }
+.mateu-chat-markdown :is(ul, ol) { padding-inline-start: 1.4em; }
+/* una tabla ancha se desplaza dentro de la burbuja en vez de partir cada palabra letra a letra */
+.mateu-chat-markdown table { border-collapse: collapse; display: block; max-width: 100%; overflow-x: auto; }
+.mateu-chat-markdown :is(th, td) {
+  border: 1px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
+  padding: 0.2em 0.5em;
+  text-align: start;
+  overflow-wrap: normal;
+  min-width: 4em;
+}
+.mateu-chat-markdown pre {
+  overflow-x: auto;
+  white-space: pre;
+}
+.mateu-chat-markdown blockquote {
+  margin-inline: 0;
+  padding-inline-start: 0.75em;
+  border-inline-start: 3px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
 }
 
 /* En estrecho oj-drawer-layout pasa el drawer a OVERLAY: a todo el ancho, bajo la cabecera

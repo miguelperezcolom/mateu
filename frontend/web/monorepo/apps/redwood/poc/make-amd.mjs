@@ -185,6 +185,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     addUsage,
     chatStatusText,
     speechRecognitionCtor,
+    chatMarkdownToHtml,
     transcriptOf,
   };
 });

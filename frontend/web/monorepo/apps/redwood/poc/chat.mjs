@@ -141,7 +141,10 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
   let buffer = ''
   let accumulated = ''
 
-  const handlePayload = (payload) => {
+  // `line`: el payload venía en una línea terminada (lo normal), y lleva su salto — el agente manda
+  // cada línea de la respuesta en su propio `data:`, así que sin él el markdown llega de una pieza
+  // («…plataforma:### Lista…»). Mismo criterio que el chat compartido (mateu-chat.ts): + '\n'.
+  const handlePayload = (payload, line = false) => {
     const usage = tryParseTokenUsage(payload)
     const customEvent = !usage && tryParseCustomEvent(payload)
     if (usage) {
@@ -154,7 +157,7 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
         onEvent(customEvent)
       }
     } else {
-      accumulated += payload
+      accumulated += line ? payload + '\n' : payload
       if (onText) onText(accumulated)
     }
   }
@@ -169,7 +172,7 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
     const lines = buffer.split('\n')
     buffer = lines.pop() || ''
     for (const line of lines) {
-      if (line.trim().startsWith('data:')) handlePayload(line.trim().slice(5).trim())
+      if (line.trim().startsWith('data:')) handlePayload(line.trim().slice(5).trim(), true)
     }
   }
   return accumulated
@@ -226,4 +229,125 @@ export function transcriptOf(event) {
   if (!results || !results.length) return ''
   const last = results[results.length - 1]
   return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
+}
+
+// ── Markdown de las respuestas ──────────────────────────────────────────────────────────────────
+// El agente contesta en markdown (negritas, listas, tablas, código). El chat compartido lo pinta con
+// marked + DOMPurify; aquí no hay npm en el bundle AMD, así que el subconjunto que usan los agentes se
+// convierte a mano, ESCAPANDO PRIMERO: todo el HTML del texto sale como texto, y las únicas etiquetas
+// del resultado son las que pone esta función (sin atributos salvo href/target/rel de los enlaces
+// http(s)). Seguro por construcción, sin sanitizador. Tolera el markdown a medias del streaming: un
+// bloque de código sin cerrar es código hasta el final, y un ** sin pareja se queda como texto.
+
+const MD_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+const mdEscape = (s) => String(s).replace(/[&<>"']/g, (c) => MD_ESC[c])
+
+/** El markdown en línea de un texto YA escapado: código, enlaces, negrita, cursiva. */
+function mdInline(escaped) {
+  const codes = []
+  let s = escaped.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000` })
+  // enlaces: solo http(s); la URL ya viene escapada (las comillas no pueden cerrar el atributo)
+  s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    (_, text, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`)
+  s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
+  s = s.replace(/(^|[^*\w])\*([^*\s][^*\n]*?)\*(?!\w)/g, '$1<em>$2</em>')
+    .replace(/(^|[^_\w])_([^_\s][^_\n]*?)_(?!\w)/g, '$1<em>$2</em>')
+  return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[+i]}</code>`)
+}
+
+const MD_TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/
+const mdCells = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => mdInline(mdEscape(c.trim())))
+
+/**
+ * El markdown de una respuesta del asistente como HTML seguro para su burbuja: párrafos con saltos
+ * de línea, títulos, listas (con y sin número), citas, reglas, bloques y trozos de código, tablas,
+ * enlaces http(s) (en otra pestaña), negrita y cursiva.
+ */
+export function chatMarkdownToHtml(text) {
+  const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
+  const out = []
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    // bloque de código (``` … ```); sin cerrar —el stream a medias— llega hasta el final
+    const fence = line.match(/^\s*```/)
+    if (fence) {
+      const body = []
+      i++
+      while (i < lines.length && !/^\s*```/.test(lines[i])) body.push(lines[i++])
+      i++
+      out.push(`<pre><code>${mdEscape(body.join('\n'))}</code></pre>`)
+      continue
+    }
+    if (/^\s*$/.test(line)) { i++; continue }
+    const heading = line.match(/^\s*(#{1,6})\s+(.*)$/)
+    if (heading) {
+      const level = Math.min(6, heading[1].length + 2)   // h3…h6: dentro de una burbuja, no de una página
+      out.push(`<h${level}>${mdInline(mdEscape(heading[2].replace(/\s*#+\s*$/, '')))}</h${level}>`)
+      i++
+      continue
+    }
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { out.push('<hr>'); i++; continue }
+    // tabla: cabecera | a | b | seguida de |---|---|
+    if (line.includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1])) {
+      const head = mdCells(line)
+      i += 2
+      const rows = []
+      while (i < lines.length && lines[i].includes('|') && !/^\s*$/.test(lines[i])) rows.push(mdCells(lines[i++]))
+      out.push('<table><thead><tr>' + head.map((c) => `<th>${c}</th>`).join('') + '</tr></thead><tbody>'
+        + rows.map((r) => '<tr>' + r.map((c) => `<td>${c}</td>`).join('') + '</tr>').join('') + '</tbody></table>')
+      continue
+    }
+    if (/^\s*>/.test(line)) {
+      const quote = []
+      while (i < lines.length && /^\s*>/.test(lines[i])) quote.push(lines[i++].replace(/^\s*>\s?/, ''))
+      out.push(`<blockquote>${chatMarkdownToHtml(quote.join('\n'))}</blockquote>`)
+      continue
+    }
+    const item = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/)
+    if (item) {
+      out.push(mdList(lines, i, (next) => { i = next }))
+      continue
+    }
+    // párrafo: líneas seguidas hasta una en blanco o un bloque; cada salto, un <br>
+    const para = []
+    while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^\s*(```|#{1,6}\s|>|([-*+]|\d+[.)])\s)/.test(lines[i])
+      && !(lines[i].includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1]))) {
+      para.push(mdInline(mdEscape(lines[i++].trim())))
+    }
+    if (para.length) out.push(`<p>${para.join('<br>')}</p>`)
+    else i++
+  }
+  return out.join('')
+}
+
+/** Una lista (y sus sublistas, por sangría) desde la línea `start`; devuelve su HTML y avanza. */
+function mdList(lines, start, advance) {
+  const first = lines[start].match(/^(\s*)([-*+]|\d+[.)])\s+/)
+  const indent = first[1].length
+  const ordered = /\d/.test(first[2])
+  const items = []
+  let i = start
+  while (i < lines.length) {
+    const m = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/)
+    if (m && m[1].length === indent && /\d/.test(m[2]) === ordered) {
+      items.push({ text: mdInline(mdEscape(m[3])), sub: '' })
+      i++
+      continue
+    }
+    if (m && m[1].length > indent && items.length) {
+      items[items.length - 1].sub += mdList(lines, i, (next) => { i = next })
+      continue
+    }
+    // continuación de un elemento: una línea sangrada que no es otro elemento
+    if (!m && items.length && /^\s{2,}\S/.test(lines[i])) {
+      items[items.length - 1].text += '<br>' + mdInline(mdEscape(lines[i].trim()))
+      i++
+      continue
+    }
+    break
+  }
+  advance(i)
+  const tag = ordered ? 'ol' : 'ul'
+  return `<${tag}>` + items.map((it) => `<li>${it.text}${it.sub}</li>`).join('') + `</${tag}>`
 }
