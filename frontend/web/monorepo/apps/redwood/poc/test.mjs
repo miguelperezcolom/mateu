@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu } from './transport.mjs'
+import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu, loadLookups } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
   askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
@@ -40,6 +40,8 @@ import {
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
+  backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
+  awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2750,8 +2752,14 @@ test('page form: fecha-hora, enum con opciones y lookup remoto sin opciones', ()
   assert.equal(byId.at.value, '2026-09-27T10:30:00')
   assert.ok(byId.status.isSelect)
   assert.deepEqual(byId.status.options, [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED', label: 'CLOSED' }])
-  // un lookup remoto sin opciones sigue siendo texto en la página (un select vacío sería peor)
-  assert.ok(byId.hotel.isText && !byId.hotel.isSelect)
+  // un lookup remoto con valor es un desplegable con ese valor (y su etiqueta) aunque sus
+  // opciones no hayan llegado: un select con un valor fuera de sus opciones se pinta vacío
+  assert.ok(byId.hotel.isSelect && byId.hotel.isLookup)
+  assert.deepEqual(byId.hotel.options, [{ value: 'H1', label: 'Hotel 1' }])
+  assert.equal(byId.hotel.value, 'H1')
+  // sin valor ni opciones sigue siendo texto en la página (un select vacío sería peor)
+  const empty = fieldListOf(tree, {}).find((f) => f.fieldId === 'hotel')
+  assert.ok(empty.isText && !empty.isSelect)
   assert.ok(byId.vip.isBoolean)
   // sin secciones en el árbol: un grupo sin título con todo
   assert.deepEqual(formSectionsOf(tree, {}).map((s) => s.fields.length), [4])
@@ -2988,6 +2996,186 @@ test('chat: el dictado usa el reconocimiento del navegador si existe, y el últi
   assert.equal(transcriptOf({ results: [[{ transcript: 'hola' }], [{ transcript: ' llegadas de hoy ' }]] }), 'llegadas de hoy')
   assert.equal(transcriptOf({ results: [] }), '')
   assert.equal(transcriptOf(null), '')
+})
+
+// ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
+
+test('cabecera: «Cancel booking» (cancelBooking) es una acción, no la vuelta; cancel-view sí lo es', () => {
+  const host = reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID]
+  const toolbar = pageToolbarOf(host)
+  assert.ok(toolbar.some((b) => b.actionId === 'cancelBooking'))
+  const back = backToolbarButton(toolbar)
+  assert.ok(!back || back.actionId !== 'cancelBooking')
+  assert.equal(backToolbarButton([{ actionId: 'cancelBooking' }, { actionId: 'cancel-view' }]).actionId, 'cancel-view')
+  assert.equal(backToolbarButton([{ actionId: 'cancel' }]).actionId, 'cancel')
+  assert.equal(backToolbarButton([{ actionId: 'cancelBooking' }]), null)
+  assert.equal(primaryToolbarButton([{ actionId: 'cancelBooking' }]).actionId, 'cancelBooking')
+})
+
+test('acciones del host: la que declara la vista va a la vista; las del crud, al mediador', () => {
+  let reg = reduceContexts(empty(), fx('crud-view-booking'))
+  // la vista se cargó a través del crud orquestador: su outbound es el del mediador
+  const orchestrator = 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingCrudOrchestrator'
+  const host = { ...reg.contexts[HOST_ID], outbound: { serverSideType: orchestrator, route: '/booking/bookings/X', consumedRoute: '/booking/bookings', baseUrl: '/_booking' } }
+  const view = 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingViewModel'
+  // «Ver recorrido» y «Cancel booking» son @Toolbar de la vista: el crud no las conoce
+  assert.equal(actionTransportOf(host, 'verRecorrido').outbound.serverSideType, view)
+  assert.equal(actionTransportOf(host, 'cancelBooking').outbound.serverSideType, view)
+  // la ruta, el mediador consumido y el pod no cambian
+  assert.equal(actionTransportOf(host, 'verRecorrido').outbound.consumedRoute, '/booking/bookings')
+  assert.equal(actionTransportOf(host, 'verRecorrido').outbound.baseUrl, '/_booking')
+  // edit / new / cancel-view no las declara la vista: suben al crud
+  for (const id of ['edit', 'new', 'cancel-view']) assert.equal(actionTransportOf(host, id), host)
+  // una declarada con bubble también sube
+  const bubbling = { ...host, tree: { ...host.tree, actions: [{ id: 'verRecorrido', bubble: true }] } }
+  assert.equal(actionTransportOf(bubbling, 'verRecorrido'), bubbling)
+})
+
+atest('acciones del host: la request de «Ver recorrido» lleva el serverSideType de la vista', async () => {
+  const reg = reduceContexts(empty(), fx('crud-view-booking'))
+  const host = { ...reg.contexts[HOST_ID], outbound: { serverSideType: 'Orchestrator', route: '/booking/bookings/X', consumedRoute: '/booking/bookings' } }
+  const original = globalThis.fetch
+  const bodies = []
+  globalThis.fetch = async (url, init) => { bodies.push({ url, body: JSON.parse(init.body) }); return { ok: true, json: async () => ({ commands: [], fragments: [] }) } }
+  try {
+    await runMateuAction('', actionTransportOf(host, 'verRecorrido'), '/x', 'verRecorrido', host.state)
+    assert.equal(bodies[0].body.serverSideType, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingViewModel')
+    assert.equal(bodies[0].body.route, '/booking/bookings/X')
+    assert.equal(bodies[0].body.consumedRoute, '/booking/bookings')
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
+test('confirmación: «Activate» pide confirmar con sus textos; los que no declara, los genéricos', () => {
+  const host = reduceContexts(empty(), fx('crud-view-integration')).contexts[HOST_ID]
+  const activate = confirmationOf(host, 'activate')
+  assert.equal(activate.title, 'Activate this integration?')
+  assert.match(activate.message, /Real-time traffic/)
+  // la acción no declara los botones: caen, cada uno por su cuenta, a los genéricos
+  assert.equal(activate.confirmText, 'Yes')
+  assert.equal(activate.denyText, 'No')
+  // y va a la vista, que es quien la declara
+  const routed = actionTransportOf({ ...host, outbound: { serverSideType: 'Crud' } }, 'activate')
+  assert.equal(routed.outbound.serverSideType, 'io.mateu.ecdemo1.integrations.ui.pages.IntegrationViewModel')
+  // una acción sin confirmationRequired no pregunta
+  assert.equal(confirmationOf(host, 'edit'), null)
+  // un comodín no tapa a la exacta, y la exacta con textos propios manda
+  const ctx = { tree: { type: 'ServerSide', actions: [{ id: 'action-on-row-*' }, { id: 'action-on-row-seed', confirmationRequired: true, confirmationTexts: { title: 'T', message: 'M', confirmationText: 'Crear', denialText: 'Cancelar' } }] } }
+  assert.deepEqual(confirmationOf(ctx, 'action-on-row-seed'), { title: 'T', message: 'M', confirmText: 'Crear', denyText: 'Cancelar' })
+  assert.equal(declaredActionOf(ctx, 'action-on-row-other').id, 'action-on-row-*')
+  assert.equal(confirmationOf(ctx, 'action-on-row-other'), null)
+})
+
+atest('confirmación: la chain espera la respuesta; abrir otra da la anterior por denegada', async () => {
+  const first = awaitConfirmation()
+  const second = awaitConfirmation()
+  assert.equal(await first, false)
+  answerConfirmation(true)
+  assert.equal(await second, true)
+  // sin nadie esperando, contestar no hace nada (el ojBeforeClose tras el close)
+  answerConfirmation(false)
+})
+
+test('diálogo con formulario embebido (EmbeddedView): sus campos, su estado, su título y sus botones', () => {
+  const host = reduceContexts(empty(), fx('crud-view-booking'))
+  const reg = reduceContexts(host, fx('dialog-embedded-cancel'))
+  const overlay = overlayOf(reg)
+  assert.ok(overlay.isDialog)
+  assert.equal(overlay.title, 'Cancel booking UWS52M')
+  // el estado es el del formulario: la reserva que se cancela y a dónde volver
+  assert.equal(overlay.state.bookingIds, 'UWS52M')
+  assert.equal(overlay.state.returnTo, '/booking/bookings/UWS52M')
+  // el motivo es un desplegable con las opciones del OptionsSupplier
+  const reason = overlay.sections.flatMap((sec) => sec.fields).find((f) => f.fieldId === 'cancellationReasonCode')
+  assert.ok(reason && reason.isSelect)
+  assert.deepEqual(reason.options.map((o) => o.value), ['IMPAGO', 'DUPLICADA', 'CANCELA-TTOO', 'OTR'])
+  assert.deepEqual(overlay.actions.map((a) => a.actionId), ['cancelBookings', 'keep'])
+})
+
+test('diálogo con formulario embebido: sus botones van a SU ServerSide, sin ruta; el resto, al host', () => {
+  const host = reduceContexts(empty(), fx('crud-view-booking'))
+  const reg = reduceContexts(
+    { ...host, contexts: { ...host.contexts, [HOST_ID]: { ...host.contexts[HOST_ID], outbound: { serverSideType: 'Crud', route: '/booking/bookings/UWS52M', consumedRoute: '/booking/bookings', baseUrl: '/_booking' } } } },
+    fx('dialog-embedded-cancel'))
+  const ctx = overlayTransportOf(reg, 'cancelBookings')
+  assert.equal(ctx.outbound.serverSideType, 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingCancellationForm')
+  assert.equal(ctx.outbound.baseUrl, '/_booking')
+  assert.equal(ctx.outbound.route, '')
+  assert.equal(ctx.state.bookingIds, 'UWS52M')
+  assert.equal(ctx.id, fx('dialog-embedded-cancel').fragments[0].component.metadata.content.id)
+  // una acción que el formulario no declara no se le manda
+  assert.equal(overlayTransportOf(reg, 'save'), null)
+  // su CloseModal (dirigido a su id) cierra el diálogo
+  const closed = reduceContexts(reg, { commands: [{ type: 'CloseModal', targetComponentId: ctx.id }], fragments: [] })
+  assert.equal(overlayOf(closed), null)
+})
+
+test('query de la ruta: todos los filtros, decodificados; la página y el orden no', () => {
+  assert.deepEqual(queryFiltersOf('integration=MRU01'), { integration: 'MRU01' })
+  assert.deepEqual(queryFiltersOf('?integration=MRU01&status=PROPOSED,APPROVED&page=2&sort=id:asc&q=a+b%20c&empty='),
+    { integration: 'MRU01', status: 'PROPOSED,APPROVED', q: 'a b c' })
+  assert.deepEqual(queryFiltersOf(''), {})
+})
+
+test('lookups de página: los editables sin opciones se buscan; los cargados y los de sólo lectura no', () => {
+  const field = (fieldId, extra) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', ...extra } })
+  const tree = { type: 'ServerSide', id: 'v', serverSideType: 'View', actions: [{ id: 'search-crsHotelCode' }], children: [{ type: 'ClientSide', metadata: { type: 'Page' }, children: [
+    field('crsHotelCode', { stereotype: 'combobox', remoteCoordinates: { action: 'search-crsHotelCode' } }),
+    field('operaProperty', { stereotype: 'combobox', remoteCoordinates: { action: 'search-operaProperty' }, readOnly: true }),
+    field('name', {}),
+  ] }] }
+  const reg = { contexts: { [HOST_ID]: { id: HOST_ID, tree, state: {}, data: {} } }, stack: [] }
+  assert.deepEqual(formLookupsOf(reg.contexts[HOST_ID]), [{ fieldId: 'crsHotelCode', actionId: 'search-crsHotelCode' }])
+  const loaded = markLookupsLoaded(reg, HOST_ID, ['crsHotelCode'])
+  assert.deepEqual(formLookupsOf(loaded.contexts[HOST_ID]), [])
+  assert.ok(loaded.contexts[HOST_ID].data.crsHotelCode[LOOKUP_LOADED])
+  // la opción suelta del valor (la etiqueta que manda el server al editar) no cuenta como cargadas
+  const labelled = { ...reg.contexts[HOST_ID], data: { crsHotelCode: { pageSize: 1, content: [{ value: 'MRU01', label: 'MRU01 · Riu' }] } } }
+  assert.equal(formLookupsOf(labelled).length, 1)
+})
+
+atest('lookups de página: loadLookups busca cada uno contra quien lo declara y deja sus opciones', async () => {
+  const field = (fieldId, extra) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', ...extra } })
+  const tree = { type: 'ServerSide', id: 'v', serverSideType: 'View', actions: [{ id: 'search-crsHotelCode' }], children: [{ type: 'ClientSide', metadata: { type: 'Page' }, children: [
+    field('crsHotelCode', { stereotype: 'combobox', remoteCoordinates: { action: 'search-crsHotelCode' } }),
+  ] }] }
+  const reg = { contexts: { [HOST_ID]: { id: HOST_ID, tree, state: { name: 'x' }, data: {}, outbound: { serverSideType: 'Crud', route: '/integrations/registry/new', consumedRoute: '/integrations/registry', baseUrl: '/_integrations' } } }, stack: [] }
+  const original = globalThis.fetch
+  const calls = []
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url, body: JSON.parse(init.body) })
+    return { ok: true, json: async () => ({ commands: [], messages: [], fragments: [{ targetComponentId: 'v', component: null, state: null, data: { crsHotelCode: { pageSize: 200, content: [{ value: 'MRU01', label: 'MRU01 · Riu Demo Mauricio' }, { value: 'MRU02', label: 'MRU02' }] } } }] }) }
+  }
+  try {
+    const out = await loadLookups('', reg, HOST_ID, { appState: {} })
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0].url, '/_integrations/mateu/v3/sync/integrations/registry/new')
+    assert.equal(calls[0].body.actionId, 'search-crsHotelCode')
+    assert.equal(calls[0].body.serverSideType, 'View')
+    assert.equal(calls[0].body.parameters.size, 200)
+    const widget = fieldListOf(out.contexts[HOST_ID].tree, { crsHotelCode: 'MRU01' }, out.contexts[HOST_ID].data)[0]
+    assert.ok(widget.isSelect)
+    assert.deepEqual(widget.options.map((o) => o.value), ['MRU01', 'MRU02'])
+    // ya cargadas: una segunda pasada no vuelve a buscar
+    await loadLookups('', out, HOST_ID, {})
+    assert.equal(calls.length, 1)
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
+test('filtro @Lookup: con las opciones de su búsqueda es un desplegable y su chip dice la etiqueta', () => {
+  const filter = { type: 'FormField', fieldId: 'integration', dataType: 'string', stereotype: 'combobox', label: 'Integration', options: [], remoteCoordinates: { action: 'search-integration' } }
+  const tree = { type: 'ServerSide', id: 'crud', children: [{ type: 'ClientSide', metadata: { type: 'Crud', filters: [filter] } }] }
+  const ctx = { tree, state: {}, data: {} }
+  assert.equal(filtersOf(ctx)[0].kind, 'text')
+  assert.deepEqual(formLookupsOf(ctx), [{ fieldId: 'integration', actionId: 'search-integration' }])
+  const withOptions = { ...ctx, data: { integration: { content: [{ value: 'MRU01', label: 'MRU01 · Riu Demo Mauricio' }] } } }
+  const [descriptor] = filtersOf(withOptions)
+  assert.ok(descriptor.isOptions)
+  assert.deepEqual(descriptor.options, [{ value: 'MRU01', label: 'MRU01 · Riu Demo Mauricio' }])
+  assert.equal(smartFilterValueOf([descriptor], { integration: 'MRU01' }, '').filter((c) => c.filter === 'integration')[0].label, 'MRU01 · Riu Demo Mauricio')
 })
 
 await queue

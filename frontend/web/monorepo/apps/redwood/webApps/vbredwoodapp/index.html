@@ -7,6 +7,9 @@
     <meta charset="UTF-8" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link rel="preconnect" href="https://static.oracle.com">
+    <!-- la query con que se abre la consola (?integration=MRU01: los filtros de un listado) se
+         guarda ANTES de que arranque Visual Builder, cuyo router la borra de la URL al iniciar -->
+    <script>window.__mateuInitialSearch = window.location.search || '';</script>
     <!-- vb:inject id="headContent" theme="resources/css/dt.theme.redwood" -->
     <link rel="stylesheet" href="resources/css/app.css">
   </head>

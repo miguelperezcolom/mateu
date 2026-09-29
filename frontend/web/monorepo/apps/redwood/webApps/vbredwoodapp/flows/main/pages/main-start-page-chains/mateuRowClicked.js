@@ -31,6 +31,12 @@ define([
         return; // tabla de TRABAJO: las celdas se editan in situ, el clic de fila no navega
       }
       const detail = (event && event.detail) || {};
+      // un clic en un BOTÓN de la fila (su acción: el «Open» de la bandeja) es de ese botón, no
+      // de la fila: sin esto abría también el detalle de la fila, que tapaba a dónde llevaba
+      const origin = detail.originalEvent && detail.originalEvent.target;
+      if (origin && origin.closest && origin.closest('[data-method], oj-button, oj-c-button, button, a')) {
+        return;
+      }
       const stamp = (detail.originalEvent && detail.originalEvent.timeStamp) || event.timeStamp || 0;
       if (stamp === lastHandledStamp) {
         return; // replay del mismo evento — no es un clic nuevo

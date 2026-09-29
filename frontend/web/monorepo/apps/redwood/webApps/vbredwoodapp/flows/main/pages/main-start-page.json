@@ -95,6 +95,16 @@
     "mateuRowEditorOpen": {
       "type": "boolean",
       "defaultValue": false
+    },
+    "mateuConfirm": {
+      "type": "any",
+      "defaultValue": {
+        "title": "",
+        "message": "",
+        "confirmText": "",
+        "denyText": ""
+      },
+      "description": "el di\u00e1logo de confirmaci\u00f3n de una acci\u00f3n (bridge.confirmationOf)"
     }
   },
   "metadata": {},
@@ -499,7 +509,8 @@
           "chain": "listingRowAction",
           "parameters": {
             "methodName": "{{ $event.target.dataset.method }}",
-            "rowId": "{{ $event.target.dataset.rowId }}"
+            "rowId": "{{ $event.target.dataset.rowId }}",
+            "rowKey": "{{ $event.target.dataset.rowKey }}"
           }
         }
       ]
@@ -540,6 +551,37 @@
       "chains": [
         {
           "chain": "mateuRowEditorDismissed"
+        }
+      ]
+    },
+    "mateuConfirmAccept": {
+      "chains": [
+        {
+          "chain": "mateuConfirmAnswered",
+          "parameters": {
+            "confirmed": true
+          }
+        }
+      ]
+    },
+    "mateuConfirmDeny": {
+      "chains": [
+        {
+          "chain": "mateuConfirmAnswered",
+          "parameters": {
+            "confirmed": false
+          }
+        }
+      ]
+    },
+    "mateuConfirmClosed": {
+      "chains": [
+        {
+          "chain": "mateuConfirmAnswered",
+          "parameters": {
+            "confirmed": false,
+            "closing": true
+          }
         }
       ]
     }

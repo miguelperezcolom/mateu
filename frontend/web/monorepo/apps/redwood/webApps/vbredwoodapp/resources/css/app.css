@@ -635,6 +635,10 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
 /* el markdown del asistente dentro de la burbuja: los márgenes del navegador, apretados a una
    burbuja (sin margen antes del primer bloque ni después del último), y las tablas y el código con
    los colores del tema */
+/* el panel hereda white-space: pre-wrap: los saltos que VB deja alrededor del HTML del markdown
+   pintaban una línea vacía encima y debajo de cada respuesta. Los saltos del texto ya son <br>. */
+.mateu-chat-markdown { white-space: normal; }
+.mateu-chat-markdown pre { white-space: pre; }
 .mateu-chat-markdown > :first-child { margin-top: 0; }
 .mateu-chat-markdown > :last-child { margin-bottom: 0; }
 .mateu-chat-markdown :is(p, ul, ol, pre, table, blockquote, h3, h4, h5, h6) { margin-block: 0.5em; }

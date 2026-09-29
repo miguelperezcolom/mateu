@@ -144,8 +144,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
       if (f.dataType === 'array' || (f.columns || []).length) continue
-      const widget = fieldWidgetOf(f, data, { lookups: false })
       const raw = s[f.fieldId]
+      // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
+      // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
+      const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
       out.push({
         ...widget,
         value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
@@ -247,7 +249,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
     const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
     const keepInContent = isDialog ? () => false : conParams
-    const content = (islandContentOf(ctx) || [])
+    // un formulario EMBEBIDO en el overlay (EmbeddedView: un ServerSide propio dentro del Dialog
+    // o del Drawer) es la superficie: sus campos, sus botones y sus textos. Recorrer el árbol
+    // del overlay no los encontraba — el recorrido no cruza a otro ServerSide — y el diálogo
+    // salía vacío.
+    const surface = ctx.surface || ctx.tree
+    const surfaceCtx = surface === ctx.tree ? ctx : { ...ctx, tree: surface }
+    const content = (islandContentOf(surfaceCtx) || [])
       .map((block) => ({
         ...block,
         items: block.items
@@ -268,15 +276,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       position: ctx.position || 'end',
       width: ctx.width,
       state: ctx.state || {},
-      fields: fieldListOf(ctx.tree, ctx.state, ctx.data),
-      sections: formSectionsOf(ctx.tree, ctx.state, ctx.data),
-      actions: actionsOf(ctx.tree).filter((a) => !contentActionIds.has(a.actionId)),
+      fields: fieldListOf(surface, ctx.state, ctx.data),
+      sections: formSectionsOf(surface, ctx.state, ctx.data),
+      actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
       content: content,
       hasContent: !!content.length,
       // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
       // drawer (tarea con formulario); texts = sus líneas de mensaje
       isDialog,
-      texts: collectTexts(ctx.tree),
+      texts: collectTexts(surface),
     }
   }
 
@@ -1691,9 +1699,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * Back to list→Add another→Edit —, así que la última no-vuelta es la que uno vino a hacer.
    * Heurística explícita, a sustituir el día que el wire traiga el rol del botón.
    */
-  const BACK_ACTIONS = { back: true, 'back-to-list': true, close: true }
+  const BACK_ACTIONS = { back: true, 'back-to-list': true, close: true, cancel: true }
+  // `cancel` y los `cancel-<modo>` del crud (cancel-view, cancel-edit, cancel-new) son la vuelta;
+  // una acción del dominio que EMPIEZA por cancel no lo es: el «Cancel booking» de una reserva
+  // (`cancelBooking`) acababa convertido en el enlace de vuelta de la cabecera.
   const isBackButton = (button) => !!button && (
-    BACK_ACTIONS[button.actionId] || String(button.actionId || '').indexOf('cancel') === 0)
+    BACK_ACTIONS[button.actionId] || /^cancel-/.test(String(button.actionId || '')))
 
   /** El botón de VOLVER del toolbar, si lo hay: en RDS eso no es una acción más, es la
    *  afordancia `goToParent` de la cabecera — meterlo entre las secundarias lo esconde en el
@@ -2043,7 +2054,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const walk = (node) => {
       if (!node || typeof node !== 'object') return
       for (const f of ((node.metadata || {}).filters) || []) {
-        found.push(filterDescriptorOf(f))
+        found.push(filterDescriptorOf(f, ctx && ctx.data))
       }
       ;(node.children || []).forEach(walk)
     }
@@ -2051,8 +2062,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return found
   }
 
-  function filterDescriptorOf(f) {
-    const options = (f.options || []).map((o) => ({ value: o.value, label: o.label || o.value }))
+  function filterDescriptorOf(f, data) {
+    // un filtro @Lookup trae sus opciones por su búsqueda (search-<campo>, bridge.loadLookups):
+    // llegan a data[campo] como las de un campo del formulario
+    const options = optionsOf(f, data).map((o) => ({ value: o.value, label: o.label || o.value }))
     // 'bool' lo emite el server Java y 'boolean' el .NET
     const isBool = f.dataType === 'bool' || f.dataType === 'boolean'
       || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
@@ -2124,6 +2137,32 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
     })
   }
+
+  /**
+   * Los filtros que trae la query de una ruta (`integration=MRU01&status=PROPOSED,APPROVED`) →
+   * { campo: valor }. Todos los parámetros, decodificados (`+` es un espacio, como en un
+   * formulario); los vacíos no filtran, ni la página ni el orden. Un multi-select toma la lista separada por comas
+   * (multiValuesOf), igual que la escribe Vaadin en la URL.
+   */
+  function queryFiltersOf(query) {
+    const out = {}
+    const text = String(query || '').replace(/^\?/, '')
+    if (!text) return out
+    for (const part of text.split('&')) {
+      const eq = part.indexOf('=')
+      if (eq <= 0) continue
+      const decode = (v) => {
+        try { return decodeURIComponent(v.replace(/\+/g, ' ')) } catch (e) { return v }
+      }
+      const key = decode(part.slice(0, eq))
+      const value = decode(part.slice(eq + 1))
+      if (key && value !== '' && !PAGING_PARAMS[key]) out[key] = value
+    }
+    return out
+  }
+
+  // la página y el orden también viajan en la URL de un listado de Vaadin, pero no son filtros
+  const PAGING_PARAMS = { page: true, size: true, sort: true }
 
   /** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
   function multiValuesOf(value) {
@@ -2398,12 +2437,19 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function buildOverlay(fr) {
     const md = metaOf(fr)
     const id = 'overlay-' + ++overlaySeq
+    // Un formulario EMBEBIDO (EmbeddedView: el «Cancel booking» de una reserva) llega como un
+    // ServerSide propio en md.content, con SU estado (initialData), SU título (el de su Page) y
+    // SUS acciones: es la superficie del overlay.
+    const surface = md.content && md.content.type === 'ServerSide' ? md.content : null
+    const filled = (o) => (o && typeof o === 'object' && Object.keys(o).length ? o : null)
+    const surfacePage = surface ? findByType(surface, 'Page') : null
     return {
       id,
       kind: 'drawer',
       tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
-      state: md.initialData || fr.state || {},
-      title: md.headerTitle || md.title,
+      surface,
+      state: filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {},
+      title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
       subtitle: md.subtitle,
       position: md.position || 'end',
       width: md.width,
@@ -2416,8 +2462,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   const resolveTarget = (contexts, t) => {
     if (t == null || t === '') return HOST_ID
     if (contexts[t]) return t
-    // eco de un id de componente ya registrado (p.ej. SSE que responde al uuid del árbol)
-    const byTreeId = Object.keys(contexts).find((k) => contexts[k].tree?.id === t)
+    // eco de un id de componente ya registrado (p.ej. SSE que responde al uuid del árbol, o el
+    // formulario embebido de un overlay, que contesta a SU id)
+    const byTreeId = Object.keys(contexts).find((k) => contexts[k].tree?.id === t || contexts[k].surface?.id === t)
     return byTreeId || t
   }
 
@@ -2710,8 +2757,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
       if (f.dataType === 'array' || (f.columns || []).length) continue
-      const widget = fieldWidgetOf(f, ctx.data, { lookups: true })
       const raw = plainValueOf(state[f.fieldId])
+      const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
       out.push({
         ...widget,
@@ -2738,7 +2785,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const s = state || {}
     const d = data || {}
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
-    const widget = fieldWidgetOf(md, data, { lookups: false })
+    const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
     let value = raw == null || raw === '' ? null : raw
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
@@ -2760,10 +2807,21 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
    * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
    */
-  function fieldWidgetOf(f, data, { lookups }) {
+  function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
-    const options = optionsOf(f, data)
-    const isSelect = (lookups && !!lookupActionId) || options.length > 0
+    let options = optionsOf(f, data)
+    // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
+    // del valor) lo lleva como opción propia, con su etiqueta si el server la mandó: un
+    // oj-select-one con un valor que no está en sus opciones se pinta VACÍO.
+    const current = plainValueOf(value)
+    if (lookups && lookupActionId && current != null && current !== ''
+        && !options.some((o) => String(o.value) === String(current))) {
+      const label = (value && typeof value === 'object' && value.label) || (data && data[f.fieldId + '-label'])
+      options = [{ value: current, label: label != null && label !== '' ? String(label) : String(current) }].concat(options)
+    }
+    // en una página, un lookup cuya búsqueda no trajo nada se queda en texto: un desplegable
+    // vacío no deja ni escribir el código (el editor de fila sí lo pinta siempre como select)
+    const isSelect = (lookups && !!lookupActionId && !(textWhenEmpty && !options.length)) || options.length > 0
     const isBoolean = !isSelect && (f.dataType === 'bool' || f.dataType === 'boolean')
     const isDate = !isSelect && f.dataType === 'date'
     const isDateTime = !isSelect && f.dataType === 'dateTime'
@@ -2797,6 +2855,105 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
+   * La acción `actionId` tal como la DECLARA el ServerSide del contexto (`tree.actions`), o null.
+   * La exacta gana a un comodín ('*', 'prefijo*'), como en Vaadin: un flag de la declarada
+   * (confirmación, validación) no puede quedar tapado por un catch-all listado antes.
+   */
+  function declaredActionOf(ctx, actionId) {
+    const actions = (ctx && ctx.tree && ctx.tree.actions) || []
+    const id = String(actionId || '')
+    return actions.find((a) => a && a.id === id)
+      || actions.find((a) => a && typeof a.id === 'string' && a.id.endsWith('*')
+        && id.startsWith(a.id.slice(0, -1)))
+      || null
+  }
+
+  /**
+   * El contexto de TRANSPORTE de una acción del host: a qué ServerSide va.
+   *
+   * Una pantalla cargada a través de un mediador (el crud orquestador, el home de un pod remoto)
+   * guarda en `outbound.serverSideType` el del mediador, y el árbol del host es el componente que
+   * pintó — la vista de la reserva, `BookingViewModel`. Las acciones que ese componente DECLARA
+   * (sus `@Toolbar`: «Ver recorrido», «Cancel booking», «Activate») son suyas: el mediador no las
+   * conoce y contestaba «verRecorrido not supported by BookingCrudOrchestrator». Las que no
+   * declara (edit, new, cancel-view: las del crud) y las marcadas `bubble` siguen subiendo al
+   * mediador. Es la regla de Vaadin (mateu-component: la acción la atiende el ServerSide que la
+   * anuncia; si no, burbujea).
+   */
+  function actionTransportOf(ctx, actionId) {
+    const tree = ctx && ctx.tree
+    if (!tree || tree.type !== 'ServerSide' || !tree.serverSideType) return ctx
+    const action = declaredActionOf(ctx, actionId)
+    if (!action || action.bubble) return ctx
+    const outbound = ctx.outbound || {}
+    if (outbound.serverSideType === tree.serverSideType) return ctx
+    return { ...ctx, outbound: { ...outbound, serverSideType: tree.serverSideType } }
+  }
+
+  /**
+   * El transporte de una acción del OVERLAY superior cuando la declara su formulario embebido
+   * (EmbeddedView: un ServerSide propio dentro del Dialog/Drawer): va a ESE componente — su
+   * serverSideType, su id como initiator, su estado — sin ruta, como en Vaadin. null si no hay
+   * overlay o su formulario no declara la acción (entonces va al host, como siempre: el drawer
+   * del crud no lleva ServerSide propio).
+   */
+  function overlayTransportOf(reg, actionId) {
+    const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    const top = id && reg.contexts ? reg.contexts[id] : null
+    const surface = top && top.surface
+    if (!surface || !surface.serverSideType) return null
+    const action = declaredActionOf({ tree: surface }, actionId)
+    if (!action || action.bubble) return null
+    const host = (reg.contexts && reg.contexts[HOST_ID]) || {}
+    return {
+      id: surface.id || top.id,
+      tree: surface,
+      state: top.state,
+      outbound: { ...(host.outbound || {}), serverSideType: surface.serverSideType, route: '', consumedRoute: '' },
+    }
+  }
+
+  const CONFIRMATION_DEFAULTS = {
+    title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No',
+  }
+
+  /**
+   * El diálogo de confirmación que pide la acción antes de salir (`confirmationRequired`), o null
+   * si no pide ninguno. Cada texto cae por su cuenta al genérico — como en Vaadin
+   * (confirmationTexts.ts): una acción que sólo declara el mensaje los trae vacíos al resto.
+   */
+  function confirmationOf(ctx, actionId) {
+    const action = declaredActionOf(ctx, actionId)
+    if (!action || !action.confirmationRequired) return null
+    const texts = action.confirmationTexts || {}
+    const pick = (value, fallback) => (value != null && String(value).trim() ? String(value) : fallback)
+    return {
+      title: pick(texts.title, CONFIRMATION_DEFAULTS.title),
+      message: pick(texts.message, CONFIRMATION_DEFAULTS.message),
+      confirmText: pick(texts.confirmationText, CONFIRMATION_DEFAULTS.confirmText),
+      denyText: pick(texts.denialText, CONFIRMATION_DEFAULTS.denyText),
+    }
+  }
+
+  // La respuesta pendiente del diálogo de confirmación: la chain que lanza la acción espera la
+  // promesa; los botones del diálogo (y su ✕ / Esc) la resuelven. Una sola a la vez: abrir otra
+  // antes de contestar la primera la da por denegada.
+  let pendingConfirmation = null
+
+  /** Espera la respuesta del diálogo de confirmación (true = confirmar). */
+  function awaitConfirmation() {
+    if (pendingConfirmation) pendingConfirmation(false)
+    return new Promise((resolve) => { pendingConfirmation = resolve })
+  }
+
+  /** Contesta el diálogo de confirmación abierto; sin ninguno esperando, no hace nada. */
+  function answerConfirmation(confirmed) {
+    const resolve = pendingConfirmation
+    pendingConfirmation = null
+    if (resolve) resolve(!!confirmed)
+  }
+
+  /**
    * ¿Pide la acción `actionId` del contexto validar el formulario antes de salir? Es el
    * validationRequired de las acciones del ServerSide (p.ej. el `next` de un wizard, el `save`
    * de un formulario): lo que Vaadin comprueba en el navegador antes de llamar al servidor.
@@ -2804,10 +2961,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * La acción EXACTA gana a un comodín ('*', 'prefijo*'), como en Vaadin.
    */
   function validationOf(ctx, actionId) {
-    const actions = (ctx && ctx.tree && ctx.tree.actions) || []
-    const action = actions.find((a) => a && a.id === actionId)
-      || actions.find((a) => a && typeof a.id === 'string' && a.id.endsWith('*')
-        && String(actionId || '').startsWith(a.id.slice(0, -1)))
+    const action = declaredActionOf(ctx, actionId)
     if (!action || !action.validationRequired) return null
     return { fields: Array.isArray(action.fieldsToValidate) ? action.fieldsToValidate : [] }
   }
@@ -2845,6 +2999,44 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function selectPlaceholder(lang) {
     const base = String(lang || '').toLowerCase().split(/[-_]/)[0]
     return SELECT_PLACEHOLDERS[base] || SELECT_PLACEHOLDERS.en
+  }
+
+  /**
+   * Los lookups REMOTOS de un contexto cuyas opciones no se han cargado todavía → [{ fieldId,
+   * actionId }]: los campos editables del formulario (una página, un paso de wizard, un
+   * formulario nuevo) y los filtros del listado. Un lookup de una página se pintaba como texto
+   * sin opciones — vacío en un alta — porque sólo el editor de fila lanzaba su búsqueda. La
+   * opción suelta que el server manda con el valor (su etiqueta) no cuenta como cargadas: con
+   * ella sola no se puede elegir otra. Los de sólo lectura no la necesitan.
+   */
+  function formLookupsOf(ctx) {
+    if (!ctx || !ctx.tree) return []
+    const data = ctx.data || {}
+    const seen = {}
+    const out = []
+    for (const f of collectFields(ctx.tree)) {
+      const actionId = f.type === 'FormField' && f.remoteCoordinates && f.remoteCoordinates.action
+      if (!actionId || f.readOnly || f.dataType === 'array' || (f.columns || []).length) continue
+      if (seen[f.fieldId] || (data[f.fieldId] && data[f.fieldId][LOOKUP_LOADED])) continue
+      seen[f.fieldId] = true
+      out.push({ fieldId: f.fieldId, actionId })
+    }
+    return out
+  }
+
+  /** Marca de las opciones de un lookup ya buscadas (en ctx.data[campo]): no se repite la búsqueda. */
+  const LOOKUP_LOADED = '_mateuLoaded'
+
+  /** El registro con las opciones de esos lookups del contexto marcadas como cargadas. */
+  function markLookupsLoaded(reg, ctxId, fieldIds) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    if (!ctx) return reg
+    const data = { ...(ctx.data || {}) }
+    for (const fieldId of fieldIds || []) {
+      const found = data[fieldId] && typeof data[fieldId] === 'object' ? data[fieldId] : { content: [] }
+      data[fieldId] = { ...found, [LOOKUP_LOADED]: true }
+    }
+    return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...ctx, data } } }
   }
 
   /** Los lookups de la fila que aún no tienen opciones → [{ fieldId, actionId }]. */
@@ -4059,6 +4251,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
+    // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
+    ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
     // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
@@ -4089,6 +4284,33 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       .then((inc) => { release(); return inc }, (e) => { release(); throw e })
   }
 
+  /**
+   * Carga las opciones de los lookups REMOTOS de un contexto que aún no las tienen (los campos
+   * editables de su formulario y los filtros de su listado; formLookupsOf): una búsqueda vacía
+   * por lookup (`search-<campo>`, hasta 200), en paralelo, contra el ServerSide que la declara
+   * — o el mediador, que la resuelve con la clase de sus filtros —, con el estado del contexto.
+   * Cada respuesta deja sus opciones en ctx.data[campo]; se marcan como cargadas también las que
+   * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
+   */
+  async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    const pending = formLookupsOf(ctx)
+    if (!pending.length) return reg
+    const state = { ...(ctx.state || {}), ...(opts.draft || {}) }
+    const found = await Promise.all(pending.map((lookup) =>
+      runMateuAction(base, actionTransportOf(ctx, lookup.actionId), opts.route || '', lookup.actionId, state, {
+        parameters: { searchText: '', fieldId: lookup.fieldId, size: 200, page: 0 },
+        appState: opts.appState || {},
+        idempotent: true,
+      }).catch(() => null)))
+    let out = reg
+    for (const inc of found) {
+      // sólo los DATOS: un lookup que falla no debe pintar su error encima de la pantalla
+      if (inc) out = reduceContexts(out, { fragments: (inc.fragments || []).filter((f) => !f.component) })
+    }
+    return markLookupsLoaded(out, ctxId, pending.map((lookup) => lookup.fieldId))
+  }
+
   /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
    *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
    *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
@@ -4097,6 +4319,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  callback, comportamiento clásico: lista completa al acabar. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
+    ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
@@ -5198,6 +5421,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // cabecera del buscador (sugerencias, aplicados y editores) con su vuelta a estado Mateu
     filterChipsOf,
     multiValuesOf,
+    queryFiltersOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -5215,9 +5439,19 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos
     validationOf,
     formErrorsOf,
+    // a qué ServerSide va una acción del host (el que la declara) y su confirmación previa
+    declaredActionOf,
+    actionTransportOf,
+    overlayTransportOf,
+    confirmationOf,
+    awaitConfirmation,
+    answerConfirmation,
     selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,
+    // las opciones de los lookups de un formulario de página y de los filtros de un listado
+    formLookupsOf,
+    loadLookups,
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,

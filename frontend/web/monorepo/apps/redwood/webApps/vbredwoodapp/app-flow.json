@@ -780,7 +780,8 @@
   "events": {
     "mateuNavigate": {
       "payloadType": {
-        "route": "string"
+        "route": "string",
+        "force": "boolean"
       },
       "description": "Efecto NavigateTo del bridge: la shell (que posee el men\u00fa) carga la ruta"
     },

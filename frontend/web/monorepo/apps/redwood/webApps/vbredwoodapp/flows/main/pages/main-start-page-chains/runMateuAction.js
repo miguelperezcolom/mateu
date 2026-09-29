@@ -124,6 +124,32 @@ define([
         transportCtx = listReq.ctx;
       }
 
+      // A QUÉ ServerSide va la acción. La de un formulario embebido en el overlay (el «Cancel
+      // booking» de una reserva, un EmbeddedView) va a ESE formulario, con su estado y sin
+      // ruta; la que declara el componente del host (la vista de la reserva, no el crud por el
+      // que se cargó: «Ver recorrido», «Activate») va a él; el resto sube al mediador.
+      let transportExtra = {};
+      const overlayTransport = overlayBefore && !listReq ? bridge.overlayTransportOf(before, id) : null;
+      if (overlayTransport) {
+        transportCtx = overlayTransport;
+        transportExtra = { route: '', consumedRoute: '' };
+      } else if (!listReq && !overlayBefore) {
+        transportCtx = bridge.actionTransportOf(host, id);
+      }
+
+      // confirmationRequired: el diálogo de confirmación ANTES de salir (con los textos de la
+      // acción); «No», ✕ o Esc la dejan sin enviar. Vaadin lo hace en el navegador; aquí se
+      // saltaba y la acción salía sin preguntar.
+      const confirmation = bridge.confirmationOf(transportCtx, id);
+      if (confirmation) {
+        $page.variables.mateuConfirm = confirmation;
+        const answer = bridge.awaitConfirmation();
+        await Actions.callComponentMethod(context, { selector: '#mateuConfirm', method: 'open' });
+        if (!(await answer)) {
+          return;
+        }
+      }
+
       const appState = $application.variables.mateuAppState || {};
       // acciones anunciadas Action.sse(true) del HOST (p.ej. opFirma → tablet) van por el
       // endpoint /sse: se aplican TODOS los increments del stream y se ACUMULAN los
@@ -154,7 +180,8 @@ define([
         const progressWatcher = bridge.longTaskWatcher();
         let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
-          base, host, route, id, componentState, {
+          base, transportCtx, route, id, componentState, {
+            ...transportExtra,
             parameters: parameters || {}, appState,
             onIncrement: async (inc) => {
               const ev = progressWatcher.consume(inc);
@@ -184,7 +211,8 @@ define([
         }
       } else {
         applyInc(await bridge.runMateuAction(
-          base, transportCtx, route, id, componentState, { parameters: parameters || {}, appState }));
+          base, transportCtx, route, id, componentState,
+          { ...transportExtra, parameters: parameters || {}, appState }));
       }
       // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
       // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
@@ -250,6 +278,11 @@ define([
           allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
       }
+
+      // lookups remotos de lo que acaba de llegar (el formulario de un paso nuevo, un alta)
+      try {
+        reg = await bridge.loadLookups(base, reg, bridge.HOST_ID, { appState, route, draft: $page.variables.mateuDraft });
+      } catch (ignored) { /* sin opciones se quedan como estaban */ }
 
       $application.variables.mateuRegistry = reg;
 
@@ -650,15 +683,24 @@ define([
       if (effects.docTitle) {
         document.title = effects.docTitle;
       }
-      if (effects.navigate && effects.navigate.route) {
+      if (effects.navigate && (effects.navigate.route || effects.navigate.url)) {
         if ($page.variables.mateuModalOpen) {
           $page.variables.mateuModalOpen = false;
           await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
         }
-        await Actions.fireEvent(context, {
-          name: 'application:mateuNavigate',
-          payload: { route: effects.navigate.route },
-        });
+        if (effects.navigate.url) {
+          // una URL absoluta (la de otra consola) se abre en su propia pestaña, como en Vaadin
+          window.open(effects.navigate.url, '_blank', 'noopener');
+        } else {
+          // `force`: la acción manda ir a una ruta, aunque sea la que ya se ve — «+ 10 reservas
+          // demo» vuelve al listado para enseñar las nuevas, «Cancel booking» a la reserva
+          // para enseñarla cancelada. Sin forzar, la shell tomaba la ruta por el eco de su
+          // propia URL y no recargaba nada.
+          await Actions.fireEvent(context, {
+            name: 'application:mateuNavigate',
+            payload: { route: effects.navigate.route, force: true },
+          });
+        }
       }
     }
   }

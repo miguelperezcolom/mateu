@@ -168,12 +168,20 @@ define([
       // donde el server no puede reescribir paths arbitrarios al index)
       const pathMode = !!document.querySelector('mateu-ui');
       window.__mateuUrlPathMode = pathMode;
+      // con su query: `?integration=MRU01` son los filtros con que se abre un listado (Vaadin
+      // los aplica; aquí se perdían al arrancar y el listado salía sin filtrar)
       const urlRoute = () => (pathMode
-        ? (window.location.pathname === '/' ? '' : window.location.pathname)
+        ? (window.location.pathname === '/' ? '' : window.location.pathname + (window.location.search || ''))
         : (window.location.hash || '').replace(/^#/, ''));
 
-      // deep-link — si la URL trae ruta, bootear ESA ruta
-      const deepLink = urlRoute();
+      // deep-link — si la URL trae ruta, bootear ESA ruta. Con la query con que se abrió la
+      // página (index.html la guarda al cargar: el router de VB la quita de la URL al arrancar)
+      const initialSearch = window.__mateuInitialSearch || '';
+      window.__mateuInitialSearch = '';
+      let deepLink = urlRoute();
+      if (pathMode && deepLink && deepLink.indexOf('?') < 0 && initialSearch) {
+        deepLink += initialSearch;
+      }
       const startRoute = deepLink || homeRoute;
       if (startRoute) {
         await Actions.callChain(context, {

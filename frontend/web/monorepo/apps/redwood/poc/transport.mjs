@@ -3,7 +3,7 @@
 // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
-import { reduceContexts, mediatorOf, HOST_ID } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 
@@ -100,6 +100,9 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
  *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
+  // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
+  ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
   // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
   // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
@@ -130,6 +133,33 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
     .then((inc) => { release(); return inc }, (e) => { release(); throw e })
 }
 
+/**
+ * Carga las opciones de los lookups REMOTOS de un contexto que aún no las tienen (los campos
+ * editables de su formulario y los filtros de su listado; formLookupsOf): una búsqueda vacía
+ * por lookup (`search-<campo>`, hasta 200), en paralelo, contra el ServerSide que la declara
+ * — o el mediador, que la resuelve con la clase de sus filtros —, con el estado del contexto.
+ * Cada respuesta deja sus opciones en ctx.data[campo]; se marcan como cargadas también las que
+ * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
+ */
+export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
+  const ctx = reg && reg.contexts && reg.contexts[ctxId]
+  const pending = formLookupsOf(ctx)
+  if (!pending.length) return reg
+  const state = { ...(ctx.state || {}), ...(opts.draft || {}) }
+  const found = await Promise.all(pending.map((lookup) =>
+    runMateuAction(base, actionTransportOf(ctx, lookup.actionId), opts.route || '', lookup.actionId, state, {
+      parameters: { searchText: '', fieldId: lookup.fieldId, size: 200, page: 0 },
+      appState: opts.appState || {},
+      idempotent: true,
+    }).catch(() => null)))
+  let out = reg
+  for (const inc of found) {
+    // sólo los DATOS: un lookup que falla no debe pintar su error encima de la pantalla
+    if (inc) out = reduceContexts(out, { fragments: (inc.fragments || []).filter((f) => !f.component) })
+  }
+  return markLookupsLoaded(out, ctxId, pending.map((lookup) => lookup.fieldId))
+}
+
 /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
  *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
  *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
@@ -138,6 +168,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
  *  callback, comportamiento clásico: lista completa al acabar. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
   const { onIncrement, ...bodyExtra } = extra || {}
+  ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
   base = outbound.baseUrl != null ? outbound.baseUrl : base
   const effectiveRoute = outbound.route || route || ''
