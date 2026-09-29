@@ -12,12 +12,27 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 final class FormSectionGrouper {
 
   record SectionGrouping(List<Section> sections, Map<Section, SectionFields> fieldsPerSection) {}
 
   static SectionGrouping group(Collection<Field> fields, int maxColumns) {
+    return group(fields, maxColumns, field -> true);
+  }
+
+  /**
+   * Groups {@code fields} into sections, placing only the {@code visible} ones.
+   *
+   * <p>The hidden fields are still WALKED, because a {@code @Section} opens a section at the field
+   * that carries it and every field after it belongs there until another one opens. Filtering the
+   * hidden fields out first threw the opening annotation away along with its field: a
+   * {@code @Section} on a field hidden in this mode ({@code @HiddenInCreate} on an id is the usual
+   * one) lost its heading, and the fields under it spilled into the section before. A section whose
+   * fields are all hidden is dropped.
+   */
+  static SectionGrouping group(Collection<Field> fields, int maxColumns, Predicate<Field> visible) {
     Map<Section, SectionFields> fieldsPerSection = new HashMap<>();
     List<Section> sections = new ArrayList<>();
     Section sectionAnnotation = null;
@@ -31,7 +46,7 @@ final class FormSectionGrouper {
       // Meta-aware read so composed (semantic) annotations carrying @Section also work here.
       Section fieldSection = MetaAnnotations.find(field, Section.class);
       boolean startsNewSection =
-          sectionFields == null
+          sectionAnnotation == null
               || (fieldSection != null
                   && (sectionAnnotation == null || !sameSection(fieldSection, sectionAnnotation)));
       if (startsNewSection) {
@@ -86,6 +101,12 @@ final class FormSectionGrouper {
                 }
               };
         }
+        sectionFields = null;
+      }
+      if (!visible.test(field)) {
+        continue;
+      }
+      if (sectionFields == null) {
         sectionFields =
             new SectionFields(getLabel(field), new ArrayList<>(), sectionAnnotation.columns());
       }
