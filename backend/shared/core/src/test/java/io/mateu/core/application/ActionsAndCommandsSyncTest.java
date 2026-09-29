@@ -421,9 +421,12 @@ class ActionsAndCommandsSyncTest {
   }
 
   @Test
-  void stringReturnProducesAFragment() {
+  void stringReturnIsAMessageAndLeavesTheScreenAlone() {
     var increment = run("/commands", CommandForm.class, "saludo");
-    assertThat(increment.fragments()).hasSize(1);
+    assertThat(increment.fragments()).isEmpty();
+    assertThat(increment.messages())
+        .extracting(io.mateu.dtos.MessageDto::text)
+        .containsExactly("hola");
   }
 
   @Test

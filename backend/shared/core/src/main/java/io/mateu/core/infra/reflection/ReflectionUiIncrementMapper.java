@@ -58,6 +58,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return mono.flatMap(
           object -> map(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
+    instance = textAsMessage(instance, httpRequest);
     // A domain object with a registered ComponentAdapter is bridged into the supplier interfaces so
     // the adapter's components + state + data flow through the rest of the pipeline unchanged.
     var adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(instance.getClass());
@@ -159,5 +160,41 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         httpRequest,
         componentFragmentMapper,
         reflectionFragmentMapper);
+  }
+
+  /**
+   * What an action answered as plain text is a message, not a new screen. It used to go down the
+   * path of any other returned object and REPLACE the component that ran the action with a {@code
+   * <p>} holding the text: the form vanished behind its own confirmation. Only for an action — a
+   * route is not loaded by returning text, and the rest of that path is left as it was.
+   */
+  private static Object textAsMessage(Object instance, HttpRequest httpRequest) {
+    if (!isAction(httpRequest)) {
+      return instance;
+    }
+    if (instance instanceof CharSequence text) {
+      return new io.mateu.uidl.data.Message(text.toString());
+    }
+    if (instance instanceof java.util.Collection<?> collection
+        && collection.stream().anyMatch(CharSequence.class::isInstance)) {
+      return collection.stream()
+          .map(
+              item ->
+                  item instanceof CharSequence text
+                      ? new io.mateu.uidl.data.Message(text.toString())
+                      : item)
+          .toList();
+    }
+    return instance;
+  }
+
+  private static boolean isAction(HttpRequest httpRequest) {
+    try {
+      var rq = httpRequest == null ? null : httpRequest.runActionRq();
+      var actionId = rq == null ? null : rq.actionId();
+      return actionId != null && !actionId.isBlank() && !"__load__".equals(actionId);
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

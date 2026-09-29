@@ -134,6 +134,8 @@ public class StepReturnForm
     [Button] public List<FlowStep> DoFlow() => new() { new Navigate("/next"), new Emit("done", new { ok = true }) };
 
     [Button] public FlowStep Single() => new MarkClean();
+
+    [Button] public string Preview() => "No warnings.";
 }
 
 [UI("amounts"), Title("Amounts")]
@@ -1169,6 +1171,21 @@ public class SyncHandlerTests
         Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/next");
         Assert.Contains(inc.Commands, c => c.Type == "DispatchEvent");
         Assert.Empty(inc.Fragments);
+    }
+
+    [Fact]
+    public void An_action_returning_text_shows_it_as_a_message_and_leaves_the_screen_alone()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "step-return",
+            ActionId = "preview",
+            ServerSideType = "Mateu.Tests.StepReturnForm",
+            ComponentState = new(),
+        });
+        Assert.Equal("No warnings.", Assert.Single(inc.Messages).Text);
+        Assert.Empty(inc.Fragments);
+        Assert.Empty(inc.Commands);
     }
 
     [Fact]

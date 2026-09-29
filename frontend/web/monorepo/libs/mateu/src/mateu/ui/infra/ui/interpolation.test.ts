@@ -169,3 +169,21 @@ describe('possiblyHtml', () => {
         expect(result).toContain('noSuchVar')
     })
 })
+
+describe('a null or undefined value in a displayed text', () => {
+    it('renders as nothing, not as the word "null" or "undefined"', () => {
+        expect(interpolate('${state.x}', { x: null })).toBe('')
+        expect(interpolate('Hi ${state.x}!', {})).toBe('Hi !')
+        expect(interpolateNested('${state.quejas}', { quejas: null }, {}, {}, {})).toBe('')
+        expect(possiblyHtml('${state.x}', { x: null }, {})).toBe('')
+        expect(evaluateTemplate('${state.x}', { x: undefined })).toBe('')
+    })
+
+    it('keeps falsy values that are real values', () => {
+        expect(interpolate('${state.n} ${state.b} ${state.s}|', { n: 0, b: false, s: '' })).toBe('0 false |')
+    })
+
+    it('keeps null a literal where the text is then evaluated as an expression', () => {
+        expect(interpolateAndEvaluate('${state.x} === null', { x: null }, {})).toBe(true)
+    })
+})

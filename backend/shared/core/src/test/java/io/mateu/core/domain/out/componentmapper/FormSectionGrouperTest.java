@@ -54,6 +54,19 @@ class FormSectionGrouperTest {
     String email; // follows into "Personal"
   }
 
+  static class HiddenOpenerForm {
+    @Section("General")
+    String name;
+
+    @Section("Identity")
+    String id; // hidden in this mode — yet it is the field that opens "Identity"
+
+    String code; // belongs to "Identity", not to "General"
+
+    @Section("Audit")
+    String createdBy; // hidden, and alone in its section
+  }
+
   private static List<Field> fieldsOf(Class<?> type, String... names) {
     return Arrays.stream(names)
         .map(
@@ -127,5 +140,21 @@ class FormSectionGrouperTest {
 
     assertThat(grouping.fieldsPerSection().get(grouping.sections().get(0)).label())
         .isEqualTo("Surname");
+  }
+
+  @Test
+  void aSectionOpenedByAHiddenFieldKeepsItsHeadingAndItsFields() {
+    SectionGrouping grouping =
+        FormSectionGrouper.group(
+            fieldsOf(HiddenOpenerForm.class, "name", "id", "code", "createdBy"),
+            2,
+            field -> !field.getName().equals("id") && !field.getName().equals("createdBy"));
+
+    assertThat(grouping.sections())
+        .extracting(Section::value)
+        .containsExactly("General", "Identity");
+    assertThat(grouping.fieldsPerSection().get(grouping.sections().get(1)).fields())
+        .extracting(Field::getName)
+        .containsExactly("code");
   }
 }

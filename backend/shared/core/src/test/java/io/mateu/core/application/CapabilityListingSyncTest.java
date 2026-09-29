@@ -409,4 +409,43 @@ class CapabilityListingSyncTest {
         null);
     assertThat(BulkBooks.lastArchived).containsExactly("b1");
   }
+
+  // ── loading ───────────────────────────────────────────────────────────────
+
+  private List<String> onLoadActions(UIIncrementDto increment) {
+    var found = new ArrayList<io.mateu.dtos.ServerSideComponentDto>();
+    increment
+        .fragments()
+        .forEach(
+            f ->
+                FieldKindsSyncTest.walk(
+                    f.component(), io.mateu.dtos.ServerSideComponentDto.class, found));
+    if (increment.fragments().stream()
+        .anyMatch(f -> f.component() instanceof io.mateu.dtos.ServerSideComponentDto)) {
+      increment.fragments().stream()
+          .map(f -> f.component())
+          .filter(io.mateu.dtos.ServerSideComponentDto.class::isInstance)
+          .map(io.mateu.dtos.ServerSideComponentDto.class::cast)
+          .forEach(found::add);
+    }
+    return found.stream()
+        .flatMap(
+            c -> c.triggers() == null ? java.util.stream.Stream.empty() : c.triggers().stream())
+        .filter(io.mateu.dtos.OnLoadTriggerDto.class::isInstance)
+        .map(t -> ((io.mateu.dtos.OnLoadTriggerDto) t).actionId())
+        .toList();
+  }
+
+  /**
+   * A listing shows its rows when it opens, whatever capabilities it declares. It used to load only
+   * once it declared an interaction capability — which is what promotes it to the CRUD mediator,
+   * the one that carried the load trigger — so a read-only listing opened empty until the user
+   * searched, with nothing saying why.
+   */
+  @Test
+  void aListingLoadsItsRowsOnOpeningWithoutAnyInteractionCapability() {
+    assertThat(onLoadActions(load(PlainBooks.class, "/plain-books"))).contains("search");
+    assertThat(onLoadActions(load(SearchableBooks.class, "/searchable-books"))).contains("search");
+    assertThat(onLoadActions(load(NavigableBooks.class, "/navigable-books"))).contains("search");
+  }
 }

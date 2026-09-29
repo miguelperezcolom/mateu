@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.overlayContent;
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DrawerDto;
@@ -27,7 +28,7 @@ public class DrawerMapper {
             .content(
                 mapComponentToDto(
                     null,
-                    drawer.content(),
+                    overlayContent(drawer.content()),
                     baseUrl,
                     route,
                     consumedRoute,

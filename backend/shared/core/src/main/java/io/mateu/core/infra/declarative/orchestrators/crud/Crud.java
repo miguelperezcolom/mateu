@@ -339,4 +339,12 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     }
     return map;
   }
+
+  /**
+   * The CRUD mediator carries its own load trigger, on the listing view only (CrudTriggersBuilder).
+   */
+  @Override
+  public boolean searchesOnOpening() {
+    return false;
+  }
 }

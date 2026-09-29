@@ -76,7 +76,6 @@ Declare `Searchable` for the free-text box and `Filterable<F>` for the filter ba
 ```java
 @UI("/books")
 @Title("Books")
-@Trigger(type = TriggerType.OnLoad, actionId = "search")
 public class Books implements Listing<Book>, Searchable, Filterable<BookFilters> {
 
     public record Book(String id, String title, String author, int pages) {}
@@ -194,7 +193,7 @@ The three approaches are the same model at three altitudes:
 
 Independent of capabilities, a listing can:
 
-- **Auto-load on open** — `@Trigger(type = TriggerType.OnLoad, actionId = "search")` on the class (a listing otherwise starts empty and searches on enter).
+- **Open empty** — a listing runs its search as soon as it opens. For a search-first page that should wait for the query, override `searchesOnOpening()` to return `false` (the `SmartSearchPage` and `HeroSearch` archetypes do; add `@Trigger(type = TriggerType.OnLoad, actionId = "search")` to preload them).
 - **Force a layout** — override `gridLayout()` (`table`, `list`, `cards`, `masterDetail`, `tree`).
 - **Toolbar actions** — `@Toolbar` and `@ListToolbarButton` methods become toolbar buttons; see [Listing&lt;Row&gt;](/java-user-manual/build/listing/).
 - **Export** — override `pdfExportable()` / `excelExportable()` / `csvExportable()`.

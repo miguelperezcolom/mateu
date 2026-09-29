@@ -112,16 +112,15 @@ public class PageFormBuilder {
       boolean readOnly,
       int maxColumns,
       int level) {
-    var filteredFields =
-        getFormFields(instance).stream()
-            .filter(
-                field ->
-                    FormFieldFilter.filterField(
-                        field, forCreationForm, readOnly, instance, httpRequest))
-            .filter(field -> readOnly || !FormFieldFilter.hiddenInEditor(field, forCreationForm))
-            .filter(field -> !readOnly || !FormFieldFilter.hiddenInView(field))
-            .toList();
-    var grouping = FormSectionGrouper.group(filteredFields, maxColumns);
+    // Grouped BEFORE filtering: a hidden field may be the one carrying the @Section.
+    var grouping =
+        FormSectionGrouper.group(
+            getFormFields(instance),
+            maxColumns,
+            field ->
+                FormFieldFilter.filterField(field, forCreationForm, readOnly, instance, httpRequest)
+                    && (readOnly || !FormFieldFilter.hiddenInEditor(field, forCreationForm))
+                    && (!readOnly || !FormFieldFilter.hiddenInView(field)));
     return SectionFormRenderer.render(
         grouping.sections(),
         grouping.fieldsPerSection(),

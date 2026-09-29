@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.overlayContent;
 
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DialogDto;
@@ -26,7 +27,7 @@ public class DialogMapper {
             .content(
                 mapComponentToDto(
                     null,
-                    dialog.content(),
+                    overlayContent(dialog.content()),
                     baseUrl,
                     route,
                     consumedRoute,

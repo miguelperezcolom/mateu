@@ -41,6 +41,16 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
 
   ListingData<Row> search(SearchRequest request, HttpRequest httpRequest);
 
+  /**
+   * Whether the listing runs its search as soon as it opens, so it shows its rows without the user
+   * having to search first. True by default: a listing is for looking at rows. A search-first page
+   * — one that should open empty and wait for the query — answers false (the {@code
+   * SmartSearchPage} and {@code HeroSearch} archetypes do).
+   */
+  default boolean searchesOnOpening() {
+    return true;
+  }
+
   @Override
   default boolean supportsAction(String actionId) {
     return "search".equals(actionId);

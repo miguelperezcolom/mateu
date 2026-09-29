@@ -1834,6 +1834,9 @@ class SyncHandler:
             return UIIncrement.of(
                 commands=[UICommand(target_component_id=self.target(rq), type="NavigateTo", data=result)]
             )
+        # Any other text is a message (mirrors Java): it leaves the screen as it was.
+        if isinstance(result, str):
+            return self.map_result(Message(result), rq)
         if isinstance(result, UICommand):
             # Retarget the "ux_main" placeholder at the initiator (the frontend drops commands
             # whose target matches no component id).

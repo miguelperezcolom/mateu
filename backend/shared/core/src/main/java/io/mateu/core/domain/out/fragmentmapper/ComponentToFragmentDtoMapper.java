@@ -174,7 +174,9 @@ public final class ComponentToFragmentDtoMapper {
           view.getClass().getName(),
           consumedRoute,
           List.of(page),
-          view,
+          // The state as every page serialises it — field by field, not the object handed to the
+          // JSON writer, which only sees what has a getter: a form without them travelled empty.
+          io.mateu.core.application.runaction.ComponentStateHelper.getState(view, httpRequest),
           "",
           "",
           ActionMapper.mapActions(view, httpRequest),
@@ -284,5 +286,25 @@ public final class ComponentToFragmentDtoMapper {
         component.style(),
         component.cssClasses(),
         null);
+  }
+
+  /**
+   * The content of an overlay (a dialog, a drawer): a form in it is a component of its OWN.
+   *
+   * <p>A {@link io.mateu.uidl.data.ModelViewComponent} draws its view as part of the component
+   * around it — right for a piece of a page, wrong for an overlay, where that component is the page
+   * BEHIND: the form's state never reached the browser, so its fields came up empty, and its
+   * buttons ran on the page behind, which knows nothing of them. So a view that is not already a
+   * component is embedded instead ({@link io.mateu.uidl.data.EmbeddedView}), with its own state and
+   * its own actions.
+   */
+  public static io.mateu.uidl.fluent.Component overlayContent(
+      io.mateu.uidl.fluent.Component content) {
+    if (content instanceof io.mateu.uidl.data.ModelViewComponent modelView
+        && modelView.modelView() != null
+        && !(modelView.modelView() instanceof io.mateu.uidl.fluent.Component)) {
+      return new io.mateu.uidl.data.EmbeddedView(modelView.modelView());
+    }
+    return content;
   }
 }
