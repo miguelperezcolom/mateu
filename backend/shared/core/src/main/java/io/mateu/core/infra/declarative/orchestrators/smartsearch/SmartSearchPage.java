@@ -52,4 +52,13 @@ public abstract class SmartSearchPage<Filters, Row>
         .spacing(true)
         .build();
   }
+
+  /**
+   * Search-first: the page opens empty and waits for the query — add {@code @Trigger(type =
+   * TriggerType.OnLoad, actionId = "search")} on the class to preload results instead.
+   */
+  @Override
+  public boolean searchesOnOpening() {
+    return false;
+  }
 }

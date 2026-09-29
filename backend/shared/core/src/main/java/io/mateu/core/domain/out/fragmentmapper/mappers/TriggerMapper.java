@@ -93,6 +93,15 @@ public class TriggerMapper {
       triggers.add(new OnLoadTrigger(RestDataSupport.RESTDATA_ACTION_ID));
     }
     triggers.addAll(supplied);
+    // A listing loads its rows when it opens. The load trigger used to come only from the CRUD
+    // mediator, so a listing declaring no interaction capability (and so never promoted to one)
+    // opened empty until the user searched, with nothing saying why.
+    if (serverSideObject instanceof io.mateu.uidl.interfaces.Listing<?> listing
+        && listing.searchesOnOpening()
+        && triggers.stream()
+            .noneMatch(t -> t instanceof OnLoadTrigger load && "search".equals(load.actionId()))) {
+      triggers.add(new OnLoadTrigger("search", 0, 1, null));
+    }
     return triggers;
   }
 

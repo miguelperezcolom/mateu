@@ -117,7 +117,7 @@ Key points:
 - `implements Listing<ChangeRow>` gives full control: you define `search(SearchRequest, HttpRequest)` and Mateu calls it
 - `Searchable` shows the free-text search box; declare `Filterable<SomeFilters>` too for a filter form above the list
 - `@Scope("prototype")` is required because the class holds state per request
-- `@Trigger(type = TriggerType.OnLoad, actionId = "search")` automatically triggers `search()` when the page loads, so the list is not empty on first visit
+- `@Trigger(type = TriggerType.OnLoad, actionId = "search")` runs `search()` when the page loads. A `Listing` already does this by default, so the annotation is redundant here; it only matters on a search-first page (`searchesOnOpening()` returning `false`) that should preload anyway
 - `compare(ChangeRow row)` handles the `ColumnAction("compare", ...)` defined in the row
 - `@Toolbar` on `createRelease()` adds a button to the top toolbar of the listing
 - `HttpRequest httpRequest` in `@Toolbar` methods gives access to HTTP headers
