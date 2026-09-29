@@ -153,9 +153,13 @@ Drawer requestAccess() {
 `EmbeddedView(view)` embeds a **routed** model view (a `Wizard`, or any `@UI`/`@Route` view) as an
 **independent server-side component**: it renders inside the drawer but routes its **own** actions
 back to itself, so the wizard advances step by step inside the drawer instead of bubbling its
-Continue/Back to the host. This is the difference from `ModelViewComponent`, which renders a view
-inline (fine for client-side chrome like tabs, but a wizard's step navigation would leak to the
-host). Demo: `/guided-process-drawer-demo`.
+Continue/Back to the host. Its state is the view's fields, serialised exactly as a page's are — no
+getters needed. Demo: `/guided-process-drawer-demo`.
+
+A `ModelViewComponent` renders its view as part of the component around it. In a drawer or a
+dialog that would be the page behind — the form's fields would come up empty and its buttons run on
+the host — so as the **content of an overlay** a `ModelViewComponent` wrapping a view is embedded
+the same way, automatically. Outside overlays it keeps rendering inline.
 
 The drawer header shows a **step pager** (`2 | 3`) driven live by the embedded wizard's progress —
 no extra wiring, it appears whenever the embedded wizard uses `@WizardProgress(STEPS)` or `RAIL`. As

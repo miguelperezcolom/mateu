@@ -11,5 +11,9 @@ import io.mateu.uidl.fluent.Component;
  * <p>This is what makes a wizard-in-a-drawer work (the Redwood "Guided Process Drawer"): return a
  * {@link Drawer} whose {@code content} is {@code new EmbeddedView(wizard)} and the wizard advances
  * step by step inside the drawer.
+ *
+ * <p>Its state is the view's fields, serialised the way a page's are (no getters needed). As the
+ * content of a {@link Dialog} or a {@link Drawer}, a {@link ModelViewComponent} wrapping a view is
+ * embedded like this automatically: inline, it would render as part of the page behind the overlay.
  */
 public record EmbeddedView(Object view) implements Component {}
