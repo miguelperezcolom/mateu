@@ -1560,6 +1560,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // whose target matches no component id).
         string route when route.StartsWith('/') =>
             UIIncrementDto.Of(commands: [new UICommandDto(rq is null ? "ux_main" : Target(rq), "NavigateTo", route)]),
+        // Any other text is a message (mirrors Java): it leaves the screen as it was.
+        string text => MapResult(new Message(text), rq),
         UICommandDto cmd => UIIncrementDto.Of(commands:
             [cmd.TargetComponentId == "ux_main" && rq is not null ? cmd with { TargetComponentId = Target(rq) } : cmd]),
         // A flow Step (coherence-plan #3) is behavior: lower it to its wire command. v0 verbs are

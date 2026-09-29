@@ -176,6 +176,10 @@ class StepReturnForm:
     def single(self):
         return MarkClean()
 
+    @button()
+    def preview(self):
+        return "No warnings."
+
 
 @ui("amounts")
 @title("Amounts")
@@ -1023,6 +1027,20 @@ def test_a_list_of_steps_is_lowered_to_commands_and_produces_no_fragment():
     nav = next(c for c in inc.commands if c.type == "NavigateTo")
     assert nav.data == "/next"
     assert inc.fragments == []
+
+
+def test_an_action_returning_text_shows_it_as_a_message_and_leaves_the_screen_alone():
+    inc = handler().handle(
+        RunActionRq(
+            route="step-return",
+            action_id="preview",
+            server_side_type=_name(StepReturnForm),
+            component_state={},
+        )
+    )
+    assert [m.text for m in inc.messages] == ["No warnings."]
+    assert inc.fragments == []
+    assert inc.commands == []
 
 
 def test_a_single_step_is_lowered_to_its_command():

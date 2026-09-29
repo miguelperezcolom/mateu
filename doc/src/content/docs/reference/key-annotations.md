@@ -113,6 +113,14 @@ Configures action behavior.
 
 Use it when you need more than a bare button.
 
+`@Action` does **not** put a button on screen: it declares how an action behaves. The button comes
+from `@Toolbar` or `@Button` on the same method (or a `Button` with that `actionId`); on its own,
+an `@Action` method is still callable — by a keyboard `shortcut`, a trigger or a button supplied in
+code — but nothing is drawn for it.
+
+An action that returns a `String` (or any plain value) shows it as a message and leaves the screen as
+it was — there is no need to wrap it as `List.of(new Message(text), new State(this))`.
+
 ### What it controls
 
 - validation
