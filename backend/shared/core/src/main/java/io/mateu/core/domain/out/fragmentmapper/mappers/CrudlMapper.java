@@ -80,6 +80,12 @@ public class CrudlMapper {
                                     .stepButtonsVisible(filter.stepButtonsVisible())
                                     .step(filter.step())
                                     .mainFilter(filter.mainFilter())
+                                    // a @Lookup filter searches its options like a form field
+                                    // does: without its coordinates the renderers had no search
+                                    // to run, and its editor came up empty
+                                    .remoteCoordinates(
+                                        FieldMapper.mapRemoteCoordinates(
+                                            filter.remoteCoordinates()))
                                     .build())
                         .toList()
                     : List.of())

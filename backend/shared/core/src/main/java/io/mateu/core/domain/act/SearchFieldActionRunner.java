@@ -6,12 +6,14 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
@@ -60,8 +62,7 @@ public class SearchFieldActionRunner implements ActionRunner {
             getLookupOptionsSupplier(instance, getFieldByName(rowClass, childFieldName));
       } else {
         optionsSupplier =
-            getLookupOptionsSupplier(
-                instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
+            getLookupOptionsSupplier(instance, lookupField(instance, fieldName, httpRequest));
       }
 
       if (optionsSupplier == null) {
@@ -84,6 +85,28 @@ public class SearchFieldActionRunner implements ActionRunner {
       return Flux.just(new Data(Map.of(fieldName, listingData.page())));
     }
     return null;
+  }
+
+  /**
+   * The {@code @Lookup} field a plain {@code search-<field>} names: the view model's, or — when the
+   * view model has no lookup of that name — the listing's filters' ({@link
+   * io.mateu.uidl.interfaces.Filterable#filtersClass()}). A {@code @Lookup} filter announces the
+   * same search as a form field does, and the listing answering it is the crud itself, whose view
+   * model knows nothing of its filters: the search failed and the filter's options never came.
+   */
+  static Field lookupField(Object instance, String fieldName, HttpRequest httpRequest) {
+    var field = getFieldByName(getViewModelClass(instance, httpRequest), fieldName);
+    if (field != null && MetaAnnotations.isPresent(field, Lookup.class)) {
+      return field;
+    }
+    if (instance instanceof io.mateu.uidl.interfaces.Filterable<?> filterable) {
+      var filtersClass = filterable.filtersClass();
+      var filter = filtersClass == null ? null : getFieldByName(filtersClass, fieldName);
+      if (filter != null && MetaAnnotations.isPresent(filter, Lookup.class)) {
+        return filter;
+      }
+    }
+    return field;
   }
 
   /**

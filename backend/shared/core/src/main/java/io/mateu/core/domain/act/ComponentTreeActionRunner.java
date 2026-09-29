@@ -18,6 +18,12 @@ public class ComponentTreeActionRunner implements ActionRunner {
   // todo: cacheable?
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
+    // a DtoSupplier (a crud, any orchestrator) has no fluent tree to look a button up in: asking
+    // for it throws, and that failed EVERY action no runner before this one had claimed — the
+    // search of a listing's @Lookup filter, sent to the crud that owns the listing, among them
+    if (instance instanceof io.mateu.uidl.interfaces.DtoSupplier) {
+      return false;
+    }
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       var button = findButton(componentTreeSupplier, actionId, httpRequest);
       if (button == null) {

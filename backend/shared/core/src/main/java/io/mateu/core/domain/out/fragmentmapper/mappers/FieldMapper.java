@@ -118,7 +118,7 @@ public class FieldMapper {
         source.proxy());
   }
 
-  private static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {
+  static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {
     if (remoteCoordinates == null) {
       return null;
     }
