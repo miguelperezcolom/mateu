@@ -63,6 +63,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // cabecera del buscador (sugerencias, aplicados y editores) con su vuelta a estado Mateu
     filterChipsOf,
     multiValuesOf,
+    queryFiltersOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -80,9 +81,19 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // validationRequired de las acciones del host (el next de un wizard): obligatorios vacíos
     validationOf,
     formErrorsOf,
+    // a qué ServerSide va una acción del host (el que la declara) y su confirmación previa
+    declaredActionOf,
+    actionTransportOf,
+    overlayTransportOf,
+    confirmationOf,
+    awaitConfirmation,
+    answerConfirmation,
     selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,
+    // las opciones de los lookups de un formulario de página y de los filtros de un listado
+    formLookupsOf,
+    loadLookups,
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,

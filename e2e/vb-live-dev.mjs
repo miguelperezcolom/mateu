@@ -42,6 +42,8 @@ const { values } = parseArgs({
 
 const app = join(dirname(fileURLToPath(import.meta.url)), '..', 'frontend', 'web', 'monorepo', 'apps', 'redwood');
 const optimized = join(app, 'build', 'optimized', 'webApps', 'vbredwoodapp');
+const devBaseUrl = JSON.parse(readFileSync(join(app, 'webApps', 'vbredwoodapp', 'app-flow.json'), 'utf8'))
+  .constants.mateuBaseUrl.defaultValue;
 
 /** El bundle de la última construcción: el directorio version_<ts> más reciente. */
 function bundlePath() {
@@ -84,12 +86,20 @@ const ctx = await browser.newContext({
   viewport: values.headless ? { width: 1600, height: 1000 } : null,
 });
 
+// la query con que se abre la página la guarda el index.html del renderer antes de que arranque
+// VB; el index que se sirve aquí es el desplegado, que puede no traerlo todavía
+await ctx.addInitScript(() => {
+  if (window.__mateuInitialSearch == null) window.__mateuInitialSearch = window.location.search || '';
+});
+
 await ctx.route('**/vb-app-bundle.js', async (route) => {
   const path = bundlePath();
   if (!path) return route.continue();
   // el copy del jar sustituye el base de desarrollo por '' (mismo origen); aquí igual, o el
-  // bridge llamaría a localhost en vez de al backend desplegado
-  const body = readFileSync(path, 'utf8').replaceAll('http://localhost:8595', '');
+  // bridge llamaría a localhost en vez de al backend desplegado. Se lee del app-flow.json, como
+  // hace scripts/copy.mjs: cableado aquí se quedó en 8595 cuando pasó a 9005 y el bundle local
+  // llamaba a localhost
+  const body = readFileSync(path, 'utf8').replaceAll(devBaseUrl, '');
   await route.fulfill({ status: 200, contentType: 'application/javascript', body });
 });
 

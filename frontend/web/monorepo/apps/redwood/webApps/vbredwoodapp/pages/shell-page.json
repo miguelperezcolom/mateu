@@ -59,7 +59,8 @@
       "chains": [
         {
           "parameters": {
-            "event": "{{ $event }}"
+            "event": "{{ $event }}",
+            "force": "{{ !!$event.force }}"
           },
           "chain": "onMateuNavigate"
         }

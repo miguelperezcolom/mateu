@@ -68,10 +68,92 @@
   <div slot="header">
     <span class="oj-dialog-title"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></span>
   </div>
-  <div slot="body" style="max-width: 26rem;">
+  <div slot="body" style="max-width: 32rem; min-width: min(24rem, 80vw);">
     <oj-bind-for-each data="[[ $application.variables.mateuDrawer.texts ]]">
       <template>
         <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+      </template>
+    </oj-bind-for-each>
+    <!-- un FORMULARIO en el diálogo (EmbeddedView: el «Cancel booking» de una reserva): sus
+         campos con los mismos widgets que el drawer; lo escrito va al borrador del overlay -->
+    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sections ]]">
+      <template>
+        <div class="mateu-form-section">
+          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+            <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+          </oj-bind-if>
+          <oj-form-layout max-columns="1" direction="row">
+            <oj-bind-for-each data="[[ $current.data.fields ]]">
+              <template>
+                <oj-bind-if test="[[ $current.data.isText ]]">
+                  <oj-input-text
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-text>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isTextArea ]]">
+                  <oj-text-area
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    rows="4"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-text-area>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isNumber ]]">
+                  <oj-input-number
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-number>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDate ]]">
+                  <oj-input-date
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isDateTime ]]">
+                  <oj-input-date-time
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-date-time>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isBoolean ]]">
+                  <oj-switch
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-switch>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isSelect ]]">
+                  <oj-select-one
+                    label-hint="[[ $current.data.label ]]"
+                    value="[[ $current.data.value ]]"
+                    options="[[ $current.data.options ]]"
+                    placeholder="[[ $application.variables.mateuSelectPlaceholder ]]"
+                    required="[[ $current.data.required ]]"
+                    readonly="[[ $current.data.readonly ]]"
+                    :data-field-id="[[ $current.data.fieldId ]]"
+                    on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+          </oj-form-layout>
+        </div>
       </template>
     </oj-bind-for-each>
   </div>
@@ -83,6 +165,26 @@
           on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
       </template>
     </oj-bind-for-each>
+  </div>
+</oj-dialog>
+
+<!-- CONFIRMACIÓN de una acción (confirmationRequired): título, mensaje y los dos botones con
+     los textos que declara la acción. La chain que la lanza espera la respuesta
+     (bridge.awaitConfirmation); «No», ✕ y Esc la dejan sin enviar. -->
+<oj-dialog id="mateuConfirm" cancel-behavior="icon" drag-affordance="none"
+  aria-labelledby="mateuConfirmTitle"
+  on-oj-before-close="[[ $listeners.mateuConfirmClosed ]]">
+  <div slot="header">
+    <span id="mateuConfirmTitle" class="oj-dialog-title"><oj-bind-text value="[[ $variables.mateuConfirm.title ]]"></oj-bind-text></span>
+  </div>
+  <div slot="body" style="max-width: 28rem;">
+    <div class="oj-typography-body-md"><oj-bind-text value="[[ $variables.mateuConfirm.message ]]"></oj-bind-text></div>
+  </div>
+  <div slot="footer">
+    <oj-button id="mateuConfirmDeny" chroming="outlined" class="oj-sm-margin-1x-start"
+      on-oj-action="[[ $listeners.mateuConfirmDeny ]]"><oj-bind-text value="[[ $variables.mateuConfirm.denyText ]]"></oj-bind-text></oj-button>
+    <oj-button id="mateuConfirmAccept" chroming="callToAction" class="oj-sm-margin-1x-start"
+      on-oj-action="[[ $listeners.mateuConfirmAccept ]]"><oj-bind-text value="[[ $variables.mateuConfirm.confirmText ]]"></oj-bind-text></oj-button>
   </div>
 </oj-dialog>
 
@@ -2434,6 +2536,7 @@
               <oj-button chroming="outlined" class="oj-button-sm oj-sm-margin-1x-end"
                 :data-method="[[ $current.data.methodNameInCrud ]]"
                 :data-row-id="[[ cell.row.id ]]"
+                :data-row-key="[[ cell.key ]]"
                 on-oj-action="[[ $listeners.rowActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
             </template>
           </oj-bind-for-each>

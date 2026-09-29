@@ -79,13 +79,13 @@ define([
       // ?campo=valor en la ruta (p.ej. /reservas?vista=LLEGADAS_HOY, los KPIs de la
       // home): el filtro rápido viaja en la URL — se consume aquí como filtro
       // PENDIENTE (misma mecánica que el Ask Oracle) y la ruta queda limpia
+      // Todos los parámetros, no sólo el primero; y también en un deep-link (la URL con que se
+      // abre la consola: el aviso de la bandeja lleva a /mapping/dictionary?integration=MRU01).
       const queryIdx = route.indexOf('?');
       if (queryIdx >= 0) {
-        const par = route.slice(queryIdx + 1).split('&')[0].split('=');
+        const seeded = bridge.queryFiltersOf(route.slice(queryIdx + 1));
         route = route.slice(0, queryIdx);
-        if (par.length === 2 && par[0] && par[1]) {
-          const seeded = {};
-          seeded[par[0]] = decodeURIComponent(par[1]);
+        if (Object.keys(seeded).length) {
           $application.variables.mateuFilterValues = seeded;
           $application.variables.mateuFiltersPending = true;
           force = true; // aunque ya estemos en la ruta, hay que re-buscar filtrado
@@ -182,6 +182,12 @@ define([
       $application.variables.mateuIslandId = firstIsland ? firstIsland.id : '';
       $application.variables.mateuIslandSeed = firstIsland
         ? JSON.stringify(firstIsland.initialData || {}) : '';
+
+      // las opciones de los lookups remotos: los del formulario (un alta los traía vacíos,
+      // como texto) y los filtros @Lookup del listado (su editor salía sin opciones)
+      try {
+        reg = await bridge.loadLookups(callBase, reg, bridge.HOST_ID, { appState, route });
+      } catch (ignored) { /* sin opciones se quedan como estaban: el campo sigue editable */ }
 
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;

@@ -36,7 +36,9 @@ define([
         bridge.clearFieldError(event.target);
       }
       context.$application.variables.mateuDirty = true;
-      if ($application.variables.mateuDrawerOpen) {
+      // el formulario de un diálogo (el modal de un overlay Dialog) escribe en el borrador del
+      // overlay, como el del drawer: es el estado que viaja con sus acciones
+      if ($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) {
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
         draft[fieldId] = detail.value;
         $page.variables.mateuDrawerDraft = draft;
