@@ -24,7 +24,7 @@ import {
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
-  speechRecognitionCtor, transcriptOf,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -1901,6 +1901,39 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.match(send, /onText:/)
 })
 
+test('chat: la respuesta del asistente se pinta como markdown, con el HTML escapado', () => {
+  const md = (t) => chatMarkdownToHtml(t)
+  assert.equal(md('Hay **2** integraciones y una *pausada*.'), '<p>Hay <strong>2</strong> integraciones y una <em>pausada</em>.</p>')
+  assert.equal(md('- **MRU01**: ACTIVE\n- PMI01: `PENDING`'),
+    '<ul><li><strong>MRU01</strong>: ACTIVE</li><li>PMI01: <code>PENDING</code></li></ul>')
+  assert.equal(md('1. uno\n2. dos'), '<ol><li>uno</li><li>dos</li></ol>')
+  assert.equal(md('- a\n  - a1\n- b'), '<ul><li>a<ul><li>a1</li></ul></li><li>b</li></ul>')
+  assert.equal(md('## Estado'), '<h4>Estado</h4>')
+  assert.equal(md('línea 1\nlínea 2'), '<p>línea 1<br>línea 2</p>')
+  assert.equal(md('| Hotel | Estado |\n|---|---|\n| MRU01 | ACTIVE |'),
+    '<table><thead><tr><th>Hotel</th><th>Estado</th></tr></thead><tbody><tr><td>MRU01</td><td>ACTIVE</td></tr></tbody></table>')
+  // el código, tal cual y escapado; sin cerrar (el stream a medias) llega hasta el final
+  assert.equal(md('```\n<b>x</b>\n```'), '<pre><code>&lt;b&gt;x&lt;/b&gt;</code></pre>')
+  assert.equal(md('```\nmedio'), '<pre><code>medio</code></pre>')
+  // a medias, un ** sin pareja es texto
+  assert.equal(md('Hay **2'), '<p>Hay **2</p>')
+  // seguridad: el HTML del texto sale como texto, y solo hay enlaces http(s), en otra pestaña
+  assert.equal(md('<script>alert(1)</script><img src=x onerror=alert(1)>'),
+    '<p>&lt;script&gt;alert(1)&lt;/script&gt;&lt;img src=x onerror=alert(1)&gt;</p>')
+  assert.equal(md('[x](javascript:alert(1))'), '<p>[x](javascript:alert(1))</p>')
+  assert.equal(md('[doc](https://a.b/c?d=1&e="2")'),
+    '<p><a href="https://a.b/c?d=1&amp;e=&quot;2&quot;" target="_blank" rel="noopener noreferrer">doc</a></p>')
+  assert.equal(md(''), '')
+  assert.equal(md(null), '')
+  // la burbuja del asistente lo pinta con oj-bind-dom (la de la persona, texto tal cual)
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /<oj-bind-dom config="\[\[ \$functions\.chatMessageDom\(\$current\.data\.text\) \]\]"><\/oj-bind-dom>/)
+  assert.match(shell, /<span class="mateu-chat-user-text"><oj-bind-text value="\[\[ \$current\.data\.text \]\]"><\/oj-bind-text><\/span>/)
+  assert.match(webApp('pages/shell-page.js'), /bridge\.chatMarkdownToHtml\(text\)/)
+  assert.equal(JSON.parse(webApp('pages/shell-page.json')).imports.components['oj-bind-dom'].path, 'ojs/ojbinddom')
+  assert.match(webApp('resources/js/mateu-bridge.js'), /chatMarkdownToHtml,/)
+})
+
 test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
   const shell = webApp('pages/shell-page.html')
   const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- Navigator PERSISTENTE/)[0]
@@ -2006,7 +2039,7 @@ const sseResponse = (chunks) => {
   }
 }
 
-atest('chat: streamChat acumula payloads data: (trimmed, como el chat compartido) y bufferea a través de trozos', async () => {
+atest('chat: streamChat acumula payloads data: (trimmed, cada línea con su salto, como el chat compartido) y bufferea a través de trozos', async () => {
   const texts = []
   const out = await streamChat({
     url: '/sse', body: { message: 'hola' },
@@ -2014,8 +2047,17 @@ atest('chat: streamChat acumula payloads data: (trimmed, como el chat compartido
     fetchImpl: async () => sseResponse(['data: uno\n', 'data: d', 'os\n']),
     onText: (t) => texts.push(t),
   })
-  assert.equal(out, 'unodos', 'payloads trimmed y concatenados = paridad con mateu-chat')
-  assert.equal(texts[texts.length - 1], 'unodos')
+  assert.equal(out, 'uno\ndos\n', 'payloads trimmed, cada línea con su salto = paridad con mateu-chat')
+  assert.equal(texts[texts.length - 1], 'uno\ndos\n')
+})
+
+atest('chat: streamChat conserva las líneas del markdown (una por data:, las vacías incluidas)', async () => {
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data: ## Estado\ndata: \ndata: - **MRU01**\n', 'data: - PMI01\n']),
+  })
+  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n')
+  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li><li>PMI01</li></ul>')
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
@@ -2076,7 +2118,7 @@ atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el 
       },
     })
     assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
-    assert.equal(out, 'hola')
+    assert.equal(out, 'hola\n')
   } finally {
     globalThis.localStorage = originalStorage
     globalThis.document = originalDocument

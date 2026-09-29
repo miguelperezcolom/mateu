@@ -271,7 +271,16 @@
                     :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
                     <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
                       :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
-                      <oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text>
+                      <!-- lo que escribe la persona, tal cual; lo que contesta el asistente es markdown:
+                           se pinta formado (listas, negritas, tablas, código), con el HTML escapado -->
+                      <oj-bind-if test="[[ $current.data.role === 'user' ]]">
+                        <span class="mateu-chat-user-text"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                      </oj-bind-if>
+                      <oj-bind-if test="[[ $current.data.role !== 'user' ]]">
+                        <div class="mateu-chat-markdown">
+                          <oj-bind-dom config="[[ $functions.chatMessageDom($current.data.text) ]]"></oj-bind-dom>
+                        </div>
+                      </oj-bind-if>
                     </div>
                   </div>
                 </oj-bind-if>
