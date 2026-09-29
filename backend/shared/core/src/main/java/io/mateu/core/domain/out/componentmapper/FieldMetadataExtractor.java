@@ -4,6 +4,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.NavLink;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
@@ -233,12 +234,57 @@ public class FieldMetadataExtractor {
 
   static List<Option> getOptions(Field field, Object instance, HttpRequest httpRequest) {
     if (instance instanceof OptionsSupplier optionsSupplier) {
-      return optionsSupplier.options(field.getName(), httpRequest);
+      var supplied = optionsSupplier.options(field.getName(), httpRequest);
+      if (supplied != null && !supplied.isEmpty()) {
+        return supplied;
+      }
     }
     if (field.getType().isEnum()) {
       return enumOptions(field.getType());
     }
+    if (MetaAnnotations.isPresent(field, Lookup.class)
+        && SHOWS_EVERY_OPTION.contains(
+            FieldTypeMapper.getStereotype(field, instance, httpRequest))) {
+      return lookupOptions(field, instance, httpRequest);
+    }
     return new ArrayList<>();
+  }
+
+  /**
+   * The widgets that show every option at once, and so read the field's static {@code options}
+   * instead of searching as the user types. A {@code @Lookup} serves its options on demand, through
+   * the {@code search-<field>} action only the combo box calls — rendered as one of these it
+   * painted an empty group.
+   */
+  private static final java.util.Set<FieldStereotype> SHOWS_EVERY_OPTION =
+      java.util.EnumSet.of(
+          FieldStereotype.checkbox,
+          FieldStereotype.radio,
+          FieldStereotype.select,
+          FieldStereotype.listBox,
+          FieldStereotype.choice,
+          FieldStereotype.multiSelect);
+
+  /** How many options a lookup shown whole may bring; a longer list wants the combo box. */
+  static final int MAX_LOOKUP_OPTIONS_SHOWN = 100;
+
+  private static List<Option> lookupOptions(Field field, Object instance, HttpRequest httpRequest) {
+    var supplier =
+        io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLookupOptionsSupplier(
+            instance, field);
+    if (supplier == null) {
+      return new ArrayList<>();
+    }
+    var found =
+        supplier.search(
+            field.getName(),
+            "",
+            new io.mateu.uidl.data.Pageable(0, MAX_LOOKUP_OPTIONS_SHOWN, List.of()),
+            httpRequest);
+    if (found == null || found.page() == null || found.page().content() == null) {
+      return new ArrayList<>();
+    }
+    return new ArrayList<>(found.page().content());
   }
 
   /** One option per constant of {@code enumType}, honouring per-constant @Label/@Icon. */
