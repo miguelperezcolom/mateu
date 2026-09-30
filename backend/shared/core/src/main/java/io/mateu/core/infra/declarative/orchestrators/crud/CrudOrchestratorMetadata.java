@@ -4,6 +4,9 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormCo
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.FoldoutDetail;
+import io.mateu.uidl.annotations.PageWidth;
+import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
@@ -33,14 +36,35 @@ final class CrudOrchestratorMetadata {
   }
 
   static String getStyleForView(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
-    var viewClass = orchestrator.viewClass();
+    return styleForView(orchestrator.viewClass(), orchestrator.metadataSource());
+  }
+
+  /** The detail's container style: an explicit {@code @Style} first, then the page it asks for. */
+  static String styleForView(Class<?> viewClass, Class<?> metadataSource) {
     if (MetaAnnotations.isPresent(viewClass, Style.class)) {
       return MetaAnnotations.find(viewClass, Style.class).value();
     }
-    if (MetaAnnotations.isPresent(orchestrator.metadataSource(), Style.class)) {
-      return MetaAnnotations.find(orchestrator.metadataSource(), Style.class).value();
+    if (MetaAnnotations.isPresent(metadataSource, Style.class)) {
+      return MetaAnnotations.find(metadataSource, Style.class).value();
+    }
+    // A foldout detail and a view asking for a full or edge-to-edge page take the whole content
+    // column, as the Redwood renderer draws them: capped at 900px the panels had no room beside the
+    // overview in Vaadin, while Redwood showed three or four of them.
+    if (MetaAnnotations.isPresent(viewClass, FoldoutDetail.class)
+        || wide(viewClass)
+        || wide(metadataSource)) {
+      return "width: 100%;";
     }
     return getFormColumns(viewClass) > 2 ? "width: 100%;" : "max-width:900px;margin: auto;";
+  }
+
+  /** Whether a class asks for a page wider than the fixed one ({@code @PageWidth}). */
+  private static boolean wide(Class<?> type) {
+    if (type == null || !MetaAnnotations.isPresent(type, PageWidth.class)) {
+      return false;
+    }
+    var width = MetaAnnotations.find(type, PageWidth.class).value();
+    return width == PageWidthStyle.FULL_WIDTH || width == PageWidthStyle.EDGE_TO_EDGE;
   }
 
   private CrudOrchestratorMetadata() {}

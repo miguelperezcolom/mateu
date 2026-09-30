@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu, loadLookups } from './transport.mjs'
+import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu, loadLookups } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
   askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
@@ -493,6 +493,16 @@ test('el overview @FoldoutDetail de una reserva real pinta hotel y canal por su 
   assert.equal(byLabel['Channel code'], 'CALLCENTER — Central de reservas (call center)')
   assert.equal(byLabel['Opera reservation'], '39486242')
   assert.ok(foldout.panels.map((p) => p.title).includes('History'))
+})
+
+// La insignia de la página (@Status «Confirmed») encabeza el overview del foldout: el web la pinta
+// junto al título y la cabecera de VB no tiene sitio para ella.
+test('el overview @FoldoutDetail lleva la insignia de estado de la página, con la clase badge de JET', () => {
+  const { contexts } = reduceContexts(empty(), fx('crud-view-foldout-booking'))
+  const foldout = foldoutOf(contexts[HOST_ID])
+  assert.deepEqual(foldout.badges.map((b) => [b.label, b.badgeClass]),
+    [['Confirmed', 'oj-badge oj-badge-success oj-badge-subtle']])
+  assert.equal(foldout.overview.blocks[0].isBadge, true)
 })
 
 test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {
@@ -1176,6 +1186,24 @@ test('routeFlipOf: un fragmento solo-estado con _route nuevo pide recargar la ru
   const embedded = { state: { _route: '/edit' }, outbound: { route: '/pax?_embeddedMediator=1' } }
   assert.equal(routeFlipOf({}, embedded, { fragments: [{ component: null }] }),
     '/pax/edit?_embeddedMediator=1')
+})
+
+test('mediatorBaseOf: un detalle abierto por enlace directo pega su Edit a lo consumido, no a su ruta', () => {
+  // wire real (rw.ec1, booking QN29HB pegado en la barra): la carga va con route
+  // /booking/bookings/QN29HB y consumedRoute /booking/bookings; el Edit contesta _route
+  // /QN29HB/edit. Pegado a la ruta daba /booking/bookings/QN29HB/QN29HB/edit.
+  const deepLinked = { route: '/booking/bookings/QN29HB', consumedRoute: '/booking/bookings' }
+  assert.equal(mediatorBaseOf(deepLinked), '/booking/bookings')
+  const stateOnly = { fragments: [{ component: null, state: { _route: '/QN29HB/edit' } }] }
+  assert.equal(routeFlipOf({}, { state: { _route: '/QN29HB/edit' }, outbound: deepLinked }, stateOnly),
+    '/booking/bookings/QN29HB/edit')
+  // desde el listado ya coincidían
+  assert.equal(mediatorBaseOf({ route: '/booking/bookings', consumedRoute: '/booking/bookings' }), '/booking/bookings')
+  // sin consumedRoute (mediador embebido) se queda la ruta, con su query
+  assert.equal(mediatorBaseOf({ route: '/pax?_embeddedMediator=1' }), '/pax?_embeddedMediator=1')
+  // una ruta 'null' no se pega nunca
+  assert.equal(mediatorBaseOf({ route: 'null' }, ''), '')
+  assert.equal(mediatorBaseOf({ route: 'null', consumedRoute: '/integrations' }, '/integrations/7'), '/integrations')
 })
 
 atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compuesta', async () => {

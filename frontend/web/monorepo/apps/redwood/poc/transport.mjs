@@ -61,6 +61,27 @@ export function composeInnerRoute(outboundRoute, flip) {
 }
 
 /**
+ * La base de un crud de PÁGINA a la que se pegan sus rutas internas (`/QN29HB`, `/QN29HB/edit`,
+ * `/new`): su `consumedRoute`, no la ruta con la que se cargó. Entrando desde el listado las dos
+ * coinciden (`/booking/bookings`), pero un detalle abierto por enlace directo se carga con
+ * `/booking/bookings/QN29HB` y lo consumido es `/booking/bookings`: pegar ahí el `/QN29HB/edit`
+ * del Edit daba `/booking/bookings/QN29HB/QN29HB/edit`. Solo cuando lo consumido es un prefijo de
+ * la ruta; un mediador embebido (sin consumedRoute) conserva su ruta y sus marcadores de query.
+ */
+export function mediatorBaseOf(outbound, fallbackRoute = '') {
+  const o = outbound || {}
+  const own = o.route && o.route !== 'null' && o.route !== 'undefined' ? o.route : ''
+  const route = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+  const consumed = o.consumedRoute
+  if (!consumed || consumed === '_empty' || !consumed.startsWith('/')) return route
+  const queryIndex = route.indexOf('?')
+  const path = queryIndex >= 0 ? route.slice(0, queryIndex) : route
+  const query = queryIndex >= 0 ? route.slice(queryIndex) : ''
+  if (path !== consumed && path.startsWith(consumed + '/')) return consumed + query
+  return route
+}
+
+/**
  * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
  * null si no hay flip.
  *
@@ -80,7 +101,7 @@ export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '
   const previous = previousState ? previousState._route : undefined
   if (flip == null || flip === previous) return null
   const outbound = nextCtx.outbound || {}
-  return composeInnerRoute(outbound.route || fallbackRoute || '', flip)
+  return composeInnerRoute(mediatorBaseOf(outbound, fallbackRoute), flip)
 }
 
 /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).

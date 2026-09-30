@@ -373,11 +373,29 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         blockClass: block.colClass || 'oj-flex-item oj-sm-12',
       }))
     }
+    // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
+    // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
+    // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const state = (ctx && ctx.state) || {}
+    const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
+      .map((b) => {
+        const label = interpolate(b.text || '', state)
+        const color = interpolate(b.color || '', state)
+        return {
+          isBadge: true,
+          label,
+          badgeClass: STATUS_BADGE[color] || BADGE_CLASSES[String(color).toLowerCase()] || STATUS_BADGE.NONE,
+          blockClass: 'oj-flex-item oj-sm-12',
+        }
+      })
+      .filter((b) => b.label && b.label.trim() && !b.label.includes('${'))
     return {
       headerTitle: md.headerTitle || '',
+      badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
-        blocks: blocksOf(bySlot['overview']),
+        blocks: pageBadges.concat(blocksOf(bySlot['overview'])),
       },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
@@ -925,11 +943,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function interpolate(text, state) {
     // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
     // llega como ${state['_position']})
+    // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
     return String(text == null ? '' : text).replace(
-      /\$\{state(?:\.([A-Za-z0-9_]+)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+      /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
       (all, dotted, quoted) => {
-        const key = dotted || quoted
-        return state && state[key] != null ? String(state[key]) : ''
+        if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
+        let value = state
+        for (const part of dotted.split('.')) {
+          value = value != null && typeof value === 'object' ? value[part] : undefined
+        }
+        return value != null && typeof value !== 'object' ? String(value) : ''
       },
     )
   }
@@ -4219,6 +4242,27 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
+   * La base de un crud de PÁGINA a la que se pegan sus rutas internas (`/QN29HB`, `/QN29HB/edit`,
+   * `/new`): su `consumedRoute`, no la ruta con la que se cargó. Entrando desde el listado las dos
+   * coinciden (`/booking/bookings`), pero un detalle abierto por enlace directo se carga con
+   * `/booking/bookings/QN29HB` y lo consumido es `/booking/bookings`: pegar ahí el `/QN29HB/edit`
+   * del Edit daba `/booking/bookings/QN29HB/QN29HB/edit`. Solo cuando lo consumido es un prefijo de
+   * la ruta; un mediador embebido (sin consumedRoute) conserva su ruta y sus marcadores de query.
+   */
+  function mediatorBaseOf(outbound, fallbackRoute = '') {
+    const o = outbound || {}
+    const own = o.route && o.route !== 'null' && o.route !== 'undefined' ? o.route : ''
+    const route = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+    const consumed = o.consumedRoute
+    if (!consumed || consumed === '_empty' || !consumed.startsWith('/')) return route
+    const queryIndex = route.indexOf('?')
+    const path = queryIndex >= 0 ? route.slice(0, queryIndex) : route
+    const query = queryIndex >= 0 ? route.slice(queryIndex) : ''
+    if (path !== consumed && path.startsWith(consumed + '/')) return consumed + query
+    return route
+  }
+
+  /**
    * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
    * null si no hay flip.
    *
@@ -4238,7 +4282,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const previous = previousState ? previousState._route : undefined
     if (flip == null || flip === previous) return null
     const outbound = nextCtx.outbound || {}
-    return composeInnerRoute(outbound.route || fallbackRoute || '', flip)
+    return composeInnerRoute(mediatorBaseOf(outbound, fallbackRoute), flip)
   }
 
   /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
@@ -5496,6 +5540,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     loadRoute,
     loadRouteInto,
     composeInnerRoute,
+    mediatorBaseOf,
     routeFlipOf,
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,

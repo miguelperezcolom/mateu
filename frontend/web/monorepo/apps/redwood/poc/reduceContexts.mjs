@@ -368,11 +368,29 @@ export function foldoutOf(ctx) {
       blockClass: block.colClass || 'oj-flex-item oj-sm-12',
     }))
   }
+  // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
+  // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
+  // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
+  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const state = (ctx && ctx.state) || {}
+  const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
+    .map((b) => {
+      const label = interpolate(b.text || '', state)
+      const color = interpolate(b.color || '', state)
+      return {
+        isBadge: true,
+        label,
+        badgeClass: STATUS_BADGE[color] || BADGE_CLASSES[String(color).toLowerCase()] || STATUS_BADGE.NONE,
+        blockClass: 'oj-flex-item oj-sm-12',
+      }
+    })
+    .filter((b) => b.label && b.label.trim() && !b.label.includes('${'))
   return {
     headerTitle: md.headerTitle || '',
+    badges: pageBadges,
     overview: {
       texts: collectTexts(bySlot['overview']),
-      blocks: blocksOf(bySlot['overview']),
+      blocks: pageBadges.concat(blocksOf(bySlot['overview'])),
     },
     panels: (md.panels || []).map((panel, i) => ({
       title: panel.title || '',
@@ -920,11 +938,16 @@ export function emptyStateOf(tree) {
 export function interpolate(text, state) {
   // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
   // llega como ${state['_position']})
+  // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
   return String(text == null ? '' : text).replace(
-    /\$\{state(?:\.([A-Za-z0-9_]+)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+    /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
     (all, dotted, quoted) => {
-      const key = dotted || quoted
-      return state && state[key] != null ? String(state[key]) : ''
+      if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
+      let value = state
+      for (const part of dotted.split('.')) {
+        value = value != null && typeof value === 'object' ? value[part] : undefined
+      }
+      return value != null && typeof value !== 'object' ? String(value) : ''
     },
   )
 }

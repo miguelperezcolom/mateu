@@ -228,7 +228,7 @@ define([
         host && host.state, reg.contexts[bridge.HOST_ID], lastIncrement, route);
       if (flipRoute) {
         const flipOutbound = (reg.contexts[bridge.HOST_ID] || {}).outbound || {};
-        const mediatorRoute = flipOutbound.route || route || '';
+        const mediatorRoute = bridge.mediatorBaseOf(flipOutbound, route);
         // la URL acompaña al contenido: el detalle es direccionable y el botón atrás devuelve al
         // listado (el popstate de la shell recarga la ruta anterior). Se empuja ANTES de cargar
         // el detalle, como un enlace: empujada al final, un "atrás" pulsado durante la carga no
