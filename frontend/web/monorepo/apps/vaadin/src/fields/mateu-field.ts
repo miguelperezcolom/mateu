@@ -760,6 +760,13 @@ export class MateuField extends LitElement {
     private renderPropertyRowField(_fieldId: string, value: any, _label: any, labelText: string): TemplateResult {
         if (!this.field) return html``
             let v = evalIfNecessary(value, this.state, this.data)
+            // a read-only lookup travels as the field '<field>-label', its LABEL in data (not in
+            // the state); a plain field may carry its label the same way — show the label
+            const data = (this.data as any) ?? {}
+            const fromData = (key: string) => (data[key] !== undefined && data[key] !== null && typeof data[key] !== 'object') ? data[key] : undefined
+            if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
+            const lookupLabel = fromData(this.field.fieldId + '-label')
+            if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
             const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
             if (v && (v as any).value) v = (v as any).value
             const isBool = this.field?.dataType == 'bool' || v === true || v === false

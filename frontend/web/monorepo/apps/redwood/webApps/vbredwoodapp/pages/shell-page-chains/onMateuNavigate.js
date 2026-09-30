@@ -336,8 +336,9 @@ define([
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
-      if (welcome || overviewProjection || itemProjection) {
-        // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
+      if (welcome || overviewProjection || itemProjection || $application.variables.mateuFoldout) {
+        // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
+        // la vista @FoldoutDetail de un crud), no el form genérico
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormSections = [];
@@ -438,9 +439,11 @@ define([
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
+      // un foldout con acciones de página (la vista @FoldoutDetail de un crud: Edit, Cancel…)
+      // conserva el header de vb, que es donde van esas acciones
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary
-        || ($application.variables.mateuFoldout && !hostEntity));
+        || ($application.variables.mateuFoldout && !hostEntity && !hostToolbar.length));
       const showHeader = !integratedHeader;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)

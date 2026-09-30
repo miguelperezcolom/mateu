@@ -359,7 +359,7 @@ export function foldoutOf(ctx) {
   for (const child of children) bySlot[child.slot || ''] = child
   const blocksOf = (slotNode) => {
     const blocks = slotNode
-      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {} })
+      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
       : null
     // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
     // el resto a fila completa
@@ -1119,8 +1119,15 @@ export function islandContentOf(ctx, opts = {}) {
         return
       }
       if (m.propertyRow) {
-        const raw = state[fieldId] != null ? state[fieldId] : (m.value != null ? m.value : '')
-        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(raw)) }, container)
+        // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
+        // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
+        const data = ctx.data || {}
+        const fromData = (key) => (data[key] != null && typeof data[key] !== 'object' ? data[key] : null)
+        const raw = state[fieldId] != null ? state[fieldId]
+          : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
+        const lookupLabel = fromData(fieldId + '-label')
+        const shown = lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
         return
       }
       // FormField FLUIDO editable (p.ej. el buscador de cargos del modo check-out):

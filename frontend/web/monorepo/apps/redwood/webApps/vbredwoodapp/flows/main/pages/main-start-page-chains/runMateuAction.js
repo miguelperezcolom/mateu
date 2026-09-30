@@ -477,8 +477,9 @@ define([
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
         ? itemProjection.tabs[0].texts : [];
-      if (welcome || overviewProjection || itemProjection) {
-        // sus campos/botones los pintan las ramas del arquetipo, no el form genérico
+      if (welcome || overviewProjection || itemProjection || $application.variables.mateuFoldout) {
+        // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
+        // la vista @FoldoutDetail de un crud), no el form genérico
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormSections = [];
@@ -561,7 +562,7 @@ define([
       // smart-filter-search del listado) lo suprimen
       const integratedHeader = !!($application.variables.mateuWizard || welcome
         || overviewProjection || listingSummary
-        || ($application.variables.mateuFoldout && !hostEntity2));
+        || ($application.variables.mateuFoldout && !hostEntity2 && !hostToolbarA.length));
       const showHeaderA = !integratedHeader;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
