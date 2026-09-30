@@ -99,6 +99,11 @@ final class FormSectionGrouper {
                 public boolean frameless() {
                   return false;
                 }
+
+                @Override
+                public io.mateu.uidl.annotations.PanelWidth panelWidth() {
+                  return io.mateu.uidl.annotations.PanelWidth.AUTO;
+                }
               };
         }
         sectionFields = null;

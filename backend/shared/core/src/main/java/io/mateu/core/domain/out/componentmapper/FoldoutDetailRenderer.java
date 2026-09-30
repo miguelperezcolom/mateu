@@ -105,6 +105,7 @@ final class FoldoutDetailRenderer {
           FoldoutPanel.builder()
               .id("section-" + index)
               .title(section.value())
+              .width(panelWidth(section, shown.get(section).fields()))
               .open(!folded.contains(section.value()))
               .content(
                   content.size() == 1
@@ -122,6 +123,40 @@ final class FoldoutDetailRenderer {
         .panels(panels)
         .orientation(foldout.orientation())
         .build();
+  }
+
+  static final String NARROW = "20rem";
+  static final String MEDIUM = "28rem";
+  static final String WIDE = "44rem";
+
+  /**
+   * A panel's width: the section's {@code panelWidth} if it fixes one; otherwise by what it holds —
+   * wide for a list, a table or a component (a history, the rooms with their guests), narrow for a
+   * few short fields, medium for a longer form. Every renderer keeps its readable minimum.
+   */
+  static String panelWidth(Section section, List<Field> fields) {
+    switch (section.panelWidth()) {
+      case NARROW:
+        return NARROW;
+      case MEDIUM:
+        return MEDIUM;
+      case WIDE:
+        return WIDE;
+      default:
+        break;
+    }
+    for (var field : fields) {
+      var type = field.getType();
+      if (Collection.class.isAssignableFrom(type)
+          || type.isArray()
+          || Map.class.isAssignableFrom(type)
+          || java.util.concurrent.Callable.class.isAssignableFrom(type)
+          || java.util.function.Supplier.class.isAssignableFrom(type)
+          || Component.class.isAssignableFrom(type)) {
+        return WIDE;
+      }
+    }
+    return fields.size() <= 4 ? NARROW : MEDIUM;
   }
 
   private static Component row(List<UserTrigger> triggers) {
