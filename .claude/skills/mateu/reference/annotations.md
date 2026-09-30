@@ -57,6 +57,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | `@Zones` + `@Zone(name,width)` | side-by-side columns |
 | `@Accordion`, `@AccordionPanel` | collapsible sections |
 | `@SplitLayout`, `@MasterDetail`, `@FoldedLayout` | split / master-detail |
+- `@FoldoutDetail(overview={...}, folded={...}, orientation=vertical)` (class) — the read-only view of a record as overview (property list) + one foldout panel per remaining `@Section`; empty fields and sections are hidden; the editor keeps the regular form.
 | `@Compact` | high-density mode |
 | `@Inline` | expand a nested object into the parent section |
 

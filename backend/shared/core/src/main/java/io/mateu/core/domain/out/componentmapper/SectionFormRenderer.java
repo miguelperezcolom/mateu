@@ -8,6 +8,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewIns
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.FoldedLayout;
+import io.mateu.uidl.annotations.FoldoutDetail;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Zone;
@@ -44,6 +45,22 @@ final class SectionFormRenderer {
 
     Class<?> instanceClass() {
       return instance instanceof Class ? (Class<?>) instance : instance.getClass();
+    }
+
+    /** The same context, with other fields per section (the foldout hides the empty ones). */
+    Ctx withFields(Map<Section, SectionFields> fields) {
+      return new Ctx(
+          fields,
+          prefix,
+          instance,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest,
+          forCreationForm,
+          readOnly,
+          level);
     }
   }
 
@@ -82,6 +99,27 @@ final class SectionFormRenderer {
       if (MetaAnnotations.isPresent(instanceClass, Zones.class)) {
         return List.of(
             renderZones((Zones) MetaAnnotations.find(instanceClass, Zones.class), sections, ctx));
+      }
+      if (ctx.readOnly()
+          && !ctx.forCreationForm()
+          && MetaAnnotations.isPresent(instanceClass, FoldoutDetail.class)) {
+        var foldout =
+            FoldoutDetailRenderer.render(
+                (FoldoutDetail) MetaAnnotations.find(instanceClass, FoldoutDetail.class),
+                sections,
+                ctx.fieldsPerSection(),
+                ctx.instance(),
+                (section, fields) -> {
+                  var sub = ctx.withFields(fields);
+                  return new FoldoutDetailRenderer.Body(
+                      buildFormLayout(section, sub),
+                      collectInlineTriggers(section, sub, true),
+                      collectInlineTriggers(section, sub, false));
+                },
+                fields -> asPropertyList(toFormLayout(fields, 1, ctx)));
+        if (foldout != null) {
+          return List.of(foldout);
+        }
       }
       if (MetaAnnotations.isPresent(instanceClass, FoldedLayout.class)) {
         return List.of(

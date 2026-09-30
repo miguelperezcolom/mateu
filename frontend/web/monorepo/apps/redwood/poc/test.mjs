@@ -468,6 +468,19 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
+// @FoldoutDetail: la vista (solo lectura) de un registro como foldout — overview en lista de
+// propiedades, un panel por sección con contenido; lo vacío no viaja (backend FoldoutDetailSyncTest).
+test('una vista @FoldoutDetail proyecta overview en propiedades y paneles solo con contenido', () => {
+  const { contexts } = reduceContexts(empty(), fx('crud-view-foldout'))
+  const foldout = foldoutOf(contexts['fv_app'])
+  assert.ok(foldout)
+  const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
+  assert.deepEqual(rows.map((r) => [r.label, r.value]), [['Locator', 'QN29HB'], ['Hotel', 'MRU01'], ['Total', '306.00 EUR']])
+  assert.deepEqual(foldout.panels.map((p) => [p.title, p.open]), [['Titular', true], ['Seguimiento', false]])
+  const fields = foldout.panels[0].blocks.flatMap((b) => b.items || []).flatMap((i) => i.fields || [])
+  assert.deepEqual(fields.map((f) => [f.fieldId, f.value, f.readonly]), [['holder', 'Giulia Keller', true]])
+})
+
 test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {
   const { contexts } = reduceContexts(empty(), fx('load-foldout'))
   const foldout = foldoutOf(contexts[HOST_ID])

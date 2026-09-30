@@ -47,6 +47,37 @@ Each `@Section` becomes a collapsible panel. Subform fields (nested records/clas
 
 ---
 
+## @FoldoutDetail
+
+Renders the **read-only view** of a record — a CRUD's detail page, an editable view in view mode — as a foldout: an overview with the record's key information (drawn as a property list) plus one lateral panel per remaining `@Section`. The Redwood renderer uses the Oracle Spectra foldout layout; Vaadin its foldout carousel. Editing and creating keep the regular form, so the same class draws both.
+
+What has nothing to show is left out: a field whose value is null, blank or an empty collection is hidden, and a section whose fields are all hidden gets no panel. The page's toolbar actions stay in the page header.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+public @interface FoldoutDetail {
+    String[] overview() default {};   // section titles that make the overview; empty = first section with content
+    String[] folded() default {};     // section titles whose panels start closed
+    FoldoutOrientation orientation() default FoldoutOrientation.vertical;
+}
+```
+
+### Example
+
+```java
+@FoldoutDetail(overview = {"Booking", "Amounts"}, folded = {"Tracking"})
+public class BookingViewModel {
+    @Section("Booking")  String hotelCode; LocalDate arrival; LocalDate departure;
+    @Section("Holder")   String holderFirstName; String holderLastName;
+    @Section("Rooms")    List<RoomViewModel> rooms;
+    @Section("Amounts")  String total; String paid;
+    @Section("Tracking") String id; Long version;
+}
+```
+
+---
+
 ## @FormLayout
 
 Renders the page fields in a responsive multi-column grid. This is the standard layout for data-entry forms.
