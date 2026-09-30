@@ -8,6 +8,13 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
 public class PersistActionHandler implements CrudOrchestratorActionHandler {
+
+  /**
+   * Request attribute a crud's {@code save}/{@code create} may set to replace the "Item saved
+   * successfully" notification — e.g. "Sin cambios" when there was nothing to save.
+   */
+  public static final String SAVED_MESSAGE = "mateu.savedMessage";
+
   @Override
   public boolean supports(String actionId, HttpRequest httpRequest) {
     return "save".equals(actionId) || "create".equals(actionId);
@@ -33,13 +40,17 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
           actionId,
           null);
     }
+    // What the save said, if it said something ({@link #SAVED_MESSAGE}): "Sin cambios" for a save
+    // that found nothing to change, instead of claiming it saved.
+    var said = httpRequest.getAttribute(SAVED_MESSAGE);
     var result =
         CrudActionResult.of(actionId)
             .withSavedId(savedId)
             .withMessage(
                 Message.builder()
-                    .variant(NotificationVariant.success)
-                    .text("Item saved successfully")
+                    .variant(
+                        said == null ? NotificationVariant.success : NotificationVariant.contrast)
+                    .text(said == null ? "Item saved successfully" : said.toString())
                     .build());
     if (orchestrator.editInDrawer()) {
       // drawer mode: persist, then close the drawer EMITTING the saved event — the listing

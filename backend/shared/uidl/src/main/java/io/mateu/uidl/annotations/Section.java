@@ -54,4 +54,10 @@ public @interface Section {
    * (the index anchors on section cards).
    */
   boolean frameless() default false;
+
+  /**
+   * The section's width when it is drawn as a panel beside others (a {@link FoldoutDetail}'s
+   * foldout panels). {@code AUTO}, the default, sizes it by its content; the others fix it.
+   */
+  PanelWidth panelWidth() default PanelWidth.AUTO;
 }

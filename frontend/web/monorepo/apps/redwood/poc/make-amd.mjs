@@ -131,6 +131,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     loadRoute,
     loadRouteInto,
     composeInnerRoute,
+    mediatorBaseOf,
     routeFlipOf,
     // menús federados: la shell los expande al arrancar, la navegación consulta a qué pod ir
     expandRemoteMenus,
