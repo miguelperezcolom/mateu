@@ -3248,7 +3248,17 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     return s
   }
 
-  const plainText = (text) => String(text == null ? '' : text).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+  // el título como texto: fuera el marcado (repetidamente, para que nada se recomponga con los
+  // trozos) y después cualquier corchete que quede
+  const plainText = (text) => {
+    let s = String(text == null ? '' : text)
+    let previous
+    do {
+      previous = s
+      s = s.replace(/<[^<>]*>/g, '')
+    } while (s !== previous)
+    return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
+  }
 
   function menuTrail(menu, path) {
     const current = normRoute(path)

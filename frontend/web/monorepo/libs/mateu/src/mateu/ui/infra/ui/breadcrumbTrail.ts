@@ -38,8 +38,16 @@ const norm = (r: string | undefined | null): string => {
     return s
 }
 
-const plain = (text: string | undefined): string =>
-    (text ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+/** A title as text: markup out (repeatedly, so nothing is rebuilt from the pieces), then any bracket left. */
+const plain = (text: string | undefined): string => {
+    let s = text ?? ''
+    let previous: string
+    do {
+        previous = s
+        s = s.replace(/<[^<>]*>/g, '')
+    } while (s !== previous)
+    return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
+}
 
 const isSpanish = (explicit?: string): boolean => {
     const lang = explicit || (typeof document !== 'undefined' && document.documentElement?.lang)
