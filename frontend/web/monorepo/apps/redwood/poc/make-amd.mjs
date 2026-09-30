@@ -206,5 +206,14 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 `
 
 mkdirSync(dirname(out), { recursive: true })
+// El cuerpo concatenado comparte UN scope: dos módulos que declaren el mismo nombre de nivel
+// superior lo rompen en el navegador («Identifier … has already been declared») y la app entera no
+// carga, aunque cada módulo por separado pase sus tests. Se comprueba aquí, antes de escribirlo.
+try {
+  new Function(body)
+} catch (e) {
+  console.error('mateu-bridge.js no compila: ' + e.message)
+  process.exit(1)
+}
 writeFileSync(out, amd)
 console.log(`Escrito ${out} (${amd.length} bytes)`)

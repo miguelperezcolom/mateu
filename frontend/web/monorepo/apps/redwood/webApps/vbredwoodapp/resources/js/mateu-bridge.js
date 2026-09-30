@@ -3155,7 +3155,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   // lugar, la afordancia «ir al padre» (displayOptions.goToParent). De este rastro sale ese padre:
   // la última miga con ruta antes de la actual.
 
-  const normRoute = (r) => {
+  const crumbRoute = (r) => {
     let s = String(r == null ? '' : r).trim()
     const q = s.search(/[?#]/)
     if (q >= 0) s = s.slice(0, q)
@@ -3166,7 +3166,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   // el título como texto: fuera el marcado (repetidamente, para que nada se recomponga con los
   // trozos) y después cualquier corchete que quede
-  const plainText = (text) => {
+  const crumbText = (text) => {
     let s = String(text == null ? '' : text)
     let previous
     do {
@@ -3177,13 +3177,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   function menuTrail(menu, path) {
-    const current = normRoute(path)
+    const current = crumbRoute(path)
     let best = null
     const walk = (options, above) => {
       for (const option of options || []) {
         if (!option || option.separator || option.visible === false) continue
-        const route = normRoute(option.route || option.path)
-        const label = plainText(option.caption || option.label)
+        const route = crumbRoute(option.route || option.path)
+        const label = crumbText(option.caption || option.label)
         const children = option.submenus || option.submenu || []
         if (children.length > 0) {
           walk(children, [...above, route && route !== '/' ? { text: label, route } : { text: label }])
@@ -3205,7 +3205,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const { crumbs, matched } = menuTrail(menu, path)
     if (!matched) return []
     const trail = [...crumbs]
-    const rest = normRoute(path).slice(matched.length).split('/').filter(Boolean)
+    const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
     const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
     const es = String(lang).toLowerCase().startsWith('es')
@@ -3215,7 +3215,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         trail.push({ text: es ? 'Nuevo' : 'New' })
       } else {
         const recordRoute = matched + '/' + rest[0]
-        const title = plainText(page.title)
+        const title = crumbText(page.title)
         if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
         trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
         if (rest[1] === 'edit') trail.push({ text: es ? 'Editar' : 'Edit' })
