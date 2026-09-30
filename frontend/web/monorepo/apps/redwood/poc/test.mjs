@@ -475,10 +475,24 @@ test('una vista @FoldoutDetail proyecta overview en propiedades y paneles solo c
   const foldout = foldoutOf(contexts['fv_app'])
   assert.ok(foldout)
   const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
-  assert.deepEqual(rows.map((r) => [r.label, r.value]), [['Locator', 'QN29HB'], ['Hotel', 'MRU01'], ['Total', '306.00 EUR']])
+  // un lookup se lee por su etiqueta (data['hotel-label']), no por el código
+  assert.deepEqual(rows.map((r) => [r.label, r.value]), [['Locator', 'QN29HB'], ['Hotel', 'MRU01 — Riu Demo Mauricio'], ['Total', '306.00 EUR']])
   assert.deepEqual(foldout.panels.map((p) => [p.title, p.open]), [['Titular', true], ['Seguimiento', false]])
   const fields = foldout.panels[0].blocks.flatMap((b) => b.items || []).flatMap((i) => i.fields || [])
   assert.deepEqual(fields.map((f) => [f.fieldId, f.value, f.readonly]), [['holder', 'Giulia Keller', true]])
+})
+
+// La vista real de una reserva de ec-demo1 con @FoldoutDetail: los lookups de sólo lectura
+// (hotel, canal) viajan como '<campo>-label' con la etiqueta en data — el overview la lee de ahí.
+test('el overview @FoldoutDetail de una reserva real pinta hotel y canal por su etiqueta', () => {
+  const { contexts } = reduceContexts(empty(), fx('crud-view-foldout-booking'))
+  const foldout = foldoutOf(contexts[HOST_ID])
+  const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
+  const byLabel = Object.fromEntries(rows.map((r) => [r.label, r.value]))
+  assert.equal(byLabel['Hotel code'], 'MRU01 — Riu Demo Mauricio')
+  assert.equal(byLabel['Channel code'], 'CALLCENTER — Central de reservas (call center)')
+  assert.equal(byLabel['Opera reservation'], '39486242')
+  assert.ok(foldout.panels.map((p) => p.title).includes('History'))
 })
 
 test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {

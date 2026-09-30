@@ -280,7 +280,10 @@ export class MateuVaadinFoldout extends LitElement {
                free space (100%-wide foldout) and behave exactly as before when overflowing
                (flex-grow only distributes free space, so the carousel/snapping is untouched) */
             flex: 22 1 var(--mateu-foldout-section-width, 22rem);
-            min-width: 0;
+            /* shrinks to fit, but not past readable: with many panels (a record's detail with a
+               panel per section) the row overflows and scrolls as the carousel it is, instead of
+               squeezing every column to a sliver */
+            min-width: min(var(--mateu-foldout-section-min-width, 16rem), 100%);
             background: var(--mateu-foldout-panel-bg, transparent);
             border: none;
             border-radius: 0;
