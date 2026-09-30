@@ -50,6 +50,17 @@ define([
       if (!id) {
         return;
       }
+      // «ir al padre» sin botón de vuelta: lo puso el rastro automático, y es una navegación —
+      // la misma que el menú (navigation-requested, que escucha la shell)
+      if (id === '__goToParent') {
+        const parentRoute = ($application.variables.mateuPageHeader || {}).parentRoute;
+        if (parentRoute) {
+          document.dispatchEvent(new CustomEvent('navigation-requested', {
+            detail: { route: parentRoute }, bubbles: true, composed: true,
+          }));
+        }
+        return;
+      }
 
       // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
       // hablando con ESE backend, no con el de la shell.
@@ -574,6 +585,7 @@ define([
       const primaryBtnA = bridge.primaryToolbarButton(hostToolbarA);
       // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
       const backBtnA = bridge.backToolbarButton(hostToolbarA);
+      const parentCrumbA = backBtnA ? undefined : bridge.parentCrumb(summary.trail);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
@@ -587,14 +599,17 @@ define([
         primaryId: primaryBtnA ? primaryBtnA.actionId : '',
         secondary: hostToolbarA.filter((b) => b !== primaryBtnA && b !== backBtnA)
           .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
-        goToParent: !!backBtnA,
-        backId: backBtnA ? backBtnA.actionId : '',
-        backLabel: backBtnA ? backBtnA.label : '',
+        // sin botón de vuelta, el «ir al padre» sale del rastro automático (breadcrumbs.mjs):
+        // Redwood no tiene migas, y ésta es la afordancia que su cabecera ofrece en su lugar
+        goToParent: !!backBtnA || !!parentCrumbA,
+        backId: backBtnA ? backBtnA.actionId : (parentCrumbA ? '__goToParent' : ''),
+        parentRoute: !backBtnA && parentCrumbA ? parentCrumbA.route : '',
+        backLabel: backBtnA ? backBtnA.label : (parentCrumbA ? parentCrumbA.text : ''),
         toolbar: hostToolbarA,
       };
       // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
       $application.variables.mateuPageHeaderTranslations = backBtnA
-        ? { goToParent: backBtnA.label } : {};
+        ? { goToParent: backBtnA.label } : (parentCrumbA ? { goToParent: parentCrumbA.text } : {});
 
       // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
       // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO

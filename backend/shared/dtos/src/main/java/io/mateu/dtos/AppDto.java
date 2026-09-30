@@ -44,6 +44,8 @@ public record AppDto(
     boolean globalSearchEnabled,
     boolean commandCenterEnabled,
     boolean chromeless,
+    /** {@code @NoBreadcrumbs} on the shell: no automatic breadcrumb trail on any of its pages. */
+    boolean noBreadcrumbs,
     /**
      * The label of the shell's own "ask" FAB ({@code @App(askLabel)}); blank = the renderer's own
      * (Redwood: "Ask Oracle").

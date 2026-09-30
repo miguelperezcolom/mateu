@@ -1,3 +1,4 @@
+import { autoTrail } from './breadcrumbs.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -1841,6 +1842,11 @@ export function summarizeHost(reg, route) {
     // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
     // está, en el rótulo del menú
     title: pageMetadata.title || crudTitleOf(host) || (option && (option.caption || option.label)) || '',
+    // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
+    // @NoBreadcrumbs en la página o en la shell
+    trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
+      ? []
+      : autoTrail(menu, route, { title: pageMetadata.title || crudTitleOf(host) }),
     text: formMetadata ? '' : String(state.message == null ? '' : state.message),
     formMetadata,
     fields,

@@ -17,6 +17,7 @@ import { nanoid } from "nanoid";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 
 // DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
@@ -749,6 +750,9 @@ export class MateuApp extends ComponentElement {
             const metadata = clientSideComponent.metadata
             if (metadata) {
                 const app = metadata as App
+                // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
+                // when the remote sections have been fetched and the menu grows.
+                publishShellMenu(this, app.menu, app.noBreadcrumbs)
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)

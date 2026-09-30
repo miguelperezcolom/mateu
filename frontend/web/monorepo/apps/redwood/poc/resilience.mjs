@@ -212,6 +212,16 @@ export const pendingActions = {
  * Cómo la app (VB) se entera de que hay trabajo en vuelo, sin que el core sepa nada de VB.
  * `onStart` recibe {actionId}; `onSettle` recibe {actionId, failure} (failure null si fue bien).
  */
+/**
+ * Peticiones que un componente hace PARA SÍ y que ya enseñan su propia carga: nunca encienden la
+ * barra de ocupado de la página (la misma regla que el renderer web, localRequests.ts).
+ * `search-<campo>`: la búsqueda de opciones de un lookup (y la vacía que llena un select);
+ * `code-<campo>`: el rótulo de un código tecleado; `__restfetch__`: un @RestOptions por el servidor.
+ */
+export function isLocalRequest(actionId) {
+  return !!actionId && (actionId.indexOf('search-') === 0 || actionId.indexOf('code-') === 0 || actionId === '__restfetch__')
+}
+
 export const transportHooks = { onStart: null, onSettle: null }
 
 export function setTransportHooks(hooks) {
@@ -353,8 +363,11 @@ export async function fetchWithPolicy(url, init, options = {}) {
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
   // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
-  // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario
-  const notifyUnlessQuiet = (hook, payload) => { if (!options.quiet) notify(hook, payload) }
+  // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario.
+  // Tampoco la de un componente que ya enseña su propia carga (isLocalRequest): el combo que busca
+  // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
+  const quiet = options.quiet || isLocalRequest(actionId)
+  const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
   notifyUnlessQuiet('onStart', { actionId })
   let attempt = 0
   let reauthenticated = false

@@ -28,6 +28,8 @@ public record PageView(
      */
     String titlePlaceholder,
     List<Breadcrumb> breadcrumbs,
+    /** {@code true} hides the automatic breadcrumb trail on this page ({@code @NoBreadcrumbs}). */
+    Boolean noBreadcrumbs,
     Component avatar,
     @Singular("contentItem") List<Component> content,
     @Singular("headerItem") List<Component> header,

@@ -4,6 +4,7 @@
 // Regenerar fixtures: arrancar demo/demo-vb (mvn spring-boot:run, :9005) y `node capture.mjs`.
 
 import assert from 'node:assert/strict'
+import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -998,6 +999,29 @@ atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN so
     assert.equal(calls, 2, 'la lectura se reenvió una vez')
     // N intentos = UN estado de carga y UN resultado de cara a la UI
     assert.deepEqual(events, [['start', 'search'], ['settle', 'search', 'ok']])
+  } finally {
+    globalThis.fetch = original
+    setTransportHooks(null)
+    connectivity.reset()
+  }
+})
+
+atest('busy: la búsqueda de un lookup no enciende la barra de ocupado de la página; una acción sí', async () => {
+  connectivity.reset()
+  const events = []
+  setTransportHooks({
+    onStart: (e) => events.push(['start', e.actionId]),
+    onSettle: (e) => events.push(['settle', e.actionId]),
+  })
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ fragments: [] }) })
+  try {
+    await fetchWithPolicy('http://x/', {}, { actionId: 'search-pmsHotelCode' })
+    await fetchWithPolicy('http://x/', {}, { actionId: 'code-hotel' })
+    await fetchWithPolicy('http://x/', {}, { actionId: '__restfetch__' })
+    assert.deepEqual(events, [], 'el combo ya enseña su propia carga')
+    await fetchWithPolicy('http://x/', {}, { actionId: 'save' })
+    assert.deepEqual(events, [['start', 'save'], ['settle', 'save']])
   } finally {
     globalThis.fetch = original
     setTransportHooks(null)
@@ -3287,4 +3311,32 @@ test('crud: el colspan de un campo viaja acotado a las columnas del layout', () 
   // un grid o una property row no son campos del layout
   assert.equal(layoutFieldOf({ ...md, columns: [{}] }, {}, {}, 2), null)
   assert.equal(layoutFieldOf({ ...md, dataType: 'array' }, {}, {}, 2), null)
+})
+
+test('breadcrumbs: el rastro automático — camino de menús y nivel del crud; el padre para goToParent', () => {
+  const leaf = (label, route) => ({ label, route, submenus: [] })
+  const menu = [
+    leaf('Inicio', ''),
+    { label: 'Call center', route: '', submenus: [leaf('Reservas', '/booking/bookings')] },
+  ]
+  const es = { lang: 'es' }
+  assert.deepEqual(autoTrail(menu, '/booking/bookings', es), [{ text: 'Call center' }, { text: 'Reservas' }])
+  const detail = autoTrail(menu, '/booking/bookings/QN29HB', { title: 'QN29HB · Giulia', lang: 'es' })
+  assert.deepEqual(detail.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB · Giulia'])
+  assert.deepEqual(parentCrumb(detail), { text: 'Reservas', route: '/booking/bookings' })
+  const edit = autoTrail(menu, '/booking/bookings/QN29HB/edit', { title: 'Editar', lang: 'es' })
+  assert.deepEqual(edit.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB · Giulia', 'Editar'])
+  assert.deepEqual(parentCrumb(edit), { text: 'QN29HB · Giulia', route: '/booking/bookings/QN29HB' })
+  assert.deepEqual(autoTrail(menu, '/otra/cosa', es), [])
+})
+
+test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o shell lo apaga', () => {
+  const menu = [{ label: 'Call center', route: '', submenus: [{ label: 'Reservas', route: '/booking/bookings', submenus: [] }] }]
+  const regOf = (pageMd, shellExtra = {}) => ({
+    shell: { menu, ...shellExtra },
+    contexts: { [HOST_ID]: { tree: { children: [{ metadata: { type: 'Page', title: 'QN29HB', ...pageMd } }] }, state: {}, pageType: 'detail' } },
+  })
+  assert.deepEqual(summarizeHost(regOf({}), '/booking/bookings/QN29HB').trail.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB'])
+  assert.deepEqual(summarizeHost(regOf({ noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
+  assert.deepEqual(summarizeHost(regOf({}, { noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
 })

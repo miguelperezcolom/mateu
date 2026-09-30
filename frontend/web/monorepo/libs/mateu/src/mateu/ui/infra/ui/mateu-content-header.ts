@@ -14,6 +14,8 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
+import { shellTrail, Crumb } from './breadcrumbTrail'
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
 export { possiblyHtml } from './interpolation'
 
@@ -293,6 +295,28 @@ export class MateuContentHeader extends LitElement {
         `
     }
 
+    /**
+     * The trail above the title: the page's own (`@Breadcrumbs` / `BreadcrumbsSupplier`) when it
+     * declares one, else the automatic one (breadcrumbTrail) — only on a top-level page, and not when
+     * the page or the shell says `@NoBreadcrumbs`.
+     */
+    private crumbsOf(metadata: Form, level: number): Crumb[] {
+        if (metadata?.breadcrumbs && metadata.breadcrumbs.length > 0) {
+            return metadata.breadcrumbs.map(b => ({ text: b.text, route: b.link || undefined }))
+        }
+        if (level > 0 || metadata?.type !== ComponentMetadataType.Page || metadata.noBreadcrumbs) return []
+        return shellTrail(window.location.pathname, { title: metadata.title, pageType: metadata.pageType })
+    }
+
+    /** Inside the app for a path (the menu's own navigation), a full load for anything else. */
+    private goToCrumb(route: string) {
+        if (/^[a-z]+:\/\//i.test(route)) {
+            window.location.href = route
+            return
+        }
+        navigateToRoute(this, route)
+    }
+
     render(): TemplateResult {
         const metadata = this.metadata as Form | undefined
         if (!metadata) return html``
@@ -329,16 +353,18 @@ export class MateuContentHeader extends LitElement {
         if (level > 0) this.setAttribute('data-nested', '')
         else this.removeAttribute('data-nested')
 
+        const crumbs = this.crumbsOf(metadata as Form, level)
         return html`
-            ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0 ? html`
-                <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="breadcrumbs-bar">
-                    ${metadata.breadcrumbs.map((breadcrumb, index: number) => html`
-                        ${index > 0 ? html`<span>/</span>` : nothing}
-                        ${breadcrumb.link
-                            ? html`<button class="breadcrumb-link" @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</button>`
-                            : html`<span>${breadcrumb.text}</span>`}
+            ${crumbs.length > 0 ? html`
+                <nav class="breadcrumbs-bar" aria-label="Breadcrumb">
+                    ${crumbs.map((crumb, index: number) => html`
+                        ${index > 0 ? html`<span class="breadcrumb-sep" aria-hidden="true">›</span>` : nothing}
+                        ${crumb.route
+                            ? html`<button class="breadcrumb-link" @click="${() => this.goToCrumb(crumb.route!)}">${crumb.text}</button>`
+                            : html`<span class="${index === crumbs.length - 1 ? 'breadcrumb-current' : 'breadcrumb-group'}"
+                                        aria-current="${index === crumbs.length - 1 ? 'page' : nothing}">${crumb.text}</span>`}
                     `)}
-                </div>
+                </nav>
             ` : nothing}
             ${metadata.noHeader ? html`
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;" class="no-header-row">
@@ -458,6 +484,19 @@ export class MateuContentHeader extends LitElement {
             color: var(--lumo-tertiary-text-color, #9ca3af);
             font-weight: inherit;
         }
+
+        .breadcrumbs-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--lumo-space-xs, .25rem) var(--lumo-space-s, .5rem);
+            width: 100%;
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #6b7280);
+            padding-bottom: var(--lumo-space-xs, .25rem);
+        }
+        .breadcrumb-sep { color: var(--lumo-tertiary-text-color, #9ca3af); }
+        .breadcrumb-current { color: var(--lumo-body-text-color, inherit); }
 
         .breadcrumb-link {
             border: none;

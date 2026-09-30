@@ -68,6 +68,7 @@ public class PageMapper {
             .subtitle(page.subtitle())
             .overline(page.overline())
             .titlePlaceholder(page.titlePlaceholder())
+            .noBreadcrumbs(page.noBreadcrumbs())
             .breadcrumbs(
                 page.breadcrumbs() != null
                     ? page.breadcrumbs().stream()
