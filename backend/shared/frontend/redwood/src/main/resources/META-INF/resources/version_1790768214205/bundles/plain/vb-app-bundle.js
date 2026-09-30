@@ -7262,7 +7262,7 @@ define('flows/main/pages/main-start-page-chains/runMateuAction',[
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
         ? itemProjection.tabs[0].texts : [];
-      if (welcome || overviewProjection || itemProjection || $application.variables.mateuFoldout) {
+      if (welcome || overviewProjection || itemProjection) {
         // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
         // la vista @FoldoutDetail de un crud), no el form genérico
         $application.variables.mateuFormMetadata = null;
