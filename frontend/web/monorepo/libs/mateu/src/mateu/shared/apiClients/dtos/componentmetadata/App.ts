@@ -43,6 +43,8 @@ export default interface App extends ComponentMetadata {
     globalSearchEnabled?: boolean
     commandCenterEnabled?: boolean
     chromeless?: boolean
+    /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
+    noBreadcrumbs?: boolean
     /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it arrives with the shell rather than on every response. */
     restSources?: RestSourceEntry[] | undefined

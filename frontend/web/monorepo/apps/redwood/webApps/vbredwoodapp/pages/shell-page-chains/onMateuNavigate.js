@@ -512,6 +512,7 @@ define([
       const primaryBtn = bridge.primaryToolbarButton(hostToolbar);
       // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
       const backBtn = bridge.backToolbarButton(hostToolbar);
+      const parentCrumbNav = backBtn ? undefined : bridge.parentCrumb(summary.trail);
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
@@ -525,14 +526,17 @@ define([
         primaryId: primaryBtn ? primaryBtn.actionId : '',
         secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
           .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
-        goToParent: !!backBtn,
-        backId: backBtn ? backBtn.actionId : '',
-        backLabel: backBtn ? backBtn.label : '',
+        // sin botón de vuelta, el «ir al padre» sale del rastro automático (breadcrumbs.mjs):
+        // Redwood no tiene migas, y ésta es la afordancia que su cabecera ofrece en su lugar
+        goToParent: !!backBtn || !!parentCrumbNav,
+        backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
+        parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
+        backLabel: backBtn ? backBtn.label : (parentCrumbNav ? parentCrumbNav.text : ''),
         toolbar: hostToolbar,
       };
       // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
       $application.variables.mateuPageHeaderTranslations = backBtn
-        ? { goToParent: backBtn.label } : {};
+        ? { goToParent: backBtn.label } : (parentCrumbNav ? { goToParent: parentCrumbNav.text } : {});
 
       // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
       // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO

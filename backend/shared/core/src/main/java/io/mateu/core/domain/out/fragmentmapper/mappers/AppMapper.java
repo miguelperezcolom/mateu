@@ -90,6 +90,7 @@ public final class AppMapper {
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
+            .noBreadcrumbs(getNoBreadcrumbs(app))
             .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
             .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
@@ -318,6 +319,12 @@ public final class AppMapper {
   /**
    * The command-center FAB shows when {@code @App(commandCenter=true)} — or implied by chromeless.
    */
+  private static boolean getNoBreadcrumbs(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    return MetaAnnotations.isPresent(
+        forName(app.serverSideType()), io.mateu.uidl.annotations.NoBreadcrumbs.class);
+  }
+
   private static boolean getCommandCenter(AppShell app) {
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());

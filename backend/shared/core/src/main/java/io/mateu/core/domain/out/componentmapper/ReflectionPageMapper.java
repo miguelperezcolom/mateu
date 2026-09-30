@@ -44,6 +44,11 @@ public class ReflectionPageMapper {
     return PageView.builder()
         .pageTitle(getPageTitle(instance))
         .breadcrumbs(getBreadcrumbs(instance, httpRequest))
+        .noBreadcrumbs(
+            MetaAnnotations.isPresent(
+                    instance.getClass(), io.mateu.uidl.annotations.NoBreadcrumbs.class)
+                ? Boolean.TRUE
+                : null)
         .title(getTitle(instance))
         .favicon(getFavicon(instance))
         .subtitle(getSubtitle(instance))

@@ -66,7 +66,8 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 |---|---|
 | `@Style("…")`, `@CssClasses("…")`, `@DivStyle("…")` | CSS |
 | `@Header`, `@Footer` | custom header/footer components |
-| `@Breadcrumbs`, `@Breadcrumb` | breadcrumbs |
+| `@Breadcrumbs`, `@Breadcrumb` | an explicit breadcrumb trail (replaces the automatic one: menu path + CRUD level, built by the renderer) |
+| `@NoBreadcrumbs` | no automatic breadcrumb trail — on a page, or on the `@UI` shell for the whole app |
 | `@AI(sse="…")` | in-app AI chat button (app feature, not codegen) |
 
 ## Base classes & interfaces

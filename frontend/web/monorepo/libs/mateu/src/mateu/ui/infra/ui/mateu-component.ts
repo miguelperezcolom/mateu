@@ -46,6 +46,7 @@ import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
 import {pendingActions, pendingKey} from "@infra/ui/pendingActions.ts";
 import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
+import {isLocalRequest} from "@infra/http/localRequests.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
@@ -789,7 +790,9 @@ export class MateuComponent extends ComponentElement {
         // invisible by design and must never dim a control nor block its own next run, so it
         // opts out entirely. A trigger (OnLoad/OnSuccess poll) can force background even when the
         // action itself is not declared background — a status re-fetch should refresh in silence.
-        const background = detail.background ?? action?.background
+        // A component's own request (a combo's option search…) shows its own loading: it is
+        // background for the page — no veil, no pressed-control pulse (localRequests).
+        const background = detail.background ?? action?.background ?? (isLocalRequest(detail.actionId) || undefined)
         if (!background) {
             // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
             // second POST of a write means a second row; a second read means fresher data. Worse,

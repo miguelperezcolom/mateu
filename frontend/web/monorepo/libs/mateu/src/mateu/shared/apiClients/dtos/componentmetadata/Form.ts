@@ -18,6 +18,10 @@ export default interface Form extends ComponentMetadata {
     readOnly: boolean
     subtitle: string
     breadcrumbs: Breadcrumb[]
+    /** `@NoBreadcrumbs` on the page: no automatic trail (an explicit one still shows). */
+    noBreadcrumbs?: boolean
+    /** Redwood page-template family: collection | detail | form | landing | … */
+    pageType?: string
     noHeader: boolean
     status: Status
     badges: Badge[]

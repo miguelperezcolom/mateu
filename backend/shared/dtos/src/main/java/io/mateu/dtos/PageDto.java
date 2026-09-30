@@ -29,6 +29,11 @@ public record PageDto(
     String titlePlaceholder,
     StatusDto status,
     List<BreadcrumbDto> breadcrumbs,
+    /**
+     * {@code true} when the page opts out of the automatic breadcrumb trail
+     * ({@code @NoBreadcrumbs}); {@code null} = the shell shows it.
+     */
+    Boolean noBreadcrumbs,
     List<BadgeDto> badges,
     List<KPIDto> kpis,
     List<BannerDto> banners,
