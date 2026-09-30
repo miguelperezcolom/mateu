@@ -53,6 +53,8 @@ Renders the **read-only view** of a record — a CRUD's detail page, an editable
 
 What has nothing to show is left out: a field whose value is null, blank or an empty collection is hidden, and a section whose fields are all hidden gets no panel. The page's toolbar actions stay in the page header.
 
+Each panel is as wide as what it holds: a few short fields make a narrow panel, a longer form a medium one, and a list, a table or a component (a `Callable<Component>` field) a wide one. `@Section(panelWidth = PanelWidth.NARROW | MEDIUM | WIDE)` fixes a section's width. The page's `@Status` badge heads the overview. The detail takes the whole content column, in both renderers.
+
 ```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
