@@ -363,6 +363,7 @@ define([
           $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
           $application.variables.mateuFoldout = foldoutProjection;
         }
+        bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
       }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
       if ($application.variables.mateuWizard) bridge.guardGuidedProcess();

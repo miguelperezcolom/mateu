@@ -179,6 +179,9 @@ export class MateuPage extends LitElement {
 
     updated(changedProperties: PropertyValues) {
         super.updated(changedProperties)
+        // a page whose first thing is the welcome hero (no header above it): the hero keeps its top
+        // gap; under a header it drops it (see :host(:not([data-hero-top])))
+        this.toggleAttribute('data-hero-top', this._heroOnTop())
         if (changedProperties.has('_activeToc')) this._revealActiveInBar()
         if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
             this._clearAllTimers()
@@ -472,6 +475,14 @@ export class MateuPage extends LitElement {
         return hasHeader && !hasCrud && !this._hasWelcomeBanner()
     }
 
+    /** A welcome hero with no page header above it (a home page). */
+    private _heroOnTop(): boolean {
+        const metadata = this.component?.metadata as PageComponent
+        const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.overline
+            || (metadata as any)?.titlePlaceholder || (metadata as any)?.toolbar?.length)
+        return !hasHeader && this._hasWelcomeBanner()
+    }
+
     /** Whether the page content carries a HeroSection (the welcome banner element). */
     private _hasWelcomeBanner(): boolean {
         const walk = (node: any): boolean => {
@@ -543,6 +554,12 @@ export class MateuPage extends LitElement {
     }
 
     static styles = css`
+        /* the welcome hero takes a top gap (heroRenderer) only when nothing is above it: under a
+           page header it sits where the header leaves it */
+        :host(:not([data-hero-top])) {
+            --mateu-hero-margin-top: 0px;
+        }
+
         /* Design-system hook: background behind the page header (the RDS "Header + Background"
            band) — transparent by default; the Redwood renderer paints it with the canvas color
            via a custom property, so the header reads as part of the canvas and the content slab

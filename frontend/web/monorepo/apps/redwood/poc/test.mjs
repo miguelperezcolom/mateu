@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
+import { foldoutElementAtomsOf } from './elements.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -474,6 +475,14 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('foldout: los Element de los paneles también se montan (la tabla «In other systems»)', () => {
+  const el = (id) => ({ isElement: true, elementId: id, name: 'div', content: '<table></table>', asHtml: true })
+  const content = { overview: { blocks: [{ items: [el('o1'), { isText: true }] }] },
+    panels: [{ blocks: [{ items: [{ isText: true }] }] }, { blocks: [{ items: [el('p2')] }] }, null] }
+  assert.deepEqual(foldoutElementAtomsOf(content).map((a) => a.elementId), ['o1', 'p2'])
+  assert.deepEqual(foldoutElementAtomsOf(null), [])
+})
+
 test('header: los @KPI de la Page son los facts del header de pantalla (interpolados)', () => {
   const ctx = { state: { total: '1431.12 EUR' }, tree: { type: 'ServerSide', children: [{ metadata: { type: 'Page', title: '7DM5S9',
     kpis: [{ title: 'Total', text: '${state.total}' }, { title: 'Paid', text: '0 EUR' }, { title: '', text: '' }] } }] } }

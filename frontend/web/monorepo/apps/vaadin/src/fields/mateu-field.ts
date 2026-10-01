@@ -84,8 +84,8 @@ const ensureUi5FieldComponents = (): Promise<unknown> => {
 @customElement('mateu-field')
 export class MateuField extends LitElement {
 
-    // Inside a foldout (a record's read-only page), a read-only field reads as label + plain value —
-    // what Redwood draws there — not as a read-only input with its dashed box.
+    // A read-only field (a record's view page, foldout or not) reads as label + plain value — what
+    // Redwood draws — not as a read-only input with its dashed box. inFoldout is kept for styling.
     @state()
     private inFoldout = false
 
@@ -861,6 +861,9 @@ export class MateuField extends LitElement {
         const lookupLabel = fromData(this.field.fieldId + '-label')
         if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
         if (v && typeof v === 'object' && 'value' in (v as any)) v = (v as any).value
+        // a select/radio/choice: its option's label, not the code
+        const option = (this.field as any).options?.find?.((o: any) => o && o.value == v)
+        if (option && option.label != null && (lookupLabel === undefined || lookupLabel === '')) v = option.label
         const display = v !== null && v !== undefined && v !== '' ? String(v) : '—'
         return html`<vaadin-custom-field
                 id="${this.field.fieldId}"

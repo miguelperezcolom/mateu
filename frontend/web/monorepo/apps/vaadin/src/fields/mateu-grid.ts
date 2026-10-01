@@ -1,4 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
+import { readOnlyGridLayout, fitColumnToWidth } from '@infra/ui/foldoutGeometry.ts'
 import { css, html, nothing, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -321,6 +322,9 @@ export class MateuGrid extends MetadataDrivenElement {
 
     public renderMaster(items: any) {
         const selectedItems = this.selectedItems || []
+        // read-only (a record's view page): a plain table — all rows, columns fit, cells wrap
+        const layout = readOnlyGridLayout(this.field?.readOnly, items?.length ?? 0)
+        const columns = this.field?.readOnly ? (this.field?.columns ?? []).map(fitColumnToWidth) : this.field?.columns
 
         return html`<vaadin-vertical-layout style="width: 100%;">
             <!-- The field label is rendered by the surrounding mateu-field wrapper; rendering it
@@ -332,6 +336,7 @@ export class MateuGrid extends MetadataDrivenElement {
                     @mouseleave="${ifDefined(this.field?.onItemSelectionActionId ? this.onGridHoverLeave : undefined)}"
                     style="${this.field?.onItemSelectionActionId ? 'cursor: pointer;' : ''}${this.field?.style ?? ''}"
                     class="${this.field?.cssClasses}"
+                    theme="${ifDefined(layout.theme)}"
                     .items="${items}"
                     .selectedItems="${selectedItems}"
                     item-id-path="${this.field?.itemIdPath}"
@@ -376,14 +381,14 @@ export class MateuGrid extends MetadataDrivenElement {
             this.appState,
             this.appData
         )}`):undefined)}
-                    ?all-rows-visible=${items?.length < 10}
+                    ?all-rows-visible=${layout.allRowsVisible}
             >
                 <span slot="empty-state">${this.field?.label ? `No ${this.field.label.toLowerCase()} added yet.` : 'No items added yet.'}</span>
                 ${(this.field?.readOnly || this.field?.inlineEditing)?nothing:html`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
                 ${this.field?.detailPath && !this.field?.useButtonForDetail ? detailIndicatorColumn() : nothing}
-                ${this.field?.columns?.map(column =>
+                ${columns?.map((column: any) =>
             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
 
                 ${(this.field?.inlineEditing && !this.field?.readOnly)?html`

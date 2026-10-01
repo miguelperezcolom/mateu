@@ -74,15 +74,21 @@ export function visibleSections(rail: Span, sections: Span[]): boolean[] {
 }
 
 /**
- * Whether a read-only field inside a foldout should be drawn as plain text (label above, value
- * below — what Redwood draws for a record's read-only page) instead of a read-only input. Lists,
- * statuses, money, booleans, images and uploads keep their own read-only rendering.
+ * Whether a read-only field should be drawn as plain text (label above, value below) instead of a
+ * read-only input — what Redwood draws for every read-only field. A CRUD's view page is a DETAIL,
+ * not a form: all its fields arrive readOnly and must read as label + value, foldout or not (the
+ * wire carries no "view page" flag — Page.readOnly is false and pageType is "form" — so the rule
+ * is the field's own readOnly). Lists, statuses, money, booleans, images, uploads and the
+ * stereotypes with their own rendering (html, markdown, links, icons, colors, stars…) keep it.
+ * `inFoldout` is kept for callers; it no longer narrows the rule.
  */
-export function readOnlyAsPlainText(field: { readOnly?: boolean; stereotype?: string; dataType?: string } | null | undefined, inFoldout: boolean): boolean {
-    if (!inFoldout || !field?.readOnly) {
+export function readOnlyAsPlainText(field: { readOnly?: boolean; stereotype?: string; dataType?: string } | null | undefined, _inFoldout?: boolean): boolean {
+    if (!field?.readOnly) {
         return false
     }
-    const keepOwn = new Set(['grid', 'fileUpload', 'image', 'uploadableImage', 'signature', 'camera', 'badge', 'bulletedList'])
+    const keepOwn = new Set(['grid', 'fileUpload', 'image', 'uploadableImage', 'signature', 'camera', 'badge',
+        'bulletedList', 'html', 'richText', 'markdown', 'link', 'icon', 'color', 'stars', 'slider', 'toggle',
+        'popover', 'plainText', 'status', 'money', 'password'])
     if (field.stereotype && keepOwn.has(field.stereotype)) {
         return false
     }
@@ -104,4 +110,22 @@ export function isInside(node: Node | null | undefined, tagName: string): boolea
         current = current.parentNode ?? ((current as ShadowRoot).host as Node | undefined) ?? null
     }
     return false
+}
+
+/**
+ * A read-only grid (a list on a record's view page, e.g. a booking's payments) reads as a plain
+ * table: every row visible (no fixed height, no inner vertical scroll) and the columns sharing the
+ * width they have (a small minimum, growing evenly, nothing frozen) with the cells wrapping — so
+ * no horizontal scroll either. An editable grid keeps its widths and its 10-row viewport.
+ */
+export function readOnlyGridLayout(readOnly: boolean | undefined, rowCount: number): { allRowsVisible: boolean; theme: string | undefined } {
+    return readOnly
+        ? { allRowsVisible: true, theme: 'wrap-cell-content' }
+        : { allRowsVisible: rowCount < 10, theme: undefined }
+}
+
+export function fitColumnToWidth<T extends { metadata?: any }>(column: T): T {
+    const md = column?.metadata
+    if (!md || md.type === 'GridGroupColumn') return column
+    return { ...column, metadata: { ...md, width: '3rem', autoWidth: false, flexGrow: '1', frozen: false, frozenToEnd: false } }
 }

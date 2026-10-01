@@ -43,6 +43,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     mountElements,
     mountElementsSoon,
     elementAtomsOf,
+    foldoutElementAtomsOf,
     reduceContexts,
     autoTrail,
     parentCrumb,

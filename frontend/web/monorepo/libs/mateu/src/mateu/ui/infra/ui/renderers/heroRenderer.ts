@@ -14,7 +14,7 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
     const textAlign = metadata.centered === false ? 'left' : 'center'
     return html`
         <div class="mateu-hero ${component.cssClasses??''}"
-             style="display: flex; flex-direction: column; align-items: ${alignment}; justify-content: center; gap: var(--lumo-space-m, 1rem); text-align: ${textAlign}; padding: var(--lumo-space-xl, 2.5rem) var(--lumo-space-l, 1.5rem); border-radius: var(--lumo-border-radius-l, 12px); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; ${background} ${component.style??''}"
+             style="display: flex; flex-direction: column; align-items: ${alignment}; justify-content: center; gap: var(--lumo-space-m, 1rem); text-align: ${textAlign}; padding: var(--lumo-space-xl, 2.5rem) var(--lumo-space-l, 1.5rem); border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; ${background} ${component.style??''}"
              slot="${component.slot??nothing}"
         >
             ${metadata.title?html`<h1 style="margin: 0; font-size: var(--lumo-font-size-xxxl, 2.5rem); line-height: 1.15;">${metadata.title}</h1>`:nothing}
