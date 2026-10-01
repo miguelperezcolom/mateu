@@ -152,11 +152,52 @@ let shellMenu: MenuOption[] | undefined
 let shellNoBreadcrumbs = false
 let owner: unknown
 
-export function publishShellMenu(from: unknown, menu: MenuOption[] | undefined, noBreadcrumbs: boolean | undefined): void {
+let shellNavigator: ((option: MenuOption, route: string) => void) | undefined
+
+export function publishShellMenu(from: unknown, menu: MenuOption[] | undefined, noBreadcrumbs: boolean | undefined,
+                                 navigate?: (option: MenuOption, route: string) => void): void {
     if (owner && owner !== from && (owner as { isConnected?: boolean }).isConnected !== false) return
     owner = from
     shellMenu = menu
     shellNoBreadcrumbs = !!noBreadcrumbs
+    shellNavigator = navigate
+}
+
+/**
+ * The menu ENTRY that owns `route`: the one whose route is the route itself or its longest prefix
+ * (a crud record under its listing). Undefined when no entry owns it.
+ */
+export function menuEntryFor(menu: MenuOption[] | undefined, route: string): MenuOption | undefined {
+    const target = norm(route)
+    let best: { option: MenuOption, route: string } | undefined
+    const walk = (options: MenuOption[] | undefined) => {
+        for (const option of options ?? []) {
+            if (!option || option.separator) continue
+            const children = option.submenus ?? []
+            if (children.length > 0) { walk(children); continue }
+            const r = norm(option.route)
+            if (!r || r === '/') continue
+            if ((target === r || target.startsWith(r + '/')) && (!best || r.length > best.route.length)) {
+                best = { option, route: r }
+            }
+        }
+    }
+    walk(menu)
+    return best?.option
+}
+
+/**
+ * Navigates to a crumb's route the way a click on the menu does — through the shell's own
+ * navigation, which reloads the content (a federated pod's page included). Dispatching the plain
+ * route events from inside the page only rewrote the URL: the crud showing the record kept it on
+ * screen. False when the shell has no entry for the route (the caller falls back).
+ */
+export function navigateLikeMenu(route: string): boolean {
+    if (!shellNavigator) return false
+    const option = menuEntryFor(shellMenu, route)
+    if (!option) return false
+    shellNavigator(option, route)
+    return true
 }
 
 export function shellTrail(path: string, page: PageInfo): Crumb[] {

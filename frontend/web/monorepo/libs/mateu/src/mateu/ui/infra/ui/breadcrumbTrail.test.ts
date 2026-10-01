@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { autoTrail, menuTrail, parentCrumb, publishShellMenu, shellTrail, pathOfPage } from './breadcrumbTrail'
+import { describe, it, expect, vi } from 'vitest'
+import { autoTrail, menuTrail, parentCrumb, publishShellMenu, shellTrail, pathOfPage, menuEntryFor } from './breadcrumbTrail'
 
 const leaf = (label: string, route: string) => ({ label, route, submenus: [] } as any)
 const group = (label: string, submenus: any[], route = '') => ({ label, route, submenus } as any)
@@ -105,5 +105,29 @@ describe('the automatic breadcrumb trail', () => {
         } finally {
             if (had) g.window = previous; else delete g.window
         }
+    })
+})
+
+describe('a crumb navigates like the menu', () => {
+    const menu: any[] = [
+        { label: 'Call center', route: '/booking', submenus: [
+            { label: 'Bookings', route: '/booking/bookings', consumedRoute: '/booking', baseUrl: '/_booking', submenus: [] },
+        ] },
+    ]
+    it('finds the entry that owns a route, a record under it included', () => {
+        expect(menuEntryFor(menu, '/booking/bookings')?.label).toBe('Bookings')
+        expect(menuEntryFor(menu, '/booking/bookings/VF67UM')?.label).toBe('Bookings')
+        expect(menuEntryFor(menu, '/other')).toBeUndefined()
+    })
+    it('goes through the shell navigator with the crumb route', async () => {
+        vi.resetModules() // a fresh store: the shell that publishes first owns it
+        const fresh = await import('./breadcrumbTrail')
+        const calls: any[] = []
+        expect(fresh.navigateLikeMenu('/booking/bookings')).toBe(false) // no shell yet: caller falls back
+        fresh.publishShellMenu({}, menu as any, false, (option: any, route: string) => calls.push([option.label, route]))
+        expect(fresh.navigateLikeMenu('/booking/bookings')).toBe(true)
+        expect(fresh.navigateLikeMenu('/booking/bookings/VF67UM')).toBe(true)
+        expect(calls).toEqual([['Bookings', '/booking/bookings'], ['Bookings', '/booking/bookings/VF67UM']])
+        expect(fresh.navigateLikeMenu('/nowhere')).toBe(false)
     })
 })

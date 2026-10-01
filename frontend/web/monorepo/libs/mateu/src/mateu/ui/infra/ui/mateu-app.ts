@@ -752,7 +752,9 @@ export class MateuApp extends ComponentElement {
                 const app = metadata as App
                 // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
                 // when the remote sections have been fetched and the menu grows.
-                publishShellMenu(this, app.menu, app.noBreadcrumbs)
+                publishShellMenu(this, app.menu, app.noBreadcrumbs, (option, route) =>
+                    this.selectRoute(option.consumedRoute, route, option.actionId, option.baseUrl,
+                        option.serverSideType, option.uriPrefix))
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)

@@ -14,7 +14,8 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
-import { shellTrail, pathOfPage, Crumb } from './breadcrumbTrail'
+import { shellTrail, pathOfPage, Crumb, navigateLikeMenu } from './breadcrumbTrail'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
 export { possiblyHtml } from './interpolation'
@@ -314,6 +315,9 @@ export class MateuContentHeader extends LitElement {
             window.location.href = route
             return
         }
+        if (!dirtyGuard.confirmLeave()) return
+        // like a menu click: the shell reloads the content for that route
+        if (navigateLikeMenu(route)) return
         navigateToRoute(this, route)
     }
 
