@@ -2,11 +2,14 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, query, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
+import { foldoutSectionStyle, mergeOpenStates, visibleSections } from "@infra/ui/foldoutGeometry.ts";
 
 /**
- * Vaadin-specific foldout: a horizontal CAROUSEL of always-expanded, borderless, full-height
- * sections (unlike the shared {@link import('@infra/ui/mateu-foldout').MateuFoldout}, which
- * collapses panels to vertical strips).
+ * Vaadin-specific foldout, drawn as Redwood's (oj-sp-foldout-layout, see foldoutGeometry.ts): a
+ * horizontal row of full-height sections — the overview as a fixed 25rem rail, each panel FIXED to
+ * its declared wire width (the leftover of the row goes between them, not into them), a panel sent
+ * with open=false as a narrow vertical title strip that opens on click, and a row of paging dots
+ * when the sections don't all fit.
  *
  * - Every section (the overview + each panel) is fully visible and runs top to bottom; when they
  *   don't all fit, the row scrolls left/right like a carousel, SNAPPING each column flush to the
@@ -47,11 +50,53 @@ export class MateuVaadinFoldout extends LitElement {
     private _raf = 0
     private _snapping = false
 
-    // Whether the carousel can still scroll left / right (drive the bottom-corner nav affordances).
+    // Whether the carousel can still scroll left / right (drive the paging dots).
     @state()
     private _less = false
     @state()
     private _more = false
+
+    // Open/closed per panel: from the wire (open=false → strip), then what the user toggles.
+    @state()
+    private _open: boolean[] = []
+    private _openKey = ''
+
+    // Which sections are in view (overview first): the filled paging dots.
+    @state()
+    private _visible: boolean[] = []
+
+    protected willUpdate(changed: Map<string, unknown>) {
+        if (changed.has('panels')) {
+            const merged = mergeOpenStates(this._open, this._openKey, this.panels)
+            this._open = merged.states
+            this._openKey = merged.key
+        }
+    }
+
+    private _toggle(index: number) {
+        const next = [...this._open]
+        next[index] = !(next[index] ?? true)
+        this._open = next
+        // the row changed width: re-measure once the strip/panel has been laid out
+        requestAnimationFrame(() => this._syncPin())
+    }
+
+    // A dot brings its section to the left edge (the overview: back to the start).
+    private _goTo(index: number) {
+        const rail = this._rail
+        if (!rail) {
+            return
+        }
+        const sections = [...this.renderRoot.querySelectorAll<HTMLElement>('.section')]
+        // the overview stays pinned for one step, so the first panel is reached from the start;
+        // any later one is brought flush to the left edge (the overview has slid out by then)
+        const pinnable = (this._first?.offsetWidth ?? 0) < rail.clientWidth * 0.6
+        const target = index === 0 || (index === 1 && pinnable) ? 0 : (sections[index]?.offsetLeft ?? 0)
+        const max = rail.scrollWidth - rail.clientWidth
+        this._snapping = true
+        rail.scrollTo({ left: Math.max(0, Math.min(target, max)), behavior: 'smooth' })
+        window.setTimeout(() => { this._snapping = false }, 400)
+    }
 
     private navAction(actionId?: string) {
         if (!actionId) {
@@ -131,7 +176,10 @@ export class MateuVaadinFoldout extends LitElement {
             return
         }
         const stride = this._stride()
-        const pin = Math.min(rail.scrollLeft, stride)
+        // on a narrow row (a phone) the overview takes the whole width: pinning it would hide the
+        // panel it pages to, so it scrolls away like any other section
+        const pinnable = first.offsetWidth < rail.clientWidth * 0.6
+        const pin = pinnable ? Math.min(rail.scrollLeft, stride) : 0
         first.style.transform = pin ? `translateX(${pin}px)` : ''
         first.classList.toggle('floating', rail.scrollLeft > 0)
         const max = rail.scrollWidth - rail.clientWidth
@@ -140,6 +188,16 @@ export class MateuVaadinFoldout extends LitElement {
         const scrollable = max > 32
         this._less = scrollable && rail.scrollLeft > 2
         this._more = scrollable && rail.scrollLeft < max - 2
+        const railRect = rail.getBoundingClientRect()
+        const visible = visibleSections(
+            { left: railRect.left, right: railRect.right },
+            [...this.renderRoot.querySelectorAll<HTMLElement>('.section')].map(section => {
+                const r = section.getBoundingClientRect()
+                return { left: r.left, right: r.right }
+            }))
+        if (visible.join() !== this._visible.join()) {
+            this._visible = visible
+        }
     }
 
     // Fills the column height down to the viewport bottom regardless of any chrome above the foldout
@@ -202,27 +260,23 @@ export class MateuVaadinFoldout extends LitElement {
             || (el as HTMLElement).isContentEditable
     }
 
-    // The declared wire width is the flex basis AND the grow weight. The LAST fold never
-    // goes narrower than the overview column: a skinny accessory panel (e.g. a 14rem
-    // "Perfil") widens to read as a balanced right rail, same width as the first fold.
-    private _sectionFlex(panel: { width?: string | null }, index: number): string | typeof nothing {
-        if (!panel.width) {
-            return nothing
-        }
-        const declared = parseFloat(panel.width) || 1
-        if (index === this.panels.length - 1 && declared < 22) {
-            return 'flex: 22 1 var(--mateu-foldout-overview-width, 22rem);'
-        }
-        return `flex: ${declared} 1 ${panel.width};`
+    // The declared wire width FIXES the panel (Redwood's mateu-fixed-panel); a closed one is a strip.
+    private _sectionStyle(panel: { width?: string | null }, index: number): string | typeof nothing {
+        return foldoutSectionStyle(panel.width, this._open[index] ?? true) || nothing
     }
 
     private _resizeObserver?: ResizeObserver
 
     protected firstUpdated() {
         this._fit()
+        for (const delay of [300, 1000, 2500]) {
+            window.setTimeout(() => this._fit(), delay)
+        }
         // re-measure when the slotted sections settle (fonts, cards, late data) — without
         // this the nav affordances are decided on a pre-layout scrollWidth
-        this._resizeObserver = new ResizeObserver(() => this._syncPin())
+        // (and the foldout's own top moves when the page header above it settles: re-fit, so the
+        // columns and the paging dots end at the viewport bottom)
+        this._resizeObserver = new ResizeObserver(() => this._fit())
         if (this._rail) this._resizeObserver.observe(this._rail)
         for (const section of this.renderRoot.querySelectorAll('.section')) {
             this._resizeObserver.observe(section)
@@ -258,17 +312,23 @@ export class MateuVaadinFoldout extends LitElement {
             height: var(--mateu-foldout-fill, var(--mateu-foldout-height, calc(100dvh - 8rem)));
             margin: var(--mateu-foldout-outer-margin, 0);
         }
-        /* The carousel row: full-height borderless columns; snaps each column flush to the left. */
+        /* The row of sections (Redwood: oj-sp-foldout-layout). Fixed-width sections; the leftover
+           of the row goes BETWEEN them (space-between), never into them. */
         .rail {
             display: flex;
             flex: 1;
             min-height: var(--mateu-foldout-fill, var(--mateu-foldout-min-height, calc(100dvh - 8rem)));
-            gap: var(--mateu-foldout-gap, var(--lumo-space-l, 1.5rem));
+            gap: var(--mateu-foldout-gap, 0);
+            justify-content: space-between;
             align-items: stretch;
             overflow-x: auto;
             overflow-y: hidden;
             padding: var(--mateu-foldout-rail-padding, 0);
             outline: none;
+            scrollbar-width: none;
+        }
+        .rail::-webkit-scrollbar {
+            display: none;
         }
         .rail:focus-visible {
             outline: 2px solid var(--lumo-primary-color, #1976d2);
@@ -276,37 +336,86 @@ export class MateuVaadinFoldout extends LitElement {
         }
         .section {
             position: relative;
-            /* the declared width is the BASIS; sections grow to fill the row when there is
-               free space (100%-wide foldout) and behave exactly as before when overflowing
-               (flex-grow only distributes free space, so the carousel/snapping is untouched) */
-            flex: 22 1 var(--mateu-foldout-section-width, 22rem);
-            /* shrinks to fit, but not past readable: with many panels (a record's detail with a
-               panel per section) the row overflows and scrolls as the carousel it is, instead of
-               squeezing every column to a sliver */
+            /* a panel with no declared width shares the row (its basis is a readable column);
+               one with a width gets it inline, fixed (foldoutSectionStyle) */
+            flex: 1 1 var(--mateu-foldout-section-width, 22rem);
             min-width: min(var(--mateu-foldout-section-min-width, 16rem), 100%);
-            background: var(--mateu-foldout-panel-bg, transparent);
+            background: var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff));
             border: none;
             border-radius: 0;
-            padding: var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem));
+            /* Redwood's panel gutter: 24px each side */
+            padding: var(--mateu-foldout-panel-padding, 1.5rem);
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: .5rem;
+            gap: .75rem;
             overflow-y: auto;
+            overflow-x: hidden;
         }
-        /* The overview: pinned to the left edge for one carousel step via a transform (see _syncPin).
-           While floating over the scrolled content it needs an opaque background (so the sliding
-           columns pass cleanly behind it) + its own stacking context + a drop shadow; at rest it
-           stays borderless/flush. NOT position: sticky — that fights scroll-snap on the same box. */
+        /* alternate the panels' backgrounds, as Redwood's foldout does, so each reads as a column */
+        .section.panel-alt {
+            background: var(--mateu-foldout-panel-alt-bg, var(--lumo-contrast-5pct, rgba(0, 0, 0, .03)));
+        }
+        /* The overview: a FIXED rail (Redwood: 25rem), pinned to the left edge for one carousel
+           step via a transform (see _syncPin). While floating over the scrolled content it keeps
+           an opaque background + a drop shadow. */
         .section--first {
             position: relative;
             z-index: 2;
-            flex-basis: var(--mateu-foldout-overview-width, 22rem);
+            flex: 0 0 min(var(--mateu-foldout-overview-width, 25rem), 100%);
+            width: min(var(--mateu-foldout-overview-width, 25rem), 100%);
+            background: var(--mateu-foldout-overview-bg, var(--lumo-contrast-5pct, #f4f4f4));
             will-change: transform;
         }
         .section--first.floating {
-            background: var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff));
+            background: var(--mateu-foldout-overview-bg-floating, var(--lumo-base-color, #fff));
             box-shadow: var(--mateu-foldout-pinned-shadow, 6px 0 12px -6px rgba(0, 0, 0, .25));
+        }
+        /* A CLOSED panel (open=false): a narrow strip with its title written vertically; the whole
+           strip opens it. */
+        .section.strip {
+            padding: 0;
+            overflow: hidden;
+        }
+        .strip-button {
+            all: unset;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .75rem;
+            padding: 1.5rem 0;
+            cursor: pointer;
+            color: var(--lumo-body-text-color, inherit);
+        }
+        .strip-button:hover {
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .04));
+        }
+        .strip-button:focus-visible {
+            outline: 2px solid var(--lumo-primary-color, #1976d2);
+            outline-offset: -2px;
+        }
+        .strip-title {
+            writing-mode: vertical-rl;
+            font-weight: 600;
+            font-size: var(--lumo-font-size-m, 1rem);
+            white-space: nowrap;
+        }
+        .strip-chevron, .panel-fold {
+            font-size: 1.1rem;
+            line-height: 1;
+            color: var(--lumo-secondary-text-color, #666);
+        }
+        .panel-fold {
+            all: unset;
+            cursor: pointer;
+            padding: .15rem .35rem;
+            border-radius: var(--lumo-border-radius-s, 4px);
+        }
+        .panel-fold:hover {
+            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .08));
         }
         /* Title + toolbar + badges — these live INSIDE the first section, not in a full-width band. */
         .section-head {
@@ -382,6 +491,23 @@ export class MateuVaadinFoldout extends LitElement {
             flex: 1;
             min-height: 0;
         }
+        .panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+        /* Redwood's panel title: a heading with a short accent rule under it */
+        .panel-header h3::after,
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 2.25rem;
+            height: 4px;
+            margin-top: .6rem;
+            border-radius: 2px;
+            background: var(--mateu-foldout-accent, var(--lumo-primary-color, #1976d2));
+        }
         .panel-header h3 {
             margin: 0;
             font-size: var(--mateu-foldout-title-size, var(--lumo-font-size-l, 1.125rem));
@@ -395,44 +521,35 @@ export class MateuVaadinFoldout extends LitElement {
             flex: 1;
             min-height: 0;
         }
-        /* Carousel affordances: floating round buttons at the bottom corners, each shown only while
-           the carousel can still scroll that way (the left one hides at the start, the right one at
-           the end). Clicking steps one section that direction. */
-        .scroll-nav {
+        /* Paging dots (Redwood's foldout): one per section, filled while it is in view; shown
+           only when the row overflows. A dot brings its section to the left. */
+        .dots {
             position: absolute;
-            bottom: var(--mateu-foldout-nav-bottom, 1.25rem);
+            left: 50%;
+            bottom: var(--mateu-foldout-nav-bottom, 1rem);
+            transform: translateX(-50%);
             z-index: 3;
-            width: 2.75rem;
-            height: 2.75rem;
-            border-radius: 50%;
-            border: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .08));
-            background: var(--lumo-base-color, #fff);
-            color: var(--lumo-primary-text-color, #1976d2);
-            cursor: pointer;
             display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
-            transition: opacity .2s ease, transform .2s ease;
+            gap: .5rem;
+            padding: .55rem .9rem;
+            border-radius: 999px;
+            background: var(--mateu-foldout-dots-bg, rgba(22, 21, 19, .78));
         }
-        .scroll-nav.right {
-            right: var(--mateu-foldout-nav-right, 1.25rem);
+        .dot {
+            all: unset;
+            box-sizing: border-box;
+            width: .7rem;
+            height: .7rem;
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            cursor: pointer;
         }
-        .scroll-nav.left {
-            left: var(--mateu-foldout-nav-left, 1.25rem);
+        .dot.on {
+            background: #fff;
         }
-        .scroll-nav:hover {
-            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .04));
-        }
-        .scroll-nav.right:hover {
-            transform: translateX(2px);
-        }
-        .scroll-nav.left:hover {
-            transform: translateX(-2px);
-        }
-        .scroll-nav svg {
-            width: 1.35rem;
-            height: 1.35rem;
+        .dot:focus-visible {
+            outline: 2px solid var(--lumo-primary-color, #1976d2);
+            outline-offset: 2px;
         }
     `
 
@@ -487,38 +604,49 @@ export class MateuVaadinFoldout extends LitElement {
                         <slot name="overview"></slot>
                     </div>
                 </section>
-                ${this.panels.map((panel, index) => html`
-                    <section class="section" part="section panel"
-                             style="${this._sectionFlex(panel, index)}">
-                        ${panel.title || panel.subtitle ? html`
+                ${this.panels.map((panel, index) => {
+                    const open = this._open[index] ?? true
+                    const alt = index % 2 === 1 ? ' panel-alt' : ''
+                    if (!open) {
+                        return html`
+                            <section class="section strip${alt}" part="section panel strip"
+                                     style="${this._sectionStyle(panel, index)}">
+                                <button class="strip-button" title="${panel.title ?? ''}"
+                                        aria-expanded="false" @click="${() => this._toggle(index)}">
+                                    <span class="strip-chevron" aria-hidden="true">›</span>
+                                    <span class="strip-title">${panel.title ?? ''}</span>
+                                </button>
+                            </section>
+                        `
+                    }
+                    const foldable = panel.open === false
+                    return html`
+                    <section class="section${alt}" part="section panel"
+                             style="${this._sectionStyle(panel, index)}">
+                        ${panel.title || panel.subtitle || foldable ? html`
                             <div class="panel-header">
+                                <div>
                                 ${panel.title ? html`<h3>${panel.title}${panel.subtitle ? html` <span class="subtitle" style="font-weight: 400;">· ${panel.subtitle}</span>` : nothing}</h3>` : nothing}
                                 ${!panel.title && panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : nothing}
+                                </div>
+                                ${foldable ? html`<button class="panel-fold" title="Fold" aria-expanded="true"
+                                        @click="${() => this._toggle(index)}">‹</button>` : nothing}
                             </div>
                         ` : nothing}
                         <div class="panel-body">
                             <slot name="panel-${index}"></slot>
                         </div>
                     </section>
-                `)}
+                `})}
             </div>
-            ${this._less ? html`
-                <button class="scroll-nav left" part="scroll-nav-left" title="Scroll left"
-                        aria-label="Scroll left" @click="${() => this._step(-1)}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 6 9 12 15 18"></polyline>
-                    </svg>
-                </button>
-            ` : nothing}
-            ${this._more ? html`
-                <button class="scroll-nav right" part="scroll-nav-right" title="Scroll right"
-                        aria-label="Scroll right" @click="${() => this._step(1)}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 6 15 12 9 18"></polyline>
-                    </svg>
-                </button>
+            ${this._less || this._more ? html`
+                <nav class="dots" part="paging-dots" aria-label="Panels">
+                    ${[this.headerTitle || 'Overview', ...this.panels.map(p => p.title ?? '')].map((title, i) => html`
+                        <button class="dot ${this._visible[i] ? 'on' : ''}" title="${title}"
+                                aria-label="${title}" aria-current="${this._visible[i] ? 'true' : 'false'}"
+                                @click="${() => this._goTo(i)}"></button>
+                    `)}
+                </nav>
             ` : nothing}
         `
     }
