@@ -3,7 +3,7 @@ import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import {property} from "lit/decorators.js";
 import {PropertyValues} from "lit";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
-import {Page} from "@mateu/shared/apiClients/dtos/Page.ts";
+import {isInfiniteListing, mergeListingData} from "@infra/ui/listingPages.ts";
 import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType.ts";
@@ -231,19 +231,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             this._lastOwnState = nextOwn
 
             if (fragment.data) {
-                for (const key in fragment.data) {
-                    const page = (fragment.data[key] as Record<string, unknown>)?.page as Page
-                    if (page?.pageNumber > 0) {
-                        if (this.data[key] && this.data[key].page.content) {
-                            if (page.content) {
-                                page.content = [...this.data[key].page.content, ...page.content]
-                            } else {
-                                page.content = [...this.data[key].page.content]
-                            }
-                        }
-                    }
-                }
-                this.data = { ...this.data, ...fragment.data }
+                // Only an infinite-scrolling listing accumulates its windows; a paged listing's
+                // answer IS the page to show (see listingPages.ts).
+                this.data = mergeListingData(this.data ?? {}, fragment.data as Record<string, any>,
+                    listingId => isInfiniteListing(this.component, listingId))
             }
 
             // Remember the exact data reference our own applyFragment produced. willUpdate() uses
