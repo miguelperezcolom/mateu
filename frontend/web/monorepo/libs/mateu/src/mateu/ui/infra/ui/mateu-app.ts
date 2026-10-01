@@ -872,6 +872,42 @@ export class MateuApp extends ComponentElement {
             .mateu-app-widgets { gap: var(--lumo-space-s, .5rem); }
         }
 
+        /* MENU_ON_TOP in two bands (appRenderer): band 1 = brand + widgets, band 2 = the menu bar.
+           Band 2's start lines up with the content gutter below it. Below 600px band 2 folds into
+           band 1's menu button. */
+        .mateu-app-band1 { border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); }
+        /* band 1 holds no menu any more: brand and widgets are simply centred on the band */
+        .mateu-app-band1 > .mateu-app-header { align-items: center !important; }
+        .mateu-app-band1 .mateu-app-brand > .m-hl { align-items: center !important; }
+        .mateu-app-band2 {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 2.75rem;
+            padding-inline: calc(var(--mateu-content-gutter, 24px) - var(--lumo-space-s, .5rem));
+            background-color: var(--lumo-base-color);
+            border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+        }
+        .mateu-app-band2 > .menu-band { flex: 1 1 0; min-width: 0; }
+        .mateu-app-menu-button { display: none; flex: 0 0 auto; }
+        /* the active entry (and the group holding it), as Redwood marks it: primary text + underline */
+        vaadin-menu-bar-button.mateu-nav-active,
+        .mateu-nav-item.mateu-nav-item--active {
+            color: var(--lumo-primary-text-color, #1676f3);
+            font-weight: 600;
+            box-shadow: inset 0 -2px 0 var(--lumo-primary-color, #1676f3);
+        }
+        /* The content gutter of this shell (it has no padded .app-content): the page's content view
+           takes it (mateu-ux data-page-width fixed/full), the RDS 24px — 16px on a phone. */
+        .mateu-content-gutter { --mateu-content-gutter: 24px; --mateu-shell-gutter: 24px; }
+        @media (max-width: 600px) {
+            .mateu-app-band2 { display: none; }
+            .mateu-app-menu-button { display: inline-flex; }
+            .mateu-content-gutter { --mateu-content-gutter: 16px; --mateu-shell-gutter: 16px; }
+        }
+
         /* top nav (menu-on-top) */
         .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }
         .app-nav-item { border: none; background: transparent; font: inherit; padding: .4rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); cursor: pointer; color: var(--lumo-body-text-color, #1a1a1a); white-space: nowrap; }
@@ -905,6 +941,7 @@ export class MateuApp extends ComponentElement {
         .left-menu-group > summary { cursor: pointer; padding: .5rem .75rem; font-weight: 600; }
 
         .app-content {
+            --mateu-content-gutter: 0px;
             padding-left: 2rem;
             padding-right: 2rem;
             padding-top: 1.5rem;

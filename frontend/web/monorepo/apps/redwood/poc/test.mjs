@@ -3466,6 +3466,18 @@ test('breadcrumbs: el rastro automático — camino de menús y nivel del crud; 
   assert.deepEqual(autoTrail(menu, '/otra/cosa', es), [])
 })
 
+test('breadcrumbs: un grupo con ruta propia (prefijo de una sección federada) no navega salvo que una entrada abra esa ruta', () => {
+  const menu = [
+    { label: 'Admin', route: '/admin', submenus: [{ label: 'Workflow', route: '/workflow', submenus: [{ label: 'Processes', route: '/workflow/processes', submenus: [] }] }] },
+    { label: 'Mapping', route: '/mapping', submenus: [{ label: 'Overview', route: '/mapping', submenus: [] }, { label: 'Dictionary', route: '/mapping/dictionary', submenus: [] }] },
+  ]
+  const trail = autoTrail(menu, '/workflow/processes/42', { lang: 'es' })
+  assert.deepEqual(trail, [{ text: 'Admin' }, { text: 'Workflow' }, { text: 'Processes', route: '/workflow/processes' }, { text: '42' }])
+  // el «ir al padre» de un listado colgado de grupos: no hay padre navegable → no se pinta
+  assert.equal(parentCrumb(autoTrail(menu, '/workflow/processes', { lang: 'es' })), undefined)
+  assert.deepEqual(autoTrail(menu, '/mapping/dictionary/7', { lang: 'es' })[0], { text: 'Mapping', route: '/mapping' })
+})
+
 test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o shell lo apaga', () => {
   const menu = [{ label: 'Call center', route: '', submenus: [{ label: 'Reservas', route: '/booking/bookings', submenus: [] }] }]
   const regOf = (pageMd, shellExtra = {}) => ({
