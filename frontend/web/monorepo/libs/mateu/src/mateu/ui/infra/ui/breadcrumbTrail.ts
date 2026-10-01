@@ -62,6 +62,9 @@ const isSpanish = (explicit?: string): boolean => {
 export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumbs: Crumb[], matched?: string } {
     const current = norm(path)
     let best: { crumbs: Crumb[], route: string } | undefined
+    // A group is a heading, not a page: its route (a federated section's prefix, "/admin") usually
+    // leads nowhere. Its crumb navigates only if some ENTRY of the menu has exactly that route.
+    const pages = leafRoutes(menu)
     const walk = (options: MenuOption[] | undefined, above: Crumb[]) => {
         for (const option of options ?? []) {
             if (!option || option.separator || option.visible === false) continue
@@ -69,7 +72,7 @@ export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumb
             const label = plain(option.label)
             const children = option.submenus ?? []
             if (children.length > 0) {
-                walk(children, [...above, route && route !== '/' ? { text: label, route } : { text: label }])
+                walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
                 continue
             }
             if (!route || route === '/') continue
@@ -80,6 +83,22 @@ export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumb
     }
     walk(menu, [])
     return best ? { crumbs: best.crumbs, matched: best.route } : { crumbs: [] }
+}
+
+/** The routes the menu's entries (not its groups) open: the ones a crumb can safely go to. */
+function leafRoutes(menu: MenuOption[] | undefined): Set<string> {
+    const out = new Set<string>()
+    const walk = (options: MenuOption[] | undefined) => {
+        for (const option of options ?? []) {
+            if (!option || option.separator) continue
+            const children = option.submenus ?? []
+            if (children.length > 0) { walk(children); continue }
+            const route = norm(option.route)
+            if (route && route !== '/') out.add(route)
+        }
+    }
+    walk(menu)
+    return out
 }
 
 /** Titles of records seen at their own route, so the «Editar» page can name the record it edits. */
@@ -143,4 +162,21 @@ export function publishShellMenu(from: unknown, menu: MenuOption[] | undefined, 
 export function shellTrail(path: string, page: PageInfo): Crumb[] {
     if (shellNoBreadcrumbs) return []
     return autoTrail(shellMenu, path, page)
+}
+
+/**
+ * The path a page was rendered FOR: the URL when its metadata first reached a header. A menu click
+ * changes the URL at once and the page it asked for arrives seconds later; reading the live URL
+ * meant the PREVIOUS page, re-rendered meanwhile, showed the NEW location's trail over its own title.
+ * Keyed on the metadata object, so the old page keeps its own trail until the new one replaces it —
+ * trail and title change together, with the content.
+ */
+const pagePaths = new WeakMap<object, string>()
+export const pathOfPage = (metadata: object): string => {
+    let path = pagePaths.get(metadata)
+    if (path === undefined) {
+        path = typeof window !== 'undefined' ? window.location.pathname : ''
+        pagePaths.set(metadata, path)
+    }
+    return path
 }

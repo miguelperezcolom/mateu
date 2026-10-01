@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { autoTrail, menuTrail, parentCrumb, publishShellMenu, shellTrail } from './breadcrumbTrail'
+import { autoTrail, menuTrail, parentCrumb, publishShellMenu, shellTrail, pathOfPage } from './breadcrumbTrail'
 
 const leaf = (label: string, route: string) => ({ label, route, submenus: [] } as any)
 const group = (label: string, submenus: any[], route = '') => ({ label, route, submenus } as any)
@@ -69,6 +69,19 @@ describe('the automatic breadcrumb trail', () => {
         expect(parentCrumb(autoTrail(menu, '/booking/bookings', es))).toBeUndefined()
     })
 
+    it('a group with a route of its own (a federated section prefix) is plain text unless an entry opens that route', () => {
+        const federated = [
+            group('Admin', [group('Workflow', [leaf('Processes', '/workflow/processes')], '/workflow')], '/admin'),
+            group('Mapping', [leaf('Overview', '/mapping'), leaf('Dictionary', '/mapping/dictionary')], '/mapping'),
+        ]
+        expect(autoTrail(federated, '/workflow/processes/42', es)).toEqual([
+            { text: 'Admin' }, { text: 'Workflow' }, { text: 'Processes', route: '/workflow/processes' }, { text: '42' },
+        ])
+        // «Mapping» is also an entry's route: that one IS a page
+        expect(autoTrail(federated, '/mapping/dictionary/7', es)[0]).toEqual({ text: 'Mapping', route: '/mapping' })
+        expect(parentCrumb(autoTrail(federated, '/workflow/processes', es))).toBeUndefined()
+    })
+
     it('the shell that published first owns the menu; @NoBreadcrumbs on it turns the trail off', () => {
         const shell = {}
         publishShellMenu(shell, menu, false)
@@ -76,5 +89,21 @@ describe('the automatic breadcrumb trail', () => {
         expect(shellTrail('/booking/bookings', es).map(c => c.text)).toEqual(['Call center', 'Reservas'])
         publishShellMenu(shell, menu, true)
         expect(shellTrail('/booking/bookings', es)).toEqual([])
+    })
+
+    it('a page keeps the path it was rendered for: the URL changing ahead of the next page does not move its trail', () => {
+        const g = globalThis as any
+        const had = 'window' in g
+        const previous = g.window
+        g.window = { location: { pathname: '/audit/actions' } }
+        try {
+            const oldPage = {}
+            expect(pathOfPage(oldPage)).toBe('/audit/actions')
+            g.window.location.pathname = '/mapping/dictionary' // the menu click, before the new page arrives
+            expect(pathOfPage(oldPage)).toBe('/audit/actions')
+            expect(pathOfPage({})).toBe('/mapping/dictionary') // the new page, once it arrives
+        } finally {
+            if (had) g.window = previous; else delete g.window
+        }
     })
 })

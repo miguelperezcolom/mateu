@@ -14,7 +14,7 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
-import { shellTrail, Crumb } from './breadcrumbTrail'
+import { shellTrail, pathOfPage, Crumb } from './breadcrumbTrail'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
 export { possiblyHtml } from './interpolation'
@@ -305,7 +305,7 @@ export class MateuContentHeader extends LitElement {
             return metadata.breadcrumbs.map(b => ({ text: b.text, route: b.link || undefined }))
         }
         if (level > 0 || metadata?.type !== ComponentMetadataType.Page || metadata.noBreadcrumbs) return []
-        return shellTrail(window.location.pathname, { title: metadata.title, pageType: metadata.pageType })
+        return shellTrail(pathOfPage(metadata), { title: metadata.title, pageType: metadata.pageType })
     }
 
     /** Inside the app for a path (the menu's own navigation), a full load for anything else. */
