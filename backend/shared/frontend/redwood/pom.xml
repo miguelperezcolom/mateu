@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.mateu</groupId>
         <artifactId>frontend</artifactId>
-        <version>3.0-alpha.384-ec1</version>
+        <version>0.0.1-MATEU</version>
     </parent>
 
     <artifactId>redwood</artifactId>
