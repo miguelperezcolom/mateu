@@ -132,6 +132,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     primaryToolbarButton,
     backToolbarButton,
     entityHeaderOf,
+    pageKpisOf,
     collectTexts,
     foldoutOf,
     wizardOf,

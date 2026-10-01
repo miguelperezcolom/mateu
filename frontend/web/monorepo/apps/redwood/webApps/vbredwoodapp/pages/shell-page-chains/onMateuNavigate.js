@@ -524,7 +524,8 @@ define([
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
         subtitle: hostEntity ? hostEntity.subtitle : '',
-        facts: hostEntity ? hostEntity.facts : [],
+        // sin EntityHeader, los @KPI de la Page (los totales de la reserva) son sus facts
+        facts: hostEntity ? hostEntity.facts : bridge.pageKpisOf(host),
         showBand: showBand && !gopOn && !iopOn,
         showInline: showHeader && !showBand && !gopOn && !iopOn,
         showListBand: showListBand,

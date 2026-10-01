@@ -1688,6 +1688,18 @@ export function entityHeaderOf(ctx) {
   }
 }
 
+/** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
+ *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
+ *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
+export function pageKpisOf(ctx) {
+  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  if (!page) return []
+  const state = ctx.state || {}
+  return ((page.metadata || {}).kpis || [])
+    .filter((k) => k && (k.title || k.text))
+    .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
+}
+
 /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
  *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
  *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general

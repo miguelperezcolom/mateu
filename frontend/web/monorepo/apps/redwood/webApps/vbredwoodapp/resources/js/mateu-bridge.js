@@ -1692,6 +1692,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  /** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
+   *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
+   *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
+  function pageKpisOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    if (!page) return []
+    const state = ctx.state || {}
+    return ((page.metadata || {}).kpis || [])
+      .filter((k) => k && (k.title || k.text))
+      .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
+  }
+
   /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
    *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
    *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
@@ -3348,9 +3360,28 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
   }
 
+  // las rutas que abren las ENTRADAS del menú (no los grupos): a donde una miga puede llevar
+  function crumbLeafRoutes(menu) {
+    const out = new Set()
+    const walk = (options) => {
+      for (const option of options || []) {
+        if (!option || option.separator) continue
+        const children = option.submenus || option.submenu || []
+        if (children.length > 0) { walk(children); continue }
+        const route = crumbRoute(option.route || option.path)
+        if (route && route !== '/') out.add(route)
+      }
+    }
+    walk(menu)
+    return out
+  }
+
   function menuTrail(menu, path) {
     const current = crumbRoute(path)
     let best = null
+    // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
+    // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
+    const pages = crumbLeafRoutes(menu)
     const walk = (options, above) => {
       for (const option of options || []) {
         if (!option || option.separator || option.visible === false) continue
@@ -3358,7 +3389,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         const label = crumbText(option.caption || option.label)
         const children = option.submenus || option.submenu || []
         if (children.length > 0) {
-          walk(children, [...above, route && route !== '/' ? { text: label, route } : { text: label }])
+          walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
           continue
         }
         if (!route || route === '/') continue
@@ -5820,6 +5851,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     primaryToolbarButton,
     backToolbarButton,
     entityHeaderOf,
+    pageKpisOf,
     collectTexts,
     foldoutOf,
     wizardOf,

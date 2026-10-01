@@ -36,7 +36,7 @@ import {
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
-  entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
+  entityHeaderOf, pageKpisOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
@@ -474,6 +474,13 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('header: los @KPI de la Page son los facts del header de pantalla (interpolados)', () => {
+  const ctx = { state: { total: '1431.12 EUR' }, tree: { type: 'ServerSide', children: [{ metadata: { type: 'Page', title: '7DM5S9',
+    kpis: [{ title: 'Total', text: '${state.total}' }, { title: 'Paid', text: '0 EUR' }, { title: '', text: '' }] } }] } }
+  assert.deepEqual(pageKpisOf(ctx), [{ label: 'Total', value: '1431.12 EUR' }, { label: 'Paid', value: '0 EUR' }])
+  assert.deepEqual(pageKpisOf({ tree: { children: [] } }), [])
+})
+
 test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ninguno si no trae)', () => {
   const a = navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas')
   assert.deepEqual(a, { route: '/reservas', full: '/reservas?vista=LLEGADAS_HOY', filters: { vista: 'LLEGADAS_HOY' }, same: false })
