@@ -479,7 +479,11 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
-        blocks: pageBadges.concat(blocksOf(bySlot['overview'])),
+        // un bloque PLANO que las lleva como átomos: el template del overview solo pinta bloques
+        // isCard/isPlain e isBadge es un átomo de sus items — un bloque isBadge suelto no se veía
+        blocks: (pageBadges.length
+          ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
+          : []).concat(blocksOf(bySlot['overview'])),
       },
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',

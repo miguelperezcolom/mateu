@@ -76,6 +76,44 @@ class EditActionHandlerTest {
   }
 
   @Test
+  void fallsBackToTheRecordInTheRoute() {
+    // A detail opened by its URL: the view has no field named like the row's id column, and
+    // neither the parameters nor the state carry it — only the route does.
+    when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("crsHotelCode", "MRU01"));
+    when(orchestrator.getIdFieldForRow()).thenReturn("crsHotel");
+    var rq =
+        RunActionRqDto.builder()
+            .parameters(Map.of())
+            .route("/integrations/registry/MRU01")
+            .consumedRoute("/integrations/registry")
+            .build();
+    when(httpRequest.runActionRq()).thenReturn(rq);
+    when(orchestrator.getConsumedRoute(httpRequest)).thenReturn("/integrations/registry");
+
+    var result = (CrudActionResult) handler.handleAction("edit", httpRequest, orchestrator);
+
+    assertThat(result.route()).isEqualTo("/MRU01/edit");
+    assertThat(result.savedId()).isEqualTo("MRU01");
+  }
+
+  @Test
+  void aRouteThatIsTheListingCarriesNoRecord() {
+    when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of());
+    var rq =
+        RunActionRqDto.builder()
+            .parameters(Map.of())
+            .route("/integrations/registry")
+            .consumedRoute("/integrations/registry")
+            .build();
+    when(httpRequest.runActionRq()).thenReturn(rq);
+    when(orchestrator.getConsumedRoute(httpRequest)).thenReturn("/integrations/registry");
+
+    var result = (CrudActionResult) handler.handleAction("edit", httpRequest, orchestrator);
+
+    assertThat(result.savedId()).isNull();
+  }
+
+  @Test
   void noMessages() {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "x"));
 
