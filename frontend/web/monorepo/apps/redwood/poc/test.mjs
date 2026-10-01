@@ -503,7 +503,12 @@ test('el overview @FoldoutDetail lleva la insignia de estado de la página, con 
   const foldout = foldoutOf(contexts[HOST_ID])
   assert.deepEqual(foldout.badges.map((b) => [b.label, b.badgeClass]),
     [['Confirmed', 'oj-badge oj-badge-success oj-badge-subtle']])
-  assert.equal(foldout.overview.blocks[0].isBadge, true)
+  // el primer bloque es PLANO y lleva la insignia como átomo: el template del overview no pinta
+  // un bloque isBadge suelto (solo isCard/isPlain), así que la insignia no se veía
+  const first = foldout.overview.blocks[0]
+  assert.equal(first.isPlain, true)
+  assert.deepEqual(first.items.map((i) => [i.isBadge, i.label]), [[true, 'Confirmed']])
+  assert.equal(foldout.overview.blocks.filter((b) => b.isBadge).length, 0)
 })
 
 test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus textos', () => {
