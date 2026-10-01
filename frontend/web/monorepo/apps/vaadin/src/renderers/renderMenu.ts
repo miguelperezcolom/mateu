@@ -16,20 +16,10 @@ import "@vaadin/context-menu";
 // override for the DS-neutral <details> strip (renderNeutralNav). Items arrive already mapped by
 // MateuApp.mapItems; a top item with children becomes a dropdown that closes on select / outside
 // click (native <details> did neither). onSelect is the shell's existing itemSelected handler.
-// The active entry — and every group on the way to it — carries `mateu-nav-active` (mateu-app styles
-// it: primary text + underline). The app marks the active leaf `selected` (from the live route).
-const isActive = (item: AppMenuBarItem): boolean =>
-    item.selected === true || (item.children ?? []).some(isActive)
-export const withActiveClass = (items: AppMenuBarItem[]): AppMenuBarItem[] => items.map(item => {
-    const active = isActive(item)
-    const className = [item.className, active ? 'mateu-nav-active' : undefined].filter(Boolean).join(' ') || undefined
-    return { ...item, className, children: item.children ? withActiveClass(item.children) : undefined }
-})
-
 export const renderTopNav = (items: AppMenuBarItem[], onSelect: (item: AppMenuBarItem) => void, cls?: string) => html`
     <vaadin-menu-bar
         theme="tertiary"
-        .items=${withActiveClass(items) as unknown as MenuBarItem[]}
+        .items=${items as unknown as MenuBarItem[]}
         class="${cls ?? nothing}"
         @item-selected=${(e: CustomEvent) => onSelect((e.detail as { value: AppMenuBarItem }).value)}>
     </vaadin-menu-bar>`
