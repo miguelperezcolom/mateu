@@ -1704,6 +1704,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
   }
 
+  /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
+   *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
+  function pageSubtitleOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const subtitle = page && page.metadata ? page.metadata.subtitle : ''
+    return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+  }
+
   /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
    *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
    *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
@@ -4299,6 +4307,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return out
   }
 
+  /** Los átomos isElement del CONTENIDO de un foldout (overview + cada panel): un Element en un
+   *  panel (p.ej. la tabla «In other systems» de una reserva, HTML del servidor) se quedaba sin
+   *  montar — el panel salía en blanco — porque sólo se montaban los del contenido del host. */
+  function foldoutElementAtomsOf(content) {
+    if (!content) return []
+    const out = elementAtomsOf((content.overview || {}).blocks)
+    for (const panel of content.panels || []) out.push(...elementAtomsOf(panel && panel.blocks))
+    return out
+  }
+
 
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
@@ -5762,6 +5780,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     mountElements,
     mountElementsSoon,
     elementAtomsOf,
+    foldoutElementAtomsOf,
     reduceContexts,
     autoTrail,
     parentCrumb,
@@ -5852,6 +5871,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     backToolbarButton,
     entityHeaderOf,
     pageKpisOf,
+    pageSubtitleOf,
     collectTexts,
     foldoutOf,
     wizardOf,
