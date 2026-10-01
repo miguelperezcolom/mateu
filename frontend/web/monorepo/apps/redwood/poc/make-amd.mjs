@@ -107,6 +107,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    ojIconOrGenericOf,
     longTaskWatcher,
     findAllByType,
     cardOf,

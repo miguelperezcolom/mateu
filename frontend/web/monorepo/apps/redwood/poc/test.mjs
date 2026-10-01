@@ -31,6 +31,7 @@ import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
+  ojIconOf, ojIconOrGenericOf, GENERIC_ICON,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
@@ -446,6 +447,24 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en el genérico', () => {
+  assert.equal(ojIconOf('vaadin:sign-in'), 'oj-ux-ico-login')
+  for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle']) {
+    assert.ok(ojIconOf('vaadin:' + v), v)
+  }
+  assert.equal(ojIconOf('vaadin:nope'), undefined) // estricto: widgets y FAB conservan su caída
+  assert.equal(ojIconOrGenericOf('vaadin:nope'), GENERIC_ICON)
+  assert.equal(ojIconOrGenericOf(undefined), undefined)
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Llegadas', route: '/reservas?vista=LLEGADAS_HOY', icon: 'vaadin:sign-in' },
+    { label: 'Raro', route: '/raro', icon: 'vaadin:nope' },
+    { label: 'Sin', route: '/sin' },
+  ] } })
+  const flat = JSON.stringify(nav)
+  assert.ok(flat.includes('oj-ux-ico-login'))
+  assert.ok(flat.includes(GENERIC_ICON))
+})
+
 test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un grupo', () => {
   // @Menu @Hidden en una página local: la alcanza el botón New del listado, no el menú
   const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [

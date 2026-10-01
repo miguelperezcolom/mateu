@@ -804,11 +804,31 @@ const OJ_ICONS = {
   'vaadin:bell-o': 'oj-ux-ico-notification',
   'vaadin:envelope': 'oj-ux-ico-email',
   'vaadin:sign-out': 'oj-ux-ico-logout',
+  'vaadin:sign-in': 'oj-ux-ico-login',
+  'vaadin:cloud': 'oj-ux-ico-cloud',
+  'vaadin:trending-up': 'oj-ux-ico-trending-up',
+  'vaadin:building': 'oj-ux-ico-building',
+  'vaadin:refresh': 'oj-ux-ico-refresh',
+  'vaadin:close-circle': 'oj-ux-ico-close-circle',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined
   if (icon.indexOf('oj-ux-') === 0) return icon
   return OJ_ICONS[icon] || undefined
+}
+
+/** El icono genérico para un icono DECLARADO que no tiene traducción a Redwood. */
+export const GENERIC_ICON = 'oj-ux-ico-arrow-circle-right'
+
+/**
+ * Como ojIconOf, pero un icono declarado sin traducción cae en uno genérico: una entrada de menú
+ * o un botón de sólo icono nunca se queda en blanco («Llegadas» con vaadin:sign-in salía sin
+ * icono junto a sus hermanas). ojIconOf sigue estricto: el HTML de los widgets quita los que no
+ * conoce y el FAB de Ask cae en su propio glifo.
+ */
+export function ojIconOrGenericOf(icon) {
+  if (!icon) return undefined
+  return ojIconOf(icon) || GENERIC_ICON
 }
 
 /**
@@ -834,7 +854,7 @@ function navNodeOf(option, parentRoute) {
   return {
     id,
     label: option.caption || option.label || id,
-    icon: ojIconOf(option.icon),
+    icon: ojIconOrGenericOf(option.icon),
     hasChildren: children.length > 0,
     // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
     children: children.map((child) => navNodeOf(child, raw)),
@@ -1410,15 +1430,15 @@ export function islandContentOf(ctx, opts = {}) {
           const rowActions = []
           if (it.actionLabel && it.actionId) {
             rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
-              iconClass: ojIconOf(it.actionIcon) || '' })
+              iconClass: ojIconOrGenericOf(it.actionIcon) || '' })
           }
           if (it.actionLabel2 && it.actionId2) {
             rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id },
-              iconClass: ojIconOf(it.actionIcon2) || '' })
+              iconClass: ojIconOrGenericOf(it.actionIcon2) || '' })
           }
           if (it.actionLabel3 && it.actionId3) {
             rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id },
-              iconClass: ojIconOf(it.actionIcon3) || '' })
+              iconClass: ojIconOrGenericOf(it.actionIcon3) || '' })
           }
           return {
             rowClass,
