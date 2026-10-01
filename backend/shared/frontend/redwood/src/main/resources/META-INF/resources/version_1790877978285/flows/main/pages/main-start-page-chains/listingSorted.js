@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event}){const{$application}=context,sort=bridge.listingSortOf(event&&event.detail);sort.length&&($application.variables.mateuListingSort=sort,await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText:$application.variables.mateuLastSearchText||"",page:0}}))}};});
+//# sourceMappingURL=listingSorted.js.map
