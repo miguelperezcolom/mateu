@@ -551,6 +551,13 @@ export class MateuPage extends LitElement {
             background: var(--mateu-page-header-bg, transparent);
         }
 
+        /* an edge page (declared or inferred) in a shell without padded content: the header keeps
+           the shell's content gutter (mateu-ux sets --mateu-edge-header-gutter) */
+        .page-header-wrap,
+        .page-banners {
+            padding-inline: var(--mateu-edge-header-gutter, 0px);
+        }
+
         /* edgeToEdge (RDS): the shell drops its gutters (no-padding hook) so the CONTENT
            bleeds, but the page header + banners keep their own gutter — like the Redwood
            anatomy, where only the content band reaches the edges. */
@@ -769,7 +776,7 @@ export class MateuPage extends LitElement {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            padding: 1rem 0 0.5rem;
+            padding-block: 1rem 0.5rem;
             width: 100%;
             box-sizing: border-box;
         }
