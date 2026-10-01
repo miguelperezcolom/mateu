@@ -308,8 +308,10 @@ export class MateuVaadinFoldout extends LitElement {
             flex-direction: column;
             width: 100%;
             box-sizing: border-box;
-            min-height: var(--mateu-foldout-min-height, 30rem);
-            height: var(--mateu-foldout-fill, var(--mateu-foldout-height, calc(100dvh - 8rem)));
+            /* a record's detail: the panels GROW with their content (no scroll inside a fold, as
+               Redwood) — the viewport fill is a minimum, not a cap */
+            min-height: var(--mateu-foldout-fill, var(--mateu-foldout-min-height, 30rem));
+            height: auto;
             margin: var(--mateu-foldout-outer-margin, 0);
         }
         /* The row of sections (Redwood: oj-sp-foldout-layout). Fixed-width sections; the leftover
@@ -349,8 +351,10 @@ export class MateuVaadinFoldout extends LitElement {
             display: flex;
             flex-direction: column;
             gap: .75rem;
-            overflow-y: auto;
-            overflow-x: hidden;
+            /* no inner scroll, either way: the panel grows, and a long value (a link, an id)
+               wraps instead of pushing the panel wider */
+            overflow: visible;
+            overflow-wrap: anywhere;
         }
         /* alternate the panels' backgrounds, as Redwood's foldout does, so each reads as a column */
         .section.panel-alt {
@@ -524,10 +528,12 @@ export class MateuVaadinFoldout extends LitElement {
         /* Paging dots (Redwood's foldout): one per section, filled while it is in view; shown
            only when the row overflows. A dot brings its section to the left. */
         .dots {
-            position: absolute;
-            left: 50%;
+            /* sticky to the viewport's bottom while the (now growing) panels are taller than it;
+               it takes no room of its own (negative margin) */
+            position: sticky;
+            align-self: center;
             bottom: var(--mateu-foldout-nav-bottom, 1rem);
-            transform: translateX(-50%);
+            margin-top: -3.2rem;
             z-index: 3;
             display: inline-flex;
             gap: .5rem;

@@ -94,3 +94,13 @@ export function elementAtomsOf(blocks) {
   }
   return out
 }
+
+/** Los átomos isElement del CONTENIDO de un foldout (overview + cada panel): un Element en un
+ *  panel (p.ej. la tabla «In other systems» de una reserva, HTML del servidor) se quedaba sin
+ *  montar — el panel salía en blanco — porque sólo se montaban los del contenido del host. */
+export function foldoutElementAtomsOf(content) {
+  if (!content) return []
+  const out = elementAtomsOf((content.overview || {}).blocks)
+  for (const panel of content.panels || []) out.push(...elementAtomsOf(panel && panel.blocks))
+  return out
+}

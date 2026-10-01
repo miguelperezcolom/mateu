@@ -6,6 +6,8 @@ import {
     isInside,
     mergeOpenStates,
     readOnlyAsPlainText,
+    readOnlyGridLayout,
+    fitColumnToWidth,
     visibleSections,
 } from './foldoutGeometry'
 
@@ -57,7 +59,9 @@ describe('foldout geometry (Vaadin, as Redwood)', () => {
     it('draws read-only fields of a foldout as plain text, keeping the special ones', () => {
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'string' }, true)).toBe(true)
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'date' }, true)).toBe(true)
-        expect(readOnlyAsPlainText({ readOnly: true, dataType: 'string' }, false)).toBe(false)
+        expect(readOnlyAsPlainText({ readOnly: true, dataType: 'string' }, false)).toBe(true) // a view page outside a foldout too
+        expect(readOnlyAsPlainText({ readOnly: true, stereotype: 'textarea', dataType: 'string' })).toBe(true)
+        expect(readOnlyAsPlainText({ readOnly: true, stereotype: 'html', dataType: 'string' })).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: false, dataType: 'string' }, true)).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'money' }, true)).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'bool' }, true)).toBe(false)
@@ -71,5 +75,12 @@ describe('foldout geometry (Vaadin, as Redwood)', () => {
         const field = { tagName: 'MATEU-FIELD', parentNode: shadow } as unknown as Node
         expect(isInside(field, 'mateu-vaadin-foldout')).toBe(true)
         expect(isInside({ tagName: 'DIV', parentNode: null } as unknown as Node, 'mateu-vaadin-foldout')).toBe(false)
+    })
+    it('a read-only grid shows every row and fits its columns (no inner scroll)', () => {
+        expect(readOnlyGridLayout(true, 25)).toEqual({ allRowsVisible: true, theme: 'wrap-cell-content' })
+        expect(readOnlyGridLayout(false, 25).allRowsVisible).toBe(false)
+        expect(readOnlyGridLayout(false, 3).allRowsVisible).toBe(true)
+        const col = fitColumnToWidth({ metadata: { type: 'GridColumn', id: 'amount', width: '12rem', frozen: true } })
+        expect(col.metadata).toMatchObject({ id: 'amount', width: '3rem', flexGrow: '1', frozen: false, autoWidth: false })
     })
 })

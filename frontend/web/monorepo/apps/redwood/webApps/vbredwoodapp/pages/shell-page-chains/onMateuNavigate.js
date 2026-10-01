@@ -219,6 +219,9 @@ define([
         ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
         : { overview: { blocks: [] }, panels: [] };
       $application.variables.mateuFoldout = foldoutProjection;
+      // los Element de sus paneles (HTML del servidor, componentes web) se montan a mano
+      // (mismo motivo que los del host: VB no sabe pintar una etiqueta arbitraria)
+      bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
       $application.variables.mateuSelectPlaceholder = bridge.selectPlaceholder(
         document.documentElement.lang || navigator.language);
       $application.variables.mateuWizard = bridge.wizardOf(host);

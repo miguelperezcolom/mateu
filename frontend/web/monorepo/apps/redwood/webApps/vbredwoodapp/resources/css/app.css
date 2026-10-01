@@ -780,3 +780,14 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   display: inline-flex;
   flex-direction: column;
 }
+
+/* Un Element del servidor (HTML: p.ej. la tabla «In other systems» de una reserva) dentro de un
+   panel de detalle: los valores largos (enlaces, ids de Salesforce) parten la línea en vez de
+   ensanchar el panel o pedir scroll. */
+.mateu-element {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.mateu-element table {
+  max-width: 100%;
+}
