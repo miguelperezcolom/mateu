@@ -129,3 +129,43 @@ export function fitColumnToWidth<T extends { metadata?: any }>(column: T): T {
     if (!md || md.type === 'GridGroupColumn') return column
     return { ...column, metadata: { ...md, width: '3rem', autoWidth: false, flexGrow: '1', frozen: false, frozenToEnd: false } }
 }
+
+/** A vertical scroller met under the pointer: where it is and how far it can go. */
+export interface VerticalScroller { scrollTop: number; scrollHeight: number; clientHeight: number }
+
+/**
+ * The mouse WHEEL over the foldout pages the row of panels, as Redwood's foldout does: wheel down
+ * (deltaY > 0) goes towards the right folds, up goes back. Returns the horizontal scroll to apply,
+ * or null to leave the event alone:
+ * - a mostly-horizontal gesture (trackpad swipe, shift+wheel) already scrolls the row natively;
+ * - an inner element under the pointer that can still scroll vertically that way keeps the wheel;
+ * - once the row is at its start (wheel up) or end (wheel down) the page scrolls normally.
+ */
+export function wheelToRow(
+    deltaX: number,
+    deltaY: number,
+    scrollLeft: number,
+    maxScrollLeft: number,
+    innerScrollers: VerticalScroller[] = [],
+): number | null {
+    if (deltaY === 0 || Math.abs(deltaX) >= Math.abs(deltaY)) {
+        return null
+    }
+    const down = deltaY > 0
+    for (const s of innerScrollers) {
+        const room = down ? s.scrollHeight - s.clientHeight - s.scrollTop : s.scrollTop
+        if (room > 1) {
+            return null
+        }
+    }
+    if (maxScrollLeft <= 1) {
+        return null
+    }
+    if (down && scrollLeft >= maxScrollLeft - 1) {
+        return null
+    }
+    if (!down && scrollLeft <= 1) {
+        return null
+    }
+    return deltaY
+}
