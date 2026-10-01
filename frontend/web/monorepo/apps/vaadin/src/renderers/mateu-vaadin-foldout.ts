@@ -25,6 +25,22 @@ import { foldoutSectionStyle, mergeOpenStates, visibleSections, wheelToRow, Vert
  * Content arrives through light-DOM slots exactly like the shared component: slot="overview" and
  * slot="panel-N".
  */
+/** The nearest ancestor that scrolls vertically (across shadow roots), or the document's. */
+function scrollParentOf(el: Element): Element | null {
+    let node: Node | null = el
+    while (node) {
+        const parent: Node | null = (node as Element).parentElement
+            ?? ((node.getRootNode() as ShadowRoot).host as Node | undefined) ?? null
+        if (!parent || parent === node) break
+        if (parent instanceof Element) {
+            const oy = getComputedStyle(parent).overflowY
+            if (oy === 'auto' || oy === 'scroll') return parent
+        }
+        node = parent
+    }
+    return document.scrollingElement
+}
+
 @customElement('mateu-vaadin-foldout')
 export class MateuVaadinFoldout extends LitElement {
 
@@ -240,7 +256,20 @@ export class MateuVaadinFoldout extends LitElement {
     // (the foldout page has no definite-height ancestor to inherit from), so no gap is left below.
     private _fit = () => {
         const top = this.getBoundingClientRect().top
-        this.style.setProperty('--mateu-foldout-fill', `${Math.max(240, window.innerHeight - top)}px`)
+        const base = Math.max(240, window.innerHeight - top)
+        this.style.setProperty('--mateu-foldout-fill', `${base}px`)
+        // What sits below the foldout — the content area's bottom gutter, the row's own horizontal
+        // scrollbar — must not push the page past the viewport: a spurious vertical scroll of a few
+        // pixels made the page take every wheel event, so the wheel never paged the folds. Measured
+        // against the base fill each time (no ratchet); a page whose content really overflows keeps
+        // its scroll, because the fill is only a minimum.
+        const scroller = scrollParentOf(this)
+        if (scroller) {
+            const over = scroller.scrollHeight - scroller.clientHeight
+            if (over > 0) {
+                this.style.setProperty('--mateu-foldout-fill', `${Math.max(240, base - over)}px`)
+            }
+        }
         this._syncPin()
     }
 
