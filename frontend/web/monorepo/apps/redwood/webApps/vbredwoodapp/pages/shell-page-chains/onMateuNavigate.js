@@ -523,7 +523,7 @@ define([
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
-        subtitle: hostEntity ? hostEntity.subtitle : '',
+        subtitle: hostEntity ? hostEntity.subtitle : bridge.pageSubtitleOf(host),
         // sin EntityHeader, los @KPI de la Page (los totales de la reserva) son sus facts
         facts: hostEntity ? hostEntity.facts : bridge.pageKpisOf(host),
         showBand: showBand && !gopOn && !iopOn,

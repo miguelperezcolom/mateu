@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getPageSubtitle;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
@@ -44,6 +45,8 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
     var page =
         PageView.builder()
             .title(title)
+            // the record's own subtitle (SubtitleSupplier / @Subtitle): e.g. a booking's amounts
+            .subtitle(getPageSubtitle(viewModel))
             .style(orchestrator.getStyleForView())
             .badges(createBadges(viewModel))
             .kpis(createKpis(viewModel))

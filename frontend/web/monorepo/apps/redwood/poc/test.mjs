@@ -36,7 +36,7 @@ import {
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
-  entityHeaderOf, pageKpisOf, itemOverviewPageOf, primaryToolbarButton,
+  entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
@@ -479,6 +479,13 @@ test('header: los @KPI de la Page son los facts del header de pantalla (interpol
     kpis: [{ title: 'Total', text: '${state.total}' }, { title: 'Paid', text: '0 EUR' }, { title: '', text: '' }] } }] } }
   assert.deepEqual(pageKpisOf(ctx), [{ label: 'Total', value: '1431.12 EUR' }, { label: 'Paid', value: '0 EUR' }])
   assert.deepEqual(pageKpisOf({ tree: { children: [] } }), [])
+})
+
+test('header: el subtítulo de la Page (SubtitleSupplier) va al header de pantalla', () => {
+  const ctx = { state: { n: 5 }, tree: { type: 'ServerSide', children: [{ metadata: { type: 'Page', title: '7DM5S9',
+    subtitle: 'Total 1.431,12 EUR (${state.n} noches) · Pagado 0,00 EUR' } }] } }
+  assert.equal(pageSubtitleOf(ctx), 'Total 1.431,12 EUR (5 noches) · Pagado 0,00 EUR')
+  assert.equal(pageSubtitleOf({ tree: { children: [] } }), '')
 })
 
 test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ninguno si no trae)', () => {

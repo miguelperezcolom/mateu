@@ -1700,6 +1700,14 @@ export function pageKpisOf(ctx) {
     .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
 }
 
+/** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
+ *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
+export function pageSubtitleOf(ctx) {
+  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const subtitle = page && page.metadata ? page.metadata.subtitle : ''
+  return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+}
+
 /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
  *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
  *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
