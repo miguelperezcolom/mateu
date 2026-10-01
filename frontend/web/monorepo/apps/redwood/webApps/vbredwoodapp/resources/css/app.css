@@ -153,10 +153,11 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   min-width: 0;
 }
 .mateu-item-head h3,
+.mateu-item-head h4,
 .mateu-item-head .oj-typography-body-md {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* the card's title WRAPS in a narrow fold (a history entry, a payment) instead of being cut */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Densidad del cockpit dentro de paneles de ancho fijo: tarjetas y celdas con menos

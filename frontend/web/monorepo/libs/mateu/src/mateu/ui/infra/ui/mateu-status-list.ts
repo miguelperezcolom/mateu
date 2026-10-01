@@ -58,13 +58,15 @@ export class MateuStatusList extends LitElement {
         .list.compact .avatar { width: 1.6rem; height: 1.6rem; font-size: .65rem; }
         .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
         .list.compact .body { gap: 0; }
+        /* title and description WRAP (a history entry or a payment in a narrow fold read whole —
+           «Booking created 1 Oct 08:18 · demo — Res…» hid the part that mattered) */
         .title {
             font-weight: 500; color: var(--lumo-body-text-color, #222);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: normal; overflow-wrap: anywhere;
         }
         .description {
             font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-secondary-text-color, #888);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: normal; overflow-wrap: anywhere;
         }
         /* DS-neutral small action button */
         .row-action {
@@ -104,7 +106,7 @@ export class MateuStatusList extends LitElement {
         .cell-title-row { display: flex; align-items: center; gap: .5rem; min-width: 0; }
         .cell-title {
             margin: 0; font-weight: 600; color: var(--lumo-body-text-color, #222);
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            white-space: normal; overflow-wrap: anywhere;
         }
         h3.cell-title { font-size: var(--lumo-font-size-m, 1rem); }
         h4.cell-title { font-size: var(--lumo-font-size-s, .875rem); }
