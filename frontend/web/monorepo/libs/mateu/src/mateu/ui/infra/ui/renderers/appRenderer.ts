@@ -403,18 +403,15 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
-                    <!-- TWO BANDS, like the Redwood header: band 1 = brand (logo + title) on the left and
-                         the widgets on the right; band 2 = the app's menu as a horizontal bar right
-                         below. A narrow viewport folds band 2 into band 1's menu button. -->
+                    <!-- TWO BANDS, like the Redwood header: band 1 = the logo on the left and the
+                         widgets on the right; band 2 = the app's title, then its menu as a horizontal
+                         bar. A narrow viewport folds the menu into a ☰ button next to the title. -->
                     <div class="m-hl mateu-app-band1"
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <div class="mateu-app-menu-button">
-                            ${renderMenuButton(items, fireSelect(container, container.itemSelected))}
-                        </div>
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
-                        ${renderBrand(metadata)}
+                        ${renderBrand({ ...metadata, title: '' })}
                         </a>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
@@ -423,6 +420,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     </div>
                     <nav class="mateu-app-band2" aria-label="${metadata.title || 'Menu'}"
                             @navigation-requested="${container.updateRoute}">
+                        <div class="mateu-app-menu-button">
+                            ${renderMenuButton(items, fireSelect(container, container.itemSelected))}
+                        </div>
+                        ${metadata.title ? html`<a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-band-title">${metadata.title}</a>` : nothing}
                         ${(() => {
                             const onSelect = fireSelect(container, container.itemSelected)
                             // The active renderer may supply its own chrome menu (the Vaadin adapter
