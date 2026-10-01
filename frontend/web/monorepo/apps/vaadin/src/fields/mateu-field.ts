@@ -8,6 +8,7 @@ import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
+import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -82,6 +83,16 @@ const ensureUi5FieldComponents = (): Promise<unknown> => {
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
+
+    // Inside a foldout (a record's read-only page), a read-only field reads as label + plain value —
+    // what Redwood draws there — not as a read-only input with its dashed box.
+    @state()
+    private inFoldout = false
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.inFoldout = isInside(this, 'mateu-vaadin-foldout')
+    }
 
     // Set once the lazily-loaded UI5 field components (color-picker / range-slider) have registered,
     // so the element re-renders and the placed <ui5-*> upgrades.
@@ -723,6 +734,7 @@ export class MateuField extends LitElement {
         if (this.field?.stereotype == 'badge') return this.renderBadgeField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'plainText') return this.renderPlainTextField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'bulletedList') return this.renderBulletedListField(fieldId, value, label, labelText)
+        if (readOnlyAsPlainText(this.field, this.inFoldout)) return this.renderFoldoutReadOnlyField(value, label)
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) return this.renderReadOnlyField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'file') return this.renderFileField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'string') return this.renderStringField(fieldId, value, label, labelText)
@@ -836,6 +848,27 @@ export class MateuField extends LitElement {
                     data-colspan="${this.field?.colspan}"
                     style="${isMoney ? 'text-align: right; ' : ''}${this.field?.style}"
             >${body}</vaadin-custom-field>`
+    }
+
+    // A read-only field of a foldout: label above, the value as plain text below (a read-only lookup
+    // shows its label, which travels in data as '<field>-label'). No input chrome.
+    private renderFoldoutReadOnlyField(value: any, label: any): TemplateResult {
+        if (!this.field) return html``
+        let v = evalIfNecessary(value, this.state, this.data)
+        const data = (this.data as any) ?? {}
+        const fromData = (key: string) => (data[key] !== undefined && data[key] !== null && typeof data[key] !== 'object') ? data[key] : undefined
+        if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
+        const lookupLabel = fromData(this.field.fieldId + '-label')
+        if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
+        if (v && typeof v === 'object' && 'value' in (v as any)) v = (v as any).value
+        const display = v !== null && v !== undefined && v !== '' ? String(v) : '—'
+        return html`<vaadin-custom-field
+                id="${this.field.fieldId}"
+                class="mateu-readonly-text"
+                label="${label}"
+                data-colspan="${this.field?.colspan}"
+                style="padding-top: 0; padding-bottom: 0; ${this.field?.style ?? ''}"
+        ><span style="display: block; line-height: 1.4; font-weight: 500; white-space: pre-wrap; word-break: break-word; color: var(--lumo-body-text-color);">${display}</span></vaadin-custom-field>`
     }
 
     private renderReadOnlyField(fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
