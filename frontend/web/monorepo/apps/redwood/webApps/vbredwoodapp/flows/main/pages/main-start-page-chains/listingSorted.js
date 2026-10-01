@@ -22,7 +22,8 @@ define([
      */
     async run(context, { event }) {
       const { $application } = context;
-      const sort = bridge.listingSortOf(event && event.detail);
+      const sort = bridge.listingSortOf(event && event.detail,
+        ($application.variables.mateuListing || {}).sortFields);
       if (!sort.length) {
         return;
       }

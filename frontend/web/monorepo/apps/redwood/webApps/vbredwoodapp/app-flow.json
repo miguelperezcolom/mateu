@@ -275,6 +275,11 @@
       "defaultValue": [],
       "description": "shell.menu proyectado a items de oj-sp-in-app-navigation ({id: route, label, icon})"
     },
+    "mateuSelectedNavId": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "la ruta COMPLETA (con su ?query) de la pantalla actual: la selecci\u00f3n del men\u00fa (una entrada con query, p.ej. /reservas?vista=LLEGADAS_HOY, es otra que /reservas)"
+    },
     "mateuSelectedRoute": {
       "type": "string",
       "defaultValue": ""

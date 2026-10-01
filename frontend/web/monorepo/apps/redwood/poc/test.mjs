@@ -31,7 +31,7 @@ import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
   listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
-  ojIconOf, ojIconOrGenericOf, GENERIC_ICON,
+  ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
@@ -299,6 +299,33 @@ test('listing: paginación — el pie sale de la Page del server', () => {
   assert.ok(listing.columns.every((c) => c.id))
 })
 
+test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y caption — campos de la fila', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const cols = crud.metadata.columns
+  const name = cols.map((c) => c.metadata || c).find((c) => c.id === 'name')
+  name.stereotype = 'primary'
+  name.leadingPath = 'bandera'
+  name.captionPath = 'nota'
+  name.sortingProperty = 'sortName'
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  search.fragments[0].data.crud.page.content[0].bandera = '/flags/at.svg'
+  search.fragments[0].data.crud.page.content[0].nota = 'VIP'
+  reg = reduceContexts(reg, search)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  const col = listing.columns.find((c) => c.id === 'name')
+  assert.equal(col.template, 'cellPrimary')
+  assert.equal(col.field, 'name__primary')
+  assert.deepEqual(listing.rows[0].name__primary, { title: 'Laptop', caption: 'VIP', leading: '/flags/at.svg' })
+  assert.deepEqual(listing.rows[1].name__primary, { title: 'Mouse', caption: '', leading: '' })
+  assert.equal(listing.rows[0].name, 'Laptop') // la fila, intacta
+  // ordenar por ella ordena por su sortingProperty
+  assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
+})
+
 test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabulario del server', () => {
   const state = listingSearchStateOf({ crud_selected_items: [], sort: [{ field: 'old', direction: 'ascending' }] }, {
     searchText: 'mru', page: 3, size: 10,
@@ -447,6 +474,18 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ninguno si no trae)', () => {
+  const a = navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas')
+  assert.deepEqual(a, { route: '/reservas', full: '/reservas?vista=LLEGADAS_HOY', filters: { vista: 'LLEGADAS_HOY' }, same: false })
+  const b = navTargetOf('/reservas', '/reservas?vista=LLEGADAS_HOY')
+  assert.equal(b.same, false) // antes: mismo path → «eco», no recargaba y el chip se quedaba
+  assert.deepEqual(b.filters, {})
+  assert.equal(navTargetOf('/reservas?vista=SALIDAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, false)
+  assert.equal(navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, true) // eco
+  assert.equal(navTargetOf('/reservas', '/reservas').same, true)
+  assert.deepEqual(navTargetOf('/mapping/dictionary?integration=MRU01&page=2', '').filters, { integration: 'MRU01' })
+})
+
 test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en el genérico', () => {
   assert.equal(ojIconOf('vaadin:sign-in'), 'oj-ux-ico-login')
   for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle']) {

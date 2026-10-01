@@ -2526,6 +2526,21 @@
         <template slot="cellStatusBadge">
           <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
         </template>
+        <!-- COLUMNA PRINCIPAL (@PrimaryColumn): imagen delante (leading, p.ej. la bandera) +
+             título + caption debajo; {title, caption, leading} precomputado en listingOf -->
+        <template slot="cellPrimary">
+          <span class="mateu-primary-cell">
+            <oj-bind-if test="[[ !!($current.data && $current.data.leading) ]]">
+              <img class="mateu-primary-cell-leading" :src="[[ $current.data.leading ]]" alt="" loading="lazy">
+            </oj-bind-if>
+            <span class="mateu-primary-cell-text">
+              <span><oj-bind-text value="[[ ($current.data && $current.data.title) || '' ]]"></oj-bind-text></span>
+              <oj-bind-if test="[[ !!($current.data && $current.data.caption) ]]">
+                <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></span>
+              </oj-bind-if>
+            </span>
+          </span>
+        </template>
         <!-- UUID abreviado: la celda trae {text: "…-<último bloque>", full: el UUID}, precomputado
              en listingOf; el UUID entero queda en el tooltip -->
         <template slot="cellUuid">

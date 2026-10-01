@@ -22,8 +22,10 @@ define([
     if (window.__mateuUrlPathMode) {
       // la home (incluido el sentinel _no_home_route del server) es '/', no un path
       const home = $application.variables.mateuHomeRoute || '';
+      // la ruta puede traer ?query (la vista de un listado): la URL la conserva, para que
+      // atrás/adelante vuelvan con sus filtros — o sin ninguno
       const target = (!route || route === home) ? '/' : route;
-      if (window.location.pathname !== target) {
+      if (window.location.pathname + (window.location.search || '') !== target) {
         window.history.pushState(null, '', target);
       }
     } else if (window.location.hash !== '#' + route) {
@@ -81,18 +83,19 @@ define([
       // PENDIENTE (misma mecánica que el Ask Oracle) y la ruta queda limpia
       // Todos los parámetros, no sólo el primero; y también en un deep-link (la URL con que se
       // abre la consola: el aviso de la bandeja lleva a /mapping/dictionary?integration=MRU01).
-      const queryIdx = route.indexOf('?');
-      if (queryIdx >= 0) {
-        const seeded = bridge.queryFiltersOf(route.slice(queryIdx + 1));
-        route = route.slice(0, queryIdx);
-        if (Object.keys(seeded).length) {
-          $application.variables.mateuFilterValues = seeded;
-          $application.variables.mateuFiltersPending = true;
-          force = true; // aunque ya estemos en la ruta, hay que re-buscar filtrado
-        }
+      // La ruta COMPLETA (con su query) es la que identifica la navegación: la entrada del menú
+      // «Llegadas» es /reservas?vista=LLEGADAS_HOY y «Reservas» es /reservas — la misma pantalla
+      // con OTROS filtros. Comparando sólo el path, ir de una a otra parecía el eco del writeback
+      // de la selección y no recargaba: el chip de la vista anterior se quedaba puesto.
+      const target = bridge.navTargetOf(route,
+        $application.variables.mateuSelectedNavId || $application.variables.mateuSelectedRoute);
+      route = target.route;
+      if (Object.keys(target.filters).length) {
+        $application.variables.mateuFilterValues = target.filters;
+        $application.variables.mateuFiltersPending = true;
       }
       // el eco del writeback de selection tras cada navegación — no recargar
-      if (!force && route === $application.variables.mateuSelectedRoute) {
+      if (!force && target.same) {
         return;
       }
       // dirtyGuard (1.5): edición local sin guardar → confirmar; al cancelar, restaurar la URL
@@ -113,7 +116,7 @@ define([
       // reserva volvía a la home, no al listado); y mientras cargaba, la dirección seguía siendo
       // la de la pantalla anterior. La de abajo, al final, compara antes de empujar: no duplica.
       if (!fromUrl) {
-        pushRouteToUrl($application, route);
+        pushRouteToUrl($application, target.full);
       }
       startsLoading();
 
@@ -191,6 +194,8 @@ define([
 
       $application.variables.mateuRegistry = reg;
       $application.variables.mateuSelectedRoute = route;
+      // la selección del menú lleva la ruta COMPLETA (las entradas con ?query son otras)
+      $application.variables.mateuSelectedNavId = target.full;
 
       const host = reg.contexts[bridge.HOST_ID];
       const listingSummary = bridge.listingOf(host);
@@ -567,7 +572,7 @@ define([
       // 1.5: la URL refleja la ruta — path (/ruta) servida por el backend Mateu, hash
       // (#/ruta) en serving estático (el modo lo fija loadMateuShell en el bootstrap)
       if (!fromUrl) {
-        pushRouteToUrl($application, route);
+        pushRouteToUrl($application, target.full);
       }
       $application.variables.mateuDirty = false;
 

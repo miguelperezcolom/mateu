@@ -247,6 +247,7 @@ define([
         if (urlPush != null) {
           const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
           $application.variables.mateuSelectedRoute = urlRoute;
+          $application.variables.mateuSelectedNavId = urlRoute;
           try {
             window.history.pushState(
               null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);

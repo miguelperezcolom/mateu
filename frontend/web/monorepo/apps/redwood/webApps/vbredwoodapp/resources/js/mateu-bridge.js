@@ -808,11 +808,31 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     'vaadin:bell-o': 'oj-ux-ico-notification',
     'vaadin:envelope': 'oj-ux-ico-email',
     'vaadin:sign-out': 'oj-ux-ico-logout',
+    'vaadin:sign-in': 'oj-ux-ico-login',
+    'vaadin:cloud': 'oj-ux-ico-cloud',
+    'vaadin:trending-up': 'oj-ux-ico-trending-up',
+    'vaadin:building': 'oj-ux-ico-building',
+    'vaadin:refresh': 'oj-ux-ico-refresh',
+    'vaadin:close-circle': 'oj-ux-ico-close-circle',
   }
   function ojIconOf(icon) {
     if (!icon) return undefined
     if (icon.indexOf('oj-ux-') === 0) return icon
     return OJ_ICONS[icon] || undefined
+  }
+
+  /** El icono genérico para un icono DECLARADO que no tiene traducción a Redwood. */
+  const GENERIC_ICON = 'oj-ux-ico-arrow-circle-right'
+
+  /**
+   * Como ojIconOf, pero un icono declarado sin traducción cae en uno genérico: una entrada de menú
+   * o un botón de sólo icono nunca se queda en blanco («Llegadas» con vaadin:sign-in salía sin
+   * icono junto a sus hermanas). ojIconOf sigue estricto: el HTML de los widgets quita los que no
+   * conoce y el FAB de Ask cae en su propio glifo.
+   */
+  function ojIconOrGenericOf(icon) {
+    if (!icon) return undefined
+    return ojIconOf(icon) || GENERIC_ICON
   }
 
   /**
@@ -838,7 +858,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return {
       id,
       label: option.caption || option.label || id,
-      icon: ojIconOf(option.icon),
+      icon: ojIconOrGenericOf(option.icon),
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
@@ -1414,15 +1434,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
             const rowActions = []
             if (it.actionLabel && it.actionId) {
               rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon) || '' })
             }
             if (it.actionLabel2 && it.actionId2) {
               rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon2) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon2) || '' })
             }
             if (it.actionLabel3 && it.actionId3) {
               rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon3) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon3) || '' })
             }
             return {
               rowClass,
@@ -1928,6 +1948,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         if (c.dataType === 'status') {
           def.template = 'cellStatusBadge'
         }
+        // COLUMNA PRINCIPAL (@PrimaryColumn: stereotype 'primary'): imagen delante del título
+        // (leadingPath, p.ej. la bandera del huésped) y línea de caption debajo (captionPath) —
+        // campos de la fila que no son columnas. Precomputado por fila en primaryCellRows (CSP).
+        if (!def.template && c.stereotype === 'primary') {
+          def.field = c.id + PRIMARY_CELL_SUFFIX
+          def.template = 'cellPrimary'
+        }
         // UUID abreviado: una columna de texto cuyos valores son UUID se pinta "…-<último bloque>"
         // con el UUID entero en el tooltip. La fila NO cambia: la celda lee un campo aparte,
         // precomputado en uuidCellRows (CSP de VB: la plantilla no puede recortar el texto).
@@ -1958,7 +1985,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []),
+      rows: primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []),
+      // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
+      sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
+        .map((c) => [c.id, c.sortingProperty || c.id])),
       total: page.totalElements == null ? null : page.totalElements,
       isEmpty: (page.content || []).length === 0,
       toolbar: (md.toolbar || []).map((b) => ({
@@ -2062,9 +2092,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * server (io.mateu.uidl.data.Sort). La clave es el id del wire (listingOf la fija); si llega el
    * campo de la celda (p.ej. el UUID abreviado), se le quita el sufijo.
    */
-  function listingSortOf(detail) {
+  function listingSortOf(detail, sortFields) {
     if (!detail || !detail.header) return []
-    const field = String(detail.header).replace(new RegExp(UUID_CELL_SUFFIX + '$'), '')
+    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + ')$'), '')
+    const field = (sortFields && sortFields[key]) || key
     const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
     return [{ field, direction }]
   }
@@ -2154,6 +2185,26 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       for (const id of ids) {
         const value = row[id] == null ? '' : String(row[id])
         out[id + UUID_CELL_SUFFIX] = { text: abbreviateUuid(value), full: value }
+      }
+      return out
+    })
+  }
+
+  const PRIMARY_CELL_SUFFIX = '__primary'
+
+  /** La celda de cada columna principal: {title, caption, leading} (vacíos si no hay). */
+  function primaryCellRows(rows, columns) {
+    const cols = (columns || []).map((c) => c.metadata || c).filter((c) => c.stereotype === 'primary')
+    if (!cols.length) return rows
+    const text = (v) => (v == null ? '' : String(v))
+    return rows.map((row) => {
+      const out = { ...row }
+      for (const c of cols) {
+        out[c.id + PRIMARY_CELL_SUFFIX] = {
+          title: text(row[c.id]),
+          caption: c.captionPath ? text(row[c.captionPath]) : '',
+          leading: c.leadingPath ? text(row[c.leadingPath]) : '',
+        }
       }
       return out
     })
@@ -2285,6 +2336,21 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * formulario); los vacíos no filtran, ni la página ni el orden. Un multi-select toma la lista separada por comas
    * (multiValuesOf), igual que la escribe Vaadin en la URL.
    */
+  /**
+   * Una navegación pedida (ruta con o sin ?query) frente a la que hay en pantalla. `full` (ruta +
+   * query) es lo que la identifica — el id de la entrada del menú, la URL —; `filters` son
+   * EXACTAMENTE los de su query: ninguno si no trae (ir a /reservas desde /reservas?vista=… quita el
+   * filtro). `same` = es la que ya hay (el eco del writeback de la selección del menú): no recargar.
+   */
+  function navTargetOf(requested, currentFull) {
+    const raw = String(requested || '')
+    const q = raw.indexOf('?')
+    const route = q >= 0 ? raw.slice(0, q) : raw
+    const query = q >= 0 ? raw.slice(q + 1) : ''
+    const full = query ? route + '?' + query : route
+    return { route, full, filters: queryFiltersOf(query), same: full === (currentFull || '') }
+  }
+
   function queryFiltersOf(query) {
     const out = {}
     const text = String(query || '').replace(/^\?/, '')
@@ -5693,6 +5759,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     filterChipsOf,
     multiValuesOf,
     queryFiltersOf,
+    navTargetOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -5729,6 +5796,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    ojIconOrGenericOf,
     longTaskWatcher,
     findAllByType,
     cardOf,

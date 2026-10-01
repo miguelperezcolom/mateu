@@ -761,3 +761,22 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
 .mateu-listing-page-text {
   white-space: nowrap;
 }
+
+/* Columna principal del listado (@PrimaryColumn): imagen redonda delante (la bandera del huésped)
+   + título y caption apilados. */
+.mateu-primary-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mateu-primary-cell-leading {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.mateu-primary-cell-text {
+  display: inline-flex;
+  flex-direction: column;
+}

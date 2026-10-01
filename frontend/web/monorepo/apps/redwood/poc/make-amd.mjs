@@ -71,6 +71,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     filterChipsOf,
     multiValuesOf,
     queryFiltersOf,
+    navTargetOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
