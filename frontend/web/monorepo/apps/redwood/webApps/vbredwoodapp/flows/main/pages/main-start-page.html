@@ -2497,6 +2497,7 @@
         columns="[[ $application.variables.mateuListing.columns ]]"
         selection-mode="[[ $application.variables.mateuListing.selectionMode ]]"
         on-selected-changed="[[ $listeners.mateuListingSelectionChanged ]]"
+        on-oj-sort="[[ $listeners.mateuListingSort ]]"
         on-oj-row-action="[[ $listeners.mateuRowAction ]]">
         <template slot="noData">
           <oj-sp-empty-state
@@ -2544,6 +2545,43 @@
           </oj-bind-for-each>
         </template>
       </oj-table>
+      <!-- PAGINACIÓN (Page del server: pageNumber/pageSize/totalElements, proyectada en
+           listingOf().paging): pie de la tabla con el rango y primera/anterior/siguiente/última.
+           Sólo si hay más de una página. Paginar conserva texto, filtros y orden. -->
+      <oj-bind-if test="[[ $application.variables.mateuListing.paging.visible ]]">
+        <div id="mateuListingPaging" class="mateu-listing-paging oj-flex oj-sm-align-items-center oj-sm-justify-content-space-between oj-sm-padding-4x-top">
+          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-sm oj-text-color-secondary">
+            <oj-bind-text value="[[ $application.variables.mateuListing.paging.rangeText ]]"></oj-bind-text>
+          </div>
+          <div class="oj-flex-item oj-sm-flex-initial oj-flex oj-sm-align-items-center">
+            <oj-button display="icons" chroming="borderless" data-page="first"
+              disabled="[[ $application.variables.mateuListing.paging.prevDisabled ]]"
+              on-oj-action="[[ $listeners.mateuListingPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-left-end"></span>
+              <oj-bind-text value="[[ $application.variables.mateuListing.paging.labels.first ]]"></oj-bind-text>
+            </oj-button>
+            <oj-button display="icons" chroming="borderless" data-page="prev"
+              disabled="[[ $application.variables.mateuListing.paging.prevDisabled ]]"
+              on-oj-action="[[ $listeners.mateuListingPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-left"></span>
+              <oj-bind-text value="[[ $application.variables.mateuListing.paging.labels.prev ]]"></oj-bind-text>
+            </oj-button>
+            <span class="oj-typography-body-sm oj-sm-margin-2x-horizontal mateu-listing-page-text"><oj-bind-text value="[[ $application.variables.mateuListing.paging.pageText ]]"></oj-bind-text></span>
+            <oj-button display="icons" chroming="borderless" data-page="next"
+              disabled="[[ $application.variables.mateuListing.paging.nextDisabled ]]"
+              on-oj-action="[[ $listeners.mateuListingPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-right"></span>
+              <oj-bind-text value="[[ $application.variables.mateuListing.paging.labels.next ]]"></oj-bind-text>
+            </oj-button>
+            <oj-button display="icons" chroming="borderless" data-page="last"
+              disabled="[[ $application.variables.mateuListing.paging.lastDisabled ]]"
+              on-oj-action="[[ $listeners.mateuListingPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-right-end"></span>
+              <oj-bind-text value="[[ $application.variables.mateuListing.paging.labels.last ]]"></oj-bind-text>
+            </oj-button>
+          </div>
+        </div>
+      </oj-bind-if>
     </div>
   </div>
   </div>

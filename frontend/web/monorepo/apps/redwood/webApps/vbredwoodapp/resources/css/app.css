@@ -751,3 +751,13 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
     padding-right: 1rem;
   }
 }
+
+/* Pie de PAGINACIÓN del listado: el FAB de Ask Oracle / chat (fijo abajo a la derecha, ~72px)
+   tapaba "última página" cuando el pie quedaba al fondo del viewport — se le deja su hueco. */
+.mateu-listing-paging {
+  padding-inline-end: 5.5rem;
+  box-sizing: border-box;
+}
+.mateu-listing-page-text {
+  white-space: nowrap;
+}

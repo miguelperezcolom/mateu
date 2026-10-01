@@ -657,6 +657,11 @@
       },
       "description": "config smart-filters del header de colecci\u00f3n (bridge.smartFiltersOf): los filtros sin aplicar como sugerencias, los aplicados y el texto como chips, y el editor de cada uno (filtersMetadata). Se proyecta al navegar; las b\u00fasquedas que lanza el propio componente NO la reasignan (cerrar\u00eda su popup)"
     },
+    "mateuListingSort": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "orden del listado activo pedido desde la cabecera de la tabla: [{field, direction}] (io.mateu.uidl.data.Sort). Viaja en el componentState de la b\u00fasqueda; las p\u00e1ginas siguientes lo conservan, navegar lo limpia"
+    },
     "mateuLastSearchText": {
       "type": "string",
       "defaultValue": "",

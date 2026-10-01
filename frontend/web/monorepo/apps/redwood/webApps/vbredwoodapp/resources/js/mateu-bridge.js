@@ -1889,12 +1889,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
    *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
    *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
-  function listingOf(ctx) {
+  function listingOf(ctx, opts = {}) {
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
     const md = crudNode.metadata
     const page = (((ctx.data || {}).crud || {}).page) || {}
     return {
+      // PAGINACIÓN: la página que mandó el server (Page: pageNumber/pageSize/totalElements) →
+      // pie de la tabla con el rango y los controles; precomputado (CSP de VB)
+      paging: listingPagingOf(page, md.pageSize || 20, opts.lang),
       title: md.title || '',
       subtitle: md.subtitle || '',
       searchable: !!md.searchable,
@@ -1915,7 +1918,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         if (c.dataType === 'actionGroup') {
           def.template = 'cellRowActions'
           def.headerText = ''
+          def.sortable = 'disabled'
         }
+        // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
+        // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
+        def.id = c.id
         // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
         // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
         if (c.dataType === 'status') {
@@ -1965,6 +1972,101 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // no en el nodo Crud — se busca en todo el árbol)
       filters: filtersOf(ctx),
     }
+  }
+
+  const PAGING_TEXTS = {
+    en: { of: 'of', page: 'Page', first: 'First page', prev: 'Previous page', next: 'Next page', last: 'Last page' },
+    es: { of: 'de', page: 'Página', first: 'Primera página', prev: 'Página anterior', next: 'Página siguiente', last: 'Última página' },
+  }
+
+  function pagingLangOf(lang) {
+    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    return PAGING_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || PAGING_TEXTS.en
+  }
+
+  /**
+   * La PAGINACIÓN del listado, de la Page que manda el server (pageNumber/pageSize/totalElements) →
+   * lo que pinta el pie de la tabla: "11–20 de 57", "Página 2 de 6" y qué botones están activos.
+   * Sin total conocido (un Listing que no cuenta) hay "siguiente" mientras la página venga llena.
+   * `visible` = hay más de una página (un listado corto no lleva pie).
+   */
+  function listingPagingOf(page, fallbackSize, lang) {
+    const p = page || {}
+    const t = pagingLangOf(lang)
+    const size = p.pageSize > 0 ? p.pageSize : (fallbackSize > 0 ? fallbackSize : 20)
+    const number = p.pageNumber > 0 ? p.pageNumber : 0
+    const shown = (p.content || []).length
+    const total = p.totalElements == null || p.totalElements < 0 ? null : p.totalElements
+    const pageCount = total == null ? null : Math.max(1, Math.ceil(total / size))
+    const from = shown === 0 ? 0 : number * size + 1
+    const to = number * size + shown
+    const hasPrev = number > 0
+    const hasNext = total == null ? shown >= size : (number + 1) * size < total
+    return {
+      pageNumber: number,
+      pageSize: size,
+      total,
+      pageCount,
+      lastPage: pageCount == null ? null : pageCount - 1,
+      hasPrev,
+      hasNext,
+      hasLast: hasNext && pageCount != null,
+      // los disabled ya negados (CSP de VB: la plantilla no evalúa "!")
+      prevDisabled: !hasPrev,
+      nextDisabled: !hasNext,
+      lastDisabled: !(hasNext && pageCount != null),
+      visible: hasPrev || hasNext,
+      rangeText: total == null ? `${from}–${to}` : `${from}–${to} ${t.of} ${total}`,
+      pageText: pageCount == null ? `${t.page} ${number + 1}` : `${t.page} ${number + 1} ${t.of} ${pageCount}`,
+      labels: { first: t.first, prev: t.prev, next: t.next, last: t.last },
+    }
+  }
+
+  /**
+   * La página a la que lleva un botón del pie: 'first' | 'prev' | 'next' | 'last' sobre el paging
+   * actual → número de página, o null si el botón no lleva a ningún sitio.
+   */
+  function targetPageOf(paging, which) {
+    if (!paging) return null
+    if (which === 'first') return paging.hasPrev ? 0 : null
+    if (which === 'prev') return paging.hasPrev ? paging.pageNumber - 1 : null
+    if (which === 'next') return paging.hasNext ? paging.pageNumber + 1 : null
+    if (which === 'last') return paging.hasLast ? paging.lastPage : null
+    const n = Number(which)
+    return Number.isInteger(n) && n >= 0 ? n : null
+  }
+
+  /**
+   * El componentState de una búsqueda del listado: el estado del host + el texto, la página, el
+   * tamaño, el orden y los filtros aplicados (los chips; un rango ocupa dos claves) — lo que
+   * SearchActionHandler lee. Paginar o reordenar conserva texto y filtros; el orden viaja como
+   * lista [{field, direction}] y sólo si lo hay.
+   */
+  function listingSearchStateOf(hostState, opts = {}) {
+    const state = Object.assign({}, hostState || {}, {
+      searchText: opts.searchText == null ? '' : opts.searchText,
+      page: opts.page > 0 ? opts.page : 0,
+      size: opts.size > 0 ? opts.size : 20,
+    })
+    const applied = opts.filters || {}
+    for (const key of Object.keys(applied)) state[key] = applied[key]
+    if (opts.sort && opts.sort.length) state.sort = opts.sort.map((s) => ({ field: s.field, direction: s.direction }))
+    else delete state.sort
+    return state
+  }
+
+  /**
+   * El orden pedido por la cabecera de oj-table (ojSort: detail.header = clave de la columna,
+   * detail.direction 'ascending'|'descending') → [{field, direction}] en el vocabulario del
+   * server (io.mateu.uidl.data.Sort). La clave es el id del wire (listingOf la fija); si llega el
+   * campo de la celda (p.ej. el UUID abreviado), se le quita el sufijo.
+   */
+  function listingSortOf(detail) {
+    if (!detail || !detail.header) return []
+    const field = String(detail.header).replace(new RegExp(UUID_CELL_SUFFIX + '$'), '')
+    const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
+    return [{ field, direction }]
   }
 
   /**
@@ -5576,6 +5678,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     summarizeHost,
     findByType,
     listingOf,
+    // paginación y orden del listing (pie de la tabla, cabecera → server)
+    listingPagingOf,
+    targetPageOf,
+    listingSearchStateOf,
+    listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
     selectedRowsOf,

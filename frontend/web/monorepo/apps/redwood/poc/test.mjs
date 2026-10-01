@@ -30,6 +30,7 @@ import {
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
+  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
@@ -245,6 +246,78 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.equal(after.total, 3)
   assert.equal(after.isEmpty, false)
   assert.ok(after.toolbar.some((b) => b.label === 'New'))
+})
+
+// 14 paginación) El listado se pagina en el SERVER: la Page (pageNumber/pageSize/totalElements)
+//     se proyecta a un pie con rango + primera/anterior/siguiente/última; paginar conserva texto,
+//     filtros y orden; la cabecera ordena en el server ([{field, direction}] = uidl Sort).
+test('listing: paginación — el pie sale de la Page del server', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  // una sola página (3 filas de 20): sin pie
+  reg = reduceContexts(reg, search)
+  const one = listingOf(reg.contexts[HOST_ID], { lang: 'en' }).paging
+  assert.equal(one.visible, false)
+  assert.equal(one.rangeText, '1–3 of 3')
+  // segunda página de 57 a 10 por página
+  const page = search.fragments[0].data.crud.page
+  page.pageSize = 10
+  page.pageNumber = 1
+  page.totalElements = 57
+  page.content = Array.from({ length: 10 }, (_, i) => ({ _rowNumber: i, id: 'P' + i, name: 'n' + i }))
+  reg = reduceContexts(reg, search)
+  const p = listingOf(reg.contexts[HOST_ID], { lang: 'es' }).paging
+  assert.equal(p.visible, true)
+  assert.equal(p.pageNumber, 1)
+  assert.equal(p.pageCount, 6)
+  assert.equal(p.rangeText, '11–20 de 57')
+  assert.equal(p.pageText, 'Página 2 de 6')
+  assert.equal(p.prevDisabled, false)
+  assert.equal(p.nextDisabled, false)
+  assert.equal(targetPageOf(p, 'first'), 0)
+  assert.equal(targetPageOf(p, 'prev'), 0)
+  assert.equal(targetPageOf(p, 'next'), 2)
+  assert.equal(targetPageOf(p, 'last'), 5)
+  // última página: 7 filas, sin siguiente
+  const last = listingPagingOf({ pageSize: 10, pageNumber: 5, totalElements: 57, content: new Array(7).fill({}) }, 20, 'en')
+  assert.equal(last.rangeText, '51–57 of 57')
+  assert.equal(last.nextDisabled, true)
+  assert.equal(last.lastDisabled, true)
+  assert.equal(targetPageOf(last, 'next'), null)
+  assert.equal(targetPageOf(last, 'prev'), 4)
+  // sin total conocido: hay siguiente mientras la página venga llena
+  const open = listingPagingOf({ pageSize: 10, pageNumber: 0, totalElements: null, content: new Array(10).fill({}) }, 20, 'en')
+  assert.equal(open.hasNext, true)
+  assert.equal(open.lastDisabled, true)
+  assert.equal(open.pageText, 'Page 1')
+  // las columnas llevan su id del wire como clave (lo que devuelve el ojSort)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.ok(listing.columns.every((c) => c.id))
+})
+
+test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabulario del server', () => {
+  const state = listingSearchStateOf({ crud_selected_items: [], sort: [{ field: 'old', direction: 'ascending' }] }, {
+    searchText: 'mru', page: 3, size: 10,
+    filters: { hotel: 'MRU01', when_from: '2026-01-01' },
+    sort: [{ field: 'when', direction: 'descending' }],
+  })
+  assert.equal(state.searchText, 'mru')
+  assert.equal(state.page, 3)
+  assert.equal(state.size, 10)
+  assert.equal(state.hotel, 'MRU01')
+  assert.equal(state.when_from, '2026-01-01')
+  assert.deepEqual(state.sort, [{ field: 'when', direction: 'descending' }])
+  // sin orden pedido no se manda uno viejo; sin página, la primera
+  const plain = listingSearchStateOf({ sort: [{ field: 'old', direction: 'ascending' }] }, { searchText: null, size: 20 })
+  assert.equal(plain.sort, undefined)
+  assert.equal(plain.page, 0)
+  assert.equal(plain.searchText, '')
+  assert.deepEqual(listingSortOf({ header: 'when', direction: 'descending' }), [{ field: 'when', direction: 'descending' }])
+  assert.deepEqual(listingSortOf({ header: 'id__uuidCell', direction: 'ascending' }), [{ field: 'id', direction: 'ascending' }])
+  assert.deepEqual(listingSortOf({}), [])
 })
 
 // 14 bis) Detalle de fila (@Details): viaja como detailPath del Crud; listingOf lo proyecta, y

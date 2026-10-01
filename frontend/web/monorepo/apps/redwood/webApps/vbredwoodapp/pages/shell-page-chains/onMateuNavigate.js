@@ -198,6 +198,8 @@ define([
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
       // otra pantalla, otra tabla: la selección de la anterior no se hereda
       $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
+      // ni el orden que se pidió en su cabecera (la carga ya llegó sin él, en la primera página)
+      $application.variables.mateuListingSort = [];
 
       // mismo remontaje que en runMateuAction: si venimos de OTRO foldout, recrear el
       // subárbol para que los bindings internos no se queden con los bloques viejos

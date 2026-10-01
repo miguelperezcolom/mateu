@@ -56,6 +56,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     summarizeHost,
     findByType,
     listingOf,
+    // paginación y orden del listing (pie de la tabla, cabecera → server)
+    listingPagingOf,
+    targetPageOf,
+    listingSearchStateOf,
+    listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
     selectedRowsOf,
