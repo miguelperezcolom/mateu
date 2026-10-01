@@ -2,7 +2,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, query, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
-import { foldoutSectionStyle, mergeOpenStates, visibleSections } from "@infra/ui/foldoutGeometry.ts";
+import { foldoutSectionStyle, mergeOpenStates, visibleSections, wheelToRow, VerticalScroller } from "@infra/ui/foldoutGeometry.ts";
 
 /**
  * Vaadin-specific foldout, drawn as Redwood's (oj-sp-foldout-layout, see foldoutGeometry.ts): a
@@ -119,11 +119,47 @@ export class MateuVaadinFoldout extends LitElement {
     }
 
     // Carousel snapping is done in JS (not CSS scroll-snap, which fights the pin transform on the
-    // first section): when free scrolling ends, glide to the nearest section boundary.
+    // first section): when free scrolling ends, glide to the nearest section boundary. A scroll
+    // driven by the WHEEL is left where it stops (Redwood's foldout scrolls freely under the wheel;
+    // snapping each notch back would undo it).
     private _onScrollEnd = () => {
-        if (!this._snapping) {
+        if (!this._snapping && Date.now() - this._lastWheel > 400) {
             this._snapToNearest()
         }
+    }
+
+    private _lastWheel = 0
+
+    // The mouse wheel over the foldout pages the row (down → the folds to the right, up → back),
+    // as Redwood's foldout does — unless an inner element under the pointer can still scroll
+    // vertically that way, or the row is already at that end (then the page scrolls).
+    private _onWheel = (e: WheelEvent) => {
+        const rail = this._rail
+        if (!rail || e.ctrlKey || e.defaultPrevented) {
+            return
+        }
+        const scale = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? rail.clientWidth : 1
+        const inner: VerticalScroller[] = []
+        for (const node of e.composedPath()) {
+            if (node === rail) {
+                break
+            }
+            if (!(node instanceof HTMLElement)) {
+                continue
+            }
+            const overflowY = getComputedStyle(node).overflowY
+            if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight + 1) {
+                inner.push({ scrollTop: node.scrollTop, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight })
+            }
+        }
+        const dx = wheelToRow(e.deltaX * scale, e.deltaY * scale, rail.scrollLeft,
+            rail.scrollWidth - rail.clientWidth, inner)
+        if (dx == null) {
+            return
+        }
+        e.preventDefault()
+        this._lastWheel = Date.now()
+        rail.scrollBy({ left: dx, behavior: 'smooth' })
     }
 
     private _stride() {
@@ -566,7 +602,8 @@ export class MateuVaadinFoldout extends LitElement {
         const hasHead = !!(this.headerTitle || hasToolbar || this.badges.length)
         return html`
             <div class="rail" part="rail" tabindex="0"
-                 @scroll="${this._onScroll}" @scrollend="${this._onScrollEnd}">
+                 @scroll="${this._onScroll}" @scrollend="${this._onScrollEnd}"
+                 @wheel="${{ handleEvent: this._onWheel, passive: false }}">
                 <section class="section section--first" part="section overview">
                     ${hasHead ? html`
                         <header class="section-head" part="section-head">

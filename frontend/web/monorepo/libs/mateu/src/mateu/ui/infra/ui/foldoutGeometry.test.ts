@@ -9,6 +9,7 @@ import {
     readOnlyGridLayout,
     fitColumnToWidth,
     visibleSections,
+    wheelToRow,
 } from './foldoutGeometry'
 
 describe('foldout geometry (Vaadin, as Redwood)', () => {
@@ -82,5 +83,25 @@ describe('foldout geometry (Vaadin, as Redwood)', () => {
         expect(readOnlyGridLayout(false, 3).allRowsVisible).toBe(true)
         const col = fitColumnToWidth({ metadata: { type: 'GridColumn', id: 'amount', width: '12rem', frozen: true } })
         expect(col.metadata).toMatchObject({ id: 'amount', width: '3rem', flexGrow: '1', frozen: false, autoWidth: false })
+    })
+
+    it('turns the wheel into paging the row, as Redwood does', () => {
+        expect(wheelToRow(0, 100, 0, 1500)).toBe(100)          // down → right
+        expect(wheelToRow(0, -100, 600, 1500)).toBe(-100)      // up → back
+        expect(wheelToRow(0, 100, 1500, 1500)).toBeNull()      // at the end: the page scrolls
+        expect(wheelToRow(0, -100, 0, 1500)).toBeNull()        // at the start: the page scrolls
+        expect(wheelToRow(0, 100, 0, 0)).toBeNull()            // nothing to page
+        expect(wheelToRow(120, 30, 0, 1500)).toBeNull()        // a horizontal swipe scrolls natively
+        expect(wheelToRow(0, 0, 0, 1500)).toBeNull()
+    })
+
+    it('leaves the wheel to an inner scroller that still has room that way', () => {
+        const middle = { scrollTop: 50, scrollHeight: 500, clientHeight: 200 }
+        const bottom = { scrollTop: 300, scrollHeight: 500, clientHeight: 200 }
+        const top = { scrollTop: 0, scrollHeight: 500, clientHeight: 200 }
+        expect(wheelToRow(0, 100, 0, 1500, [middle])).toBeNull()
+        expect(wheelToRow(0, 100, 0, 1500, [bottom])).toBe(100)
+        expect(wheelToRow(0, -100, 600, 1500, [top])).toBe(-100)
+        expect(wheelToRow(0, -100, 600, 1500, [bottom])).toBeNull()
     })
 })
