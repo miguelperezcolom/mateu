@@ -102,13 +102,21 @@ The `@UI` path acts as the namespace for all routes in that service.
 
 ## Navigation within a service
 
-Pages within a service use standard `@Route` with `parentRoute`:
+Pages within a service are declared in a `routes.yaml` file tagged with the service's mount as its `basePath` (see [route registry](/java-ui-definition/route-registry/)):
 
 ```java
-@Route(value = "/_orders/order-detail/:id", parentRoute = "/_orders")
 public class OrderDetailPage implements ComponentTreeSupplier {
     // ...
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/orders-routes.yaml
+type: Routes
+basePath: /_orders
+routes:
+  - route: order-detail/:id
+    viewModel: com.example.OrderDetailPage
 ```
 
 Routes are scoped to the service. The shell navigates to them by assembling `service-base-url + route`.

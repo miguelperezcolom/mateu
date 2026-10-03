@@ -38,7 +38,6 @@ Page
 ### Page class
 
 ```java
-@Route(value = "/page3", parentRoute = "/home2")
 @FoldedLayout
 @Action(shortcut = "ctrl+f2", id = "save")
 @ConfirmOnNavigationIfDirty
@@ -63,6 +62,16 @@ public class Page3 {
         );
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: home2
+    children:
+      - route: page3
+        viewModel: com.example.Page3
 ```
 
 ### Subform with a toolbar action

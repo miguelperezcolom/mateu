@@ -47,7 +47,7 @@ The app needs the runtime (`io.mateu:mvc-core`) and one renderer jar so the UI i
 
 - `mvc-core` = the Spring MVC runtime (the `/mateu/v3/sync` endpoint, `SpaRedirectFilter`).
 - `vaadin-lit` = the default renderer, served as static resources by Spring Boot (swap for
-  `sapui5-lit`, `redhat-lit`, `redwood-lit`, `slds-lit`). See the `run` step below and the
+  `redwood`, the Redwood/Visual Builder renderer — the sapui5/redhat/slds renderers were retired). See the `run` step below and the
   standalone/CDN options in `doc/.../mateu-about/standalone-desktop.md`.
 
 Other stacks replace the `mvc` pair: `webflux`, `quarkus`, `micronaut`, `helidon-mp`
@@ -70,7 +70,7 @@ picked up, plus your own package(s).
 Use a `mateu.version` property. When building against a local `mvn install` of this repo
 it is `0.0.1-MATEU`; for a published build use the latest release from GitHub
 releases / Maven Central. Lombok and `jakarta.validation-api` are the only extra
-compile-time helpers the samples use. Java 17+ (samples use 21).
+compile-time helpers the samples use. Java 21+ (the framework is compiled for 21).
 
 ## After scaffolding — verify it actually generated
 

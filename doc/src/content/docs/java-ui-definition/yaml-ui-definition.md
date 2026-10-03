@@ -9,7 +9,7 @@ When the framework receives a request for a route that has no matching Java clas
 ## How it works
 
 1. A request arrives for route `my-app/my-page`.
-2. Mateu finds no `@Route`-annotated Java class for that route.
+2. Mateu finds no Java view model bound to that route (a `@UI` mount or a `routes.yaml` entry).
 3. Mateu looks for `specs/ui/my-app/my-page.yaml` in the classpath.
 4. If found, it deserializes the file into a component tree and renders it.
 5. If not found, Mateu falls back to "Not found".
@@ -232,7 +232,6 @@ A pure YAML file has no Java class, so it cannot run server-side logic. A pure J
 `@UISpec` is the middle ground: a **Java ViewModel class** whose component tree is loaded from a YAML file. The Java class provides state (fields), actions (methods), rules, and validations; the YAML file defines the layout.
 
 ```java
-@Route("customer-form")
 @UISpec("specs/ui/customer-form.yaml")
 public class CustomerFormViewModel {
 
@@ -242,6 +241,14 @@ public class CustomerFormViewModel {
     @Button
     public void save() { ... }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: customer-form
+    viewModel: com.example.CustomerFormViewModel
 ```
 
 The YAML file at `src/main/resources/specs/ui/customer-form.yaml` defines the component tree rendered for this class. Mateu combines the two: layout from YAML, behaviour from Java.

@@ -11,7 +11,6 @@ Implement `ValidationSupplier` and return a list of `Validation` objects from `v
 ## The pattern
 
 ```java
-@Route(value = "/my-page", parentRoute = "")
 public class MyPage implements ComponentTreeSupplier, ActionSupplier, ValidationSupplier {
 
     @Override
@@ -38,6 +37,14 @@ public class MyPage implements ComponentTreeSupplier, ActionSupplier, Validation
         );
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-page
+    viewModel: com.example.MyPage
 ```
 
 Each validation:

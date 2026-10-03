@@ -32,7 +32,6 @@ On that background request the client tells the server which structure it alread
 Some screens never change at all: a help or "about" page, a fixed reference screen, a dashboard of constants. Mark the view `@StaticView` and Mateu caches its **whole response** (structure *and* data) for the session. On a return visit within that session it renders from the cache and makes **no server call** at all.
 
 ```java
-@Route("/about")
 @Title("About")
 @StaticView
 @PlainText
@@ -41,6 +40,14 @@ public class About {
     String tagline = "Model-driven UI for Java.";
     String version = "3.0";
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: about
+    viewModel: com.example.About
 ```
 
 `@StaticView` is a promise you make, much like `@Action(idempotent = true)`: you are telling Mateu the screen's content does not vary. Use it only when that is genuinely true.

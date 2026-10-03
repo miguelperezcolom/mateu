@@ -24,8 +24,9 @@ URLs to definitions and view models, whether the mount is a class or a file.
 
 ## Why a registry and not just annotations
 
-An annotation says "this class lives at this path". That is the one-to-one case, and it is all most
-screens need — `@UI`/`@Route` keep working untouched, and without a `routes.yaml` nothing changes.
+An annotation says "this class lives at this path". That is the one-to-one case, and it is what
+`@UI` still does for a **mount**. The inner-route annotations (`@Route`/`@Routes`/`@HomeRoute`) were
+removed, so every screen *inside* a mount is a registry entry — even a plain one-to-one route.
 
 A registry entry binds **three independent things**, so each becomes reusable on its own:
 
@@ -45,25 +46,19 @@ That unlocks the cases an annotation cannot express:
 
 ## Which one do I use?
 
-There is **one route table**. `@UI`/`@Route` and `routes.yaml` are two producers that feed it —
-they are not two competing routing systems. So the question is never "which mechanism does my app
-use", it is "which producer declares *this* route".
+There is **one route table**. `@UI` and `routes.yaml` are two producers that feed it —
+they are not two competing routing systems. `@UI` declares the **mount** (the app at its base path,
+and the compile-time signal the annotation processor uses to generate the framework controllers);
+`routes.yaml` declares the screens **inside** it.
 
-The rule fits on one line:
+> **An app at a base path → `@UI` (or a `type: UI` file). A screen inside it → `routes.yaml`.**
 
-> **A route that maps one URL to one class → annotation. Anything the annotation cannot express → `routes.yaml`.**
-
-Reach for the annotation by default. It co-locates the URL with the class that answers it (you see
-`@UI("/products")` on `ProductsCrud`, right where you work), it is the compile-time signal the
-annotation processor uses to generate the framework controllers, and with no `routes.yaml` present
-nothing else is involved.
-
-Reach for `routes.yaml` when the mapping stops being one-to-one, because there the annotation simply
-*cannot* say what you need — so the two never overlap:
+The registry also expresses what a one-class-one-path annotation never could:
 
 | You want to… | Use | Why the annotation can't |
 |---|---|---|
-| Serve a class at a fixed path (`/products`) | `@UI` / `@Route` | — (this *is* the one-to-one case) |
+| Publish an app at a base path (`/back-office`) | `@UI` | — (this *is* the one-to-one case) |
+| Serve a screen inside the app at a fixed path (`products`) | `routes.yaml` (`route` + `viewModel`) | The inner-route annotation was removed |
 | One screen at several URLs, told apart by a pinned parameter (`orders/pending`, `orders/archived`) | `routes.yaml` (`fixedParams`) | An annotation carries one path and no pinned params |
 | Seed a screen with overridable defaults (`?status=open&page=1`) | `routes.yaml` (`defaultParams`) | An annotation has nowhere to put seed values |
 | One layout serving several view models (books and films over one list) | `routes.yaml` (`definition` + `viewModel`) | An annotation binds a class to a path, not a layout to many classes |
@@ -74,17 +69,15 @@ Reach for `routes.yaml` when the mapping stops being one-to-one, because there t
 
 ### They also compose
 
-You do not have to migrate a whole mount to one side. Because the authored entry **replaces** the
-derived one outright, you can keep the annotation as the default and add a `routes.yaml` entry only
-for the route you need to bend — an alias, a pinned parameter, a swapped layout. The other routes
-keep resolving from their annotations untouched.
+Because the authored entry **replaces** the derived one outright, a `routes.yaml` entry for the
+mount's root route (`""`) can even re-point what the `@UI` class answers — for instance to bind an
+[app shell](/java-ui-definition/yaml-app-shell/) definition.
 
 ### Rules of thumb
 
-- **Start with the annotation.** Promote a route to `routes.yaml` the day it needs something the
-  annotation cannot carry — not before.
-- **Don't split a mount's routes across both for no reason.** A route in `routes.yaml` is authored
-  and wins; keeping the trivial 1:1 routes as annotations keeps them next to their code.
+- **One route file per mount.** For a class-declared `@UI("/shop")` mount, tag the file with
+  `basePath: /shop` and author the routes relative to it; a `specs/ui/routes.yaml` with no
+  `basePath` serves the root mount.
 - **A shared `definition` must not declare `modelView:`** — see
   [The definition is layout only](#the-definition-is-layout-only). Otherwise it can only ever serve
   the class it names, defeating the "one layout, several view models" case.
@@ -327,7 +320,7 @@ The definitions themselves have their own schema — see
 
 ## Precedence
 
-Two producers feed one table: the annotation processors emit an entry for every `@UI`/`@Route` class
+Two producers feed one table: the annotation processors emit an entry for every `@UI` class
 they index, and `routes.yaml` is merged on top. **The authored entry wins** — the same
 *explicit beats derived* rule the layout and page inference already follow. An authored entry
 replaces the derived one outright rather than being combined field by field.

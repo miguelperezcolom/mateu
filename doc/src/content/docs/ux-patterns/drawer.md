@@ -150,7 +150,7 @@ Drawer requestAccess() {
 }
 ```
 
-`EmbeddedView(view)` embeds a **routed** model view (a `Wizard`, or any `@UI`/`@Route` view) as an
+`EmbeddedView(view)` embeds a **routed** model view (a `Wizard`, or any `@UI` view or `routes.yaml` route) as an
 **independent server-side component**: it renders inside the drawer but routes its **own** actions
 back to itself, so the wizard advances step by step inside the drawer instead of bubbling its
 Continue/Back to the host. Its state is the view's fields, serialised exactly as a page's are — no

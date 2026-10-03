@@ -245,8 +245,8 @@ MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data mode
 rendered hardcoded demo data.
 
 **Retired renderers (2026-08-12 reconciliation).** SAP UI5, Redwood-OJ (OJET), Red Hat/PatternFly
-and SLDS were **retired**: `apps/sapui5`, `apps/redhat` and `apps/slds` hold only leftover `dist/`
-output, with no sources and no `package.json`. They had a column here long after they stopped
+and SLDS were **retired**, and their `apps/sapui5`, `apps/redhat` and `apps/slds` directories have
+since been deleted. They had a column here long after they stopped
 existing — which is the worst failure mode for this page, since a matrix that promises a renderer
 nobody can use is worse than one that admits a gap. **The supported web renderers are Vaadin and the
 Redwood/VB line.**

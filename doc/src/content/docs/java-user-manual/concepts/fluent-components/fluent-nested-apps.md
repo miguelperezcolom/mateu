@@ -10,15 +10,14 @@ Use nested apps to build sections within a larger application that need their ow
 
 ## The pattern
 
-Implement `AppSupplier` and return an `App` from `getApp()`:
+Implement `AppSupplier` and return an `AppShell` from `getApp()`:
 
 ```java
-@Route(value = "/admin", parentRoute = "")
 public class AdminApp implements AppSupplier {
 
     @Override
-    public App getApp(HttpRequest httpRequest) {
-        return App.builder()
+    public AppShell getApp(HttpRequest httpRequest) {
+        return AppShell.builder()
                 .pageTitle("Admin panel")
                 .title("Admin")
                 .subtitle("Manage your application")
@@ -37,13 +36,22 @@ public class AdminApp implements AppSupplier {
 }
 ```
 
-Pages within the app declare their parent route:
+The app and the pages within it are bound to their URLs by [`routes.yaml` entries](/java-ui-definition/route-registry/), the pages under the app's route:
 
 ```java
-@Route(value = "/admin/home", parentRoute = "/admin")
 public class AdminHomePage implements ComponentTreeSupplier {
     // ...
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: admin
+    viewModel: com.example.AdminApp
+  - route: admin/home
+    viewModel: com.example.AdminHomePage
 ```
 
 ---
@@ -55,7 +63,7 @@ Three layout variants control where the navigation appears.
 ### Menu on left
 
 ```java
-App.builder()
+AppShell.builder()
         .variant(AppVariant.MENU_ON_LEFT)
         .homeRoute("/app/home")
         .menu(List.of(
@@ -74,7 +82,7 @@ The left sidebar shows the menu. `homeRoute` is the default landing page.
 ### Menu on top
 
 ```java
-App.builder()
+AppShell.builder()
         .variant(AppVariant.MENU_ON_TOP)
         .menu(List.of(
                 new RouteLink("/home", "Home"),
@@ -88,7 +96,7 @@ Navigation appears as a horizontal bar at the top.
 ### Tabs
 
 ```java
-App.builder()
+AppShell.builder()
         .variant(AppVariant.TABS)
         .menu(List.of(
                 new RouteLink("/home", "Home"),
@@ -104,7 +112,7 @@ Navigation appears as tabs. Each `RouteLink` becomes a tab.
 ## App properties
 
 ```java
-App.builder()
+AppShell.builder()
         .pageTitle("Browser tab title")      // sets the <title> tag
         .title("Displayed heading")          // shown inside the app shell
         .subtitle("Short description")       // shown below the title
@@ -123,24 +131,24 @@ App.builder()
 | `new RouteLink("/path", "Label")` | Link to a route within the app |
 | `new Menu("/path", "Label", List.of(...))` | Submenu group with children |
 
-Routes in `RouteLink` are relative to the app's root route by convention. The full route is resolved by `@Route` on the target page.
+Routes in `RouteLink` are relative to the app's root route by convention. The full route is resolved by the target page's [`routes.yaml` entry](/java-ui-definition/route-registry/).
 
 ---
 
 ## Registering app routes
 
-Add `@HomeRoute` to the app class to declare the landing page, and `@Route(parentRoute = "/app-route")` on each page within it:
+Declare the app and each page within it as entries in `routes.yaml`, the pages under the app's route. The landing page is the shell's `homeRoute` (without one, the app's first menu item); a class-level app can also implement `HomeRouteSupplier`:
 
-```java
-@Route(value = "/admin", parentRoute = "")
-@HomeRoute("/admin/home")
-public class AdminApp implements AppSupplier { ... }
-
-@Route(value = "/admin/home", parentRoute = "/admin")
-public class AdminHome implements ComponentTreeSupplier { ... }
-
-@Route(value = "/admin/users", parentRoute = "/admin")
-public class AdminUsers implements ComponentTreeSupplier { ... }
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: admin
+    viewModel: com.example.AdminApp
+  - route: admin/home
+    viewModel: com.example.AdminHome
+  - route: admin/users
+    viewModel: com.example.AdminUsers
 ```
 
 ---

@@ -117,7 +117,6 @@ The same pattern applies to form pages with actions:
 
 ```java
 @Service
-@Route(value = "/:id/edit", uis = {"/users"})
 @FormLayout(columns = 1)
 public class UserEditorPage {
 
@@ -141,6 +140,14 @@ public class UserEditorPage {
         );
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id/edit
+    viewModel: com.example.UserEditorPage
 ```
 
 The `save()` method delegates to `userStore`. The ViewModel does not contain business logic — it orchestrates the call and returns UI effects.

@@ -11,7 +11,6 @@ In the fluent API, actions are declared via `ActionSupplier` and handled via `Ac
 ## The basic pattern
 
 ```java
-@Route(value = "/my-page", parentRoute = "")
 public class MyPage implements ComponentTreeSupplier, ActionSupplier, ActionHandler {
 
     @Override
@@ -42,6 +41,14 @@ public class MyPage implements ComponentTreeSupplier, ActionSupplier, ActionHand
         return new State(Map.of("count", httpRequest.getInt("count") + 1));
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-page
+    viewModel: com.example.MyPage
 ```
 
 1. The `Button` declares which action it triggers via `actionId`

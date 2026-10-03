@@ -2,7 +2,7 @@
 title: "ComponentTreeSupplier"
 ---
 
-The primary interface for building a fully fluent page. Implement it to return a component tree for a given HTTP request. Combine it with `@Route` to map it to a URL.
+The primary interface for building a fully fluent page. Implement it to return a component tree for a given HTTP request. Bind it to a URL with a [`routes.yaml`](/java-ui-definition/route-registry/) entry.
 
 ```java
 public interface ComponentTreeSupplier extends Component {
@@ -31,7 +31,6 @@ public interface ComponentTreeSupplier extends Component {
 ## Basic usage
 
 ```java
-@Route("/dashboard")
 public class DashboardPage implements ComponentTreeSupplier {
 
     @Override
@@ -44,10 +43,17 @@ public class DashboardPage implements ComponentTreeSupplier {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: dashboard
+    viewModel: com.example.DashboardPage
+```
+
 ## Accessing request data
 
 ```java
-@Route("/orders")
 public class OrdersPage implements ComponentTreeSupplier {
 
     @Override
@@ -61,10 +67,17 @@ public class OrdersPage implements ComponentTreeSupplier {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: orders
+    viewModel: com.example.OrdersPage
+```
+
 ## Custom style
 
 ```java
-@Route("/welcome")
 @Style("max-width: 800px; margin: auto;")
 public class WelcomePage implements ComponentTreeSupplier {
 
@@ -73,6 +86,14 @@ public class WelcomePage implements ComponentTreeSupplier {
         return new Text("Welcome to Mateu");
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: welcome
+    viewModel: com.example.WelcomePage
 ```
 
 ## Notes

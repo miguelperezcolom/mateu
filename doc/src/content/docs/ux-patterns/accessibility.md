@@ -126,7 +126,7 @@ Measured before writing anything: the `oj-sp-*` composition comes out almost cle
 reason Vaadin did — those components carry their own accessibility. Two real defects turned up
 and were fixed:
 
-- **The header actions were unreadable.** `@AppActionsSupplier` buttons inherited the primary text
+- **The header actions were unreadable.** `AppActionsSupplier` buttons inherited the primary text
   colour (near-black) on Redwood's dark global header — a contrast ratio of **1.33** where WCAG AA
   asks for 4.5. These are business labels, not decoration.
 - **The menu's expand/collapse icons had no name.** `oj-navigation-list` emits them as empty

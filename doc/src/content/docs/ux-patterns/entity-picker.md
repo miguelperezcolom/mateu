@@ -22,7 +22,7 @@ Use `@Lookup` when a field references a single entity and a simple filterable dr
 ```java
 public class Order {
 
-    @Lookup(optionsSupplier = CustomerLookup.class, labelSupplier = CustomerLabel.class)
+    @Lookup(search = CustomerLookup.class, label = CustomerLabel.class)
     private String customerId;
 }
 

@@ -9,7 +9,6 @@ The fluent API builds UI programmatically. A class implements `ComponentTreeSupp
 ## Minimal example
 
 ```java
-@Route(value = "/hello", parentRoute = "")
 public class HelloPage implements ComponentTreeSupplier {
 
     @Override
@@ -24,6 +23,14 @@ public class HelloPage implements ComponentTreeSupplier {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: hello
+    viewModel: com.example.HelloPage
+```
+
 `Form` is the top-level container. Its `content` is a list of components.
 
 ---
@@ -32,10 +39,29 @@ public class HelloPage implements ComponentTreeSupplier {
 
 The counter example shows six ways to handle state and actions in the fluent API.
 
+Each counter is an ordinary class bound to its URL by a [`routes.yaml` entry](/java-ui-definition/route-registry/):
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: counter1
+    viewModel: com.example.Counter1
+  - route: counter2
+    viewModel: com.example.Counter2
+  - route: counter3
+    viewModel: com.example.Counter3
+  - route: counter4
+    viewModel: com.example.Counter4
+  - route: counter5
+    viewModel: com.example.Counter5
+  - route: counter6
+    viewModel: com.example.Counter6
+```
+
 ### Counter 1 — implement ActionHandler directly
 
 ```java
-@Route(value = "/counter1", parentRoute = "")
 public class Counter1 implements ComponentTreeSupplier, ActionHandler {
 
     int count = 0;
@@ -66,7 +92,6 @@ public class Counter1 implements ComponentTreeSupplier, ActionHandler {
 ### Counter 2 — inline Runnable on Button
 
 ```java
-@Route(value = "/counter2", parentRoute = "")
 public class Counter2 implements ComponentTreeSupplier {
 
     int count = 0;
@@ -88,7 +113,6 @@ public class Counter2 implements ComponentTreeSupplier {
 ### Counter 3 — named method convention
 
 ```java
-@Route(value = "/counter3", parentRoute = "")
 public class Counter3 implements ComponentTreeSupplier {
 
     int count = 0;
@@ -114,7 +138,6 @@ When no `actionId` is set on a `Button`, Mateu looks for a method with a matchin
 ### Counter 4 — return State from a Supplier
 
 ```java
-@Route(value = "/counter4", parentRoute = "")
 public class Counter4 implements ComponentTreeSupplier {
 
     int count = 0;
@@ -141,7 +164,6 @@ public class Counter4 implements ComponentTreeSupplier {
 ### Counter 5 — explicit ActionSupplier + TriggersSupplier
 
 ```java
-@Route(value = "/counter5", parentRoute = "")
 public class Counter5 implements ComponentTreeSupplier, ActionSupplier, TriggersSupplier {
 
     int count = 0;
@@ -179,7 +201,6 @@ public class Counter5 implements ComponentTreeSupplier, ActionSupplier, Triggers
 ### Counter 6 — return Data instead of State
 
 ```java
-@Route(value = "/counter6", parentRoute = "")
 public class Counter6 implements ComponentTreeSupplier {
 
     int count = 0;
