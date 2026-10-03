@@ -87,6 +87,74 @@ define('flows/main/pages/main-start-page-chains/addonToggled',[
  * (tests de contrato: cd poc && node test.mjs). */
 define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   'use strict';
+  // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
+  // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
+  // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
+  //
+  // Una sección remota llega como marcador (`remote: true`, sin hijos) hasta que su pod contesta. Lo
+  // que la shell sabe de ella antes —su rótulo y el prefijo bajo el que viven sus pantallas— basta
+  // para la sección activa y la primera miga.
+
+  const navRoute = (r) => {
+    let s = String(r == null ? '' : r).trim()
+    const q = s.search(/[?#]/)
+    if (q >= 0) s = s.slice(0, q)
+    if (s && s[0] !== '/') s = '/' + s
+    while (s.length > 1 && s.endsWith('/')) s = s.slice(0, -1)
+    return s
+  }
+
+  /** `path` es `route` o cuelga de ella. La raíz no casa por prefijo. */
+  function routeCovers(route, path) {
+    return !!route && route !== '/' && (path === route || path.indexOf(route + '/') === 0)
+  }
+
+  /** Una sección remota que aún no ha contestado (o que no contestó). */
+  function isMount(option) {
+    return !!(option && option.remote)
+  }
+
+  /** El prefijo de una sección remota: el que manda el servidor (`routePrefix`) o, si no, su path (o su ruta). */
+  function mountPrefix(option) {
+    return isMount(option) ? navRoute(option.routePrefix || option.path || option.route) : ''
+  }
+
+  /** Por qué una sección está deshabilitada, en el idioma de la UI. */
+  function unavailableHint(label, lang) {
+    const language = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    const name = String(label == null ? '' : label).replace(/<[^<>]*>/g, '').trim()
+    return String(language).toLowerCase().startsWith('es')
+      ? `${name} no está disponible ahora. Se volverá a intentar.`
+      : `${name} is not available right now. It will be retried.`
+  }
+
+  /**
+   * Lo que contestó el pod, con el rótulo de la shell si lo DECLARÓ (`shellLabel`) y el pod contesta
+   * con UNA entrada —lo normal: un grupo con el nombre del servicio—: manda la palabra de la shell, y
+   * la barra no cambia bajo el lector. Varias entradas se pegan tal cual: no hay un nodo que nombrar.
+   */
+  function labelledByShell(entries, option) {
+    if (option.shellLabel && option.label && entries.length === 1) {
+      return [Object.assign({}, entries[0], { label: option.label, icon: option.icon || entries[0].icon })]
+    }
+    return entries
+  }
+
+  /** Las entradas de una sección oculta: no se pintan a ninguna profundidad, pero siguen en el árbol. */
+  function markHidden(entries) {
+    return entries.map((option) => {
+      const children = option.submenus || option.submenu || []
+      return Object.assign({}, option, { visible: false }, children.length ? { submenus: markHidden(children) } : {})
+    })
+  }
+
+  /** La sección de un pod que no contestó: sigue ahí, deshabilitada y diciendo por qué. */
+  function unavailableMount(option, lang) {
+    return Object.assign({}, option, { unavailable: true, disabled: true, description: unavailableHint(option.label, lang) })
+  }
+
+
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
   // libres para testearlas en Node.
@@ -980,6 +1048,9 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
       id,
       label: option.caption || option.label || id,
       icon: ojIconOrGenericOf(option.icon),
+      // una sección remota cuyo pod no contestó: está, pero no se abre, y dice por qué
+      disabled: !!option.unavailable,
+      hint: option.unavailable ? (option.description || '') : '',
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
@@ -996,7 +1067,9 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
       // menú que no pase por ahí tampoco debe dibujarla
       if (option.visible === false) continue
       const node = navNodeOf(option, '')
-      items.push({ id: node.id, label: node.label, icon: node.icon })
+      items.push(node.disabled
+        ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
+        : { id: node.id, label: node.label, icon: node.icon })
       if (node.hasChildren) hasGroups = true
       menuTree.push(node)
     }
@@ -3516,7 +3589,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     const out = new Set()
     const walk = (options) => {
       for (const option of options || []) {
-        if (!option || option.separator) continue
+        if (!option || option.separator || isMount(option)) continue
         const children = option.submenus || option.submenu || []
         if (children.length > 0) { walk(children); continue }
         const route = crumbRoute(option.route || option.path)
@@ -3527,15 +3600,30 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     return out
   }
 
+  // Las entradas OCULTAS cuentan: no se pintan, pero una página bajo una sigue estando en algún sitio
+  // (la bandeja a la que se llega desde un widget sigue siendo Bandeja › Tareas). Una sección remota
+  // que no ha contestado cuenta por su prefijo (navTree.mjs), como la sección sola — `pending`, porque
+  // lo que hay debajo aún no se sabe.
   function menuTrail(menu, path) {
     const current = crumbRoute(path)
     let best = null
     // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
     // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
     const pages = crumbLeafRoutes(menu)
+    const consider = (route, crumbs, pending) => {
+      // una entrada de verdad gana a un prefijo de sección de la misma longitud: dice más
+      if (!best || route.length > best.route.length || (route.length === best.route.length && best.pending && !pending)) {
+        best = { crumbs, route, pending }
+      }
+    }
     const walk = (options, above) => {
       for (const option of options || []) {
-        if (!option || option.separator || option.visible === false) continue
+        if (!option || option.separator) continue
+        if (isMount(option)) {
+          const prefix = mountPrefix(option)
+          if (routeCovers(prefix, current)) consider(prefix, [...above, { text: crumbText(option.caption || option.label) }], true)
+          continue
+        }
         const route = crumbRoute(option.route || option.path)
         const label = crumbText(option.caption || option.label)
         const children = option.submenus || option.submenu || []
@@ -3543,22 +3631,27 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
           walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
           continue
         }
-        if (!route || route === '/') continue
-        if ((current === route || current.startsWith(route + '/')) && (!best || route.length > best.route.length)) {
-          best = { crumbs: [...above, { text: label, route }], route }
-        }
+        if (routeCovers(route, current)) consider(route, [...above, { text: label, route }], false)
       }
     }
     walk(menu, [])
-    return best ? { crumbs: best.crumbs, matched: best.route } : { crumbs: [] }
+    if (!best) return { crumbs: [] }
+    return best.pending ? { crumbs: best.crumbs, matched: best.route, pending: true } : { crumbs: best.crumbs, matched: best.route }
   }
 
   const recordTitles = new Map()
 
   function autoTrail(menu, path, page = {}) {
-    const { crumbs, matched } = menuTrail(menu, path)
+    const { crumbs, matched, pending } = menuTrail(menu, path)
     if (!matched) return []
     const trail = [...crumbs]
+    if (pending) {
+      // una sección remota que no ha contestado: la sección se sabe (la nombró la shell) y lo de
+      // debajo no. La sección, y después el título de la propia página.
+      const title = crumbText(page.title)
+      if (title && title !== trail[trail.length - 1].text) trail.push({ text: title })
+      return trail.length < 2 ? [] : trail
+    }
     const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
     const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
@@ -3959,13 +4052,16 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
     const quiet = options.quiet || isLocalRequest(actionId)
     const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
+    // `isolated`: lo que pase con esta petición no dice nada de la conexión — el menú de un pod
+    // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
+    const isolated = !!options.isolated
     notifyUnlessQuiet('onStart', { actionId })
     let attempt = 0
     let reauthenticated = false
     for (;;) {
       try {
         const res = await sendOnce(url, withAuth(), options.timeoutMillis)
-        connectivity.noteReachable()
+        if (!isolated) connectivity.noteReachable()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
@@ -3978,7 +4074,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
           if (await askForReauthentication()) continue
         }
         const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
-        if (failure.kind === 'offline') connectivity.noteUnreachable()
+        if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
           // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
@@ -4675,7 +4771,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
     return res.json()
   }
 
@@ -5107,20 +5203,28 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
         // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
         // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
         // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
+        // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
+        // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
+        // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
+        // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
         if (option.visible === false) {
-          if (app) adoptRemote(app.menu, option, app)
+          if (app) {
+            adoptRemote(app.menu, option, app)
+            out.push(...markHidden(app.menu))
+          } else {
+            out.push(option)
+          }
           continue
         }
         if (app) {
           adoptRemote(app.menu, option, app)
-          out.push(...app.menu)
+          // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
+          out.push(...labelledByShell(app.menu, option))
         } else {
-          // El pod no contestó. Se queda el rótulo: una sección vacía se entiende, una que
-          // desaparece parece que nunca existió.
-          out.push(option)
+          // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
+          // vacía se entiende, una que desaparece parece que nunca existió.
+          out.push(unavailableMount(option))
         }
-      } else if (option.visible === false) {
-        continue
       } else if (childrenOf(option).length) {
         out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
       } else {
@@ -5148,11 +5252,12 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
           consumedRoute: '_empty',
           initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
           parameters: option.params || {},
-        })
+          // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+        }, { quiet: true, isolated: true, timeoutMillis: 20000 })
         const app = appMenuOf(increment)
         if (app) answers.set(option, app)
       } catch (e) {
-        // Ya reportado por el transporte. Aquí solo se decide no propagarlo.
+        // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
       }
     }))
     return spliceRemote(menu, answers)
@@ -10443,7 +10548,7 @@ define('pages/shell-page-chains/toggleMateuWidgetPopup',[
 });
 
 
-define('text!pages/shell-page.html',[],function () { return ' <oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]" on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]"> <oj-sp-global-header slot="globalHeader" id="globalHeader" on-oj-sp-home-click="[[ $listeners.homeClicked ]]"> <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]"> <img :src="[[ $application.variables.mateuShellLogo ]]" alt="logo" class="oj-sm-margin-3x-end" style="height: 22px; display: block;"> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode ]]"> <oj-button id="mateuHamburger" chroming="borderless" display="icons" on-oj-action="[[ $listeners.hamburgerClicked ]]"> <span slot="startIcon" class="oj-ux-ico-menu"></span> Menu </oj-button> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]"> <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-button chroming="borderless" :data-route="[[ $current.data.id ]]" on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-menu-button chroming="borderless"> <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]"> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-menu> </oj-option> </oj-bind-if> </template> </oj-bind-for-each> </oj-menu> </oj-menu-button> </oj-bind-if> </template> </oj-bind-for-each> </oj-bind-if> </div> <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ $application.variables.mateuContextSelectors.length > 0 ]]"> <oj-button chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-3x-end" on-oj-action="[[ $listeners.contextDrawerToggle ]]"> <span slot="startIcon" class="oj-ux-ico-settings"></span> Contexto </oj-button> </oj-bind-if> <oj-bind-for-each data="[[ $application.variables.mateuHeaderActions ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-button class="oj-sm-margin-1x-start" chroming="borderless" :data-action-id="[[ $current.data.actionId ]]" on-oj-action="[[ $listeners.headerActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-menu-button class="oj-sm-margin-1x-start" chroming="borderless"> <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.headerMenuAction ]]"> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-option :value="[[ $current.data.actionId ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-menu> </oj-menu-button> </oj-bind-if> </template> </oj-bind-for-each> <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]"> <oj-button id="mateuChatToggle" chroming="borderless" display="icons" :class="[[ \'mateu-chat-toggle oj-color-invert oj-sm-margin-1x-start\' + ($application.variables.mateuChatOpen ? \' mateu-chat-open\' : \'\') ]]" aria-controls="mateuChatPanel" on-oj-action="[[ $listeners.chatToggle ]]"> <span slot="startIcon" class="oj-ux-ico-chat"></span> Chat </oj-button> </oj-bind-if> <div class="mateu-header-widgets oj-color-invert oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-for-each data="[[ $application.variables.mateuHeaderWidgets ]]"> <template> <oj-bind-if test="[[ !$current.data.isPopover ]]"> <span class="mateu-header-widget oj-sm-margin-2x-start" :data-widget-id="[[ $current.data.id ]]"></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isPopover ]]"> <oj-button class="oj-sm-margin-1x-start" chroming="borderless" :id="[[ $current.data.buttonId ]]" :data-popup-id="[[ $current.data.popupId ]]" on-oj-action="[[ $listeners.widgetPopoverClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> <oj-popup class="mateu-widget-popup" :id="[[ $current.data.popupId ]]" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless"> <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;"> <oj-bind-for-each data="[[ $current.data.rows ]]"> <template> <oj-bind-if test="[[ $current.data.isText ]]"> <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isLink ]]"> <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> </oj-bind-if> </template> </oj-bind-for-each> </div> </oj-popup> </oj-bind-if> </template> </oj-bind-for-each> </div> </div> <div slot="usermenu" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ !!$application.variables.mateuUserWidget ]]"> <oj-button id="mateuUserButton" class="mateu-user-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless" :aria-label="[[ $application.variables.mateuUserWidget.label ]]" on-oj-action="[[ $listeners.userWidgetClicked ]]"> <span class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center" style="gap: .5rem;"> <oj-avatar size="2xs" background="neutral" :initials="[[ $application.variables.mateuUserWidget.initials ]]"></oj-avatar> <span class="mateu-user-label oj-sm-only-hide"><oj-bind-text value="[[ $application.variables.mateuUserWidget.label ]]"></oj-bind-text></span> </span> </oj-button> <oj-popup id="mateuUserPopup" class="mateu-widget-popup" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless"> <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;"> <oj-bind-for-each data="[[ $application.variables.mateuUserWidget.rows ]]"> <template> <oj-bind-if test="[[ $current.data.isText ]]"> <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isLink ]]"> <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> </oj-bind-if> </template> </oj-bind-for-each> </div> </oj-popup> </oj-bind-if> </div> </oj-sp-global-header> <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page"> <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none" dialog-title="[[ $application.variables.mateuAskLabel ]]"> <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;"> <div> <oj-input-search id="mateuAskInput" class="oj-form-control-full-width" placeholder="Buscar o ir a…" on-raw-value-changed="[[ $listeners.askOracleTyped ]]"></oj-input-search> <div class="oj-sm-margin-4x-top"> <oj-bind-for-each data="[[ $variables.mateuAskResults ]]"> <template> <oj-action-card class="oj-sm-margin-1x-bottom" style="width: 100%; display: block;" on-oj-action="[[ $listeners.askOracleGo ]]"> <div class="oj-flex oj-sm-align-items-center oj-sm-padding-3x"> <span class="oj-sm-margin-3x-end oj-ux-icon-size-5x" :class="[[ $current.data.icon ]]"></span> <span class="oj-typography-body-md oj-flex-item"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span> <span class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.kind ]]"></oj-bind-text></span> </div> </oj-action-card> </template> </oj-bind-for-each> </div> </div> </div> </oj-dialog> <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}"> <div class="oj-sm-padding-6x" style="width: 320px;"> <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom">Contexto de trabajo</h2> <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]"> <template> <div class="oj-sm-margin-4x-bottom"> <oj-select-one class="oj-form-control-full-width" label-hint="[[ $current.data.label ]]" value="[[ $current.data.value ]]" on-value-changed="[[ $listeners.contextChanged ]]"> <oj-bind-for-each data="[[ $current.data.options ]]"> <template> <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-select-one> </div> </template> </oj-bind-for-each> </div> </oj-drawer-popup> <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0" start-opened="[[ $application.variables.mateuChatOpen ]]" on-oj-before-close="[[ $listeners.chatClose ]]"> <div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente" :class="[[ $application.variables.mateuMenuTabs ? \'mateu-chat-panel mateu-over-tabs\' : \'mateu-chat-panel\' ]]"> <oj-bind-if test="[[ $application.variables.mateuChatOpen ]]"> <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header"> <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span> <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0">Asistente</h2> <oj-button chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatClose ]]"> <span slot="startIcon" class="oj-ux-ico-close"></span> Cerrar el chat </oj-button> </div> <div class="mateu-chat-messages oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical" aria-live="polite"> <oj-bind-if test="[[ ($application.variables.mateuChatMessages || []).length === 0 ]]"> <p class="oj-typography-body-sm oj-text-color-secondary">Pregunta lo que necesites sobre esta pantalla o la aplicación.</p> </oj-bind-if> <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]"> <template> <oj-bind-if test="[[ $current.data.role === \'user\' || !!$current.data.text ]]"> <div class="oj-flex oj-sm-margin-3x-bottom" :class="[[ $current.data.role === \'user\' ? \'oj-sm-justify-content-flex-end\' : \'oj-sm-justify-content-flex-start\' ]]"> <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble" :class="[[ $current.data.role === \'user\' ? \'oj-bg-brand-10 mateu-chat-bubble\' : \'oj-bg-neutral-20 mateu-chat-bubble\' ]]"> <oj-bind-if test="[[ $current.data.role === \'user\' ]]"> <span class="mateu-chat-user-text"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.role !== \'user\' ]]"> <div class="mateu-chat-markdown"> <oj-bind-dom config="[[ $functions.chatMessageDom($current.data.text) ]]"></oj-bind-dom> </div> </oj-bind-if> </div> </div> </oj-bind-if> </template> </oj-bind-for-each> <oj-bind-if test="[[ !!$application.variables.mateuChatStatus ]]"> <div id="mateuChatStatus" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-margin-3x-bottom" role="status"> <oj-progress-circle size="sm" value="-1" aria-hidden="true"></oj-progress-circle> <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"> <oj-bind-text value="[[ $application.variables.mateuChatStatus ]]"></oj-bind-text> </span> </div> </oj-bind-if> </div> <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]"> <div id="mateuChatTokens" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top"> <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end">Tokens</span> <oj-bind-if test="[[ $application.variables.mateuChatTokens.inputTokens != null ]]"> <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">entrada <oj-bind-text value="[[ $application.variables.mateuChatTokens.inputTokens ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuChatTokens.outputTokens != null ]]"> <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">salida <oj-bind-text value="[[ $application.variables.mateuChatTokens.outputTokens ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuChatTokens.totalTokens != null ]]"> <span class="oj-badge oj-badge-info oj-badge-subtle">total <oj-bind-text value="[[ $application.variables.mateuChatTokens.totalTokens ]]"></oj-bind-text></span> </oj-bind-if> </div> </oj-bind-if> <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer"> <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]"> <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" :chroming="[[ $application.variables.mateuChatListening ? \'callToAction\' : \'borderless\' ]]" :disabled="[[ $application.variables.mateuChatBusy ]]" on-oj-action="[[ $listeners.chatMic ]]"> <span slot="startIcon" class="oj-ux-ico-mic-on"></span> <oj-bind-text value="[[ $application.variables.mateuChatListening ? \'Parar el dictado\' : \'Dictar el mensaje\' ]]"></oj-bind-text> </oj-button> </oj-bind-if> <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…" label-hint="Mensaje para el asistente" label-edge="none" value="{{ $application.variables.mateuChatInput }}"></oj-input-text> <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]" :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button> </div> </oj-bind-if> </div> <oj-drawer-layout style="flex: 1 1 auto" id="mateuNavDrawer" start-opened="[[ $application.variables.mateuNavDrawerOpen ]]" on-oj-before-close="[[ $listeners.navDrawerClosed ]]"> <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px"> <oj-navigation-list id="mateuNavList" drill-mode="collapsible" selection="[[ $application.variables.mateuSelectedNavId ]]" on-selection-changed="[[ $listeners.navDrawerSelected ]]"> <ul> <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> <ul> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> <ul> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </template> </oj-bind-for-each> </ul> </li> </oj-bind-if> </template> </oj-bind-for-each> </ul> </li> </oj-bind-if> </template> </oj-bind-for-each> </ul> </oj-navigation-list> </div> <div class="oj-web-applayout-content-nopad"> <oj-bind-if test="[[ $application.variables.mateuOffline ]]"> <div class="mateu-offline-band" role="status"> Sin conexión — los cambios que hagas ahora no se guardarán. </div> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuBusy ]]"> <div class="mateu-busy-bar" role="status" aria-label="Cargando"></div> </oj-bind-if> <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]"> <div class="mateu-error-band" role="alert"> <span><oj-bind-text value="[[ $application.variables.mateuLastError ]]"></oj-bind-text></span> <oj-button chroming="callToAction" display="all" on-oj-action="[[ $listeners.retryMateuAction ]]">Reintentar</oj-button> <oj-button chroming="borderless" display="all" on-oj-action="[[ $listeners.dismissMateuError ]]">Cerrar</oj-button> </div> </oj-bind-if> <div class="oj-flex"> <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12" on-sp-close="[[$listeners.messagesBannerSpClose]]"></oj-sp-messages-banner> </div> <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast> <div class="oj-flex mateu-content" :class="[[ $application.variables.mateuNavigating ? \'mateu-navigating\' : \'\' ]]"> <oj-bind-if test="[[ $application.variables.mateuNavigating ]]"> <div class="mateu-skeleton" aria-hidden="true"> <div class="mateu-skeleton-bone mateu-skeleton-title"></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> </div> </oj-bind-if> <oj-vb-content id="vbRouterContent" role="main" class="oj-flex-item" style="min-width:0" config="[[vbRouterFlow]]"> </oj-vb-content> </div> </div> </oj-drawer-layout> </oj-drawer-layout> <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]"> <oj-sp-in-app-navigation id="mateuNav" navigation-items="[[ $application.variables.mateuNavItems ]]" selection="[[ $application.variables.mateuSelectedNavId ]]" on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation> </oj-bind-if> </div> </oj-sp-simple-ui-shell> ';});
+define('text!pages/shell-page.html',[],function () { return ' <oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]" on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]"> <oj-sp-global-header slot="globalHeader" id="globalHeader" on-oj-sp-home-click="[[ $listeners.homeClicked ]]"> <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]"> <img :src="[[ $application.variables.mateuShellLogo ]]" alt="logo" class="oj-sm-margin-3x-end" style="height: 22px; display: block;"> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode ]]"> <oj-button id="mateuHamburger" chroming="borderless" display="icons" on-oj-action="[[ $listeners.hamburgerClicked ]]"> <span slot="startIcon" class="oj-ux-ico-menu"></span> Menu </oj-button> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]"> <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-button chroming="borderless" :data-route="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || \'\' ]]" on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-menu-button chroming="borderless"> <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]"> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || \'\' ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-menu> </oj-option> </oj-bind-if> </template> </oj-bind-for-each> </oj-menu> </oj-menu-button> </oj-bind-if> </template> </oj-bind-for-each> </oj-bind-if> </div> <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ $application.variables.mateuContextSelectors.length > 0 ]]"> <oj-button chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-3x-end" on-oj-action="[[ $listeners.contextDrawerToggle ]]"> <span slot="startIcon" class="oj-ux-ico-settings"></span> Contexto </oj-button> </oj-bind-if> <oj-bind-for-each data="[[ $application.variables.mateuHeaderActions ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <oj-button class="oj-sm-margin-1x-start" chroming="borderless" :data-action-id="[[ $current.data.actionId ]]" on-oj-action="[[ $listeners.headerActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <oj-menu-button class="oj-sm-margin-1x-start" chroming="borderless"> <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text> <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.headerMenuAction ]]"> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-option :value="[[ $current.data.actionId ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-menu> </oj-menu-button> </oj-bind-if> </template> </oj-bind-for-each> <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]"> <oj-button id="mateuChatToggle" chroming="borderless" display="icons" :class="[[ \'mateu-chat-toggle oj-color-invert oj-sm-margin-1x-start\' + ($application.variables.mateuChatOpen ? \' mateu-chat-open\' : \'\') ]]" aria-controls="mateuChatPanel" on-oj-action="[[ $listeners.chatToggle ]]"> <span slot="startIcon" class="oj-ux-ico-chat"></span> Chat </oj-button> </oj-bind-if> <div class="mateu-header-widgets oj-color-invert oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-for-each data="[[ $application.variables.mateuHeaderWidgets ]]"> <template> <oj-bind-if test="[[ !$current.data.isPopover ]]"> <span class="mateu-header-widget oj-sm-margin-2x-start" :data-widget-id="[[ $current.data.id ]]"></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isPopover ]]"> <oj-button class="oj-sm-margin-1x-start" chroming="borderless" :id="[[ $current.data.buttonId ]]" :data-popup-id="[[ $current.data.popupId ]]" on-oj-action="[[ $listeners.widgetPopoverClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button> <oj-popup class="mateu-widget-popup" :id="[[ $current.data.popupId ]]" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless"> <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;"> <oj-bind-for-each data="[[ $current.data.rows ]]"> <template> <oj-bind-if test="[[ $current.data.isText ]]"> <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isLink ]]"> <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> </oj-bind-if> </template> </oj-bind-for-each> </div> </oj-popup> </oj-bind-if> </template> </oj-bind-for-each> </div> </div> <div slot="usermenu" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center"> <oj-bind-if test="[[ !!$application.variables.mateuUserWidget ]]"> <oj-button id="mateuUserButton" class="mateu-user-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless" :aria-label="[[ $application.variables.mateuUserWidget.label ]]" on-oj-action="[[ $listeners.userWidgetClicked ]]"> <span class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center" style="gap: .5rem;"> <oj-avatar size="2xs" background="neutral" :initials="[[ $application.variables.mateuUserWidget.initials ]]"></oj-avatar> <span class="mateu-user-label oj-sm-only-hide"><oj-bind-text value="[[ $application.variables.mateuUserWidget.label ]]"></oj-bind-text></span> </span> </oj-button> <oj-popup id="mateuUserPopup" class="mateu-widget-popup" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless"> <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 12rem;"> <oj-bind-for-each data="[[ $application.variables.mateuUserWidget.rows ]]"> <template> <oj-bind-if test="[[ $current.data.isText ]]"> <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.isLink ]]"> <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> </oj-bind-if> </template> </oj-bind-for-each> </div> </oj-popup> </oj-bind-if> </div> </oj-sp-global-header> <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page"> <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none" dialog-title="[[ $application.variables.mateuAskLabel ]]"> <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;"> <div> <oj-input-search id="mateuAskInput" class="oj-form-control-full-width" placeholder="Buscar o ir a…" on-raw-value-changed="[[ $listeners.askOracleTyped ]]"></oj-input-search> <div class="oj-sm-margin-4x-top"> <oj-bind-for-each data="[[ $variables.mateuAskResults ]]"> <template> <oj-action-card class="oj-sm-margin-1x-bottom" style="width: 100%; display: block;" on-oj-action="[[ $listeners.askOracleGo ]]"> <div class="oj-flex oj-sm-align-items-center oj-sm-padding-3x"> <span class="oj-sm-margin-3x-end oj-ux-icon-size-5x" :class="[[ $current.data.icon ]]"></span> <span class="oj-typography-body-md oj-flex-item"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span> <span class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.kind ]]"></oj-bind-text></span> </div> </oj-action-card> </template> </oj-bind-for-each> </div> </div> </div> </oj-dialog> <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}"> <div class="oj-sm-padding-6x" style="width: 320px;"> <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom">Contexto de trabajo</h2> <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]"> <template> <div class="oj-sm-margin-4x-bottom"> <oj-select-one class="oj-form-control-full-width" label-hint="[[ $current.data.label ]]" value="[[ $current.data.value ]]" on-value-changed="[[ $listeners.contextChanged ]]"> <oj-bind-for-each data="[[ $current.data.options ]]"> <template> <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option> </template> </oj-bind-for-each> </oj-select-one> </div> </template> </oj-bind-for-each> </div> </oj-drawer-popup> <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0" start-opened="[[ $application.variables.mateuChatOpen ]]" on-oj-before-close="[[ $listeners.chatClose ]]"> <div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente" :class="[[ $application.variables.mateuMenuTabs ? \'mateu-chat-panel mateu-over-tabs\' : \'mateu-chat-panel\' ]]"> <oj-bind-if test="[[ $application.variables.mateuChatOpen ]]"> <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header"> <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span> <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0">Asistente</h2> <oj-button chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatClose ]]"> <span slot="startIcon" class="oj-ux-ico-close"></span> Cerrar el chat </oj-button> </div> <div class="mateu-chat-messages oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical" aria-live="polite"> <oj-bind-if test="[[ ($application.variables.mateuChatMessages || []).length === 0 ]]"> <p class="oj-typography-body-sm oj-text-color-secondary">Pregunta lo que necesites sobre esta pantalla o la aplicación.</p> </oj-bind-if> <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]"> <template> <oj-bind-if test="[[ $current.data.role === \'user\' || !!$current.data.text ]]"> <div class="oj-flex oj-sm-margin-3x-bottom" :class="[[ $current.data.role === \'user\' ? \'oj-sm-justify-content-flex-end\' : \'oj-sm-justify-content-flex-start\' ]]"> <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble" :class="[[ $current.data.role === \'user\' ? \'oj-bg-brand-10 mateu-chat-bubble\' : \'oj-bg-neutral-20 mateu-chat-bubble\' ]]"> <oj-bind-if test="[[ $current.data.role === \'user\' ]]"> <span class="mateu-chat-user-text"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $current.data.role !== \'user\' ]]"> <div class="mateu-chat-markdown"> <oj-bind-dom config="[[ $functions.chatMessageDom($current.data.text) ]]"></oj-bind-dom> </div> </oj-bind-if> </div> </div> </oj-bind-if> </template> </oj-bind-for-each> <oj-bind-if test="[[ !!$application.variables.mateuChatStatus ]]"> <div id="mateuChatStatus" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-margin-3x-bottom" role="status"> <oj-progress-circle size="sm" value="-1" aria-hidden="true"></oj-progress-circle> <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-start"> <oj-bind-text value="[[ $application.variables.mateuChatStatus ]]"></oj-bind-text> </span> </div> </oj-bind-if> </div> <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]"> <div id="mateuChatTokens" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top"> <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end">Tokens</span> <oj-bind-if test="[[ $application.variables.mateuChatTokens.inputTokens != null ]]"> <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">entrada <oj-bind-text value="[[ $application.variables.mateuChatTokens.inputTokens ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuChatTokens.outputTokens != null ]]"> <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">salida <oj-bind-text value="[[ $application.variables.mateuChatTokens.outputTokens ]]"></oj-bind-text></span> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuChatTokens.totalTokens != null ]]"> <span class="oj-badge oj-badge-info oj-badge-subtle">total <oj-bind-text value="[[ $application.variables.mateuChatTokens.totalTokens ]]"></oj-bind-text></span> </oj-bind-if> </div> </oj-bind-if> <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer"> <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]"> <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" :chroming="[[ $application.variables.mateuChatListening ? \'callToAction\' : \'borderless\' ]]" :disabled="[[ $application.variables.mateuChatBusy ]]" on-oj-action="[[ $listeners.chatMic ]]"> <span slot="startIcon" class="oj-ux-ico-mic-on"></span> <oj-bind-text value="[[ $application.variables.mateuChatListening ? \'Parar el dictado\' : \'Dictar el mensaje\' ]]"></oj-bind-text> </oj-button> </oj-bind-if> <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…" label-hint="Mensaje para el asistente" label-edge="none" value="{{ $application.variables.mateuChatInput }}"></oj-input-text> <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]" :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button> </div> </oj-bind-if> </div> <oj-drawer-layout style="flex: 1 1 auto" id="mateuNavDrawer" start-opened="[[ $application.variables.mateuNavDrawerOpen ]]" on-oj-before-close="[[ $listeners.navDrawerClosed ]]"> <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px"> <oj-navigation-list id="mateuNavList" drill-mode="collapsible" selection="[[ $application.variables.mateuSelectedNavId ]]" on-selection-changed="[[ $listeners.navDrawerSelected ]]"> <ul> <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]" :class="[[ $current.data.disabled ? \'oj-disabled\' : \'\' ]]" :title="[[ $current.data.hint || \'\' ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> <ul> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <oj-bind-if test="[[ !$current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]" :class="[[ $current.data.disabled ? \'oj-disabled\' : \'\' ]]" :title="[[ $current.data.hint || \'\' ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </oj-bind-if> <oj-bind-if test="[[ $current.data.hasChildren ]]"> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a> <ul> <oj-bind-for-each data="[[ $current.data.children ]]"> <template> <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li> </template> </oj-bind-for-each> </ul> </li> </oj-bind-if> </template> </oj-bind-for-each> </ul> </li> </oj-bind-if> </template> </oj-bind-for-each> </ul> </oj-navigation-list> </div> <div class="oj-web-applayout-content-nopad"> <oj-bind-if test="[[ $application.variables.mateuOffline ]]"> <div class="mateu-offline-band" role="status"> Sin conexión — los cambios que hagas ahora no se guardarán. </div> </oj-bind-if> <oj-bind-if test="[[ $application.variables.mateuBusy ]]"> <div class="mateu-busy-bar" role="status" aria-label="Cargando"></div> </oj-bind-if> <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]"> <div class="mateu-error-band" role="alert"> <span><oj-bind-text value="[[ $application.variables.mateuLastError ]]"></oj-bind-text></span> <oj-button chroming="callToAction" display="all" on-oj-action="[[ $listeners.retryMateuAction ]]">Reintentar</oj-button> <oj-button chroming="borderless" display="all" on-oj-action="[[ $listeners.dismissMateuError ]]">Cerrar</oj-button> </div> </oj-bind-if> <div class="oj-flex"> <oj-sp-messages-banner data="[[ $variables.messagesBannerADP ]]" class="oj-flex-item oj-sm-12 oj-md-12" on-sp-close="[[$listeners.messagesBannerSpClose]]"></oj-sp-messages-banner> </div> <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast> <div class="oj-flex mateu-content" :class="[[ $application.variables.mateuNavigating ? \'mateu-navigating\' : \'\' ]]"> <oj-bind-if test="[[ $application.variables.mateuNavigating ]]"> <div class="mateu-skeleton" aria-hidden="true"> <div class="mateu-skeleton-bone mateu-skeleton-title"></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div> </div> </oj-bind-if> <oj-vb-content id="vbRouterContent" role="main" class="oj-flex-item" style="min-width:0" config="[[vbRouterFlow]]"> </oj-vb-content> </div> </div> </oj-drawer-layout> </oj-drawer-layout> <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]"> <oj-sp-in-app-navigation id="mateuNav" navigation-items="[[ $application.variables.mateuNavItems ]]" selection="[[ $application.variables.mateuSelectedNavId ]]" on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation> </oj-bind-if> </div> </oj-sp-simple-ui-shell> ';});
 
 /* Copyright (c) 2026, Oracle and/or its affiliates */
 
