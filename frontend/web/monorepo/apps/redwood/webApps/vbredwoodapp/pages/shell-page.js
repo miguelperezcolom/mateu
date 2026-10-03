@@ -5,6 +5,16 @@ define(['resources/js/mateu-bridge'], (bridge) => {
 
   class PageModule {
     /**
+     * La clase de una opción de primer nivel de la subcabecera (MENU_ON_TOP): marcada si su
+     * sección es la que está en pantalla (bridge.activeSectionOf). Recibe la ruta seleccionada para
+     * que el binding se reevalúe con cada navegación.
+     */
+    subheaderItemClass(node, tree, selectedRoute) {
+      const active = bridge.activeSectionOf(tree, selectedRoute) === node.id;
+      return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item';
+    }
+
+    /**
      * La respuesta del asistente como nodos para su burbuja (oj-bind-dom): su markdown en HTML seguro
      * —escapado primero, ver chatMarkdownToHtml en poc/chat.mjs—. Se reevalúa con cada trozo del
      * stream, así que el markdown se ve formado mientras llega.

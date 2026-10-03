@@ -1,4 +1,5 @@
 import { autoTrail } from './breadcrumbs.mjs'
+import { accentColorOf, sectionRoutes } from './navTree.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -917,17 +918,24 @@ export function shellNavOf(reg) {
       ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
       : { id: node.id, label: node.label, icon: node.icon })
     if (node.hasChildren) hasGroups = true
+    // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
+    node.routes = sectionRoutes(option, node)
     menuTree.push(node)
   }
   // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
   // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
-  // FA); MENU_ON_TOP (o TABS con grupos) → opciones de primer nivel VISIBLES en el
-  // header, dropdown oj-menu solo para los grupos
+  // FA); MENU_ON_TOP → SUBCABECERA: una banda clara bajo la cabecera oscura con el título de la
+  // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
+  // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
+  // dentro de la cabecera oscura (topbar)
   let mode = 'tabs'
   if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'TILES') mode = 'drawer'
-  else if (shell.variant === 'MENU_ON_TOP' || hasGroups) mode = 'topbar'
+  else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
+  else if (hasGroups) mode = 'topbar'
   return {
     mode,
+    title: shell.title || '',
+    accentColor: accentColorOf(shell.accentColor),
     items,
     menuTree,
     selectors: (shell.appContext || []).map((selector) => ({
@@ -2902,6 +2910,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
+        accentColor: md.accentColor || '',
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la

@@ -164,6 +164,13 @@
         }
       ]
     },
+    "subheaderTitleClicked": {
+      "chains": [
+        {
+          "chain": "onMateuSubheaderHome"
+        }
+      ]
+    },
     "topbarNavClicked": {
       "chains": [
         {
