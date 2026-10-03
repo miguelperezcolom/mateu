@@ -29,6 +29,7 @@ import "@vaadin/scroller";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-adaptive-tabs.ts";
 import { announceTabRoute, tabIndexFromPath } from "@infra/ui/tabRoutes.ts";
+import { currentTabScope, tabDomId, tabStripKey, withinTab } from "@infra/ui/tabIds.ts";
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormLayout
 
@@ -266,6 +267,11 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
         }
         : undefined
 
+    // Tab ids come from the strip (scoped by the tab it lives in) and the index — never from the
+    // label: nested strips sharing a label («General») collided, and the tabsheet links panels by id.
+    const stripKey = tabStripKey(component.id, currentTabScope())
+    const tabIds = (component.children ?? []).map((_, index) => tabDomId(stripKey, index))
+
     if (metadata.adaptable) {
         // adaptable=true: the backend allows swapping the concrete widget as long as disclosure
         // semantics are preserved — wrap in mateu-adaptive-tabs, which degrades the tab strip to a
@@ -291,7 +297,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                     ${component.children?.map(child => child as ClientSideComponent).map((child, index) => {
                         const shortcut = (child.metadata as Tab).shortcut
                         return html`
-                        <vaadin-tab id="${labels[index]}"
+                        <vaadin-tab id="${tabIds[index]}"
                                     style="${child.style}"
                                     class="${child.cssClasses}"
                                     data-shortcut="${shortcut ?? nothing}"
@@ -301,7 +307,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
 
                 ${component.children?.map((child, index) => html`
                     <div slot="panel-${index}" style="padding: var(--lumo-space-m) 0;">
-                        ${(child as ClientSideComponent).children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData))}
+                        ${withinTab(tabIds[index], () => (child as ClientSideComponent).children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData)))}
                     </div>`)}
             </mateu-adaptive-tabs>
                 `
@@ -320,12 +326,12 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                          @items-changed=${itemsChanged}
                          @selected-changed=${selectedChanged ?? nothing}
             >
-                ${component.children?.map(child => child as ClientSideComponent).map(child => {
+                ${component.children?.map(child => child as ClientSideComponent).map((child, index) => {
                     const rawLabel = (child.metadata as Tab).label
                     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
                     const shortcut = (child.metadata as Tab).shortcut
                     return html`
-                    <vaadin-tab id="${label}"
+                    <vaadin-tab id="${tabIds[index]}"
                                 style="${child.style}"
                                 class="${child.cssClasses}"
                                 data-shortcut="${shortcut ?? nothing}"
@@ -333,7 +339,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 })}
             </vaadin-tabs>
 
-            ${component.children?.map(child => renderTab(container, child as ClientSideComponent, baseUrl, state, data, appState, appData))}
+            ${component.children?.map((child, index) => withinTab(tabIds[index], () => renderTab(container, child as ClientSideComponent, baseUrl, state, data, appState, appData, tabIds[index])))}
         </vaadin-tabsheet>
             `
 }
@@ -344,11 +350,12 @@ const tabBadge = (tab: ClientSideComponent) => {
     return badge ? html` <span theme="badge pill small contrast" style="margin-inline-start: .35em;">${badge}</span>` : nothing
 }
 
-export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, tabId?: string) => {
+    // tabId: the id of its vaadin-tab (see renderTabLayout); a Tab rendered on its own keeps the label
     const rawLabel = (tab.metadata as Tab).label
     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
     return html`
-        <div tab="${label}" style="padding: var(--lumo-space-m) 0;">
+        <div tab="${tabId ?? label}" style="padding: var(--lumo-space-m) 0;">
                    ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `

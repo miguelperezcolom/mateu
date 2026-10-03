@@ -5,6 +5,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import {neutralButtonStyles, iconClose, iconMicrophone} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
 import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
+import {ChatAnswer, ChatProgress, classifyChatPayload, formatToolDuration, isEmptyUsage, SseParser} from "./chatStream";
 import "./mateu-markdown";
 
 /** One chat message (design-system-neutral replacement for Vaadin's MessageListItem). */
@@ -133,6 +134,14 @@ export class MateuChat extends LitElement {
     @state()
     tokenUsage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | undefined;
 
+    /** What the agent of the turn in course says it is doing (status and tool events); cleared at its end. */
+    @state()
+    private progress: ChatProgress | undefined;
+
+    /** Bumped on every progress event so Lit re-renders: ChatProgress mutates in place. */
+    @state()
+    private progressTick = 0;
+
 
     startListening = () => {
         if (this.recognition) {
@@ -252,39 +261,6 @@ export class MateuChat extends LitElement {
     }
 
     /**
-     * Returns {event, detail} if the payload is a JSON object with an "event" string field,
-     * otherwise null. The "detail" field is optional and defaults to {}.
-     */
-    private tryParseCustomEvent(payload: string): { event: string; detail: unknown } | null {
-        const trimmed = payload.trim();
-        if (!trimmed.startsWith('{')) return null;
-        try {
-            const obj = JSON.parse(trimmed);
-            if (typeof obj.event === 'string') {
-                return { event: obj.event, detail: obj.detail ?? {} };
-            }
-        } catch {
-            // not valid JSON
-        }
-        return null;
-    }
-
-    /** Returns the parsed token-usage object if the data payload is JSON with token fields, otherwise null. */
-    private tryParseTokenUsage(payload: string): { inputTokens?: number; outputTokens?: number; totalTokens?: number } | null {
-        const trimmed = payload.trim();
-        if (!trimmed.startsWith('{')) return null;
-        try {
-            const obj = JSON.parse(trimmed);
-            if ('inputTokens' in obj || 'outputTokens' in obj || 'totalTokens' in obj) {
-                return obj;
-            }
-        } catch {
-            // not valid JSON
-        }
-        return null;
-    }
-
-    /**
      * Recursively flattens the menu tree into a list of LLM-friendly entries.
      * Each entry carries the full breadcrumb path and the navigation payload
      * the LLM should emit to open that screen.
@@ -329,6 +305,7 @@ export class MateuChat extends LitElement {
 
     private stopLoading() {
         this.loading = false;
+        this.progress = undefined;
         clearInterval(this._elapsedTimer);
         this._elapsedTimer = undefined;
     }
@@ -443,62 +420,52 @@ export class MateuChat extends LitElement {
             if (!reader) throw new Error("No se pudo obtener el reader del stream.");
 
             const decoder = new TextDecoder();
-            let buffer = '';
+            const parser = new SseParser();
+            const answer = new ChatAnswer();
+            const progress = new ChatProgress(Date.now());
+            this.progress = progress;
+            const handle = (payload: string) => {
+                const msg = classifyChatPayload(payload);
+                switch (msg.kind) {
+                    case 'usage':
+                        // older agents send all-zero placeholders while they work: not a count
+                        if (!isEmptyUsage(msg.usage)) this.tokenUsage = { ...this.tokenUsage, ...msg.usage };
+                        return;
+                    case 'delta':
+                        accumulatedText = answer.delta(msg.text);
+                        progress.text(Date.now());
+                        break;
+                    case 'text':
+                        accumulatedText = answer.line(msg.text);
+                        progress.text(Date.now());
+                        break;
+                    case 'error':
+                        accumulatedText = answer.error(msg.message);
+                        break;
+                    case 'status':
+                        progress.status(msg.detail, Date.now());
+                        break;
+                    case 'tool':
+                        progress.tool(msg.detail, Date.now());
+                        break;
+                    case 'event':
+                        this.dispatchEvent(new CustomEvent(msg.event, { detail: msg.detail, bubbles: true, composed: true }));
+                        return;
+                }
+                this.progressTick++;
+                if (msg.kind === 'delta' || msg.kind === 'text' || msg.kind === 'error') {
+                    this.updateMessage(agentIdx, accumulatedText);
+                }
+            };
 
             while (true) {
                 const { done, value } = await reader.read();
-
                 if (done) {
-                    if (buffer.trim().startsWith('data:')) {
-                        const payload = buffer.trim().slice(5).trim();
-                        const usage = this.tryParseTokenUsage(payload);
-                        const customEvent = !usage && this.tryParseCustomEvent(payload);
-                        if (usage) {
-                            this.tokenUsage = { ...this.tokenUsage, ...usage };
-                        } else if (customEvent) {
-                            if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
-                                this.updateMessage(agentIdx, accumulatedText);
-                            } else {
-                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
-                            }
-                        } else {
-                            accumulatedText += payload;
-                            this.updateMessage(agentIdx, accumulatedText);
-                        }
-                    }
+                    parser.push(decoder.decode());
+                    parser.end().forEach(handle);
                     break;
                 }
-
-                const raw = decoder.decode(value, { stream: true });
-                buffer += raw;
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                let changed = false;
-                for (const line of lines) {
-                    if (line.trim().startsWith('data:')) {
-                        const payload = line.trim().slice(5).trim();
-                        const usage = this.tryParseTokenUsage(payload);
-                        const customEvent = !usage && this.tryParseCustomEvent(payload);
-                        if (usage) {
-                            this.tokenUsage = { ...this.tokenUsage, ...usage };
-                        } else if (customEvent) {
-                            if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
-                                this.updateMessage(agentIdx, accumulatedText);
-                            } else {
-                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
-                            }
-                        } else {
-                            accumulatedText += payload + '\n';
-                            changed = true;
-                        }
-                    }
-                }
-                if (changed) {
-                    this.updateMessage(agentIdx, accumulatedText);
-                }
+                parser.push(decoder.decode(value, { stream: true })).forEach(handle);
             }
 
             if (!accumulatedText) {
@@ -546,6 +513,32 @@ export class MateuChat extends LitElement {
         }
     }
 
+    /** The line under the conversation while the agent works: what it says it is doing, or — from an
+     *  agent that reports nothing — the seconds it has been thinking, as before. Re-rendered by the
+     *  once-a-second tick (elapsedSeconds) and by every progress event (progressTick). */
+    private progressLine(): string {
+        return this.progress?.line(Date.now()) ?? `Thinking… ${this.elapsedSeconds}s`;
+    }
+
+    /** The tool calls of the turn in course, under the agent's message: done, failed or running. */
+    private renderToolSteps() {
+        const steps = this.progress?.steps ?? [];
+        if (!steps.length) return nothing;
+        return html`
+            <ul class="tool-steps" aria-label="Herramientas usadas">
+                ${steps.map(step => html`
+                    <li class="tool-step ${step.running ? 'running' : step.error ? 'failed' : 'done'}"
+                        title="${step.server ? `${step.name} (${step.server})` : step.name}">
+                        <span class="tool-step-icon">${step.running ? '…' : step.error ? '✕' : '✓'}</span>
+                        <span class="tool-step-name">${step.name}</span>
+                        ${step.running ? nothing : html`<span class="tool-step-time">${formatToolDuration(step.ms)}</span>`}
+                        ${step.error ? html`<span class="tool-step-error">${step.error}</span>` : nothing}
+                    </li>
+                `)}
+            </ul>
+        `;
+    }
+
     render() {
         return html`
             <div class="chat-container">
@@ -565,7 +558,7 @@ export class MateuChat extends LitElement {
                 </div>
                 <div class="scroll-container">
                     <div class="message-list" role="list">
-                        ${this.items.map(item => html`
+                        ${this.items.map((item, index) => html`
                             <div class="message" role="listitem">
                                 <div class="avatar" style="background: ${avatarColor(item.userColorIndex)};">${initials(item.userName)}</div>
                                 <div class="message-body">
@@ -574,6 +567,7 @@ export class MateuChat extends LitElement {
                                         <span class="message-time">${item.time}</span>
                                     </div>
                                     <mateu-markdown class="message-text" .content="${item.text ?? ''}"></mateu-markdown>
+                                    ${index === this.items.length - 1 && this.loading ? this.renderToolSteps() : nothing}
                                 </div>
                             </div>
                         `)}
@@ -590,7 +584,7 @@ export class MateuChat extends LitElement {
                 ${this.loading ? html`
                     <div class="loading-bar">
                         <span class="spinner"></span>
-                        <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
+                        <span class="loading-text">${this.progressLine()}</span>
                     </div>
                 ` : nothing}
                 ${this.attachments.length ? html`
@@ -941,6 +935,49 @@ export class MateuChat extends LitElement {
 
         .loading-text {
             font-variant-numeric: tabular-nums;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        /* The tool calls of the turn in course, under the agent's message. */
+        .tool-steps {
+            list-style: none;
+            margin: 0.25rem 0 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: var(--lumo-font-size-xs, .75rem);
+            color: var(--lumo-secondary-text-color, #555);
+        }
+        .tool-step {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .tool-step-icon {
+            width: 1em;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .tool-step.done .tool-step-icon { color: var(--lumo-success-text-color, #0a7d3c); }
+        .tool-step.failed .tool-step-icon,
+        .tool-step-error { color: var(--lumo-error-text-color, #c62828); }
+        .tool-step-name {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tool-step-time { font-variant-numeric: tabular-nums; flex-shrink: 0; }
+        .tool-step-error {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
         }
 
         .spinner {
