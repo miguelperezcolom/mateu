@@ -7,6 +7,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -267,7 +268,7 @@ export class MateuDrawer extends ComponentElement {
        `
     }
 
-    static styles = css`
+    static styles = [css`
         .drawer-close {
             border: none;
             background: transparent;
@@ -486,7 +487,7 @@ export class MateuDrawer extends ComponentElement {
             display: flex;
             justify-content: flex-end;
         }
-  `
+  `, linkStyles]
 }
 
 declare global {
