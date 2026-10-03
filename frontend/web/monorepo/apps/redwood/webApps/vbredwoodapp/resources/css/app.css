@@ -753,8 +753,57 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   }
 }
 
-/* Pie de PAGINACIÓN del listado: el FAB de Ask Oracle / chat (fijo abajo a la derecha, ~72px)
-   tapaba "última página" cuando el pie quedaba al fondo del viewport — se le deja su hueco. */
+/* ── FAB de Ask Oracle: SITIO y TAMAÑO según el formato de la página ───────────────────────────
+   oj-sp-simple-ui-shell lo ancla a SU columna de 1392px centrada (a partir de 1536px, justo fuera de
+   ella) y lo deja de 72px en escritorio y 52px hasta 1023px; en una página a sangre, un cuadrado de
+   44px pegado a la esquina. Nuestra columna fija no es la suya (pageStyleOf: 1408px anclada con
+   max(24px, (100vw - 1536px)/2 + 64px) a la derecha), así que a 1600px el FAB se montaba 8px sobre
+   el contenido y sobresalía 64px por fuera. Aquí se recoloca con el borde derecho del contenido de
+   cada formato —la clase que el propio shell pone en el contenedor del FAB según page-layout, que
+   cambia al navegar— y se escala por punto de ruptura como el `AO` del Figma de RDS: LG (72px)
+   desde 1024px, MD (52px) de 600 a 1023 y SM (44px) en un teléfono. Sólo se tocan la posición y el
+   tamaño; el color, el glifo y los estados son los del shell.
+     fixed      el borde de la columna fija: max(24px, (100vw - 1536px)/2 + 64px)
+     fullWidth  el margen del contenido, el de página de RDS: 24px, 48px desde 1440px
+     edgeToEdge el mismo margen de página (sin centrar en 1536px, sin pegarse a la esquina)
+   En un teléfono los tres se pegan a la esquina, como en el shell. Con la barra inferior de TABS
+   (oj-sp-in-app-navigation) se queda como la pone el shell, en la esquina. El `a.` sube la
+   especificidad: app.css carga ANTES que el CSS del shell y a igualdad ganaría el suyo. */
+oj-sp-simple-ui-shell a.oj-sp-rw-chat-icon-cont {
+  --oj-sp-simple-uishell-button-box-size: var(--mateu-ao-size, 72px);
+  left: auto;
+  right: var(--mateu-ao-inset, max(24px, calc((100vw - 1536px) / 2 + 64px)));
+}
+oj-sp-simple-ui-shell .oj-sp-rw-simple-uishell-full-width-page a.oj-sp-rw-chat-icon-cont {
+  --mateu-ao-inset: 24px;
+}
+oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-icon-cont {
+  --mateu-ao-inset: 24px;
+}
+@media (min-width: 1440px) {
+  oj-sp-simple-ui-shell .oj-sp-rw-simple-uishell-full-width-page a.oj-sp-rw-chat-icon-cont,
+  oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-icon-cont {
+    --mateu-ao-inset: 48px;
+  }
+}
+@media (max-width: 1023px) {
+  oj-sp-simple-ui-shell a.oj-sp-rw-chat-icon-cont { --mateu-ao-size: 52px; }
+}
+@media (max-width: 599px) {
+  oj-sp-simple-ui-shell a.oj-sp-rw-chat-icon-cont { --mateu-ao-size: 44px; --mateu-ao-inset: 0px; }
+  oj-sp-simple-ui-shell .oj-sp-rw-simple-uishell-full-width-page a.oj-sp-rw-chat-icon-cont,
+  oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-icon-cont {
+    --mateu-ao-inset: 0px;
+  }
+}
+.oj-sp-inappnav-visible oj-sp-simple-ui-shell a.oj-sp-rw-chat-icon-cont {
+  left: auto;
+  right: 0;
+}
+
+/* Pie de PAGINACIÓN del listado: el FAB de Ask Oracle / chat (fijo abajo a la derecha, hasta 72px
+   y alineado con el borde del contenido, ver arriba) tapaba "última página" cuando el pie quedaba
+   al fondo del viewport — se le deja su hueco (88px > 72px). */
 .mateu-listing-paging {
   padding-inline-end: 5.5rem;
   box-sizing: border-box;
