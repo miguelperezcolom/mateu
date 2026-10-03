@@ -14,7 +14,8 @@ import { PageDoc, PageNode, NodePath, pathToId } from '../model/pageModel'
 @customElement('editor-outline')
 export class EditorOutline extends LitElement {
     static styles = css`
-        :host { display: flex; flex-direction: column; min-height: 0; height: 100%; font: 13px system-ui; }
+        :host { display: flex; flex-direction: column; min-height: 0; height: 100%; font: 13px system-ui;
+                background: #fff; color: #1f2937; }
         .head { padding: 0.5rem 0.6rem; font-weight: 600; color: #6b7280; text-transform: uppercase;
                 letter-spacing: .04em; font-size: 11px; border-bottom: 1px solid #eef0f2; }
         .tree { flex: 1; overflow: auto; padding: 0.25rem 0; }
