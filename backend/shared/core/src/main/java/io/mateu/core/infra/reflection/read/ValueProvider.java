@@ -74,11 +74,15 @@ public class ValueProvider {
     } catch (Exception ignored) {
 
     }
-    if (getter != null) {
+    // The record-style accessor (`name()`) is the FALLBACK for a missing `getName()`, and only on a
+    // record: the condition used to be inverted, so a class with both `getTotal()` and a `total()`
+    // method read `total()` — bypassing its getter — while on a plain class a same-named method
+    // (an action, say) must never be invoked just to read a field.
+    if (getter == null && o.getClass().isRecord()) {
       try {
         getter = o.getClass().getMethod(f.getName());
       } catch (Exception ignored) {
-
+        // no accessor: read the field below
       }
     }
     Object v = null;

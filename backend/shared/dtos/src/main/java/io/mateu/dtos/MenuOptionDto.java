@@ -41,7 +41,10 @@ public record MenuOptionDto(
     // A remote section only: true when the shell DECLARED the label (@Label or withLabel), which
     // then wins over the one the remote answers with. False when the label shown is only the
     // field name filled in by Mateu: the remote's own label replaces it, as it always did.
-    boolean shellLabel) {
+    boolean shellLabel,
+    // The entry opens a listing: how to narrow it from its URL (declared filters, the free-text
+    // search and the reserved id-set filter). Null for any other screen.
+    ListingDescriptorDto listing) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

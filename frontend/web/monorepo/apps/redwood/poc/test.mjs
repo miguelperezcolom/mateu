@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { activeSectionOf, accentColorOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -27,7 +28,7 @@ import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -48,6 +49,7 @@ import {
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
   searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
+  IDS_PARAM, idsChipLabelOf, splitListingQuery, listingQueryOf, listingUrlOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -540,6 +542,76 @@ test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un g
   const group = nav.menuTree[0]
   assert.deepEqual(group.children.map((c) => c.label), ['Bookings'])
   assert.equal(group.hasChildren, true)
+})
+
+test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título + acento); TABS con grupos sigue en la cabecera', () => {
+  const menu = [
+    { label: 'Call center', path: '/callcenter', submenus: [{ label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' }] },
+    { label: 'Avisos', route: '/inbox' },
+  ]
+  const onTop = shellNavOf({ shell: { variant: 'MENU_ON_TOP', title: 'Consola de datos', accentColor: '#D2232A', menu } })
+  assert.equal(onTop.mode, 'subheader')
+  assert.equal(onTop.title, 'Consola de datos')
+  assert.equal(onTop.accentColor, '#D2232A')
+  // TABS con grupos (no caben en la barra inferior): siguen en la cabecera oscura, como antes
+  assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
+  // TABS plano (el front office): la barra inferior, intacta
+  assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
+  // sin acento declarado no hay acento
+  assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).accentColor, '')
+})
+
+test('reduceContexts: el App trae su @App(accentColor) a la shell', () => {
+  const { shell } = reduceContexts(empty(), { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', variant: 'MENU_ON_TOP', title: 'X', menu: [], accentColor: '#D2232A' }, children: [] } }] })
+  assert.equal(shell.accentColor, '#D2232A')
+  assert.equal(shellNavOf({ shell }).accentColor, '#D2232A')
+})
+
+test('accentColorOf: sólo un color CSS reconocible; lo demás, sin acento', () => {
+  assert.equal(accentColorOf(' #D2232A '), '#D2232A')
+  assert.equal(accentColorOf('rgb(210, 35, 42)'), 'rgb(210, 35, 42)')
+  assert.equal(accentColorOf('red; background: url(x)'), '')
+  assert.equal(accentColorOf('</style>'), '')
+  assert.equal(accentColorOf(null), '')
+})
+
+test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la contiene a cualquier profundidad', () => {
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Call center', path: '/callcenter', submenus: [
+      { label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' },
+      // oculta: una pantalla bajo ella sigue siendo de Call center
+      { label: 'Nueva', route: '/booking/new', baseUrl: '/_booking', visible: false },
+    ] },
+    { label: 'Admin', path: '/admin', submenus: [
+      // tercer nivel (shell federada): grupo del pod con sus pantallas
+      { label: 'Workflow', path: '/workflow', remote: false, submenus: [{ label: 'Processes', route: '/workflow/processes', baseUrl: '/_workflow' }] },
+    ] },
+    // remota que aún no contestó: cuenta por su prefijo
+    { label: 'ERP', path: '/erp', remote: true, routePrefix: '/erp' },
+    { label: 'Avisos', route: '/inbox' },
+    { label: 'Llegadas', route: '/reservas?vista=LLEGADAS_HOY' },
+  ] } })
+  const tree = nav.menuTree
+  const ids = tree.map((n) => n.id)
+  assert.equal(activeSectionOf(tree, '/booking/bookings'), ids[0])
+  assert.equal(activeSectionOf(tree, '/booking/bookings/36K69K'), ids[0], 'el detalle de un registro sigue en su sección')
+  assert.equal(activeSectionOf(tree, '/booking/new'), ids[0])
+  assert.equal(activeSectionOf(tree, '/workflow/processes?status=RUNNING'), ids[1])
+  assert.equal(activeSectionOf(tree, '/erp/partners'), ids[2])
+  assert.equal(activeSectionOf(tree, '/inbox'), ids[3])
+  assert.equal(activeSectionOf(tree, '/reservas?vista=LLEGADAS_HOY'), ids[4])
+  // la home (o una ruta de nadie): ninguna marcada
+  assert.equal(activeSectionOf(tree, '/inicio'), null)
+  assert.equal(activeSectionOf(tree, ''), null)
+  assert.equal(activeSectionOf(tree, null), null)
+  // un prefijo más corto no se queda con las pantallas de otra sección
+  const overlap = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Clientes', route: '/customers' },
+    { label: 'Cambios', route: '/customers/changes' },
+  ] } }).menuTree
+  assert.equal(activeSectionOf(overlap, '/customers/changes/7'), overlap[1].id)
+  assert.equal(activeSectionOf(overlap, '/customers/7'), overlap[0].id)
 })
 
 test('shellNavOf: grupos con rutas terminales + selectores de contexto + header actions', () => {
@@ -3740,6 +3812,122 @@ atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no 
   } finally { globalThis.fetch = original }
 })
 
+// ── P1 en Redwood: páginas-formulario con pestañas y @Subresource, y páginas de solo lectura ────
+import {
+  subresourceIslandOf as p1SubresourceIslandOf, pendingSubresourcesOf as p1PendingSubresourcesOf,
+  withSubresources as p1WithSubresources, hostContentShown as p1HostContentShown,
+} from './reduceContexts.mjs'
+import { loadSubresources as p1LoadSubresources } from './transport.mjs'
+
+const p1Overview = () => reduceContexts(empty(), fx('p1-overview-billing'))
+const p1Atoms = (blocks) => (blocks || []).flatMap((b) => b.items)
+
+test('P1: un @Subresource es su propia superficie, no la isla de la pantalla', () => {
+  const host = p1Overview().contexts[HOST_ID]
+  const subs = []
+  const walk = (n) => { if (!n || typeof n !== 'object') return; const s = p1SubresourceIslandOf(n); if (s) { subs.push(s); return } Object.values(n).forEach((v) => (Array.isArray(v) ? v.forEach(walk) : walk(v))) }
+  ;(host.tree.children || []).forEach(walk)
+  assert.deepEqual(subs.map((s) => [s.id, s.lazy]), [['_orders', false], ['_invoices', true], ['_payments', true]])
+  const invoices = subs[1]
+  assert.equal(invoices.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+  assert.equal(invoices.consumedRoute, '/_subresource/CustomerOverview/invoices')
+  // el padre le siembra el id del maestro, y la marca de ámbito viaja con él (como en Vaadin)
+  assert.equal(invoices.componentState.customerId, '3')
+  assert.equal(invoices.componentState._scope, 'customerId')
+  // el baile de la isla (mateuIsland) no los toca: los carga loadSubresources
+  assert.deepEqual(collectIslands(host.tree), [])
+  // el documento del check-in (un mediador embebido que no es sub-recurso) sigue siendo isla
+  assert.ok(collectIslands(reduceContexts(empty(), fx('fo-checkin-wizard')).contexts[HOST_ID].tree).some((i) => i.id === '_documento'))
+})
+
+test('P1: una página-formulario con la pestaña de los @Subresource activa conserva la barra y sus huecos', () => {
+  const host = p1Overview().contexts[HOST_ID]
+  // enlace directo a /customer-overview/3/billing: el servidor marca Billing activa
+  const blocks = hostContentOf(host, null, { title: 'Customer 3' })
+  const atoms = p1Atoms(blocks)
+  const bar = atoms.find((a) => a.isTabs)
+  assert.ok(bar, 'la barra de pestañas sigue ahí')
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
+  assert.equal(bar.selectedId, 'tab-2')
+  // sólo los de la pestaña a la vista, apilados con su título y su ayuda
+  assert.deepEqual(atoms.filter((a) => a.isSubresource).map((a) => a.islandId), ['_invoices', '_payments'])
+  assert.ok(atoms.some((a) => a.isText && a.text === 'Invoices issued to this customer'))
+  assert.ok(!blocks.some((b) => b.isNestedBlock), 'no se confunden con la isla anidada (que vaciaba el bloque)')
+  assert.equal(p1HostContentShown(blocks, summarizeHost(p1Overview(), '/customer-overview/3/billing')), true,
+    'el contenido manda sobre el form genérico')
+  // con la pestaña Orders elegida a mano, su listado; Billing espera a que se abra
+  const orders = p1Atoms(hostContentOf(host, null, { title: 'Customer 3', activeTab: 'tab-1' }))
+  assert.deepEqual(orders.filter((a) => a.isSubresource).map((a) => a.islandId), ['_orders'])
+})
+
+test('P1: un @Subresource cargado se pinta como su tabla; el que falta se queda como hueco', () => {
+  let reg = p1Overview()
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Customer 3' })
+  assert.deepEqual(p1PendingSubresourcesOf(blocks, reg.contexts).map((s) => s.id), ['_invoices', '_payments'])
+  reg = reduceContexts(reg, fx('p1-subresource-invoices-load'))
+  reg = reduceContexts(reg, fx('p1-subresource-invoices-search'))
+  assert.deepEqual(p1PendingSubresourcesOf(blocks, reg.contexts).map((s) => s.id), ['_payments'])
+  const atoms = p1Atoms(p1WithSubresources(blocks, reg.contexts))
+  const grid = atoms.find((a) => a.isGrid && a.fieldId === '_invoices')
+  assert.ok(grid, 'Invoices es una tabla')
+  assert.deepEqual(grid.columns.map((c) => c.field), ['id', 'customerId', 'date', 'total'])
+  assert.deepEqual(grid.rows.map((r) => r.id), ['F3-1', 'F3-2', 'F3-3', 'F3-4'])
+  assert.equal(grid.isEmpty, false)
+  assert.ok(atoms.some((a) => a.isSubresource && a.islandId === '_payments'), 'Payments aún sin cargar: hueco')
+})
+
+atest('P1: loadSubresources carga cada @Subresource a la vista por su tipo, con el id del maestro, y busca', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push(body)
+    const inv = String(body.route).includes('/invoices')
+    const res = body.actionId === 'search'
+      ? (inv ? fx('p1-subresource-invoices-search') : { fragments: [] })
+      : (inv ? fx('p1-subresource-invoices-load') : { fragments: [] })
+    return { ok: true, json: async () => res }
+  }
+  try {
+    let reg = p1Overview()
+    const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Customer 3' })
+    reg = await p1LoadSubresources('http://x', reg, blocks, { appState: {} })
+    const loadInv = seen.find((b) => b.actionId === '' && b.initiatorComponentId === '_invoices')
+    assert.equal(loadInv.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+    assert.equal(loadInv.consumedRoute, '/_subresource/CustomerOverview/invoices')
+    assert.equal(loadInv.componentState.customerId, '3')
+    const search = seen.find((b) => b.actionId === 'search')
+    assert.equal(search.componentState.customerId, '3')
+    assert.equal(search.componentState.page, 0)
+    assert.equal(search.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+    assert.ok(!seen.some((b) => String(b.route).includes('/orders')), 'Orders, en otra pestaña, no se carga')
+    const grid = p1Atoms(p1WithSubresources(blocks, reg.contexts)).find((a) => a.isGrid && a.fieldId === '_invoices')
+    assert.equal(grid.rows.length, 4)
+  } finally { globalThis.fetch = original }
+})
+
+test('P1: en modo path el historial es solo de Mateu — la shell le quita a VB su onpopstate', () => {
+  // VB toma la ruta de arranque por «application URL» (/customers → /customers/) y lee lo que
+  // cuelga de ella como una página suya: tras entrar al maestro desde una fila (/customers/5), un
+  // atrás le hacía salir de la shell y dejaba «disposed» el contexto de las chains (no repintaba).
+  // Guardia de regresión sobre la chain (en Node no hay VB que arrancar): ver e2e/master-tabs-check.mjs
+  const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'loadMateuShell.js'), 'utf8')
+  assert.match(chain, /if \(pathMode\) \{\s*window\.onpopstate = null;\s*\}/)
+  // y antes de cablear el listener propio del popstate
+  assert.ok(chain.indexOf('window.onpopstate = null') < chain.indexOf("addEventListener(pathMode ? 'popstate'"))
+})
+
+test('P1: una página de solo lectura (sus campos son textos) se pinta, no sale vacía', () => {
+  const reg = reduceContexts(empty(), fx('p1-history'))
+  const summary = summarizeHost(reg, '/customers/3/history')
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
+  assert.deepEqual(p1Atoms(blocks).filter((a) => a.isText).map((a) => a.text), ['3', 'Customer 3 created 2026-01-01'])
+  assert.equal(p1HostContentShown(blocks, summary), true)
+  // pero si el form genérico tiene campos, unos textos sueltos no le quitan el sitio
+  assert.equal(p1HostContentShown(blocks, { ...summary, fields: [{ fieldId: 'x' }] }), false)
+  assert.equal(p1HostContentShown(null, summary), false)
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
@@ -3959,4 +4147,141 @@ test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta c
   const tree = { type: 'ServerSide', children: [{ metadata: { type: 'FormField', fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' } }] }
   const listed = fieldListOf(tree, {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
   assert.deepEqual(listed.map((f) => [f.isText, f.value]), [[true, 'Hotel 3, Hotel 5']])
+})
+
+
+// ── Filtros por URL (declarados, texto libre y selección por ids) y enlaces del chat ──────────────
+
+test('url filters: cada tipo de filtro declarado se pone desde la query, y sale como chip aplicado', () => {
+  const q = queryFiltersOf('status=Pending,Confirmed&hotel=Riu&arrival_from=2026-11-01&arrival_to=2026-11-30&vip=true&nights_from=2&vista=IN_HOUSE')
+  const chips = smartFilterValueOf(BOOKING_FILTERS, q, '')
+  const by = (id) => chips.filter((c) => c.filter === id)[0]
+  assert.deepEqual(by('status').value, ['Pending', 'Confirmed'], 'un Set<Enum>: la lista separada por comas')
+  assert.equal(by('hotel').value, 'Riu')
+  assert.deepEqual(by('arrival').value, { gte: '2026-11-01', lte: '2026-11-30' })
+  assert.equal(by('vip').value, 'true')
+  assert.deepEqual(by('nights').value, { gte: '2', lte: null })
+  assert.equal(by('vista').label, 'In house')
+})
+
+test('url filters: searchText (o su alias q) es el buscador, no un filtro', () => {
+  assert.deepEqual(splitListingQuery({ q: 'garcía', status: 'Cancelled' }), { searchText: 'garcía', values: { status: 'Cancelled' } })
+  assert.deepEqual(splitListingQuery({ searchText: 'a', q: 'b' }), { searchText: 'a', values: {} }, 'searchText manda sobre q')
+  assert.deepEqual(splitListingQuery({}), { searchText: '', values: {} })
+})
+
+test('url filters: ?ids=… es la selección — un chip que se quita, y viaja al server como ids', () => {
+  assert.equal(IDS_PARAM, 'ids')
+  const values = queryFiltersOf('ids=4MBZS7,JXD3G6')
+  const chips = smartFilterValueOf(BOOKING_FILTERS, values, '')
+  assert.deepEqual(chips, [{ filter: 'ids', label: idsChipLabelOf('4MBZS7,JXD3G6'), value: '4MBZS7,JXD3G6' }])
+  assert.equal(idsChipLabelOf('4MBZS7,JXD3G6', 'es'), 'Selección: 4MBZS7, JXD3G6')
+  assert.equal(idsChipLabelOf(['a', 'b', 'c', 'd'], 'es-ES'), '4 elementos seleccionados')
+  assert.equal(idsChipLabelOf('a', 'en'), 'Selection: a')
+  assert.equal(idsChipLabelOf('a,b,c,d', 'en'), '4 selected items')
+  // vuelve del componente: con el chip, ids; sin él (quitado con la ✕), nada
+  assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, chips).values, { ids: '4MBZS7,JXD3G6' })
+  assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, []).values, {})
+  // en el search, en el componentState como cualquier filtro
+  assert.equal(listingSearchStateOf({}, { filters: values }).ids, '4MBZS7,JXD3G6')
+  // y el chip puede abrir su editor: tiene metadata, también en un listado sin filtros declarados
+  assert.ok(smartFiltersMetadataOf(BOOKING_FILTERS).polymorphicTypes.ids)
+  assert.deepEqual(filterChipsOf(BOOKING_FILTERS, values)[0].keys, ['ids'])
+  // un listado que DECLARA su propio filtro ids lo trata como suyo (sin chip doble)
+  const own = [filterDescriptorOf({ fieldId: 'ids', label: 'Ids', dataType: 'string' })]
+  assert.equal(smartFilterValueOf(own, { ids: 'x' }, '').length, 1)
+})
+
+atest('url filters: un listado sin filtros declarados también pinta el chip de la selección', async () => {
+  const config = await smartFiltersOf([], { ids: 'a,b' }, '')
+  assert.deepEqual(config.value.map((c) => c.filter), ['ids'])
+  assert.equal(config.suggestionFilters, undefined)
+  const plain = await smartFiltersOf([], {}, '')
+  assert.deepEqual(Object.keys(plain).sort(), ['askHint', 'value'])
+})
+
+test('url filters: la URL refleja los filtros aplicados (comas legibles, el resto codificado)', () => {
+  assert.equal(listingUrlOf('/booking/bookings', { status: ['Cancelled'] }, ''), '/booking/bookings?status=Cancelled')
+  assert.equal(listingUrlOf('/booking/bookings?status=Pending', { status: ['Pending', 'Confirmed'], ids: '' }, ''),
+    '/booking/bookings?status=Pending,Confirmed')
+  assert.equal(listingUrlOf('/booking/bookings?ids=a', {}, ''), '/booking/bookings', 'quitar el último chip deja la ruta limpia')
+  assert.equal(listingQueryOf({ ids: '4MBZS7,JXD3G6', arrival_from: '2026-11-01' }, 'Nora D'),
+    'ids=4MBZS7,JXD3G6&arrival_from=2026-11-01&searchText=Nora%20D')
+  // ida y vuelta por la query
+  const back = splitListingQuery(queryFiltersOf(listingQueryOf({ status: 'Cancelled', ids: 'a,b' }, 'x y')))
+  assert.deepEqual(back, { searchText: 'x y', values: { status: 'Cancelled', ids: 'a,b' } })
+})
+
+test('url filters: ir al MISMO listado con otra query aplica exactamente la nueva', () => {
+  const a = navTargetOf('/booking/bookings?status=Cancelled', '/booking/bookings')
+  assert.equal(a.same, false)
+  assert.deepEqual(a.filters, { status: 'Cancelled' })
+  const b = navTargetOf('/booking/bookings?ids=4MBZS7,JXD3G6', '/booking/bookings?status=Cancelled')
+  assert.equal(b.same, false)
+  assert.deepEqual(b.filters, { ids: '4MBZS7,JXD3G6' })
+  // la navegación pedida (chat) se compara con lo CARGADO, no con la entrada del menú
+  const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
+  assert.match(nav, /window\.__mateuLoadedFull/)
+  assert.match(nav, /bridge\.splitListingQuery\(target\.filters\)/)
+  // un deep-link con query la conserva en la URL (el router de VB la quitaba al arrancar)
+  assert.match(nav, /history\.replaceState\(window\.history\.state, '', target\.full\)/)
+  // cambiar filtros reescribe la URL
+  assert.match(webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js'), /bridge\.listingUrlOf\(/)
+})
+
+test('chat: un enlace a una ruta de la app se pinta como enlace (no texto, no vacío) y navega dentro', () => {
+  const html = chatMarkdownToHtml('Nora Duarte: [4MBZS7](/booking/bookings/4MBZS7)')
+  assert.equal(html, '<p>Nora Duarte: <a href="/booking/bookings/4MBZS7" class="mateu-chat-route" data-mateu-route="/booking/bookings/4MBZS7">4MBZS7</a></p>')
+  // la query (& escapado en el atributo) y los _ del href no se rompen con la cursiva
+  assert.equal(chatMarkdownToHtml('[ver](/booking/bookings?ids=A_B,C_D&status=Cancelled) _ok_'),
+    '<p><a href="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled" class="mateu-chat-route" data-mateu-route="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled">ver</a> <em>ok</em></p>')
+  // //host no es una ruta de la app
+  assert.equal(chatMarkdownToHtml('[x](//evil.com/a)'), '<p>[x](//evil.com/a)</p>')
+  // el clic: sólo uno normal sobre un enlace nuestro
+  const anchor = { getAttribute: (n) => (n === 'data-mateu-route' ? '/booking/bookings/4MBZS7' : null) }
+  assert.equal(chatRouteOfLink(anchor, { button: 0 }), '/booking/bookings/4MBZS7')
+  assert.equal(chatRouteOfLink(anchor, { button: 0, metaKey: true }), null, 'Cmd-clic: otra pestaña, lo hace el navegador')
+  assert.equal(chatRouteOfLink({ getAttribute: () => null }, { button: 0 }), null)
+  assert.equal(chatRouteOfLink({ getAttribute: () => '//evil.com' }, { button: 0 }), null)
+  const page = webApp('pages/shell-page.js')
+  assert.match(page, /bridge\.chatRouteOfLink\(anchor, event\)/)
+  assert.match(page, /new CustomEvent\('navigation-requested'/)
+})
+
+atest('chat: la respuesta en stream con enlaces a fichas llega entera y se pinta con texto y href', async () => {
+  const texts = []
+  const ev = (o) => 'data:' + JSON.stringify(o) + '\n\n'
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse([
+      ev({ event: 'agent-delta', detail: { text: 'Fichas: Nora Duarte: [4MBZS7](/booking/' } }),
+      ev({ event: 'agent-delta', detail: { text: 'bookings/4MBZS7), Giulia Okafor: [JXD3G6](/booking/bookings/JXD3G6)' } }),
+      'data:Fichas: Nora Duarte: [4MBZS7](/booking/bookings/4MBZS7), Giulia Okafor: [JXD3G6](/booking/bookings/JXD3G6)\n\n',
+    ]),
+    onText: (t) => texts.push(t),
+  })
+  const html = chatMarkdownToHtml(out)
+  assert.match(html, /<a href="\/booking\/bookings\/4MBZS7"[^>]*>4MBZS7<\/a>/)
+  assert.match(html, /<a href="\/booking\/bookings\/JXD3G6"[^>]*>JXD3G6<\/a>/)
+  assert.doesNotMatch(html, /<a [^>]*><\/a>/, 'ningún enlace vacío')
+})
+
+test('chat: el menuContext lleva el descriptor de listado de cada entrada (filtros por URL, id, ids)', () => {
+  const listing = { idField: 'id', idsParam: 'ids', searchParam: 'searchText',
+    filters: [{ param: 'status', label: 'Status', type: 'enum', multiple: true, values: ['Pending', 'Confirmed', 'Cancelled'] }] }
+  const ctx = buildChatMenuContext([
+    { label: 'Call center', submenus: [
+      { label: 'Bookings', route: '/booking/bookings', consumedRoute: '', baseUrl: '/_booking',
+        serverSideType: 'x.BookingHome', uriPrefix: '', description: 'Las reservas del CRS', listing },
+      { label: 'New booking', route: '/booking/newBooking', baseUrl: '/_booking' },
+    ] },
+  ])
+  assert.deepEqual(ctx[0].listing, listing)
+  assert.equal(ctx[0].description, 'Las reservas del CRS')
+  assert.deepEqual(ctx[0].path, ['Call center', 'Bookings'])
+  assert.equal(ctx[1].listing, undefined)
+  // el chat de Redwood lo manda en el primer mensaje de la sesión (antes no lo mandaba nunca)
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /bridge\.buildChatMenuContext\(/)
+  assert.match(send, /menuContext: menuContext/)
 })

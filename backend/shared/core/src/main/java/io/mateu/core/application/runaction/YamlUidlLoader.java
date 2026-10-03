@@ -6,6 +6,7 @@ import io.mateu.uidl.fluent.Component;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
@@ -119,6 +120,17 @@ public class YamlUidlLoader {
 
   /** Load a layout from an explicit spec path (the {@code @UISpec} path); envelope-aware. */
   public Component loadFromSpec(String specPath) {
+    // @UISpec paths come from annotations — a finite set — and the file is static: parse it once
+    // instead of on every render of the class (the route-keyed specs were already cached).
+    var cached =
+        bySpecPath.computeIfAbsent(specPath, path -> Optional.ofNullable(parseSpecFile(path)));
+    return cached.orElse(null);
+  }
+
+  private final ConcurrentHashMap<String, Optional<Component>> bySpecPath =
+      new ConcurrentHashMap<>();
+
+  private Component parseSpecFile(String specPath) {
     var resource = resolve(specPath);
     if (resource == null) {
       log.warn("No YAML spec found at classpath:{}", specPath);
@@ -137,8 +149,24 @@ public class YamlUidlLoader {
    * none.
    */
   public YamlPageSpec loadSpec(String route) {
-    var spec = byRoute.computeIfAbsent(normalize(route), this::parseSpec);
+    var key = normalize(route);
+    var spec = byRoute.get(key);
+    if (spec == null) {
+      spec = parseSpec(key);
+      // The key is the CONCRETE request route — customers/1, customers/2, … — so an uncapped map
+      // grows with every record anyone opens (and with any path a client cares to send). Past the
+      // cap, answer without remembering: correct, just one classpath lookup slower.
+      if (byRoute.size() < MAX_CACHED_ROUTES) {
+        byRoute.putIfAbsent(key, spec);
+      }
+    }
     return spec == NONE ? null : spec;
+  }
+
+  static final int MAX_CACHED_ROUTES = 4096;
+
+  int cachedRoutes() {
+    return byRoute.size();
   }
 
   /**

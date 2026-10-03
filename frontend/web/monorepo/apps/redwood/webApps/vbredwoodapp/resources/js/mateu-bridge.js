@@ -77,6 +77,64 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return Object.assign({}, option, { unavailable: true, disabled: true, description: unavailableHint(option.label, lang) })
   }
 
+  /**
+   * Las rutas de una sección de primer nivel: las de sus entradas a cualquier profundidad (ocultas
+   * incluidas: una pantalla bajo una sigue siendo de esa sección), el prefijo de una sección remota
+   * que aún no contestó y los ids con que navega el menú ya proyectado (`node`, de shellNavOf).
+   */
+  function sectionRoutes(option, node) {
+    const out = new Set()
+    const add = (r) => {
+      const s = navRoute(r)
+      if (s && s !== '/') out.add(s)
+    }
+    const walkOption = (o) => {
+      if (!o || o.separator) return
+      if (isMount(o)) add(mountPrefix(o))
+      add(o.route || o.path)
+      for (const child of o.submenus || o.submenu || []) walkOption(child)
+    }
+    const walkNode = (n) => {
+      if (!n) return
+      add(n.id)
+      for (const child of n.children || []) walkNode(child)
+    }
+    walkOption(option)
+    walkNode(node)
+    return Array.from(out)
+  }
+
+  /**
+   * La sección de primer nivel que está en pantalla (la misma regla que activeSection.ts del
+   * renderer web: la entrada que es la ruta, o el grupo que la contiene a cualquier profundidad):
+   * su id, o null si la ruta no cuelga de ninguna — la home, p. ej. Gana la ruta más larga: una
+   * sección no se queda con las pantallas de otra porque su prefijo sea más corto.
+   */
+  function activeSectionOf(sections, current) {
+    const path = navRoute(current)
+    if (!path || path === '/') return null
+    let best = null
+    let length = 0
+    for (const section of sections || []) {
+      for (const route of section.routes || []) {
+        if (routeCovers(route, path) && route.length > length) {
+          best = section.id
+          length = route.length
+        }
+      }
+    }
+    return best
+  }
+
+  /**
+   * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
+   * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
+   */
+  function accentColorOf(value) {
+    const accent = String(value == null ? '' : value).trim()
+    return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
+  }
+
 
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
@@ -137,7 +195,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const walk = (node, isRoot) => {
       if (!node || typeof node !== 'object') return
       if (!isRoot && node.type === 'ServerSide') {
-        out.push(node)
+        // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
+        // la vista (ver subresourceIslandOf)
+        if (!subresourceIslandOf(node)) out.push(node)
         return // sus hijos pertenecen a la isla, no al host
       }
       if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
@@ -996,17 +1056,24 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
         : { id: node.id, label: node.label, icon: node.icon })
       if (node.hasChildren) hasGroups = true
+      // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
+      node.routes = sectionRoutes(option, node)
       menuTree.push(node)
     }
     // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
     // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
-    // FA); MENU_ON_TOP (o TABS con grupos) → opciones de primer nivel VISIBLES en el
-    // header, dropdown oj-menu solo para los grupos
+    // FA); MENU_ON_TOP → SUBCABECERA: una banda clara bajo la cabecera oscura con el título de la
+    // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
+    // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
+    // dentro de la cabecera oscura (topbar)
     let mode = 'tabs'
     if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'TILES') mode = 'drawer'
-    else if (shell.variant === 'MENU_ON_TOP' || hasGroups) mode = 'topbar'
+    else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
+    else if (hasGroups) mode = 'topbar'
     return {
       mode,
+      title: shell.title || '',
+      accentColor: accentColorOf(shell.accentColor),
       items,
       menuTree,
       selectors: (shell.appContext || []).map((selector) => ({
@@ -1189,6 +1256,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     const visit = (node, container) => {
       if (!node || typeof node !== 'object') return
+      // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
+      // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
+      // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
+      // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
+      if (node !== ctx.tree) {
+        const sub = subresourceIslandOf(node)
+        if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
+      }
       const m = node.metadata
       const t = m && m.type
       // FILA ZONADA (@Zones): HorizontalLayout cuyos hijos son columnas con
@@ -1726,6 +1801,105 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     ))
     const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
     return hasDisplay ? hoisted : null
+  }
+
+  /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
+   *
+   *  Sí cuando trae algo RICO (isRichAtom, una barra de pestañas, una tabla, un componente web, un
+   *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
+   *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
+   *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+  function hostContentShown(blocks, summary) {
+    if (!blocks || !blocks.length) return false
+    const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
+    if (blocks.some((block) => (block.items || []).some(rich))) return true
+    const s = summary || {}
+    return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
+  }
+
+  // ── @Subresource: listados embebidos en el contenido (P1) ─────────────────────────────────────
+  //
+  // Un campo @Subresource llega como un ServerSide INTERIOR (su isla) con un App de mediador cuya
+  // homeRoute lleva `_hideTitle=1` (y `_scope`, y `_lazy` si es ON_OPEN): el servidor solo marca
+  // así a los sub-recursos. Se carga al quedar a la vista — la pestaña activa —, con el estado que
+  // el padre le siembra (initialData: el id del maestro) y su búsqueda OnLoad, y se pinta como una
+  // tabla en su sitio del contenido.
+
+  /** Si el nodo es la frontera de un @Subresource, cómo cargarlo; si no, null. */
+  function subresourceIslandOf(node) {
+    if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
+    const app = (node.children || [])[0]
+    const md = app && app.metadata
+    if (!md || md.type !== 'App' || md.variant !== 'MEDIATOR' || !md.homeRoute) return null
+    const [path, query] = String(md.homeRoute).split('?')
+    const params = {}
+    for (const pair of String(query || '').split('&')) {
+      if (!pair) continue
+      const at = pair.indexOf('=')
+      params[decodeURIComponent(at < 0 ? pair : pair.slice(0, at))] = at < 0 ? '' : decodeURIComponent(pair.slice(at + 1))
+    }
+    if (params._hideTitle !== '1') return null
+    return {
+      id: node.id,
+      route: md.homeRoute,
+      consumedRoute: md.homeConsumedRoute || path,
+      serverSideType: md.homeServerSideType || node.serverSideType,
+      // la marca de la ruta viaja también en el estado (_scope: lo que el padre fija), como en Vaadin
+      componentState: { ...params, ...(node.initialData || {}) },
+      lazy: params._lazy === '1',
+    }
+  }
+
+  /** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
+  function pendingSubresourcesOf(blocks, contexts) {
+    const out = []
+    for (const block of blocks || []) {
+      for (const a of block.items || []) {
+        if (a && a.isSubresource && !(contexts && contexts[a.islandId] && contexts[a.islandId].tree)) out.push(a.subresource)
+      }
+    }
+    return out
+  }
+
+  /** El contenido con cada hueco @Subresource cargado convertido en su tabla (o, si no es un
+   *  listado, en su contenido). Los que aún no están cargados se quedan como hueco (no pintan). */
+  function withSubresources(blocks, contexts) {
+    if (!blocks) return blocks
+    return blocks.map((block) => ({
+      ...block,
+      items: (block.items || []).flatMap((a) => {
+        if (!a || !a.isSubresource) return [a]
+        const ctx = contexts && contexts[a.islandId]
+        if (!ctx || !ctx.tree) return [a]
+        const crud = findByType(ctx.tree, 'Crud')
+        if (!crud) {
+          const inner = islandContentOf(ctx)
+          return inner ? inner.flatMap((b) => b.items) : []
+        }
+        const md = crud.metadata || {}
+        const wire = (md.columns || []).map((col) => col.metadata || col)
+          // las acciones por fila no tienen sitio en la tabla de solo consulta
+          .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+        const page = (((ctx.data || {}).crud || {}).page) || {}
+        const rows = statusBadgeRows(page.content || [], wire)
+        return [{
+          isGrid: true,
+          isSubresourceGrid: true,
+          fieldId: a.islandId,
+          label: md.title || '',
+          columns: wire.map((c) => (c.dataType === 'status'
+            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+            : { headerText: c.label || c.id, field: c.id })),
+          rows,
+          adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+          isEmpty: rows.length === 0,
+          total: page.totalElements == null ? rows.length : page.totalElements,
+          rowEditable: false,
+          addActionId: '',
+          addLabel: '',
+        }]
+      }),
+    }))
   }
 
   /** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
@@ -2488,7 +2662,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function filterChipsOf(filters, values) {
     const v = values || {}
-    return (filters || []).map((f) => {
+    const chips = (filters || []).map((f) => {
       if (f.isRange) {
         const from = v[f.fromKey]
         const to = v[f.toKey]
@@ -2516,6 +2690,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
       return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
     })
+    // la selección por ids (?ids=…): sólo cuando está aplicada — no es un filtro que se ofrezca
+    if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
+      chips.unshift({ fieldId: IDS_PARAM, label: 'Ids', text: idsChipLabelOf(v[IDS_PARAM]), applied: true, keys: [IDS_PARAM] })
+    }
+    return chips
   }
 
   /**
@@ -2558,6 +2737,76 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   // la página y el orden también viajan en la URL de un listado de Vaadin, pero no son filtros
   const PAGING_PARAMS = { page: true, size: true, sort: true }
+
+  // ── Filtros por URL: los declarados, el texto libre y la selección por ids ─────────────────────
+  // Cualquier filtro declarado de un listado se pone desde la URL con su nombre de campo (un rango,
+  // con <campo>_from / <campo>_to; un multi-select, separado por comas). Además, dos que no declara
+  // nadie: el texto libre (`searchText`, o `q` como alias al leer) y `ids`, la SELECCIÓN — un
+  // conjunto concreto de filas por su id (`?ids=4MBZS7,JXD3G6`), que el framework aplica en el
+  // server a cualquier listado. Todos salen como chips que se quitan, y la URL los refleja.
+
+  /** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
+  const IDS_PARAM = 'ids'
+
+  const IDS_TEXTS = {
+    en: { few: 'Selection: ', many: (n) => n + ' selected items' },
+    es: { few: 'Selección: ', many: (n) => n + ' elementos seleccionados' },
+  }
+
+  function idsTextsOf(lang) {
+    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    return IDS_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || IDS_TEXTS.en
+  }
+
+  /** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
+  function idsChipLabelOf(ids, lang) {
+    const list = multiValuesOf(ids)
+    const texts = idsTextsOf(lang)
+    return list.length <= 3 ? texts.few + list.join(', ') : texts.many(list.length)
+  }
+
+  /**
+   * Los filtros de una query (queryFiltersOf) separados en el texto libre y el resto: `searchText`
+   * (o su alias `q`, si no viene searchText) es lo que se busca, no un filtro — va al chip keyword.
+   */
+  function splitListingQuery(filters) {
+    const values = Object.assign({}, filters || {})
+    let searchText = ''
+    if (!isBlank(values.searchText)) searchText = String(values.searchText)
+    else if (!isBlank(values.q)) searchText = String(values.q)
+    delete values.searchText
+    delete values.q
+    return { searchText, values }
+  }
+
+  /**
+   * La query que refleja los filtros aplicados de un listado (sin '?'): cada valor con su clave, las
+   * listas separadas por comas (como las escribe Vaadin), el texto libre como `searchText`. Las comas
+   * se dejan legibles; el resto, codificado.
+   */
+  function listingQueryOf(values, searchText) {
+    const enc = (s) => encodeURIComponent(String(s)).replace(/%2C/gi, ',')
+    const parts = []
+    const v = values || {}
+    for (const key of Object.keys(v)) {
+      const value = v[key]
+      if (isBlank(value) || PAGING_PARAMS[key]) continue
+      parts.push(enc(key) + '=' + enc(Array.isArray(value) ? value.join(',') : value))
+    }
+    const text = searchText == null ? '' : String(searchText).trim()
+    if (text) parts.push('searchText=' + enc(text))
+    return parts.join('&')
+  }
+
+  /** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. */
+  function listingUrlOf(route, values, searchText) {
+    const bare = String(route || '').split('?')[0]
+    const query = listingQueryOf(values, searchText)
+    return query ? bare + '?' + query : bare
+  }
+
+  const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)
 
   /** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
   function multiValuesOf(value) {
@@ -2623,6 +2872,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of filters || []) {
       polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
     }
+    // el chip de la selección por ids también puede abrir su editor: un texto (ids separados por comas)
+    if (!declaresIds(filters)) {
+      polymorphicTypes[IDS_PARAM] = { type: 'object',
+        properties: { value: { type: 'string', componentType: 'oj-input-text', labelHint: 'Ids' } } }
+    }
     return {
       type: 'object',
       properties: { filter: { type: 'string' }, label: { type: 'string' } },
@@ -2654,6 +2908,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const out = []
     const text = searchText == null ? '' : String(searchText).trim()
     if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
+    // la selección por ids: un chip más, que se quita como cualquiera (sin filterLabel: el rótulo
+    // ya dice qué es)
+    if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
+      const ids = multiValuesOf(v[IDS_PARAM])
+      if (ids.length) out.push({ filter: IDS_PARAM, label: idsChipLabelOf(ids), value: ids.join(',') })
+    }
     for (const f of filters || []) {
       if (f.isRange) {
         const from = v[f.fromKey]
@@ -2695,6 +2955,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!chip) continue
       if (chip.filter === KEYWORD_FILTER) {
         if (!isBlank(chip.value)) keywords.push(String(chip.value))
+        continue
+      }
+      if (chip.filter === IDS_PARAM && !byId[IDS_PARAM]) {
+        const ids = multiValuesOf(chip.value)
+        if (ids.length) values[IDS_PARAM] = ids.join(',')
         continue
       }
       const f = byId[chip.filter]
@@ -2779,8 +3044,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   async function smartFiltersOf(filters, values, searchText) {
     const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
-    if (!filters || !filters.length) return config
-    config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+    const hasIds = !isBlank((values || {})[IDS_PARAM])
+    if ((!filters || !filters.length) && !hasIds) return config
+    // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
+    if (filters && filters.length) {
+      config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+    }
     if (metadataProviderFactory) {
       config.filtersMetadata = await metadataProviderFactory(smartFiltersMetadataOf(filters))
     }
@@ -2981,6 +3250,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           themeToggle: md.themeToggle,
+          // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
+          accentColor: md.accentColor || '',
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -5353,6 +5624,45 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
+   * Carga un @Subresource (subresourceIslandOf) en SU contexto: la carga por su tipo — sin el baile
+   * del mediador: el App que lo envuelve ya dice qué clase es — con el estado que le siembra el padre,
+   * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
+   */
+  async function loadSubresource(base, reg, sub, extra = {}) {
+    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+    let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+      ...extra,
+      consumedRoute: sub.consumedRoute,
+      serverSideType: sub.serverSideType,
+      componentState: sub.componentState || {},
+    }))
+    next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
+    for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
+      const ctx = next.contexts[sub.id]
+      const listing = listingOf(ctx)
+      const componentState = { ...(sub.componentState || {}), ...(ctx.state || {}), page: 0, size: (listing && listing.pageSize) || 10 }
+      const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
+      if (increment) next = reduceContexts(next, increment)
+    }
+    return next
+  }
+
+  /**
+   * Carga los @Subresource que el contenido deja a la vista y aún no están cargados (los de la
+   * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
+   * hueco: no tumba la pantalla.
+   */
+  async function loadSubresources(base, reg, blocks, extra = {}) {
+    let next = reg
+    for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
+      try {
+        next = await loadSubresource(base, next, sub, extra)
+      } catch (ignored) { /* la banda de error ya lo cuenta (onSettle) */ }
+    }
+    return next
+  }
+
+  /**
    * De qué backend se cargó una superficie, o undefined si aún no se sabe.
    *
    * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
@@ -6005,6 +6315,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           },
         }
         if (opt.description) entry.description = opt.description
+        // lo que el agente necesita para ENSEÑAR filas en este listado: sus filtros por URL, el campo
+        // id de la fila y el parámetro de la selección (?ids=…). Lo publica el server en el menú.
+        if (opt.listing) entry.listing = opt.listing
         result.push(entry)
       }
     }
@@ -6366,14 +6679,37 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** El markdown en línea de un texto YA escapado: código, enlaces, negrita, cursiva. */
   function mdInline(escaped) {
     const codes = []
+    // la etiqueta de apertura de cada enlace se aparta hasta el final: su href puede llevar `_` o `*`
+    // (ids=A_B) y la negrita/cursiva de abajo lo romperían
+    const opens = []
+    const open = (tag) => { opens.push(tag); return `\u0001${opens.length - 1}\u0001` }
     let s = escaped.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000` })
     // enlaces: solo http(s); la URL ya viene escapada (las comillas no pueden cerrar el atributo)
     s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      (_, text, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`)
+      (_, text, url) => `${open(`<a href="${url}" target="_blank" rel="noopener noreferrer">`)}${text}</a>`)
+    // y las rutas de la propia app (`[4MBZS7](/booking/bookings/4MBZS7)`): un enlace que navega DENTRO
+    // de la consola (la burbuja lo engancha, chatRouteOfLink) — sin recargar ni abrir pestaña. Solo
+    // una ruta que empieza por UNA barra: `//host` sería otro sitio.
+    s = s.replace(/\[([^\]\n]+)\]\((\/(?!\/)[^\s)]*)\)/g,
+      (_, text, route) => `${open(`<a href="${route}" class="mateu-chat-route" data-mateu-route="${route}">`)}${text}</a>`)
     s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
     s = s.replace(/(^|[^*\w])\*([^*\s][^*\n]*?)\*(?!\w)/g, '$1<em>$2</em>')
       .replace(/(^|[^_\w])_([^_\s][^_\n]*?)_(?!\w)/g, '$1<em>$2</em>')
     return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[+i]}</code>`)
+      .replace(/\u0001(\d+)\u0001/g, (_, i) => opens[+i])
+  }
+
+  /**
+   * La ruta a la que navega un clic en un enlace del chat, o null si el clic no es nuestro: sólo los
+   * enlaces a rutas de la app (mateu-chat-route) y un clic normal — con Ctrl/Cmd/Mayús o el botón del
+   * medio el navegador hace lo suyo (abrirlo en otra pestaña sigue funcionando: el href es la URL).
+   */
+  function chatRouteOfLink(anchor, event) {
+    if (!anchor || !anchor.getAttribute) return null
+    const route = anchor.getAttribute('data-mateu-route')
+    if (!route || route.charAt(0) !== '/' || route.charAt(1) === '/') return null
+    if (event && (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
+    return route
   }
 
   const MD_TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/
@@ -6507,6 +6843,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     tabBarIdsOf,
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
+    hostContentShown,
+    withSubresources,
+    loadSubresources,
     appLevelOf,
     rowRouteOf,
     listingOf,
@@ -6526,6 +6865,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     multiValuesOf,
     queryFiltersOf,
     navTargetOf,
+    IDS_PARAM,
+    idsChipLabelOf,
+    splitListingQuery,
+    listingQueryOf,
+    listingUrlOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -6566,6 +6910,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     withContextState,
     withSearchableIds,
     shellNavOf,
+    // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
+    activeSectionOf,
+    accentColorOf,
     ojIconOf,
     ojIconOrGenericOf,
     longTaskWatcher,
@@ -6671,6 +7018,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
+    chatRouteOfLink,
     transcriptOf,
   };
 });

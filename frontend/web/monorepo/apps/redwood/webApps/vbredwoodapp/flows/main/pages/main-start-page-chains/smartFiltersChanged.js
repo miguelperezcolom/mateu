@@ -39,6 +39,21 @@ define([
         return;
       }
       $application.variables.mateuFilterValues = state.values;
+      // la URL dice los filtros aplicados (como en Vaadin): un chip quitado sale de la query, uno
+      // puesto entra. replaceState: filtrar no es una pantalla nueva en el historial.
+      const full = bridge.listingUrlOf($application.variables.mateuSelectedRoute || '',
+        state.values, state.searchText);
+      window.__mateuLoadedFull = full;
+      if (window.__mateuUrlPathMode) {
+        // sólo si la URL es la de este listado (un prefijo de contexto, un maestro con pestañas:
+        // mejor no tocarla que escribir una ruta que no es)
+        if (window.location.pathname === full.split('?')[0]
+            && window.location.pathname + (window.location.search || '') !== full) {
+          window.history.replaceState(window.history.state, '', full);
+        }
+      } else if (window.location.hash !== '#' + full) {
+        window.history.replaceState(window.history.state, '', '#' + full);
+      }
       await Actions.callChain(context, {
         chain: 'runMateuSearch',
         params: { searchText: state.searchText },

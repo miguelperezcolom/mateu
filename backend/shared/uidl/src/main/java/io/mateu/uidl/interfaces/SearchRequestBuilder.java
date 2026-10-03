@@ -29,7 +29,12 @@ public final class SearchRequestBuilder {
                   filterable.filtersClass(), httpRequest.runActionRq().componentState()),
               httpRequest);
     }
-    return new SearchRequest(searchText, filters, List.of(), pageable(httpRequest));
+    return new SearchRequest(
+        searchText,
+        filters,
+        List.of(),
+        pageable(httpRequest),
+        IdSetFilter.from(httpRequest.runActionRq().componentState()));
   }
 
   public static Pageable pageable(HttpRequest httpRequest) {

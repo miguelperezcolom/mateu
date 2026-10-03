@@ -1,3 +1,4 @@
+import { pageActions, upsertAction, newRestAction } from './pageActions'
 import { PageDoc, PageNode } from './pageModel'
 import { InferredField } from './layoutDelta'
 
@@ -78,18 +79,8 @@ export function wireAction(doc: PageDoc, label: string, actionId: string): PageD
     const root = asContainer(clone(doc.layout))
     root.content = [...(root.content ?? []), { type: 'Button', label: label || actionId, actionId }]
     let next: PageDoc = { ...doc, layout: root }
-    if (!next.modelView) {
-        const rest = { ...(next.rest ?? {}) } as Record<string, unknown>
-        const actions = Array.isArray(rest.actions) ? [...(rest.actions as unknown[])] : []
-        const has = actions.some((a) => (a as Record<string, unknown>)?.id === actionId)
-        if (!has) {
-            actions.push({
-                id: actionId,
-                restAction: { source: { url: 'https://api.example.com/resource', method: 'POST' }, successMessage: 'Done' },
-            })
-            rest.actions = actions
-            next = { ...next, rest }
-        }
+    if (!next.modelView && !pageActions(next).some((a) => a.id === actionId)) {
+        next = upsertAction(next, newRestAction(actionId))
     }
     return next
 }
