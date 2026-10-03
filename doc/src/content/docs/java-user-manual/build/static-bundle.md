@@ -83,6 +83,8 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
 | `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
+| `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](./static-ui#the-static-safety-report) and **fails the build** if any route still needs a server |
+| `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](./static-ui#two-ways-to-build-it)) |
 
 ### Knowing which bundle you are looking at
 
@@ -167,8 +169,12 @@ skipped, exactly like a static view that needs a live backend. See `demo/demo-st
 
 ## What still needs a backend
 
-- **Actions** — a button/toolbar/save (`actionId ≠ ""`) posts to the server. Without one it degrades
-  with a clear "request failed" message. Bundle mode is for *viewing*; mutations need a backend.
+- **Server actions** — a button/toolbar/save whose action is a Java method (`actionId ≠ ""` with no
+  `restAction`) posts to the server. Without one it degrades with a clear "request failed" message.
+  A **`@RestAction`** (or a YAML `restAction`) is different: the browser makes the call itself, so a
+  confirmed delete or a save against your API works with no backend — see the
+  [100 % static UI guide](./static-ui). `staticOnly` turns any leftover server action into a build
+  error.
 - **Parameterised routes** (`/orders/:id`) — skipped by default; can be bundled as
   [templates](#param-route-templates) when the structure is param-independent (data fetched
   client-side). A view that loads its entity server-side by id still needs a backend.
@@ -189,6 +195,14 @@ A **hybrid** deploy is the sweet spot: ship the bundle for instant, backend-free
 point `baseUrl` at a real backend so actions and unbundled/param routes still work — the client uses
 the bundle for the loads it has and falls through to the backend for everything else.
 
+## App shells: two loads per route
+
+Under a mount whose root is an **app shell** (`@UI("")` with a menu, or a YAML `type: AppShell`), a
+route has two loads: the **fresh** one (a deep link or a reload) answers the *shell*, aimed at the
+route; the shell then asks for its **content** slot, and that is the route's own screen. The exporter
+ships both — `json` and `contentJson` on the entry — and the client picks by the request's consumed
+route. (Shipping only the first is what made a bundled deep link "render HOME", #557.)
+
 ## Renderers
 
 - **Vaadin** and every renderer built on the shared `libs/mateu` client get bundle mode for free —
@@ -197,7 +211,9 @@ the bundle for the loads it has and falls through to the backend for everything 
   ported there too: set the app constant **`mateuBundleUrl`** (empty = off) to a `manifest.json` URL
   or the runtime `…/mateu/v3/bundle` endpoint. Route loads are answered from the bundle; in a hybrid
   deploy the menu/shell still comes from the backend, and if the backend is absent the shell falls
-  back to the bundled root route. Contract-tested in `apps/redwood/poc/test.mjs`.
+  back to the bundled root route. Contract-tested in `apps/redwood/poc/test.mjs`. It does **not** yet
+  read an entry's `contentJson`, the raw `definitions` or the source catalogue — under an app shell,
+  static Redwood is structure-only (S4 of `design/maui-parity-plan.md`).
 
 ## Notes
 

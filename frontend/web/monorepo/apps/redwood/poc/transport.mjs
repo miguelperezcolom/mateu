@@ -6,6 +6,7 @@
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
+import { labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
 export async function callMateu(base, body, options = {}) {
@@ -23,7 +24,7 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
   return res.json()
 }
 
@@ -478,20 +479,28 @@ function spliceRemote(menu, answers) {
       // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
       // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
       // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
+      // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
+      // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
+      // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
+      // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
       if (option.visible === false) {
-        if (app) adoptRemote(app.menu, option, app)
+        if (app) {
+          adoptRemote(app.menu, option, app)
+          out.push(...markHidden(app.menu))
+        } else {
+          out.push(option)
+        }
         continue
       }
       if (app) {
         adoptRemote(app.menu, option, app)
-        out.push(...app.menu)
+        // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
+        out.push(...labelledByShell(app.menu, option))
       } else {
-        // El pod no contestó. Se queda el rótulo: una sección vacía se entiende, una que
-        // desaparece parece que nunca existió.
-        out.push(option)
+        // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
+        // vacía se entiende, una que desaparece parece que nunca existió.
+        out.push(unavailableMount(option))
       }
-    } else if (option.visible === false) {
-      continue
     } else if (childrenOf(option).length) {
       out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
     } else {
@@ -519,11 +528,12 @@ export async function expandRemoteMenus(menu) {
         consumedRoute: '_empty',
         initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
         parameters: option.params || {},
-      })
+        // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+      }, { quiet: true, isolated: true, timeoutMillis: 20000 })
       const app = appMenuOf(increment)
       if (app) answers.set(option, app)
     } catch (e) {
-      // Ya reportado por el transporte. Aquí solo se decide no propagarlo.
+      // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
     }
   }))
   return spliceRemote(menu, answers)

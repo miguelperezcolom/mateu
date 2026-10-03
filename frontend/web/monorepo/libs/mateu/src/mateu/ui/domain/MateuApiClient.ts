@@ -28,6 +28,13 @@ export interface RunActionOptions {
      * (template-ref / ETag, phase b). Only set for route loads; undefined = full structure.
      */
     knownStructureHash?: string
+    /**
+     * A background read whose failure the CALLER handles: no error toast, and its outcome says
+     * nothing about connectivity. For a federated shell asking its remotes for their menus — a
+     * remote that is down is that remote's section unavailable, not "no connection" for the
+     * whole app (the remote is often another origin, too).
+     */
+    quiet?: boolean
 }
 
 export interface MateuApiClient {

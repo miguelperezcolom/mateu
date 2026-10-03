@@ -18,6 +18,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
+import { activeTopIndex, isActiveFor, isMount } from "@infra/ui/navTree.ts";
+import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 
@@ -296,6 +298,11 @@ export class MateuApp extends ComponentElement {
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         const v = e.detail.value as any
+        // a remote section whose remote did not answer: nothing to open — ask it again instead
+        if (v.unavailable) {
+            retryUnavailableMenus()
+            return
+        }
         this.selectRoute(v.consumedRoute, v.route, v.actionId, v.baseUrl, v.serverSideType, v.uriPrefix, v.rules)
     }
 
@@ -604,12 +611,14 @@ export class MateuApp extends ComponentElement {
 
     // el flag selected del wire refleja la ruta en el MOMENTO de construir el App; tras una
     // navegación en cliente manda la ruta seleccionada actual
+    //
+    // The rule itself is navTree's (isActiveFor): a remote section that has not answered yet is
+    // active by the prefix its screens live under, a group by what it holds.
     private isActiveOption = (option: MenuOption): boolean => {
         if (!this.selectedRoute) {
-            return !!option.selected
+            return !!option.selected || (isMount(option) && isActiveFor(option, window.location.pathname))
         }
-        return !!option.route
-            && (this.selectedRoute == option.route || this.selectedRoute.startsWith(option.route + '/'))
+        return isActiveFor(option, this.selectedRoute)
     }
 
     mapItems = (options: MenuOption[], filter: string): MenuBarItem[] => {
@@ -641,6 +650,15 @@ export class MateuApp extends ComponentElement {
             }
             if (!filter || option.label.toLowerCase().includes(filter)) {
                 return {
+                    // a remote section whose remote did not answer: there, but not to be opened
+                    // Not `disabled`: a disabled menu-bar button takes no pointer events, so its
+                    // tooltip never shows. Dimmed instead, and a click asks the remote again.
+                    ...(option.unavailable ? {
+                        unavailable: true,
+                        className: 'mateu-nav-unavailable',
+                        tooltip: option.description,
+                        title: option.description,
+                    } : {}),
                     consumedRoute: option.consumedRoute,
                     text: option.label,
                     route: option.route,
@@ -667,19 +685,9 @@ export class MateuApp extends ComponentElement {
             if (s.length > 1 && s.endsWith('/')) s = s.slice(0, -1)
             return s
         }
-        const current = norm(this.selectedRoute ?? window.location.pathname)
-        let bestIdx = NaN
-        let bestLen = -1
-        for (let i = 0; i < menu.length; i++) {
-            const optRoute = norm(menu[i].route)
-            if (optRoute === '') {
-                continue // the home tab never wins by prefix (would match everything)
-            }
-            if ((current === optRoute || current.startsWith(optRoute + '/')) && optRoute.length > bestLen) {
-                bestLen = optRoute.length
-                bestIdx = i
-            }
-        }
+        // The longest prefix wins, the home tab never does (it would match everything), and a
+        // remote section counts by its prefix before its remote has answered (navTree).
+        const bestIdx = activeTopIndex(menu, norm(this.selectedRoute ?? window.location.pathname))
         if (!Number.isNaN(bestIdx)) {
             return bestIdx
         }
@@ -770,7 +778,9 @@ export class MateuApp extends ComponentElement {
                 const app = metadata as App
                 // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
                 // when the remote sections have been fetched and the menu grows.
-                publishShellMenu(this, app.menu, app.noBreadcrumbs, (option, route) =>
+                // The whole tree (navMenu): hidden sections are not drawn, but a page under one
+                // still has its trail.
+                publishShellMenu(this, app.navMenu ?? app.menu, app.noBreadcrumbs, (option, route) =>
                     this.selectRoute(option.consumedRoute, route, option.actionId, option.baseUrl,
                         option.serverSideType, option.uriPrefix))
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
@@ -1027,6 +1037,8 @@ export class MateuApp extends ComponentElement {
         .mateu-nav-item { border: none; background: transparent; font: inherit; cursor: pointer; padding: .5rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); color: inherit; white-space: nowrap; }
         .mateu-nav-item:hover, .mateu-nav-group > summary:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
         .mateu-nav-item--active { color: var(--lumo-primary-text-color, #1676f3); font-weight: 600; }
+        /* a remote section whose remote did not answer: there, dimmed, its tooltip says why */
+        .mateu-nav-unavailable { opacity: .55; cursor: help; }
         .mateu-nav-group { position: relative; }
         .mateu-nav-group > summary { list-style: none; cursor: pointer; padding: .5rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); white-space: nowrap; }
         .mateu-nav-group > summary::-webkit-details-marker { display: none; }

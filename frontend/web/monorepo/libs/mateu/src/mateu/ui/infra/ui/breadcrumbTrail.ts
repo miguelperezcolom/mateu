@@ -1,4 +1,5 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import { menuEntryFor, menuTrail, normRoute, plainText, TrailCrumb } from "./navTree";
 
 /**
  * The automatic breadcrumb trail: where a page sits, worked out from what the shell already has —
@@ -14,11 +15,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
  * <p>It is pure — the menu, the path and the page in, the crumbs out — so both renderers can share it
  * and it can be tested without a DOM.
  */
-export interface Crumb {
-    text: string
-    /** Where the crumb goes; absent on a group with no route of its own, and on the last crumb. */
-    route?: string
-}
+export type Crumb = TrailCrumb
 
 export interface PageInfo {
     /** The page's title, possibly with markup. */
@@ -29,25 +26,8 @@ export interface PageInfo {
     lang?: string
 }
 
-const norm = (r: string | undefined | null): string => {
-    let s = (r ?? '').trim()
-    const q = s.search(/[?#]/)
-    if (q >= 0) s = s.slice(0, q)
-    if (s && !s.startsWith('/')) s = '/' + s
-    while (s.length > 1 && s.endsWith('/')) s = s.slice(0, -1)
-    return s
-}
-
-/** A title as text: markup out (repeatedly, so nothing is rebuilt from the pieces), then any bracket left. */
-const plain = (text: string | undefined): string => {
-    let s = text ?? ''
-    let previous: string
-    do {
-        previous = s
-        s = s.replace(/<[^<>]*>/g, '')
-    } while (s !== previous)
-    return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
-}
+const norm = normRoute
+const plain = plainText
 
 const isSpanish = (explicit?: string): boolean => {
     const lang = explicit || (typeof document !== 'undefined' && document.documentElement?.lang)
@@ -56,50 +36,10 @@ const isSpanish = (explicit?: string): boolean => {
 }
 
 /**
- * The menu path to `path`: the entry whose route is the longest prefix of it, and the groups above
- * it. The home entry (route "" or "/") never wins by prefix — it would match everything.
+ * The menu path to `path` — see navTree.menuTrail, where it lives now so the active section and the
+ * trail answer from the same rules. Re-exported here, where its callers have always found it.
  */
-export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumbs: Crumb[], matched?: string } {
-    const current = norm(path)
-    let best: { crumbs: Crumb[], route: string } | undefined
-    // A group is a heading, not a page: its route (a federated section's prefix, "/admin") usually
-    // leads nowhere. Its crumb navigates only if some ENTRY of the menu has exactly that route.
-    const pages = leafRoutes(menu)
-    const walk = (options: MenuOption[] | undefined, above: Crumb[]) => {
-        for (const option of options ?? []) {
-            if (!option || option.separator || option.visible === false) continue
-            const route = norm(option.route)
-            const label = plain(option.label)
-            const children = option.submenus ?? []
-            if (children.length > 0) {
-                walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
-                continue
-            }
-            if (!route || route === '/') continue
-            if ((current === route || current.startsWith(route + '/')) && (!best || route.length > best.route.length)) {
-                best = { crumbs: [...above, { text: label, route }], route }
-            }
-        }
-    }
-    walk(menu, [])
-    return best ? { crumbs: best.crumbs, matched: best.route } : { crumbs: [] }
-}
-
-/** The routes the menu's entries (not its groups) open: the ones a crumb can safely go to. */
-function leafRoutes(menu: MenuOption[] | undefined): Set<string> {
-    const out = new Set<string>()
-    const walk = (options: MenuOption[] | undefined) => {
-        for (const option of options ?? []) {
-            if (!option || option.separator) continue
-            const children = option.submenus ?? []
-            if (children.length > 0) { walk(children); continue }
-            const route = norm(option.route)
-            if (route && route !== '/') out.add(route)
-        }
-    }
-    walk(menu)
-    return out
-}
+export { menuTrail, menuEntryFor }
 
 /** Titles of records seen at their own route, so the «Editar» page can name the record it edits. */
 const recordTitles = new Map<string, string>()
@@ -110,9 +50,16 @@ const recordTitles = new Map<string, string>()
  * a single crumb — the page title says that already.
  */
 export function autoTrail(menu: MenuOption[] | undefined, path: string, page: PageInfo = {}): Crumb[] {
-    const { crumbs, matched } = menuTrail(menu, path)
+    const { crumbs, matched, pending } = menuTrail(menu, path)
     if (!matched) return []
     const trail = [...crumbs]
+    if (pending) {
+        // A remote section that has not answered (yet, or at all): the section is known — the
+        // shell named it — and nothing below it is. The section, then the page's own title.
+        const title = plain(page.title)
+        if (title && title !== trail[trail.length - 1]?.text) trail.push({ text: title })
+        return trail.length < 2 ? [] : trail
+    }
     const rest = norm(path).slice(matched.length).split('/').filter(Boolean)
     const es = isSpanish(page.lang)
     if (rest.length > 0) {
@@ -154,36 +101,25 @@ let owner: unknown
 
 let shellNavigator: ((option: MenuOption, route: string) => void) | undefined
 
+const shellMenuListeners = new Set<() => void>()
+
 export function publishShellMenu(from: unknown, menu: MenuOption[] | undefined, noBreadcrumbs: boolean | undefined,
                                  navigate?: (option: MenuOption, route: string) => void): void {
     if (owner && owner !== from && (owner as { isConnected?: boolean }).isConnected !== false) return
     owner = from
+    const changed = shellMenu !== menu || shellNoBreadcrumbs !== !!noBreadcrumbs
     shellMenu = menu
     shellNoBreadcrumbs = !!noBreadcrumbs
     shellNavigator = navigate
+    // A header already drawn keeps the trail it was drawn with: the remote sections arriving (or
+    // failing) is news it has to hear, or a cold load stays with the section alone.
+    if (changed) shellMenuListeners.forEach(listener => listener())
 }
 
-/**
- * The menu ENTRY that owns `route`: the one whose route is the route itself or its longest prefix
- * (a crud record under its listing). Undefined when no entry owns it.
- */
-export function menuEntryFor(menu: MenuOption[] | undefined, route: string): MenuOption | undefined {
-    const target = norm(route)
-    let best: { option: MenuOption, route: string } | undefined
-    const walk = (options: MenuOption[] | undefined) => {
-        for (const option of options ?? []) {
-            if (!option || option.separator) continue
-            const children = option.submenus ?? []
-            if (children.length > 0) { walk(children); continue }
-            const r = norm(option.route)
-            if (!r || r === '/') continue
-            if ((target === r || target.startsWith(r + '/')) && (!best || r.length > best.route.length)) {
-                best = { option, route: r }
-            }
-        }
-    }
-    walk(menu)
-    return best?.option
+/** Called whenever the shell's menu changes — the remote sections merged in. Returns the unsubscribe. */
+export function onShellMenuChange(listener: () => void): () => void {
+    shellMenuListeners.add(listener)
+    return () => { shellMenuListeners.delete(listener) }
 }
 
 /**

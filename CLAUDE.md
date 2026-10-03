@@ -141,8 +141,14 @@ the one-to-one case.
   shared definition must NOT declare `modelView:`, or it can only serve the class it names.
 - **Static bundle**: the authored table travels in `manifest.json` (only the authored half — a class
   is what a bundle with no backend cannot use), and routes that exist only in `routes.yaml` are
-  exported too, including those with no view model (they render as a bare layout through the ordinary
-  sync path — there is no client-side YAML renderer and none is needed).
+  exported too, including those with no view model (pre-rendered through the ordinary sync path, or —
+  `mateu:bundle` `specsOnly` — shipped RAW and expanded in the browser by `libs/mateu/.../expander`).
+  **Under an app shell a route has TWO loads** (fresh `_empty` → the shell aimed at the route;
+  content → the screen): the exporter ships `json` + `contentJson`, `bundleStore.resolveBundledLoad`
+  picks by consumed route and never answers a content load with a shell (#557, the "deep link renders
+  HOME"/nested-shells bug). `staticOnly` (`-Dmateu.bundle.static=true`) runs `StaticSafetyCheck` and
+  fails the build on anything that needs a server. Reference: `demo/demo-static-vcn` (Java + YAML,
+  e2e projects `static-vcn-java`/`static-vcn-yaml`), guide `java-user-manual/build/static-ui.md`.
 - Ports: `mateu_core/route_registry.py` and `src/Mateu.Core/RouteRegistry.cs` mirror the model,
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
   `viewModel` and `view_model`. User docs: `doc/.../java-ui-definition/route-registry.md`.

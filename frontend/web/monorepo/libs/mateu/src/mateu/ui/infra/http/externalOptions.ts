@@ -130,7 +130,13 @@ export async function fetchExternalJson(
     }
     const res = await fetchImpl(url, init)
     if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`)
-    return res.json()
+    // A write commonly answers 204 No Content (a DELETE almost always does): an empty body is a
+    // success with nothing to merge, not a JSON parse error — which used to turn every such delete
+    // into a "Request failed" toast after the record was already gone.
+    if (res.status === 204 || res.status === 205) return null
+    if (typeof res.text !== 'function') return res.json()
+    const text = await res.text()
+    return text.trim() === '' ? null : JSON.parse(text)
 }
 
 /**

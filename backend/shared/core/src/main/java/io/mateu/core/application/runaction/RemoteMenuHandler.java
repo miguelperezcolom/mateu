@@ -14,8 +14,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Named
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
@@ -52,7 +54,7 @@ public class RemoteMenuHandler {
       AppShell app,
       HttpRequest httpRequest,
       RunActionCommand command) {
-    return fetchRemoteAppDto(remoteMenu, httpRequest, command)
+    return safely(remoteMenu, () -> fetchRemoteAppDto(remoteMenu, httpRequest, command))
         .flatMap(
             appDto -> {
               var claimed = claimedRoute(appDto, remoteMenu, route);
@@ -64,6 +66,54 @@ public class RemoteMenuHandler {
                           .withHomeServerSideType(appDto.homeServerSideType())
                           .withHomeConsumedRoute(appDto.homeConsumedRoute())
                           .withHomeUriPrefix(""));
+            });
+  }
+
+  /** {@link #cachedClaim} for a remote whose menu is not in the cache: nothing is known yet. */
+  static final int NOT_KNOWN = -2;
+
+  /**
+   * How specifically the remote claims {@code route} by what is already in the cache — the length
+   * of its longest menu route the route is or lives under, -1 when it does not claim it — without
+   * asking it anything; {@link #NOT_KNOWN} when its menu is not cached.
+   */
+  int cachedClaim(RemoteMenu remoteMenu, String route, HttpRequest httpRequest) {
+    var cached =
+        descriptorCache.get(
+            remoteMenu.baseUrl(), remoteMenu.route(), httpRequest.getHeaderValue("authorization"));
+    return cached == null ? NOT_KNOWN : claim(cached, remoteMenu, route);
+  }
+
+  /**
+   * How specifically the remote claims {@code route}, asking it (or the cache) for its menu; -1
+   * when it does not claim it, and when it could not be asked — a remote that is down claims
+   * nothing, it does not fail the shell's request.
+   */
+  Mono<Integer> claim(
+      RemoteMenu remoteMenu, String route, HttpRequest httpRequest, RunActionCommand command) {
+    return safely(remoteMenu, () -> fetchRemoteAppDto(remoteMenu, httpRequest, command))
+        .map(appDto -> claim(appDto, remoteMenu, route))
+        .defaultIfEmpty(-1);
+  }
+
+  private int claim(AppDto appDto, RemoteMenu remoteMenu, String route) {
+    if (route == null) {
+      return -1;
+    }
+    var routeWithinApp = routeWithinApp(remoteMenu, route);
+    return Math.max(
+        claimLength(appDto, routeWithinApp),
+        route.equals(routeWithinApp) ? -1 : claimLength(appDto, route));
+  }
+
+  /** A remote that cannot be reached answers nothing; the failure stays with it. */
+  private static <T> Mono<T> safely(
+      RemoteMenu remoteMenu, java.util.function.Supplier<Mono<T>> call) {
+    return Mono.defer(call)
+        .onErrorResume(
+            e -> {
+              log.warn("Remote menu {} did not answer: {}", remoteMenu.baseUrl(), e.toString());
+              return Mono.empty();
             });
   }
 

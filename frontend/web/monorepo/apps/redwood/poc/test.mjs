@@ -1394,7 +1394,58 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+    // la caída se queda, deshabilitada y diciendo por qué — igual que en el renderer web
+    assert.equal(menu[1].unavailable, true)
+    assert.equal(menu[1].disabled, true)
+    assert.match(menu[1].description, /Forms/)
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    assert.equal(nav.menuTree[1].disabled, true)
+    assert.match(nav.menuTree[1].hint, /Forms/)
+    assert.equal(nav.items[1].disabled, true)
+    assert.equal(nav.menuTree[0].disabled, false)
   } finally { globalThis.fetch = original }
+})
+
+atest('un pod caído no dice nada de la conexión: no hay banda de "sin conexión" por él', async () => {
+  const original = globalThis.fetch
+  connectivity.reset()
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    const menu = await expandRemoteMenus([{ remote: true, baseUrl: 'http://localhost:8099/offline', route: '', path: '/offline', label: 'Offline' }])
+    assert.equal(menu[0].unavailable, true)
+    assert.equal(connectivity.isOnline(), true, 'un pod que no contesta marcaba toda la app sin conexión')
+  } finally { globalThis.fetch = original; connectivity.reset() }
+})
+
+atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => String(url).indexOf('/_booking') === 0
+    ? remoteApp([{ label: 'Booking', route: '/booking', submenus: [{ label: 'Bookings', route: '/booking/bookings' }] }], '')
+    : remoteApp([{ label: 'Reservas', route: '/erp', submenus: [{ label: 'Partners', route: '/erp/partners' }] }], '') })
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_booking', route: '', path: '/booking', label: 'Call center', shellLabel: true },
+      { remote: true, baseUrl: '/_erp', route: '', path: '/erp', label: 'Erp', shellLabel: false },
+    ])
+    // declarado: manda la shell; sin declarar (el nombre del campo): manda el pod, como siempre
+    assert.deepEqual(menu.map((o) => o.label), ['Call center', 'Reservas'])
+    assert.deepEqual(menu[0].submenus.map((o) => o.label), ['Bookings'])
+  } finally { globalThis.fetch = original }
+})
+
+test('migas en frío: una sección remota sin contestar da la sección, por su prefijo', () => {
+  const menu = [
+    { label: 'Admin', route: '/admin', submenus: [
+      { remote: true, baseUrl: '/_forms', route: '', path: '/admin/forms', routePrefix: '/forms', label: 'Forms' },
+    ] },
+    { label: 'Notices', route: '/notices', submenus: [] },
+    { remote: true, baseUrl: '/_notices', route: '', path: '/notices', label: 'Avisos' },
+  ]
+  // el path del grupo es /admin/forms; las pantallas del pod viven bajo /forms
+  assert.deepEqual(autoTrail(menu, '/forms/tasks', { title: 'Tareas' }), [{ text: 'Admin' }, { text: 'Forms' }, { text: 'Tareas' }])
+  // una entrada de verdad gana al prefijo de una sección de la misma longitud
+  assert.deepEqual(autoTrail(menu, '/notices/7', { title: 'Aviso 7' }), [{ text: 'Notices', route: '/notices' }, { text: 'Aviso 7' }])
+  assert.deepEqual(autoTrail(menu, '/otra', { title: 'x' }), [])
 })
 
 atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (deep-link)', async () => {
@@ -1414,7 +1465,12 @@ atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (
       { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
     ])
     assert.equal(asked.length, 2, 'la oculta también se pregunta: sus rutas hay que conocerlas')
-    assert.deepEqual(menu.map((o) => o.label), ['Bookings'])
+    // sigue en el árbol, oculta: no se pinta, pero una página bajo ella tiene sus migas
+    assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Bookings'])
+    assert.deepEqual(shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } }).items.map((i) => i.label), ['Bookings'])
+    assert.deepEqual(autoTrail(menu, '/inbox/pending/n-7', { title: 'n-7' }), [
+      { text: 'Pending', route: '/inbox/pending' }, { text: 'n-7' },
+    ])
     const where = remoteRouteOf('/inbox/pending/n-7')
     assert.ok(where, 'el deep-link bajo la remota oculta no quedó registrado')
     assert.equal(where.baseUrl, '/_inbox')
@@ -1429,7 +1485,9 @@ atest('una remota oculta que no contesta tampoco deja su rótulo', async () => {
       { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
       { label: 'Local', route: '/local' },
     ])
-    assert.deepEqual(menu.map((o) => o.label), ['Local'])
+    assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Local'])
+    // el marcador se queda, oculto: la sección se conoce por su prefijo
+    assert.deepEqual(autoTrail(menu, '/inbox/tasks', { title: 'Tareas' }), [{ text: 'Inbox' }, { text: 'Tareas' }])
   } finally { globalThis.fetch = original }
 })
 

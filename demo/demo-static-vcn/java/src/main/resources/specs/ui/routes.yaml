@@ -1,0 +1,12 @@
+# The inner routes of the shell (Networking, @UI("")), each bound to its Java view model. Inner
+# routes are data in Mateu: @UI declares a mount, routes.yaml what lives inside it — so these
+# screens render in the shell's content slot, deep links included.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: vcns
+    viewModel: io.mateu.demo.staticvcn.java.Vcns
+  - route: vcns/:id
+    viewModel: io.mateu.demo.staticvcn.java.VcnDetail
+  - route: vcns/:id/subnets
+    viewModel: io.mateu.demo.staticvcn.java.VcnSubnets

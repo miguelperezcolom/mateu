@@ -192,14 +192,77 @@ public class AppMenuResolver {
     return Mono.just(potentialApp);
   }
 
+  /**
+   * The remote that owns a deep link no local entry claims, chosen by LONGEST PREFIX — not by
+   * asking every remote in turn, which cost one round trip per remote declared before the right one
+   * and let any of them, being down, fail the whole request.
+   *
+   * <p>First from what the shell already knows: the menus of the remotes it has in its cache
+   * (RemoteAppDescriptorCache) and the mount prefix of the others ({@code /forms} for a remote
+   * declared as the field {@code forms}, wherever it is grouped). The best of those is the only one
+   * asked. Only when that tells nothing — or the chosen remote turns the route down — are the rest
+   * asked, all at once, and the longest claim wins (ties go to the one declared first). A remote
+   * that does not answer claims nothing.
+   */
   private Mono<?> tryRemoteMenusForRoute(
       AppShell app, RunActionCommand command, HttpRequest httpRequest) {
-    return reactor.core.publisher.Flux.fromIterable(remoteMenusIn(app.menu()))
-        .concatMap(
-            remoteMenu ->
+    var route = removeQueryParamsFromRoute(command.route());
+    var remotes = remoteMenusIn(app.menu());
+    RemoteMenu known = null;
+    int knownLength = -1;
+    for (var remote : remotes) {
+      int claim = remoteMenuHandler.cachedClaim(remote, route, httpRequest);
+      if (claim == RemoteMenuHandler.NOT_KNOWN) {
+        claim = prefixClaim(remote, route);
+      }
+      if (claim > knownLength) {
+        known = remote;
+        knownLength = claim;
+      }
+    }
+    if (known == null) {
+      return askAll(remotes, app, command, httpRequest);
+    }
+    var chosen = known;
+    var rest = remotes.stream().filter(remote -> remote != chosen).toList();
+    return remoteMenuHandler
+        .tryResolveRoute(chosen, command.route(), app, httpRequest, command)
+        .switchIfEmpty(Mono.defer(() -> (Mono) askAll(rest, app, command, httpRequest)));
+  }
+
+  /**
+   * Every remote asked at once for how specifically it claims the route; the longest is mounted.
+   */
+  private Mono<?> askAll(
+      List<RemoteMenu> remotes, AppShell app, RunActionCommand command, HttpRequest httpRequest) {
+    var route = removeQueryParamsFromRoute(command.route());
+    return reactor.core.publisher.Flux.range(0, remotes.size())
+        .flatMap(
+            index ->
+                remoteMenuHandler
+                    .claim(remotes.get(index), route, httpRequest, command)
+                    .map(length -> new int[] {index, length}))
+        .filter(claim -> claim[1] >= 0)
+        .reduce((a, b) -> b[1] > a[1] || (b[1] == a[1] && b[0] < a[0]) ? b : a)
+        .flatMap(
+            best ->
                 remoteMenuHandler.tryResolveRoute(
-                    remoteMenu, command.route(), app, httpRequest, command))
-        .next();
+                    remotes.get(best[0]), command.route(), app, httpRequest, command));
+  }
+
+  /**
+   * The length of a remote's mount prefix when the route lives under it, -1 otherwise. The prefix
+   * is the remote's own path (its field name), whatever group it sits in — the same one the menu
+   * sends the renderer as {@code routePrefix}.
+   */
+  static int prefixClaim(RemoteMenu remote, String route) {
+    var prefix = remote.path();
+    if (prefix == null || prefix.isBlank() || route == null) {
+      return -1;
+    }
+    prefix = prefix.startsWith("/") ? prefix : "/" + prefix;
+    var path = route.startsWith("/") ? route : "/" + route;
+    return path.equals(prefix) || path.startsWith(prefix + "/") ? prefix.length() : -1;
   }
 
   /**
@@ -255,7 +318,7 @@ public class AppMenuResolver {
                       (child instanceof RemoteMenu remoteMenu)
                           ? remoteMenu.route()
                           : base + child.path();
-                  return (Component) new Anchor(child.label(), target);
+                  return (Component) new Anchor(labelOf(child), target);
                 })
             .toList();
     return PageView.builder()
@@ -263,6 +326,18 @@ public class AppMenuResolver {
         .contentItem(
             VerticalLayout.builder().content(links).style("gap: .5rem; padding: .5rem 0;").build())
         .build();
+  }
+
+  /**
+   * A child's label for the section index. A remote section may have none — the remote answers with
+   * its own — so it falls back to its path's last segment, as the menu does.
+   */
+  private static String labelOf(Actionable child) {
+    if (child.label() != null && !child.label().isBlank()) {
+      return child.label();
+    }
+    var path = child.path() == null ? "" : child.path();
+    return io.mateu.uidl.Humanizer.toUpperCaseFirst(path.substring(path.lastIndexOf('/') + 1));
   }
 
   AppShell toApp(
