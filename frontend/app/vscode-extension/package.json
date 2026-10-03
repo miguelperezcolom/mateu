@@ -55,7 +55,7 @@
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.4.0",
-    "vitest": "^2.1.0"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "yaml": "^2.4.0"
