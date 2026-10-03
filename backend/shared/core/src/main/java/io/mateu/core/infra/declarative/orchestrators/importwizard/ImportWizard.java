@@ -73,6 +73,7 @@ public abstract class ImportWizard<Row> extends Wizard implements TitleSupplier 
     super.onHydrated(httpRequest);
     // self-healing: the mapping grid's select options derive from it on every render
     mapping.rowClassName = rowClass().getName();
+    io.mateu.core.application.security.WireTypes.emitted(mapping.rowClassName);
   }
 
   @Override
@@ -110,6 +111,7 @@ public abstract class ImportWizard<Row> extends Wizard implements TitleSupplier 
   /** Parses the CSV header + first data row and auto-maps columns by name similarity. */
   private void populateMappings() {
     mapping.rowClassName = rowClass().getName();
+    io.mateu.core.application.security.WireTypes.emitted(mapping.rowClassName);
     mapping.mappings = new ArrayList<>();
     var records = CsvParser.parse(upload.content());
     if (records.isEmpty()) {

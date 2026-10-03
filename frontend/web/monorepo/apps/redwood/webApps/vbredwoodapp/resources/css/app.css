@@ -841,3 +841,86 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   font-size: 0.75rem;
   color: rgb(var(--oj-palette-danger-rgb-100, 179 31 48));
 }
+
+/* ── SUBCABECERA (MENU_ON_TOP) ─────────────────────────────────────────────────────────────
+   La banda 2 bajo la cabecera oscura, la del renderer web (mateu-app .mateu-app-band2): fondo de
+   contenido, texto en el color del cuerpo, el título de la consola y después el menú. Es navegación,
+   no una fila de enlaces: las opciones van en color de texto y la sección en pantalla se marca con
+   un subrayado de 2px — el indicador de una pestaña seleccionada, sin relleno.
+   @App(accentColor) llega como --mateu-accent en :root: una línea de 3px bajo la banda (dice de quién
+   es la app, nunca algo que pulsar) y el título en ese color sólo en tema claro (sobre fondo oscuro
+   un rojo de marca pierde contraste). Sin acento, ni línea ni color. */
+.mateu-subheader {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: var(--oj-core-spacing-1x, 0.25rem);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.75rem;
+  padding-inline: var(--mateu-subheader-gutter, 1.5rem) calc(var(--mateu-subheader-gutter, 1.5rem) - var(--oj-core-spacing-2x, 0.5rem));
+  background-color: var(--oj-core-bg-color-content, #fff);
+  color: var(--oj-core-text-color-primary, #161513);
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  box-shadow: inset 0 -3px 0 var(--mateu-accent, transparent);
+}
+.mateu-subheader-title {
+  flex: 0 0 auto;
+  margin: 0 var(--oj-core-spacing-4x, 1rem) 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--oj-typography-heading-font-family, inherit);
+  font-size: var(--oj-typography-heading-xs-font-size, 1.125rem);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--mateu-accent, var(--oj-core-text-color-primary, #161513));
+  color: light-dark(var(--mateu-accent, var(--oj-core-text-color-primary, #161513)), var(--oj-core-text-color-primary, #f5f4f2));
+}
+.mateu-subheader-title:hover {
+  text-decoration: underline;
+}
+.mateu-subheader-title:focus-visible {
+  outline: 1px dotted currentColor;
+  outline-offset: 2px;
+}
+/* las opciones encogen y se desplazan en su sitio (sin barra visible) antes que empujar la banda */
+.mateu-subheader-menu {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.mateu-subheader-menu::-webkit-scrollbar {
+  display: none;
+}
+.mateu-subheader-item {
+  flex-shrink: 0;
+  --oj-button-borderless-chrome-text-color: var(--oj-core-text-color-primary, #161513);
+  --oj-button-font-weight: 500;
+}
+.mateu-subheader-item.mateu-nav-active {
+  --oj-button-font-weight: 600;
+  box-shadow: inset 0 -2px 0 0 var(--oj-core-text-color-primary, #161513);
+  border-radius: var(--oj-core-border-radius-md, 6px) var(--oj-core-border-radius-md, 6px) 0 0;
+}
+/* el título arranca en el mismo borde que el contenido de la página: el margen de las páginas
+   Redwood (oj-sp) es 24px, 48px desde 1440px y 16px en un teléfono */
+@media (min-width: 1440px) {
+  .mateu-subheader { --mateu-subheader-gutter: 3rem; }
+}
+/* el drawer del chat mide el alto que deja la cabecera: con la banda, también el de la banda */
+body:has(.mateu-subheader) .mateu-chat-panel {
+  height: calc(100vh - 50px - 2.75rem);
+}
+@media (max-width: 767px) {
+  .mateu-subheader { --mateu-subheader-gutter: 1rem; }
+  .mateu-subheader-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}

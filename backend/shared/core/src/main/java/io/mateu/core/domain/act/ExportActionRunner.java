@@ -18,6 +18,7 @@ import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Named
 @RequiredArgsConstructor(onConstructor_ = @Inject)
@@ -42,8 +43,16 @@ public class ExportActionRunner implements ActionRunner {
     var actionId = command.actionId();
     var httpRequest = command.httpRequest();
 
-    var rows = fetchAllRows(instance, httpRequest);
-    var columns = buildExportColumns(rowClass(instance));
+    // A ReactiveListing's rows arrive asynchronously: compose on them instead of block()ing, which
+    // throws on a non-blocking thread (the WebFlux / Netty event loop) whenever the search has not
+    // completed synchronously — i.e. with any real reactive repository.
+    return fetchAllRows(instance, httpRequest)
+        .flatMapMany(rows -> Flux.just(export(actionId, rows, rowClass(instance), httpRequest)));
+  }
+
+  private List<UICommand> export(
+      String actionId, List<?> rows, Class<?> rowClass, HttpRequest httpRequest) {
+    var columns = buildExportColumns(rowClass);
 
     byte[] bytes;
     String filename;
@@ -76,16 +85,14 @@ public class ExportActionRunner implements ActionRunner {
       throw e instanceof RuntimeException re ? re : new RuntimeException(e);
     }
 
-    return Flux.just(
-        List.of(
-            UICommand.builder()
-                .type(UICommandType.DownloadFile)
-                .data(
-                    new FileDownload(filename, mimeType, Base64.getEncoder().encodeToString(bytes)))
-                .build()));
+    return List.of(
+        UICommand.builder()
+            .type(UICommandType.DownloadFile)
+            .data(new FileDownload(filename, mimeType, Base64.getEncoder().encodeToString(bytes)))
+            .build());
   }
 
-  private List<?> fetchAllRows(Object instance, HttpRequest httpRequest) {
+  private Mono<List<?>> fetchAllRows(Object instance, HttpRequest httpRequest) {
     // export the WHOLE filtered set: same search inputs as the on-screen listing, one huge page
     var base = io.mateu.uidl.interfaces.SearchRequestBuilder.build(instance, httpRequest);
     var request =
@@ -93,14 +100,19 @@ public class ExportActionRunner implements ActionRunner {
             base.searchText(), base.filters(), base.criteria(), new Pageable(0, 10_000, List.of()));
 
     if (instance instanceof Listing<?> listing) {
-      var data = listing.search(request, httpRequest);
-      return data != null && data.page() != null ? data.page().content() : List.of();
+      return Mono.just(contentOf(listing.search(request, httpRequest)));
     }
     if (instance instanceof ReactiveListing<?> listing) {
-      var data = listing.search(request, httpRequest).block();
-      return data != null && data.page() != null ? data.page().content() : List.of();
+      return listing
+          .search(request, httpRequest)
+          .<List<?>>map(ExportActionRunner::contentOf)
+          .defaultIfEmpty(List.of());
     }
-    return List.of();
+    return Mono.just(List.of());
+  }
+
+  private static List<?> contentOf(ListingData<?> data) {
+    return data != null && data.page() != null ? data.page().content() : List.of();
   }
 
   private Class<?> rowClass(Object instance) {

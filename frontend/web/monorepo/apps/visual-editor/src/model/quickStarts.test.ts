@@ -1,3 +1,4 @@
+import { pageActions } from './pageActions'
 import { describe, it, expect } from 'vitest'
 import { bindDataSource, modelViewOptions, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './quickStarts'
 import { parsePage, serializePage } from './pageModel'
@@ -79,6 +80,6 @@ describe('quickStarts', () => {
     it('wireAction does not duplicate an already-declared classless action', () => {
         const first = wireAction(page('type: VerticalLayout\ncontent: []\n'), 'Save', 'save')
         const second = wireAction(first, 'Save again', 'save')
-        expect((second.rest!.actions as unknown[]).length).toBe(1)
+        expect(pageActions(second).length).toBe(1)
     })
 })

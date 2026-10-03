@@ -55,7 +55,8 @@ final class PageMetadataExtractor {
         }
       } catch (NoSuchMethodException ignored) {
       }
-      return TranslatorContext.translate(instance.toString());
+      // toString() is DATA (a record's values), not a template: it must not be evaluated
+      return io.mateu.uidl.Templates.literal(TranslatorContext.translate(instance.toString()));
     }
     return null;
   }
@@ -202,7 +203,8 @@ final class PageMetadataExtractor {
               String text;
               try {
                 Object value = field.get(instance);
-                text = value != null ? value.toString() : "";
+                // the value is data, shown as is (never evaluated as a template)
+                text = value != null ? io.mateu.uidl.Templates.literal(value.toString()) : "";
               } catch (Exception e) {
                 text = "${state." + field.getName() + "}";
               }
@@ -270,7 +272,8 @@ final class PageMetadataExtractor {
         return null;
       }
       String prefix = MetaAnnotations.find(field, Timestamp.class).value();
-      return prefix.isBlank() ? value.toString() : prefix + " " + value;
+      var text = io.mateu.uidl.Templates.literal(value.toString()); // data, not a template
+      return prefix.isBlank() ? text : prefix + " " + text;
     }
     return null;
   }

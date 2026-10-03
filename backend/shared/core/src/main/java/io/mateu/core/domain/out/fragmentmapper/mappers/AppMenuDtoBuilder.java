@@ -69,6 +69,7 @@ final class AppMenuDtoBuilder {
                           : List.of())
                   .uriPrefix(appRoute)
                   .description(option.description())
+                  .listing(listingOf(option))
                   .build();
             })
         .toList();
@@ -104,6 +105,34 @@ final class AppMenuDtoBuilder {
       return null;
     }
     return prepend("", own.trim());
+  }
+
+  /**
+   * How the entry's listing can be narrowed from its URL, when the entry opens one (a {@code @Menu}
+   * field whose type is a crud or a listing). Null for anything else.
+   */
+  static io.mateu.dtos.ListingDescriptorDto listingOf(Actionable option) {
+    if (!(option instanceof FieldLink fieldLink)
+        || fieldLink.serverSideType() == null
+        || fieldLink.fieldName() == null) {
+      return null;
+    }
+    try {
+      var owner = io.mateu.core.infra.reflection.ClassLoaders.forName(fieldLink.serverSideType());
+      for (Class<?> type = owner;
+          type != null && !Object.class.equals(type);
+          type = type.getSuperclass()) {
+        try {
+          return ListingDescriptorBuilder.describe(
+              type.getDeclaredField(fieldLink.fieldName()).getType());
+        } catch (NoSuchFieldException ignored) {
+          // keep walking up
+        }
+      }
+    } catch (LinkageError | RuntimeException e) {
+      // a menu entry we cannot describe still opens
+    }
+    return null;
   }
 
   private static boolean hasText(String text) {

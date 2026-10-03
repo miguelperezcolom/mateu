@@ -39,7 +39,15 @@ pickers) is the mockable half. None of the modes require a paid cloud.
 | **Remote backend** | the backend URL | live from the backend | you have a backend running (dev/staging/demo) |
 | **Local backend** | an embedded/loopback Mateu (a labelled `remote` for now) | live | you want it offline/embedded |
 | **Mock data** | still the backend URL | from **fixtures** | render against any backend, but bind against fixtures — no real data source |
-| **Client-side** | — (not built yet, coherence Phase 6) | — | shows an honest placeholder for now |
+| **Client-side** | in the browser, by the client-side expander — no backend | REST sources, fetched by the browser | a classless page, offline / €0 |
+
+A `remote`/`mock` render that gets no answer from its backend falls back to the client-side render
+(classless pages) and says so in the canvas.
+
+**Canvas renderer.** The canvas paints with the **Vaadin (Lumo)** reference renderer by default
+(lazily loaded from `apps/vaadin`, so the preview matches what ships) or the **DS-neutral** one. Redwood
+is not available inside the editor (its runtime is a whole VB app); preview it against the running app.
+Listings and option fields read the project's `sources.yaml`, so they preview with real rows.
 
 ### Mock fixtures — the €0 / offline workflow
 
@@ -69,7 +77,11 @@ MATEU_BACKEND=http://localhost:8594 npx vite   # http://localhost:5199
 ```
 
 Open http://localhost:5199 — it loads a sample page (or your last edit from localStorage). Click a
-component to select it, edit its props on the right, add components from the left, use ↑/↓/Delete.
+component to select it, edit its props on the right, add components from the left, use ↑/↓/Delete,
+⌘Z/⇧⌘Z to undo/redo. Edits are merged into the file's YAML, so comments and formatting survive.
+
+Quality is measured with `e2e/visual-editor-tasks.mjs` (12 authoring tasks, any build) and the VS Code
+host is live-run with `e2e/vscode-host-live.mjs` (a real VS Code with the extension loaded).
 
 ## Status
 

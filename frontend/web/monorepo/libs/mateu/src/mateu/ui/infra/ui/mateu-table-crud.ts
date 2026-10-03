@@ -33,6 +33,7 @@ import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
+import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -516,6 +517,8 @@ export class MateuTableCrud extends LitElement {
         // must survive URL sync
         return new Set([
             'searchText',
+            // the framework's id-set filter (?ids=A,B): on every listing, declared by none
+            IDS_PARAM,
             // a read-only filter is the listing's scope (fixed by the route path), not a condition:
             // it is already in the URL's path and must not be echoed into the query string
             ...(metadata.filters ?? []).filter(f => !(f as { readOnly?: boolean }).readOnly).flatMap(f =>
@@ -530,6 +533,8 @@ export class MateuTableCrud extends LitElement {
         const params = new URLSearchParams(window.location.search)
 
         filterIds.forEach(id => params.delete(id))
+        // a link may say ?q= for the search text; once the listing owns the URL it writes searchText
+        params.delete(SEARCH_ALIAS)
         params.delete('page')
         params.delete('sort')
 
@@ -557,10 +562,24 @@ export class MateuTableCrud extends LitElement {
         if (window.location.pathname + window.location.search !== newUrl) {
             history.replaceState(null, '', newUrl)
         }
+        this._appliedUrl = window.location.pathname + window.location.search
+    }
+
+    /** The URL (path + query) whose filters this listing last applied or wrote. */
+    private _appliedUrl: string | undefined = undefined
+
+    /** The URL's params, with the ?q= alias read as the search text it stands for. */
+    private _urlParams(): URLSearchParams {
+        const params = new URLSearchParams(window.location.search)
+        if (params.has(SEARCH_ALIAS) && !params.has(SEARCH_PARAM)) {
+            params.set(SEARCH_PARAM, params.get(SEARCH_ALIAS) ?? '')
+        }
+        params.delete(SEARCH_ALIAS)
+        return params
     }
 
     private _initStateFromUrl(metadata: Crud, base: Record<string, any>): Record<string, any> {
-        const params = new URLSearchParams(window.location.search)
+        const params = this._urlParams()
         const filterIds = this._filterIds(metadata)
         const result = { ...base }
 
@@ -799,8 +818,27 @@ export class MateuTableCrud extends LitElement {
         if (_changedProperties.has("component")) {
             const initKey = MateuTableCrud._initKeyOf(this.component)
             const metadata = this.component?.metadata as Crud
-            if (initKey !== this._initializedForKey) {
+            const location = (globalThis as { window?: { location?: Location } }).window?.location
+            const urlNow = location ? location.pathname + location.search : undefined
+            // The same listing reached again with another query — the assistant opening it with
+            // ?status=Cancelled or ?ids=A,B while it was already on screen, a link, back/forward:
+            // the URL now asks for different filters than the ones this listing applied, so it
+            // starts over from the URL exactly as a cold load would (filters it no longer names
+            // are dropped, not kept). The listing's own writes to the URL never get here: they
+            // record what they wrote in _appliedUrl.
+            // Only a change of QUERY on the same path counts: a listing embedded in a page whose
+            // path moves (a record's tabs) keeps its filters, as it always did.
+            const urlChanged = !!location && initKey === this._initializedForKey && this._appliedUrl !== undefined
+                && urlNow !== this._appliedUrl
+                && location.pathname === this._appliedUrl.split('?')[0]
+            if (urlChanged) {
+                const cleared: Record<string, any> = { ...this.state }
+                this._filterIds(metadata).forEach(id => { delete cleared[id] })
+                this.state = cleared
+            }
+            if (initKey !== this._initializedForKey || urlChanged) {
                 this._initializedForKey = initKey
+                this._appliedUrl = urlNow
                 const defaultPage = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
                 this.state = this._initStateFromUrl(metadata, {
                     ...this.state,
@@ -813,7 +851,7 @@ export class MateuTableCrud extends LitElement {
                     || [...this._filterIds(metadata)].some(id => this.state[id] != null)
                 // An external-REST listing (@RestListing) fetches its rows CLIENT-SIDE on mount —
                 // there is no server OnLoad trigger for declarative listings.
-                if (urlHasNonDefault || metadata.rowsSource) {
+                if (urlHasNonDefault || metadata.rowsSource || urlChanged) {
                     this.handleSearchRequested(undefined)
                 }
             } else {
@@ -836,7 +874,7 @@ export class MateuTableCrud extends LitElement {
      * is nothing to restore, so it never forces a needless render.
      */
     private _restoreUrlFiltersIfMissing(metadata: Crud, base: Record<string, any>): Record<string, any> {
-        const params = new URLSearchParams(window.location.search)
+        const params = this._urlParams()
         const filterIds = this._filterIds(metadata)
         let result = base
         params.forEach((value, key) => {

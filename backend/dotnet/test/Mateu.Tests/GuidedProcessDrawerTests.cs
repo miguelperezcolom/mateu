@@ -24,7 +24,8 @@ public class SignupWizard : Wizard
 [UI("gpd-host"), Title("Host")]
 public class GpdHost
 {
-    // [Action]-equivalent: RunAction dispatches any public method by camelCased name.
+    // A declared action (no button): only declared actions are reachable from the wire.
+    [Action]
     public Drawer OpenWizard() => new()
     {
         Id = "gpd",

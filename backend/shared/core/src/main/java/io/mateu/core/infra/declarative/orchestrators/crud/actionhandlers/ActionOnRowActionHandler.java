@@ -4,6 +4,8 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
+import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -21,6 +23,10 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
     var behaviour = orchestrator.behaviourSource();
     for (Method method : getAllMethods(behaviour.getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
+        if (!ActionMethods.isInvocable(method, behaviour.getClass())) {
+          throw new MateuForbiddenException("row action not allowed: " + methodName);
+        }
+        ActionMethods.checkAccess(method, behaviour.getClass(), httpRequest);
         method.setAccessible(true);
         var rq = httpRequest.runActionRq();
         var command =

@@ -436,7 +436,17 @@
     "mateuMenuTopbar": {
       "type": "boolean",
       "defaultValue": false,
-      "description": "variante MENU_ON_TOP: opciones de primer nivel visibles en el header"
+      "description": "variante TABS con grupos: opciones de primer nivel visibles en el header"
+    },
+    "mateuMenuSubheader": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "variante MENU_ON_TOP: subcabecera (banda 2) con el título de la consola y las opciones de primer nivel"
+    },
+    "mateuShellTitle": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "título del @App, en la subcabecera MENU_ON_TOP"
     },
     "mateuMenuDrawerMode": {
       "type": "boolean",

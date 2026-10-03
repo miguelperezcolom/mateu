@@ -18,26 +18,25 @@ export const TEMPLATES: StarterTemplate[] = [
     {
         id: 'form',
         label: 'Form',
-        description: 'A stack of fields with a Save button.',
-        yaml: `type: VerticalLayout
+        description: 'A titled form: fields in a responsive layout and a Save button (wire it in Actions).',
+        yaml: `type: Form
+title: New item
 content:
-  - type: FormField
-    id: name
-    label: Name
-  - type: FormField
-    id: email
-    label: Email
-  - type: Button
-    label: Save
-    actionId: save
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, required: true}
+      - {type: FormField, id: email, label: Email, stereotype: email}
+buttons:
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}
 `,
     },
     {
         id: 'listing',
         label: 'Listing',
-        description: 'A table with columns — the start of a list screen.',
+        description: 'A searchable table — pick its REST source and columns in Properties.',
         yaml: `type: Listing
 title: Items
+searchable: true
 columns:
   - type: GridColumn
     id: name

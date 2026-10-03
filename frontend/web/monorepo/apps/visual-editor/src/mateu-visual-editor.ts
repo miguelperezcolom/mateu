@@ -1,9 +1,21 @@
 import { LitElement, html, css, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import { parse } from 'yaml'
 import {
     PageDoc, NodePath, PageNode, PageTrigger, TRIGGER_TYPES, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
-    insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp,
+    insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp, childAt, splitSeg, withIndex,
+    listOf, insertIntoSlot,
 } from './model/pageModel'
+import { writePreserving } from './model/yamlPreserve'
+import { EditHistory } from './model/history'
+import { renameBinding, mentionsIn } from './model/rename'
+import { pageActions, upsertAction, newRestAction, setActionField, PageAction } from './model/pageActions'
+import { newSlotItem } from './model/componentSchema'
+import { isSourcesYaml } from './model/projectIndex'
+import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
+import {
+    CanvasRendererId, CANVAS_RENDERERS, CANVAS_RENDERER_LABELS, useCanvasRenderer, parseCanvasRenderer,
+} from './canvas/canvasRenderer'
 import { fetchInferredFields, fetchContractMembers, ContractMembers } from './model/contract'
 import {
     PreviewSource, PreviewMode, ContractFixture, PREVIEW_MODES, PREVIEW_MODE_LABELS,
@@ -17,7 +29,7 @@ import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, modelViewOptions, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
-import { STEP_TYPES, stepParam, pageActionIds, actionSteps, setActionSteps, addFlowAction, removeAction, FlowStep } from './model/flowEditor'
+import { STEP_TYPES, stepParam, actionSteps, setActionSteps, removeAction, FlowStep } from './model/flowEditor'
 import { buildBundleManifest, clientRenderableRouteCount } from './model/exportBundle'
 import { SCHEMA } from './model/schemaCatalog'
 import { InferredField } from './model/layoutDelta'
@@ -26,6 +38,7 @@ import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
 import { buildIndex, ProjectIndex } from './model/projectIndex'
 import { resolveHost, HostBridge } from './host/hostBridge'
+import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
 import './outline/editor-outline'
 import './canvas/editor-canvas'
@@ -33,6 +46,28 @@ import './properties/editor-properties'
 import './routes/routes-editor'
 import './app/app-editor'
 import './mount/mount-editor'
+import './sources/sources-editor'
+
+/** The bottom dock's panels (page mode). One is open at a time; clicking its tab again closes it. */
+type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'ai' | 'yaml'
+const DOCK_TABS: { id: DockTab; label: string; title: string }[] = [
+    { id: 'actions', label: 'Actions', title: 'What the page\'s buttons do: REST calls with a toast, or flows of steps' },
+    { id: 'triggers', label: 'Triggers', title: 'Run an action on load, on an event, or when a field changes' },
+    { id: 'quickstart', label: 'Quick start', title: 'One-click scaffolds: bind data, lay out fields, turn into a listing, wire an action' },
+    { id: 'templates', label: 'Templates', title: 'Start the page from a template' },
+    { id: 'sync', label: 'Sync', title: 'Compare the page with its view model' },
+    { id: 'ai', label: 'AI', title: 'Have an AI write the layout' },
+    { id: 'yaml', label: 'YAML', title: 'The file as it will be saved' },
+]
+
+const RENDERER_KEY = 'mateu-visual-editor-renderer'
+
+const ICON_UNDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg>`
+const ICON_REDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8H9"/></svg>`
+
+function loadRendererChoice(): CanvasRendererId {
+    try { return parseCanvasRenderer(localStorage.getItem(RENDERER_KEY)) } catch { return 'vaadin' }
+}
 
 /** The simple name of a ModelView FQN (last dotted segment), for compact fixture labels. */
 function shortVm(fqn: string): string {
@@ -48,130 +83,168 @@ function shortVm(fqn: string): string {
 @customElement('mateu-visual-editor')
 export class MateuVisualEditor extends LitElement {
     static styles = css`
-        :host { display: block; height: 100%; }
-        .app { display: grid; grid-template-rows: auto 1fr; height: 100%; }
-        .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.75rem; background: #fff;
-                   border-bottom: 1px solid #e3e5e8; font: 13px system-ui; }
-        .toolbar .brand { font-weight: 600; }
+        /* Design tokens — Lumo's values (the default renderer's design system), so the editor's own
+           chrome and the canvas read as one product. Children inherit them through their shadow roots. */
+        :host {
+            display: block; height: 100%;
+            --ve-font: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
+            --ve-base: #fff;
+            --ve-surface: hsl(214, 33%, 98%);
+            --ve-text: hsla(214, 40%, 16%, 0.94);
+            --ve-secondary: hsla(214, 42%, 18%, 0.69);
+            --ve-tertiary: hsla(214, 45%, 20%, 0.52);
+            --ve-border: hsla(214, 57%, 24%, 0.1);
+            --ve-input-border: hsla(214, 53%, 23%, 0.16);
+            --ve-hover: hsla(214, 61%, 25%, 0.05);
+            --ve-primary: hsl(214, 100%, 48%);
+            --ve-primary-text: hsl(214, 100%, 43%);
+            --ve-primary-10: hsla(214, 100%, 60%, 0.13);
+            --ve-error: hsl(3, 85%, 48%);
+            --ve-error-10: hsla(3, 85%, 49%, 0.1);
+            --ve-success: hsl(145, 72%, 30%);
+            --ve-success-10: hsla(145, 72%, 31%, 0.1);
+            --ve-warning-10: hsla(30, 100%, 50%, 0.12);
+            --ve-warning: hsl(30, 100%, 32%);
+            --ve-radius: 6px;
+            font-family: var(--ve-font); color: var(--ve-text);
+        }
+        /* Lumo's dark palette, for a dark IDE (see host/theme.ts). */
+        :host([theme='dark']) {
+            color-scheme: dark;
+            --ve-base: hsl(214, 35%, 21%);
+            --ve-surface: hsl(214, 35%, 18%);
+            --ve-text: hsla(214, 96%, 96%, 0.9);
+            --ve-secondary: hsla(214, 87%, 92%, 0.69);
+            --ve-tertiary: hsla(214, 78%, 88%, 0.5);
+            --ve-border: hsla(214, 65%, 85%, 0.12);
+            --ve-input-border: hsla(214, 69%, 84%, 0.24);
+            --ve-hover: hsla(214, 65%, 85%, 0.06);
+            --ve-primary: hsl(214, 90%, 48%);
+            --ve-primary-text: hsl(214, 100%, 70%);
+            --ve-primary-10: hsla(214, 90%, 63%, 0.15);
+            --ve-error: hsl(3, 90%, 63%);
+            --ve-error-10: hsla(3, 90%, 63%, 0.12);
+            --ve-success: hsl(145, 65%, 52%);
+            --ve-success-10: hsla(145, 65%, 52%, 0.12);
+            --ve-warning: hsl(30, 100%, 65%);
+            --ve-warning-10: hsla(30, 100%, 60%, 0.14);
+            --ve-canvas-bg: hsl(214, 35%, 21%);
+        }
+        .app { display: grid; grid-template-rows: auto auto 1fr; height: 100%; background: var(--ve-base); }
+        button { font: 500 12px var(--ve-font); color: var(--ve-text); background: var(--ve-base);
+                 border: 1px solid var(--ve-input-border); border-radius: var(--ve-radius); padding: 0.3rem 0.65rem;
+                 cursor: pointer; line-height: 1.3; }
+        button:hover:not(:disabled) { background: var(--ve-hover); }
+        button:disabled { color: var(--ve-tertiary); cursor: default; opacity: .6; }
+        button.primary { background: var(--ve-primary); border-color: var(--ve-primary); color: #fff; }
+        button.ghost { border-color: transparent; background: transparent; }
+        button.danger { color: var(--ve-error); }
+        select, input { font: 12px var(--ve-font); color: var(--ve-text); border: 1px solid var(--ve-input-border);
+                        border-radius: 4px; padding: 0.25rem 0.4rem; background: var(--ve-base); }
+        .toolbar { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: var(--ve-base);
+                   border-bottom: 1px solid var(--ve-border); font-size: 12px; flex-wrap: wrap; }
+        .toolbar .brand { font-weight: 600; font-size: 13px; margin-right: 0.25rem; }
+        .toolbar .file { color: var(--ve-secondary); font-family: ui-monospace, monospace; font-size: 12px; }
         .toolbar .spacer { flex: 1; }
-        .toolbar button { padding: 0.3rem 0.6rem; font: 12px system-ui; border: 1px solid #d7dade;
-                          border-radius: 6px; background: #fff; cursor: pointer; }
-        .toolbar .hint { color: #9ca3af; font-size: 12px; }
+        .toolbar .group { display: flex; align-items: center; gap: 0.35rem; }
+        .toolbar .sep { width: 1px; align-self: stretch; background: var(--ve-border); margin: 0 0.15rem; }
+        .toolbar .lbl { color: var(--ve-tertiary); }
+        .toolbar .hint { color: var(--ve-tertiary); font-size: 12px; }
         .toolbar .preview-source { display: flex; align-items: center; gap: 0.35rem; }
-        .toolbar .preview-source select, .toolbar .preview-source input {
-            font: 12px system-ui; border: 1px solid #d7dade; border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
-        .toolbar .preview-source input { width: 15rem; }
+        .toolbar .preview-source input { width: 13rem; }
         .toolbar .fixtures { display: flex; align-items: center; gap: 0.3rem; padding-left: 0.3rem;
-            margin-left: 0.3rem; border-left: 1px solid #e3e5e8; }
+            margin-left: 0.3rem; border-left: 1px solid var(--ve-border); }
         .toolbar .fixtures .chip { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 11px;
-            background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 0.1rem 0.15rem 0.1rem 0.45rem; }
-        .toolbar .fixtures .chip .x { border: none; background: none; color: inherit; cursor: pointer;
-            padding: 0 0.2rem; font-size: 11px; }
-        .toolbar .shape { padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 11px; }
-        .toolbar .shape.delta { background: #e8f5ec; color: #1e7a3c; }
-        .toolbar .shape.snapshot { background: #fdf0e3; color: #9a5b09; }
-        .toolbar .shape.partial { background: #eaeefe; color: #3a4bb3; }
-        .toolbar .shape.mount { background: #eef2ff; color: #4338ca; }
-        .toolbar .shape.app { background: #ecfeff; color: #0e7490; }
-        .toolbar .shape.routes { background: #e6f4f4; color: #0f766e; }
-        .breadcrumb { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; padding: 0.3rem 0.75rem;
-                      background: #fafbfc; border-bottom: 1px solid #eef0f2; font: 11px system-ui; }
-        .breadcrumb button { border: none; background: transparent; cursor: pointer; color: #6b7280; padding: 1px 4px;
-                             border-radius: 4px; font: 11px system-ui; }
-        .breadcrumb button:hover { background: #eceff2; color: #111827; }
-        .breadcrumb button.cur { color: #2563eb; font-weight: 600; }
-        .breadcrumb .sep { color: #c2c8d0; }
-        .panes { display: grid; grid-template-columns: 240px 1fr 300px; min-height: 0; }
-        .left { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #e3e5e8; }
-        .left-tabs { display: flex; border-bottom: 1px solid #e3e5e8; }
-        .left-tabs button { flex: 1; padding: 0.45rem 0.5rem; font: 12px system-ui; border: none; background: #f7f8fa;
-                            cursor: pointer; color: #6b7280; border-bottom: 2px solid transparent; }
-        .left-tabs button.active { background: #fff; color: #1f2937; font-weight: 600; border-bottom-color: #2563eb; }
+            background: var(--ve-primary-10); color: var(--ve-primary-text); border-radius: 999px; padding: 0.1rem 0.15rem 0.1rem 0.45rem; }
+        .toolbar .fixtures .chip .x { border: none; background: none; color: inherit; cursor: pointer; padding: 0 0.2rem; font-size: 11px; }
+        .shape, .status { display: inline-block; line-height: 1.5; padding: 0.05rem 0.5rem; border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .shape.delta, .status.ok { background: var(--ve-success-10); color: var(--ve-success); }
+        .shape.snapshot, .status.warn { background: var(--ve-warning-10); color: var(--ve-warning); }
+        .shape.partial, .shape.mount, .shape.app, .shape.routes, .shape.sources, .status.info { background: var(--ve-primary-10); color: var(--ve-primary-text); }
+        .status.err { background: var(--ve-error-10); color: var(--ve-error); }
+        .breadcrumb { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; padding: 0.25rem 0.75rem;
+                      background: var(--ve-surface); border-bottom: 1px solid var(--ve-border); font-size: 11px; min-height: 1.4rem; }
+        .breadcrumb button { border: none; background: transparent; color: var(--ve-secondary); padding: 1px 4px; font-size: 11px; }
+        .breadcrumb button.cur { color: var(--ve-primary-text); font-weight: 600; }
+        .breadcrumb .sep { color: var(--ve-tertiary); }
+        .breadcrumb .slot { color: var(--ve-tertiary); font-style: italic; }
+        .breadcrumb .empty { color: var(--ve-tertiary); }
+        .work { display: grid; grid-template-rows: 1fr auto; min-height: 0; }
+        .panes { display: grid; grid-template-columns: minmax(170px, 240px) minmax(0, 1fr) minmax(220px, 300px); min-height: 0; }
+        .left { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--ve-border); }
+        .left-tabs { display: flex; border-bottom: 1px solid var(--ve-border); }
+        .left-tabs button { flex: 1; padding: 0.45rem 0.5rem; border: none; border-radius: 0; background: var(--ve-surface);
+                            color: var(--ve-secondary); border-bottom: 2px solid transparent; }
+        .left-tabs button.active { background: var(--ve-base); color: var(--ve-text); font-weight: 600; border-bottom-color: var(--ve-primary); }
         .left-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-        .source { grid-column: 1 / -1; }
-        .triggers-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; display: flex; flex-direction: column; gap: 0.4rem; font: 12px system-ui; }
-        .triggers-panel .tp-head { font-weight: 600; color: #374151; }
-        .triggers-panel .tp-empty { color: #9ca3af; }
-        .triggers-panel .tp-row { display: flex; align-items: center; gap: 0.4rem; }
-        .triggers-panel select, .triggers-panel input { font: 12px system-ui; border: 1px solid #d7dade;
-            border-radius: 4px; padding: 0.25rem 0.4rem; background: #fff; }
-        .triggers-panel input { flex: 1; min-width: 8rem; }
-        .triggers-panel .del { border: none; background: none; color: #b91c1c; cursor: pointer; }
-        .templates-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.5rem; }
-        .templates-panel .tp-head { font-weight: 600; color: #374151; }
-        .templates-panel .tg-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .templates-panel .tg-card { width: 12rem; border: 1px solid #e3e5e8; border-radius: 6px;
-            background: #fff; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
-        .templates-panel .tg-label { font-weight: 600; color: #1f2937; }
-        .templates-panel .tg-desc { color: #6b7280; flex: 1; }
-        .templates-panel .tg-card button { align-self: flex-start; }
-        .quickstart-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
-        .quickstart-panel .tp-head { font-weight: 600; color: #374151; }
-        .quickstart-panel .qs-row { display: flex; align-items: center; gap: 0.5rem; }
-        .quickstart-panel .qs-row button { min-width: 12rem; text-align: left; }
-        .quickstart-panel .qs-row .modelview-picker { min-width: 14rem; max-width: 22rem; padding: 0.2rem 0.35rem; }
-        .quickstart-panel .qs-row .modelview-picker ~ button { min-width: 5rem; }
-        .quickstart-panel .qs-hint { color: #9ca3af; }
-        .sync-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.5rem; }
-        .sync-panel .tp-head { font-weight: 600; color: #374151; }
-        .sync-panel .qs-hint { color: #9ca3af; }
-        .sync-panel .sync-group { display: flex; flex-direction: column; gap: 0.25rem; }
-        .sync-panel .sync-sub { font-weight: 600; color: #4b5563; font-size: 11px; }
-        .sync-panel .sync-row { display: flex; align-items: center; gap: 0.4rem; }
-        .sync-panel .sync-row code { background: #eef1f4; border-radius: 4px; padding: 0.05rem 0.3rem; }
-        .sync-panel .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
-            padding: 0.05rem 0.35rem; background: #e8eefe; color: #3a4bb3; }
-        .sync-panel .tag.a { background: #e6f4f4; color: #0f766e; }
-        .sync-panel .tag.warn { background: #fdecec; color: #b91c1c; }
-        .ai-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
-        .ai-panel .tp-head { font-weight: 600; color: #374151; }
-        .ai-panel .qs-hint { color: #9ca3af; }
-        .ai-panel textarea { width: 100%; box-sizing: border-box; min-height: 3.5rem; font: 12px ui-monospace, monospace;
-            border: 1px solid #d7dade; border-radius: 4px; padding: 0.4rem; resize: vertical; }
-        .ai-panel .ai-row { display: flex; align-items: center; gap: 0.5rem; }
-        .ai-panel .ai-msg { color: #4b5563; background: #eef2ff; border-radius: 4px; padding: 0.3rem 0.5rem; }
-        .flows-panel { grid-column: 1 / -1; border-top: 1px solid #e3e5e8; padding: 0.5rem 0.75rem;
-            background: #fafbfc; font: 12px system-ui; display: flex; flex-direction: column; gap: 0.4rem; }
-        .flows-panel .tp-head { font-weight: 600; color: #374151; }
-        .flows-panel .qs-hint { color: #9ca3af; }
-        .flows-panel .fl-actions { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
-        .flows-panel .fl-actions button.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-        .flows-panel .fl-steps { display: flex; flex-direction: column; gap: 0.25rem; padding-left: 0.5rem;
-            border-left: 2px solid #e3e5e8; }
-        .flows-panel .fl-step, .flows-panel .fl-row { display: flex; align-items: center; gap: 0.35rem; }
-        .flows-panel .fl-row .sep { flex: 1; }
-        .flows-panel select, .flows-panel input { font: 12px system-ui; border: 1px solid #d7dade;
-            border-radius: 4px; padding: 0.2rem 0.4rem; background: #fff; }
-        .flows-panel input { flex: 1; min-width: 8rem; }
-        .flows-panel .del { color: #b91c1c; }
-        textarea { width: 100%; height: 160px; box-sizing: border-box; font: 12px ui-monospace, monospace;
-                   border: none; border-top: 1px solid #e3e5e8; padding: 0.5rem; resize: vertical; }
+        .dock { border-top: 1px solid var(--ve-border); background: var(--ve-surface); display: flex; flex-direction: column; min-height: 0; }
+        .dock-tabs { display: flex; gap: 0.1rem; padding: 0 0.5rem; }
+        .dock-tabs button { border: none; border-radius: 0; background: transparent; color: var(--ve-secondary);
+                            padding: 0.4rem 0.7rem; border-bottom: 2px solid transparent; }
+        .dock-tabs button.active { color: var(--ve-text); font-weight: 600; border-bottom-color: var(--ve-primary); }
+        .dock-tabs .count { color: var(--ve-tertiary); font-weight: 400; }
+        .dock-body { max-height: 38vh; min-height: 9rem; overflow: auto; padding: 0.5rem 0.75rem 0.75rem; background: var(--ve-base);
+                     border-top: 1px solid var(--ve-border); display: flex; flex-direction: column; gap: 0.45rem; font-size: 12px; }
+        .tp-head { font-weight: 600; }
+        .qs-hint, .tp-empty { color: var(--ve-tertiary); }
+        .tp-row, .qs-row, .ai-row, .fl-step, .fl-row, .sync-row, .act-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .tp-row input, .fl-step input { flex: 1; min-width: 8rem; }
+        .qs-row button { min-width: 12rem; text-align: left; }
+        .qs-row .modelview-picker { min-width: 14rem; max-width: 22rem; }
+        .tg-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .tg-card { width: 12rem; border: 1px solid var(--ve-border); border-radius: 8px; background: var(--ve-base);
+                   padding: 0.55rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .tg-label { font-weight: 600; }
+        .tg-desc { color: var(--ve-secondary); flex: 1; }
+        .tg-card button { align-self: flex-start; }
+        .sync-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .sync-sub { font-weight: 600; color: var(--ve-secondary); font-size: 11px; }
+        .sync-row code { background: var(--ve-hover); border-radius: 4px; padding: 0.05rem 0.3rem; }
+        .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px;
+               padding: 0.05rem 0.35rem; background: var(--ve-primary-10); color: var(--ve-primary-text); }
+        .tag.warn { background: var(--ve-error-10); color: var(--ve-error); }
+        textarea { width: 100%; box-sizing: border-box; font: 12px ui-monospace, monospace; border: 1px solid var(--ve-input-border);
+                   border-radius: var(--ve-radius); padding: 0.45rem; resize: vertical; color: var(--ve-text); }
+        textarea.source { min-height: 14rem; }
+        .ai-msg { color: var(--ve-secondary); background: var(--ve-primary-10); border-radius: 4px; padding: 0.3rem 0.5rem; }
+        .chips { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+        .chips button.active { background: var(--ve-primary); color: #fff; border-color: var(--ve-primary); }
+        .fl-steps { display: flex; flex-direction: column; gap: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--ve-border); }
+        .fl-row .sep { flex: 1; }
+        .act-form { display: grid; grid-template-columns: 9rem minmax(0, 30rem); gap: 0.35rem 0.6rem; align-items: center; }
+        .act-form label { color: var(--ve-secondary); }
+        .act-form .full { grid-column: 1 / -1; }
+        .act-form input[type=checkbox] { justify-self: start; }
+        .notice { font-size: 12px; padding: 0.35rem 0.75rem; background: var(--ve-primary-10); color: var(--ve-primary-text);
+                  display: flex; gap: 0.5rem; align-items: center; }
+        .notice button { padding: 0.1rem 0.4rem; }
     `
 
     @property() baseUrl = ''
 
     @state() private doc?: PageDoc
     @state() private selectedPath: NodePath | null = null
-    @state() private showSource = false
-    @state() private showTriggers = false
-    @state() private showTemplates = false
-    @state() private showQuickStarts = false
-    @state() private showSync = false
-    @state() private showAi = false
+    /** The open bottom-dock panel (page mode), or null when the dock is collapsed to its tab bar. */
+    @state() private dock: DockTab | null = null
     @state() private aiMsg?: string
-    @state() private showFlows = false
     @state() private flowActionId?: string
+    /** Which design system the canvas paints with (persisted per browser). */
+    @state() private renderer: CanvasRendererId = loadRendererChoice()
+    /** What the canvas last reported about its render (ok / offline fallback / error). */
+    @state() private previewStatus?: { kind: 'ok' | 'fallback' | 'error' | 'client'; text: string }
+    /** A transient message under the toolbar (e.g. the result of a rename). */
+    @state() private notice?: string
+    /** Undo/redo over the file text — one history for every editor mode. */
+    private history = new EditHistory('')
+    @state() private historyTick = 0
+    /** The file text as last loaded or written — the base every edit is merged into (comments kept). */
+    private lastText = ''
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
      */
-    @state() private mode: 'page' | 'mount' | 'app' | 'routes' = 'page'
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' = 'page'
     @state() private structuredYaml = ''
     /** Which left-panel tab is showing: the layers tree (navigate/reorder) or the insert palette. */
     @state() private leftTab: 'layers' | 'insert' = 'layers'
@@ -186,27 +259,53 @@ export class MateuVisualEditor extends LitElement {
     private lastContractVm?: string
 
     private host!: HostBridge
+    /** Light/dark, following the host (VS Code body class, IntelliJ, or the OS). */
+    @state() private theme: Theme = 'light'
+    private unwatchTheme?: () => void
 
     connectedCallback() {
         super.connectedCallback()
         this.host = resolveHost()
+        this.unwatchTheme = watchHostTheme((t) => {
+            this.theme = t
+            this.setAttribute('theme', t)
+            // Lumo reads [theme~=dark] on the document (overlays, popups) — the canvas sets its own root.
+            document.documentElement.setAttribute('theme', t)
+        })
         if (!this.baseUrl) this.baseUrl = this.host.baseUrl()
         this.previewSource = loadPreviewSource(this.baseUrl)
         this.syncRowMock()
-        this.currentPath = this.host.currentPath?.()
-        this.host.initialYaml().then((yaml) => this.load(yaml))
-        this.host.onExternalChange?.((yaml) => { this.load(yaml); this.selectedPath = null })
-        // Load the whole mount (if the host exposes it) to power the reference pickers — the editor
-        // stays fully usable without it; references just fall back to a typed string.
-        this.host.listFiles?.().then((files) => {
-            if (files?.length) { this.project = buildIndex(files); this.refreshContract() }
+        this.host.initialYaml().then((yaml) => {
+            this.currentPath = this.host.currentPath?.()
+            this.history.reset(yaml)
+            this.load(yaml)
         })
+        this.host.onExternalChange?.((yaml) => {
+            if (yaml === this.lastText) return // our own write echoed back
+            this.history.push(yaml)
+            this.historyTick++
+            this.load(yaml)
+            this.selectedPath = null
+        })
+        // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
+        // REST source catalogue — the editor stays fully usable without it.
+        this.host.listFiles?.().then((files) => {
+            if (files?.length) {
+                this.project = buildIndex(files)
+                // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
+                // catalogue, exactly as the running app does — so a listing shows its rows here too.
+                setRestSourceCatalogue(this.project.sources as never)
+                this.refreshContract()
+            }
+        })
+        useCanvasRenderer(this.renderer).then((r) => { this.renderer = r })
         window.addEventListener('keydown', this.onKeydown)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         window.removeEventListener('keydown', this.onKeydown)
+        this.unwatchTheme?.()
         registerExternalJsonMock(null) // don't leak the mock past this editor instance
     }
 
@@ -229,9 +328,13 @@ export class MateuVisualEditor extends LitElement {
      * (←parent, →first child, ↑/↓ previous/next sibling) — the tree navigation every pro editor has.
      */
     private onKeydown = (e: KeyboardEvent) => {
-        if (this.mode !== 'page' || !this.doc) return
         const t = e.composedPath()[0] as HTMLElement | undefined
+        // Typing in a field keeps the field's own undo; everywhere else the editor's history answers.
         if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
+        const mod = e.metaKey || e.ctrlKey
+        if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return }
+        if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); this.redo(); return }
+        if (this.mode !== 'page' || !this.doc) return
         const sel = this.selectedPath
         if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); this.onDelete() }
         else if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D') && sel) { e.preventDefault(); this.onDuplicate() }
@@ -253,9 +356,35 @@ export class MateuVisualEditor extends LitElement {
         }
         const parentPath = sel.slice(0, -1)
         const parent = parentPath.length ? nodeAt(this.doc, parentPath) : this.doc.layout
-        const count = parent?.content?.length ?? 0
-        const idx = sel[sel.length - 1] + (dir === 'next' ? 1 : -1)
-        if (idx >= 0 && idx < count) this.selectedPath = [...parentPath, idx]
+        const last = sel[sel.length - 1]
+        const { key, index } = splitSeg(last)
+        const count = listOf(parent, key)?.length ?? 0
+        const idx = index + (dir === 'next' ? 1 : -1)
+        if (idx >= 0 && idx < count) this.selectedPath = [...parentPath, withIndex(last, idx)]
+    }
+
+    // --- undo / redo (one history over the file text, for every mode) ---
+
+    private undo() {
+        const text = this.history.undo()
+        if (text === undefined) return
+        this.restore(text)
+    }
+
+    private redo() {
+        const text = this.history.redo()
+        if (text === undefined) return
+        this.restore(text)
+    }
+
+    /** Put a historical text back: reload it, keep the selection when it still resolves, tell the host. */
+    private restore(text: string) {
+        const sel = this.selectedPath
+        this.load(text)
+        this.selectedPath = sel && this.doc && nodeAt(this.doc, sel) ? sel : null
+        this.lastText = text
+        this.historyTick++
+        this.host.onContentChanged?.(text)
     }
 
     render() {
@@ -267,63 +396,124 @@ export class MateuVisualEditor extends LitElement {
                  @node-moved=${(e: CustomEvent) => this.onMoved(e.detail.from, e.detail.to)}
                  @node-dropped=${(e: CustomEvent) => this.onDropped(e.detail.node, e.detail.to)}
                  @prop-changed=${(e: CustomEvent) => this.onProp(e.detail.key, e.detail.value)}
+                 @slot-add=${(e: CustomEvent) => this.onSlotAdd(e.detail.key, e.detail.ref)}
+                 @binding-rename=${(e: CustomEvent) => this.onRename(e.detail.from)}
+                 @preview-status=${(e: CustomEvent) => (this.previewStatus = e.detail)}
                  @node-delete=${this.onDelete}
                  @node-duplicate=${this.onDuplicate}
                  @node-move=${(e: CustomEvent) => this.onMove(e.detail.delta)}
                  @routes-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @app-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
-                 @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
-                <div class="toolbar">
-                    <span class="brand">Mateu Visual Editor</span>
-                    ${this.renderPreviewSelector()}
-                    ${this.modeBadge()}
-                    ${this.mode === 'page' ? this.shapeBadge() : ''}
-                    <span class="spacer"></span>
-                    <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export bundle</button>
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showTemplates = !this.showTemplates)}>Templates</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showQuickStarts = !this.showQuickStarts)}>Quick Start</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showSync = !this.showSync)}>Sync</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showAi = !this.showAi)}>AI</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showFlows = !this.showFlows)}>Flows</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showTriggers = !this.showTriggers)}>Triggers${this.doc?.triggers?.length ? ` (${this.doc.triggers.length})` : ''}</button>` : ''}
-                    ${this.mode === 'page' ? html`<button @click=${() => (this.showSource = !this.showSource)}>${this.showSource ? 'Hide' : 'Show'} YAML</button>` : ''}
-                </div>
+                 @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
+                ${this.renderToolbar()}
+                ${this.notice ? html`<div class="notice">${this.notice}<button class="ghost" @click=${() => (this.notice = undefined)}>✕</button></div>` : html`<div></div>`}
                 ${this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
                     ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project}></app-editor>`
                     : this.mode === 'routes'
                     ? html`<routes-editor .yaml=${this.structuredYaml} .project=${this.project}></routes-editor>`
+                    : this.mode === 'sources'
+                    ? html`<sources-editor .yaml=${this.structuredYaml}></sources-editor>`
                     : html`
-                ${this.mode === 'page' && this.selectedPath ? this.renderBreadcrumb() : ''}
-                <div class="panes">
-                    <div class="left">
-                        <div class="left-tabs">
-                            <button class=${this.leftTab === 'layers' ? 'active' : ''} @click=${() => (this.leftTab = 'layers')}>Layers</button>
-                            <button class=${this.leftTab === 'insert' ? 'active' : ''} @click=${() => (this.leftTab = 'insert')}>Insert</button>
-                        </div>
-                        <div class="left-body">
-                            ${this.leftTab === 'layers'
-                                ? html`<editor-outline .doc=${this.doc} .selectedPath=${this.selectedPath}></editor-outline>`
-                                : html`<editor-palette></editor-palette>`}
+                <div class="work">
+                    <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
+                        ${this.renderBreadcrumb()}
+                        <div class="panes">
+                            <div class="left">
+                                <div class="left-tabs">
+                                    <button class=${this.leftTab === 'layers' ? 'active' : ''} @click=${() => (this.leftTab = 'layers')}>Layers</button>
+                                    <button class=${this.leftTab === 'insert' ? 'active' : ''} @click=${() => (this.leftTab = 'insert')}>Insert</button>
+                                </div>
+                                <div class="left-body">
+                                    ${this.leftTab === 'layers'
+                                        ? html`<editor-outline .doc=${this.doc} .selectedPath=${this.selectedPath}></editor-outline>`
+                                        : html`<editor-palette></editor-palette>`}
+                                </div>
+                            </div>
+                            <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
+                                           .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
+                                           .selectedPath=${this.selectedPath}></editor-canvas>
+                            <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                         </div>
                     </div>
-                    <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
-                                   .clientRender=${rendersClientSide(this.previewSource)} .selectedPath=${this.selectedPath}></editor-canvas>
-                    <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
-                    ${this.showTemplates ? this.renderTemplateGallery() : ''}
-                    ${this.showQuickStarts ? this.renderQuickStarts() : ''}
-                    ${this.showSync ? this.renderSync() : ''}
-                    ${this.showAi ? this.renderAi() : ''}
-                    ${this.showFlows ? this.renderFlows() : ''}
-                    ${this.showTriggers ? this.renderTriggers() : ''}
-                    ${this.showSource ? html`
-                        <div class="source">
-                            <textarea .value=${this.doc ? serializePage(this.doc) : ''} @change=${this.onSourceEdit}></textarea>
-                        </div>` : ''}
+                    ${this.renderDock()}
                 </div>`}
             </div>
         `
+    }
+
+    private renderToolbar() {
+        const page = this.mode === 'page'
+        void this.historyTick
+        return html`
+            <div class="toolbar">
+                <span class="brand">Mateu Visual Editor</span>
+                ${this.currentPath ? html`<span class="file" title="The file being edited">${this.currentPath}</span>` : ''}
+                ${this.modeBadge()}
+                ${page ? this.shapeBadge() : ''}
+                <span class="sep"></span>
+                <span class="group">
+                    <button class="ghost" title="Undo (⌘Z / Ctrl+Z)" ?disabled=${!this.history.canUndo} @click=${this.undo}>${ICON_UNDO} Undo</button>
+                    <button class="ghost" title="Redo (⇧⌘Z / Ctrl+Y)" ?disabled=${!this.history.canRedo} @click=${this.redo}>${ICON_REDO} Redo</button>
+                </span>
+                <span class="spacer"></span>
+                ${page ? html`
+                    <span class="group">
+                        <span class="lbl">Preview</span>
+                        ${this.renderPreviewSelector()}
+                        <select class="renderer" title="The design system the canvas paints with" @change=${this.onRendererChange}>
+                            ${CANVAS_RENDERERS.map((r) => html`<option value=${r} ?selected=${r === this.renderer}>${CANVAS_RENDERER_LABELS[r]}</option>`)}
+                        </select>
+                        ${this.renderStatus()}
+                    </span>
+                    <span class="sep"></span>` : ''}
+                <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export bundle</button>
+            </div>`
+    }
+
+    private renderStatus() {
+        const s = this.previewStatus
+        if (!s) return ''
+        const cls = s.kind === 'ok' ? 'ok' : s.kind === 'client' ? 'info' : s.kind === 'fallback' ? 'warn' : 'err'
+        const label = s.kind === 'ok' ? 'live' : s.kind === 'client' ? 'offline' : s.kind === 'fallback' ? 'offline fallback' : 'error'
+        return html`<span class="status ${cls}" title=${s.text}>${label}</span>`
+    }
+
+    private renderDock() {
+        const counts: Partial<Record<DockTab, number>> = {
+            actions: this.doc ? pageActions(this.doc).length : 0,
+            triggers: this.doc?.triggers?.length ?? 0,
+        }
+        return html`
+            <div class="dock">
+                <div class="dock-tabs">
+                    ${DOCK_TABS.map((t) => html`<button class=${this.dock === t.id ? 'active' : ''} title=${t.title}
+                        @click=${() => (this.dock = this.dock === t.id ? null : t.id)}>${t.label}${counts[t.id] ? html` <span class="count">${counts[t.id]}</span>` : ''}</button>`)}
+                </div>
+                ${this.dock ? html`<div class="dock-body">${this.renderDockBody(this.dock)}</div>` : ''}
+            </div>`
+    }
+
+    private renderDockBody(tab: DockTab) {
+        switch (tab) {
+            case 'actions': return this.renderActions()
+            case 'triggers': return this.renderTriggers()
+            case 'quickstart': return this.renderQuickStarts()
+            case 'templates': return this.renderTemplateGallery()
+            case 'sync': return this.renderSync()
+            case 'ai': return this.renderAi()
+            case 'yaml': return html`
+                <div class="qs-hint">The file exactly as it will be saved (your comments and formatting are kept). Edit it here and click outside to apply.</div>
+                <textarea class="source" .value=${this.lastText} @change=${this.onSourceEdit}></textarea>`
+        }
+    }
+
+    private async onRendererChange(e: Event) {
+        const wanted = (e.target as HTMLSelectElement).value as CanvasRendererId
+        try { localStorage.setItem(RENDERER_KEY, wanted) } catch { /* private mode */ }
+        this.renderer = await useCanvasRenderer(wanted)
     }
 
     // --- edit handlers: mutate the model, then re-render + persist ---
@@ -335,6 +525,10 @@ export class MateuVisualEditor extends LitElement {
         if (this.selectedPath && sel && isContainer(sel)) {
             insertChild(sel, sel.content?.length ?? 0, node)
             newPath = [...this.selectedPath, (sel.content!.length - 1)]
+        } else if (!this.selectedPath && !isContainer(this.doc.layout)) {
+            // A definition root that is not a container (a Listing): nothing to add into but its slots.
+            this.notice = `A ${this.doc.layout.type} has no free content — add its parts (columns, filters, buttons…) from the Properties panel.`
+            return
         } else {
             newPath = insertAfter(this.doc, this.selectedPath ?? [], node)
         }
@@ -362,6 +556,33 @@ export class MateuVisualEditor extends LitElement {
         this.commit()
     }
 
+    /** Add a new item to one of the selected node's slot lists (a column, a filter, a toolbar button…). */
+    private onSlotAdd(key: string, ref: string | undefined) {
+        if (!this.doc) return
+        const at = this.selectedPath ?? []
+        const parent = at.length ? nodeAt(this.doc, at) : this.doc.layout
+        const count = listOf(parent, key)?.length ?? 0
+        this.selectedPath = insertIntoSlot(this.doc, at, key, newSlotItem(key, ref, count))
+        this.commit()
+    }
+
+    /** Rename a field binding and every reference to it on the page; report other files that use it. */
+    private onRename(from: string) {
+        if (!this.doc) return
+        const to = window.prompt(`Rename the binding "${from}" to:`, from)?.trim()
+        if (!to || to === from) return
+        if (!/^[A-Za-z_$][\w$]*$/.test(to)) { window.alert(`"${to}" is not a valid field id.`); return }
+        const { doc, changes } = renameBinding(this.doc, from, to)
+        this.doc = doc
+        this.commit()
+        this.host.listFiles?.().then((files) => {
+            const others = (files ?? []).filter((f) => f.path !== this.currentPath)
+                .map((f) => ({ path: f.path, n: mentionsIn(f.content, from) })).filter((f) => f.n > 0)
+            this.notice = `Renamed "${from}" → "${to}": ${changes} place${changes === 1 ? '' : 's'} on this page.`
+                + (others.length ? ` Still referenced as "${from}" in ${others.map((o) => `${o.path} (${o.n})`).join(', ')} — update those files too.` : '')
+        })
+    }
+
     private onDelete() {
         if (!this.doc || !this.selectedPath) return
         removeAt(this.doc, this.selectedPath)
@@ -384,11 +605,11 @@ export class MateuVisualEditor extends LitElement {
     }
 
     private onSourceEdit(e: Event) {
-        try {
-            this.load((e.target as HTMLTextAreaElement).value)
-            this.selectedPath = null
-            this.commit()
-        } catch { /* invalid YAML mid-edit — ignore until it parses */ }
+        const text = (e.target as HTMLTextAreaElement).value
+        try { parse(text) } catch { this.notice = 'That YAML does not parse — not applied.'; return }
+        this.load(text)
+        this.selectedPath = null
+        this.emitText(text, true)
     }
 
     /**
@@ -399,9 +620,15 @@ export class MateuVisualEditor extends LitElement {
      * is why hydration re-renders rather than merging into a tree the user may already be editing.
      */
     private load(yaml: string) {
-        // Structured-data files (mount / app shell / route table) are not component trees — each
-        // opens in its own editor, chosen by the file's `type:` discriminator. A `type: UI` mount
-        // also has a `routes:` list, so check it BEFORE the routes table.
+        this.lastText = yaml
+        // Structured-data files (mount / app shell / route table / source catalogue) are not
+        // component trees — each opens in its own editor, chosen by the file's `type:` discriminator.
+        // A `type: UI` mount also has a `routes:` list, so check it BEFORE the routes table.
+        if (isSourcesYaml(yaml)) {
+            this.mode = 'sources'
+            this.structuredYaml = yaml
+            return
+        }
         if (isMountYaml(yaml)) {
             this.mode = 'mount'
             this.structuredYaml = yaml
@@ -463,7 +690,7 @@ export class MateuVisualEditor extends LitElement {
                     ${PREVIEW_MODES.map((m) => html`<option value=${m} ?selected=${m === src.mode}>${PREVIEW_MODE_LABELS[m]}</option>`)}
                 </select>
                 ${src.mode === 'client'
-                    ? html`<span class="hint">no backend (Phase 7)</span>`
+                    ? html`<span class="hint">no backend</span>`
                     : html`<input .value=${src.baseUrl} @change=${this.onBaseUrlChange} placeholder="backend url"
                                   title=${src.mode === 'mock' ? 'render backend (data comes from fixtures)' : 'backend url'} />`}
                 ${src.mode === 'mock' ? this.renderFixtures() : ''}
@@ -574,18 +801,20 @@ export class MateuVisualEditor extends LitElement {
 
     /** Clickable path from the root to the selected node — jump to any ancestor (pairs with the layers panel). */
     private renderBreadcrumb() {
-        if (!this.doc || !this.selectedPath) return ''
-        const segs: { path: NodePath; label: string }[] = [{ path: [], label: this.doc.layout.type }]
+        if (!this.doc || !this.selectedPath) {
+            return html`<div class="breadcrumb"><span class="empty">Click a component on the canvas or in Layers to select it · ⌘Z undo · Delete removes · arrows walk the tree</span></div>`
+        }
+        const segs: { path: NodePath; label: string; slot?: string }[] = [{ path: [], label: this.doc.layout.type }]
         let node: PageNode | undefined = this.doc.layout
-        const acc: number[] = []
-        for (const idx of this.selectedPath) {
-            acc.push(idx)
-            node = node?.content?.[idx]
+        const acc: NodePath = []
+        for (const seg of this.selectedPath) {
+            acc.push(seg)
+            node = childAt(node, seg)
             if (!node) break
-            segs.push({ path: [...acc], label: node.type })
+            segs.push({ path: [...acc], label: node.type, slot: typeof seg === 'string' ? splitSeg(seg).key : undefined })
         }
         return html`<div class="breadcrumb">
-            ${segs.map((s, i) => html`${i ? html`<span class="sep">›</span>` : ''}<button
+            ${segs.map((s, i) => html`${i ? html`<span class="sep">›</span>` : ''}${s.slot ? html`<span class="slot">${s.slot}</span><span class="sep">›</span>` : ''}<button
                 class=${i === segs.length - 1 ? 'cur' : ''}
                 @click=${() => (this.selectedPath = s.path)}>${s.label}</button>`)}
         </div>`
@@ -596,14 +825,16 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'mount') return html`<span class="shape mount" title="A mount descriptor (type: UI) — the data-driven @UI: a base path and the route files it serves.">mount</span>`
         if (this.mode === 'app') return html`<span class="shape app" title="An app shell definition (type: AppShell) — a view bound to a route like any other.">app</span>`
         if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
+        if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`
         if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
         return ''
     }
 
-    /** A structured editor (mount / app / routes) changed — keep its YAML and notify the host. */
+    /** A structured editor (mount / app / routes / sources) changed — merge its YAML and notify the host. */
     private saveYaml(yaml: string) {
         this.structuredYaml = yaml
         this.notifyChanged()
+        if (this.mode === 'sources') setRestSourceCatalogue(parseSourcesFromText(this.lastText) as never)
     }
 
     /** A page edit — re-render (new doc reference) and notify the host. */
@@ -612,19 +843,30 @@ export class MateuVisualEditor extends LitElement {
         this.notifyChanged()
     }
 
-    /** The YAML for the current mode. */
+    /** The YAML for the current mode, as the model would write it from scratch. */
     private currentYaml(): string {
         return this.mode === 'page' ? (this.doc ? serializePage(this.doc) : '') : this.structuredYaml
     }
 
     /**
-     * A local edit happened: hand the new content to the host and let IT decide when to persist.
-     * In an IDE this marks the document dirty so the IDE's NATIVE save (Ctrl+S, save-all, close
-     * prompt) writes it — there is no save button here. Standalone in the browser, the host keeps a
-     * localStorage draft. Saving is NEVER triggered from inside this editor.
+     * A local edit happened: merge it into the file's text (keeping the author's comments and
+     * formatting), record it for undo, and hand it to the host to persist when IT decides. In an IDE
+     * this marks the document dirty so the IDE's NATIVE save (Ctrl+S, save-all, close prompt) writes
+     * it — there is no save button here. Standalone, the host keeps a localStorage draft.
      */
     private notifyChanged() {
-        this.host.onContentChanged?.(this.currentYaml())
+        const fresh = this.currentYaml()
+        let text: string
+        try { text = writePreserving(this.lastText, parse(fresh)) } catch { text = fresh }
+        this.emitText(text)
+    }
+
+    private emitText(text: string, force = false) {
+        if (!force && text === this.lastText) return
+        this.lastText = text
+        this.history.push(text)
+        this.historyTick++
+        this.host.onContentChanged?.(text)
     }
 
     // --- new from template (Phase 6) ---
@@ -632,7 +874,6 @@ export class MateuVisualEditor extends LitElement {
     /** The starter-template gallery: a card per template with a "Use" button. */
     private renderTemplateGallery() {
         return html`
-            <div class="templates-panel">
                 <div class="tp-head">Start from a template — a skeleton you then edit</div>
                 <div class="tg-grid">
                     ${TEMPLATES.map((t) => html`
@@ -641,8 +882,7 @@ export class MateuVisualEditor extends LitElement {
                             <div class="tg-desc">${t.description}</div>
                             <button @click=${() => this.applyTemplate(t)}>Use</button>
                         </div>`)}
-                </div>
-            </div>`
+                </div>`
     }
 
     /** Replace the current page with a template's layout (keeping the model binding, if any). */
@@ -652,7 +892,7 @@ export class MateuVisualEditor extends LitElement {
         // Keep the page's data binding + declared write-half; only the layout is templated.
         this.doc = { ...fresh, modelView: this.doc?.modelView ?? fresh.modelView }
         this.selectedPath = null
-        this.showTemplates = false
+        this.dock = null
         this.refreshContract()
         this.notifyChanged()
     }
@@ -670,7 +910,7 @@ export class MateuVisualEditor extends LitElement {
         const bound = this.boundViewModel()
         const options = modelViewOptions(this.project?.viewModels, this.doc?.modelView)
         return html`
-            <div class="quickstart-panel">
+            <div style="display:contents">
                 <div class="tp-head">Quick Starts — one-click scaffolds</div>
                 <div class="qs-row">
                     ${this.renderModelViewPicker(bound)}
@@ -697,14 +937,14 @@ export class MateuVisualEditor extends LitElement {
         if (!actionId) return
         const label = (window.prompt('Button label:', actionId.replace(/^./, (c) => c.toUpperCase())) ?? actionId).trim()
         this.doc = wireAction(this.doc!, label, actionId)
-        this.showQuickStarts = false
+        this.dock = null
         this.notifyChanged()
     }
 
     private qsTurnIntoListing = () => {
         this.doc = turnIntoListing(this.doc!)
         this.selectedPath = null
-        this.showQuickStarts = false
+        this.dock = null
         this.notifyChanged()
     }
 
@@ -747,7 +987,7 @@ export class MateuVisualEditor extends LitElement {
         const fields = this.doc?.inferred ?? (await this.inferredFieldsFor(vm))
         if (!fields?.length) { window.alert('No fields found for this data source.'); return }
         this.doc = scaffoldFieldsFromContract(this.doc!, fields)
-        this.showQuickStarts = false
+        this.dock = null
         this.notifyChanged()
     }
 
@@ -765,12 +1005,12 @@ export class MateuVisualEditor extends LitElement {
         if (!this.doc) return ''
         const vm = this.boundViewModel()
         if (!vm) {
-            return html`<div class="sync-panel"><div class="tp-head">Sync with ViewModel</div>
-                <div class="qs-hint">This page isn't bound to a data source. Use <b>Quick Start → Bind data source</b> first.</div></div>`
+            return html`<div class="tp-head">Sync with ViewModel</div>
+                <div class="qs-hint">This page isn't bound to a view model, so there is nothing to compare. (A classless page binds data through REST sources instead — see the Properties panel's data source and the Actions tab.)</div>`
         }
         const diff = diffAgainstContract(this.doc, this.contract)
         return html`
-            <div class="sync-panel">
+            <div style="display:contents">
                 <div class="tp-head">Sync with ${vm}</div>
                 ${isInSync(diff) ? html`<div class="qs-hint">In sync — everything the page binds is declared, and vice-versa.</div>` : ''}
                 ${diff.unusedFields.length || diff.unusedActions.length ? html`
@@ -806,7 +1046,7 @@ export class MateuVisualEditor extends LitElement {
 
     private renderAi() {
         return html`
-            <div class="ai-panel">
+            <div style="display:contents">
                 <div class="tp-head">AI scaffold — describe it, an AI writes the layout</div>
                 <textarea id="ai-desc" placeholder="e.g. a customer form with name, email and phone and a Save button"></textarea>
                 <div class="ai-row">
@@ -844,7 +1084,7 @@ export class MateuVisualEditor extends LitElement {
         const fresh = parsePage(stripFences(yaml))
         this.doc = { ...fresh, modelView: this.doc?.modelView ?? fresh.modelView }
         this.selectedPath = null
-        this.showAi = false
+        this.dock = null
         this.aiMsg = undefined
         this.refreshContract()
         this.notifyChanged()
@@ -870,30 +1110,119 @@ export class MateuVisualEditor extends LitElement {
         window.alert(`Exported manifest.json — ${defs} definition(s), ${routes} route(s) render with no backend. Serve it beside the Mateu renderer (specs mode) on any static host.`)
     }
 
-    // --- declared-flow editor (Phase 3): steps on a page action, the VB action-chain analog ---
+    // --- Actions (Phase 3 + 4): what a button does — a REST call with a toast, or a flow of steps ---
 
-    private renderFlows() {
-        const actions = pageActionIds(this.doc!)
-        const current = this.flowActionId && actions.includes(this.flowActionId) ? this.flowActionId : actions[0]
-        const steps = current ? actionSteps(this.doc!, current) : []
+    private renderActions() {
+        const doc = this.doc!
+        const actions = pageActions(doc)
+        const ids = actions.map((a) => a.id).filter((id): id is string => !!id)
+        const current = this.flowActionId && ids.includes(this.flowActionId) ? this.flowActionId : ids[0]
+        const action = actions.find((a) => a.id === current)
         return html`
-            <div class="flows-panel">
-                <div class="tp-head">Flows — a bounded client action (no round-trip); a RunAction step delegates to a @Action</div>
-                <div class="fl-actions">
-                    ${actions.map((id) => html`<button class=${id === current ? 'active' : ''} @click=${() => (this.flowActionId = id)}>${id}</button>`)}
-                    <button @click=${this.flowAddAction}>+ Flow action</button>
-                </div>
-                ${current
-                    ? html`<div class="fl-steps">
-                        ${steps.map((s, i) => this.renderFlowStep(current, steps, s, i))}
-                        <div class="fl-row">
-                            <button @click=${() => this.commitFlow(current, [...steps, { type: 'Navigate', extra: {} }])}>+ Step</button>
-                            <span class="sep"></span>
-                            <button class="del" @click=${() => this.flowRemoveAction(current)}>Remove action</button>
-                        </div>
-                    </div>`
-                    : html`<div class="qs-hint">No actions yet — add a flow action, then author its steps.</div>`}
+            <div class="tp-head">Actions — what the page's buttons do. A REST call runs in the browser (no backend); a flow is a bounded list of steps.</div>
+            <div class="chips">
+                ${ids.map((id) => html`<button class=${id === current ? 'active' : ''} @click=${() => (this.flowActionId = id)}>${id}</button>`)}
+                <button @click=${this.addRestAction} title="Call a REST endpoint and show a toast">+ REST action</button>
+                <button @click=${this.addFlowActionUi} title="A bounded client flow: navigate, emit, run another action…">+ Flow</button>
+            </div>
+            ${action ? this.renderActionForm(action) : html`<div class="qs-hint">No actions yet. Add one, then point a button's <b>actionId</b> at it (or use “Add a button”).</div>`}`
+    }
+
+    private renderActionForm(a: PageAction) {
+        const id = a.id ?? ''
+        const usedBy = this.buttonsUsing(id)
+        const isFlow = Array.isArray(a.steps) && !a.restAction
+        const set = (path: string, value: unknown) => this.commitAction(setActionField(a, path, value))
+        const src = a.restAction?.source ?? {}
+        const sources = this.project?.sources ?? []
+        return html`
+            <div class="act-form">
+                <label>id</label><span>${id} <span class="qs-hint">· ${usedBy ? `used by ${usedBy} button${usedBy === 1 ? '' : 's'}` : 'no button runs it yet'}</span>
+                    ${usedBy ? '' : html` <button @click=${() => this.addButtonFor(id)}>Add a button</button>`}</span>
+                ${isFlow ? html`<div class="full">${this.renderFlowSteps(id)}</div>` : html`
+                    <label>calls</label>
+                    <span class="act-row">
+                        <select @change=${(e: Event) => {
+                            const v = (e.target as HTMLSelectElement).value
+                            this.commitAction(setActionField(a, 'restAction.source', v ? { ref: v } : { url: src.url ?? 'https://api.example.com/resource', method: src.method ?? 'POST' }))
+                        }}>
+                            <option value="" ?selected=${!src.ref}>a url…</option>
+                            ${sources.map((s) => html`<option value=${s.name} ?selected=${s.name === src.ref}>${s.name}</option>`)}
+                            ${src.ref && !sources.some((s) => s.name === src.ref) ? html`<option selected value=${src.ref}>${src.ref} (unknown)</option>` : ''}
+                        </select>
+                        ${src.ref ? '' : html`
+                            <select @change=${(e: Event) => set('restAction.source.method', (e.target as HTMLSelectElement).value)}>
+                                ${['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map((m) => html`<option ?selected=${(src.method ?? 'GET') === m}>${m}</option>`)}
+                            </select>
+                            <input style="flex:1; min-width:14rem" .value=${src.url ?? ''} placeholder="https://api.example.com/items/\${state.id}"
+                                   @change=${(e: Event) => set('restAction.source.url', (e.target as HTMLInputElement).value.trim())} />`}
+                    </span>
+                    <label>then show</label><input .value=${a.restAction?.successMessage ?? ''} placeholder="Saved (a toast)"
+                        @change=${(e: Event) => set('restAction.successMessage', (e.target as HTMLInputElement).value)} />
+                    <label>then go to</label><input .value=${a.restAction?.successRoute ?? ''} placeholder="route (optional)"
+                        @change=${(e: Event) => set('restAction.successRoute', (e.target as HTMLInputElement).value.trim())} />`}
+                <label>validate the form first</label><input type="checkbox" .checked=${a.validationRequired === true}
+                    @change=${(e: Event) => set('validationRequired', (e.target as HTMLInputElement).checked)} />
+                <label>ask to confirm</label><span class="act-row"><input type="checkbox" .checked=${a.confirmationRequired === true}
+                    @change=${(e: Event) => set('confirmationRequired', (e.target as HTMLInputElement).checked)} />
+                    ${a.confirmationRequired ? html`<input style="flex:1" .value=${a.confirmationTexts?.message ?? ''} placeholder="Are you sure?"
+                        @change=${(e: Event) => set('confirmationTexts.message', (e.target as HTMLInputElement).value)} />` : ''}</span>
+                <span class="full"><button class="danger" @click=${() => this.flowRemoveAction(id)}>Remove action</button></span>
             </div>`
+    }
+
+    private renderFlowSteps(actionId: string) {
+        const steps = actionSteps(this.doc!, actionId)
+        return html`<div class="fl-steps">
+            ${steps.map((s, i) => this.renderFlowStep(actionId, steps, s, i))}
+            <div class="fl-row"><button @click=${() => this.commitFlow(actionId, [...steps, { type: 'Navigate', extra: {} }])}>+ Step</button></div>
+        </div>`
+    }
+
+    /** How many buttons on the page run this action id (layout + slots). */
+    private buttonsUsing(actionId: string): number {
+        let n = 0
+        const walk = (node: PageNode) => {
+            if (node.actionId === actionId) n++
+            for (const v of Object.values(node)) if (Array.isArray(v)) for (const c of v) if (c && typeof c === 'object' && (c as PageNode).type) walk(c as PageNode)
+        }
+        if (this.doc) walk(this.doc.layout)
+        return n
+    }
+
+    private addButtonFor(actionId: string) {
+        if (!this.doc) return
+        const label = actionId.replace(/^./, (c) => c.toUpperCase()).replace(/([a-z])([A-Z])/g, '$1 $2')
+        const button = { type: 'Button', label, actionId }
+        const root = this.doc.layout
+        // A definition with a buttons/toolbar slot gets it there; a layout gets it at the end.
+        if (root.type === 'Form') this.selectedPath = insertIntoSlot(this.doc, [], 'buttons', button)
+        else if (root.type === 'Listing') this.selectedPath = insertIntoSlot(this.doc, [], 'toolbar', button)
+        else if (isContainer(root)) this.selectedPath = insertIntoSlot(this.doc, [], 'content', button)
+        else return
+        this.commit()
+    }
+
+    private addRestAction = () => {
+        const id = window.prompt('Action id (a button runs it by this id):', 'save')?.trim()
+        if (!id || !this.doc) return
+        if (pageActions(this.doc).some((a) => a.id === id)) { this.flowActionId = id; return }
+        this.doc = upsertAction(this.doc, newRestAction(id, this.project?.sources?.[0]?.name))
+        this.flowActionId = id
+        this.notifyChanged()
+    }
+
+    private addFlowActionUi = () => {
+        const id = window.prompt('Action id (the button/menu actionId that runs this flow):', 'doThing')?.trim()
+        if (!id || !this.doc) return
+        this.doc = upsertAction(this.doc, { id, steps: [] })
+        this.flowActionId = id
+        this.notifyChanged()
+    }
+
+    private commitAction(a: PageAction) {
+        this.doc = upsertAction(this.doc!, a)
+        this.notifyChanged()
     }
 
     private renderFlowStep(actionId: string, steps: FlowStep[], s: FlowStep, i: number): TemplateResult {
@@ -909,16 +1238,8 @@ export class MateuVisualEditor extends LitElement {
                     : html`<span class="qs-hint">no params</span>`}
                 <button @click=${() => this.flowMove(actionId, steps, i, -1)} ?disabled=${i === 0}>↑</button>
                 <button @click=${() => this.flowMove(actionId, steps, i, 1)} ?disabled=${i === steps.length - 1}>↓</button>
-                <button class="del" @click=${() => this.commitFlow(actionId, steps.filter((_, j) => j !== i))}>✕</button>
+                <button class="danger" @click=${() => this.commitFlow(actionId, steps.filter((_, j) => j !== i))}>✕</button>
             </div>`
-    }
-
-    private flowAddAction = () => {
-        const id = window.prompt('Action id (the button/menu actionId that runs this flow):', 'doThing')?.trim()
-        if (!id) return
-        this.doc = addFlowAction(this.doc!, id)
-        this.flowActionId = id
-        this.notifyChanged()
     }
 
     private flowSet(actionId: string, steps: FlowStep[], i: number, key: 'type' | 'route' | 'event' | 'actionId', value: string) {
@@ -950,7 +1271,7 @@ export class MateuVisualEditor extends LitElement {
     private renderTriggers() {
         const triggers = this.doc?.triggers ?? []
         return html`
-            <div class="triggers-panel">
+            <div style="display:contents">
                 <div class="tp-head">Triggers — run an action on a page event (client-side)</div>
                 ${triggers.length === 0 ? html`<div class="tp-empty">No triggers. Add one to run an action on load, on an event, or on a field change.</div>` : ''}
                 ${triggers.map((t, i) => html`
@@ -964,7 +1285,7 @@ export class MateuVisualEditor extends LitElement {
                             : t.type === 'OnValueChangeTrigger'
                             ? html`<input placeholder="field (propertyName)" .value=${t.propertyName ?? ''} @change=${(e: Event) => this.setTrigger(i, 'propertyName', (e.target as HTMLInputElement).value)} />`
                             : ''}
-                        <button class="del" title="Remove" @click=${() => this.removeTrigger(i)}>✕</button>
+                        <button class="danger" title="Remove" @click=${() => this.removeTrigger(i)}>✕</button>
                     </div>`)}
                 <div><button @click=${this.addTrigger}>+ Trigger</button></div>
             </div>`
@@ -987,6 +1308,10 @@ export class MateuVisualEditor extends LitElement {
         this.doc = { ...this.doc!, triggers }
         this.notifyChanged()
     }
+}
+
+function parseSourcesFromText(text: string): unknown[] {
+    try { const v = parse(text); return Array.isArray(v?.sources) ? v.sources : [] } catch { return [] }
 }
 
 function triggerLabel(type: string): string {
