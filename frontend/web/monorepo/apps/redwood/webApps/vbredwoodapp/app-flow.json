@@ -284,10 +284,10 @@
       "type": "string",
       "defaultValue": ""
     },
-    "mateuActiveTab": {
-      "type": "string",
-      "defaultValue": "",
-      "description": "pesta\u00f1a activa del contenido (\u00e1tomo isTabs) \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
+    "mateuActiveTabs": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "pesta\u00f1a activa del contenido POR BARRA (\u00e1tomos isTabs, barras anidadas incluidas): {clave de barra: id de pesta\u00f1a} \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
     },
     "mateuPageHeaderTranslations": {
       "type": "any",

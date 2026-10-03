@@ -37,7 +37,7 @@ import {
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
@@ -621,6 +621,83 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.ok(steps.rows.length > 0)
   // la columna de estado llega con su clase de badge precomputada (CSP)
   assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
+})
+
+test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interior con la exterior', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children, active) => ({ type: 'ClientSide', metadata: { type: 'Tab', label, active: !!active }, children })
+  const tabLayout = (id, tabs) => ({ type: 'ClientSide', id, metadata: { type: 'TabLayout' }, children: tabs })
+  // exterior [General, Detalle]; dentro de Detalle otra barra [General, Notas] — mismo rótulo
+  // «General» en las dos y el mismo id "_tabs" que mandaba el backend antes del arreglo
+  const inner = tabLayout('_tabs', [tab('General', [text('interior general')]), tab('Notas', [text('interior notas')])])
+  const outer = tabLayout('_tabs', [tab('General', [text('exterior general')]), tab('Detalle', [inner])])
+  const ctx = { tree: outer, state: {} }
+  const atomsOf = (opts) => (islandContentOf(ctx, opts) || []).flatMap((b) => b.items)
+  const barsOf = (opts) => atomsOf(opts).filter((a) => a.isTabs)
+  const textsOf = (opts) => atomsOf(opts).filter((a) => a.isText).map((a) => a.text)
+
+  // de entrada: solo la barra exterior (la interior vive en una pestaña no activa), ids de siempre
+  let bars = barsOf({})
+  assert.equal(bars.length, 1)
+  assert.deepEqual(bars[0].tabs.map((t) => t.id), ['tab-0', 'tab-1'])
+  assert.equal(bars[0].barId, 'mateuContentTabs')
+  assert.equal(bars[0].stripKey, '')
+  assert.deepEqual(textsOf({}), ['exterior general'])
+
+  // clic en Detalle: aparece la barra interior con ids PROPIOS (prefijados por su pestaña)
+  let active = withActiveTab({}, 'tab-1')
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars.length, 2)
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.deepEqual(bars[1].tabs.map((t) => t.id), ['tab-1/tab-0', 'tab-1/tab-1'])
+  assert.equal(bars[1].stripKey, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-0')
+  assert.notEqual(bars[1].barId, bars[0].barId, 'dos oj-tab-bar con el mismo id')
+  assert.deepEqual(tabBarIdsOf(islandContentOf(ctx, { activeTabs: active })), [bars[0].barId, bars[1].barId])
+  const allIds = bars.flatMap((b) => b.tabs.map((t) => t.id))
+  assert.equal(new Set(allIds).size, allIds.length, 'ids de pestaña repetidos entre barras')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior general'])
+
+  // clic en la 2ª INTERIOR: la exterior se queda en Detalle (antes saltaba a su 2ª… o a la 1ª)
+  assert.equal(tabStripOf('tab-1/tab-1'), 'tab-1')
+  assert.equal(tabStripOf('tab-1'), '')
+  active = withActiveTab(active, 'tab-1/tab-1')
+  assert.deepEqual(active, { '': 'tab-1', 'tab-1': 'tab-1/tab-1' })
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // y volver a la exterior General no olvida la interior elegida
+  active = withActiveTab(active, 'tab-0')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['exterior general'])
+  active = withActiveTab(active, 'tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // compatibilidad: el activeTab de un solo id sigue mandando en la barra de primer nivel
+  assert.equal(barsOf({ activeTab: 'tab-1' })[0].selectedId, 'tab-1')
+
+  // dos barras HERMANAS de primer nivel tampoco comparten ids
+  const twins = { tree: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
+    tabLayout('a', [tab('X', [text('a-x')]), tab('Y', [text('a-y')])]),
+    tabLayout('b', [tab('X', [text('b-x')]), tab('Y', [text('b-y')])]),
+  ] }, state: {} }
+  const twinBars = (islandContentOf(twins, { activeTabs: withActiveTab({}, 'tabs-1/tab-1') }) || [])
+    .flatMap((b) => b.items).filter((a) => a.isTabs)
+  assert.deepEqual(twinBars.map((b) => b.selectedId), ['tab-0', 'tabs-1/tab-1'])
+})
+
+test('item overview con pestañas anidadas: solo las de la barra exterior en la lista', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children) => ({ type: 'ClientSide', metadata: { type: 'Tab', label }, children })
+  const card = { type: 'ClientSide', metadata: { type: 'Card', title: { text: 'Clave' } }, children: [text('dato clave')] }
+  const inner = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('I1', [text('i1')]), tab('I2', [text('i2')])] }
+  const outer = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('A', [text('a')]), tab('B', [inner])] }
+  const tree = { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [card, outer] }
+  const overview = itemOverviewOf({ tree, state: {} })
+  assert.deepEqual(overview.tabs.map((t) => t.label), ['A', 'B'])
+  // el contenido de la barra interior va DENTRO de su pestaña
+  assert.deepEqual(overview.tabs[1].texts, ['i1', 'i2'])
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
