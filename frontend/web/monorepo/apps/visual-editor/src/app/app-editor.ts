@@ -35,6 +35,8 @@ export class AppEditor extends LitElement {
         .adds { display: flex; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap; }
         .adds button { padding: 0.35rem 0.7rem; font: 12px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
         .adds button:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
+        .accent { display: flex; gap: 0.35rem; align-items: center; }
+        .accent input[type=color] { width: 2.4rem; padding: 0.1rem; height: 2rem; flex: none; }
         .note { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-top: 0.4rem; }
     `
 
@@ -69,6 +71,19 @@ export class AppEditor extends LitElement {
                 <div class="grid2">
                     <div>${this.text('Logo', 'logo', f)}</div>
                     <div>${this.text('Favicon', 'favicon', f)}</div>
+                </div>
+                <div class="grid2">
+                    <div>
+                        <label>Accent colour</label>
+                        <div class="accent">
+                            <input type="color" .value=${/^#[0-9a-f]{6}$/i.test(f.accentColor ?? '') ? f.accentColor! : '#000000'}
+                                title="The brand accent: a line under the menu band and the console name — not the primary colour"
+                                @change=${(e: Event) => this.setField('accentColor', (e.target as HTMLInputElement).value)} />
+                            <input .value=${f.accentColor ?? ''} placeholder="none (e.g. #D2232A)"
+                                @change=${(e: Event) => this.setField('accentColor', (e.target as HTMLInputElement).value.trim())} />
+                        </div>
+                    </div>
+                    <div>${this.select('Back link', 'backLink', f, ['', ...enumValues('BackLink')])}</div>
                 </div>
                 <label>Home route</label>
                 <input list="ve-routes" .value=${(f.homeRoute as string) ?? ''}
