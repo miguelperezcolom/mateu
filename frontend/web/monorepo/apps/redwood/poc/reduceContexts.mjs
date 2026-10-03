@@ -997,6 +997,18 @@ export function emptyStateOf(tree) {
 }
 
 /** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
+/** La ruta que abre una fila (`/customers/${row.id}`), o '' si la plantilla no se resuelve entera. */
+export function rowRouteOf(template, row) {
+  if (!template) return ''
+  let unresolved = false
+  const route = String(template).replace(/\$\{\s*row\.([A-Za-z0-9_]+)\s*\}/g, (all, field) => {
+    const value = row ? row[field] : undefined
+    if (value == null || value === '') { unresolved = true; return '' }
+    return encodeURIComponent(typeof value === 'object' ? (value.value ?? value.message ?? '') : String(value))
+  })
+  return unresolved || route.includes('${') ? '' : route
+}
+
 export function interpolate(text, state) {
   // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
   // llega como ${state['_position']})
@@ -1241,6 +1253,12 @@ export function islandContentOf(ctx, opts = {}) {
       // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
       const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
       if (!tabs.length) return
+      // una sola pestaña visible no es una elección: su contenido sin barra (conserva su clave de
+      // ruta, así nada se mueve cuando un flag vuelve a mostrar las otras)
+      if (tabs.length === 1) {
+        for (const child of tabs[0].children || []) visit(child, container)
+        return
+      }
       // cada barra con SU clave y SUS ids (la de primer nivel conserva 'tab-N'): con ids y
       // pestaña activa compartidos, pulsar la pestaña 2 de una barra interior cambiaba también
       // la exterior
@@ -1259,7 +1277,11 @@ export function islandContentOf(ctx, opts = {}) {
         selectedId: ids[current],
         tabs: tabs.map((tab, i) => ({
           id: ids[i],
-          label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
+          // el contador de sus @Subresource EAGER viaja con la pestaña («Subnets (12)»)
+          label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1))
+            + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
+          // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
+          routeKey: tab.metadata.routeKey || '',
         })),
       }, container)
       const outerScope = tabScope
@@ -1995,6 +2017,8 @@ export function listingOf(ctx, opts = {}) {
     paging: listingPagingOf(page, md.pageSize || 20, opts.lang),
     title: md.title || '',
     subtitle: md.subtitle || '',
+    // @RowRoute / Listing.rowRoute: una fila ABRE una ruta (el maestro de un registro) — ver rowRouteOf
+    rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
     emptyStateMessage: md.emptyStateMessage || 'No data.',
@@ -2321,6 +2345,9 @@ export function filtersOf(ctx) {
   const walk = (node) => {
     if (!node || typeof node !== 'object') return
     for (const f of ((node.metadata || {}).filters) || []) {
+      // un filtro readOnly es el ÁMBITO del listado (el :id del maestro que lo contiene, el
+      // contexto de un @Subresource): lo fija la ruta, no es una condición que el usuario quite
+      if (f.readOnly) continue
       found.push(filterDescriptorOf(f, ctx && ctx.data))
     }
     ;(node.children || []).forEach(walk)
@@ -2692,6 +2719,83 @@ export function onLoadTriggers(ctx) {
     .map((t) => t.actionId)
 }
 
+/**
+ * La URL de una pestaña con clave de ruta (@Tab(key)): la ruta de la página con la clave de la
+ * pestaña de su barra que ya nombre (si la hay) sustituida — /vcns/7/subnets → /vcns/7/gateways.
+ */
+export function tabRoutePath(pathname, keys, key) {
+  const trimmed = String(pathname || '').replace(/\/+$/, '')
+  const segments = trimmed.split('/')
+  const last = segments[segments.length - 1]
+  const base = keys.includes(last) ? segments.slice(0, -1).join('/') : trimmed
+  return base + '/' + key
+}
+
+// ── APPS ANIDADAS: el maestro de un registro con pestañas que son páginas (P1) ──────────────────
+//
+// Una ruta con HIJOS en routes.yaml (`customers/:customerId` → orders, addresses…) la pinta un
+// @App(TABS) cuyo contenido es la pestaña. En el wire llega como un ClientSide App de PRIMER nivel
+// — igual que el App del bootstrap —, y tratarlo como la shell la machacaba y dejaba el contenido
+// en blanco. Un App anidado es CONTENIDO: un NIVEL (título, pestañas, «← padre») sobre la
+// pantalla que ocupa su hueco. Hay una barra de pestañas por nivel.
+
+/** Si el fragmento es un App ANIDADO (no la shell, no un mediador), su nivel; si no, null. */
+export function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
+  const c = fragment && fragment.component
+  const md = c && c.metadata
+  if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App') return null
+  if (md.variant === 'MEDIATOR') return null
+  if (shellServerSideType && md.serverSideType === shellServerSideType) return null
+  // un App sin hueco que rellenar (su home es él mismo) es una shell, no un nivel
+  if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) return null
+  const path = (r) => String(r || '').split('?')[0].replace(/\/+$/, '')
+  const requested = path(requestedRoute || md.homeRoute)
+  const tabs = (md.menu || [])
+    .filter((o) => o && !o.separator && (o.route || o.path))
+    .map((o) => ({ id: o.route || o.path, label: o.label || '', route: o.route || o.path }))
+  // la pestaña activa: la de ruta más larga que sea prefijo de lo que se pidió (un registro
+  // dentro del crud de la pestaña sigue en esa pestaña)
+  const pick = (target) => {
+    let found = ''
+    for (const tab of tabs) {
+      const r = path(tab.route)
+      if ((target === r || target.startsWith(r + '/')) && r.length > path(found).length) found = tab.route
+    }
+    return found
+  }
+  // …o, con el maestro pedido a secas (/customers/3), la de su home: la pestaña por defecto
+  const selected = pick(requested) || pick(path(md.homeRoute))
+  return {
+    id: 'mateuAppTabs-' + path(md.route).replace(/[^a-zA-Z0-9]/g, '_'),
+    title: md.title || '',
+    route: md.route || '',
+    serverSideType: md.serverSideType,
+    tabs,
+    // una sola pestaña visible no es una elección: sin barra (la ruta se conserva)
+    showTabs: tabs.length > 1,
+    selected,
+    backRoute: md.backRoute || '',
+    backLabel: md.backLabel || '',
+    actions: (md.contextActions || []).map((a) => ({ id: a.actionId, label: a.label })),
+    home: { route: md.homeRoute, consumedRoute: md.homeConsumedRoute, serverSideType: md.homeServerSideType },
+  }
+}
+
+/**
+ * Separa del incremento los Apps ANIDADOS: devuelve el incremento sin ellos (para que el reducer
+ * no los tome por la shell) y sus niveles, en orden.
+ */
+export function splitNestedApps(increment, shellServerSideType, requestedRoute) {
+  const levels = []
+  const fragments = []
+  for (const fr of (increment && increment.fragments) || []) {
+    const level = appLevelOf(fr, shellServerSideType, requestedRoute)
+    if (level) levels.push(level)
+    else fragments.push(fr)
+  }
+  return { increment: { ...(increment || {}), fragments }, levels }
+}
+
 /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
 export function mediatorOf(ctx) {
   const tree = ctx?.tree
@@ -2889,7 +2993,12 @@ export function reduceContexts(reg, increment, opts = {}) {
     }
   }
 
-  return { contexts, stack, shell, effects }
+  // los niveles de app (P1) son de la PANTALLA, no de un incremento: una acción sobre la pestaña
+  // (la búsqueda OnLoad del listado) no los borra
+  const kept = {}
+  if (reg.appLevels) kept.appLevels = reg.appLevels
+  if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
+  return { ...kept, contexts, stack, shell, effects }
 }
 
 // ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──

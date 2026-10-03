@@ -14,6 +14,39 @@
      como chips en el propio campo (con su ✕) y el editor de cada uno en el popup del
      componente. Una fila propia fuera del componente quedaba debajo de la franja de color,
      que así parecía una ilustración suelta entre el buscador y la tabla. -->
+<!-- P1 · NIVELES DE APP: el maestro de un registro (@App(TABS) con hijos en routes.yaml) es
+     contenido, no la shell — su «← Padre» (@App(backLink = PARENT)) y UNA barra de
+     pestañas por nivel; cada pestaña es una página con URL propia (elegirla navega). Con una sola
+     pestaña visible no hay barra. Su título lo lleva la cabecera de la pantalla (mateuHostTitle). -->
+<oj-bind-for-each data="[[ $application.variables.mateuAppLevels ]]">
+  <template>
+    <div class="oj-sm-padding-6x-horizontal oj-sm-padding-4x-top mateu-app-level"
+      :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
+      :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
+      <oj-bind-if test="[[ !!$current.data.backRoute ]]">
+        <oj-button chroming="borderless" display="all" class="mateu-app-back"
+          :data-route="[[ $current.data.backRoute ]]"
+          on-oj-action="[[ $listeners.mateuAppBack ]]">
+          <span slot="startIcon" class="oj-ux-ico-arrow-left"></span>
+          <oj-bind-text value="[[ $current.data.backLabel ]]"></oj-bind-text>
+        </oj-button>
+      </oj-bind-if>
+      <oj-bind-if test="[[ $current.data.showTabs ]]">
+        <oj-tab-bar :id="[[ $current.data.id ]]" edge="top"
+          selection="[[ $current.data.selected ]]"
+          on-selection-changed="[[ $listeners.mateuAppTabChanged ]]">
+          <ul>
+            <oj-bind-for-each data="[[ $current.data.tabs ]]">
+              <template>
+                <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+              </template>
+            </oj-bind-for-each>
+          </ul>
+        </oj-tab-bar>
+      </oj-bind-if>
+    </div>
+  </template>
+</oj-bind-for-each>
 <oj-bind-if test="[[ $application.variables.mateuPageHeader.showListBand ]]">
   <div class="oj-bg-neutral-30 oj-sm-padding-10x-bottom">
     <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"

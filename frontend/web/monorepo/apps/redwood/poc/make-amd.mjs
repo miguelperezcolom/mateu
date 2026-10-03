@@ -60,6 +60,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     tabStripOf,
     withActiveTab,
     tabBarIdsOf,
+    // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
+    tabRoutePath,
+    appLevelOf,
+    rowRouteOf,
     listingOf,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,

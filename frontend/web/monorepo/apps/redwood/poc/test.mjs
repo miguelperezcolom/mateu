@@ -3577,6 +3577,110 @@ test('filtro @Lookup: con las opciones de su búsqueda es un desplegable y su ch
   assert.equal(smartFilterValueOf([descriptor], { integration: 'MRU01' }, '').filter((c) => c.filter === 'integration')[0].label, 'MRU01 · Riu Demo Mauricio')
 })
 
+// ── P1: maestro de un registro con pestañas que son páginas ─────────────────────────────────────
+import { rowRouteOf as p1RowRouteOf } from './reduceContexts.mjs'
+
+test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin resolver no navega', () => {
+  assert.equal(p1RowRouteOf('/customers/${row.id}', { id: '3' }), '/customers/3')
+  assert.equal(p1RowRouteOf('/customers/${row.id}', {}), '')
+  assert.equal(p1RowRouteOf('', { id: '3' }), '')
+})
+import { appLevelOf as p1AppLevelOf, splitNestedApps as p1SplitNestedApps, tabRoutePath as p1TabRoutePath, islandContentOf as p1IslandContentOf } from './reduceContexts.mjs'
+
+test('P1: la URL de una pestaña con clave sustituye la de su barra', () => {
+  assert.equal(p1TabRoutePath('/vcns/7', ['subnets', 'gateways'], 'gateways'), '/vcns/7/gateways')
+  assert.equal(p1TabRoutePath('/vcns/7/subnets', ['subnets', 'gateways'], 'gateways'), '/vcns/7/gateways')
+})
+
+const p1Tabs = (tabs) => ({ tree: { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: tabs.map((t) => ({
+  type: 'ClientSide', metadata: { type: 'Tab', ...t.md }, children: [{ type: 'ClientSide', metadata: { type: 'Text', text: t.text } }] })) }, state: {}, data: {} })
+
+test('P1: barra de contenido — claves de ruta y contador; con una sola pestaña, sin barra', () => {
+  const blocks = p1IslandContentOf(p1Tabs([
+    { md: { label: 'Subnets', routeKey: 'subnets', badge: '12' }, text: 'a' },
+    { md: { label: 'Gateways', routeKey: 'gateways' }, text: 'b' },
+  ]))
+  const bar = blocks.flatMap((b) => b.items).find((a) => a.isTabs)
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Subnets (12)', 'subnets'], ['Gateways', 'gateways']])
+  const single = p1IslandContentOf(p1Tabs([{ md: { label: 'Policies', routeKey: 'all-policies' }, text: 'only' }]))
+  assert.ok(!single.flatMap((b) => b.items).some((a) => a.isTabs), 'una sola pestaña: sin barra')
+})
+
+const p1Master = (extra = {}) => ({ targetComponentId: '', component: { type: 'ClientSide', metadata: {
+  type: 'App', variant: 'TABS', title: 'Customer 3', route: '/customers/3', serverSideType: 'demo.CustomerMaster',
+  homeRoute: '/customers/3/orders', homeConsumedRoute: '/customers/3', homeServerSideType: 'demo.CustomerOrders',
+  backRoute: '/customers', backLabel: 'Customers',
+  menu: [{ label: 'Orders', route: '/customers/3/orders' }, { label: 'Addresses', route: '/customers/3/addresses' }],
+  ...extra,
+} } })
+
+test('P1: el ámbito del listado (filtro readOnly) no se ofrece como filtro', () => {
+  const tree = { type: 'ClientSide', metadata: { type: 'Crud', filters: [
+    { fieldId: 'customerId', label: 'Customer id', dataType: 'string', stereotype: 'regular', readOnly: true },
+    { fieldId: 'status', label: 'Status', dataType: 'string', stereotype: 'regular' },
+  ] } }
+  assert.deepEqual(filtersOf({ tree, state: {}, data: {} }).map((f) => f.fieldId), ['status'])
+})
+
+test('P1: un App anidado (el maestro) es un NIVEL de contenido, no la shell', () => {
+  const level = p1AppLevelOf(p1Master(), 'demo.VbHome', '/customers/3/orders/3-2')
+  assert.equal(level.title, 'Customer 3')
+  assert.deepEqual(level.tabs.map((t) => t.label), ['Orders', 'Addresses'])
+  assert.equal(level.selected, '/customers/3/orders', 'un registro del crud de la pestaña sigue en esa pestaña')
+  assert.equal(level.showTabs, true)
+  assert.equal(level.backRoute, '/customers')
+  assert.equal(level.backLabel, 'Customers')
+  assert.deepEqual(level.home, { route: '/customers/3/orders', consumedRoute: '/customers/3', serverSideType: 'demo.CustomerOrders' })
+  // la shell, un mediador o un App que es su propia home NO son niveles
+  assert.equal(p1AppLevelOf(p1Master({ serverSideType: 'demo.VbHome' }), 'demo.VbHome'), null)
+  assert.equal(p1AppLevelOf(p1Master({ variant: 'MEDIATOR' }), 'demo.VbHome'), null)
+  assert.equal(p1AppLevelOf(p1Master({ homeServerSideType: 'demo.CustomerMaster' }), 'demo.VbHome'), null)
+})
+
+test('P1: el maestro pedido a secas marca su pestaña por defecto', () => {
+  assert.equal(p1AppLevelOf(p1Master(), 'demo.VbHome', '/customers/3').selected, '/customers/3/orders')
+})
+
+test('P1: con una sola pestaña visible no hay barra (la ruta se conserva)', () => {
+  const level = p1AppLevelOf(p1Master({ menu: [{ label: 'Orders', route: '/customers/3/orders' }] }), 'demo.VbHome')
+  assert.equal(level.showTabs, false)
+  assert.equal(level.tabs[0].route, '/customers/3/orders')
+})
+
+test('P1: splitNestedApps saca los Apps anidados del incremento y deja el resto', () => {
+  const other = { targetComponentId: '', component: { type: 'ServerSide', children: [] } }
+  const { increment, levels } = p1SplitNestedApps({ fragments: [p1Master(), other], commands: [] }, 'demo.VbHome', '/customers/3')
+  assert.equal(levels.length, 1)
+  assert.deepEqual(increment.fragments, [other])
+})
+
+atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no machaca la shell', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  const ordersMediator = { fragments: [{ targetComponentId: '', component: { type: 'ServerSide', serverSideType: 'demo.CustomerOrders', children: [
+    { type: 'ClientSide', metadata: { type: 'App', variant: 'MEDIATOR', homeRoute: '/customers/3/orders', homeConsumedRoute: '/customers/3/orders', homeServerSideType: 'demo.CustomerOrders', serverSideType: 'demo.CustomerOrders' } },
+  ] } }] }
+  const listing = { fragments: [{ targetComponentId: '', component: { type: 'ServerSide', children: [
+    { metadata: { type: 'Crud', title: null, searchable: true, columns: [{ metadata: { id: 'id', label: 'Id' } }] } },
+  ] } }] }
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push({ route: body.route, consumedRoute: body.consumedRoute, serverSideType: body.serverSideType })
+    if (!body.serverSideType) return { ok: true, json: async () => ({ fragments: [p1Master()] }) }
+    if (body.consumedRoute === '/customers/3') return { ok: true, json: async () => ordersMediator }
+    return { ok: true, json: async () => listing }
+  }
+  try {
+    const shell = { title: 'VB Demo', serverSideType: 'demo.VbHome', menu: [] }
+    const reg = await loadRouteInto('http://x', { contexts: {}, stack: [], shell }, '/customers/3', '', {})
+    assert.equal(reg.shell, shell, 'la shell sigue siendo la del bootstrap')
+    assert.deepEqual(reg.appLevels.map((l) => l.title), ['Customer 3'])
+    assert.equal(reg.loadedRoute, '/customers/3/orders', 'el maestro solo abre su pestaña por defecto')
+    assert.deepEqual(seen.map((s) => s.consumedRoute), ['', '/customers/3', '/customers/3/orders'])
+    assert.ok(listingOf(reg.contexts[HOST_ID]), 'la pestaña pinta su listado')
+  } finally { globalThis.fetch = original }
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 

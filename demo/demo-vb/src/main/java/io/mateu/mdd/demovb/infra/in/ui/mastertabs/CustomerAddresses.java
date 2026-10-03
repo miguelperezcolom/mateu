@@ -17,6 +17,12 @@ public class CustomerAddresses extends AutoEditableView<CustomerAddresses.Addres
   public static class Addresses {
     String billing = "Calle Mayor 1";
     String shipping = "Calle Mayor 1";
+
+    @Override
+    public String toString() {
+      // the page title: it repeats the tab's label, so the tab does not show it twice
+      return "Addresses";
+    }
   }
 
   String customerId;
