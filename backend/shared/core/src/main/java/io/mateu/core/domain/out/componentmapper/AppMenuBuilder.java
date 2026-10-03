@@ -34,6 +34,53 @@ class AppMenuBuilder {
     if (instance instanceof AppSupplier appSupplier) {
       return appSupplier.getApp(httpRequest).menu();
     }
+    var declared = declaredActionables(appRoute, instance, route, httpRequest);
+    if (declared.isEmpty()) {
+      return childRouteTabs(appRoute, instance, httpRequest);
+    }
+    return declared;
+  }
+
+  /**
+   * An app that declares no menu of its own but answers a registry route with {@code children}
+   * offers those children as its options — the tabs of a record master, each one a page with its
+   * own URL. The label is the child's {@code @Title}, else its route segment humanized.
+   */
+  static List<Actionable> childRouteTabs(
+      String appRoute, Object instance, HttpRequest httpRequest) {
+    return io.mateu.core.application.runaction.RouteChains.visibleChildrenOf(appRoute, httpRequest)
+        .stream()
+        .map(
+            child ->
+                (Actionable)
+                    new io.mateu.uidl.data.RouteLink(child.path(), labelOf(child))
+                        .withPath(child.relative())
+                        .withServerSideType(instance.getClass().getName())
+                        .withConsumedRoute(appRoute))
+        .toList();
+  }
+
+  private static String labelOf(io.mateu.core.application.runaction.RouteChains.ChildRoute child) {
+    var viewModel = child.entry().viewModel();
+    if (viewModel != null && !viewModel.isBlank()) {
+      try {
+        var type = Class.forName(viewModel, false, Thread.currentThread().getContextClassLoader());
+        var title = MetaAnnotations.find(type, io.mateu.uidl.annotations.Title.class);
+        if (title != null && !title.value().isBlank()) {
+          return title.value();
+        }
+      } catch (Throwable ignored) {
+        // fall back to the route segment
+      }
+    }
+    var relative = child.relative().replaceAll("^/+", "");
+    var last =
+        relative.contains("/") ? relative.substring(relative.lastIndexOf('/') + 1) : relative;
+    return io.mateu.uidl.Humanizer.toUpperCaseFirst(last.replace('-', ' '));
+  }
+
+  private static List<Actionable> declaredActionables(
+      String appRoute, Object instance, String route, HttpRequest httpRequest) {
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
                 .filter(

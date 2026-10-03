@@ -125,7 +125,9 @@ class UidlSchemaTest {
             "state",
             "appState",
             "data",
-            "appData");
+            "appData",
+            "defaultChild",
+            "show");
   }
 
   private static Path sourcesSchemaFile() {

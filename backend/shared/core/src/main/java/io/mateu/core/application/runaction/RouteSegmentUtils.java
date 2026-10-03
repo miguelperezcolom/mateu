@@ -53,7 +53,9 @@ final class RouteSegmentUtils {
       if (token.startsWith(":")) {
         var fieldName = token.substring(1);
         try {
-          if (!newData.containsKey(fieldName)) {
+          // A null in the client state is no value at all: the form of a child record carries its
+          // own (still empty) `customerId`, and that must not hide the one the route names.
+          if (newData.get(fieldName) == null) {
             newData.put(fieldName, slug);
           }
         } catch (Exception ignored) {
