@@ -20,7 +20,10 @@ public class SpringHttpRequest implements HttpRequest {
 
   @Override
   public List<String> getParameterValues(String name) {
-    return List.of(delegate.getParameterValues(name));
+    // getParameterValues answers null for an absent parameter, and List.of(null array) throws:
+    // answer an empty list, as the Micronaut, Quarkus and Helidon adapters do.
+    var values = delegate.getParameterValues(name);
+    return values != null ? List.of(values) : List.of();
   }
 
   @Override
