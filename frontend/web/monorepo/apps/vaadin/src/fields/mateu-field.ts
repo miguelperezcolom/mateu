@@ -8,6 +8,7 @@ import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
+import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import '@vaadin/horizontal-layout'
@@ -734,6 +735,8 @@ export class MateuField extends LitElement {
         if (this.field?.stereotype == 'badge') return this.renderBadgeField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'plainText') return this.renderPlainTextField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'bulletedList') return this.renderBulletedListField(fieldId, value, label, labelText)
+        // a multi-valued @Searchable (List / Set / array of ids): chips + «Add» — read-only too
+        if (isSearchableMulti(this.field)) return this.renderSearchableMultiField(fieldId, value, label)
         if (readOnlyAsPlainText(this.field, this.inFoldout)) return this.renderFoldoutReadOnlyField(value, label)
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) return this.renderReadOnlyField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'file') return this.renderFileField(fieldId, value, label, labelText)
@@ -947,6 +950,67 @@ export class MateuField extends LitElement {
                 duration: 2000,
             }))
             .catch(() => {})
+    }
+
+    /**
+     * A multi-valued @Searchable field: one chip per id (labelled from data `<field>-labels`), a
+     * remove button on each and an «Add» button that opens the selector (`codesearch-<field>`) —
+     * whose pick answers the merged ids. Read-only: the chips alone.
+     */
+    private renderSearchableMultiField(fieldId: string, value: any, label: any): TemplateResult {
+        if (!this.field) return html``
+        const readOnly = !!this.field.readOnly
+        const baseId = searchableBaseFieldId(fieldId)
+        const ids = searchableIds(this.state && baseId in this.state ? this.state[baseId] : value)
+        const chips = searchableChips(ids, this.data?.[baseId + '-labels'])
+        const fallbackText = this.data?.[baseId + '-label']
+        const remove = (id: unknown) => {
+            this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
+                detail: {
+                    value: removeSearchableId(ids, id),
+                    fieldId: baseId
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+        const search = () => {
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: 'codesearch-' + baseId,
+                    parameters: {}
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+        return html`
+            <vaadin-custom-field
+                    id="${this.field.fieldId}"
+                    label="${label}"
+                    required="${this.field.required || nothing}"
+                    .helperText="${this.helperText()}"
+                    data-colspan="${this.field.colspan}"
+            >
+                <div class="searchable-multi" role="list">
+                    ${chips.map(chip => html`<span class="searchable-chip" role="listitem" theme="badge pill">
+                        <span>${chip.label}</span>
+                        ${readOnly ? nothing : html`<vaadin-button
+                                theme="icon tertiary-inline small"
+                                aria-label="Remove ${chip.label}"
+                                title="Remove"
+                                @click="${() => remove(chip.id)}"
+                        ><vaadin-icon icon="vaadin:close-small"></vaadin-icon></vaadin-button>`}
+                    </span>`)}
+                    ${readOnly && chips.length == 0 && fallbackText ? html`<span>${fallbackText}</span>` : nothing}
+                    ${readOnly ? nothing : html`<vaadin-button
+                            theme="small tertiary"
+                            class="searchable-add"
+                            @click="${search}"
+                    ><vaadin-icon icon="lumo:search" slot="prefix"></vaadin-icon>Add</vaadin-button>`}
+                </div>
+            </vaadin-custom-field>
+        `
     }
 
     private renderFileField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
@@ -2299,6 +2363,31 @@ export class MateuField extends LitElement {
     }
 
     static styles = css`
+        /* multi-valued @Searchable: the ids as chips, then «Add» */
+        .searchable-multi {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--lumo-space-xs);
+            min-height: var(--lumo-size-m);
+        }
+        .searchable-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px var(--lumo-space-s);
+            border-radius: var(--lumo-border-radius-l, 1em);
+            background: var(--lumo-contrast-10pct);
+            color: var(--lumo-body-text-color);
+            font-size: var(--lumo-font-size-s);
+            line-height: var(--lumo-line-height-s);
+        }
+        .searchable-chip vaadin-button {
+            margin: 0;
+            min-width: 0;
+            padding: 0;
+            height: auto;
+        }
         ${badge}
 
         /* Fields fill the whole column width by default. Date, checkbox, numeric and money inputs
