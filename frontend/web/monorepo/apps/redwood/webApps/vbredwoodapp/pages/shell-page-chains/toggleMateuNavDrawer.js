@@ -1,4 +1,4 @@
-/* Abre/cierra el navigator-drawer izquierdo (variante HAMBURGUER_MENU). */
+/* Abre/cierra el navigator-drawer izquierdo (variantes HAMBURGUER_MENU y HAMBURGER_SECTIONS). */
 
 define([
   'vb/action/actionChain',
@@ -25,7 +25,7 @@ define([
         // oj-bind-for-each llegan después → refresh para que los decore
         try {
           await Actions.callComponentMethod(context, {
-            selector: '#mateuNavList',
+            selector: $application.variables.mateuMenuSections ? '#mateuSectionList' : '#mateuNavList',
             method: 'refresh',
           });
         } catch (ignored) {

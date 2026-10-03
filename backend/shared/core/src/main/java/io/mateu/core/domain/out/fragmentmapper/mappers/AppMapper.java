@@ -13,6 +13,7 @@ import io.mateu.uidl.Capabilities;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.fluent.AppShell;
+import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -54,7 +55,7 @@ public final class AppMapper {
             .logo(app.logo())
             .route(app.route())
             .rootRoute(appRoute)
-            .variant(AppVariantDto.valueOf(app.variant().name()))
+            .variant(toDto(app.variant()))
             .homeRoute(getHomeRoute(app, route, appRouteForMenu, httpRequest, selectedOption))
             .homeConsumedRoute(
                 getHomeConsumedRoute(app, route, appRouteForMenu, httpRequest, selectedOption))
@@ -110,6 +111,16 @@ public final class AppMapper {
         app.style(),
         app.cssClasses(),
         null);
+  }
+
+  /**
+   * The variant on the wire. {@code HAMBURGER_MENU} is the right spelling of {@code
+   * HAMBURGUER_MENU} and travels under the old name, the one every renderer already knows.
+   */
+  static AppVariantDto toDto(AppVariant variant) {
+    if (variant == null) return null;
+    if (variant == AppVariant.HAMBURGER_MENU) return AppVariantDto.HAMBURGUER_MENU;
+    return AppVariantDto.valueOf(variant.name());
   }
 
   private static List<FabDto> getAppFabs(AppShell app) {

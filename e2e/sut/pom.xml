@@ -22,6 +22,8 @@
         <module>modules/federation-shell-ui</module>
         <module>apps/fed-remote-app</module>
         <module>apps/fed-shell-app</module>
+        <module>modules/federation-sections-ui</module>
+        <module>apps/fed-sections-app</module>
     </modules>
 
 </project>

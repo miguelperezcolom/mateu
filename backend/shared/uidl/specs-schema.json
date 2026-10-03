@@ -377,7 +377,7 @@
     },
     "AppVariant" : {
       "type" : "string",
-      "enum" : [ "HAMBURGUER_MENU", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
+      "enum" : [ "HAMBURGUER_MENU", "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
     },
     "AutoSaveTrigger" : {
       "type" : "object",

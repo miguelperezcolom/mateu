@@ -64,6 +64,16 @@ export default defineConfig({
       testMatch: '**/federation/**/*.spec.ts',
     },
     {
+      // The same federation drawn as HAMBURGER_SECTIONS (fed-sections-app :8087, P9 delivery 2):
+      // the hamburger holds the sections, the band under the header the entries of the one on screen.
+      name: 'fed-sections-app',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8087',
+      },
+      testMatch: '**/federation-sections/**/*.spec.ts',
+    },
+    {
       // Renderer-agnostic smoke suite (Phase 0). Runs against the VAADIN renderer served by
       // mvc-app1 (:8080). The same specs are meant to be pointed at other renderers by adding a
       // project with a different baseURL — see design/renderer-e2e-strategy.md.

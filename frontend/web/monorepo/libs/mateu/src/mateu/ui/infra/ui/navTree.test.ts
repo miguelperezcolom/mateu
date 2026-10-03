@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+    activeSection,
     activeTopIndex,
     coverLength,
     isActiveFor,
@@ -8,6 +9,7 @@ import {
     mergeRemoteMenus,
     mountPrefix,
     remoteMounts,
+    sectionHome,
     unavailableHint,
     withoutHidden,
     withPrefixesFromHome,
@@ -143,6 +145,67 @@ describe('the navigation tree', () => {
         it('says why in the UI\'s language', () => {
             expect(unavailableHint('<b>ERP</b>', 'es')).toBe('ERP no está disponible ahora. Se volverá a intentar.')
             expect(unavailableHint('ERP', 'en')).toBe('ERP is not available right now. It will be retried.')
+        })
+    })
+
+    describe('HAMBURGER_SECTIONS: sections and their homes', () => {
+        const menu = [
+            leaf('Inicio', '/inicio'),
+            mount('IA', '/_ai', { routePrefix: '/ai', shellLabel: true }),
+            group('Usuarios', [
+                leaf('Oculta', '/users/hidden', { visible: false }),
+                { separator: true, label: '', route: '', submenus: [] } as any,
+                group('Permisos', [leaf('Roles', '/users/roles'), leaf('Grants', '/users/grants')]),
+                leaf('Users', '/users/users'),
+            ], '/users'),
+            mount('Caído', '/_down', { routePrefix: '/down', unavailable: true }),
+        ]
+
+        it('the section on screen comes from the route, a remote one by its prefix before it answers', () => {
+            expect(activeSection(menu, '/users/roles/7')?.label).toBe('Usuarios')
+            expect(activeSection(menu, '/ai/agents')?.label).toBe('IA')
+            expect(activeSection(menu, '/inicio')?.label).toBe('Inicio')
+            expect(activeSection(menu, '/')).toBeUndefined()
+            expect(activeSection(undefined, '/ai')).toBeUndefined()
+        })
+
+        it('a section\'s home is its first entry that can be opened, depth first', () => {
+            // a group: hidden entries and separators are skipped, a nested group is entered
+            expect(sectionHome(menu[2])?.route).toBe('/users/roles')
+            // a top-level page is its own home
+            expect(sectionHome(menu[0])?.route).toBe('/inicio')
+        })
+
+        it('a remote section has no home until it answers, nor one that did not', () => {
+            expect(sectionHome(menu[1])).toBeUndefined()
+            expect(sectionHome(menu[3])).toBeUndefined()
+            expect(sectionHome(group('Vacía', [leaf('Oculta', '/x', { visible: false })]))).toBeUndefined()
+        })
+    })
+
+    describe('HAMBURGER_SECTIONS: a remote mounted at the top is one section', () => {
+        const remote = mount('Remote', 'http://r', { path: '/remote', routePrefix: '/remote', shellLabel: true })
+        const nested = mount('Forms', '/_forms', { path: '/forms', routePrefix: '/forms' })
+        const menu = [remote, group('Admin', [nested])]
+        const pages = { app: { menu: [leaf('Page', '/remote/page'), leaf('Things', '/remote/things')], route: '/remote' } }
+
+        it('several entries become the entries of a section named as the shell named it', () => {
+            const merged = mergeRemoteMenus(menu, new Map([[remote, pages]]), 'en', { sections: true })
+            expect(merged[0].label).toBe('Remote')
+            expect(merged[0].submenus.map((o: any) => o.label)).toEqual(['Page', 'Things'])
+            expect(merged[0].submenus[0].baseUrl).toBe('http://r')
+            // and the route says which section it is
+            expect(activeSection(merged, '/remote/things/t2')?.label).toBe('Remote')
+            expect(sectionHome(merged[0])?.route).toBe('/remote/page')
+        })
+
+        it('one group stays the section; deeper mounts and the other variants paste as before', () => {
+            const oneGroup = { app: { menu: [group('Svc', [leaf('A', '/svc/a')])] } }
+            expect(mergeRemoteMenus(menu, new Map([[remote, oneGroup]]), 'en', { sections: true })[0].label).toBe('Remote')
+            expect(mergeRemoteMenus(menu, new Map([[remote, oneGroup]]), 'en', { sections: true })[0].submenus[0].label).toBe('A')
+            const inside = mergeRemoteMenus(menu, new Map([[nested, pages]]), 'en', { sections: true })
+            expect(inside[1].submenus.map((o: any) => o.label)).toEqual(['Page', 'Things'])
+            expect(mergeRemoteMenus(menu, new Map([[remote, pages]]), 'en').map(o => o.label)).toEqual(['Page', 'Things', 'Admin'])
         })
     })
 })

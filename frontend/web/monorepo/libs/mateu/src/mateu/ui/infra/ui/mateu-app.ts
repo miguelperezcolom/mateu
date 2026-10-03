@@ -18,7 +18,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
-import { activeTopIndex, isActiveFor, isMount } from "@infra/ui/navTree.ts";
+import { activeSection, activeTopIndex, isActiveFor, isMount, sectionHome } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -124,6 +124,11 @@ export class MateuApp extends ComponentElement {
     @state()
     railOpenOption: MenuOption | null = null
 
+    // HAMBURGER_SECTIONS: whether the hamburger's panel of sections is open. It opens over the
+    // content and closes once a section is chosen, like Opera's.
+    @state()
+    sectionsOpen = false
+
     @state()
     commandPaletteOpen = false
 
@@ -195,6 +200,8 @@ export class MateuApp extends ComponentElement {
         super.connectedCallback()
         this.isDark = document.documentElement.getAttribute('theme') === 'dark'
         this._commandPaletteHandler = (e: KeyboardEvent) => {
+            // HAMBURGER_SECTIONS: Escape closes the hamburger's sections, wherever the focus is
+            if (e.key === 'Escape' && this.sectionsOpen) this.sectionsOpen = false
             // When the command center is on it owns ⌘K and the full-screen palette; stand down.
             if (((this.component as ClientSideComponent)?.metadata as App)?.commandCenterEnabled) return
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -701,6 +708,40 @@ export class MateuApp extends ComponentElement {
         return selectedOption ? menu.indexOf(selectedOption) : NaN
     }
 
+    /**
+     * HAMBURGER_SECTIONS: the section on screen — the top-level option holding the current route,
+     * by the same rule (and the same fallback to the server's flag) as the active tab.
+     *
+     * The address bar first: it is the shell's route. `selectedRoute` is not always — on a deep link
+     * into a remote it is the route WITHIN the remote (/things for /remote/things), which no
+     * section's prefix covers until the remote's own entries have arrived.
+     */
+    activeSectionOf = (menu: MenuOption[] | null | undefined): MenuOption | undefined => {
+        if (!menu) return undefined
+        const byRoute = activeSection(menu, window.location.pathname)
+            ?? (this.selectedRoute ? activeSection(menu, this.selectedRoute) : undefined)
+        if (byRoute) return byRoute
+        const index = this.getSelectedIndex(menu)
+        return Number.isNaN(index) ? undefined : menu[index]
+    }
+
+    /**
+     * HAMBURGER_SECTIONS: a section chosen in the hamburger goes to the section's home (its first
+     * entry, see navTree.sectionHome), as in Opera, and the panel closes. A remote section that did
+     * not answer has nothing to open: it is asked again instead. One that has not answered YET stays
+     * where it is (the panel too), and its entries arrive in a moment.
+     */
+    selectSection = (section: MenuOption) => {
+        if (section.unavailable) {
+            retryUnavailableMenus()
+            return
+        }
+        const home = sectionHome(section)
+        if (!home) return
+        this.sectionsOpen = false
+        this.selectRoute(home.consumedRoute, home.route, home.actionId, home.baseUrl, home.serverSideType, home.uriPrefix, home.rules)
+    }
+
     renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
@@ -971,7 +1012,8 @@ export class MateuApp extends ComponentElement {
            selected tab, with no fill. The ☰ button of a narrow viewport is header text too. */
         .mateu-app-band2 vaadin-menu-bar-button { color: var(--lumo-body-text-color, #1a1a1a); font-weight: 500; }
         .mateu-app-band2 vaadin-menu-bar-button:hover { color: var(--lumo-header-text-color, #000); }
-        .mateu-app-band2 .menu-band vaadin-menu-bar-button.mateu-nav-active {
+        .mateu-app-band2 .menu-band vaadin-menu-bar-button.mateu-nav-active,
+        .mateu-app-band2 .sections-band vaadin-menu-bar-button.mateu-nav-active {
             color: var(--lumo-primary-text-color, #1676f3);
             border-radius: var(--lumo-border-radius-m, 6px) var(--lumo-border-radius-m, 6px) 0 0;
             box-shadow: inset 0 -2px 0 0 var(--lumo-primary-color, #1676f3);
@@ -989,6 +1031,32 @@ export class MateuApp extends ComponentElement {
             .mateu-content-gutter { --mateu-content-gutter: 16px; --mateu-shell-gutter: 16px; }
             .mateu-app-band1, .mateu-app-band2 { --mateu-content-gutter: 16px; }
         }
+
+        /* HAMBURGER_SECTIONS (appRenderer), Opera Cloud's navigation. Band 1 = hamburger, brand and
+           widgets; band 2 = the section on screen (its name, as MENU_ON_TOP's band title) and its
+           entries. Unlike MENU_ON_TOP's band the entries stay on a narrow viewport: the menu bar
+           moves what does not fit into its own "···". The hamburger opens the sections over the
+           content, under band 1, with a scrim that closes it. */
+        .mateu-app-band2 > .sections-band { flex: 1 1 0; min-width: 0; }
+        .mateu-sections-toggle { display: inline-flex; align-items: center; align-self: center; color: inherit; margin-inline: calc(-1 * var(--lumo-space-s, .5rem)) var(--lumo-space-s, .5rem); }
+        .mateu-sections-scrim { position: absolute; inset: 3.5rem 0 0 0; z-index: 199; background: var(--lumo-shade-20pct, rgba(0,0,0,.2)); }
+        .mateu-sections-panel {
+            position: absolute; top: 3.5rem; bottom: 0; left: 0; z-index: 200;
+            width: 18rem; max-width: calc(100% - 3rem); overflow-y: auto; box-sizing: border-box;
+            display: flex; flex-direction: column; padding: var(--lumo-space-s, .5rem) 0;
+            background: var(--lumo-base-color, #fff);
+            border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            box-shadow: var(--lumo-box-shadow-m, 0 4px 12px rgba(0,0,0,.15));
+        }
+        .mateu-section-link {
+            display: flex; align-items: center; gap: var(--lumo-space-s, .5rem);
+            border: none; background: transparent; font: inherit; text-align: start; cursor: pointer;
+            padding: .65rem var(--mateu-content-gutter, 24px); color: var(--lumo-body-text-color, #1a1a1a);
+            border-inline-start: 3px solid transparent;
+        }
+        .mateu-section-link:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
+        .mateu-section-link:focus-visible { outline: 2px solid var(--lumo-primary-color-50pct, rgba(22,118,243,.5)); outline-offset: -2px; }
+        .mateu-section-link--active { color: var(--lumo-primary-text-color, #1676f3); font-weight: 600; border-inline-start-color: var(--lumo-primary-color, #1676f3); }
 
         /* top nav (menu-on-top) */
         .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }

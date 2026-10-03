@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { activeSectionOf } from './navTree.mjs'
+import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -565,6 +565,60 @@ test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título, sin acento); TABS con 
 test('reduceContexts: el @App(accentColor) no llega a la shell de Redwood', () => {
   const { shell } = reduceContexts(empty(), { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', variant: 'MENU_ON_TOP', title: 'X', menu: [], accentColor: '#D2232A' }, children: [] } }] })
   assert.equal(shell.accentColor, undefined)
+})
+
+test('shellNavOf: HAMBURGER_SECTIONS — la hamburguesa lleva las secciones, cada una con su home', () => {
+  const menu = [
+    { label: 'Inicio', route: '/inicio' },
+    { label: 'IA', path: '/ia', submenus: [
+      { label: 'Agentes', route: '/catalogues/agents', baseUrl: '/_ai' },
+      { label: 'Oculta', route: '/catalogues/hidden', baseUrl: '/_ai', visible: false },
+      { label: 'Modelos', route: '/catalogues/llms', baseUrl: '/_ai' },
+    ] },
+    { label: 'Usuarios', path: '/users', submenus: [
+      // un grupo en el segundo nivel: el tercer nivel, en desplegable
+      { label: 'Permisos', path: '/perm', submenus: [{ label: 'Roles', route: '/users/roles', baseUrl: '/_users' }] },
+      { label: 'Users', route: '/users/users', baseUrl: '/_users' },
+    ] },
+    // un pod que no contestó: deshabilitado, sin home
+    { label: 'Audit', path: '/audit', remote: true, unavailable: true, description: 'Audit no está disponible ahora.' },
+  ]
+  const nav = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', title: 'Control plane', menu } })
+  assert.equal(nav.mode, 'sections')
+  assert.deepEqual(nav.sections.map((s) => s.label), ['Inicio', 'IA', 'Usuarios', 'Audit'])
+  // el id de la lista es la HOME: elegir la sección navega a su primera pantalla (como Opera)
+  assert.deepEqual(nav.sections.map((s) => s.id), ['/inicio', '/catalogues/agents', '/users/roles', nav.menuTree[3].id])
+  assert.ok(nav.sections.every((s) => !s.hasChildren), 'la hamburguesa sólo lleva el primer nivel')
+  assert.equal(nav.sections[3].disabled, true)
+  assert.equal(nav.sections[3].hint, 'Audit no está disponible ahora.')
+  // las demás variantes no cambian; HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
+  assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).mode, 'subheader')
+})
+
+test('HAMBURGER_SECTIONS: la sección en pantalla y su segundo nivel salen de la ruta', () => {
+  const nav = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', menu: [
+    { label: 'IA', path: '/ia', submenus: [
+      { label: 'Agentes', route: '/catalogues/agents', baseUrl: '/_ai' },
+      { label: 'Modelos', route: '/catalogues/llms', baseUrl: '/_ai' },
+    ] },
+    { label: 'Usuarios', path: '/users', submenus: [
+      { label: 'Permisos', path: '/perm', submenus: [{ label: 'Roles', route: '/users/roles', baseUrl: '/_users' }] },
+      { label: 'Users', route: '/users/users', baseUrl: '/_users' },
+    ] },
+  ] } })
+  const tree = nav.menuTree
+  assert.equal(sectionOf(tree, '/catalogues/llms/7').label, 'IA', 'el detalle de un registro sigue en su sección')
+  assert.equal(sectionOf(tree, '/users/roles').label, 'Usuarios')
+  assert.equal(sectionOf(tree, '/'), null)
+  // el segundo nivel de la sección: el ítem marcado en la banda — un grupo, por lo que contiene
+  const items = sectionOf(tree, '/users/roles').children
+  assert.deepEqual(items.map((n) => n.label), ['Permisos', 'Users'])
+  assert.equal(activeSectionOf(items, '/users/roles'), items[0].id)
+  assert.equal(activeSectionOf(items, '/users/users'), items[1].id)
+  assert.equal(sectionHomeOf(tree[1]), '/users/roles')
+  assert.equal(sectionHomeOf({ id: '/x', disabled: true, children: [] }), null)
 })
 
 test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la contiene a cualquier profundidad', () => {
@@ -1406,6 +1460,23 @@ atest('expandRemoteMenus pide su menú a cada pod y lo pone donde estaba la opci
     assert.equal(asked.length, 1)
     assert.ok(asked[0].startsWith('/_workflow/mateu/v3/sync/'), asked[0])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Contenidos'])
+  } finally { globalThis.fetch = original }
+})
+
+atest('expandRemoteMenus con HAMBURGER_SECTIONS: un pod montado arriba es UNA sección', async () => {
+  // con MENU_ON_TOP sus dos pantallas se pegan en el primer nivel; como secciones, cada una
+  // sería una sección sin segundo nivel
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, json: async () => remoteApp([
+    { label: 'Page', route: '/remote/page' }, { label: 'Things', route: '/remote/things' },
+  ], '/remote') })
+  try {
+    const mount = () => [{ remote: true, baseUrl: '/_remote', route: '', path: '/remote', label: 'Remote', shellLabel: true }]
+    const sections = await expandRemoteMenus(mount(), { sections: true })
+    assert.deepEqual(sections.map((o) => o.label), ['Remote'])
+    assert.deepEqual(sections[0].submenus.map((o) => o.label), ['Page', 'Things'])
+    const flat = await expandRemoteMenus(mount())
+    assert.deepEqual(flat.map((o) => o.label), ['Page', 'Things'])
   } finally { globalThis.fetch = original }
 })
 

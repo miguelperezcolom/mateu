@@ -14,6 +14,8 @@ import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
 import { navigateToRoute } from "@infra/ui/rowRoute.ts";
 import { dirtyGuard } from "@infra/ui/dirtyGuard.ts";
 import { isLazyRoute } from "@infra/ui/mateu-when-visible.ts";
+import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import { isMount } from "@infra/ui/navTree.ts";
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -264,6 +266,46 @@ export const contentUxId = (container: MateuApp, metadata: App): string => {
     return 'ux_' + identity.replace(/[^a-zA-Z0-9]/g, '_')
 }
 
+/**
+ * HAMBURGER_SECTIONS' panel: the sections, the menu's first level and nothing below it. It opens
+ * over the content from the hamburger (band 1) and closes on choosing one, on the scrim or on
+ * Escape. The section on screen is marked; one whose remote did not answer is dimmed and says why,
+ * and choosing it asks the remote again (selectSection).
+ */
+const renderSectionsPanel = (menu: MenuOption[], active: MenuOption | undefined, container: MateuApp) => container.sectionsOpen ? html`
+    <div class="mateu-sections-scrim" @click="${() => { container.sectionsOpen = false }}"></div>
+    <nav class="mateu-sections-panel" id="mateu-sections-panel" aria-label="${chromeText('sections')}"
+         @keydown="${(e: KeyboardEvent) => { if (e.key === 'Escape') container.sectionsOpen = false }}">
+        ${menu.filter(section => !section.separator && section.visible !== false).map(section => html`
+            <button class="mateu-section-link ${section === active ? 'mateu-section-link--active' : ''} ${section.unavailable ? 'mateu-nav-unavailable' : ''}"
+                    aria-current="${section === active ? 'page' : nothing}"
+                    title="${section.unavailable ? (section.description ?? nothing) : nothing}"
+                    @click="${() => container.selectSection(section)}">
+                ${section.icon ? icon(section.icon, 'width: var(--lumo-icon-size-s, 1.125rem); height: var(--lumo-icon-size-s, 1.125rem); flex-shrink: 0;') : nothing}
+                <span>${section.label}</span>
+            </button>`)}
+    </nav>` : nothing
+
+/**
+ * HAMBURGER_SECTIONS' band 2: the section on screen — its name, which goes to its home — and its
+ * entries (the menu's second level) as the menu bar, a group of them as a dropdown (the third
+ * level). A remote section that has not answered yet shows its name alone: the shell knows it from
+ * the route's prefix before the remote says what is in it. With no section on screen (the home)
+ * the band stays, empty, so the page does not move under the reader.
+ */
+const renderSectionBand = (active: MenuOption | undefined, container: MateuApp) => {
+    if (!active) return nothing
+    const onSelect = fireSelect(container, container.itemSelected)
+    const items = isMount(active) ? [] : container.mapItems(active.submenus ?? [], '')
+    return html`
+        <a href="javascript: void(0);" class="mateu-app-band-title mateu-section-title"
+           @click="${() => container.selectSection(active)}">${active.label}</a>
+        ${items.length > 0
+            ? componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top sections-band')
+                ?? renderNeutralNav(items, onSelect, 'menu-on-top sections-band')
+            : nothing}`
+}
+
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
 
     // The variant is the app's own. A shell fronting remote menus used to be forced to MENU_ON_TOP
@@ -385,7 +427,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         `)}
                         
 `:nothing}
-            ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
+            ${metadata.variant == AppVariant.HAMBURGUER_MENU || metadata.variant == AppVariant.HAMBURGER_MENU?html`
                 <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
                     <header class="app-navbar">
                         <button class="drawer-toggle" title="Menu"
@@ -494,6 +536,62 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 </div>
 
             `:nothing}
+
+            ${metadata.variant == AppVariant.HAMBURGER_SECTIONS?(() => {
+                // Opera Cloud's navigation: band 1 = the hamburger, the brand and the widgets; the
+                // hamburger opens the SECTIONS (the menu's first level); band 2 = the section on
+                // screen and its entries. The section comes from the route and the same tree as the
+                // breadcrumbs, so it is known on a cold load before a remote section has answered.
+                const active = container.activeSectionOf(metadata.menu)
+                return html`
+                <div class="m-vl mateu-sections-shell" style="width: 100%; height: 100vh; overflow: hidden; position: relative;">
+                    <div class="m-hl mateu-app-band1"
+                            style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
+                            @navigation-requested="${container.updateRoute}">
+                    <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
+                        <button class="drawer-toggle mateu-sections-toggle" title="${chromeText('sections')}" aria-label="${chromeText('sections')}"
+                                aria-expanded="${container.sectionsOpen ? 'true' : 'false'}" aria-controls="mateu-sections-panel"
+                                @click="${() => { container.sectionsOpen = !container.sectionsOpen }}">
+                            ${icon('vaadin:menu')}
+                        </button>
+                        <a href="javascript: void(0);" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        ${renderBrand(metadata, false)}
+                        </a>
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
+                            ${renderHeaderWidgets(metadata, container)}
+                        </div>
+                    </div>
+                    </div>
+                    <nav class="mateu-app-band2 mateu-section-band" aria-label="${active?.label || metadata.title || 'Menu'}"
+                            @navigation-requested="${container.updateRoute}">
+                        ${renderSectionBand(active, container)}
+                    </nav>
+                    ${renderSectionsPanel(metadata.menu ?? [], active, container)}
+                    <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
+                        <div class="m-md">
+                            <div class="m-scroll mateu-content-gutter" style="height: 100%;">
+                                <mateu-api-caller>
+                                    <mateu-ux
+                                            data-content-view
+                                            route="${chooseRoute(_state, container, metadata)}"
+                                            id="${cuid}"
+                                            baseUrl="${chooseBaseUrl(container, metadata)}"
+                                            consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                            serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                            uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                            style="width: 100%;"
+                                            .appState="${appState}"
+                                            .appData="${appData}"
+                                            instant="${container.instant}"
+                                            @navigation-requested="${container.updateRoute}"
+                                    ></mateu-ux>
+                                </mateu-api-caller>
+                            </div>
+                            ${renderChat(metadata, container, appState, appData)}
+                        </div>
+                    </div>
+                </div>
+            `})():nothing}
 
             ${metadata.variant == AppVariant.TILES?html`
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">

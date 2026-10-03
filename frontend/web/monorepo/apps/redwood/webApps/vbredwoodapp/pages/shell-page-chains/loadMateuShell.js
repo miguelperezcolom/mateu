@@ -98,7 +98,8 @@ define([
       // buscarlos antes de construir el nav, o la barra sale con rótulos y nada debajo.
       // Un pod que no conteste deja su rótulo y no impide arrancar.
       if (reg.shell && reg.shell.menu) {
-        reg.shell.menu = await bridge.expandRemoteMenus(reg.shell.menu);
+        // HAMBURGER_SECTIONS: cada pod montado en el primer nivel es una sección (asSection)
+        reg.shell.menu = await bridge.expandRemoteMenus(reg.shell.menu, { sections: reg.shell.variant === 'HAMBURGER_SECTIONS' });
         // El chat necesita el menú YA expandido (las pantallas de cada pod, con su descriptor de
         // listado) para el menuContext del agente. mateuRegistry se asignó antes de expandir y VB
         // guarda una copia, así que el menú expandido no llega a la variable: se deja aquí.
@@ -111,7 +112,10 @@ define([
       $application.variables.mateuMenuTabs = nav.mode === 'tabs';
       $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
       // MENU_ON_TOP: la banda 2 bajo la cabecera — el título de la consola y su menú
-      $application.variables.mateuMenuSubheader = nav.mode === 'subheader';
+      // HAMBURGER_SECTIONS: la misma banda, con el segundo nivel de la sección en pantalla
+      $application.variables.mateuMenuSubheader = nav.mode === 'subheader' || nav.mode === 'sections';
+      $application.variables.mateuMenuSections = nav.mode === 'sections';
+      $application.variables.mateuSectionList = nav.sections;
       $application.variables.mateuShellTitle = nav.title;
       $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
       $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // abierto de inicio
