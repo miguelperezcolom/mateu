@@ -59,6 +59,12 @@ public class VbHome implements AppActionsSupplier {
 
   @Menu GestionMenu gestion;
 
+  // «Record master with page tabs»: the listing (a row opens /customers/:customerId, an App(TABS)
+  // whose tabs are its routes.yaml children) and the one-page variant (@Tab(key) + @Subresource)
+  @Menu String customers = "/customers";
+
+  @Menu String customerOverview = "/customer-overview/3";
+
   @Override
   public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
     return List.of(
