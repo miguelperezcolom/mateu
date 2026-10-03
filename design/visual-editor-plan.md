@@ -307,7 +307,7 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   Tests: vitest 123 → 148 (slots, yamlPreserve, history, rename, pageActions, sources, routes), tsc,
   `vite build`, `e2e/visual-editor-probe.mjs` 15/15. Evaluation report (Spanish):
   `ec-demo1-ux/visual-editor/evaluation.md`.
-  **Still open:** YAML `AppShell` cannot author `accentColor`/`backLink` (see the follow-up PR), the editor
+  **Still open:** YAML `AppShell` cannot author `accentColor`/`backLink` (fixed in the stacked PR #679), the editor
   cannot create a new file (a route's missing layout is flagged, not created), structured editors have no
   YAML view, the canvas toolbar overflows into "…" in a narrow IDE pane exactly as the app does, dark IDE
   themes get a light editor, and the IntelliJ GUI live-run.
