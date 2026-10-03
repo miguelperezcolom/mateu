@@ -24,7 +24,7 @@
          vuln is not shipped to consumers (they supply their own micronaut runtime) — the alert is
          low-risk here. Clearing it properly needs a COORDINATED micronaut platform bump, out of
          scope for GA; kept at 4.9.9 so the build stays green. -->
-    <micronaut.core.version>4.9.9</micronaut.core.version>
+    <micronaut.core.version>4.10.17</micronaut.core.version>
     <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
   </properties>
 
