@@ -27,7 +27,7 @@ import java.util.Map;
  * orchestrator's own route and server-side type, so the embedded view loads, routes and toggles
  * (e.g. view ↔ edit) on its own without affecting the host page or sibling sections.
  */
-final class EmbeddedOrchestratorFieldBuilder {
+public final class EmbeddedOrchestratorFieldBuilder {
 
   /**
    * Query-string marker appended to an embedded orchestrator's home route so the orchestrator can
@@ -43,6 +43,55 @@ final class EmbeddedOrchestratorFieldBuilder {
    * view blends into a host tab/section without duplicate framing.
    */
   static final String INLINE_MARKER = "_inline";
+
+  /**
+   * Marker on a {@code @Subresource} island: the listing does not draw its own title — the host
+   * draws it (with the help line) above the island, or leaves it out when it only repeats the tab.
+   */
+  static final String HIDE_TITLE_MARKER = "_hideTitle";
+
+  /** Marker carrying the names a {@code @Subresource}'s parent fixes (its scope). */
+  static final String SCOPE_MARKER = "_scope";
+
+  /** The scope names an island's route carries ({@code _scope=a,b}), or empty. */
+  public static java.util.Set<String> scopeOf(HttpRequest httpRequest) {
+    var rq = httpRequest == null ? null : httpRequest.runActionRq();
+    var names = new java.util.LinkedHashSet<String>();
+    if (rq == null) {
+      return names;
+    }
+    for (var route : new String[] {rq.route(), rq.serverSideComponentRoute()}) {
+      if (route == null || !route.contains(SCOPE_MARKER + "=")) {
+        continue;
+      }
+      var value = route.substring(route.indexOf(SCOPE_MARKER + "=") + SCOPE_MARKER.length() + 1);
+      value = value.split("[&?]")[0];
+      for (var name : value.split(",")) {
+        if (!name.isBlank()) {
+          names.add(name.trim());
+        }
+      }
+    }
+    return names;
+  }
+
+  /** Marker on a lazy ({@code @Subresource(load = ON_OPEN)}) island: loaded when shown. */
+  static final String LAZY_MARKER = "_lazy";
+
+  /** Whether the current request is an island whose listing must not draw its own title. */
+  public static boolean isHideTitleRequest(HttpRequest httpRequest) {
+    var rq = httpRequest == null ? null : httpRequest.runActionRq();
+    if (rq == null) {
+      return false;
+    }
+    if (rq.componentState() != null
+        && "true".equals(String.valueOf(rq.componentState().get(HIDE_TITLE_MARKER)))) {
+      return true;
+    }
+    return (rq.route() != null && rq.route().contains(HIDE_TITLE_MARKER))
+        || (rq.serverSideComponentRoute() != null
+            && rq.serverSideComponentRoute().contains(HIDE_TITLE_MARKER));
+  }
 
   static boolean isOrchestrator(Class<?> type) {
     return MultiView.class.isAssignableFrom(type);
@@ -80,7 +129,32 @@ final class EmbeddedOrchestratorFieldBuilder {
       HttpRequest httpRequest,
       int maxColumns) {
     var type = field.getType();
+    var subresource = Subresources.isSubresource(field) ? Subresources.of(field) : null;
     var route = routeOf(type);
+    if (route.isEmpty()) {
+      route = registryRouteOf(type);
+    }
+    if (route.isEmpty()) {
+      if (subresource == null) {
+        // The island would load route "" — the app's ROOT — and render the whole page inside
+        // itself, which renders the island again: an endless reload with nothing on screen to say
+        // why. Fail where the cause is.
+        throw new IllegalStateException(
+            field.getDeclaringClass().getSimpleName()
+                + "."
+                + field.getName()
+                + " embeds "
+                + type.getSimpleName()
+                + ", an orchestrator with no route of its own, so its island would load the app's"
+                + " root route and render the page inside itself forever. Give "
+                + type.getSimpleName()
+                + " a route (@UI(\"/…\") or a routes.yaml entry), or declare the field"
+                + " @Subresource.");
+      }
+      // a sub-resource needs no route of its own: its island is addressed by its type, and the
+      // route is only the namespace its internal views (list / record / new) live under
+      route = "/_subresource/" + field.getDeclaringClass().getSimpleName() + "/" + field.getName();
+    }
     var baseUrl = (String) httpRequest.getAttribute("baseUrl");
     if (baseUrl == null) {
       baseUrl = "";
@@ -94,6 +168,21 @@ final class EmbeddedOrchestratorFieldBuilder {
     var markedRoute = route + (route.contains("?") ? "&" : "?") + EMBEDDED_MARKER + "=1";
     if (inline) {
       markedRoute += "&" + INLINE_MARKER + "=1";
+    }
+    var subresourceContext =
+        subresource != null
+            ? Subresources.context(field, hostInstance, httpRequest)
+            : Map.<String, Object>of();
+    if (subresource != null) {
+      markedRoute += "&" + HIDE_TITLE_MARKER + "=1";
+      if (!subresourceContext.isEmpty()) {
+        // the names the parent fixes: the island's listing shows them as its scope, never as
+        // filters the user can remove (or that leak into the page's query string)
+        markedRoute += "&" + SCOPE_MARKER + "=" + String.join(",", subresourceContext.keySet());
+      }
+      if (subresource.load() == io.mateu.uidl.annotations.Subresource.Load.ON_OPEN) {
+        markedRoute += "&" + LAZY_MARKER + "=1";
+      }
     }
     var app =
         AppShell.builder()
@@ -111,6 +200,11 @@ final class EmbeddedOrchestratorFieldBuilder {
     initialData.put(EMBEDDED_MARKER, true);
     if (inline) {
       initialData.put(INLINE_MARKER, true);
+    }
+    if (subresource != null) {
+      initialData.put(HIDE_TITLE_MARKER, true);
+      // the parent, as context (route params, same-named host fields, explicit bindings)
+      initialData.putAll(subresourceContext);
     }
     // Seed the host field VALUE's simple state into the island's initialData (which becomes its
     // componentState), so an orchestrator the host code configured (e.g. `documento.setStayId(id)`)
@@ -133,10 +227,106 @@ final class EmbeddedOrchestratorFieldBuilder {
             .build();
     return CustomField.builder()
         .label("")
-        .content(wrapper)
+        .content(
+            subresource != null
+                ? withHeader(field, subresource, hostInstance, wrapper, httpRequest)
+                : wrapper)
         .colspan(maxColumns)
         .style("width: 100%;")
         .build();
+  }
+
+  /**
+   * A sub-resource's header — its title and help line — above its island. The title is left out
+   * when it would only repeat what is already on screen: the tab's label, the page's title, or a
+   * tab that holds this listing alone (the tab IS its label).
+   */
+  private static Component withHeader(
+      Field field,
+      io.mateu.uidl.annotations.Subresource subresource,
+      Object hostInstance,
+      Component island,
+      HttpRequest httpRequest) {
+    var title = Subresources.title(field);
+    var current =
+        httpRequest == null
+            ? null
+            : httpRequest.getAttribute(Subresources.CURRENT_TAB)
+                    instanceof Subresources.CurrentTab t
+                ? t
+                : null;
+    var showTitle =
+        subresource.showTitle()
+            && !(current != null
+                && (title.equalsIgnoreCase(current.label())
+                    || (current.subresources() == 1 && current.fields() == 1)))
+            && !title.equalsIgnoreCase(pageTitleOf(hostInstance));
+    var content = new java.util.ArrayList<Component>();
+    if (showTitle) {
+      content.add(
+          io.mateu.uidl.data.Text.builder()
+              .text(title)
+              .container(io.mateu.uidl.data.TextContainer.h3)
+              .variants(List.of())
+              .noMargins(true)
+              .style("")
+              .cssClasses("mateu-subresource-title")
+              .attributes(Map.of())
+              .build());
+    }
+    if (!subresource.help().isBlank()) {
+      content.add(
+          io.mateu.uidl.data.Text.builder()
+              .text(subresource.help())
+              .container(io.mateu.uidl.data.TextContainer.p)
+              .variants(List.of())
+              .noMargins(true)
+              .style("color: var(--lumo-secondary-text-color, #666); margin: 0 0 .5rem 0;")
+              .cssClasses("mateu-subresource-help")
+              .attributes(Map.of())
+              .build());
+    }
+    if (content.isEmpty()) {
+      return island;
+    }
+    content.add(island);
+    return io.mateu.uidl.data.VerticalLayout.builder()
+        .content(content)
+        .style("width: 100%; gap: .25rem;")
+        .cssClasses("mateu-subresource")
+        .build();
+  }
+
+  private static String pageTitleOf(Object hostInstance) {
+    if (hostInstance == null || hostInstance instanceof Class) {
+      return "";
+    }
+    try {
+      var title = ReflectionPageMapper.getTitle(hostInstance);
+      return title == null ? "" : title;
+    } catch (Throwable t) {
+      return "";
+    }
+  }
+
+  /** The route an authored routes.yaml entry gives the type (one with no path parameters). */
+  private static String registryRouteOf(Class<?> type) {
+    try {
+      var registry =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(
+              io.mateu.core.application.runaction.RouteRegistry.class);
+      if (registry == null) {
+        return "";
+      }
+      return registry.authored().routes().stream()
+          .filter(entry -> type.getName().equals(entry.viewModel()))
+          .filter(entry -> entry.pathParams().isEmpty())
+          .map(entry -> "/" + entry.route().replaceAll("^/+", ""))
+          .findFirst()
+          .orElse("");
+    } catch (Throwable t) {
+      return "";
+    }
   }
 
   /**

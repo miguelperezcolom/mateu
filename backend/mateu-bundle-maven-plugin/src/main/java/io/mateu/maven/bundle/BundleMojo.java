@@ -84,6 +84,24 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.failOnSkipped", defaultValue = "false")
   private boolean failOnSkipped;
 
+  /**
+   * Declare the bundle STATIC: it must run with no backend at all. Runs the static-safety report
+   * (see {@code StaticSafetyCheck}) and FAILS the build when any bundled route still needs a server
+   * — a Java action method, a {@code CrudStore}, rows from {@code Listing.search}, a proxied
+   * source, {@code ${secret.…}} in a direct source, {@code @EyesOnly}, or a route that could not be
+   * bundled. Off by default: a hybrid deploy (bundle + backend for the rest) is legitimate.
+   */
+  @Parameter(property = "mateu.bundle.static", defaultValue = "false")
+  private boolean staticOnly;
+
+  /**
+   * SPECS MODE: ship each definition-only route the browser can expand as its RAW definition, and
+   * do not pre-render it — the client-side expander turns it into the wire at runtime. Edit a
+   * definition in {@code manifest.json}, refresh, see it.
+   */
+  @Parameter(property = "mateu.bundle.specsOnly", defaultValue = "false")
+  private boolean specsOnly;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     var appLoader = buildAppLoader();
@@ -126,7 +144,7 @@ public class BundleMojo extends AbstractMojo {
         var manifest =
             (routes != null && !routes.isEmpty())
                 ? exporter.export(baseUrl, toExport)
-                : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes);
+                : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes, specsOnly);
 
         BundleWriter.write(
             outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle);
@@ -146,6 +164,31 @@ public class BundleMojo extends AbstractMojo {
                     + outputDirectory);
         if (failOnEmpty && ok == 0) {
           throw new MojoFailureException("mateu-bundle: no routes rendered");
+        }
+        if (!manifest.definitions().isEmpty() && specsOnly) {
+          getLog()
+              .info(
+                  "mateu-bundle: specs mode — "
+                      + manifest.definitions().size()
+                      + " raw definition(s) shipped for the browser to expand");
+        }
+        if (staticOnly) {
+          var violations = exporter.staticSafety(manifest, appLoader);
+          if (!violations.isEmpty()) {
+            var detail =
+                violations.stream()
+                    .map(v -> "  " + v)
+                    .collect(java.util.stream.Collectors.joining("\n"));
+            throw new MojoFailureException(
+                "mateu-bundle: the bundle is declared static (staticOnly) but "
+                    + violations.size()
+                    + " thing(s) still need a server:\n"
+                    + detail
+                    + "\nMake each one client-side (a restAction / @RestAction, a rowsSource /"
+                    + " @RestListing, a direct source with no secret), or drop staticOnly to"
+                    + " deploy the bundle in front of a backend.");
+          }
+          getLog().info("mateu-bundle: static-safety report clean — no route needs a server");
         }
         var skipped = manifest.entries().stream().filter(e -> !e.ok()).toList();
         if (failOnSkipped && !skipped.isEmpty()) {

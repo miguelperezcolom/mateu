@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+#
+# «Record master with page tabs» (demo/demo-vb, package infra.in.ui.mastertabs).
+#
+# A record master is a route with CHILDREN: /customers/:customerId renders CustomerMaster (an
+# App(TABS)) and each child is one of its tabs — a page with its own URL, which receives
+# :customerId, loads when opened, has its own actions and paging, and survives a reload, a pasted
+# link and back/forward. Reached on its own, the master opens its defaultChild.
+type: Routes
+routes:
+  - route: customers
+    viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.Customers
+  - route: customers/:customerId
+    viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerMaster
+    defaultChild: orders
+    children:
+      - route: orders
+        viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerOrders
+      - route: addresses
+        viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerAddresses
+      - route: history
+        viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerHistory
+      # behind a feature flag (FeatureFlags bean): not in the tab bar while `audit` is off, but its
+      # URL still answers
+      - route: audit
+        viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerAudit
+        show: audit
+  # the other shape: one page whose in-page tabs are URLs (@Tab(key)) and whose sub-listings are
+  # @Subresource fields
+  - route: customer-overview/:customerId
+    viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerOverview

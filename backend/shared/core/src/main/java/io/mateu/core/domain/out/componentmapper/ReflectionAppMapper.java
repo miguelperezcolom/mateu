@@ -22,7 +22,7 @@ public class ReflectionAppMapper {
     var selectedOption = getSelectedOption(appRoute, route, menu, httpRequest);
     return AppShell.builder()
         .route(appRoute)
-        .homeRoute(getHomeRoute(instance, selectedOption, httpRequest))
+        .homeRoute(getHomeRoute(instance, selectedOption, httpRequest, appRoute))
         .homeBaseUrl(getHomeBaseUrl(baseUrl, selectedOption))
         .homeServerSideType(getHomeServerSideType(instance, selectedOption))
         .homeConsumedRoute(getHomeConsumedRoute(appRoute, selectedOption))

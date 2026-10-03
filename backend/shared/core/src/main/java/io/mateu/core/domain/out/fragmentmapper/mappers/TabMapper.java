@@ -22,6 +22,8 @@ public class TabMapper {
             .label(tab.label())
             .active(tab.active())
             .shortcut(tab.shortcut() == null || tab.shortcut().isEmpty() ? null : tab.shortcut())
+            .routeKey(tab.routeKey() == null || tab.routeKey().isBlank() ? null : tab.routeKey())
+            .badge(tab.badge())
             .build();
     return new ClientSideComponentDto(
         metadataDto,

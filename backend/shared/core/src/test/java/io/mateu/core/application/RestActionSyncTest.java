@@ -39,11 +39,44 @@ class RestActionSyncTest {
     public void lookup() {}
   }
 
+  /** A confirmed delete by catalogue reference — the static VCN slice's detail page. */
+  @SuppressWarnings("unused")
+  @UI("/restaction-confirmed")
+  @Title("Confirmed rest action")
+  public static class ConfirmedDelete {
+
+    String id = "7";
+
+    @io.mateu.uidl.annotations.Toolbar
+    @io.mateu.uidl.annotations.Action(
+        confirmationRequired = true,
+        confirmationTitle = "Delete VCN",
+        confirmationText = "Delete")
+    @RestAction(source = "vcn-delete", successMessage = "Deleted", successRoute = "vcns")
+    public void delete() {}
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(RestActionForm.class);
+    mateu = TestMateu.withUis(RestActionForm.class, ConfirmedDelete.class);
+  }
+
+  @Test
+  void anActionMethodKeepsBothItsBehaviourAndItsRestCall() {
+    // @Action (how it behaves: confirmation) + @RestAction (what it calls) on one method: the
+    // descriptor must survive, or the confirmed call is dispatched to a server instead
+    var component =
+        (ServerSideComponentDto) mateu.sync("/restaction-confirmed").fragments().get(0).component();
+    var delete =
+        component.actions().stream().filter(a -> "delete".equals(a.id())).findFirst().orElseThrow();
+    assertThat(delete.confirmationRequired()).isTrue();
+    assertThat(delete.restAction()).isNotNull();
+    assertThat(delete.restAction().successRoute()).isEqualTo("vcns");
+    assertThat(delete.restAction().source().ref()).isEqualTo("vcn-delete");
+    // by reference, the annotation's default POST must not override the entry's DELETE
+    assertThat(delete.restAction().source().method()).isBlank();
   }
 
   @AfterAll

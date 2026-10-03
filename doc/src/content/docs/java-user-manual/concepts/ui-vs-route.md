@@ -66,8 +66,8 @@ routes:
 ```
 
 This screen does not publish a new UI. It defines a route inside the existing `/admin` UI. To nest
-a route under another one, use `children` (each child gets `RouteEntry.parent`); the runtime does
-not walk that parent chain yet (plan P1 in `design/maui-parity-plan.md`).
+a route under another one, use `children` (each child gets `RouteEntry.parent`, and the parent
+renders the child in its slot; see the [route registry](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)).
 
 ---
 

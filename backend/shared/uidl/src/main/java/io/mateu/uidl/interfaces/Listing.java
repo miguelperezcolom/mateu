@@ -6,11 +6,8 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.SearchRequest;
-import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
-import io.mateu.uidl.fluent.CustomEvent;
 import io.mateu.uidl.fluent.GridLayout;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +89,12 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
     }
     if (this instanceof Selector<?>) {
       actions.add(Action.builder().id("action-on-row-select").build());
+      // the «Add selected» toolbar button of a multi-valued @Searchable field's selector
+      actions.add(
+          Action.builder()
+              .id("action-on-row-" + SearchableSelection.ADD_SELECTED_ACTION)
+              .rowsSelectedRequired(true)
+              .build());
     }
     return actions;
   }
@@ -118,33 +121,17 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
    */
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
     if ("select".equals(methodName) && this instanceof Selector<?> selector) {
-      var selectedItem = selector.selected(httpRequest);
-      return List.of(
-          UICommand.builder()
-              .type(UICommandType.DispatchEvent)
-              .data(
-                  CustomEvent.builder()
-                      .eventName("value-changed")
-                      .detail(
-                          Map.of(
-                              "fieldId", selector.fieldId(),
-                              "value", selectedItem.id()))
-                      .build())
-              .build(),
-          UICommand.builder()
-              .type(UICommandType.DispatchEvent)
-              .data(
-                  CustomEvent.builder()
-                      .eventName("data-changed")
-                      .detail(
-                          Map.of(
-                              "key", selector.fieldId() + "-label", "value", selectedItem.label()))
-                      .build())
-              .build(),
-          UICommand.builder()
-              .type(UICommandType.DispatchEvent)
-              .data(CustomEvent.builder().eventName("close-modal-requested").build())
-              .build());
+      // a multi-valued field ADDS the clicked row to the ids it holds (SearchableSelection)
+      return SearchableSelection.commands(
+          selector,
+          java.util.Collections.singletonList(selector.selected(httpRequest)),
+          httpRequest);
+    }
+    if (SearchableSelection.ADD_SELECTED_ACTION.equals(methodName)
+        && this instanceof Selector<?> selector) {
+      // «Add selected» of a multi-valued field: every checked row
+      return SearchableSelection.commands(
+          selector, selector.selectedItems(httpRequest), httpRequest);
     }
     return null;
   }

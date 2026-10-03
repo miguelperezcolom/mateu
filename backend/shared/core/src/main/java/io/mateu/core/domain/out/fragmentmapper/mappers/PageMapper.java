@@ -64,11 +64,18 @@ public class PageMapper {
             .pageTitle(page.pageTitle())
             .level(page.level())
             .favicon(page.favicon())
-            .title(page.title())
+            .title(
+                io.mateu.core.application.runaction.RouteChains.dedupeTitle(
+                    page.title(), httpRequest))
             .subtitle(page.subtitle())
             .overline(page.overline())
             .titlePlaceholder(page.titlePlaceholder())
-            .noBreadcrumbs(page.noBreadcrumbs())
+            // inside a record master that offers "← Parent" instead (@App(backLink = PARENT)),
+            // its tabs' pages carry no trail of their own
+            .noBreadcrumbs(
+                io.mateu.core.application.runaction.RouteChains.insideBackLinkApp(httpRequest)
+                    ? Boolean.TRUE
+                    : page.noBreadcrumbs())
             .breadcrumbs(
                 page.breadcrumbs() != null
                     ? page.breadcrumbs().stream()

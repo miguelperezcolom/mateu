@@ -64,7 +64,8 @@ public abstract class MultiView
       if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {
 
-        if (!serverSideTypeName().equals(httpRequest.runActionRq().serverSideType())) {
+        if (!serverSideTypeName().equals(httpRequest.runActionRq().serverSideType())
+            || isFirstLoadByType(httpRequest)) {
           var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
           if (componentRoute == null) {
             componentRoute = "";
@@ -107,6 +108,26 @@ public abstract class MultiView
           .build();
     }
     return this;
+  }
+
+  /**
+   * A route LOAD that names this orchestrator's type but carries none of its state: the client
+   * learnt the type from an app's home (a record master's default tab is typed with the tab's
+   * class) and never saw this orchestrator's mediator. It has to get the mediator, exactly as if
+   * the type were unknown — treating it as an internal route made the listing read its own mount
+   * ({@code /orders}) as a record id and answer "No value present".
+   */
+  private static boolean isFirstLoadByType(HttpRequest httpRequest) {
+    var state = httpRequest.runActionRq().componentState();
+    if (state != null && state.containsKey("_componentRoute")) {
+      return false;
+    }
+    var mount =
+        httpRequest.getAttribute(
+            io.mateu.core.application.runaction.ActionInstanceCreator.KNOWN_TYPE_MOUNT);
+    return mount instanceof String path
+        && io.mateu.core.application.runaction.ActionInstanceCreator.longerThanConsumed(
+            path, httpRequest.runActionRq().consumedRoute());
   }
 
   /**
@@ -311,6 +332,20 @@ public abstract class MultiView
       return "";
     }
     var consumed = httpRequest.runActionRq().consumedRoute();
+    // Where the route says this view is mounted (the server resolved it from the request route):
+    // a crud in a record master's tab sits at /customers/7/orders while the browser's consumed
+    // route is the master's (/customers/7). Pushing a path relative to the mount made the browser
+    // compose it with the MASTER's route and the record landed at /customers/7/<id>.
+    var known =
+        httpRequest.getAttribute(
+            io.mateu.core.application.runaction.ActionInstanceCreator.KNOWN_TYPE_MOUNT);
+    if (known instanceof String knownMount
+        && !knownMount.isBlank()
+        && withoutQuery(requested).startsWith(knownMount)) {
+      var mountPath = knownMount.replaceAll("/+$", "");
+      var consumedPath = consumed == null ? "" : withoutQuery(consumed).replaceAll("/+$", "");
+      return mountPath.equals(consumedPath) ? "" : mountPath;
+    }
     // Its app's root: the browser prepends the base url itself.
     if (consumed != null && !consumed.isBlank() && requested.startsWith(consumed)) {
       return "";

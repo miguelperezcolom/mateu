@@ -1,0 +1,65 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "f8d33e0a-f05c-40e8-a58e-f4c081fb1c49",
+      "type": "SetWindowTitle",
+      "data": "[UICommand[type=DispatchEvent, data=CustomEvent[eventName=value-changed, detail={value=[3, 1, 5], fieldId=hotelIds}]], UICommand[type=DispatchEvent, data=CustomEvent[eventName=data-changed, detail={key=hotelIds-labels, value={3=Hotel 3, 1=Hotel 1, 5=Hotel 5}}]], UICommand[type=DispatchEvent, data=CustomEvent[eventName=data-changed, detail={key=hotelIds-label, value=Hotel 3, Hotel 1, Hotel 5}]], UICommand[type=DispatchEvent, data=CustomEvent[eventName=close-modal-requested, detail=null]]]"
+    },
+    {
+      "targetComponentId": "f8d33e0a-f05c-40e8-a58e-f4c081fb1c49",
+      "type": "DispatchEvent",
+      "data": {
+        "eventName": "value-changed",
+        "detail": {
+          "value": [
+            "3",
+            "1",
+            "5"
+          ],
+          "fieldId": "hotelIds"
+        }
+      }
+    },
+    {
+      "targetComponentId": "f8d33e0a-f05c-40e8-a58e-f4c081fb1c49",
+      "type": "DispatchEvent",
+      "data": {
+        "eventName": "data-changed",
+        "detail": {
+          "key": "hotelIds-labels",
+          "value": {
+            "1": "Hotel 1",
+            "3": "Hotel 3",
+            "5": "Hotel 5"
+          }
+        }
+      }
+    },
+    {
+      "targetComponentId": "f8d33e0a-f05c-40e8-a58e-f4c081fb1c49",
+      "type": "DispatchEvent",
+      "data": {
+        "eventName": "data-changed",
+        "detail": {
+          "key": "hotelIds-label",
+          "value": "Hotel 3, Hotel 1, Hotel 5"
+        }
+      }
+    },
+    {
+      "targetComponentId": "f8d33e0a-f05c-40e8-a58e-f4c081fb1c49",
+      "type": "DispatchEvent",
+      "data": {
+        "eventName": "close-modal-requested",
+        "detail": null
+      }
+    }
+  ],
+  "messages": [],
+  "fragments": [],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}

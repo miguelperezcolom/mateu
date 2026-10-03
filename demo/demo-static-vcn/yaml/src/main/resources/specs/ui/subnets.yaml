@@ -1,0 +1,19 @@
+# The subnets of one VCN (route vcns/:id/subnets): a second listing scoped by the PARENT id — the
+# `vcn-subnets` source's url interpolates ${state.id}, which the path seeds.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Subnets
+pageSize: 10
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to the VCN
+    actionable:
+      type: RouteLink
+      route: vcns/${state.id}
+rowsSource:
+  ref: vcn-subnets
+columns:
+  - {type: GridColumn, id: displayName, label: Name, identifier: true}
+  - {type: GridColumn, id: lifecycleState, label: State, dataType: status}
+  - {type: GridColumn, id: cidrBlock, label: CIDR block}

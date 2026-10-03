@@ -178,7 +178,7 @@ base path already fail at startup).
 
 ### Nested routes (a sub-route in a parent's slot)
 
-Some screens are a *shell with a slot* — a master-detail with tabs, or a mediator app — where a
+Some screens are a *shell with a slot* — a record master with tabs, or a mediator app — where a
 sub-route does not replace the page but renders **inside** the parent. Author that with `children`:
 each child's `route` is relative to its parent, and it fills the parent's slot instead of taking
 over the screen.
@@ -196,14 +196,105 @@ over the screen.
 ```
 
 On load, the loader flattens the tree to absolute routes, and each child carries its parent's route
-as `parent` (this replaces the removed `@Route(parentRoute = …)`). Children nest
-to any depth.
+as `parent`. Children nest to any depth. At runtime a request is resolved as a **route chain**: the
+entry answering the path, preceded by its `parent`s. The outermost level not yet on screen renders
+first — when it is an app (`@App`, a `@Menu`, an `AppSupplier`) it draws its chrome and renders the
+rest of the path in its slot — so a reload, a pasted link or back/forward to a child lands on the
+parent with the child inside it, never on the bare child.
 
-:::note[Not walked at runtime yet]
-The `parent` link is recorded on every flattened entry, but the resolvers do not follow the parent
-chain yet: a child rendering in its parent's slot (the parent consuming its prefix) is planned work —
-P1 in `design/maui-parity-plan.md`. Until then, do not rely on `parent` alone to nest a screen.
-:::
+| Key | Meaning |
+|---|---|
+| `defaultChild` | On a route with `children`: the child (relative, e.g. `orders`) that opens when the parent is reached on its own. Default: the first (visible) child. |
+| `show` | On a child: a feature flag (`audit`, or `!legacy`) that must be on for it to be offered as a tab. Answered by `FeatureFlags` beans; unknown flags are on. A hidden child keeps answering its URL. |
+
+## Recipe: a record master whose tabs are pages
+
+The pattern of a cloud console's resource page: `/customers/7` is the customer, and its tabs —
+`/customers/7/orders`, `/customers/7/addresses`… — are pages with a URL of their own. Each one gets
+the customer's id, loads when opened, has its own actions and paging, and survives a reload, a pasted
+link and back/forward. Runnable in `demo/demo-vb` (package `mastertabs`, renderer chosen with
+`-Dmateu.renderer=vaadin-lit|redwood`).
+
+**1. The routes** — the master with its tabs as `children`:
+
+```yaml
+type: Routes
+routes:
+  - route: customers
+    viewModel: com.acme.Customers
+  - route: customers/:customerId
+    viewModel: com.acme.CustomerMaster
+    defaultChild: orders               # /customers/7 opens /customers/7/orders
+    children:
+      - route: orders
+        viewModel: com.acme.CustomerOrders
+      - route: addresses
+        viewModel: com.acme.CustomerAddresses
+      - route: audit
+        viewModel: com.acme.CustomerAudit
+        show: audit                    # a tab behind a feature flag
+```
+
+**2. The master** — an `@App(TABS)` with **no menu of its own**: its tabs are its children,
+labelled with each child's `@Title`. `backLink = PARENT` draws «← Customers» (the title of the
+nearest screen above) instead of breadcrumbs.
+
+```java
+@App(value = AppVariant.TABS, backLink = BackLink.PARENT)
+public class CustomerMaster implements TitleSupplier {
+  String customerId;                   // from :customerId
+
+  @Override public String title() { return repo.name(customerId); }
+}
+```
+
+**3. A tab** — any page or crud. It receives the master's path parameters on every request, by
+name:
+
+```java
+@Title("Orders")
+public class CustomerOrders extends AutoCrud<Order> {
+  String customerId;                   // from :customerId, on every request
+  // store() lists the orders of customerId
+}
+```
+
+Inside a tab the parent's parameters are the listing's **scope**: a filter named like one of them is
+shown as a fixed chip and never written into the query string. The crud's `/new` and `/{id}` are
+relative to the tab (`/customers/7/orders/new`), and a new record's field named like a parameter
+starts filled in (`customerId = 7`). The tab's own page does not repeat its label as a title.
+
+**4. The way in** — a row of the listing opens the master:
+
+```java
+@Title("Customers")
+@RowRoute("/customers/${row.id}")
+public class Customers extends AutoCrud<Customer> { … }
+```
+
+**One page instead of many** — when the tabs are small, keep them on one page: `@Tab(key = …)`
+makes an in-page tab a URL (`/customer-overview/7/billing` opens Billing), and `@Subresource`
+places sub-listings in the tabs, several stacked in one, with the record as their context:
+
+```java
+public class CustomerOverview {
+  String customerId;
+
+  @Tab(value = "Details", key = "details") String name;
+
+  @Subresource(tab = "orders", load = Subresource.Load.EAGER)   // fetched with the page, counted on the tab
+  OrdersOfCustomer orders;
+
+  @Subresource(tab = "billing", order = 1, help = "Invoices issued to this customer")  // lazy: fetched when opened
+  InvoicesOfCustomer invoices;
+
+  @Subresource(tab = "billing", order = 2)
+  PaymentsOfCustomer payments;
+}
+```
+
+A tab bar with a single visible tab is not drawn (the tab keeps its key and URL), and a
+sub-resource's title is dropped when it only repeats its tab or the page.
 
 ## IntelliSense
 

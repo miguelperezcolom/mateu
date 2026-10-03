@@ -58,9 +58,9 @@ routes:
         viewModel: com.acme.OrderDetail
 ```
 
-Note that the runtime does not walk the parent chain yet: `parent` is recorded on every entry, but
-rendering a child inside its parent's slot from that link alone is still pending (plan P1 in
-`design/maui-parity-plan.md`).
+At runtime the request resolves as a route chain: the outermost level not yet on screen renders
+first and draws the child in its slot, so a reload or a deep link to the child lands inside its
+parent. See [a record master whose tabs are pages](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
 
 **Tip — nest detail routes under the listing route.** Declaring the detail as `/orders/:id`
 (instead of a sibling like `/order/:id`) keeps the app shell's **navigation tab highlighted**

@@ -37,6 +37,7 @@
     <module>demo-redwood-showcase</module>
     <module>demo-vb</module>
     <module>demo-static-bundle</module>
+    <module>demo-static-vcn</module>
     <module>explorer</module>
   </modules>
 

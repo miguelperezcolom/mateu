@@ -32,9 +32,27 @@ public record AppShell(
     implements Component, PageMainContent {
 
   public AppShell {
-    variant = variant != null ? variant : AppVariant.TABS;
-    layout = layout != null ? layout : AppLayout.SINGLE_SLOT;
     menu = menu != null ? menu : List.of();
+    // A shell federating remote sections that names no variant is drawn MENU_ON_TOP, as it always
+    // was: the browser used to force that variant on any shell with remotes, and now respects the
+    // one the app declares instead.
+    variant =
+        variant != null ? variant : hasRemoteMenu(menu) ? AppVariant.MENU_ON_TOP : AppVariant.TABS;
+    layout = layout != null ? layout : AppLayout.SINGLE_SLOT;
     route = route != null ? route : "";
+  }
+
+  private static boolean hasRemoteMenu(List<Actionable> menu) {
+    for (Actionable option : menu) {
+      if (option instanceof io.mateu.uidl.data.RemoteMenu) {
+        return true;
+      }
+      if (option instanceof io.mateu.uidl.data.Menu group
+          && group.submenu() != null
+          && hasRemoteMenu(group.submenu())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

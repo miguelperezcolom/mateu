@@ -7,7 +7,7 @@ import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
-import {awaitBundle, getBundledIncrement, getExpandedIncrement, hasBundle, matchBundledTemplate, toSyncPath} from "@infra/http/bundleStore.ts";
+import {awaitBundle, hasBundle, resolveBundledLoad, toSyncPath} from "@infra/http/bundleStore.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -88,7 +88,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * `retry` closure that re-runs the action end to end so the UI can offer it to the user.
      */
     async wrap<T>(call: () => Promise<T>, initiator: HTMLElement, background: boolean,
-                  actionId: string, retry?: () => void): Promise<T> {
+                  actionId: string, retry?: () => void, quiet = false): Promise<T> {
         if (!background) {
             initiator.dispatchEvent(new CustomEvent('backend-called-event', {
                 bubbles: true,
@@ -108,7 +108,9 @@ export class AxiosMateuApiClient implements MateuApiClient {
             return response
         }).catch((reason: unknown) => {
             const failure = classifyRequestFailure(reason, {online: connectivity.isOnline()})
-            if (failure.kind == 'cancelled') {
+            if (quiet) {
+                // the caller reports it its own way (RunActionOptions.quiet)
+            } else if (failure.kind == 'cancelled') {
                 initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
                     bubbles: true,
                     composed: true,
@@ -143,16 +145,16 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * ({@link shouldRetry}). Each settled attempt also teaches the connectivity tracker whether
      * the backend is reachable — a reply proves the path better than any browser flag.
      */
-    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean): Promise<T> {
+    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean, quiet = false): Promise<T> {
         let attempt = 0
         for (;;) {
             try {
                 const response = await send()
-                connectivity.noteReachable()
+                if (!quiet) connectivity.noteReachable()
                 return response
             } catch (error) {
                 const failure = classifyRequestFailure(error, {online: connectivity.isOnline()})
-                if (failure.kind == 'offline') {
+                if (failure.kind == 'offline' && !quiet) {
                     connectivity.noteUnreachable()
                 }
                 attempt++
@@ -223,10 +225,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
             if (hasBundle()) {
                 // exact match first, then a :param template (e.g. orders/42 → the orders/:id
                 // template, with the extracted params injected into the structure's state/data),
-                // then — specs mode (Phase 6) — a definition-only route expanded client-side.
-                const bundled = getBundledIncrement(toSyncPath(route))
-                    ?? matchBundledTemplate(toSyncPath(route))
-                    ?? getExpandedIncrement(toSyncPath(route))
+                // then — specs mode (Phase 6) — a definition-only route expanded client-side. The
+                // consumed route tells a fresh load (→ the app shell, aimed at the route) from the
+                // shell filling its content slot (→ the route's own screen) — see #557.
+                const bundled = resolveBundledLoad(toSyncPath(route), consumedRoute)
                 if (bundled) {
                     // The exporter had no initiatorComponentId, so the pre-rendered fragments carry
                     // a null target. The client only applies fragments whose targetComponentId is a
@@ -292,7 +294,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
         const send = () => this.post(uri, payload, options.timeoutMillis)
             .then((response) => response.data as UIIncrement)
         return await this.wrap<UIIncrement>(
-            () => this.sendWithRetry(send, idempotent), initiator, background, actionId, options.retry)
+            () => this.sendWithRetry(send, idempotent, options.quiet), initiator, background, actionId,
+            options.retry, options.quiet)
     }
 
 }

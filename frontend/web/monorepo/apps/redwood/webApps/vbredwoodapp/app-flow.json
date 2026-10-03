@@ -284,10 +284,15 @@
       "type": "string",
       "defaultValue": ""
     },
-    "mateuActiveTab": {
-      "type": "string",
-      "defaultValue": "",
-      "description": "pesta\u00f1a activa del contenido (\u00e1tomo isTabs) \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
+    "mateuAppLevels": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "los NIVELES de app de la pantalla (P1: el maestro de un registro con pesta\u00f1as que son p\u00e1ginas): [{id, title, tabs:[{id,label,route}], showTabs, selected, backRoute, backLabel}] \u2014 una barra de pesta\u00f1as por nivel"
+    },
+    "mateuActiveTabs": {
+      "type": "any",
+      "defaultValue": {},
+      "description": "pesta\u00f1a activa del contenido POR BARRA (\u00e1tomos isTabs, barras anidadas incluidas): {clave de barra: id de pesta\u00f1a} \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
     },
     "mateuPageHeaderTranslations": {
       "type": "any",

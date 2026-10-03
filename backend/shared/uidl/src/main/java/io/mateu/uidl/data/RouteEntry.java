@@ -40,10 +40,11 @@ import java.util.Map;
  *     first, then the incoming query/state.
  * @param parent the ABSOLUTE route of the screen whose slot this route fills, or {@code null} for a
  *     top-level route. A sub-route with a parent does not replace the page: the parent renders its
- *     shell (a master-detail with tabs, a mediator app) and this route's screen is nested into the
- *     parent's slot. It is set when the authored {@link #children} tree is flattened, so on a flat
- *     table entry it is the link back to the host. Note: the resolvers do not walk this parent
- *     chain yet (planned, P1 in {@code design/maui-parity-plan.md}); it is recorded, not acted on.
+ *     shell (a record master with tabs — an {@code @App(TABS)}) and this route's screen is nested
+ *     into the parent's slot. Route resolution walks this link at runtime (the route CHAIN): a
+ *     request for the child resolves the outermost ancestor not yet rendered first, and that
+ *     ancestor renders the rest of the path in its slot. It is set when the authored {@link
+ *     #children} tree is flattened, so on a flat table entry it is the link back to the host.
  * @param children sub-routes nested under this one, authored RELATIVE to it (so {@code orders}
  *     under {@code use-cases/rra} answers {@code use-cases/rra/orders}). Each child fills this
  *     screen's slot. This is the AUTHORING shape; the registry flattens it into absolute entries
@@ -58,6 +59,9 @@ import java.util.Map;
  *     when the route loads.
  * @param appData the route's <em>app</em> data, a reference to a named data source resolved once at
  *     app scope (shared across routes).
+ * @param defaultChild for a route with {@link #children}: the child (its route RELATIVE to this
+ *     one, e.g. {@code orders}) that opens when this route is reached on its own — the default tab
+ *     of a record master. {@code null} means the FIRST child. Ignored on a route without children.
  */
 public record RouteEntry(
     String route,
@@ -70,7 +74,9 @@ public record RouteEntry(
     Map<String, Object> state,
     Map<String, Object> appState,
     RestDataSource data,
-    RestDataSource appData) {
+    RestDataSource appData,
+    String defaultChild,
+    String show) {
 
   public RouteEntry {
     route = route == null ? "" : route;
@@ -79,6 +85,65 @@ public record RouteEntry(
     children = children == null ? List.of() : List.copyOf(children);
     state = state == null ? Map.of() : Map.copyOf(state);
     appState = appState == null ? Map.of() : Map.copyOf(appState);
+  }
+
+  /** An entry with no explicit default child (the first child, if any, is the default). */
+  public RouteEntry(
+      String route,
+      String definition,
+      String viewModel,
+      Map<String, Object> fixedParams,
+      Map<String, Object> defaultParams,
+      String parent,
+      List<RouteEntry> children,
+      Map<String, Object> state,
+      Map<String, Object> appState,
+      RestDataSource data,
+      RestDataSource appData) {
+    this(
+        route,
+        definition,
+        viewModel,
+        fixedParams,
+        defaultParams,
+        parent,
+        children,
+        state,
+        appState,
+        data,
+        appData,
+        null,
+        null);
+  }
+
+  /** An entry with no visibility condition. */
+  public RouteEntry(
+      String route,
+      String definition,
+      String viewModel,
+      Map<String, Object> fixedParams,
+      Map<String, Object> defaultParams,
+      String parent,
+      List<RouteEntry> children,
+      Map<String, Object> state,
+      Map<String, Object> appState,
+      RestDataSource data,
+      RestDataSource appData,
+      String defaultChild) {
+    this(
+        route,
+        definition,
+        viewModel,
+        fixedParams,
+        defaultParams,
+        parent,
+        children,
+        state,
+        appState,
+        data,
+        appData,
+        defaultChild,
+        null);
   }
 
   /** A top-level entry with no slot host, no nested children and no seeded state/data. */

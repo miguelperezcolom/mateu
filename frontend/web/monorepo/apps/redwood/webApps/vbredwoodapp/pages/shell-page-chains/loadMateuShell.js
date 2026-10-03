@@ -193,6 +193,12 @@ define([
       // navigation-requested: lo emite el HTML de un widget (el enlace del badge de la bandeja) y
       // burbujea hasta el documento — el mismo evento que escucha el renderer web. Trae su pod
       // (baseUrl + serverSideType): si el menú no conoce la ruta, se registra antes de navegar.
+      // Los listeners de abajo se cablean UNA vez, pero el context de la chain caduca: si VB
+      // vuelve a entrar en la página (su router reacciona a ciertos cambios de URL), el context
+      // capturado queda «disposed» y un atrás/adelante posterior no hacía nada (VB lo descarta con
+      // un WARN): la pantalla se quedaba en blanco con la pestaña anterior marcada. Siempre el último.
+      window.__mateuShellContext = context;
+      const liveContext = () => window.__mateuShellContext || context;
       if (!window.__mateuNavRequestWired) {
         window.__mateuNavRequestWired = true;
         document.addEventListener('navigation-requested', (event) => {
@@ -200,7 +206,7 @@ define([
           if (detail.route == null) return;
           event.stopPropagation();
           bridge.registerRemoteRoute(detail.route, detail);
-          Actions.callChain(context, {
+          Actions.callChain(liveContext(), {
             chain: 'onMateuNavigate',
             params: { event: { detail: { route: detail.route } } },
           });
@@ -215,7 +221,7 @@ define([
           // en modo path, volver a '/' es volver a la home
           const route = urlRoute() || (pathMode ? ($application.variables.mateuHomeRoute || '') : '');
           if (route) {
-            Actions.callChain(context, {
+            Actions.callChain(liveContext(), {
               chain: 'onMateuNavigate',
               params: { event: { detail: { currentId: route } }, fromUrl: true },
             });

@@ -47,6 +47,14 @@ final class FieldActionCollector {
                   ActionDtoMapper.mapToAction(
                           MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class))
                       .withId(method.getName());
+              // @Action says how the button BEHAVES (confirmation, timeout…) and @RestAction what
+              // it CALLS: together, a confirmed call the browser makes itself. Dropping the
+              // @RestAction here sent a confirmed REST call to a server instead — fatal in a static
+              // bundle, where there is none.
+              var rest = restActionOf(method);
+              if (rest != null) {
+                action = action.withRestAction(rest);
+              }
               return isFluxReturning(method) ? action.withSse(true) : action;
             })
         .forEach(fieldActions::add);
@@ -171,7 +179,9 @@ final class FieldActionCollector {
         io.mateu.uidl.data.RestDataSource.builder()
             .ref(a.source())
             .url(a.url())
-            .method(a.method())
+            .method(
+                io.mateu.core.application.runaction.DeclaredRestMethod.of(
+                    a.source(), a.method(), "POST"))
             .headers(headers)
             .body(a.body())
             .proxy(a.proxy())

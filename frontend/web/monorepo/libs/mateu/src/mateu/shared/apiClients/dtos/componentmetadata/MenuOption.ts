@@ -22,6 +22,16 @@ export default interface MenuOption {
 
     path: string
 
+    // A remote section only (remote: true). The route prefix its screens live under, as far as the
+    // shell can tell before the remote answers — so the active section and the first breadcrumb
+    // are known on a cold load. Older servers do not send it: `path` stands in.
+    routePrefix?: string
+    // A remote section only: the shell declared this label, and it wins over the remote's.
+    shellLabel?: boolean
+    // Client-side only: a remote section whose remote did not answer. Drawn disabled, with
+    // `description` saying why; retried in the background.
+    unavailable?: boolean
+
     baseUrl: string
     route: string
     consumedRoute: string
