@@ -110,6 +110,15 @@ define([
       $application.variables.mateuNavItems = nav.items;
       $application.variables.mateuMenuTabs = nav.mode === 'tabs';
       $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
+      // MENU_ON_TOP: la banda 2 bajo la cabecera — el título de la consola y su menú
+      $application.variables.mateuMenuSubheader = nav.mode === 'subheader';
+      $application.variables.mateuShellTitle = nav.title;
+      // @App(accentColor): la línea de 3px bajo la banda y el título de la consola (tema claro)
+      if (nav.accentColor) {
+        document.documentElement.style.setProperty('--mateu-accent', nav.accentColor);
+      } else {
+        document.documentElement.style.removeProperty('--mateu-accent');
+      }
       $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
       $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // abierto de inicio
       $application.variables.mateuMenuTree = nav.menuTree;
@@ -215,6 +224,19 @@ define([
             params: { event: { detail: { route: detail.route } } },
           });
         });
+      }
+
+      // En modo path el historial es SOLO de Mateu, y el router de VB no puede verlo. Toma por
+      // «application URL» la ruta con que arrancó la página (/customers → /customers/) y lee
+      // cualquier URL por debajo de ella como una página suya (/customers/5 → la página «5»): en
+      // un atrás sale de la shell (vbExit), deja «disposed» el context de las chains y no vuelve a
+      // entrar, así que la pantalla no se repintaba. Pasaba al entrar al maestro desde una fila
+      // del listado; con un enlace directo no, porque las pestañas no quedan POR DEBAJO de la ruta
+      // de arranque (/customers/3/orders → /customers/3/addresses). VB escucha con
+      // window.onpopstate, que corre antes que cualquier listener añadido después (también en
+      // captura), así que se le quita: es una sola página de VB, no tiene navegación propia.
+      if (pathMode) {
+        window.onpopstate = null;
       }
 
       // 1.5: back/forward — el listener reutiliza el context del chain (los scopes de VB

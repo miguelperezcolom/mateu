@@ -21,8 +21,8 @@
           Menu
         </oj-button>
       </oj-bind-if>
-      <!-- MENU_ON_TOP: opciones de PRIMER NIVEL visibles en el header, sin hamburguesa;
-           los grupos despliegan un oj-menu -->
+      <!-- TABS con grupos: opciones de PRIMER NIVEL visibles en el header, sin hamburguesa;
+           los grupos despliegan un oj-menu (MENU_ON_TOP va en la subcabecera, más abajo) -->
       <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]">
         <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
           <template>
@@ -180,6 +180,64 @@
   </oj-sp-global-header>
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
+
+    <!-- SUBCABECERA (MENU_ON_TOP): la banda 2 bajo la cabecera oscura, como la del renderer web —
+         la cabecera (banda 1) se queda con el logo, el chat, la bandeja y el usuario; aquí van el
+         título de la consola y sus opciones de primer nivel, en color de texto, con la sección en
+         pantalla marcada por un subrayado discreto. Los grupos despliegan un oj-menu (con el tercer
+         nivel de una shell federada anidado). Una sección remota que no contestó sale deshabilitada
+         y dice por qué (hint). @App(accentColor) → --mateu-accent: una línea de 3px bajo la banda y
+         el título en ese color en tema claro. Va fuera del drawer del chat: no se desplaza con él. -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
+      <nav class="mateu-subheader" :aria-label="[[ $application.variables.mateuShellTitle || 'Menu' ]]">
+        <oj-bind-if test="[[ !!$application.variables.mateuShellTitle ]]">
+          <button type="button" class="mateu-subheader-title"
+            on-click="[[ $listeners.subheaderTitleClicked ]]"><oj-bind-text value="[[ $application.variables.mateuShellTitle ]]"></oj-bind-text></button>
+        </oj-bind-if>
+        <div class="mateu-subheader-menu">
+          <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
+            <template>
+              <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                <oj-button chroming="borderless" data-nav-item
+                  :class="[[ $functions.subheaderItemClass($current.data, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId) ]]"
+                  :data-route="[[ $current.data.id ]]"
+                  :disabled="[[ !!$current.data.disabled ]]"
+                  :title="[[ $current.data.hint || '' ]]"
+                  on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                <oj-menu-button chroming="borderless" data-nav-item
+                  :class="[[ $functions.subheaderItemClass($current.data, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId) ]]"
+                  :disabled="[[ !!$current.data.disabled ]]"
+                  :title="[[ $current.data.hint || '' ]]">
+                  <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                  <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
+                    <oj-bind-for-each data="[[ $current.data.children ]]">
+                      <template>
+                        <oj-bind-if test="[[ !$current.data.hasChildren ]]">
+                          <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || '' ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ $current.data.hasChildren ]]">
+                          <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || '' ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                            <oj-menu>
+                              <oj-bind-for-each data="[[ $current.data.children ]]">
+                                <template>
+                                  <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || '' ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                </template>
+                              </oj-bind-for-each>
+                            </oj-menu>
+                          </oj-option>
+                        </oj-bind-if>
+                      </template>
+                    </oj-bind-for-each>
+                  </oj-menu>
+                </oj-menu-button>
+              </oj-bind-if>
+            </template>
+          </oj-bind-for-each>
+        </div>
+      </nav>
+    </oj-bind-if>
 
     <!-- ASK ORACLE: el FAB del propio shell (con el glifo de Ask Oracle, oj-ux-ico-oracle-o, o la
          marca del @App(askLabel, askIcon): bridge.brandAskFab) abre esta paleta —

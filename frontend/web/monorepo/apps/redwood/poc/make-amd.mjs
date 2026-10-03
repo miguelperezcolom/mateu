@@ -62,6 +62,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     tabBarIdsOf,
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
+    hostContentShown,
+    withSubresources,
+    loadSubresources,
     appLevelOf,
     rowRouteOf,
     listingOf,
@@ -126,6 +129,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withContextState,
     withSearchableIds,
     shellNavOf,
+    // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
+    activeSectionOf,
+    accentColorOf,
     ojIconOf,
     ojIconOrGenericOf,
     longTaskWatcher,
