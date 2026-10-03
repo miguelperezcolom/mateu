@@ -53,6 +53,7 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
 const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => html`
     <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''}"
             ?disabled="${item.disabled}"
+            title="${(item as { title?: string }).title ?? nothing}"
             @click="${() => onSelect(item)}">${item.text}</button>`
 
 /**
@@ -224,16 +225,10 @@ export const contentUxId = (container: MateuApp, metadata: App): string => {
 
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
 
-    // A shell fronting remote menus ends up MENU_ON_TOP: completeMenu (ConnectedElement) forces that
-    // variant once it has harvested the remotes' menus. Painting the first frame in the app's
-    // declared variant (e.g. TABS) and then flipping to MENU_ON_TOP moved the content <mateu-ux>
-    // into a different branch of this template, so Lit re-created it — the whole route re-fetched
-    // and re-painted, which is the listing you saw drawn twice on a cold load behind a shell.
-    // Adopt the final variant up front: same branch, same element across the menu arrival, so the
-    // menu update repaints only the menu and leaves the content mounted.
-    if (metadata.variant !== AppVariant.MENU_ON_TOP && metadata.menu?.some(option => option.remote)) {
-        metadata = { ...metadata, variant: AppVariant.MENU_ON_TOP }
-    }
+    // The variant is the app's own. A shell fronting remote menus used to be forced to MENU_ON_TOP
+    // here (and again by completeMenu once the menus arrived): flipping branches later re-created
+    // the content <mateu-ux>. The menu completion no longer touches the variant, so the first frame's
+    // is the final one; the server's AUTO picks MENU_ON_TOP for such a shell, as before.
 
     // Stable content-ux id (see contentUxId): reused across shell remounts so in-flight load/search
     // responses are not orphaned.

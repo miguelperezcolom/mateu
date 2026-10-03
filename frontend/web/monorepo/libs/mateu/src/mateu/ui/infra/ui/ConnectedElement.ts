@@ -12,7 +12,15 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
-import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
+import {
+    isActiveFor,
+    mergeRemoteMenus,
+    RemoteAnswer,
+    RemoteApp,
+    remoteMounts,
+    withoutHidden,
+    withPrefixesFromHome,
+} from "@infra/ui/navTree.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 
@@ -55,160 +63,117 @@ export default abstract class ConnectedElement extends LitElement {
         })
     }
 
+    /**
+     * Fills in the shell's remote sections: asks each remote for its menu and merges the answers
+     * into the app's (navTree.mergeRemoteMenus). What it keeps to:
+     *
+     * <ul>
+     *     <li><b>One remote down is one section down.</b> The remotes are asked together and each
+     *     answer is taken on its own (allSettled): one that fails leaves its section disabled with a
+     *     hint, the rest are merged, and it is asked again in the background.</li>
+     *     <li><b>The shell knows where the user is before anyone answers.</b> Each remote section
+     *     carries the prefix its screens live under (and a deep link says which remote it was
+     *     mounted from), so the active section and the first breadcrumb are there on the first
+     *     frame.</li>
+     *     <li><b>Hidden sections stay in the tree</b> (`navMenu`), not drawn: a page under one still
+     *     gets its breadcrumbs. A hidden remote is asked only when the user is in it.</li>
+     *     <li><b>The variant is the app's.</b> This used to force MENU_ON_TOP on any shell with
+     *     remotes; the server's AUTO now picks that, and a declared variant is respected.</li>
+     * </ul>
+     */
     private completeMenu(fragment: UIFragment) {
         if (fragment.component && fragment.component.type == ComponentType.ClientSide) {
             const clientSideComponent = fragment.component as ClientSideComponent
             const metadata = clientSideComponent.metadata
             if (metadata?.type == ComponentMetadataType.App) {
-                let app = metadata as App
+                const app = metadata as App
+                // What a deep link already says: which remote the page was mounted from.
+                const source = withPrefixesFromHome(app.menu ?? [], app.homeBaseUrl, app.homeRoute)
                 // Options that travel but are not drawn go before anything renders the menu:
                 // synchronously, while the fragment just applied is still waiting for its update.
-                // A hidden remote resolves its deep links on the server, so it is not fetched either.
-                const visibleMenu = this.withoutHidden(app.menu ?? [])
-                if (visibleMenu !== app.menu) {
-                    app = { ...app, menu: visibleMenu } as App
-                    clientSideComponent.metadata = app
+                const drawn = withoutHidden(source)
+                if (drawn !== app.menu || source !== app.menu) {
+                    clientSideComponent.metadata = { ...app, menu: drawn, navMenu: source } as App
                 }
-                const remoteMenus = this.getRemoteMenus(app.menu)
-                if (remoteMenus.length > 0) {
-                    const requests = remoteMenus
-                        .map(option => mateuApiClient.runAction(
-                            option.baseUrl,
-                            option.route,
-                            '_empty',
-                            '',
-                            option.baseUrl + '#' + option.route,
-                            undefined,
-                            undefined,
-                            undefined,
-                            option.params,
-                            this,
-                            true
-                        ))
-                    Promise.all(requests).then(increments => {
-                        const menu = this.updateMenu(app.menu, increments
-                            .map(increment => increment.fragments)
-                            .filter(fragment => fragment)
-                            .map(fragment => fragment!)
-                            .flat())
-                        // A NEW metadata object, and nothing else touched.
-                        //
-                        // This used to publish the app component back upstream as a Replace
-                        // targeting this element. applyFragment answers a ClientSide component by
-                        // setting `this.component.children = [component]` — so updating the MENU
-                        // threw away everything the router had mounted underneath and built it
-                        // again. Measured on a cold load of /workflow/definitions behind a shell
-                        // with six remote menus: the page's three-request chain (route → page →
-                        // listing search) ran three times over, the last two for nothing. That is
-                        // the flicker.
-                        //
-                        // The menu is read from this object at render time, so replacing the
-                        // reference is what makes Lit notice; mutating in place would leave the
-                        // child holding an unchanged reference and repaint nothing.
-                        clientSideComponent.metadata = {
-                            ...app,
-                            menu,
-                            variant: AppVariant.MENU_ON_TOP
-                        } as App
-                        this.requestUpdate()
-                    })
+                const here = typeof window !== 'undefined' ? window.location.pathname : ''
+                const mounts = remoteMounts(source).filter(option =>
+                    option.visible !== false
+                    || isActiveFor(option, here)
+                    || (!!app.homeBaseUrl && option.baseUrl === app.homeBaseUrl))
+                if (mounts.length > 0) {
+                    this.askRemotes(clientSideComponent, source, mounts, new Map(), 0)
                 }
             }
         }
     }
 
-    private updateMenu(menu: MenuOption[], increments: UIFragment[]) {
-        const replaced: MenuOption[] = []
-        menu.forEach(option => {
-            if (option.remote) {
-                const replacement = increments.find(increment => increment.targetComponentId == option.baseUrl + '#' + option.route)
-                if (replacement) {
-                    if (replacement.component?.type == ComponentType.ClientSide) {
-                        const clientSideComponent = replacement.component as ClientSideComponent
-                        if (clientSideComponent.metadata?.type == ComponentMetadataType.App) {
-                            const app = clientSideComponent.metadata as App
-                            const effectiveAppServerSideType = option.serverSideType && !('' == option.serverSideType)?option.serverSideType:app.serverSideType
-                            this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.route, app.route)
-                            replaced.push(...app.menu)
-                        }
-                    }
-                }
-            } else if (option.submenus && option.submenus.length > 0) {
-                // A group holding remote entries. Its children are rebuilt the same way, and the
-                // option is replaced by a NEW object rather than mutated: the caller decides
-                // whether Lit repaints by whether the reference changed, and an in-place edit
-                // several levels down would leave every reference above it untouched.
-                replaced.push({ ...option, submenus: this.updateMenu(option.submenus, increments) })
-            } else {
-                replaced.push(option)
-            }
-        })
-        return replaced
-    }
+    /** Back-off for asking again the remotes that did not answer: then they are left alone. */
+    static remoteRetryDelays = [10_000, 30_000, 60_000]
 
-    private changeBaseUrl(menu: MenuOption[], baseUrl: string, serverSideType: string | undefined, uriPrefix: string | undefined, consumedRoute: string | undefined): void {
-        menu.forEach(option => {
-            if (!option.baseUrl) {
-                if (option.submenus && option.submenus.length > 0) {
-                    this.changeBaseUrl(option.submenus, baseUrl, serverSideType, uriPrefix, consumedRoute)
+    private askRemotes(clientSideComponent: ClientSideComponent, source: MenuOption[], mounts: MenuOption[],
+                       answers: Map<MenuOption, RemoteAnswer>, attempt: number) {
+        Promise.allSettled(mounts.map(option => mateuApiClient.runAction(
+            option.baseUrl,
+            option.route,
+            '_empty',
+            '',
+            option.baseUrl + '#' + option.route,
+            undefined,
+            undefined,
+            undefined,
+            option.params,
+            this,
+            true
+        ))).then(results => {
+            const failed: MenuOption[] = []
+            results.forEach((result, i) => {
+                const option = mounts[i]
+                const remoteApp = result.status === 'fulfilled' ? this.remoteAppOf(result.value?.fragments, option) : undefined
+                if (remoteApp) {
+                    answers.set(option, { app: remoteApp })
                 } else {
-                    option.consumedRoute = consumedRoute??''
-                    option.baseUrl = baseUrl
-                    option.serverSideType = serverSideType
-                    option.uriPrefix = uriPrefix
+                    answers.set(option, { failed: true })
+                    failed.push(option)
                 }
+            })
+            const navMenu = mergeRemoteMenus(source, answers)
+            // A NEW metadata object, and nothing else touched.
+            //
+            // This used to publish the app component back upstream as a Replace targeting this
+            // element. applyFragment answers a ClientSide component by setting
+            // `this.component.children = [component]` — so updating the MENU threw away everything
+            // the router had mounted underneath and built it again. Measured on a cold load of
+            // /workflow/definitions behind a shell with six remote menus: the page's three-request
+            // chain (route → page → listing search) ran three times over, the last two for
+            // nothing. That is the flicker.
+            //
+            // The menu is read from this object at render time, so replacing the reference is what
+            // makes Lit notice; mutating in place would leave the child holding an unchanged
+            // reference and repaint nothing. The variant is left as it came.
+            const app = clientSideComponent.metadata as App
+            clientSideComponent.metadata = { ...app, menu: withoutHidden(navMenu), navMenu } as App
+            this.requestUpdate()
+            const delay = ConnectedElement.remoteRetryDelays[attempt]
+            if (failed.length > 0 && delay !== undefined) {
+                setTimeout(() => {
+                    if (!this.isConnected) return
+                    this.askRemotes(clientSideComponent, source, failed, answers, attempt + 1)
+                }, delay)
             }
         })
     }
 
-    /**
-     * The menu without the options the server sent as not visible, at any depth. The same array
-     * when there is nothing to take out, so the caller can tell whether anything changed.
-     */
-    private withoutHidden(menu: MenuOption[]): MenuOption[] {
-        let changed = false
-        const kept: MenuOption[] = []
-        menu.forEach(option => {
-            if (option.visible === false) {
-                changed = true
-                return
+    /** The menu a remote answered with, or undefined when the answer holds no app. */
+    private remoteAppOf(fragments: UIFragment[] | undefined, option: MenuOption): RemoteApp | undefined {
+        const fragment = (fragments ?? []).find(f => f?.targetComponentId == option.baseUrl + '#' + option.route)
+        if (fragment?.component?.type == ComponentType.ClientSide) {
+            const metadata = (fragment.component as ClientSideComponent).metadata
+            if (metadata?.type == ComponentMetadataType.App) {
+                const app = metadata as App
+                return { menu: app.menu ?? [], route: app.route, serverSideType: app.serverSideType }
             }
-            if (option.submenus && option.submenus.length > 0) {
-                const submenus = this.withoutHidden(option.submenus)
-                if (submenus !== option.submenus) {
-                    changed = true
-                    kept.push({ ...option, submenus })
-                    return
-                }
-            }
-            kept.push(option)
-        })
-        return changed ? kept : menu
-    }
-
-    /**
-     * Every remote menu in the tree, at whatever depth it sits.
-     *
-     * <p>This used to look at the top level only, and `MenuOption` has carried `submenus` all
-     * along — so a RemoteMenu grouped under an ordinary entry was never fetched. Not an error, not
-     * a warning: the group rendered with the label the shell had written for it and nothing
-     * underneath, which reads as "that service has no screens" rather than as "nobody asked it".
-     * Grouping remote sections is the obvious thing to reach for on a bar with five of them, and
-     * it silently emptied them.
-     *
-     * <p>A remote option is not descended into: whatever it has underneath is the REMOTE app's to
-     * declare, and it has not answered yet.
-     */
-    private getRemoteMenus(menu: MenuOption[]): MenuOption[] {
-        const remotes: MenuOption[] = []
-        menu.forEach(option => {
-            if (option.remote) {
-                remotes.push(option)
-            } else if (option.submenus && option.submenus.length > 0) {
-                remotes.push(...this.getRemoteMenus(option.submenus))
-            }
-        })
-        return remotes
+        }
+        return undefined
     }
 
     disconnectedCallback() {

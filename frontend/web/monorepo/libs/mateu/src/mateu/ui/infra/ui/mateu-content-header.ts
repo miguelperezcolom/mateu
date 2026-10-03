@@ -14,7 +14,7 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
-import { shellTrail, pathOfPage, Crumb, navigateLikeMenu } from './breadcrumbTrail'
+import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
@@ -88,9 +88,16 @@ export class MateuContentHeader extends LitElement {
         this._ro = new ResizeObserver(() => this._resetOverflow())
         this._ro.observe(this)
         window.addEventListener('resize', this._resetOverflow)
+        // The automatic trail reads the shell's menu, which grows when the remote sections answer:
+        // a header drawn on a cold load (the section alone) is drawn again with the whole trail.
+        this._offShellMenu = onShellMenuChange(() => this.requestUpdate())
     }
 
+    private _offShellMenu: (() => void) | undefined
+
     disconnectedCallback() {
+        this._offShellMenu?.()
+        this._offShellMenu = undefined
         document.removeEventListener('click', this._onDocClick)
         window.removeEventListener('resize', this._resetOverflow)
         this._ro?.disconnect()

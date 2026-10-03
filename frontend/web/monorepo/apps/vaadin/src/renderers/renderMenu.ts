@@ -10,6 +10,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import type { MenuBarItem } from "@vaadin/menu-bar";
 import type { MenuBarItem as AppMenuBarItem } from "@infra/ui/mateu-app.ts";
 import "@vaadin/menu-bar";
+import "@vaadin/tooltip";
 import "@vaadin/context-menu";
 
 // The app shell's top navigation (menu-on-top), rendered as a vaadin-menu-bar — the Vaadin
@@ -22,6 +23,8 @@ export const renderTopNav = (items: AppMenuBarItem[], onSelect: (item: AppMenuBa
         .items=${items as unknown as MenuBarItem[]}
         class="${cls ?? nothing}"
         @item-selected=${(e: CustomEvent) => onSelect((e.detail as { value: AppMenuBarItem }).value)}>
+        <!-- an item's tooltip (a remote section that did not answer says why it is disabled) -->
+        <vaadin-tooltip slot="tooltip"></vaadin-tooltip>
     </vaadin-menu-bar>`
 export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu
