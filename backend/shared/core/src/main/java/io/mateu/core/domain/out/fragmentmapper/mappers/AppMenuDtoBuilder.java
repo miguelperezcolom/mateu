@@ -2,7 +2,9 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.AppMappingUtils.isSelected;
 import static io.mateu.uidl.Humanizer.toCamelCase;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.domain.out.componentmapper.TranslatorContext;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
@@ -28,8 +30,11 @@ final class AppMenuDtoBuilder {
         .map(
             option -> {
               var path = getPath(prefix, option);
+              var remote = option instanceof RemoteMenu remoteMenu ? remoteMenu : null;
               return MenuOptionDto.builder()
-                  .label(option.label())
+                  .label(remote != null ? remoteLabel(remote, path) : option.label())
+                  .shellLabel(remote != null && hasText(remote.label()))
+                  .routePrefix(remote != null ? remoteRoutePrefix(remote, path) : null)
                   .icon(option.icon())
                   .path(path)
                   .selected(isSelected(option, appRoute, route))
@@ -67,6 +72,42 @@ final class AppMenuDtoBuilder {
                   .build();
             })
         .toList();
+  }
+
+  /**
+   * What a remote section is called until the remote answers: the shell's label when it declares
+   * one, else the last segment of its path (the field name), as Mateu has always shown it.
+   */
+  static String remoteLabel(RemoteMenu remote, String path) {
+    if (hasText(remote.label())) {
+      return remote.label();
+    }
+    var source = hasText(remote.path()) ? remote.path() : path;
+    if (!hasText(source)) {
+      return null;
+    }
+    var segment = source.substring(source.lastIndexOf('/') + 1);
+    return segment.isEmpty() ? null : TranslatorContext.translate(toUpperCaseFirst(segment));
+  }
+
+  /**
+   * Where a remote section's screens live, as far as the shell can tell before the remote answers:
+   * its own mount path — NOT the path of the groups it sits in, because a remote declares its
+   * routes from its own root ({@code /forms/tasks} for a {@code forms} remote grouped under {@code
+   * /admin}). It is a convention, not a promise: the server confirms a deep link against the
+   * remote's menu (RemoteMenuHandler), and the renderer only uses it for the active section and the
+   * first breadcrumb while the remote has not answered.
+   */
+  static String remoteRoutePrefix(RemoteMenu remote, String path) {
+    var own = hasText(remote.path()) ? remote.path() : path;
+    if (!hasText(own) || "/".equals(own.trim())) {
+      return null;
+    }
+    return prepend("", own.trim());
+  }
+
+  private static boolean hasText(String text) {
+    return text != null && !text.isBlank();
   }
 
   public static String getActionId(Actionable option) {

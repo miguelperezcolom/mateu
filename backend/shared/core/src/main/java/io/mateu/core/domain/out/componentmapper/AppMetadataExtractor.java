@@ -40,6 +40,10 @@ class AppMetadataExtractor {
         return appVariant;
       }
     }
+    // A shell federating remote sections has always been drawn MENU_ON_TOP: the browser used to
+    // force it. The renderers now respect the variant the app declares, so AUTO is where that
+    // choice lives — an app that declares nothing looks the way it did.
+    if (hasRemoteMenu(menu)) return AppVariant.MENU_ON_TOP;
     boolean hasMenuItems = menu.stream().anyMatch(a -> a instanceof Menu);
     if (hasMenuItems) {
       if (hasDeepMenu(menu)) return AppVariant.TILES;
@@ -47,6 +51,18 @@ class AppMetadataExtractor {
       return AppVariant.MENU_ON_TOP;
     }
     return AppVariant.TABS;
+  }
+
+  static boolean hasRemoteMenu(Collection<? extends Actionable> menu) {
+    for (Actionable actionable : menu) {
+      if (actionable instanceof io.mateu.uidl.data.RemoteMenu) {
+        return true;
+      }
+      if (actionable instanceof Menu m && m.submenu() != null && hasRemoteMenu(m.submenu())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static boolean hasDeepMenu(Collection<? extends Actionable> menu) {
