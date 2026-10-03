@@ -1,0 +1,33 @@
+# The VCN listing. Rows come from the `vcns` source; with no `totalPath` the renderer does the
+# filtering and paging itself, over the whole collection it fetched. A row click goes to the record's
+# own URL (rowRoute), which is shareable and survives a reload.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Virtual cloud networks
+rowRoute: vcns/${row.id}
+rowRouteFields: [id]
+searchable: true
+filters:
+  - type: FormField
+    id: compartment
+    label: Compartment
+    stereotype: select
+    options:
+      - {value: prod, label: prod}
+      - {value: dev, label: dev}
+      - {value: sandbox, label: sandbox}
+  - type: FormField
+    id: lifecycleState
+    label: State
+    stereotype: select
+    options:
+      - {value: AVAILABLE, label: Available}
+      - {value: PROVISIONING, label: Provisioning}
+      - {value: TERMINATING, label: Terminating}
+rowsSource:
+  ref: vcns
+columns:
+  - {type: GridColumn, id: displayName, label: Name, identifier: true}
+  - {type: GridColumn, id: lifecycleState, label: State, dataType: status}
+  - {type: GridColumn, id: cidrBlock, label: CIDR block}
+  - {type: GridColumn, id: compartment, label: Compartment}

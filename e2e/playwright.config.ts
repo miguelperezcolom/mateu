@@ -74,6 +74,25 @@ export default defineConfig({
       },
       testMatch: '**/renderer/**/*.spec.ts',
     },
+    // P5 · S0 — the «static VCN slice» (design/maui-parity-plan.md): the same spec against two
+    // static sites with NO Mateu backend, served as plain files by demo/demo-static-vcn/run-static.sh
+    // (the external API on :8790). Not part of the default run's SUTs: start that script first.
+    {
+      name: 'static-vcn-java',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8791',
+      },
+      testMatch: '**/static/**/*.spec.ts',
+    },
+    {
+      name: 'static-vcn-yaml',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8792',
+      },
+      testMatch: '**/static/**/*.spec.ts',
+    },
     // A `renderer-vb` project (baseURL :8090, an mvc-app-vb SUT with the io.mateu:redwood frontend)
     // is NOT wired here yet: the VB shell serves and reaches Oracle's JET CDN, but its visual-runtime
     // does not paint the screen headless (0 rendered nodes after 6s). See

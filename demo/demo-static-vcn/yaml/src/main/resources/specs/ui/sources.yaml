@@ -1,0 +1,31 @@
+# The REST source catalogue: the EXTERNAL API's endpoints, named once. All DIRECT (no `proxy`): the
+# browser calls them itself, so the API must send CORS headers (the demo's external-api/server.mjs
+# does). A static UI can never use `proxy: true` or `${secret.…}` — there is no server to proxy
+# through, and a secret in a static file is not a secret. The exporter's static-safety report fails
+# the build if one sneaks in.
+#
+# Re-pointing the deployment (say, at the real API) is an edit of `sources` in manifest.json — no
+# rebuild.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+  # The whole collection in one call, no `totalPath`: the renderer filters and pages IN THE BROWSER.
+  - name: vcns
+    description: Virtual cloud networks
+    source:
+      url: http://localhost:8790/api/vcns
+
+  - name: vcn
+    description: One VCN by id
+    source:
+      url: http://localhost:8790/api/vcns/${state.id}
+
+  - name: vcn-subnets
+    description: The subnets of one VCN
+    source:
+      url: http://localhost:8790/api/vcns/${state.id}/subnets
+
+  - name: vcn-delete
+    description: Delete a VCN
+    source:
+      url: http://localhost:8790/api/vcns/${state.id}
+      method: DELETE
