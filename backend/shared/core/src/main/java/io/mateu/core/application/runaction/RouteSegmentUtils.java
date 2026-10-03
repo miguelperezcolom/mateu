@@ -31,14 +31,22 @@ final class RouteSegmentUtils {
     return routes;
   }
 
+  private static String stripLeadingSlash(String value) {
+    if (value == null) return "";
+    return value.startsWith("/") ? value.substring(1) : value;
+  }
+
   static Map<String, Object> addParameterValues(
       Map<String, Object> data,
       String route,
       ResolvedRoute matchingRoute,
       HttpRequest httpRequest) {
     var newData = new HashMap<>(data != null ? data : Map.of());
-    var tokens = matchingRoute.pattern().split("/");
-    var slugs = route.split("/");
+    // Align pattern and route on their segments regardless of a leading slash: registry patterns
+    // are normalized WITHOUT one ("customers/:id") while request routes carry it ("/customers/7"),
+    // and an index-wise match then read the id off the wrong segment (id = "customers").
+    var tokens = stripLeadingSlash(matchingRoute.pattern()).split("/");
+    var slugs = stripLeadingSlash(route).split("/");
     for (int i = 0; i < tokens.length && i < slugs.length; i++) {
       var token = tokens[i];
       var slug = slugs[i];

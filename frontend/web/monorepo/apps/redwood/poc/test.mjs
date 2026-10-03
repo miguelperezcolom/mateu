@@ -26,6 +26,7 @@ import {
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
+  createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
 } from './chat.mjs'
 import {
@@ -36,7 +37,7 @@ import {
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
@@ -621,6 +622,83 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.ok(steps.rows.length > 0)
   // la columna de estado llega con su clase de badge precomputada (CSP)
   assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
+})
+
+test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interior con la exterior', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children, active) => ({ type: 'ClientSide', metadata: { type: 'Tab', label, active: !!active }, children })
+  const tabLayout = (id, tabs) => ({ type: 'ClientSide', id, metadata: { type: 'TabLayout' }, children: tabs })
+  // exterior [General, Detalle]; dentro de Detalle otra barra [General, Notas] — mismo rótulo
+  // «General» en las dos y el mismo id "_tabs" que mandaba el backend antes del arreglo
+  const inner = tabLayout('_tabs', [tab('General', [text('interior general')]), tab('Notas', [text('interior notas')])])
+  const outer = tabLayout('_tabs', [tab('General', [text('exterior general')]), tab('Detalle', [inner])])
+  const ctx = { tree: outer, state: {} }
+  const atomsOf = (opts) => (islandContentOf(ctx, opts) || []).flatMap((b) => b.items)
+  const barsOf = (opts) => atomsOf(opts).filter((a) => a.isTabs)
+  const textsOf = (opts) => atomsOf(opts).filter((a) => a.isText).map((a) => a.text)
+
+  // de entrada: solo la barra exterior (la interior vive en una pestaña no activa), ids de siempre
+  let bars = barsOf({})
+  assert.equal(bars.length, 1)
+  assert.deepEqual(bars[0].tabs.map((t) => t.id), ['tab-0', 'tab-1'])
+  assert.equal(bars[0].barId, 'mateuContentTabs')
+  assert.equal(bars[0].stripKey, '')
+  assert.deepEqual(textsOf({}), ['exterior general'])
+
+  // clic en Detalle: aparece la barra interior con ids PROPIOS (prefijados por su pestaña)
+  let active = withActiveTab({}, 'tab-1')
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars.length, 2)
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.deepEqual(bars[1].tabs.map((t) => t.id), ['tab-1/tab-0', 'tab-1/tab-1'])
+  assert.equal(bars[1].stripKey, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-0')
+  assert.notEqual(bars[1].barId, bars[0].barId, 'dos oj-tab-bar con el mismo id')
+  assert.deepEqual(tabBarIdsOf(islandContentOf(ctx, { activeTabs: active })), [bars[0].barId, bars[1].barId])
+  const allIds = bars.flatMap((b) => b.tabs.map((t) => t.id))
+  assert.equal(new Set(allIds).size, allIds.length, 'ids de pestaña repetidos entre barras')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior general'])
+
+  // clic en la 2ª INTERIOR: la exterior se queda en Detalle (antes saltaba a su 2ª… o a la 1ª)
+  assert.equal(tabStripOf('tab-1/tab-1'), 'tab-1')
+  assert.equal(tabStripOf('tab-1'), '')
+  active = withActiveTab(active, 'tab-1/tab-1')
+  assert.deepEqual(active, { '': 'tab-1', 'tab-1': 'tab-1/tab-1' })
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // y volver a la exterior General no olvida la interior elegida
+  active = withActiveTab(active, 'tab-0')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['exterior general'])
+  active = withActiveTab(active, 'tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // compatibilidad: el activeTab de un solo id sigue mandando en la barra de primer nivel
+  assert.equal(barsOf({ activeTab: 'tab-1' })[0].selectedId, 'tab-1')
+
+  // dos barras HERMANAS de primer nivel tampoco comparten ids
+  const twins = { tree: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
+    tabLayout('a', [tab('X', [text('a-x')]), tab('Y', [text('a-y')])]),
+    tabLayout('b', [tab('X', [text('b-x')]), tab('Y', [text('b-y')])]),
+  ] }, state: {} }
+  const twinBars = (islandContentOf(twins, { activeTabs: withActiveTab({}, 'tabs-1/tab-1') }) || [])
+    .flatMap((b) => b.items).filter((a) => a.isTabs)
+  assert.deepEqual(twinBars.map((b) => b.selectedId), ['tab-0', 'tabs-1/tab-1'])
+})
+
+test('item overview con pestañas anidadas: solo las de la barra exterior en la lista', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children) => ({ type: 'ClientSide', metadata: { type: 'Tab', label }, children })
+  const card = { type: 'ClientSide', metadata: { type: 'Card', title: { text: 'Clave' } }, children: [text('dato clave')] }
+  const inner = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('I1', [text('i1')]), tab('I2', [text('i2')])] }
+  const outer = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('A', [text('a')]), tab('B', [inner])] }
+  const tree = { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [card, outer] }
+  const overview = itemOverviewOf({ tree, state: {} })
+  assert.deepEqual(overview.tabs.map((t) => t.label), ['A', 'B'])
+  // el contenido de la barra interior va DENTRO de su pestaña
+  assert.deepEqual(overview.tabs[1].texts, ['i1', 'i2'])
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
@@ -2205,7 +2283,14 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.chatStatusText\(/)
   assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
-  assert.match(send, /mateuChatTokens = bridge\.addUsage\(/)
+  // el agente manda el uso de toda la conversación: se sustituye, no se suma
+  assert.match(send, /mateuChatTokens = bridge\.latestUsage\(/)
+  // la fila de estado lee el progreso que informa el agente
+  assert.match(send, /onProgress: \(p\) => \{ progress = p; showStatus\(\); \}/)
+  assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
+  // y un navigation-requested navega al acabar, si no hay pantalla generada
+  assert.match(send, /ev\.event === 'navigation-requested'/)
+  assert.match(send, /\} else if \(navigateTo\) \{\s*await Actions\.callChain\(context, \{\s*chain: 'onMateuNavigate'/)
   assert.match(send, /clearInterval\(ticking\)/)
   assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
   const mc = webApp('pages/shell-page-chains/chatMic.js')
@@ -2280,32 +2365,80 @@ const sseResponse = (chunks) => {
   }
 }
 
-atest('chat: streamChat acumula payloads data: (trimmed, cada línea con su salto, como el chat compartido) y bufferea a través de trozos', async () => {
+atest('chat: streamChat lee por EVENTO: un texto por evento es una línea, y bufferea a través de trozos', async () => {
   const texts = []
   const out = await streamChat({
     url: '/sse', body: { message: 'hola' },
-    // el 2º payload llega partido en dos trozos SIN el \n → se bufferea hasta cerrar la línea
-    fetchImpl: async () => sseResponse(['data: uno\n', 'data: d', 'os\n']),
+    // el 2º evento llega partido en trozos → se bufferea hasta la línea en blanco que lo cierra
+    fetchImpl: async () => sseResponse(['data: uno\n\n', 'data: d', 'os\n', '\n']),
     onText: (t) => texts.push(t),
   })
-  assert.equal(out, 'uno\ndos\n', 'payloads trimmed, cada línea con su salto = paridad con mateu-chat')
-  assert.equal(texts[texts.length - 1], 'uno\ndos\n')
+  assert.equal(out, 'uno\ndos', 'sin trozos, cada texto es una línea: el contrato línea a línea de siempre')
+  assert.deepEqual(texts, ['uno', 'uno\ndos'])
 })
 
-atest('chat: streamChat conserva las líneas del markdown (una por data:, las vacías incluidas)', async () => {
+atest('chat: streamChat conserva las líneas del markdown (una por evento, las vacías incluidas, y la sangría)', async () => {
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: ## Estado\ndata: \ndata: - **MRU01**\n', 'data: - PMI01\n']),
+    fetchImpl: async () => sseResponse(['data: ## Estado\n\ndata: \n\ndata: - **MRU01**\n\n', 'data: - PMI01\n\ndata:   - anidado\n\n']),
   })
-  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n')
-  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li><li>PMI01</li></ul>')
+  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n  - anidado')
+})
+
+atest('chat: las líneas data: de UN evento se unen con \\n — una respuesta de varias líneas en un evento', async () => {
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data:## Estado\r\ndata:\r\ndata:- **MRU01**\r\n\r\n']),
+  })
+  assert.equal(out, '## Estado\n\n- **MRU01**')
+  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li></ul>')
+})
+
+atest('chat: los trozos (agent-delta) se añaden y la respuesta entera del final los SUSTITUYE', async () => {
+  const texts = []; const deltas = []
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse([
+      'data:{"inputTokens":0,"outputTokens":0,"totalTokens":0}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"Te "}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"llevo.\\n"}}\n\n:keep-alive\n\n',
+      'data:{"inputTokens":10,"outputTokens":5,"totalTokens":15}\n\n',
+      'data:Te llevo ahora.\n\n',
+    ]),
+    onText: (t) => texts.push(t), onDelta: (piece) => deltas.push(piece),
+    onUsage: (u) => texts.push(u),
+  })
+  assert.deepEqual(deltas, ['Te ', 'llevo.\n'])
+  assert.equal(out, 'Te llevo ahora.')
+  // el uso todo-cero (marcador de agentes anteriores) no llega; el real sí
+  assert.deepEqual(texts, ['Te ', 'Te llevo.\n', { inputTokens: 10, outputTokens: 5, totalTokens: 15 }, 'Te llevo ahora.'])
+})
+
+atest('chat: el progreso del agente (fases y herramientas) llega a onProgress y a la fila de estado', async () => {
+  let clock = 0
+  const lines = []
+  await streamChat({
+    url: '/sse', body: {}, now: () => clock,
+    fetchImpl: async () => sseResponse([
+      'data:{"event":"agent-status","detail":{"phase":"connecting","text":"Conectando con 2 servidores MCP…"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"start"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"end","ms":3100,"error":"timeout"}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"No he podido."}}\n\n',
+    ]),
+    onProgress: (p) => {
+      clock += 3000
+      lines.push(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0, progress: p, now: clock }))
+      if (p.steps.length && !p.runningTool()) assert.deepEqual(p.steps, [{ name: 'booking_findBookings', server: 'booking', kind: 'mcp', ms: 3100, error: 'timeout', running: false }])
+    },
+  })
+  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Llamando a booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Respondiendo…'])
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
   const events = []; let usage = null
   await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n', 'data: {"totalTokens":9}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n\n', 'data: {"totalTokens":9}\n\n']),
     onEvent: (e) => events.push(e), onUsage: (u) => { usage = u },
   })
   assert.deepEqual(events, [{ event: 'navigate', detail: { route: '/x' } }])
@@ -2316,7 +2449,7 @@ atest('chat: agent-error se muestra como el texto del asistente, no como evento'
   let text = ''; const events = []
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n\n']),
     onText: (t) => { text = t }, onEvent: (e) => events.push(e),
   })
   assert.equal(out, '⚠️ boom')
@@ -2354,12 +2487,12 @@ atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el 
       fetchImpl: async (url, init) => {
         sent.push(init.headers.Authorization)
         return init.headers.Authorization === 'Bearer nuevo'
-          ? sseResponse(['data: hola\n'])
+          ? sseResponse(['data: hola\n\n'])
           : { ok: false, status: 401, text: async () => '' }
       },
     })
     assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
-    assert.equal(out, 'hola\n')
+    assert.equal(out, 'hola')
   } finally {
     globalThis.localStorage = originalStorage
     globalThis.document = originalDocument
@@ -3218,6 +3351,34 @@ test('chat: los totales de la conversación suman cada respuesta; sin contadores
   assert.deepEqual(total, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
   // una respuesta sin uso no borra lo que había
   assert.deepEqual(addUsage(total, {}), total)
+})
+
+test('chat: el uso que se enseña es el último que manda el agente (el de la conversación), no la suma', () => {
+  assert.equal(latestUsage(null, null), null)
+  const first = latestUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
+  const second = latestUsage(first, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  assert.deepEqual(second, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  // una respuesta sin uso deja el que había
+  assert.deepEqual(latestUsage(second, {}), second)
+  assert.equal(isEmptyUsage({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }), true)
+  assert.equal(isEmptyUsage({ totalTokens: 3 }), false)
+})
+
+test('chat: el lector SSE ignora comentarios y otros campos, y quita sólo UN espacio tras data:', () => {
+  const parser = createSseParser()
+  const out = [...parser.push(':keep-alive\n\nevent: x\nid: 1\ndata:   sangrado\n\ndata: a\r'), ...parser.push('\n\r\n'), ...parser.push('data: fin'), ...parser.end()]
+  assert.deepEqual(out, ['  sangrado', 'a', 'fin'])
+  assert.deepEqual(classifyChatPayload('{"event":"agent-status","detail":{"phase":"thinking"}}'), { kind: 'status', detail: { phase: 'thinking' } })
+  assert.deepEqual(classifyChatPayload('{"event":"navigation-requested","detail":{"route":"/x"}}'), { kind: 'event', event: 'navigation-requested', detail: { route: '/x' } })
+  assert.deepEqual(classifyChatPayload('hola'), { kind: 'text', text: 'hola' })
+})
+
+test('chat: sin progreso del agente, la fila de estado es la de siempre', () => {
+  const p = createChatProgress(0)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Pensando… 4 s')
+  p.status({ phase: 'thinking', text: 'Pensando…' }, 5000)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), 'Pensando… 2 s')
+  assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), '')
 })
 
 test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {

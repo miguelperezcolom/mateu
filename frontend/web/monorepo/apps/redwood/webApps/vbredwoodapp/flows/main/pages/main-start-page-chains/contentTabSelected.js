@@ -31,10 +31,12 @@ define([
         return;
       }
       const tabId = detail.value;
-      if (!tabId || tabId === $application.variables.mateuActiveTab) {
+      // la activa es POR BARRA (barras anidadas): cada clic solo toca la suya
+      const activeTabs = $application.variables.mateuActiveTabs || {};
+      if (!tabId || tabId === activeTabs[bridge.tabStripOf(tabId)]) {
         return;
       }
-      $application.variables.mateuActiveTab = tabId;
+      $application.variables.mateuActiveTabs = bridge.withActiveTab(activeTabs, tabId);
 
       const reg = $application.variables.mateuRegistry;
       const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
@@ -43,13 +45,16 @@ define([
       }
       const blocks = bridge.hostContentOf(host, null, {
         title: $application.variables.mateuHostTitle || '',
-        activeTab: tabId,
+        activeTabs: $application.variables.mateuActiveTabs,
       }) || [];
       $application.variables.mateuHostContent = blocks;
       bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
-      try {
-        await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
-      } catch (ignored) { /* aún sin montar */ }
+      // una barra anidada aparece/cambia al cambiar de pestaña: se refrescan todas
+      for (const barId of bridge.tabBarIdsOf(blocks)) {
+        try {
+          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
+        } catch (ignored) { /* aún sin montar */ }
+      }
     }
   }
 

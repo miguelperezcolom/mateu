@@ -249,6 +249,47 @@ Each `@Tab` annotation starts a new tab. Fields without `@Tab` fall into a defau
 
 ![Tabs layout — Personal and Address tabs](/images/docs/components/tabs.png)
 
+### Nested tabs
+
+A tab can hold another tab strip. Declaratively, give a `@Tab` field a type that has its own `@Tab` fields — the nested form renders inside its tab with its own strip:
+
+```java
+@UI("/customer")
+public class Customer {
+    @Tab("General")
+    String name;
+
+    @Tab("Details")
+    Details details = new Details();   // renders inside the «Details» tab
+}
+
+public class Details {
+    @Tab("General")                    // a label may repeat the outer one
+    String phone;
+
+    @Tab("Notes")
+    String notes;
+}
+```
+
+Fluently, a `Tab` takes any component as content — including another `TabLayout`:
+
+```java
+TabLayout.builder()
+    .id("outer")
+    .tabs(List.of(
+        new Tab("General", new Text("…")),
+        new Tab("Details", TabLayout.builder()
+            .id("inner")
+            .tabs(List.of(
+                new Tab("General", new Text("…")),
+                new Tab("Notes", new Text("…"))))
+            .build())))
+    .build();
+```
+
+Each strip keeps its own selection: picking a tab of the inner strip never changes the outer one. The declarative mapper gives each strip a distinct, stable id (`_tabs` at the top level, `details-_tabs` for the strip of the `details` field); in the fluent API, give each `TabLayout` its own id.
+
 ---
 
 ## @Accordion

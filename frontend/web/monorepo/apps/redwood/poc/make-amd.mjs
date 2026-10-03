@@ -56,6 +56,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     actionsOf,
     summarizeHost,
     findByType,
+    // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
+    tabStripOf,
+    withActiveTab,
+    tabBarIdsOf,
     listingOf,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
@@ -213,7 +217,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
+    latestUsage,
     chatStatusText,
+    createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
     transcriptOf,

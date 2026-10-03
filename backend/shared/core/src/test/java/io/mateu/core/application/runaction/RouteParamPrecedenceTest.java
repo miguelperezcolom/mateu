@@ -124,4 +124,14 @@ class RouteParamPrecedenceTest {
 
     assertThat(state).containsExactly(Map.entry("id", "42"));
   }
+
+  @Test
+  void aRegistryPatternWithoutLeadingSlashStillReadsTheRightSegment() {
+    // Registry patterns are normalized without a leading slash; request routes carry one.
+    var entry = new RouteEntry("customers/:customerId", null, "X", null, null);
+
+    var state = resolve(Map.of(), "customers/:customerId", "/customers/7", entry);
+
+    assertThat(state).containsEntry("customerId", "7");
+  }
 }

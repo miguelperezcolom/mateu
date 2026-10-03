@@ -527,7 +527,7 @@ define([
         ? bridge.entityHeaderOf(hostAfter) : null;
       const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
-            { title: summary.title, activeTab: $application.variables.mateuActiveTab, dropEntityHeader: !!hostEntity2 }) : null;
+            { title: summary.title, activeTabs: $application.variables.mateuActiveTabs, dropEntityHeader: !!hostEntity2 }) : null;
       // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
       // y el texto plano se suprimen — misma regla que los arquetipos
       const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
@@ -559,9 +559,9 @@ define([
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el
       // oj-navigation-list del navigator)
-      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+      for (const barId of bridge.tabBarIdsOf($application.variables.mateuHostContent)) {
         try {
-          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
       if (hostBlocksRicos2) {
