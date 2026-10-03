@@ -714,6 +714,41 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  /** Clave de una barra de pestañas del contenido: '' para la primera de primer nivel (la de
+   *  siempre, así una página con una sola barra no cambia); dentro de una pestaña, el id de esa
+   *  pestaña; las hermanas siguientes llevan '/tabs-N'. */
+  function tabStripKeyOf(scope, ordinal) {
+    return [scope || '', ordinal ? 'tabs-' + ordinal : ''].filter(Boolean).join('/')
+  }
+
+  /** Id de la pestaña i de una barra: 'tab-i' en la de primer nivel, '<clave>/tab-i' en el resto. */
+  function tabIdOf(stripKey, index) {
+    return (stripKey ? stripKey + '/' : '') + 'tab-' + index
+  }
+
+  /** La barra a la que pertenece una pestaña (inversa de tabIdOf). */
+  function tabStripOf(tabId) {
+    const s = String(tabId || '')
+    const cut = s.lastIndexOf('/')
+    return cut < 0 ? '' : s.slice(0, cut)
+  }
+
+  /** Anota la pestaña elegida en el mapa de activas (una por barra), sin tocar las demás barras. */
+  function withActiveTab(activeTabs, tabId) {
+    return { ...(activeTabs || {}), [tabStripOf(tabId)]: tabId }
+  }
+
+  /** Ids de las barras de pestañas (átomos isTabs) de unos bloques: las chains las refrescan. */
+  function tabBarIdsOf(blocks) {
+    const ids = []
+    const walk = (items) => (items || []).forEach((a) => {
+      if (a && a.isTabs && a.barId) ids.push(a.barId)
+      if (a && a.items) walk(a.items)
+    })
+    ;(blocks || []).forEach((b) => walk(b.items))
+    return ids
+  }
+
   /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
   function itemOverviewOf(ctx) {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
@@ -724,7 +759,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
     // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
     if (!keyCard) return null
-    const tabs = findAllByType(ctx.tree, 'Tab').map((tab, i) => ({
+    // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
+    // pestaña (sus textos van en los de ella), no hermanas de la lista
+    const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
       texts: collectTexts(tab),
@@ -1006,7 +1043,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
-    const activeTab = opts.activeTab || ''
+    // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
+    // opts.activeTab (un único id) sigue valiendo para la barra de primer nivel.
+    const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
+    // Barras ANIDADAS (un TabLayout dentro de una pestaña): cada barra tiene su clave, derivada de
+    // la pestaña que la contiene (tabScope) y de su ordinal entre hermanas — ver tabStripKeyOf.
+    let tabScope = ''
+    const stripsPerScope = {}
+    let tabBars = 0
     const state = ctx.state || {}
     const interp = (t) => interpolate(t, state)
     const badgeOf = (b) => ({
@@ -1201,19 +1245,34 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
         const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
         if (!tabs.length) return
-        const ids = tabs.map((tab, i) => 'tab-' + i)
-        const wanted = ids.indexOf(activeTab)
+        // cada barra con SU clave y SUS ids (la de primer nivel conserva 'tab-N'): con ids y
+        // pestaña activa compartidos, pulsar la pestaña 2 de una barra interior cambiaba también
+        // la exterior
+        const ordinal = stripsPerScope[tabScope] || 0
+        stripsPerScope[tabScope] = ordinal + 1
+        const stripKey = tabStripKeyOf(tabScope, ordinal)
+        const ids = tabs.map((tab, i) => tabIdOf(stripKey, i))
+        const wanted = ids.indexOf(activeTabs[stripKey] || '')
         const selected = wanted >= 0 ? wanted : tabs.findIndex((tab) => tab.metadata.active)
         const current = selected >= 0 ? selected : 0
         atom({
           isTabs: true,
+          // la primera barra conserva el id de siempre (las chains la refrescan por selector)
+          barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
+          stripKey,
           selectedId: ids[current],
           tabs: tabs.map((tab, i) => ({
             id: ids[i],
             label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
           })),
         }, container)
-        for (const child of tabs[current].children || []) visit(child, container)
+        const outerScope = tabScope
+        tabScope = ids[current]
+        try {
+          for (const child of tabs[current].children || []) visit(child, container)
+        } finally {
+          tabScope = outerScope
+        }
         return
       }
       if (t === 'CustomField') {
@@ -5967,6 +6026,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     actionsOf,
     summarizeHost,
     findByType,
+    // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
+    tabStripOf,
+    withActiveTab,
+    tabBarIdsOf,
     listingOf,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
