@@ -96,6 +96,15 @@ async function vaadin(base) {
     check('«← Customers» goes to the parent', path(page) === '/customers', path(page))
     await page.locator('text=Customer 5').first().click(); await settle(6000)
     check('@RowRoute: a row opens the master', path(page).startsWith('/customers/5'), path(page))
+    await page.locator('text=Addresses').first().click(); await settle()
+    await page.goBack(); await settle()
+    text = await textOf(page)
+    check('row → tab → back repaints the previous tab', path(page).startsWith('/customers/5') && !path(page).endsWith('/addresses')
+      && /(^|\| )5-1( \||$)/.test(text), path(page) + ' ' + text.slice(0, 200))
+
+    await page.goto(base + '/customers/3/history'); await settle(6000)
+    text = await textOf(page)
+    check('a read-only page renders its values', text.includes('Customer 3 created 2026-01-01'), text.slice(0, 300))
 
     await page.goto(base + '/customer-overview/3'); await settle(7000)
     text = await textOf(page)
@@ -136,8 +145,47 @@ async function redwood(base) {
     await page.goto(base + '/customers'); await settle(25000)
     await page.locator('td:has-text("Customer 5")').first().click(); await settle()
     check('@RowRoute: a row opens the master', path(page).startsWith('/customers/5') && await appTab() === '/customers/5/orders', path(page))
+    // row → tab → back: entering from a listing row leaves the boot URL (/customers) ABOVE the
+    // master's — VB used to read /customers/5 as one of its pages, drop the shell and not repaint
+    await page.locator('.mateu-app-level oj-tab-bar li:has-text("Addresses")').first().click(); await settle()
+    check('row → tab: the tab is a URL', path(page) === '/customers/5/addresses' && await appTab() === '/customers/5/addresses', path(page))
+    await page.goBack(); await settle()
+    text = await textOf(page)
+    check('row → tab → back repaints the previous tab', path(page) === '/customers/5' && await appTab() === '/customers/5/orders'
+      && /(^|\| )5-1( \||$)/.test(text), path(page) + ' ' + String(await appTab()) + ' ' + text.slice(0, 200))
+    await page.goForward(); await settle()
+    text = await textOf(page)
+    check('…and forward repaints the tab again', path(page) === '/customers/5/addresses' && text.includes('Billing'), path(page))
+    await page.goBack(); await settle()
     await page.locator('.mateu-app-back').first().click(); await settle()
     check('«← Customers» goes to the parent', path(page) === '/customers', path(page))
+
+    // a read-only page: its @ReadOnly fields travel as texts
+    await page.goto(base + '/customers/3/history'); await settle(25000)
+    text = await textOf(page)
+    check('a read-only page renders its values', text.includes('Customer 3 created 2026-01-01'), text.slice(0, 300))
+
+    // a form page with @Tab(key) and @Subresource
+    const contentTab = () => page.evaluate(() => { const bar = document.querySelector('#mateuContentTabs'); return bar ? bar.selection : null })
+    await page.goto(base + '/customer-overview/3'); await settle(25000)
+    text = await textOf(page)
+    check('form page: the tab bar is drawn, with the EAGER count', /Details \| Orders \(\d+\) \| Billing/.test(text), text.slice(0, 400))
+    await page.locator('#mateuContentTabs li:has-text("Orders")').first().click(); await settle()
+    text = await textOf(page)
+    check('form page: the Orders tab shows the customer\'s orders', path(page) === '/customer-overview/3/orders'
+      && /(^|\| )3-1( \||$)/.test(text) && !/(^|\| )4-\d+( \||$)/.test(text), path(page) + ' ' + text.slice(0, 300))
+    await page.locator('#mateuContentTabs li:has-text("Billing")').first().click(); await settle()
+    text = await textOf(page)
+    check('form page: @Tab(key) pushes its URL', path(page) === '/customer-overview/3/billing', path(page))
+    check('form page: stacked @Subresource listings with their titles and help',
+      text.includes('Invoices issued to this customer') && text.includes('F3-1') && text.includes('Payments received from this customer') && text.includes('P3-1'),
+      text.slice(0, 400))
+    await page.goBack(); await settle()
+    check('form page: back returns to the previous tab', path(page) === '/customer-overview/3/orders', path(page))
+    await page.goto(base + '/customer-overview/3/billing'); await settle(25000)
+    text = await textOf(page)
+    check('form page: a deep link opens the tab, bar included', await contentTab() === 'tab-2'
+      && text.includes('Invoices issued to this customer') && text.includes('F3-1'), text.slice(0, 300))
   } finally {
     await browser.close()
   }
