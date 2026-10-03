@@ -52,14 +52,22 @@ If `@UI` is at `/admin` and a `@Route` declares `/products/:id`, the full URL be
 
 ---
 
-## Example: route with a parent
+## Example: a route inside an existing UI
 
-```java
-@Route(value = "/products/create", parentRoute = "/admin")
-public class CreateProductPage extends ProductForm {}
+`@Route(parentRoute = …)` no longer exists. A screen inside the `/admin` UI is an entry in that
+UI's `routes.yaml`:
+
+```yaml
+type: Routes
+basePath: /admin
+routes:
+  - route: products/create
+    viewModel: com.acme.CreateProductPage
 ```
 
-This screen does not publish a new UI. It defines a route inside the existing `/admin` UI.
+This screen does not publish a new UI. It defines a route inside the existing `/admin` UI. To nest
+a route under another one, use `children` (each child gets `RouteEntry.parent`, and the parent
+renders the child in its slot; see the [route registry](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)).
 
 ---
 
