@@ -131,10 +131,47 @@ rama `probe/master-detail-tabs`.
 - [ ] **Tema decorativo configurable**, un solo `theme.yaml` o `@Theme`: franja con textura en la cabecera de página, ilustración del formulario, capas del hero y franja superior de las tarjetas. Las imágenes las pone la app; nunca recursos de Oracle.
 - [ ] Más adelante: home personalizable, mega menú con favoritos, «guardar como stack» (`@ExportRequest`) y subformularios compartidos (etiquetas, mover recurso).
 
+## P9 · Navegación: un árbol de menú de dos niveles y montajes remotos (M–L)
+
+Idea del usuario (2026-10-03): desde la misma app se definen los dos niveles de navegación, y el menú
+de un servicio remoto se puede montar en cualquier punto del árbol. La variante de la app decide solo
+cómo se pinta. El estudio previo, con la situación actual con referencias de fichero y línea, está en
+`~/IdeaProjects/ec-demo1-ux/menus-and-subapps-proposal.md`.
+
+- [ ] Estudio y propuesta del API en los tres estilos (anotación, fluent y YAML), con el usuario.
+- [ ] Un árbol de menú de dos niveles en la definición de la app. Cualquier nodo puede montar un menú remoto, entero o una parte, como sección o como opciones dentro de otra sección. Hay que resolver el orden, los permisos, la caché, la carga en frío (la sección activa y las migas se conocen antes de que responda el remoto) y un remoto caído (la sección se desactiva con un aviso; la shell no se rompe).
+- [ ] `AppVariant.HAMBURGER_SECTIONS`, estilo Opera Cloud: la hamburguesa lleva el primer nivel y el subheader (la franja 2) el segundo nivel de la sección activa. Las variantes actuales siguen funcionando igual.
+- [ ] Las sub-apps pasan a ser secciones del mismo árbol, cada una con su menú de segundo nivel y, opcionalmente, widgets de ámbito lateral (P8). Se mantienen las apps anidadas que de verdad lo sean.
+- [ ] La sección y la opción activas, y las migas, salen de la ruta y del mismo árbol.
+- [ ] Los dos renderers, más IntelliJ y React Native si pintan menús. Un camino de migración para las apps actuales.
+- [ ] **Entregable en ec-demo1:** aplicarlo al menos al control plane. Las secciones son los servicios (IA, Usuarios, Workflow, Forms, Integrations, Mapping, Customers, Registro de huéspedes, Notifications y Audit), cada una montada desde el menú remoto de su servicio, con su segundo nivel en el subheader. Después, al plano de datos.
+- Va después de los arreglos de cabecera de la auditoría (P0), porque toca el mismo código: `appRenderer.ts`, `mateu-app.ts` y `renderMenu.ts`.
+
+## P10 · Que un modelo que no conoce Mateu lo use bien (M)
+
+Un LLM no conoce Mateu por su entrenamiento: todo lo que sabe lo saca en cada sesión del repo, de los
+skills, de la documentación y de lo que prueba. El objetivo es que Mateu se explique solo a quien no lo
+conoce. Hoy hay 5 skills en `.claude/skills` (`mateu`, `mateu-screen`, `mateu-scaffold`, `mateu-run` y
+`mateu-federation`), `doc/public/llms.txt`, `mateu-ai-full.md`, `mateu-ai-compact.md`, el `CLAUDE.md`,
+los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si están al día.
+
+- [ ] **Medir primero.** Una batería de 10 a 15 tareas reales, ejecutadas por un agente que solo tiene el repo, como por ejemplo:
+  - un CRUD con filtros y una acción masiva;
+  - un maestro con pestañas-página;
+  - un asistente con validación;
+  - una pantalla estática sobre un API REST;
+  - montar un menú remoto.
+
+  De cada una se mira si compila, si se ve bien en los dos renderers, los errores típicos y cuánto cuesta corregirla. El resultado es la línea base.
+- [ ] **Recetario de ejemplos ejecutables:** un patrón por pantalla, cada uno con su demo y su test e2e, como referencia canónica. La guía para IA y los skills enlazan a él en lugar de a código suelto.
+- [ ] **Skills como guía de decisión:** qué patrón usar, qué anotación usar y cuál evitar, las trampas conocidas (`@Inline`, parámetros que se filtran como filtros…) y un ciclo de verificación (arrancar la demo, capturar y comparar en los dos renderers).
+- [ ] **Errores que enseñan:** validaciones de arranque y de exportación con mensajes que dicen qué falla y cómo arreglarlo, como el informe de seguridad estática (P5) o «este `@Inline` no tiene ruta» (P1).
+- [ ] **Mantenerlo al día con un control automático:** cada PR que añade una anotación o un patrón actualiza la guía, los skills y el recetario. Se repite la batería del primer punto para ver si mejora.
+
 ---
 
 ## Registro
 
 | Fecha | Qué |
 |---|---|
-| 2026-10-03 | Plan escrito. Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
+| 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
