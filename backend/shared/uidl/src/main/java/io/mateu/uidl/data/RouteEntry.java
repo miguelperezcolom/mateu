@@ -41,9 +41,9 @@ import java.util.Map;
  * @param parent the ABSOLUTE route of the screen whose slot this route fills, or {@code null} for a
  *     top-level route. A sub-route with a parent does not replace the page: the parent renders its
  *     shell (a master-detail with tabs, a mediator app) and this route's screen is nested into the
- *     parent's slot. This is what {@code @Route(parentRoute=…)} expressed; it is set when the
- *     authored {@link #children} tree is flattened, so on a flat table entry it is the link back to
- *     the host.
+ *     parent's slot. It is set when the authored {@link #children} tree is flattened, so on a flat
+ *     table entry it is the link back to the host. Note: the resolvers do not walk this parent
+ *     chain yet (planned, P1 in {@code design/maui-parity-plan.md}); it is recorded, not acted on.
  * @param children sub-routes nested under this one, authored RELATIVE to it (so {@code orders}
  *     under {@code use-cases/rra} answers {@code use-cases/rra/orders}). Each child fills this
  *     screen's slot. This is the AUTHORING shape; the registry flattens it into absolute entries

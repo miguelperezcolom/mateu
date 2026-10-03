@@ -196,10 +196,14 @@ over the screen.
 ```
 
 On load, the loader flattens the tree to absolute routes, and each child carries its parent's route
-as `parent`. This is the data equivalent of the annotation `@Route(parentRoute = …)`. Children nest
-to any depth. A parent that is itself an app/mediator (implements `App`, has a `@Menu`, or supplies
-one) is resolved as the enclosing shell and consumes its prefix, so its children render in place —
-you do not wire anything else.
+as `parent` (this replaces the removed `@Route(parentRoute = …)`). Children nest
+to any depth.
+
+:::note[Not walked at runtime yet]
+The `parent` link is recorded on every flattened entry, but the resolvers do not follow the parent
+chain yet: a child rendering in its parent's slot (the parent consuming its prefix) is planned work —
+P1 in `design/maui-parity-plan.md`. Until then, do not rely on `parent` alone to nest a screen.
+:::
 
 ## IntelliSense
 

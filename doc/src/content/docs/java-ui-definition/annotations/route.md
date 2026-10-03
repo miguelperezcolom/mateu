@@ -3,6 +3,13 @@ title: "Route Annotations"
 description: "Annotations for registering and linking UI classes to URL routes."
 ---
 
+:::caution[Removed]
+`@Route`, `@Routes` and `@HomeRoute` were removed from the code (commit `c50678e81`): inner routes
+are now data, declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/),
+and the home is the app's first menu item. `@UI` is the only routing annotation left, plus
+`@BaseRoute`. The sections below describe the old annotations for reference while migrating.
+:::
+
 ## @Route
 
 `@Route` is repeatable (via `@Routes`). It registers a class as a reachable route within a `@UI` application. A class can handle multiple paths by stacking several `@Route` annotations.
@@ -13,7 +20,6 @@ description: "Annotations for registering and linking UI classes to URL routes."
 public @interface Route {
     String value();                   // route path
     String[] uis() default {};        // which @UI classes expose this route
-    String parentRoute() default RouteConstants.NO_PARENT_ROUTE;
 }
 ```
 
@@ -21,7 +27,6 @@ public @interface Route {
 |---|---|---|---|
 | `value` | `String` | — | URL path for this route, e.g. `"/orders/list"` |
 | `uis` | `String[]` | `{}` | Limits which `@UI` endpoints expose this route. Empty means all. |
-| `parentRoute` | `String` | `"_empty"` (no parent) | Parent route path for nested navigation |
 
 ### Basic usage
 
@@ -41,12 +46,21 @@ public class OrderList { ... }
 
 ### Nested routes
 
-Setting `parentRoute` makes this route a child of another, enabling breadcrumb navigation and nested layouts:
+There is no `parentRoute` attribute any more. A route nests under another through `children` in
+`routes.yaml` (each flattened child carries its parent as `RouteEntry.parent`):
 
-```java
-@Route(value = "/orders/{id}", parentRoute = "/orders/list")
-public class OrderDetail { ... }
+```yaml
+routes:
+  - route: orders/list
+    viewModel: com.acme.OrderList
+    children:
+      - route: ":id"              # → orders/list/:id
+        viewModel: com.acme.OrderDetail
 ```
+
+Note that the runtime does not walk the parent chain yet: `parent` is recorded on every entry, but
+rendering a child inside its parent's slot from that link alone is still pending (plan P1 in
+`design/maui-parity-plan.md`).
 
 **Tip — nest detail routes under the listing route.** Declaring the detail as `/orders/:id`
 (instead of a sibling like `/order/:id`) keeps the app shell's **navigation tab highlighted**
@@ -116,21 +130,23 @@ public class OrdersApp { ... }
 
 ## Route hierarchy example
 
-The following shows a typical order management module with a shell, a list, and a detail page:
+A typical order management module with a shell, a list and a detail page — the shell is a `@UI`,
+and the inner routes are data:
 
 ```java
-// Application shell — mounts the /orders UI and sets the default page
 @UI("/orders")
-@HomeRoute("/orders/list")
-public class OrdersShell { ... }
-
-// List page — registered under the /orders UI
-@Route(value = "/orders/list", uis = {"/orders"})
-public class OrderList { ... }
-
-// Detail page — child of the list route; triggers breadcrumb navigation
-@Route(value = "/orders/{id}", parentRoute = "/orders/list")
-public class OrderDetail { ... }
+public class OrdersShell { ... }   // the home is its first menu item
 ```
 
-When the user opens `/orders`, the framework redirects them to `/orders/list`. Navigating to `/orders/123` shows the detail page with a back link to the list.
+```yaml
+# routes.yaml
+type: Routes
+basePath: /orders
+routes:
+  - route: list
+    viewModel: com.acme.OrderList
+  - route: list/:id
+    viewModel: com.acme.OrderDetail
+```
+
+See the [route registry](/java-ui-definition/route-registry/) for the full format.
