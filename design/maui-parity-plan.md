@@ -140,6 +140,13 @@ rama `probe/master-detail-tabs`.
 - [ ] `@TimeRange(quickSelects)` como valor de ámbito de página, y gráficos con `refreshOn`.
 - [ ] **Columna lateral de ámbito (D5):** varios widgets de contexto apilados bajo el menú, ampliando `@AppContext` con `position = SIDE`, `tree`, `title`, acciones de cabecera («añadir | limpiar»), texto vacío, resumen de lo aplicado, diálogo de edición y valor global o por sub-app. Ejemplos de OCI: «List scope» (compartimento en árbol) y «Tag filters».
 - [ ] **Tema configurable**, un solo `theme.yaml` o `@Theme`. Crece a partir del acento de P0. En RDS, la cabecera de página tiene un eje «Theme» con 12 líneas de producto (Light, Mix, OCI, NSX, Finance, HCM, Dev Tools, Database, SCM, CX, GBU y Health). Cada una es un color de fondo de cabecera (por ejemplo, OCI `#33553c`) más una **franja de color de 12 px** (8 px por debajo de 600 px), que es la línea de la consola de OCI. Mateu tendrá presets de este estilo para los dos renderers, más la ilustración del formulario, las capas del hero y la franja superior de las tarjetas. Las imágenes las pone la app; nunca recursos de Oracle. Se adelanta a justo después de P0.
+  - **Tokens de RDS Foundations** (`~/IdeaProjects/ec-demo1-ux/redwood-rds-foundations-tokens.md`):
+    - Son 811 variables, con un solo modo cada una: claro y oscuro son nombres distintos. **No hay tokens de espaciado, tamaño ni radio**: se mantienen los de Mateu o se toman de `--oj-core-*` de JET.
+    - Hay tres niveles de color: una paleta de 19 tonos en pasos de 10 a 190; roles semánticos (texto, borde, superficies con importancia baja, sutil o fuerte, overlay, fondo de página 0–40, roles de botón, gráficos, sombra); y rampas por componente.
+    - Cada línea de producto tiene un tono (OCI = Pine, NSX = Ocean, HCM = Rose…). El paso 140 es el fondo de la cabecera.
+    - Tipografía: Display, Heading, Subheading y Body; el tamaño por defecto de la interfaz es 13,75. Hay 5 sombras, de XS a XL.
+    - Para el tema de Mateu, añadir lo que falta frente al bloque `lumo` de `contract.json`: texto deshabilitado y de enlace, superficies sutiles, niveles de fondo de página, roles de botón, foco, hover y scrim, la paleta de gráficos, roles tipográficos con nombre, elevación y un preset por línea de producto.
+    - Pista para el importador: juntar en un token los nombres de claro y oscuro, resolver los alias y conservar la transparencia.
 
 - [ ] Más adelante: home personalizable, mega menú con favoritos, «guardar como stack» (`@ExportRequest`) y subformularios compartidos (etiquetas, mover recurso).
 
