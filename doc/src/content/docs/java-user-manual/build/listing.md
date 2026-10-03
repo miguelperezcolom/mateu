@@ -149,6 +149,8 @@ public class ProductSelector implements Listing<ProductRow>, Searchable,
 String productId;
 ```
 
+The same selector serves a **multi-valued** field (`List<String> productIds`, `Set<Long>`, `UUID[]`…): the modal then opens with row checkboxes and an «Add selected» button, and the picked rows are added to the field's ids. `Selector.selectedItems(httpRequest)` maps the checked rows — by default through `selected()`, each row presented as the clicked one, so the selector above needs no change. See [`@Searchable` → multi-valued fields](/java-ui-definition/annotations/field-types/#multi-valued-fields-list-set-and-arrays-of-ids).
+
 > Note: the `@Searchable` **annotation** (lookup fields) and the `Searchable` **capability interface** (search box on a listing) are different things that share a name — the annotation goes on the form field, the interface on the listing class.
 
 ---

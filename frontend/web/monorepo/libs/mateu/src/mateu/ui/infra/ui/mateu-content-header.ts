@@ -17,6 +17,7 @@ import { navigateToRoute } from './rowRoute'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 export { possiblyHtml } from './interpolation'
 
@@ -390,7 +391,7 @@ export class MateuContentHeader extends LitElement {
                                     ? unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
                                     : html`<span class="page-title-placeholder">${unsafeHTML(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
-                                    ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))
+                                    ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}, { pill: true }))
                                     : nothing}
                             </div>`:nothing}
                         ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
@@ -428,13 +429,13 @@ export class MateuContentHeader extends LitElement {
             ` : nothing}
             ${metadata.badges && metadata.badges.length > 0 && !(metadata as any).kpisBelow ? html`
                 <div style="display: flex; gap: var(--lumo-space-s, .5rem); padding-bottom: var(--lumo-space-s, .5rem);">
-                    ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))}
+                    ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}, { pill: true }))}
                 </div>
             ` : nothing}
         `
     }
 
-    static styles = css`
+    static styles = [css`
         :host {
             display: block;
             width: 100%;
@@ -631,7 +632,7 @@ export class MateuContentHeader extends LitElement {
         .mtb.danger.primary { background: var(--lumo-error-color, #c0392b); color: #fff; border-color: transparent; }
 
         ${badge}
-    `
+    `, linkStyles]
 }
 
 declare global {

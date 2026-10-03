@@ -2,7 +2,8 @@ import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { componentRenderer, HeaderIconButton } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { chromeText } from "@infra/ui/chromeTexts.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
@@ -59,11 +60,12 @@ const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => ht
  * The logo and the title, the header's brand. The title takes part in the row's baseline (see
  * HEADER_ROW); the logo, which has no baseline of its own, is centred on the title's box instead —
  * on its capitals — so it sits with the name rather than on the line under it. With no title there
- * is no text to line up with, and the logo is simply centred.
+ * is no text to line up with, and the logo is simply centred. `inset` keeps the logo 10px off the
+ * row's start; band 1 of MENU_ON_TOP passes false, its own padding is the content gutter.
  */
-const renderBrand = (metadata: App) => html`
+const renderBrand = (metadata: App, inset = true) => html`
     <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'}; min-width: 0;">
-        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:nothing}
+        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: ${inset ? '10px' : '0'}; align-self: center;">`:nothing}
         ${metadata.title?html`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
     </div>`
 
@@ -103,14 +105,28 @@ const renderMenuButton = (items: MenuBarItem[], onSelect: (item: MenuBarItem) =>
 const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
     handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
 
-const renderThemeToggle = (metadata: App, container: MateuApp) =>
-    metadata.themeToggle ? html`
-        <button class="app-chrome-icon-btn" @click="${container.toggleTheme}"
-            title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
-            style="margin-right: 0.5rem; flex-shrink: 0;">
-            ${icon(container.isDark ? 'vaadin:sun-o' : 'vaadin:moon', 'color: var(--lumo-body-text-color);')}
-        </button>
-    ` : nothing
+/**
+ * An icon-only button of the header's chrome. The active renderer draws it with its own design
+ * system (the Vaadin adapter: a tertiary icon vaadin-button); otherwise it is a neutral <button>,
+ * which takes the header's font (`font: inherit`, mateu-app's .app-chrome-icon-btn) and the
+ * header's icon colour (--mateu-header-icon-color).
+ */
+export const renderHeaderIconButton = (button: HeaderIconButton) =>
+    componentRenderer.get()?.renderHeaderIconButton?.(button) ?? html`
+        <button class="app-chrome-icon-btn ${button.cssClasses ?? ''}" @click="${button.onClick}"
+            title="${button.title ?? button.label}" aria-label="${button.label}"
+            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}">
+            ${icon(button.icon, 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem); color: currentColor;')}
+        </button>`
+
+/** The dark/light switch, when the app asks for it (@App(themeToggle)). Outline moon / sun. */
+export const renderThemeToggle = (metadata: App, container: MateuApp) =>
+    metadata.themeToggle ? renderHeaderIconButton({
+        icon: container.isDark ? 'vaadin:sun-o' : 'vaadin:moon-o',
+        label: chromeText(container.isDark ? 'lightMode' : 'darkMode'),
+        cssClasses: 'mateu-theme-toggle',
+        onClick: () => container.toggleTheme(),
+    }) : nothing
 
 /**
  * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
@@ -118,13 +134,14 @@ const renderThemeToggle = (metadata: App, container: MateuApp) =>
  * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
  */
 export const renderChatToggle = (metadata: App, container: MateuApp) =>
-    metadata.sseUrl ? html`
-        <button class="app-chrome-icon-btn mateu-chat-toggle ${container.chatOpen ? 'mateu-chat-toggle--open' : ''}"
-            @click="${container.showHideIa}"
-            title="${container.chatOpen ? 'Cerrar el chat' : 'Chat'}" aria-label="Chat"
-            aria-pressed="${container.chatOpen ? 'true' : 'false'}">
-            ${icon('vaadin:comments', 'color: currentColor;')}
-        </button>` : nothing
+    metadata.sseUrl ? renderHeaderIconButton({
+        icon: 'vaadin:comments-o',
+        label: chromeText('chat'),
+        title: chromeText(container.chatOpen ? 'closeChat' : 'openChat'),
+        pressed: !!container.chatOpen,
+        cssClasses: 'mateu-chat-toggle' + (container.chatOpen ? ' mateu-chat-toggle--open' : ''),
+        onClick: () => container.showHideIa(),
+    }) : nothing
 
 /** The header's widget zone: the chat toggle, the app's widgets, the context pickers and actions, the theme toggle. */
 const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
@@ -411,7 +428,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
-                        ${renderBrand({ ...metadata, title: '' })}
+                        ${renderBrand({ ...metadata, title: '' }, false)}
                         </a>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}

@@ -24,6 +24,7 @@ import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -583,7 +584,7 @@ export class MateuUx extends ConnectedElement {
        `
     }
 
-    static styles = css`
+    static styles = [css`
         /* The content ux is a flex COLUMN, not a block — the missing link in the viewport-height
            flex chain (coherence-plan #8): the shell content area is already flex:1;min-height:0, so
            a flex-column ux lets a direct child that declares sizing "fill" (a listing's
@@ -662,7 +663,7 @@ export class MateuUx extends ConnectedElement {
             max-width: 16rem;
             margin-block-end: var(--lumo-space-l, 1.5rem);
         }
-  `
+  `, linkStyles]
 }
 
 declare global {
