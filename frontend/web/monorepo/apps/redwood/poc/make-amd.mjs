@@ -20,7 +20,7 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('navTree.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -111,6 +111,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlayOf,
     eventTriggersOf,
     dismissOverlay,
+    // @Searchable: el selector en su diálogo, y los chips del campo
+    searchPickerOf,
+    pickerSearchStateOf,
+    withContextState,
+    withSearchableIds,
     shellNavOf,
     ojIconOf,
     ojIconOrGenericOf,
@@ -201,6 +206,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
     clearFieldError,
+    clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
     effectiveChatUrl,
@@ -211,7 +217,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
+    latestUsage,
     chatStatusText,
+    createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
     transcriptOf,

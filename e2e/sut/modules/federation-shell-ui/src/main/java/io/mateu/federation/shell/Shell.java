@@ -20,4 +20,13 @@ public class Shell {
     RemoteMenu remote =
             new RemoteMenu("http://localhost:8085/remote").withLabel("Remote").withPath("/remote");
 
+    /**
+     * A remote that is never up: nothing listens on :8099. Its section has to show as unavailable
+     * (disabled, saying why) while the healthy remote above is merged as usual — one remote down
+     * must never take the others, or the shell, with it (tests/federation/menu-robustness.spec.ts).
+     */
+    @Menu
+    RemoteMenu offline =
+            new RemoteMenu("http://localhost:8099/offline").withLabel("Offline").withPath("/offline");
+
 }

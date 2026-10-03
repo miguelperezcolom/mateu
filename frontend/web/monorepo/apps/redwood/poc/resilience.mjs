@@ -368,13 +368,16 @@ export async function fetchWithPolicy(url, init, options = {}) {
   // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
   const quiet = options.quiet || isLocalRequest(actionId)
   const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
+  // `isolated`: lo que pase con esta petición no dice nada de la conexión — el menú de un pod
+  // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
+  const isolated = !!options.isolated
   notifyUnlessQuiet('onStart', { actionId })
   let attempt = 0
   let reauthenticated = false
   for (;;) {
     try {
       const res = await sendOnce(url, withAuth(), options.timeoutMillis)
-      connectivity.noteReachable()
+      if (!isolated) connectivity.noteReachable()
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
       return res
     } catch (error) {
@@ -387,7 +390,7 @@ export async function fetchWithPolicy(url, init, options = {}) {
         if (await askForReauthentication()) continue
       }
       const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
-      if (failure.kind === 'offline') connectivity.noteUnreachable()
+      if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
       attempt++
       if (!shouldRetry(failure, attempt, { idempotent })) {
         // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to

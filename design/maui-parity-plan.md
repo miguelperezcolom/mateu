@@ -162,7 +162,15 @@ Decisiones (2026-10-03, aprobadas por el usuario):
 | M10 | El front office **no** es una sección del plano de datos: es otra app. |
 
 Entregas:
-1. **Sin API nueva:** que un remoto que falla no tumbe a los demás (`allSettled`, también en Vaadin), que la etiqueta de la shell mande, que las migas se conozcan en frío (prefijos) también para las entradas ocultas, y quitar el `MENU_ON_TOP` forzado.
+1. **Sin API nueva:** que un remoto que falla no tumbe a los demás (`allSettled`, también en Vaadin), que la etiqueta de la shell mande, que las migas se conozcan en frío (prefijos) también para las entradas ocultas, y quitar el `MENU_ON_TOP` forzado. Rama `feat/menu-federation-robust`, PR #671.
+   - [x] Un remoto caído es una sección caída: cada respuesta se fusiona al llegar; la sección del que falla queda atenuada, con un aviso, y se reintenta (en segundo plano y al pulsarla). Sin toast ni banda de «sin conexión». Redwood pinta el mismo estado.
+   - [x] La etiqueta declarada en la shell manda (`shellLabel` en el wire). Si no se declara, manda la del remoto. ec-demo1 se deja como está: sus etiquetas repetidas ahora simplemente mandan.
+   - [x] Carga en frío: cada sección remota viaja con su prefijo (`routePrefix`, el path propio del remoto, sin el del grupo), así que la sección activa y la primera miga se conocen antes de que conteste. Un enlace directo dice además de qué remoto se montó. No ha hecho falta el atributo `prefix`.
+   - [x] Las secciones ocultas siguen en el árbol (sin pintarse) y sus páginas tienen migas.
+   - [x] Enlaces directos en el servidor: el remoto se elige por el prefijo más largo, con la caché y los prefijos. Solo si eso no decide se pregunta a los demás, todos a la vez. Un remoto caído no tumba la petición.
+   - [x] Sin `MENU_ON_TOP` forzado: manda la variante declarada. `AUTO`, y un `AppShell` fluido sin variante, eligen `MENU_ON_TOP` si hay remotos, así que nada cambia a la vista.
+   - [x] Código común: `navTree.ts` en `libs/mateu`. Redwood lleva un port (`poc/navTree.mjs`), porque su bridge no puede importar TypeScript.
+   - [x] Tests: core (`RemoteMenuPrefixSelectionSyncTest`), vitest (`completeMenu`, `navTree`), Redwood (`poc/test.mjs`), Playwright de federación (`menu-robustness.spec.ts`) y una comprobación de solo lectura en la consola de datos de ec1 con el bundle cambiado en el navegador.
 2. **El API de montajes y secciones,** con `HAMBURGER_SECTIONS` en Vaadin y el control plane de ec-demo1 migrado.
 3. **Redwood,** los widgets laterales (T11), IntelliJ y React Native.
 - [ ] Un árbol de menú de dos niveles en la definición de la app. Cualquier nodo puede montar un menú remoto, entero o una parte, como sección o como opciones dentro de otra sección. Hay que resolver el orden, los permisos, la caché, la carga en frío (la sección activa y las migas se conocen antes de que responda el remoto) y un remoto caído (la sección se desactiva con un aviso; la shell no se rompe).
@@ -201,4 +209,5 @@ los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si está
 | Fecha | Qué |
 |---|---|
 | 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
+| 2026-10-03 | P9, entrega 1 (PR #671): un remoto caído deja solo su sección no disponible, manda la etiqueta de la shell, la sección y la primera miga se conocen en frío (también en las ocultas), los enlaces directos se resuelven por el prefijo más largo y ya no se fuerza `MENU_ON_TOP`. Verificado en Vaadin (SUT de federación y consola de datos de ec1, de solo lectura) y en Redwood (tests de node). |
 | 2026-10-03 | P5 · S0 hecho (rama `feat/static-vcn-slice`): `demo/demo-static-vcn` desde Java y desde YAML, sin backend, 12/12 e2e; arreglado el enlace directo en modo bundle (#557: faltaba la carga de contenido); `staticOnly` con informe de seguridad estática y `specsOnly`; guía «100 % static UI». Lo que falta para S1–S4, en la sección P5. |

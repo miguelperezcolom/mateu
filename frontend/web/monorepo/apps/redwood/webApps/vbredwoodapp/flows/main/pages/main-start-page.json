@@ -105,6 +105,64 @@
         "denyText": ""
       },
       "description": "el di\u00e1logo de confirmaci\u00f3n de una acci\u00f3n (bridge.confirmationOf)"
+    },
+    "mateuPicker": {
+      "type": "any",
+      "defaultValue": {
+        "id": "",
+        "title": "",
+        "multi": false,
+        "searchable": false,
+        "searchText": "",
+        "columns": [],
+        "rows": [],
+        "isEmpty": true,
+        "emptyText": "",
+        "selectionMode": {
+          "row": "none"
+        },
+        "pageSize": 20,
+        "paging": {
+          "visible": false,
+          "prevDisabled": true,
+          "nextDisabled": true,
+          "rangeText": "",
+          "labels": {
+            "prev": "",
+            "next": ""
+          }
+        },
+        "pickActionId": "",
+        "addActionId": "",
+        "addLabel": ""
+      },
+      "description": "el selector de un @Searchable abierto (bridge.searchPickerOf)"
+    },
+    "mateuPickerRows": {
+      "type": "any[]",
+      "defaultValue": [],
+      "description": "las filas del selector abierto"
+    },
+    "pickerADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $variables.mateuPickerRows }}",
+        "keyAttributes": "_rowNumber"
+      },
+      "description": "las filas del selector de un @Searchable para su oj-table"
+    },
+    "mateuPickerSelection": {
+      "type": "any",
+      "defaultValue": {
+        "all": false,
+        "keys": [],
+        "except": []
+      },
+      "description": "las casillas marcadas en el selector (bridge.selectionOfKeySet)"
+    },
+    "mateuPickerOpen": {
+      "type": "boolean",
+      "defaultValue": false
     }
   },
   "metadata": {},
@@ -604,6 +662,81 @@
           }
         }
       ]
+    },
+    "searchableChipRemoved": {
+      "chains": [
+        {
+          "chain": "searchableChipRemoved",
+          "parameters": {
+            "fieldId": "{{ $current.data.fieldId }}",
+            "remaining": "{{ $current.data.remaining }}"
+          }
+        }
+      ]
+    },
+    "mateuPickerRowAction": {
+      "chains": [
+        {
+          "chain": "mateuPickerRowClicked",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuPickerSelectionChanged": {
+      "chains": [
+        {
+          "chain": "mateuPickerSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuPickerAdd": {
+      "chains": [
+        {
+          "chain": "mateuPickerAdd"
+        }
+      ]
+    },
+    "mateuPickerSearch": {
+      "chains": [
+        {
+          "chain": "mateuPickerSearch",
+          "parameters": {
+            "searchText": "{{ $event.detail.value }}"
+          }
+        }
+      ]
+    },
+    "mateuPickerPage": {
+      "chains": [
+        {
+          "chain": "mateuPickerSearch",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuPickerCancel": {
+      "chains": [
+        {
+          "chain": "mateuPickerDismissed",
+          "parameters": {
+            "cancel": true
+          }
+        }
+      ]
+    },
+    "mateuPickerClosed": {
+      "chains": [
+        {
+          "chain": "mateuPickerDismissed"
+        }
+      ]
     }
   },
   "imports": {
@@ -694,6 +827,12 @@
       },
       "oj-text-area": {
         "path": "ojs/ojinputtext"
+      },
+      "oj-label-value": {
+        "path": "ojs/ojlabelvalue"
+      },
+      "oj-label": {
+        "path": "ojs/ojlabel"
       }
     }
   }

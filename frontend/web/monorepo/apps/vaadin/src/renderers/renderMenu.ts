@@ -9,19 +9,29 @@ import { appData, appState } from "@domain/state.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import type { MenuBarItem } from "@vaadin/menu-bar";
 import type { MenuBarItem as AppMenuBarItem } from "@infra/ui/mateu-app.ts";
+import { markActiveSection } from "@infra/ui/renderers/activeSection.ts";
 import "@vaadin/menu-bar";
+import "@vaadin/tooltip";
 import "@vaadin/context-menu";
 
 // The app shell's top navigation (menu-on-top), rendered as a vaadin-menu-bar — the Vaadin
 // override for the DS-neutral <details> strip (renderNeutralNav). Items arrive already mapped by
 // MateuApp.mapItems; a top item with children becomes a dropdown that closes on select / outside
 // click (native <details> did neither). onSelect is the shell's existing itemSelected handler.
+//
+// It is navigation, not a row of links: `tertiary contrast`, so the items are header text rather
+// than primary-blue words competing with the content's links (mateu-app's styles set them to the
+// body text colour). The top-level item whose section is on screen is marked (markActiveSection),
+// and mateu-app paints it with the primary text colour and a thin underline: a quiet "you are
+// here", not a selection highlight.
 export const renderTopNav = (items: AppMenuBarItem[], onSelect: (item: AppMenuBarItem) => void, cls?: string) => html`
     <vaadin-menu-bar
-        theme="tertiary"
-        .items=${items as unknown as MenuBarItem[]}
+        theme="tertiary contrast"
+        .items=${markActiveSection(items) as unknown as MenuBarItem[]}
         class="${cls ?? nothing}"
         @item-selected=${(e: CustomEvent) => onSelect((e.detail as { value: AppMenuBarItem }).value)}>
+        <!-- an item's tooltip (a remote section that did not answer says why it is disabled) -->
+        <vaadin-tooltip slot="tooltip"></vaadin-tooltip>
     </vaadin-menu-bar>`
 export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu

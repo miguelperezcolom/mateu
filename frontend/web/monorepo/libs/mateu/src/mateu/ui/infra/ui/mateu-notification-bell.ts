@@ -214,7 +214,8 @@ export class MateuNotificationBell extends LitElement {
             align-items: center;
             justify-content: center;
             font: inherit;
-            color: var(--lumo-body-text-color, #1a1a1a);
+            /* the header's one icon colour (mateu-app: --mateu-header-icon-color) */
+            color: var(--mateu-header-icon-color, var(--lumo-secondary-text-color, #5a6573));
             background: transparent;
             border: none;
             border-radius: var(--lumo-border-radius-m, 0.25rem);

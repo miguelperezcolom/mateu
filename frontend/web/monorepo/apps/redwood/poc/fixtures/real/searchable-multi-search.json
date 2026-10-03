@@ -1,0 +1,213 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "f7589a02-7bf7-4a71-967a-50030becde51",
+      "component": null,
+      "state": null,
+      "data": {
+        "crud": {
+          "page": {
+            "searchSignature": "",
+            "pageSize": 30,
+            "pageNumber": 0,
+            "totalElements": 30,
+            "content": [
+              {
+                "address": "Calle 1",
+                "_rowNumber": 0,
+                "name": "Hotel 1",
+                "id": "1"
+              },
+              {
+                "address": "Calle 2",
+                "_rowNumber": 1,
+                "name": "Hotel 2",
+                "id": "2"
+              },
+              {
+                "address": "Calle 3",
+                "_rowNumber": 2,
+                "name": "Hotel 3",
+                "id": "3"
+              },
+              {
+                "address": "Calle 4",
+                "_rowNumber": 3,
+                "name": "Hotel 4",
+                "id": "4"
+              },
+              {
+                "address": "Calle 5",
+                "_rowNumber": 4,
+                "name": "Hotel 5",
+                "id": "5"
+              },
+              {
+                "address": "Calle 6",
+                "_rowNumber": 5,
+                "name": "Hotel 6",
+                "id": "6"
+              },
+              {
+                "address": "Calle 7",
+                "_rowNumber": 6,
+                "name": "Hotel 7",
+                "id": "7"
+              },
+              {
+                "address": "Calle 8",
+                "_rowNumber": 7,
+                "name": "Hotel 8",
+                "id": "8"
+              },
+              {
+                "address": "Calle 9",
+                "_rowNumber": 8,
+                "name": "Hotel 9",
+                "id": "9"
+              },
+              {
+                "address": "Calle 10",
+                "_rowNumber": 9,
+                "name": "Hotel 10",
+                "id": "10"
+              },
+              {
+                "address": "Calle 11",
+                "_rowNumber": 10,
+                "name": "Hotel 11",
+                "id": "11"
+              },
+              {
+                "address": "Calle 12",
+                "_rowNumber": 11,
+                "name": "Hotel 12",
+                "id": "12"
+              },
+              {
+                "address": "Calle 13",
+                "_rowNumber": 12,
+                "name": "Hotel 13",
+                "id": "13"
+              },
+              {
+                "address": "Calle 14",
+                "_rowNumber": 13,
+                "name": "Hotel 14",
+                "id": "14"
+              },
+              {
+                "address": "Calle 15",
+                "_rowNumber": 14,
+                "name": "Hotel 15",
+                "id": "15"
+              },
+              {
+                "address": "Calle 16",
+                "_rowNumber": 15,
+                "name": "Hotel 16",
+                "id": "16"
+              },
+              {
+                "address": "Calle 17",
+                "_rowNumber": 16,
+                "name": "Hotel 17",
+                "id": "17"
+              },
+              {
+                "address": "Calle 18",
+                "_rowNumber": 17,
+                "name": "Hotel 18",
+                "id": "18"
+              },
+              {
+                "address": "Calle 19",
+                "_rowNumber": 18,
+                "name": "Hotel 19",
+                "id": "19"
+              },
+              {
+                "address": "Calle 20",
+                "_rowNumber": 19,
+                "name": "Hotel 20",
+                "id": "20"
+              },
+              {
+                "address": "Calle 21",
+                "_rowNumber": 20,
+                "name": "Hotel 21",
+                "id": "21"
+              },
+              {
+                "address": "Calle 22",
+                "_rowNumber": 21,
+                "name": "Hotel 22",
+                "id": "22"
+              },
+              {
+                "address": "Calle 23",
+                "_rowNumber": 22,
+                "name": "Hotel 23",
+                "id": "23"
+              },
+              {
+                "address": "Calle 24",
+                "_rowNumber": 23,
+                "name": "Hotel 24",
+                "id": "24"
+              },
+              {
+                "address": "Calle 25",
+                "_rowNumber": 24,
+                "name": "Hotel 25",
+                "id": "25"
+              },
+              {
+                "address": "Calle 26",
+                "_rowNumber": 25,
+                "name": "Hotel 26",
+                "id": "26"
+              },
+              {
+                "address": "Calle 27",
+                "_rowNumber": 26,
+                "name": "Hotel 27",
+                "id": "27"
+              },
+              {
+                "address": "Calle 28",
+                "_rowNumber": 27,
+                "name": "Hotel 28",
+                "id": "28"
+              },
+              {
+                "address": "Calle 29",
+                "_rowNumber": 28,
+                "name": "Hotel 29",
+                "id": "29"
+              },
+              {
+                "address": "Calle 30",
+                "_rowNumber": 29,
+                "name": "Hotel 30",
+                "id": "30"
+              }
+            ]
+          },
+          "emptyStateMessage": null,
+          "aggregates": null,
+          "groups": null
+        }
+      },
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}
