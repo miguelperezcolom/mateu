@@ -1206,6 +1206,18 @@ def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
 
 
+def action(arg=None):
+    """Declares a method as a server-side ACTION without rendering a button for it: the target
+    of an undoable toast (``Message.undoable``'s undo action id), of a returned ``RunAction``
+    flow step, a drawer/dialog opener fired from client code… Only declared actions can be
+    invoked from the wire — a method that is neither marked (``@action``/``@button``/``@fab``,
+    ``@list_toolbar_button`` for bulk row actions) nor advertised by the view (an
+    ``OnRowSelected`` value, a ``@subscribe_to`` action, an action id of its component tree) is
+    NOT an action. Supports ``@action`` and ``@action()``. The Python analogue of Java's
+    ``@Action``."""
+    return _maybe_bare(arg, "__mateu_action__", lambda _: True)
+
+
 def menu_item(arg=None, group: str = ""):
     """A menu entry. ``group`` nests the entry under that folder (entries sharing a group become
     its submenu); empty = a top-level leaf entry."""
@@ -1714,7 +1726,7 @@ __all__ = [
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action", "rest_data",
-    "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
+    "button", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
@@ -1921,6 +1933,7 @@ class TodoList(ComponentTreeSupplier):
             description="There is nothing pending on your plate.",
         )
 
+    @action
     def open_todo_item(self, request):
         """The card click: the queue dispatches ``openTodoItem`` with ``{"_item": id}``; the
         matching row's :meth:`action_on` result becomes the response (a URI → NavigateTo)."""

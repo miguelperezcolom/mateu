@@ -111,6 +111,32 @@ Users without the `admin` role see `id` and `name` but not `internalNote`.
 
 ---
 
+## What a request can reach
+
+The browser is untrusted, so the server decides what a request may touch — never the request.
+
+**Server-side types.** Every request names the view it talks to (`serverSideType`). Mateu only resolves types the application exposes:
+
+- registered ones: `@UI` and `@Route` classes, `viewModel`s of `routes.yaml` / a `RouteEntrySupplier`, the `modelView` of the route's YAML page, types a `ComponentAdapter` is registered for;
+- types reachable from those: nested views (fields), rows of cruds and listings, what an annotated method returns, member classes;
+- types this server itself sent to the browser (a view an action returned);
+- classes shaped like a view model: they carry Mateu annotations, implement a view interface (`Listing`, `ComponentTreeSupplier`, …) or extend a Mateu orchestrator.
+
+Anything else — a library class, a service or repository bean, an interface — is answered with **HTTP 403** and logged. A type annotated with `@EyesOnly` is refused to callers who do not satisfy it.
+
+**Actions.** An `actionId` only runs a method that is an action:
+
+- a method marked `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`, `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction` or `@RestAction` (any visibility but `private`);
+- a `public` method of the view itself — not a getter/setter, not `toString`/`equals`/…, not a framework callback such as `search` or `handleAction`;
+- a row action: a method that receives the clicked row or the selected rows (`ColumnAction("retry")` → `retry(Row row)`);
+- an id a `ComponentAdapter` declares in its `AdaptedView`.
+
+`private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403.
+
+**Data is not a template.** Texts the renderers show (titles, labels, texts, KPIs) may contain `${state.x}` expressions, which come from the definition. Values are data and are never evaluated: put them in the state and reference them, or escape a value you concatenate into such a text with `Templates.literal(value)`. HTML that a renderer shows (a `Text`, a header, an html column) is sanitized: scripts and inline event handlers (`onclick=…`) are removed — trigger behaviour with actions, not inline JavaScript.
+
+---
+
 ## Typical deployment setup
 
 In a distributed system, an API gateway (Nginx, Envoy, Kong, etc.) validates the JWT signature and token expiry. Mateu trusts the token but does not re-validate the signature:

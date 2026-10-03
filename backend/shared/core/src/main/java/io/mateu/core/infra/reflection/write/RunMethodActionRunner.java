@@ -9,6 +9,9 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.ComponentStateHelper;
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
+import io.mateu.core.application.security.MateuForbiddenException;
+import io.mateu.core.application.security.WireTypes;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIFragmentActionDto;
@@ -47,6 +50,11 @@ public class RunMethodActionRunner implements ActionRunner {
       methodName = fieldAndMethod.substring(fieldId.length() + 1);
       var field = getFieldByName(instance.getClass(), fieldId);
       if (field != null) {
+        // The nested form is part of the view (a sub-object it renders), never a dependency the
+        // container injected: an @Autowired service reached this way would expose its methods.
+        if (!isNestedFormField(field)) {
+          throw new MateuForbiddenException("nested form field not allowed: " + fieldId);
+        }
         if (!field.canAccess(instance)) field.setAccessible(true);
         Object nestedForm = getValue(field, instance);
         if (nestedForm == null) {
@@ -55,7 +63,7 @@ public class RunMethodActionRunner implements ActionRunner {
         instance = nestedForm;
       }
     }
-    Method m = getMethod(instance.getClass(), methodName);
+    Method m = ActionMethods.resolve(instance, methodName, command.httpRequest());
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
       Object result = invoke(m, instance, command);
@@ -74,6 +82,10 @@ public class RunMethodActionRunner implements ActionRunner {
     }
     Field f = getFieldByName(instance.getClass(), methodName);
     if (f != null) {
+      if (!ActionMethods.isInvocable(f)) {
+        throw new MateuForbiddenException("field action not allowed: " + methodName);
+      }
+      ActionMethods.checkAccess(f, instance.getClass(), command.httpRequest());
       if (!f.canAccess(instance)) f.setAccessible(true);
       Object result = getValue(f, instance);
       if (result == null) {
@@ -102,6 +114,17 @@ public class RunMethodActionRunner implements ActionRunner {
       return asFlux(result, instance);
     }
     return Flux.empty();
+  }
+
+  /**
+   * A field a {@code nested-form-action-} may descend into: a non-static field that is not a
+   * container-injected dependency and whose type is not a library type.
+   */
+  private static boolean isNestedFormField(Field field) {
+    return !Modifier.isStatic(field.getModifiers())
+        && !WireTypes.isInjected(field)
+        && !field.getType().isInterface()
+        && !WireTypes.isDeniedPackage(field.getType().getName());
   }
 
   public static Object invoke(Method m, Object instance, RunActionCommand command) {

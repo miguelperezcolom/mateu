@@ -53,9 +53,13 @@ public class ComponentStateHelper {
    * the server can turn back into a working instance.
    */
   private static String serverSideTypeOf(Object modelView) {
-    return modelView instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier supplier
-        ? supplier.serverSideType()
-        : modelView.getClass().getName();
+    var type =
+        modelView instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier supplier
+            ? supplier.serverSideType()
+            : modelView.getClass().getName();
+    // the client will name it back: remember that this process handed it out
+    io.mateu.core.application.security.WireTypes.emitted(type);
+    return type;
   }
 
   public static ServerSideComponentDto wrap(

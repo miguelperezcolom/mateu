@@ -72,10 +72,9 @@ describe('interpolateNested', () => {
             .toBe('1-2-3-4')
     })
 
-    it('runs a second pass when the first result still contains ${...}', () => {
-        // first pass resolves state.template to a text that itself interpolates data
+    it('is a single pass: a substituted value that itself contains ${...} is shown literally', () => {
         expect(interpolateNested('${state.template}', { template: 'Total: ${data.total}' }, { total: 7 }, {}, {}))
-            .toBe('Total: 7')
+            .toBe('Total: ${data.total}')
     })
 
     it('returns a descriptive error message and logs on a failing expression (historical behaviour)', () => {
@@ -185,5 +184,117 @@ describe('a null or undefined value in a displayed text', () => {
 
     it('keeps null a literal where the text is then evaluated as an expression', () => {
         expect(interpolateAndEvaluate('${state.x} === null', { x: null }, {})).toBe(true)
+    })
+})
+
+// ---------------------------------------------------------------------------------------------
+// Security regressions (H2: stored XSS through template interpolation). Every case here ran the
+// attacker's code with the previous `new Function('return `' + text + '`')` implementation.
+// ---------------------------------------------------------------------------------------------
+describe('security: data never becomes code', () => {
+    const g = globalThis as Record<string, unknown>
+    afterEach(() => {
+        delete g.__pwned
+        delete g.__pwned2
+        delete g.__pwned3
+        delete g.__pwned4
+        vi.restoreAllMocks()
+    })
+
+    it('a state value containing ${...} is not evaluated by interpolateNested (text/notice/dialog path)', () => {
+        const payload = '${globalThis.__pwned=1}'
+        expect(interpolateNested('Hello ${state.name}', { name: payload }, {}, {}, {}, ))
+            .toBe('Hello ' + payload)
+        expect(g.__pwned).toBeUndefined()
+    })
+
+    it('a state value containing ${...} is not evaluated by interpolate/possiblyHtml/evaluateTemplate', () => {
+        const payload = '${globalThis.__pwned=1}'
+        expect(interpolate('${state.x}', { x: payload })).toBe(payload)
+        expect(possiblyHtml('${state.x}', { x: payload }, {})).toBe(payload)
+        expect(evaluateTemplate('${state.x}', { x: payload })).toBe(payload)
+        expect(g.__pwned).toBeUndefined()
+    })
+
+    it('a literal text with a backtick cannot break out of the template', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const text = 'a`;globalThis.__pwned2=1;`${state.x}'
+        expect(interpolate(text, { x: 'b' })).toBe('a`;globalThis.__pwned2=1;`b')
+        expect(interpolateNested(text, { x: 'b' }, {}, {}, {})).toBe('a`;globalThis.__pwned2=1;`b')
+        expect(possiblyHtml(text, { x: 'b' }, {})).toBe('a`;globalThis.__pwned2=1;`b')
+        expect(g.__pwned2).toBeUndefined()
+        expect(warn).not.toHaveBeenCalled()
+    })
+
+    it('interpolateAndEvaluate: a quoted placeholder cannot be broken out of by a quote in the value', () => {
+        const component = { serverSideType: 'x' }
+        const evil = 'x" || (globalThis.__pwned3=1) || "'
+        expect(interpolateAndEvaluate('component.serverSideType == "${state.type}"',
+            { type: evil }, {}, {}, {}, { component })).toBe(false)
+        const evil1 = "x' || (globalThis.__pwned3=1) || '"
+        expect(interpolateAndEvaluate("component.serverSideType == '${state.type}'",
+            { type: evil1 }, {}, {}, {}, { component })).toBe(false)
+        const evil2 = 'a\\\\" + (globalThis.__pwned3=1) + "`${globalThis.__pwned3=1}`\n'
+        expect(interpolateAndEvaluate('"${state.v}"', { v: evil2 }, {})).toBe(evil2)
+        expect(interpolateAndEvaluate('`<${state.v}>`', { v: evil2 }, {})).toBe('<' + evil2 + '>')
+        expect(g.__pwned3).toBeUndefined()
+    })
+
+    it('interpolateAndEvaluate: an unquoted placeholder inserts a string as a literal, not code', () => {
+        expect(interpolateAndEvaluate('${state.v}', { v: 'globalThis.__pwned4=1' }, {}))
+            .toBe('globalThis.__pwned4=1')
+        expect(interpolateAndEvaluate('${state.v}', { v: { a: '"); globalThis.__pwned4=1; ("' } }, {}))
+            .toEqual({ a: '"); globalThis.__pwned4=1; ("' })
+        expect(g.__pwned4).toBeUndefined()
+    })
+})
+
+describe('template parsing', () => {
+    it('handles several expressions', () => {
+        expect(interpolate('${state.a} and ${state.b}', { a: 1, b: 'two' })).toBe('1 and two')
+    })
+
+    it('honours nested braces inside an expression', () => {
+        expect(interpolate('${ {a:1}.a }')).toBe('1')
+        expect(interpolate('${ [{x: {y: 2}}][0].x.y }!')).toBe('2!')
+    })
+
+    it('honours a } inside a string literal of the expression', () => {
+        expect(interpolate("${state.x ?? '}'}", {})).toBe('}')
+        expect(interpolate('${state.x ?? "}"}|', {})).toBe('}|')
+        expect(interpolate("${'it\\'s }'}")).toBe("it's }")
+    })
+
+    it('honours a template literal (with its own ${...}) inside the expression', () => {
+        expect(interpolate('${`n=${state.n + 1}`}', { n: 1 })).toBe('n=2')
+    })
+
+    it('keeps an escaped \\${ literal and unescapes \\\\', () => {
+        expect(interpolate('cost: \\${state.x} = ${state.x}', { x: 5 })).toBe('cost: ${state.x} = 5')
+        expect(interpolate('a\\\\b ${state.x}', { x: 1 })).toBe('a\\b 1')
+    })
+
+    it('keeps other characters verbatim (lone $, }, other backslash sequences)', () => {
+        expect(interpolate('$5 } \\n ${state.x}', { x: 'y' })).toBe('$5 } \\n y')
+    })
+
+    it('renders null/undefined as blank in displayed texts', () => {
+        expect(interpolate('[${state.x}]', { x: null })).toBe('[]')
+        expect(interpolateNested('[${state.x}]', {}, {}, {}, {})).toBe('[]')
+    })
+
+    it('interpolateAndEvaluate keeps numbers numeric', () => {
+        expect(interpolateAndEvaluate('${state.n} > 3', { n: 5 }, {})).toBe(true)
+        expect(interpolateAndEvaluate('${state.n} * 2', { n: 21 }, {})).toBe(42)
+        expect(interpolateAndEvaluate('${state.b} && true', { b: false }, {})).toBe(false)
+    })
+
+    it('interpolateAndEvaluate escapes a quoted value but keeps it equal to itself', () => {
+        expect(interpolateAndEvaluate("'${state.s}' === state.s", { s: `it's "q" \`b\` \\ \${x}` }, {})).toBe(true)
+    })
+
+    it('an unterminated expression is reported like a syntax error', () => {
+        expect(() => evaluateTemplate('${state.x', {})).toThrow(SyntaxError)
+        expect(() => evaluateTemplate("${'}", {})).toThrow(SyntaxError)
     })
 })

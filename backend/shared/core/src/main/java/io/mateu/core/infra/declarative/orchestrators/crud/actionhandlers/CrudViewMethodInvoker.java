@@ -2,6 +2,8 @@ package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.application.security.ActionMethods;
+import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.InvocationTargetException;
@@ -12,9 +14,16 @@ import java.util.List;
 final class CrudViewMethodInvoker {
 
   static Object invoke(String methodName, Object item, Crud orchestrator, HttpRequest httpRequest) {
-    for (Object subject : List.of(item, orchestrator.behaviourSource())) {
+    for (Object subject : java.util.Arrays.asList(item, orchestrator.behaviourSource())) {
+      if (subject == null) {
+        continue;
+      }
       for (Method method : getAllMethods(subject.getClass())) {
         if (methodName.equals(method.getName())) {
+          if (!ActionMethods.isInvocable(method, subject.getClass())) {
+            continue;
+          }
+          ActionMethods.checkAccess(method, subject.getClass(), httpRequest);
           method.setAccessible(true);
           List<Object> args = new ArrayList<>();
           for (int i = 0; i < method.getParameterCount(); i++) {
@@ -44,6 +53,13 @@ final class CrudViewMethodInvoker {
             throw new RuntimeException("Cannot invoke " + method, e);
           }
         }
+      }
+    }
+    for (Object subject : java.util.Arrays.asList(item, orchestrator.behaviourSource())) {
+      if (subject != null
+          && getAllMethods(subject.getClass()).stream()
+              .anyMatch(method -> methodName.equals(method.getName()))) {
+        throw new MateuForbiddenException("view action not allowed: " + methodName);
       }
     }
     return null;

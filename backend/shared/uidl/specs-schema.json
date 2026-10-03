@@ -349,6 +349,12 @@
         },
         "logo" : {
           "type" : "string"
+        },
+        "accentColor" : {
+          "type" : "string"
+        },
+        "backLink" : {
+          "$ref" : "#/$defs/BackLink"
         }
       }
     },
@@ -438,6 +444,10 @@
           "type" : "string"
         }
       }
+    },
+    "BackLink" : {
+      "type" : "string",
+      "enum" : [ "BREADCRUMBS", "PARENT" ]
     },
     "Badge" : {
       "type" : "object",

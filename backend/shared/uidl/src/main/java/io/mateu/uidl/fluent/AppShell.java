@@ -28,7 +28,18 @@ public record AppShell(
     boolean drawerClosed,
     String style,
     String cssClasses,
-    String logo)
+    String logo,
+    /**
+     * The app's brand accent, a CSS colour — the data-authored twin of {@code @App(accentColor)}.
+     * Blank/null: none. When both are present the shell's own value wins.
+     */
+    String accentColor,
+    /**
+     * The way back up from this app — the twin of {@code @App(backLink)}: {@code PARENT} draws a
+     * single "← Parent" link instead of breadcrumbs (a record master whose tabs are pages). Null:
+     * the {@code @App} value, else breadcrumbs.
+     */
+    io.mateu.uidl.annotations.BackLink backLink)
     implements Component, PageMainContent {
 
   public AppShell {
