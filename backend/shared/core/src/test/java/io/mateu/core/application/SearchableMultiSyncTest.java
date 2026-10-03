@@ -221,6 +221,7 @@ class SearchableMultiSyncTest {
     assertThat(initialData.path("_searchableValues").toString()).isEqualTo("[\"h1\",\"h3\"]");
     assertThat(initialData.path("_searchableLabels").path("h3").asText()).isEqualTo("Hotel Three");
     assertThat(initialData.path("fieldId").asText()).isEqualTo("hotels");
+    assertThat(initialData.path("_searchableField").asText()).isEqualTo("hotels");
 
     var listing = findFirst(root, node -> node.has("rowsSelectionEnabled"));
     assertThat(listing.path("rowsSelectionEnabled").asBoolean()).isTrue();
@@ -304,6 +305,30 @@ class SearchableMultiSyncTest {
     assertThat(value.path("fieldId").asText()).isEqualTo("hotel");
     assertThat(value.path("value").asText()).isEqualTo("h2");
     assertThat(dataChange(commands, "hotel-label").asText()).isEqualTo("Hotel Two");
+    assertThat(event(commands, "close-modal-requested")).isNotNull();
+  }
+
+  @Test
+  void aSelectorThatDoesNotKeepItsFieldIdUsesTheOneTheModalCarries() {
+    var state = multiState("hotels", List.of(), Map.of());
+    state.remove("fieldId");
+    state.put("_searchableField", "hotels");
+    state.put("crud_selected_items", List.of(Map.of("id", "h2", "name", "Hotel Two")));
+    var commands = commands(run(HotelSelector.class, "action-on-row-select-selected", state));
+    assertThat(event(commands, "value-changed").path("fieldId").asText()).isEqualTo("hotels");
+  }
+
+  @Test
+  void withNoFieldToWriteToThePickJustClosesTheModal() {
+    var state = new HashMap<String, Object>();
+    var commands =
+        commands(
+            run(
+                HotelSelector.class,
+                "action-on-row-select",
+                state,
+                Map.of("_clickedRow", Map.of("id", "h2", "name", "Hotel Two"))));
+    assertThat(event(commands, "value-changed")).isNull();
     assertThat(event(commands, "close-modal-requested")).isNotNull();
   }
 

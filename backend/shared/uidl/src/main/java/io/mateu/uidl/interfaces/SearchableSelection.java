@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
  */
 public final class SearchableSelection {
 
+  /** Component-state key: the field the selector writes to. */
+  public static final String FIELD = "_searchableField";
+
   /** Component-state key: the selector serves a multi-valued field. */
   public static final String MULTI = "_searchableMulti";
 
@@ -52,6 +55,19 @@ public final class SearchableSelection {
   private static final String SELECTED_ROWS = "crud_selected_items";
 
   private SearchableSelection() {}
+
+  /**
+   * The field the selector writes to: its own {@link Selector#fieldId()} or, when the selector does
+   * not keep it in its state, the one the modal carries ({@link #FIELD}).
+   */
+  public static String fieldIdOf(Selector<?> selector, HttpRequest httpRequest) {
+    var fieldId = selector.fieldId();
+    if (fieldId != null && !fieldId.isBlank()) {
+      return fieldId;
+    }
+    var carried = httpRequest != null ? componentState(httpRequest).get(FIELD) : null;
+    return carried != null ? String.valueOf(carried) : null;
+  }
 
   /** Whether the action comes from the selector of a multi-valued field. */
   public static boolean isMulti(HttpRequest httpRequest) {
@@ -80,7 +96,11 @@ public final class SearchableSelection {
         items == null
             ? List.<SelectedItem<?>>of()
             : items.stream().filter(Objects::nonNull).toList();
-    var fieldId = selector.fieldId();
+    var fieldId = fieldIdOf(selector, httpRequest);
+    if (fieldId == null) {
+      // nothing to write the pick to: just close the modal
+      return List.of(event("close-modal-requested", null));
+    }
     var commands = new ArrayList<UICommand>();
     if (isMulti(httpRequest)) {
       var labels = new LinkedHashMap<String, String>(currentLabels(httpRequest));

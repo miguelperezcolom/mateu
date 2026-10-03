@@ -75,19 +75,17 @@ public class CodeSearchFieldActionRunner implements ActionRunner {
       // a multi-valued field (List / Set / array of ids): the selector opens with row selection
       // and «Add selected», and carries the ids the field holds, so a pick ADDS to them
       var multi = SearchableValues.isMultiValued(field);
-      Map<String, Object> multiState = Map.of();
+      var extraState = new LinkedHashMap<String, Object>();
+      // the field the pick is written to, whether or not the selector keeps its fieldId
+      extraState.put(SearchableSelection.FIELD, optionsSupplier.fieldId());
       if (multi) {
         httpRequest.setAttribute(SearchableSelection.MULTI, true);
         var owner = fieldName.contains("-") ? null : instance;
         var ids = owner != null ? SearchableValues.idsOf(field, owner) : List.<Object>of();
-        multiState =
-            Map.of(
-                SearchableSelection.MULTI,
-                true,
-                SearchableSelection.VALUES,
-                ids,
-                SearchableSelection.LABELS,
-                SearchableValues.labelsOf(field, owner, ids, httpRequest));
+        extraState.put(SearchableSelection.MULTI, true);
+        extraState.put(SearchableSelection.VALUES, ids);
+        extraState.put(
+            SearchableSelection.LABELS, SearchableValues.labelsOf(field, owner, ids, httpRequest));
       }
       return Flux.just(
           Dialog.builder()
@@ -101,7 +99,7 @@ public class CodeSearchFieldActionRunner implements ActionRunner {
                           command.initiatorComponentId(),
                           command.httpRequest()),
                       optionsSupplier,
-                      multiState,
+                      extraState,
                       command.baseUrl(),
                       command.route(),
                       command.consumedRoute(),
