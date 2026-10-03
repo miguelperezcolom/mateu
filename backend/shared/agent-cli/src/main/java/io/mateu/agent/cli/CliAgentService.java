@@ -98,7 +98,9 @@ public class CliAgentService {
       try {
         sendEvent(
             emitter,
-            "{\"event\":\"agent-error\",\"detail\":{\"message\":\"" + e.getMessage() + "\"}}");
+            "{\"event\":\"agent-error\",\"detail\":{\"message\":"
+                + quote(String.valueOf(e.getMessage()).replaceAll("[\\r\\n\\t]", " "))
+                + "}}");
       } catch (Exception ignored) {
         // the client is gone
       }

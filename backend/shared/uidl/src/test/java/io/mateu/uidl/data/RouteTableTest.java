@@ -105,4 +105,24 @@ class RouteTableTest {
     assertThat(new RouteTable(List.of(staticOnly)).match("about")).isPresent();
     assertThat(staticOnly.viewModel()).isNull();
   }
+
+  @Test
+  void slashTrimmingMatchesTheRegexItReplaces() {
+    for (var s :
+        new String[] {"", "/", "//", "a", "/a", "a/", "/a/", "//a//b//", "a//b", "///x///"}) {
+      assertThat(RouteTable.trimSlashes(s))
+          .as(s)
+          .isEqualTo(s.replaceAll("^/+", "").replaceAll("/+$", ""));
+    }
+    assertThat(RouteTable.trimSlashes(null)).isEmpty();
+  }
+
+  @Test
+  void aLongRunOfInteriorSlashesIsMatchedInLinearTime() {
+    // With replaceAll("/+$", "") this path took tens of seconds (quadratic backtracking).
+    var path = "orders" + "/".repeat(200_000) + "7";
+    long start = System.nanoTime();
+    TABLE.match(path);
+    assertThat((System.nanoTime() - start) / 1_000_000).isLessThan(2_000);
+  }
 }
