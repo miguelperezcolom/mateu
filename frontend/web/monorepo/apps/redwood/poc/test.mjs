@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { activeSectionOf, accentColorOf } from './navTree.mjs'
+import { activeSectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -544,7 +544,7 @@ test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un g
   assert.equal(group.hasChildren, true)
 })
 
-test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título + acento); TABS con grupos sigue en la cabecera', () => {
+test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título, sin acento); TABS con grupos sigue en la cabecera', () => {
   const menu = [
     { label: 'Call center', path: '/callcenter', submenus: [{ label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' }] },
     { label: 'Avisos', route: '/inbox' },
@@ -552,28 +552,19 @@ test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título + acento); TABS con gru
   const onTop = shellNavOf({ shell: { variant: 'MENU_ON_TOP', title: 'Consola de datos', accentColor: '#D2232A', menu } })
   assert.equal(onTop.mode, 'subheader')
   assert.equal(onTop.title, 'Consola de datos')
-  assert.equal(onTop.accentColor, '#D2232A')
+  // el acento de marca (@App(accentColor)) es del renderer web: la banda de Redwood va con los
+  // tokens neutros del tema, así que el nav ni lo lleva
+  assert.equal(onTop.accentColor, undefined)
   // TABS con grupos (no caben en la barra inferior): siguen en la cabecera oscura, como antes
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
   // TABS plano (el front office): la barra inferior, intacta
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
-  // sin acento declarado no hay acento
-  assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).accentColor, '')
 })
 
-test('reduceContexts: el App trae su @App(accentColor) a la shell', () => {
+test('reduceContexts: el @App(accentColor) no llega a la shell de Redwood', () => {
   const { shell } = reduceContexts(empty(), { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', variant: 'MENU_ON_TOP', title: 'X', menu: [], accentColor: '#D2232A' }, children: [] } }] })
-  assert.equal(shell.accentColor, '#D2232A')
-  assert.equal(shellNavOf({ shell }).accentColor, '#D2232A')
-})
-
-test('accentColorOf: sólo un color CSS reconocible; lo demás, sin acento', () => {
-  assert.equal(accentColorOf(' #D2232A '), '#D2232A')
-  assert.equal(accentColorOf('rgb(210, 35, 42)'), 'rgb(210, 35, 42)')
-  assert.equal(accentColorOf('red; background: url(x)'), '')
-  assert.equal(accentColorOf('</style>'), '')
-  assert.equal(accentColorOf(null), '')
+  assert.equal(shell.accentColor, undefined)
 })
 
 test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la contiene a cualquier profundidad', () => {

@@ -1,5 +1,5 @@
 import { autoTrail } from './breadcrumbs.mjs'
-import { accentColorOf, sectionRoutes } from './navTree.mjs'
+import { sectionRoutes } from './navTree.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -937,7 +937,6 @@ export function shellNavOf(reg) {
   return {
     mode,
     title: shell.title || '',
-    accentColor: accentColorOf(shell.accentColor),
     items,
     menuTree,
     selectors: (shell.appContext || []).map((selector) => ({
@@ -3114,8 +3113,6 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
-        // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
-        accentColor: md.accentColor || '',
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la

@@ -186,8 +186,8 @@
          título de la consola y sus opciones de primer nivel, en color de texto, con la sección en
          pantalla marcada por un subrayado discreto. Los grupos despliegan un oj-menu (con el tercer
          nivel de una shell federada anidado). Una sección remota que no contestó sale deshabilitada
-         y dice por qué (hint). @App(accentColor) → --mateu-accent: una línea de 3px bajo la banda y
-         el título en ese color en tema claro. Va fuera del drawer del chat: no se desplaza con él. -->
+         y dice por qué (hint). Sin acento de marca: la banda usa los tokens neutros de Redwood.
+         Va fuera del drawer del chat: no se desplaza con él. -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
       <nav class="mateu-subheader" :aria-label="[[ $application.variables.mateuShellTitle || 'Menu' ]]">
         <oj-bind-if test="[[ !!$application.variables.mateuShellTitle ]]">

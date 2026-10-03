@@ -126,14 +126,6 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return best
   }
 
-  /**
-   * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
-   * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
-   */
-  function accentColorOf(value) {
-    const accent = String(value == null ? '' : value).trim()
-    return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
-  }
 
 
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
@@ -1073,7 +1065,6 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return {
       mode,
       title: shell.title || '',
-      accentColor: accentColorOf(shell.accentColor),
       items,
       menuTree,
       selectors: (shell.appContext || []).map((selector) => ({
@@ -3250,8 +3241,6 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           themeToggle: md.themeToggle,
-          // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
-          accentColor: md.accentColor || '',
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -6912,7 +6901,6 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
-    accentColorOf,
     ojIconOf,
     ojIconOrGenericOf,
     longTaskWatcher,

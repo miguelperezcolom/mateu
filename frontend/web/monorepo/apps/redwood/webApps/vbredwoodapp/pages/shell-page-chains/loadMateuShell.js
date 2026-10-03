@@ -113,12 +113,6 @@ define([
       // MENU_ON_TOP: la banda 2 bajo la cabecera — el título de la consola y su menú
       $application.variables.mateuMenuSubheader = nav.mode === 'subheader';
       $application.variables.mateuShellTitle = nav.title;
-      // @App(accentColor): la línea de 3px bajo la banda y el título de la consola (tema claro)
-      if (nav.accentColor) {
-        document.documentElement.style.setProperty('--mateu-accent', nav.accentColor);
-      } else {
-        document.documentElement.style.removeProperty('--mateu-accent');
-      }
       $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
       $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // abierto de inicio
       $application.variables.mateuMenuTree = nav.menuTree;

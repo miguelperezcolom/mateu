@@ -847,9 +847,9 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
    contenido, texto en el color del cuerpo, el título de la consola y después el menú. Es navegación,
    no una fila de enlaces: las opciones van en color de texto y la sección en pantalla se marca con
    un subrayado de 2px — el indicador de una pestaña seleccionada, sin relleno.
-   @App(accentColor) llega como --mateu-accent en :root: una línea de 3px bajo la banda (dice de quién
-   es la app, nunca algo que pulsar) y el título en ese color sólo en tema claro (sobre fondo oscuro
-   un rojo de marca pierde contraste). Sin acento, ni línea ni color. */
+   Sin acento de marca: @App(accentColor) es cosa del renderer web. En Redwood la banda va con los
+   tokens neutros del tema (fondo de contenido, texto primario, separador), como cualquier banda
+   oj-sp: un título o una línea en el rojo de la marca desentonan con el resto de la página. */
 .mateu-subheader {
   display: flex;
   align-items: center;
@@ -863,7 +863,6 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   background-color: var(--oj-core-bg-color-content, #fff);
   color: var(--oj-core-text-color-primary, #161513);
   border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
-  box-shadow: inset 0 -3px 0 var(--mateu-accent, transparent);
 }
 .mateu-subheader-title {
   flex: 0 0 auto;
@@ -877,8 +876,7 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   font-size: var(--oj-typography-heading-xs-font-size, 1.125rem);
   font-weight: 600;
   white-space: nowrap;
-  color: var(--mateu-accent, var(--oj-core-text-color-primary, #161513));
-  color: light-dark(var(--mateu-accent, var(--oj-core-text-color-primary, #161513)), var(--oj-core-text-color-primary, #f5f4f2));
+  color: var(--oj-core-text-color-primary, #161513);
 }
 .mateu-subheader-title:hover {
   text-decoration: underline;

@@ -121,11 +121,3 @@ export function activeSectionOf(sections, current) {
   return best
 }
 
-/**
- * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
- * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
- */
-export function accentColorOf(value) {
-  const accent = String(value == null ? '' : value).trim()
-  return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
-}
