@@ -39,8 +39,18 @@ export default defineConfig({
     resolve: {
         // A single Lit instance across the app and the shared lib, or custom elements
         // get "already defined" errors (same rationale as the other renderer apps).
-        dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+        // The Vaadin packages too: the canvas can load the Vaadin reference renderer (apps/vaadin), and
+        // two copies of @vaadin/component-base mean "already defined" custom-element errors.
+        dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element',
+            '@vaadin/component-base', '@vaadin/vaadin-lumo-styles', '@polymer/polymer',
+            '@vaadin/vaadin-themable-mixin', '@vaadin/vaadin-usage-statistics'],
         alias: {
+            // Same pins as apps/vaadin (older VCF components reach into /src/ of these packages).
+            '@vaadin/component-base/src/styles/style-props.js': resolve(here, '../../node_modules/@vaadin/component-base/src/styles/style-props.js'),
+            '@vaadin/component-base/src/warnings.js': resolve(here, '../../node_modules/@vaadin/component-base/src/warnings.js'),
+            '@vaadin/component-base': resolve(here, '../../node_modules/@vaadin/component-base'),
+            '@vaadin/vaadin-lumo-styles': resolve(here, '../../node_modules/@vaadin/vaadin-lumo-styles'),
+            '@polymer/polymer': resolve(here, '../../node_modules/@polymer/polymer'),
             'lit': resolve(here, '../../node_modules/lit'),
             '@': resolve(here, './src'),
             '@components': resolve(here, '../../libs/mateu/src/mateu/ui/infra/ui'),
@@ -49,6 +59,13 @@ export default defineConfig({
             '@domain': resolve(here, '../../libs/mateu/src/mateu/ui/domain'),
             '@infra': resolve(here, '../../libs/mateu/src/mateu/ui/infra'),
         },
+    },
+    optimizeDeps: {
+        // Scan the lazily-loaded Vaadin canvas renderer up front too, or the dev server discovers its
+        // deps on first use and answers "504 Outdated Optimize Dep" for that first load.
+        entries: ['index.html', 'src/canvas/vaadinCanvasRenderer.ts'],
+        // Same exclusion as apps/vaadin: this package's nested node_modules break the dep scan.
+        exclude: ['@vaadin-component-factory/vcf-date-range-picker'],
     },
     server: {
         port: 5199,

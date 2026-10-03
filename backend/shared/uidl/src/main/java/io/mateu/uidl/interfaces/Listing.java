@@ -105,8 +105,11 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
       String methodName = actionId.substring("action-on-row-".length());
       return handleActionOnRow(methodName, httpRequest);
     }
-    var found = search(SearchRequestBuilder.build(this, httpRequest), httpRequest);
+    var request = SearchRequestBuilder.build(this, httpRequest);
+    var found = search(request, httpRequest);
     var data = found != null ? found : new ListingData<Row>(new Page<>("", 0, 0, 0, List.of()));
+    // ?ids=… works on every listing: a search that did not narrow to them itself is narrowed here
+    data = IdSetFilter.narrow(data, request.ids());
     // @GroupBy rows on a custom listing: synthesize the group summaries the grid needs when the
     // implementation didn't compute them itself, then hide the @GroupAction buttons the listing
     // declares not applicable per group.

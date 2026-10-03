@@ -1,0 +1,125 @@
+{
+  "commands": [
+    {
+      "targetComponentId": "",
+      "type": "SetWindowTitle",
+      "data": "History"
+    }
+  ],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "",
+      "component": {
+        "type": "ServerSide",
+        "id": "e084acc4-ec8d-43fa-ad17-cdafb400b625",
+        "serverSideType": "io.mateu.mdd.demovb.infra.in.ui.mastertabs.CustomerHistory",
+        "route": "/customers/3",
+        "children": [
+          {
+            "type": "ClientSide",
+            "metadata": {
+              "type": "Page",
+              "id": null,
+              "favicon": null,
+              "pageTitle": "Customer history",
+              "icon": null,
+              "title": null,
+              "level": 0,
+              "readOnly": false,
+              "subtitle": null,
+              "overline": null,
+              "titlePlaceholder": null,
+              "status": null,
+              "breadcrumbs": null,
+              "noBreadcrumbs": true,
+              "badges": [],
+              "kpis": [],
+              "banners": [],
+              "actions": null,
+              "toolbar": [],
+              "buttons": [],
+              "avatar": null,
+              "header": [],
+              "footer": [],
+              "fabs": [],
+              "toc": null,
+              "peerNav": null,
+              "timestamp": null,
+              "pageWidth": null,
+              "pageType": "form"
+            },
+            "id": null,
+            "children": [
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "3",
+                  "size": null,
+                  "noMargins": false
+                },
+                "id": "f9b6c09b-d937-4b21-b852-c9627745e473",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null,
+                "sizing": null
+              },
+              {
+                "type": "ClientSide",
+                "metadata": {
+                  "type": "Text",
+                  "container": "div",
+                  "attributes": {},
+                  "text": "Customer 3 created 2026-01-01",
+                  "size": null,
+                  "noMargins": false
+                },
+                "id": "c5a46cf9-1581-4af0-9bd4-a68d6c5b96e3",
+                "children": [],
+                "style": null,
+                "cssClasses": null,
+                "slot": null,
+                "sizing": null
+              }
+            ],
+            "style": null,
+            "cssClasses": null,
+            "slot": null,
+            "sizing": null
+          }
+        ],
+        "initialData": {},
+        "style": "",
+        "cssClasses": "",
+        "actions": [],
+        "triggers": [],
+        "rules": [],
+        "validations": [],
+        "slot": null,
+        "containerId": null,
+        "confirmOnNavigationIfDirty": false,
+        "emitsName": null,
+        "pageWidth": null,
+        "pageType": "form",
+        "staticView": false,
+        "structureHash": "39f68f5a64950cca04f062cb7551ab2b66633849d69963cc2fd7a71de89ecef7"
+      },
+      "state": {
+        "customerId": "3",
+        "lastEvent": "Customer 3 created 2026-01-01"
+      },
+      "data": {},
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}

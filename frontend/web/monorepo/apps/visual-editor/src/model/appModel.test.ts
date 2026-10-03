@@ -85,3 +85,15 @@ menu:
         expect(out.menu[0].route).toBe('pedidos')
     })
 })
+
+describe('app shell — brand accent and back link', () => {
+    it('reads and writes accentColor and backLink as fields', () => {
+        const doc = parseApp('type: AppShell\ntitle: X\naccentColor: "#D2232A"\nbackLink: PARENT\n')
+        expect(doc.fields.accentColor).toBe('#D2232A')
+        expect(doc.fields.backLink).toBe('PARENT')
+        expect(doc.appRest).toEqual({})
+        const out = parse(serializeApp({ ...doc, fields: { ...doc.fields, backLink: undefined } }))
+        expect(out.accentColor).toBe('#D2232A')
+        expect(out.backLink).toBeUndefined()
+    })
+})

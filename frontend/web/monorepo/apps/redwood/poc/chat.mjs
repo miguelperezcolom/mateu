@@ -58,6 +58,9 @@ export function buildChatMenuContext(options, parentPath = []) {
         },
       }
       if (opt.description) entry.description = opt.description
+      // lo que el agente necesita para ENSEÑAR filas en este listado: sus filtros por URL, el campo
+      // id de la fila y el parámetro de la selección (?ids=…). Lo publica el server en el menú.
+      if (opt.listing) entry.listing = opt.listing
       result.push(entry)
     }
   }
@@ -419,14 +422,37 @@ const mdEscape = (s) => String(s).replace(/[&<>"']/g, (c) => MD_ESC[c])
 /** El markdown en línea de un texto YA escapado: código, enlaces, negrita, cursiva. */
 function mdInline(escaped) {
   const codes = []
+  // la etiqueta de apertura de cada enlace se aparta hasta el final: su href puede llevar `_` o `*`
+  // (ids=A_B) y la negrita/cursiva de abajo lo romperían
+  const opens = []
+  const open = (tag) => { opens.push(tag); return `\u0001${opens.length - 1}\u0001` }
   let s = escaped.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000` })
   // enlaces: solo http(s); la URL ya viene escapada (las comillas no pueden cerrar el atributo)
   s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    (_, text, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`)
+    (_, text, url) => `${open(`<a href="${url}" target="_blank" rel="noopener noreferrer">`)}${text}</a>`)
+  // y las rutas de la propia app (`[4MBZS7](/booking/bookings/4MBZS7)`): un enlace que navega DENTRO
+  // de la consola (la burbuja lo engancha, chatRouteOfLink) — sin recargar ni abrir pestaña. Solo
+  // una ruta que empieza por UNA barra: `//host` sería otro sitio.
+  s = s.replace(/\[([^\]\n]+)\]\((\/(?!\/)[^\s)]*)\)/g,
+    (_, text, route) => `${open(`<a href="${route}" class="mateu-chat-route" data-mateu-route="${route}">`)}${text}</a>`)
   s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
   s = s.replace(/(^|[^*\w])\*([^*\s][^*\n]*?)\*(?!\w)/g, '$1<em>$2</em>')
     .replace(/(^|[^_\w])_([^_\s][^_\n]*?)_(?!\w)/g, '$1<em>$2</em>')
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[+i]}</code>`)
+    .replace(/\u0001(\d+)\u0001/g, (_, i) => opens[+i])
+}
+
+/**
+ * La ruta a la que navega un clic en un enlace del chat, o null si el clic no es nuestro: sólo los
+ * enlaces a rutas de la app (mateu-chat-route) y un clic normal — con Ctrl/Cmd/Mayús o el botón del
+ * medio el navegador hace lo suyo (abrirlo en otra pestaña sigue funcionando: el href es la URL).
+ */
+export function chatRouteOfLink(anchor, event) {
+  if (!anchor || !anchor.getAttribute) return null
+  const route = anchor.getAttribute('data-mateu-route')
+  if (!route || route.charAt(0) !== '/' || route.charAt(1) === '/') return null
+  if (event && (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
+  return route
 }
 
 const MD_TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/

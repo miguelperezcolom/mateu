@@ -530,14 +530,19 @@ define([
       // foldout con EntityHeader (la 360): el header de pantalla se conserva
       const hostEntity2 = (!esWizard2 && (sinOtrasRamas2 || $application.variables.mateuFoldout))
         ? bridge.entityHeaderOf(hostAfter) : null;
-      const hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
+      let hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
             { title: summary.title, activeTabs: $application.variables.mateuActiveTabs, dropEntityHeader: !!hostEntity2 }) : null;
-      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
-      // y el texto plano se suprimen — misma regla que los arquetipos
-      const hostBlocksRicos2 = !!(hostBlocks2 && hostBlocks2.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
-        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow || a.isTabs || a.isGrid || a.isElement)));
+      // los @Subresource a la vista: los ya cargados conservan su tabla, los nuevos se cargan
+      if (hostBlocks2) {
+        reg = await bridge.loadSubresources(base, reg, hostBlocks2, { appState });
+        $application.variables.mateuRegistry = reg;
+        hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts);
+      }
+      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger, pestañas, tablas…): el
+      // form genérico y el texto plano se suprimen — misma regla que los arquetipos. También
+      // cuando el form no tiene nada que pintar (una página de solo lectura son textos)
+      const hostBlocksRicos2 = bridge.hostContentShown(hostBlocks2, summary);
       // las acciones del toolbar de la Page (se calculan antes del header por si algún
       // template de página de entidad las recoloca)
       const hostToolbarA = bridge.pageToolbarOf(hostAfter);

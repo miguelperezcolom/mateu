@@ -36,7 +36,7 @@ import "@vaadin/markdown"
 import '@vaadin/item'
 import '@polymer/paper-toggle-button'
 import "@vaadin-component-factory/vcf-date-range-picker"
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { safeHtml } from "@infra/ui/safeHtml.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import {ComboBox, ComboBoxDataProvider} from "@vaadin/combo-box";
 import './mateu-grid'
@@ -1672,7 +1672,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML('' + value)}</div></vaadin-custom-field>
+                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${safeHtml('' + value)}</div></vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'image') {
