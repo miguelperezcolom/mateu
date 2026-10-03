@@ -195,7 +195,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const walk = (node, isRoot) => {
       if (!node || typeof node !== 'object') return
       if (!isRoot && node.type === 'ServerSide') {
-        out.push(node)
+        // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
+        // la vista (ver subresourceIslandOf)
+        if (!subresourceIslandOf(node)) out.push(node)
         return // sus hijos pertenecen a la isla, no al host
       }
       if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
@@ -1254,6 +1256,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     const visit = (node, container) => {
       if (!node || typeof node !== 'object') return
+      // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
+      // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
+      // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
+      // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
+      if (node !== ctx.tree) {
+        const sub = subresourceIslandOf(node)
+        if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
+      }
       const m = node.metadata
       const t = m && m.type
       // FILA ZONADA (@Zones): HorizontalLayout cuyos hijos son columnas con
@@ -1791,6 +1801,105 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     ))
     const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
     return hasDisplay ? hoisted : null
+  }
+
+  /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
+   *
+   *  Sí cuando trae algo RICO (isRichAtom, una barra de pestañas, una tabla, un componente web, un
+   *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
+   *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
+   *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+  function hostContentShown(blocks, summary) {
+    if (!blocks || !blocks.length) return false
+    const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
+    if (blocks.some((block) => (block.items || []).some(rich))) return true
+    const s = summary || {}
+    return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
+  }
+
+  // ── @Subresource: listados embebidos en el contenido (P1) ─────────────────────────────────────
+  //
+  // Un campo @Subresource llega como un ServerSide INTERIOR (su isla) con un App de mediador cuya
+  // homeRoute lleva `_hideTitle=1` (y `_scope`, y `_lazy` si es ON_OPEN): el servidor solo marca
+  // así a los sub-recursos. Se carga al quedar a la vista — la pestaña activa —, con el estado que
+  // el padre le siembra (initialData: el id del maestro) y su búsqueda OnLoad, y se pinta como una
+  // tabla en su sitio del contenido.
+
+  /** Si el nodo es la frontera de un @Subresource, cómo cargarlo; si no, null. */
+  function subresourceIslandOf(node) {
+    if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
+    const app = (node.children || [])[0]
+    const md = app && app.metadata
+    if (!md || md.type !== 'App' || md.variant !== 'MEDIATOR' || !md.homeRoute) return null
+    const [path, query] = String(md.homeRoute).split('?')
+    const params = {}
+    for (const pair of String(query || '').split('&')) {
+      if (!pair) continue
+      const at = pair.indexOf('=')
+      params[decodeURIComponent(at < 0 ? pair : pair.slice(0, at))] = at < 0 ? '' : decodeURIComponent(pair.slice(at + 1))
+    }
+    if (params._hideTitle !== '1') return null
+    return {
+      id: node.id,
+      route: md.homeRoute,
+      consumedRoute: md.homeConsumedRoute || path,
+      serverSideType: md.homeServerSideType || node.serverSideType,
+      // la marca de la ruta viaja también en el estado (_scope: lo que el padre fija), como en Vaadin
+      componentState: { ...params, ...(node.initialData || {}) },
+      lazy: params._lazy === '1',
+    }
+  }
+
+  /** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
+  function pendingSubresourcesOf(blocks, contexts) {
+    const out = []
+    for (const block of blocks || []) {
+      for (const a of block.items || []) {
+        if (a && a.isSubresource && !(contexts && contexts[a.islandId] && contexts[a.islandId].tree)) out.push(a.subresource)
+      }
+    }
+    return out
+  }
+
+  /** El contenido con cada hueco @Subresource cargado convertido en su tabla (o, si no es un
+   *  listado, en su contenido). Los que aún no están cargados se quedan como hueco (no pintan). */
+  function withSubresources(blocks, contexts) {
+    if (!blocks) return blocks
+    return blocks.map((block) => ({
+      ...block,
+      items: (block.items || []).flatMap((a) => {
+        if (!a || !a.isSubresource) return [a]
+        const ctx = contexts && contexts[a.islandId]
+        if (!ctx || !ctx.tree) return [a]
+        const crud = findByType(ctx.tree, 'Crud')
+        if (!crud) {
+          const inner = islandContentOf(ctx)
+          return inner ? inner.flatMap((b) => b.items) : []
+        }
+        const md = crud.metadata || {}
+        const wire = (md.columns || []).map((col) => col.metadata || col)
+          // las acciones por fila no tienen sitio en la tabla de solo consulta
+          .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+        const page = (((ctx.data || {}).crud || {}).page) || {}
+        const rows = statusBadgeRows(page.content || [], wire)
+        return [{
+          isGrid: true,
+          isSubresourceGrid: true,
+          fieldId: a.islandId,
+          label: md.title || '',
+          columns: wire.map((c) => (c.dataType === 'status'
+            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+            : { headerText: c.label || c.id, field: c.id })),
+          rows,
+          adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+          isEmpty: rows.length === 0,
+          total: page.totalElements == null ? rows.length : page.totalElements,
+          rowEditable: false,
+          addActionId: '',
+          addLabel: '',
+        }]
+      }),
+    }))
   }
 
   /** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
@@ -5420,6 +5529,45 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
+   * Carga un @Subresource (subresourceIslandOf) en SU contexto: la carga por su tipo — sin el baile
+   * del mediador: el App que lo envuelve ya dice qué clase es — con el estado que le siembra el padre,
+   * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
+   */
+  async function loadSubresource(base, reg, sub, extra = {}) {
+    const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+    let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+      ...extra,
+      consumedRoute: sub.consumedRoute,
+      serverSideType: sub.serverSideType,
+      componentState: sub.componentState || {},
+    }))
+    next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
+    for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
+      const ctx = next.contexts[sub.id]
+      const listing = listingOf(ctx)
+      const componentState = { ...(sub.componentState || {}), ...(ctx.state || {}), page: 0, size: (listing && listing.pageSize) || 10 }
+      const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
+      if (increment) next = reduceContexts(next, increment)
+    }
+    return next
+  }
+
+  /**
+   * Carga los @Subresource que el contenido deja a la vista y aún no están cargados (los de la
+   * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
+   * hueco: no tumba la pantalla.
+   */
+  async function loadSubresources(base, reg, blocks, extra = {}) {
+    let next = reg
+    for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
+      try {
+        next = await loadSubresource(base, next, sub, extra)
+      } catch (ignored) { /* la banda de error ya lo cuenta (onSettle) */ }
+    }
+    return next
+  }
+
+  /**
    * De qué backend se cargó una superficie, o undefined si aún no se sabe.
    *
    * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
@@ -6574,6 +6722,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     tabBarIdsOf,
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
+    hostContentShown,
+    withSubresources,
+    loadSubresources,
     appLevelOf,
     rowRouteOf,
     listingOf,
