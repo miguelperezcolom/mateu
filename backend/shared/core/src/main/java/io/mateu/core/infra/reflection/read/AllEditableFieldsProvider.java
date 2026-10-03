@@ -36,7 +36,24 @@ public final class AllEditableFieldsProvider {
     return getAllEditableFields(modelType, superType, null);
   }
 
+  /**
+   * The editable subset depends on the class alone, and computing it looks up a getter for every
+   * private field — the dominant reflection cost of a form render. Cached per class; the returned
+   * list is immutable, exactly as before.
+   */
+  private static final ClassValue<List<Field>> CACHE =
+      new ClassValue<>() {
+        @Override
+        protected List<Field> computeValue(Class<?> type) {
+          return compute(type);
+        }
+      };
+
   public static List<Field> getAllEditableFields(Class modelType, Class superType, Field field) {
+    return CACHE.get(modelType);
+  }
+
+  private static List<Field> compute(Class<?> modelType) {
     return getAllFields(modelType).stream()
         .filter(AllEditableFieldsProvider::isAccessible)
         .filter(AllEditableFieldsProvider::isNotMenu)

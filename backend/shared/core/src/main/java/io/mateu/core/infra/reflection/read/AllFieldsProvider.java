@@ -10,8 +10,21 @@ import org.slf4j.Logger;
 
 public final class AllFieldsProvider {
 
-  // @Cacheable(initialValue = "all-fields-per-class")
+  /** Per-class cache (see {@code AllMethodsProvider}): a class's fields never change. */
+  private static final ClassValue<List<Field>> CACHE =
+      new ClassValue<>() {
+        @Override
+        protected List<Field> computeValue(Class<?> type) {
+          return List.copyOf(compute(type));
+        }
+      };
+
+  /** All the instance fields of {@code c} and its superclasses. A fresh, mutable list. */
   public static List<Field> getAllFields(Class c) {
+    return new ArrayList<>(CACHE.get(c));
+  }
+
+  private static List<Field> compute(Class<?> c) {
     List<String> vistos = new ArrayList<>();
     Map<String, Field> originales = new HashMap<>();
     for (Field f : c.getDeclaredFields())
