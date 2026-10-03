@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Message, button, title, ui  # noqa: E402
+from mateu_uidl import Message, action, button, title, ui  # noqa: E402
 
 ARCHIVED: list[str] = []
 
@@ -26,6 +26,8 @@ class ArchivePage:
         ARCHIVED.append("doc-7")
         return Message.undoable("Documento archivado", "restore", {"docId": "doc-7"})
 
+    # The undo target: a declared action without a button (only declared actions run).
+    @action
     def restore(self, request: RunActionRq) -> Message:
         # the Undo button's undoParameters travel as ACTION PARAMETERS (not component state)
         ARCHIVED.remove(str((request.parameters or {}).get("docId")))

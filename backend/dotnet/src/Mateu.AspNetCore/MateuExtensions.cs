@@ -8,6 +8,7 @@ using Mateu.Dtos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Mateu.AspNetCore;
 
@@ -39,7 +40,21 @@ public static class MateuExtensions
         {
             var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json)
                      ?? new RunActionRqDto();
-            var increment = handler.Handle(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
+            UIIncrementDto increment;
+            try
+            {
+                increment = handler.Handle(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
+            }
+            catch (MateuForbiddenException e)
+            {
+                // A denied action/view ([DisabledUnless]/[Audience]/[EyesOnly] not satisfied at
+                // invocation): 403 with an error message increment, the method never ran.
+                ctx.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("Mateu.Security")
+                    .LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
+                        rq.Route, rq.ActionId, e.Message);
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                increment = UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
+            }
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json);
         });

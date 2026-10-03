@@ -26,6 +26,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        // Security context of this request: the identity the gates ([EyesOnly]/[ReadOnlyUnless]/
+        // [DisabledUnless]) are matched against at INVOCATION and when binding wire state.
+        ActionGuard.SetIdentity(identity);
+
         // 0. Audience projection: the appState value under "audience" (the [AppContext] selector
         // named audience) filters [Audience]-marked members for the whole request.
         ReflectionMapper.SetCurrentAudience(
@@ -36,7 +40,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // action (mirrors Java's __contract__ reserved action).
         if (rq.ActionId == "__contract__" && !string.IsNullOrEmpty(rq.ServerSideType)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } contractType)
+        {
+            ActionGuard.EnsureViewVisible(contractType);
             return ContractResponse(contractType, rq);
+        }
 
         // 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview pane
         // POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors Java's
@@ -59,7 +66,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
+        {
+            ActionGuard.EnsureViewVisible(t0);
             return RenderApp(t0, app.Title, rq, requestBaseUrl);
+        }
 
         // 2. A Crud (resolved by serverSideType or by route prefix) — list / detail / new / edit + actions.
         if (ResolveCrud(rq) is { } c)
@@ -119,6 +129,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             type = registry.TypeByName(yamlSpec.ModelView);
         }
         if (type is null) return Error($"Route not found: {rq.Route}");
+        ActionGuard.EnsureViewVisible(type);
         // A YAML page bound to this modelView re-applies its layout on every render (first load AND
         // any in-place re-render) so the layout stays authoritative (mirrors Java's
         // ReflectionObjectToComponentMapper.layoutForRoute).
@@ -214,7 +225,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 return Render(type, instance, rq);
             }
         }
-        return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq, layoutOverride) : RunAction(type, instance, rq);
+        return string.IsNullOrEmpty(rq.ActionId)
+            ? Render(type, instance, rq, layoutOverride)
+            : RunAction(type, instance, rq, layoutOverride);
     }
 
     private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
@@ -265,6 +278,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private UIIncrementDto HandleCrud(Type crudType, Type element, string baseRoute, RunActionRqDto rq)
     {
+        ActionGuard.EnsureViewVisible(crudType);
         var crud = Activator.CreateInstance(crudType)!;
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
 
@@ -309,9 +323,11 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto ActionOnRows(object crud, Type crudType, Type element, RunActionRqDto rq)
     {
         var name = rq.ActionId!["action-on-row-".Length..];
-        var method = crudType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == name);
+        // Only a [ListToolbarButton] method is a bulk row action — never Save/Delete/any public
+        // method of the crud (security: the actionId comes from the wire).
+        var method = ActionGuard.ResolveRowAction(crudType, name);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
+        ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
         var result = method.Invoke(crud, BuildBulkArguments(method, rq));
         return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
     }
@@ -420,6 +436,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private UIIncrementDto HandleCapabilityListing(CapabilityProfile profile, string baseRoute, RunActionRqDto rq)
     {
+        ActionGuard.EnsureViewVisible(profile.ListingType);
         var listing = Activator.CreateInstance(profile.ListingType)!;
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
 
@@ -601,9 +618,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq)
     {
         var name = rq.ActionId!["action-on-row-".Length..];
-        var method = profile.ListingType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == name);
+        var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
+        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
         var result = method.Invoke(listing, BuildBulkArguments(method, rq));
         return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
     }
@@ -1239,6 +1256,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         object? json = new Dictionary<string, object?>();
         if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
         {
+            ActionGuard.EnsureViewVisible(type);
             var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
             var id = StateString(GetState(rq.Parameters, "_sourceId"));
             if (ReflectionMapper.ResolveRestSource(type, kind, id) is { } source)
@@ -1506,11 +1524,14 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             LookupLabels(type, instance, instance), emitWindowTitle: isPage);
     }
 
-    private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq)
+    /// <summary>Runs a view action. The actionId comes from the wire, so it only reaches a method
+    /// DECLARED as an action (see <see cref="ActionGuard.ResolveAction"/>) and only when the caller
+    /// passes its access gates; anything else is "Action not found" / 403.</summary>
+    private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
     {
-        var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == rq.ActionId);
+        var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
+        ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
         return MapResult(method.Invoke(instance, BuildArguments(method, rq)), rq);
     }
 
@@ -1805,6 +1826,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         foreach (var p in ReflectionMapper.EditableProperties(instance.GetType()))
         {
+            // Mass-assignment guard: a field hidden ([EyesOnly]) or locked ([ReadOnlyUnless]) for
+            // this caller is never written from the wire — it keeps its server-side value.
+            if (!ActionGuard.MayWrite(p)) continue;
             var key = Naming.CamelCase(p.Name);
             if (!state.TryGetValue(key, out var raw) || raw is null) continue;
             var value = ConvertValue(raw, p.PropertyType);
