@@ -314,7 +314,8 @@ final class SectionFormRenderer {
    */
   private static Component tabsFromSections(List<Section> sections, Ctx ctx) {
     return TabLayout.builder()
-        .id("_tabs")
+        // scoped by the field prefix when the view is a nested form, like the @Tab strips
+        .id((ctx.prefix() == null ? "" : ctx.prefix()) + "_tabs")
         .style("width: 100%;")
         .groupRelationship(GroupRelationship.alternative)
         .adaptable(true)
