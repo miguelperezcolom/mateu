@@ -21,7 +21,6 @@ public @interface FoldedLayout {}
 ### Example
 
 ```java
-@Route("/customer/:id")
 @FoldedLayout
 @ConfirmOnNavigationIfDirty
 public class CustomerForm {
@@ -39,6 +38,14 @@ public class CustomerForm {
     @Toolbar
     Object save() { /* persist everything */ }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: customer/:id
+    viewModel: com.example.CustomerForm
 ```
 
 Each `@Section` becomes a collapsible panel. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.

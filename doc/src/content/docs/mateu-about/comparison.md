@@ -32,7 +32,7 @@ One step. One file.
 |---|---|---|
 | UI definition | frontend components (JSX / templates) | Java ViewModel class — or the same model [authored as YAML](/java-ui-definition/yaml-ui-definition/) |
 | Validation | frontend library (Zod, Yup, etc.) + backend | Bean Validation, once |
-| Routing | frontend router (React Router, etc.) | `@UI` + `@Route` annotations |
+| Routing | frontend router (React Router, etc.) | `@UI` (mounts) + `routes.yaml` (inner routes) |
 | Navigation | frontend nav config | `@Menu` annotations |
 | Relationships | frontend API call + state | `@Lookup` + backend supplier |
 | Browser feedback | frontend toast / notification library | return `Message` from action |

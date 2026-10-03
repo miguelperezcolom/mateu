@@ -93,7 +93,7 @@ Both the UI module **and** the AP must appear in `<annotationProcessorPaths>` of
 
 ### ViewModel Instantiation & DI (avoid singleton state!)
 
-A `@UI`/`@Route` ViewModel that is NOT a container-managed bean is instantiated by Mateu **fresh on every request**, and `@Autowired`/`@Inject` FIELDS are still injected — this is the default and preferred pattern (see `doc/.../java-user-manual/concepts/execution-model.md`). If you register the ViewModel as a Spring bean (e.g. to use constructor injection), it MUST be `@Scope("prototype")`: a singleton ViewModel shares its mutable form fields across all users and requests (user A sees user B's half-typed form). CRUD orchestrators (`AutoCrud` subclasses) that only hold `final` injected services are stateless and may stay singletons, but any class with mutable UI-state fields must be per-request. When generating or reviewing consumer code, flag `@Component`/`@Service` on a ViewModel with non-final fields as a bug unless it is prototype-scoped.
+A routed ViewModel (`@UI` or a `routes.yaml` entry) that is NOT a container-managed bean is instantiated by Mateu **fresh on every request**, and `@Autowired`/`@Inject` FIELDS are still injected — this is the default and preferred pattern (see `doc/.../java-user-manual/concepts/execution-model.md`). If you register the ViewModel as a Spring bean (e.g. to use constructor injection), it MUST be `@Scope("prototype")`: a singleton ViewModel shares its mutable form fields across all users and requests (user A sees user B's half-typed form). CRUD orchestrators (`AutoCrud` subclasses) that only hold `final` injected services are stateless and may stay singletons, but any class with mutable UI-state fields must be per-request. When generating or reviewing consumer code, flag `@Component`/`@Service` on a ViewModel with non-final fields as a bug unless it is prototype-scoped.
 
 ### Runtime Flow
 
@@ -111,7 +111,7 @@ different parameters pinned, one definition can serve several view models, and a
 with **no view model at all** (the statically deployed case). An annotation can only ever express
 the one-to-one case.
 
-- **Two producers, one table.** The APs' indexes (`ui-registrations` + `route-registrations`) are the
+- **Two producers, one table.** The APs' index (`ui-registrations`; `route-registrations` is no longer written) is the
   *derived* half; `routes.yaml` is the *authored* half, merged on top — **authored wins**, replacing
   the entry outright. Only the authored half short-circuits `DefaultRoutedClassResolver.resolve`: the
   derived half is what the `RoutedClassProvider`s already carry, and they also serve the CRUD

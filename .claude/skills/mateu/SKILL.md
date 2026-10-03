@@ -114,14 +114,18 @@ compiles or it doesn't. Generate the model; let Mateu render.
 
 ## Dependency
 
-For a single Spring Boot **MVC** app, one dependency is enough:
+For a single Spring Boot **MVC** app: the runtime + a renderer jar, and the MVC annotation
+processor in `<annotationProcessorPaths>` (see the **mateu-scaffold** skill for the full pom):
 
 ```xml
-<dependency><groupId>io.mateu</groupId><artifactId>mvc</artifactId><version>LATEST</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
+<!-- annotationProcessorPaths: io.mateu:annotation-processor-mvc -->
 ```
 
-Other stacks: `io.mateu:webflux`, `io.mateu:quarkus`, `io.mateu:micronaut`,
-`io.mateu:helidon-mp`. To keep `@UI` classes in a **framework-agnostic** module,
+Other stacks swap the pair: `webflux-core`/`annotation-processor-webflux`,
+`quarkus-core`/`annotation-processor-quarkus`, `micronaut-core`/`annotation-processor-micronaut`,
+`helidon-mp-core`/`annotation-processor-helidon-mp`. To keep `@UI` classes in a **framework-agnostic** module,
 depend only on `io.mateu:uidl` and run the indexer AP — see
 [federation.md](reference/federation.md).
 

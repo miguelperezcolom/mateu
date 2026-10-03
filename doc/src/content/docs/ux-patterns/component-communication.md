@@ -81,7 +81,6 @@ public class GuestsSection {
 ### Subscriber
 
 ```java
-@Route(value = "/:id/checkin", uis = {"/checkin"})
 @Trigger(type = TriggerType.OnLoad, actionId = "load")
 // Refresh the whole form in place whenever any component announces a confirmed check-in.
 @SubscribeTo(event = "checkin-confirmed", action = "load", source = SubscriptionSource.DOCUMENT)
@@ -95,6 +94,14 @@ public class CheckInForm implements HeaderSupplier {
 
     // ... fields, sections (including the GuestsSection above), populate(), header() ...
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: checkin/:id      # the demo-admin-panel route of this form
+    viewModel: com.example.CheckInForm
 ```
 
 When the user clicks **Confirmar check-in**, the action persists the change and returns a

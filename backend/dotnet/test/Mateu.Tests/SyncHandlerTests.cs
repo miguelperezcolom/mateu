@@ -741,6 +741,8 @@ public class ArchivePage
             new Dictionary<string, object?> { ["docId"] = "doc-7" });
     }
 
+    // The undo target: a declared action without a button (only declared actions run).
+    [Action]
     public Message Restore(RunActionRqDto rq)
     {
         // the Undo button's undoParameters travel as ACTION PARAMETERS (not component state)

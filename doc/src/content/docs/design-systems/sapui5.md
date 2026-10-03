@@ -6,7 +6,7 @@ description: "Mateu renderer built on SAP UI5 and Fiori components."
 
 :::danger[Retired renderer]
 The SAP UI5 renderer was **retired**. There is no `sapui5-lit` artifact to depend on and no source
-app behind it — `apps/sapui5` holds only leftover build output. The supported web renderers are
+app behind it (`apps/sapui5` was deleted). The supported web renderers are
 [Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/); see the
 [parity matrix](/reference/parity/).
 

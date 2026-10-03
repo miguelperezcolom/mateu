@@ -17,7 +17,7 @@ This case adds several real-world patterns on top of the basic CRUD:
 
 - how to use Spring injection in CRUD classes
 - how to define a lookup field backed by a backend service
-- how to add a custom editor page with `@Route`
+- how to add a custom editor page with a [`routes.yaml` entry](/java-ui-definition/route-registry/)
 - how actions return messages and refresh form state
 
 ---
@@ -178,7 +178,6 @@ public class RoleLabelSupplier implements LabelSupplier {
 
 ```java
 @Service
-@Route(value = "/:id/edit", uis = {"/users"})
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {
@@ -213,9 +212,18 @@ public class UserEditorPage {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/users-routes.yaml — inner routes of the @UI("/users") mount
+type: Routes
+basePath: /users
+routes:
+  - route: ":id/edit"
+    viewModel: com.example.UserEditorPage
+```
+
 Key points:
 
-- `@Route(value = "/:id/edit", uis = {"/users"})` binds this page to the edit action of the `/users` CRUD
+- The `:id/edit` entry under `basePath: /users` binds this page to the edit action of the `/users` CRUD (an authored route wins over the CRUD's built-in one)
 - The `:id` segment is populated automatically by Mateu
 - `save()` returns both a `Message` (toast notification) and a `State(this)` (refresh the form state)
 - The page is a `@Service` bean, so `UserStore` is injected via constructor
@@ -229,7 +237,7 @@ UsersPage (@UI("/users"))
   └── UserStore
         └── User (model)
 
-UserEditorPage (@Route("/:id/edit", uis="/users"))
+UserEditorPage (routes.yaml: /users → :id/edit)
   └── UserStore
         └── User (model)
         └── RoleOptionsSupplier (lookup)
@@ -243,7 +251,7 @@ UserEditorPage (@Route("/:id/edit", uis="/users"))
 - Use `@Service` whenever a class needs dependency injection
 - `@Lookup` = where to find options + how to display them
 - `@Stereotype` = how to render the field (checkbox, select, etc.)
-- Custom editor pages bind to a CRUD via `@Route(uis = "/route")`
+- Custom editor pages bind to a CRUD via a `routes.yaml` entry under the CRUD's route (`basePath: /users`, `route: :id/edit`)
 - `save()` returns `List.of(new Message(...), new State(this))` to give feedback and refresh
 
 ---

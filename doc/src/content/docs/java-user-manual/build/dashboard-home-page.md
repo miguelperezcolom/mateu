@@ -11,7 +11,6 @@ The dashboard is typically the first page users see. It shows KPIs, recent activ
 A dashboard page implements `ComponentTreeSupplier` and `TriggersSupplier`. Use `OnLoadTrigger` to fetch data on load and `BoardLayout` to arrange the content in a grid.
 
 ```java
-@Route(value = "/dashboard", parentRoute = "")
 public class DashboardPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 
     @Override
@@ -42,6 +41,14 @@ public class DashboardPage implements ComponentTreeSupplier, ActionHandler, Trig
         ));
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: dashboard
+    viewModel: com.example.DashboardPage
 ```
 
 ---

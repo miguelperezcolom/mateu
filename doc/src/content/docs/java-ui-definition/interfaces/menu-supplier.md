@@ -19,8 +19,8 @@ public interface MenuSupplier {
 ## Usage
 
 ```java
-@App(AppVariant.DRAWER)
-@Route("/")
+@App(AppVariant.MENU_ON_LEFT)
+@UI("")
 public class MyApplication implements ComponentTreeSupplier, MenuSupplier {
 
     @Override
@@ -31,9 +31,9 @@ public class MyApplication implements ComponentTreeSupplier, MenuSupplier {
     @Override
     public List<Actionable> menu(HttpRequest httpRequest) {
         return List.of(
-            new MenuEntry("Dashboard", "/dashboard"),
-            new MenuEntry("Customers", "/customers"),
-            new MenuEntry("Invoices", "/invoices")
+            new RouteLink("/dashboard", "Dashboard"),
+            new RouteLink("/customers", "Customers"),
+            new RouteLink("/invoices", "Invoices")
         );
     }
 }

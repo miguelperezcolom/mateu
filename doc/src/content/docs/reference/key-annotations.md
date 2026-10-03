@@ -27,28 +27,31 @@ Use it when a class should become a page or UI entry point.
 
 ---
 
-## `@Route`
+## Inner routes (`routes.yaml`)
 
-Defines additional routes and supports placeholders.
+`@Route`, `@Routes` and `@HomeRoute` were **removed**: `@UI` is the only routing annotation. The
+screens inside a UI — including routes with placeholders — are declared as data in a
+[`routes.yaml` route registry](/java-ui-definition/route-registry/).
 
 ```java
-@Route("/example/:name")
 public class ExamplePage {
-    String name;
+    String name;   // filled from :name
 }
 ```
 
-Use it when:
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: example/:name
+    viewModel: com.example.ExamplePage
+```
+
+Use a route entry when:
 
 - you need path parameters
-- you want more than one route
-- you want nested routing with `parentRoute`
-
-### Key fields
-
-- `value()` → route pattern
-- `uis()` → UI roots where the route applies
-- `parentRoute()` → parent route for composition
+- you want more than one route over one class
+- you want nested routing (`children:` render in the parent's slot)
 
 ---
 
@@ -308,10 +311,9 @@ Use it for layout constraints and small visual adjustments.
 Class-level. Declares a view whose **full response — structure and data — never varies** per request, user or time (a help page, an "about" screen, a fixed reference screen). The client caches the whole response for the browser session and, on a return visit, renders it from the cache and **skips the server round-trip entirely**.
 
 ```java
-@Route("/about")
 @Title("About")
 @StaticView
-public class About { /* ... */ }
+public class About { /* ... */ }   // routed by a routes.yaml entry (route: about)
 ```
 
 It is a promise, like `@Action(idempotent = true)`: only use it when the content genuinely does not change. Do **not** use it on a screen whose content depends on data, the logged-in user, permissions, time, or `${…}` interpolation of live state — the client would keep showing the first rendering for the rest of the session. The skip is session-scoped, so a full page reload always reloads (a new deployment is picked up on the next refresh).
@@ -682,7 +684,7 @@ These are also part of the public DSL and are worth knowing:
 - `@RowAction` — per-row contextual actions in listings
 - `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the store (`CrudStore`) as a `FilterCriterion`
-- `@HomeRoute` — designate the default/home route
+- Home route — `@HomeRoute` was removed: the home is the app's first menu item, or what the app class returns from `HomeRouteSupplier.homeRoute()`
 - `@Fab` — floating action button (app level or page level)
 - `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`
 - `@KPI` — render a numeric field as a dashboard KPI card

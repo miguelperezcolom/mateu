@@ -39,7 +39,6 @@ If a class contains logic, make it a Spring bean.
 
 ```java
 @Service
-@Route("/users/:id/edit")
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {
@@ -71,6 +70,14 @@ public class UserEditorPage {
         );
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id/edit
+    viewModel: com.example.UserEditorPage
 ```
 
 ## Options supplier as a bean

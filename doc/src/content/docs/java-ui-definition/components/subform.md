@@ -45,7 +45,6 @@ public record Subform2(@Stereotype(FieldStereotype.radio) Sex sex, Religion reli
 }
 
 // Parent form
-@Route("/page3")
 public class Page3 {
 
     String name;
@@ -64,6 +63,14 @@ public class Page3 {
                 .build();
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: page3
+    viewModel: com.example.Page3
 ```
 
 `Page3` renders as a single page that contains:

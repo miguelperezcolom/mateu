@@ -1,6 +1,6 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { safeHtml } from "./safeHtml";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
@@ -391,29 +391,29 @@ export class MateuContentHeader extends LitElement {
                     ${backButtons.map(this.renderBackChevron)}
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
-                        ${overline ? html`<div class="page-overline">${unsafeHTML(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
+                        ${overline ? html`<div class="page-overline">${safeHtml(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
                         ${(metadata?.title || titlePlaceholder) && level == 0?html`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
                                 <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${metadata?.title
-                                    ? unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
-                                    : html`<span class="page-title-placeholder">${unsafeHTML(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
+                                    ? safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))
+                                    : html`<span class="page-title-placeholder">${safeHtml(possiblyHtml(titlePlaceholder!, this.state ?? {}, this.data ?? {}))}</span>`}</h2>
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
                                     ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}, { pill: true }))
                                     : nothing}
                             </div>`:nothing}
-                        ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
-                        ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
-                        ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
-                        ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
+                        ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
+                        ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
+                        ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
+                        ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
 
-                        ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
-                        ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${unsafeHTML(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
+                        ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${safeHtml(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
+                        ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${safeHtml(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`
                             <div class="header-fact">
                                 <span class="header-fact-label">${this.evalLabel(kpi.title)}</span>
-                                <span class="header-fact-value">${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                                <span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
                             </div>
                         `) : nothing}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
@@ -429,7 +429,7 @@ export class MateuContentHeader extends LitElement {
                     ${metadata.kpis.map((kpi) => html`
                         <div class="kpi-pair">
                             <span class="kpi-label">${this.evalLabel(kpi.title)}</span>
-                            <span class="kpi-value">${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                            <span class="kpi-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
                         </div>
                     `)}
                 </div>

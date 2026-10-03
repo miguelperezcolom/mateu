@@ -21,7 +21,6 @@ We want:
 ## Process (parent)
 
 ```java
-@Route("/processes/:id")
 @Style(StyleConstants.CONTAINER)
 public class ProcessPage {
 
@@ -34,6 +33,14 @@ public class ProcessPage {
         .withProcessId(id);
 
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: processes/:id
+    viewModel: com.example.ProcessPage
 ```
 
 ### Key idea

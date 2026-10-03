@@ -2,7 +2,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Text from "@mateu/shared/apiClients/dtos/componentmetadata/Text";
 import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/TextContainer";
 import { html, nothing } from "lit";
-import {unsafeHTML} from "lit/directives/unsafe-html.js";
+import { safeHtml } from "@infra/ui/safeHtml.ts";
 import {ifDefined} from "lit/directives/if-defined.js";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
@@ -96,7 +96,7 @@ export const renderText = (component: ClientSideComponent, state: ComponentState
                <div style="${sizeStyle}${component.style}" class="${component.cssClasses}"
                     id="${ifDefined(component.id)}"
                     data-colspan="${ifDefined(colspan)}"
-                    slot="${component.slot??nothing}">${content?unsafeHTML(content):nothing}</div>
+                    slot="${component.slot??nothing}">${content?safeHtml(content):nothing}</div>
             `
     }
     if (TextContainer.span == metadata.container) {

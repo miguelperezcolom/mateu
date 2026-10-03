@@ -65,11 +65,14 @@ public interface HttpRequest {
 
   default int getInt(String key) {
     var value = runActionRq().componentState().getOrDefault(key, "0");
-    if (value instanceof Integer) {
-      return (Integer) value;
+    // A key present with a null value (e.g. "page": null) is "no value", not the string "null"
+    // that Integer.parseInt rejects; and any JSON number (a Double such as 20.0 included) is read
+    // as a number rather than re-parsed from its text.
+    if (value == null) {
+      return 0;
     }
-    if (value instanceof Long) {
-      return ((Long) value).intValue();
+    if (value instanceof Number number) {
+      return number.intValue();
     }
     var stringValue = "" + value;
     if ("".equals(stringValue)) {
@@ -80,14 +83,11 @@ public interface HttpRequest {
 
   default double getDouble(String key) {
     var value = runActionRq().componentState().getOrDefault(key, "0");
-    if (value instanceof Double) {
-      return (Double) value;
+    if (value == null) {
+      return 0;
     }
-    if (value instanceof Integer) {
-      return (Integer) value;
-    }
-    if (value instanceof Long) {
-      return (Long) value;
+    if (value instanceof Number number) {
+      return number.doubleValue();
     }
     var stringValue = "" + value;
     if ("".equals(stringValue)) {

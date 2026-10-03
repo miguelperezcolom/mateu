@@ -78,9 +78,13 @@ public class RemoteMenuHandler {
    * asking it anything; {@link #NOT_KNOWN} when its menu is not cached.
    */
   int cachedClaim(RemoteMenu remoteMenu, String route, HttpRequest httpRequest) {
+    var baseUrl = absoluteBaseUrl(remoteMenu, httpRequest);
+    if (baseUrl == null) {
+      return NOT_KNOWN;
+    }
     var cached =
         descriptorCache.get(
-            remoteMenu.baseUrl(), remoteMenu.route(), httpRequest.getHeaderValue("authorization"));
+            baseUrl, remoteMenu.route(), httpRequest.getHeaderValue("authorization"));
     return cached == null ? NOT_KNOWN : claim(cached, remoteMenu, route);
   }
 
@@ -200,7 +204,15 @@ public class RemoteMenuHandler {
   private Mono<AppDto> fetchRemoteAppDto(
       RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
     var authorization = httpRequest.getHeaderValue("authorization");
-    var cached = descriptorCache.get(remoteMenu.baseUrl(), remoteMenu.route(), authorization);
+    var baseUrl = absoluteBaseUrl(remoteMenu, httpRequest);
+    if (baseUrl == null) {
+      return Mono.error(
+          new IllegalArgumentException(
+              "Remote menu " + remoteMenu.baseUrl() + ": the request's Origin is not an origin"));
+    }
+    // Keyed by the ABSOLUTE url asked, not the declared (maybe relative) one: a relative remote is
+    // resolved against the caller's Origin, so two callers can be asking two different hosts.
+    var cached = descriptorCache.get(baseUrl, remoteMenu.route(), authorization);
     if (cached != null) {
       return Mono.just(cached);
     }
@@ -212,11 +224,6 @@ public class RemoteMenuHandler {
             .serverSideType(remoteMenu.serverSideType())
             .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
             .build();
-
-    var baseUrl = remoteMenu.baseUrl();
-    if (!baseUrl.startsWith("http")) {
-      baseUrl = httpRequest.getHeaderValue("origin") + baseUrl;
-    }
 
     return Mono.fromFuture(mateuHttpClient.send(baseUrl, request, authorization))
         .flatMap(
@@ -232,9 +239,7 @@ public class RemoteMenuHandler {
                         .map(metadata -> (AppDto) metadata)
                         .findFirst()))
         .doOnNext(
-            appDto ->
-                descriptorCache.put(
-                    remoteMenu.baseUrl(), remoteMenu.route(), authorization, appDto));
+            appDto -> descriptorCache.put(baseUrl, remoteMenu.route(), authorization, appDto));
   }
 
   private Mono<?> resolveRemoteMenu(
@@ -279,6 +284,42 @@ public class RemoteMenuHandler {
                   .serverSideType(app.homeServerSideType())
                   .build();
             });
+  }
+
+  /**
+   * The absolute url the remote is asked at. A relative {@code baseUrl} (same deployment, another
+   * path) is resolved against the request's {@code Origin} header — which a non-browser client
+   * controls, so it is accepted only when it IS an origin ({@code scheme://host[:port]}, http(s),
+   * nothing else): no path, query, fragment or user info that would let it steer the request
+   * anywhere but {@code <origin><baseUrl>/mateu/v3/sync/...}. {@code null} when it is not.
+   */
+  static String absoluteBaseUrl(RemoteMenu remoteMenu, HttpRequest httpRequest) {
+    var baseUrl = remoteMenu.baseUrl();
+    if (baseUrl.startsWith("http")) {
+      return baseUrl;
+    }
+    var origin = httpRequest.getHeaderValue("origin");
+    if (origin == null) {
+      // No Origin (a server-side caller, a test): kept as it always was — the http client fails on
+      // the non-absolute url and the remote is treated as unreachable.
+      return origin + baseUrl;
+    }
+    return isOrigin(origin) ? origin + baseUrl : null;
+  }
+
+  static boolean isOrigin(String origin) {
+    try {
+      var uri = new java.net.URI(origin);
+      var scheme = uri.getScheme();
+      return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+          && uri.getHost() != null
+          && uri.getRawUserInfo() == null
+          && (uri.getRawPath() == null || uri.getRawPath().isEmpty())
+          && uri.getRawQuery() == null
+          && uri.getRawFragment() == null;
+    } catch (java.net.URISyntaxException e) {
+      return false;
+    }
   }
 
   /** Strips the remote menu's path prefix: /disponibilidad/x → /x (its route inside the app). */

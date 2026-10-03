@@ -7,7 +7,8 @@ The full application shell record. Use it to define the top-level structure of a
 ```java
 @Builder
 @With
-public record App(
+public record AppShell(
+    String clientSideComponentId,
     String route,
     String homeRoute,
     String homeBaseUrl,
@@ -19,9 +20,10 @@ public record App(
     String pageTitle,
     String title,
     String subtitle,
-    List<Actionable> menu,
+    @Singular("menuItem") List<Actionable> menu,
     AppVariant variant,
-    List<Component> widgets,
+    AppLayout layout,
+    @Singular List<Component> widgets,
     boolean drawerClosed,
     String style,
     String cssClasses,
@@ -49,28 +51,25 @@ public record App(
 
 ## AppVariant values
 
-| Value | Description |
-|---|---|
-| `TABS` | Navigation rendered as a tab bar |
-| `DRAWER` | Side navigation drawer |
-| `TOP_MENU` | Horizontal top navigation bar |
+`HAMBURGUER_MENU`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `AUTO`, `MEDIATOR` — see
+[`@App`](/java-ui-definition/annotations/app/) for what each one draws.
 
 ## Basic usage
 
 ```java
-@Route("/")
+@UI("")
 public class MyApp implements ComponentTreeSupplier {
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return App.builder()
+        return AppShell.builder()
             .title("My Application")
             .favicon("/images/favicon.ico")
             .homeRoute("/dashboard")
-            .variant(AppVariant.DRAWER)
-            .menuItem(new MenuEntry("Dashboard", "/dashboard"))
-            .menuItem(new MenuEntry("Customers", "/customers"))
-            .menuItem(new MenuEntry("Reports", "/reports"))
+            .variant(AppVariant.MENU_ON_LEFT)
+            .menuItem(new RouteLink("/dashboard", "Dashboard"))
+            .menuItem(new RouteLink("/customers", "Customers"))
+            .menuItem(new RouteLink("/reports", "Reports"))
             .build();
     }
 }
@@ -79,12 +78,12 @@ public class MyApp implements ComponentTreeSupplier {
 ## With logo and subtitle
 
 ```java
-return App.builder()
+return AppShell.builder()
     .title("Admin Panel")
     .subtitle("Powered by Mateu")
     .logo("/images/logo.svg")
     .homeRoute("/home")
-    .variant(AppVariant.DRAWER)
+    .variant(AppVariant.MENU_ON_LEFT)
     .drawerClosed(false)
     .build();
 ```

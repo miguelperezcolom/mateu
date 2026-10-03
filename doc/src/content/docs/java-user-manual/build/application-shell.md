@@ -46,21 +46,20 @@ public class MyApp {
 | `@FavIcon("/path")` | Browser favicon |
 | `@DrawerClosed` | Start with the navigation drawer collapsed |
 | `@Style("css")` | Inline CSS on the app container |
-| `@HomeRoute("/path")` | Default landing route when the app loads |
+| `implements HomeRouteSupplier` | Default landing route when the app loads (`homeRoute()` returns the path; without it, the app's first menu item) |
 
 ---
 
 ## Fluent API shell
 
-Use `AppSupplier` + `App.builder()` for programmatic control:
+Use `AppSupplier` + `AppShell.builder()` for programmatic control:
 
 ```java
-@Route(value = "/admin", parentRoute = "")
 public class AdminApp implements AppSupplier {
 
     @Override
-    public App getApp(HttpRequest httpRequest) {
-        return App.builder()
+    public AppShell getApp(HttpRequest httpRequest) {
+        return AppShell.builder()
                 .pageTitle("My Backoffice — Admin")
                 .title("My Backoffice")
                 .subtitle("Internal tools")
@@ -82,7 +81,15 @@ public class AdminApp implements AppSupplier {
 }
 ```
 
-### App.builder() branding properties
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: admin
+    viewModel: com.example.AdminApp
+```
+
+### AppShell.builder() branding properties
 
 | Property | Effect |
 |---|---|
@@ -135,11 +142,11 @@ In the fluent API, `getApp()` receives the `HttpRequest`, so branding can be dyn
 
 ```java
 @Override
-public App getApp(HttpRequest httpRequest) {
+public AppShell getApp(HttpRequest httpRequest) {
     String tenant = httpRequest.getHeaderValue("X-Tenant-Id");
     TenantConfig config = tenantConfigService.get(tenant);
 
-    return App.builder()
+    return AppShell.builder()
             .title(config.appName())
             .logo(config.logoUrl())
             .favicon(config.faviconUrl())
