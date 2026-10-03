@@ -105,6 +105,8 @@ final class WizardActionDispatcher {
           return missing;
         }
         var method = found.get();
+        io.mateu.core.application.security.ActionMethods.checkAccess(
+            method, wizard.getClass(), httpRequest);
         if (!Modifier.isPublic(method.getModifiers())) {
           method.setAccessible(true);
         }

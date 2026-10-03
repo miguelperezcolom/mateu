@@ -70,6 +70,12 @@ public class Hydrater {
    * fully read-only view still legitimately round-trips state its actions need (e.g. the id).
    */
   private static boolean isClientWritable(Field field, HttpRequest httpRequest) {
+    // A dependency the container injected (or a static) is not view state: writing wire data into
+    // it would replace — or, for a container bean, mutate — the service itself.
+    if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+        || io.mateu.core.application.security.WireTypes.isInjected(field)) {
+      return false;
+    }
     var eyesOnly = MetaAnnotations.find(field, EyesOnly.class);
     if (eyesOnly != null && !Authorizer.isAuthorized(eyesOnly, httpRequest)) {
       return false;

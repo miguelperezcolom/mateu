@@ -20,6 +20,7 @@ import io.micronaut.serde.annotation.SerdeImport;
     packages = {
       "io.mateu.core.application",
       "io.mateu.core.application.runaction",
+      "io.mateu.core.application.security",
       "io.mateu.core.domain.act",
       "io.mateu.core.domain.in",
       "io.mateu.core.domain.out",

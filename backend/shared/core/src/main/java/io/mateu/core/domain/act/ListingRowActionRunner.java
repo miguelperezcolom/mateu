@@ -4,6 +4,8 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
+import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Listing;
 import jakarta.inject.Named;
@@ -40,6 +42,10 @@ public class ListingRowActionRunner implements ActionRunner {
     }
     for (Method method : getAllMethods(instance.getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
+        if (!ActionMethods.isInvocable(method, instance.getClass())) {
+          throw new MateuForbiddenException("row action not allowed: " + methodName);
+        }
+        ActionMethods.checkAccess(method, instance.getClass(), httpRequest);
         method.setAccessible(true);
         var rq = httpRequest.runActionRq();
         var invocation =
