@@ -138,7 +138,27 @@ de un servicio remoto se puede montar en cualquier punto del árbol. La variante
 cómo se pinta. El estudio previo, con la situación actual con referencias de fichero y línea, está en
 `~/IdeaProjects/ec-demo1-ux/menus-and-subapps-proposal.md`.
 
-- [ ] Estudio y propuesta del API en los tres estilos (anotación, fluent y YAML), con el usuario.
+- [x] Estudio y propuesta: `~/IdeaProjects/ec-demo1-ux/menus-and-subapps-proposal.md`.
+
+Decisiones (2026-10-03, aprobadas por el usuario):
+
+| # | Decisión |
+|---|---|
+| M1 | Los menús se combinan en el **navegador**. Cada montaje declara su **prefijo de ruta** en la shell, así que la sección activa y las migas se conocen en frío sin añadir latencia al primer pintado. El servidor solo resuelve los enlaces directos, con la caché que ya existe y eligiendo el remoto por el prefijo más largo. |
+| M2 | La **etiqueta de la shell manda** si está declarada; si no, la del remoto (así se puede traducir). |
+| M3 | Un tercer nivel en `HAMBURGER_SECTIONS` es un **desplegable en la franja 2**. |
+| M4 | Elegir una sección en la hamburguesa **navega a la home de la sección**, como Opera. |
+| M5 | Los widgets de ámbito son **por sección**, con la opción de compartir el valor, y van en la **columna lateral**. |
+| M6 | `AUTO` **no** elige `HAMBURGER_SECTIONS`: es siempre opcional. |
+| M7 | Nombre: `HAMBURGER_SECTIONS`, más el alias `HAMBURGER_MENU` (bien escrito) para el `HAMBURGUER_MENU` actual. |
+| M8 | Registro de remotos con **anotación** (por defecto) y **`application.yaml`** (por entorno). |
+| M9 | Los favoritos quedan **fuera** (P8). |
+| M10 | El front office **no** es una sección del plano de datos: es otra app. |
+
+Entregas:
+1. **Sin API nueva:** que un remoto que falla no tumbe a los demás (`allSettled`, también en Vaadin), que la etiqueta de la shell mande, que las migas se conozcan en frío (prefijos) también para las entradas ocultas, y quitar el `MENU_ON_TOP` forzado.
+2. **El API de montajes y secciones,** con `HAMBURGER_SECTIONS` en Vaadin y el control plane de ec-demo1 migrado.
+3. **Redwood,** los widgets laterales (T11), IntelliJ y React Native.
 - [ ] Un árbol de menú de dos niveles en la definición de la app. Cualquier nodo puede montar un menú remoto, entero o una parte, como sección o como opciones dentro de otra sección. Hay que resolver el orden, los permisos, la caché, la carga en frío (la sección activa y las migas se conocen antes de que responda el remoto) y un remoto caído (la sección se desactiva con un aviso; la shell no se rompe).
 - [ ] `AppVariant.HAMBURGER_SECTIONS`, estilo Opera Cloud: la hamburguesa lleva el primer nivel y el subheader (la franja 2) el segundo nivel de la sección activa. Las variantes actuales siguen funcionando igual.
 - [ ] Las sub-apps pasan a ser secciones del mismo árbol, cada una con su menú de segundo nivel y, opcionalmente, widgets de ámbito lateral (P8). Se mantienen las apps anidadas que de verdad lo sean.
