@@ -88,7 +88,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * `retry` closure that re-runs the action end to end so the UI can offer it to the user.
      */
     async wrap<T>(call: () => Promise<T>, initiator: HTMLElement, background: boolean,
-                  actionId: string, retry?: () => void): Promise<T> {
+                  actionId: string, retry?: () => void, quiet = false): Promise<T> {
         if (!background) {
             initiator.dispatchEvent(new CustomEvent('backend-called-event', {
                 bubbles: true,
@@ -108,7 +108,9 @@ export class AxiosMateuApiClient implements MateuApiClient {
             return response
         }).catch((reason: unknown) => {
             const failure = classifyRequestFailure(reason, {online: connectivity.isOnline()})
-            if (failure.kind == 'cancelled') {
+            if (quiet) {
+                // the caller reports it its own way (RunActionOptions.quiet)
+            } else if (failure.kind == 'cancelled') {
                 initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
                     bubbles: true,
                     composed: true,
@@ -143,16 +145,16 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * ({@link shouldRetry}). Each settled attempt also teaches the connectivity tracker whether
      * the backend is reachable — a reply proves the path better than any browser flag.
      */
-    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean): Promise<T> {
+    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean, quiet = false): Promise<T> {
         let attempt = 0
         for (;;) {
             try {
                 const response = await send()
-                connectivity.noteReachable()
+                if (!quiet) connectivity.noteReachable()
                 return response
             } catch (error) {
                 const failure = classifyRequestFailure(error, {online: connectivity.isOnline()})
-                if (failure.kind == 'offline') {
+                if (failure.kind == 'offline' && !quiet) {
                     connectivity.noteUnreachable()
                 }
                 attempt++
@@ -292,7 +294,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
         const send = () => this.post(uri, payload, options.timeoutMillis)
             .then((response) => response.data as UIIncrement)
         return await this.wrap<UIIncrement>(
-            () => this.sendWithRetry(send, idempotent), initiator, background, actionId, options.retry)
+            () => this.sendWithRetry(send, idempotent, options.quiet), initiator, background, actionId,
+            options.retry, options.quiet)
     }
 
 }

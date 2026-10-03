@@ -32,7 +32,16 @@ public record MenuOptionDto(
     boolean explode,
     String uriPrefix,
     String description,
-    List<RuleDto> rules) {
+    List<RuleDto> rules,
+    // A remote section only (remote = true): the route prefix the remote's screens live under, as
+    // far as the shell can tell before the remote answers (its mount path, without the groups the
+    // shell nests it in). Lets the renderer know the active section and the first breadcrumb on a
+    // cold load, and pick the remote for a route by longest prefix.
+    String routePrefix,
+    // A remote section only: true when the shell DECLARED the label (@Label or withLabel), which
+    // then wins over the one the remote answers with. False when the label shown is only the
+    // field name filled in by Mateu: the remote's own label replaces it, as it always did.
+    boolean shellLabel) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

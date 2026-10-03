@@ -3,6 +3,74 @@
  * (tests de contrato: cd poc && node test.mjs). */
 define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   'use strict';
+  // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
+  // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
+  // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
+  //
+  // Una sección remota llega como marcador (`remote: true`, sin hijos) hasta que su pod contesta. Lo
+  // que la shell sabe de ella antes —su rótulo y el prefijo bajo el que viven sus pantallas— basta
+  // para la sección activa y la primera miga.
+
+  const navRoute = (r) => {
+    let s = String(r == null ? '' : r).trim()
+    const q = s.search(/[?#]/)
+    if (q >= 0) s = s.slice(0, q)
+    if (s && s[0] !== '/') s = '/' + s
+    while (s.length > 1 && s.endsWith('/')) s = s.slice(0, -1)
+    return s
+  }
+
+  /** `path` es `route` o cuelga de ella. La raíz no casa por prefijo. */
+  function routeCovers(route, path) {
+    return !!route && route !== '/' && (path === route || path.indexOf(route + '/') === 0)
+  }
+
+  /** Una sección remota que aún no ha contestado (o que no contestó). */
+  function isMount(option) {
+    return !!(option && option.remote)
+  }
+
+  /** El prefijo de una sección remota: el que manda el servidor (`routePrefix`) o, si no, su path (o su ruta). */
+  function mountPrefix(option) {
+    return isMount(option) ? navRoute(option.routePrefix || option.path || option.route) : ''
+  }
+
+  /** Por qué una sección está deshabilitada, en el idioma de la UI. */
+  function unavailableHint(label, lang) {
+    const language = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    const name = String(label == null ? '' : label).replace(/<[^<>]*>/g, '').trim()
+    return String(language).toLowerCase().startsWith('es')
+      ? `${name} no está disponible ahora. Se volverá a intentar.`
+      : `${name} is not available right now. It will be retried.`
+  }
+
+  /**
+   * Lo que contestó el pod, con el rótulo de la shell si lo DECLARÓ (`shellLabel`) y el pod contesta
+   * con UNA entrada —lo normal: un grupo con el nombre del servicio—: manda la palabra de la shell, y
+   * la barra no cambia bajo el lector. Varias entradas se pegan tal cual: no hay un nodo que nombrar.
+   */
+  function labelledByShell(entries, option) {
+    if (option.shellLabel && option.label && entries.length === 1) {
+      return [Object.assign({}, entries[0], { label: option.label, icon: option.icon || entries[0].icon })]
+    }
+    return entries
+  }
+
+  /** Las entradas de una sección oculta: no se pintan a ninguna profundidad, pero siguen en el árbol. */
+  function markHidden(entries) {
+    return entries.map((option) => {
+      const children = option.submenus || option.submenu || []
+      return Object.assign({}, option, { visible: false }, children.length ? { submenus: markHidden(children) } : {})
+    })
+  }
+
+  /** La sección de un pod que no contestó: sigue ahí, deshabilitada y diciendo por qué. */
+  function unavailableMount(option, lang) {
+    return Object.assign({}, option, { unavailable: true, disabled: true, description: unavailableHint(option.label, lang) })
+  }
+
+
   // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
   // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
   // libres para testearlas en Node.
@@ -898,6 +966,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       id,
       label: option.caption || option.label || id,
       icon: ojIconOrGenericOf(option.icon),
+      // una sección remota cuyo pod no contestó: está, pero no se abre, y dice por qué
+      disabled: !!option.unavailable,
+      hint: option.unavailable ? (option.description || '') : '',
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
@@ -914,7 +985,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // menú que no pase por ahí tampoco debe dibujarla
       if (option.visible === false) continue
       const node = navNodeOf(option, '')
-      items.push({ id: node.id, label: node.label, icon: node.icon })
+      items.push(node.disabled
+        ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
+        : { id: node.id, label: node.label, icon: node.icon })
       if (node.hasChildren) hasGroups = true
       menuTree.push(node)
     }
@@ -3645,7 +3718,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const out = new Set()
     const walk = (options) => {
       for (const option of options || []) {
-        if (!option || option.separator) continue
+        if (!option || option.separator || isMount(option)) continue
         const children = option.submenus || option.submenu || []
         if (children.length > 0) { walk(children); continue }
         const route = crumbRoute(option.route || option.path)
@@ -3656,15 +3729,30 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return out
   }
 
+  // Las entradas OCULTAS cuentan: no se pintan, pero una página bajo una sigue estando en algún sitio
+  // (la bandeja a la que se llega desde un widget sigue siendo Bandeja › Tareas). Una sección remota
+  // que no ha contestado cuenta por su prefijo (navTree.mjs), como la sección sola — `pending`, porque
+  // lo que hay debajo aún no se sabe.
   function menuTrail(menu, path) {
     const current = crumbRoute(path)
     let best = null
     // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
     // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
     const pages = crumbLeafRoutes(menu)
+    const consider = (route, crumbs, pending) => {
+      // una entrada de verdad gana a un prefijo de sección de la misma longitud: dice más
+      if (!best || route.length > best.route.length || (route.length === best.route.length && best.pending && !pending)) {
+        best = { crumbs, route, pending }
+      }
+    }
     const walk = (options, above) => {
       for (const option of options || []) {
-        if (!option || option.separator || option.visible === false) continue
+        if (!option || option.separator) continue
+        if (isMount(option)) {
+          const prefix = mountPrefix(option)
+          if (routeCovers(prefix, current)) consider(prefix, [...above, { text: crumbText(option.caption || option.label) }], true)
+          continue
+        }
         const route = crumbRoute(option.route || option.path)
         const label = crumbText(option.caption || option.label)
         const children = option.submenus || option.submenu || []
@@ -3672,22 +3760,27 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
           continue
         }
-        if (!route || route === '/') continue
-        if ((current === route || current.startsWith(route + '/')) && (!best || route.length > best.route.length)) {
-          best = { crumbs: [...above, { text: label, route }], route }
-        }
+        if (routeCovers(route, current)) consider(route, [...above, { text: label, route }], false)
       }
     }
     walk(menu, [])
-    return best ? { crumbs: best.crumbs, matched: best.route } : { crumbs: [] }
+    if (!best) return { crumbs: [] }
+    return best.pending ? { crumbs: best.crumbs, matched: best.route, pending: true } : { crumbs: best.crumbs, matched: best.route }
   }
 
   const recordTitles = new Map()
 
   function autoTrail(menu, path, page = {}) {
-    const { crumbs, matched } = menuTrail(menu, path)
+    const { crumbs, matched, pending } = menuTrail(menu, path)
     if (!matched) return []
     const trail = [...crumbs]
+    if (pending) {
+      // una sección remota que no ha contestado: la sección se sabe (la nombró la shell) y lo de
+      // debajo no. La sección, y después el título de la propia página.
+      const title = crumbText(page.title)
+      if (title && title !== trail[trail.length - 1].text) trail.push({ text: title })
+      return trail.length < 2 ? [] : trail
+    }
     const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
     const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
@@ -4088,13 +4181,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
     const quiet = options.quiet || isLocalRequest(actionId)
     const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
+    // `isolated`: lo que pase con esta petición no dice nada de la conexión — el menú de un pod
+    // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
+    const isolated = !!options.isolated
     notifyUnlessQuiet('onStart', { actionId })
     let attempt = 0
     let reauthenticated = false
     for (;;) {
       try {
         const res = await sendOnce(url, withAuth(), options.timeoutMillis)
-        connectivity.noteReachable()
+        if (!isolated) connectivity.noteReachable()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
@@ -4107,7 +4203,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           if (await askForReauthentication()) continue
         }
         const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
-        if (failure.kind === 'offline') connectivity.noteUnreachable()
+        if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
           // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
@@ -4822,7 +4918,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
     return res.json()
   }
 
@@ -5254,20 +5350,28 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
         // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
         // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
+        // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
+        // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
+        // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
+        // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
         if (option.visible === false) {
-          if (app) adoptRemote(app.menu, option, app)
+          if (app) {
+            adoptRemote(app.menu, option, app)
+            out.push(...markHidden(app.menu))
+          } else {
+            out.push(option)
+          }
           continue
         }
         if (app) {
           adoptRemote(app.menu, option, app)
-          out.push(...app.menu)
+          // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
+          out.push(...labelledByShell(app.menu, option))
         } else {
-          // El pod no contestó. Se queda el rótulo: una sección vacía se entiende, una que
-          // desaparece parece que nunca existió.
-          out.push(option)
+          // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
+          // vacía se entiende, una que desaparece parece que nunca existió.
+          out.push(unavailableMount(option))
         }
-      } else if (option.visible === false) {
-        continue
       } else if (childrenOf(option).length) {
         out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
       } else {
@@ -5295,11 +5399,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           consumedRoute: '_empty',
           initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
           parameters: option.params || {},
-        })
+          // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+        }, { quiet: true, isolated: true, timeoutMillis: 20000 })
         const app = appMenuOf(increment)
         if (app) answers.set(option, app)
       } catch (e) {
-        // Ya reportado por el transporte. Aquí solo se decide no propagarlo.
+        // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
       }
     }))
     return spliceRemote(menu, answers)

@@ -18,6 +18,11 @@ export default interface App extends ComponentMetadata {
     logo: string | undefined
     favicon: string | undefined
     menu: MenuOption[]
+    // Client-side only, set by the remote-menu completion (ConnectedElement.completeMenu): the
+    // whole navigation tree — the remote sections merged in, the hidden ones (visible: false)
+    // kept — for what reads the menu rather than draws it (breadcrumbs, the active section).
+    // `menu` is what the renderers draw: the same tree without the hidden entries.
+    navMenu?: MenuOption[]
     totalMenuOptions: number
     homeRoute: string
     homeBaseUrl: string

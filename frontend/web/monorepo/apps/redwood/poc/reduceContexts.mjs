@@ -894,6 +894,9 @@ function navNodeOf(option, parentRoute) {
     id,
     label: option.caption || option.label || id,
     icon: ojIconOrGenericOf(option.icon),
+    // una sección remota cuyo pod no contestó: está, pero no se abre, y dice por qué
+    disabled: !!option.unavailable,
+    hint: option.unavailable ? (option.description || '') : '',
     hasChildren: children.length > 0,
     // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
     children: children.map((child) => navNodeOf(child, raw)),
@@ -910,7 +913,9 @@ export function shellNavOf(reg) {
     // menú que no pase por ahí tampoco debe dibujarla
     if (option.visible === false) continue
     const node = navNodeOf(option, '')
-    items.push({ id: node.id, label: node.label, icon: node.icon })
+    items.push(node.disabled
+      ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
+      : { id: node.id, label: node.label, icon: node.icon })
     if (node.hasChildren) hasGroups = true
     menuTree.push(node)
   }
