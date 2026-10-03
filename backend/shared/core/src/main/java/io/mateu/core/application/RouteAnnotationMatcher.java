@@ -46,18 +46,29 @@ final class RouteAnnotationMatcher {
     return Optional.empty();
   }
 
+  /**
+   * Whether {@code route} matches the declared {@code pattern}, where a {@code :name} segment
+   * matches any one segment and every other segment is LITERAL — a {@code .} in {@code /v1.0} is a
+   * dot, not "any character". The compiled pattern is cached: the declared routes are a finite set
+   * (one per routed class) and this runs for every provider on every request.
+   */
   static boolean matches(String route, String pattern) {
-    var regex = new StringBuilder();
-    var tokens = pattern.split("/");
-    for (var token : tokens) {
-      if (token.startsWith(":")) {
-        regex.append("([^/]+)");
-      } else {
-        regex.append(token);
-      }
-      regex.append("/");
+    return COMPILED
+        .computeIfAbsent(pattern, RouteAnnotationMatcher::compile)
+        .matcher(route)
+        .matches();
+  }
+
+  private static final java.util.Map<String, java.util.regex.Pattern> COMPILED =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  static java.util.regex.Pattern compile(String pattern) {
+    // "/" splits into NO tokens (String.split drops trailing empties): it is the root, the same as
+    // "" — it used to reach deleteCharAt(-1) and throw on every request.
+    var regex = new java.util.StringJoiner("/");
+    for (var token : pattern.split("/")) {
+      regex.add(token.startsWith(":") ? "([^/]+)" : java.util.regex.Pattern.quote(token));
     }
-    regex.deleteCharAt(regex.length() - 1);
-    return route.matches(regex.toString());
+    return java.util.regex.Pattern.compile(regex.toString());
   }
 }

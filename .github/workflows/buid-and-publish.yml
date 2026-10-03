@@ -7,6 +7,11 @@ on:
   release:
     types: [published]
 
+# Publishing goes to Maven Central with its own secrets; nothing here writes to GitHub. Read-only
+# also caps the called run_tests.yml (a called workflow cannot exceed its caller's permissions).
+permissions:
+  contents: read
+
 # The release event can't be filtered by tag in `on:`, so guard the jobs: only framework releases
 # (tag `vX.Y…`, e.g. v3.0-alpha.N) publish to Maven Central. Other releases — e.g. the desktop
 # installers (`mateu-desktop-*`) — publish nothing.

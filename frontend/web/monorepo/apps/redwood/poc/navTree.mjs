@@ -71,3 +71,61 @@ export function markHidden(entries) {
 export function unavailableMount(option, lang) {
   return Object.assign({}, option, { unavailable: true, disabled: true, description: unavailableHint(option.label, lang) })
 }
+
+/**
+ * Las rutas de una sección de primer nivel: las de sus entradas a cualquier profundidad (ocultas
+ * incluidas: una pantalla bajo una sigue siendo de esa sección), el prefijo de una sección remota
+ * que aún no contestó y los ids con que navega el menú ya proyectado (`node`, de shellNavOf).
+ */
+export function sectionRoutes(option, node) {
+  const out = new Set()
+  const add = (r) => {
+    const s = navRoute(r)
+    if (s && s !== '/') out.add(s)
+  }
+  const walkOption = (o) => {
+    if (!o || o.separator) return
+    if (isMount(o)) add(mountPrefix(o))
+    add(o.route || o.path)
+    for (const child of o.submenus || o.submenu || []) walkOption(child)
+  }
+  const walkNode = (n) => {
+    if (!n) return
+    add(n.id)
+    for (const child of n.children || []) walkNode(child)
+  }
+  walkOption(option)
+  walkNode(node)
+  return Array.from(out)
+}
+
+/**
+ * La sección de primer nivel que está en pantalla (la misma regla que activeSection.ts del
+ * renderer web: la entrada que es la ruta, o el grupo que la contiene a cualquier profundidad):
+ * su id, o null si la ruta no cuelga de ninguna — la home, p. ej. Gana la ruta más larga: una
+ * sección no se queda con las pantallas de otra porque su prefijo sea más corto.
+ */
+export function activeSectionOf(sections, current) {
+  const path = navRoute(current)
+  if (!path || path === '/') return null
+  let best = null
+  let length = 0
+  for (const section of sections || []) {
+    for (const route of section.routes || []) {
+      if (routeCovers(route, path) && route.length > length) {
+        best = section.id
+        length = route.length
+      }
+    }
+  }
+  return best
+}
+
+/**
+ * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
+ * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
+ */
+export function accentColorOf(value) {
+  const accent = String(value == null ? '' : value).trim()
+  return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
+}

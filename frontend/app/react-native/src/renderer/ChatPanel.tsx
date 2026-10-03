@@ -10,6 +10,21 @@ interface Message {
 }
 
 /**
+ * The chat's session id. The agent backend keys the conversation (and its uploads) by it, so it
+ * must not be guessable: a CSPRNG when the runtime has one (web, Hermes with a getRandomValues
+ * polyfill), Math.random only as a last resort.
+ */
+function newChatSessionId(): string {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string; getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
+  if (c?.randomUUID) return `chat-${c.randomUUID()}`;
+  if (c?.getRandomValues) {
+    const bytes = c.getRandomValues(new Uint8Array(16));
+    return `chat-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
+  }
+  return `chat-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+}
+
+/**
  * AI chat (App.sseUrl): POSTs {message, sessionId} to the SSE endpoint and renders the
  * accumulated `data:` payloads as the agent's reply. Native fetch has no incremental streaming,
  * so the reply appears when complete — same wire contract as the web's mateu-chat.
@@ -18,7 +33,7 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const chatSessionId = useRef(`chat-${Math.random().toString(36).slice(2)}`);
+  const chatSessionId = useRef(newChatSessionId());
   const scroll = useRef<ScrollView>(null);
 
   const send = async () => {

@@ -49,6 +49,21 @@ class HttpRequestInitiatorStateTest {
     assertThat(result).containsEntry("k", "v");
   }
 
+  @Test
+  void numericStateReadsTolerateNullsAndAnyNumberType() {
+    var state = new java.util.HashMap<String, Object>();
+    state.put("page", null); // "page": null used to reach Integer.parseInt("null")
+    state.put("size", 20.0); // a JSON number Jackson read as a Double
+    state.put("total", 3L);
+    var rq = RunActionRqDto.builder().componentState(state).build();
+
+    assertThat(fake(rq).getInt("page")).isZero();
+    assertThat(fake(rq).getInt("size")).isEqualTo(20);
+    assertThat(fake(rq).getInt("missing")).isZero();
+    assertThat(fake(rq).getDouble("page")).isZero();
+    assertThat(fake(rq).getDouble("total")).isEqualTo(3.0);
+  }
+
   private static HttpRequest fake(RunActionRqDto rq) {
     return new HttpRequest() {
       @Override

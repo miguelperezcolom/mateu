@@ -43,6 +43,12 @@ define([
       clearInput($application);
       $application.variables.mateuChatBusy = true;
 
+      const sessionId = $application.variables.mateuChatSessionId;
+      const registry = $application.variables.mateuRegistry || {};
+      const menuContext = window.__mateuChatMenuSentFor === sessionId ? undefined
+        : bridge.buildChatMenuContext(window.__mateuShellMenu || (registry.shell && registry.shell.menu) || []);
+      window.__mateuChatMenuSentFor = sessionId;
+
       const startedAt = Date.now();
       let hasText = false;
       let turnUsage = null;
@@ -82,6 +88,10 @@ define([
             message: text,
             sessionId: $application.variables.mateuChatSessionId,
             currentRoute: $application.variables.mateuSelectedRoute || undefined,
+            // las pantallas de la consola (con los filtros por URL de cada listado), en el PRIMER
+            // mensaje de la sesión: el agente las guarda por sesión — sin ellas no sabe a qué
+            // ruta llevar ni cómo filtrarla. Mismo contrato que el chat de Vaadin.
+            menuContext: menuContext,
           }),
           onText: (accumulated) => setAgent(accumulated),
           onProgress: (p) => { progress = p; showStatus(); },

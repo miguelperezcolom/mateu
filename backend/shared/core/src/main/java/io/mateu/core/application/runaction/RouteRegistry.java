@@ -708,6 +708,6 @@ public class RouteRegistry {
 
   /** Routes are relative to the mount, so a leading or trailing slash carries no meaning. */
   private static String normalize(String route) {
-    return route == null ? "" : route.replaceAll("^/+", "").replaceAll("/+$", "");
+    return io.mateu.core.infra.Slashes.trim(route);
   }
 }

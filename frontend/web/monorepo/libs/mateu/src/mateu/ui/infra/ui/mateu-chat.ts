@@ -1,7 +1,9 @@
 import {customElement, property, query, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, PropertyValues} from "lit";
 import {nanoid} from "nanoid";
-import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
+import MenuOption, { ListingDescriptor } from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
+import { chatNavigationOf, chatRouteOfClick } from "./chatLinks";
+import { navigateToRoute } from "./rowRoute";
 import {neutralButtonStyles, iconMicrophone} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
 import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
@@ -58,6 +60,8 @@ interface MenuContextEntry {
     path: string[];
     /** Optional human-readable description of what this screen is for. */
     description?: string;
+    /** When the screen is a listing: the URL params it can be narrowed by (filters, search, ids). */
+    listing?: ListingDescriptor;
     /** The navigation-requested detail payload to use in the SSE response */
     navigation: {
         route: string;
@@ -368,6 +372,7 @@ export class MateuChat extends LitElement {
                     },
                 };
                 if (opt.description) entry.description = opt.description;
+                if (opt.listing) entry.listing = opt.listing;
                 result.push(entry);
             }
         }
@@ -569,6 +574,26 @@ export class MateuChat extends LitElement {
         }
     }
 
+    /**
+     * A link in an answer to a screen of the app ([Nora Duarte](/booking/bookings/4MBZS7)) opens it
+     * in the app, through the shell's own navigation — the browser would reload the whole page.
+     */
+    private onMessageClick = (e: MouseEvent) => {
+        const anchor = (e.composedPath().find(node => node instanceof HTMLAnchorElement) ?? null) as HTMLAnchorElement | null
+        const route = chatRouteOfClick(anchor, e)
+        if (!route) return
+        e.preventDefault()
+        // through the menu entry that serves it, like the agent's own [NAVIGATE:…]: the content
+        // changes and the chat — this conversation — stays. Only a route no entry serves goes
+        // through the shell's route resolution.
+        const navigation = chatNavigationOf(this.menu, route)
+        if (navigation) {
+            this.dispatchEvent(new CustomEvent('navigation-requested', { detail: navigation, bubbles: true, composed: true }))
+        } else {
+            navigateToRoute(this, route)
+        }
+    }
+
     closeChat = () => {
         this.dispatchEvent(new CustomEvent('close-requested', { bubbles: true, composed: true }))
     }
@@ -646,7 +671,7 @@ export class MateuChat extends LitElement {
                             ${icon('vaadin:comments-o', '', 'chat-empty-icon')}
                             <p>${chatText('empty')}</p>
                         </div>` : nothing}
-                    <div class="message-list" role="list">
+                    <div class="message-list" role="list" @click="${this.onMessageClick}">
                         ${this.items.map((item, index) => html`
                             <div class="message" role="listitem">
                                 <div class="avatar" style="background: ${avatarColor(item.userColorIndex)};">${initials(item.userName)}</div>

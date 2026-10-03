@@ -50,6 +50,19 @@ describe('buildIndex', () => {
     })
 
     it('is empty for no files', () => {
-        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [] })
+        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [], sources: [] })
+    })
+})
+
+describe('buildIndex — sources and nested routes', () => {
+    it('reads the REST source catalogue (not as a page) and flattens child routes', () => {
+        const idx = buildIndex([
+            { path: 'sources.yaml', content: 'sources:\n  - name: people\n    source: {url: /api/people}\n  - {description: unnamed}\n' },
+            { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - route: c/:id\n    layout: master.yaml\n    children:\n      - {route: orders, layout: orders.yaml}\n' },
+        ])
+        expect(idx.sources.map((s) => s.name)).toEqual(['people'])
+        expect(idx.pages).toEqual([])
+        expect(idx.routes.map((r) => r.route)).toEqual(['c/:id', 'c/:id/orders'])
+        expect(idx.routes[1].definition).toBe('orders.yaml')
     })
 })

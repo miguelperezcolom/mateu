@@ -301,7 +301,7 @@ class FormLayoutBuilder {
       return null;
     }
     var path = route.contains("?") ? route.substring(0, route.indexOf('?')) : route;
-    path = path.replaceAll("/+$", "");
+    path = io.mateu.core.infra.Slashes.trimTrailing(path);
     var last = path.substring(path.lastIndexOf('/') + 1);
     return fieldsPerTab.stream()
         .map(pair -> pair.first().key())
