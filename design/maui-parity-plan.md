@@ -122,6 +122,8 @@ rama `probe/master-detail-tabs`.
 ## P7 · Paridad de Redwood (L, transversal)
 
 - [ ] Tipos de campo, reglas, validaciones, barra de filtros, selector de columnas, fuentes REST, definiciones y `restAction` en el bridge. Modo oscuro.
+- [ ] **Inventario del RDS Toolkit de Figma**, el sistema de diseño Redwood oficial de Oracle en la Figma Community: [RDS Toolkit – 24C](https://www.figma.com/community/file/1425260295705487251/rds-toolkit-24c) y [RDS – Icon Library](https://www.figma.com/community/file/1425259404348358543/rds-icon-library). Se trata de listar las plantillas de página, los componentes y sus variantes, y los tokens, y mapear cada uno a su equivalente en Mateu (existe, parcial o falta). Ese mapa es la lista de paridad del renderer Redwood. Antes de usar cualquier recurso hay que revisar la licencia del fichero; por defecto se toma solo como referencia de diseño.
+- [ ] **Importar diseños RDS a Mateu:** ampliar el pipeline `design/figma/` (contract.json, el plugin y el importador de modux) para que reconozca instancias de componentes del RDS Toolkit y las convierta a componentes de Mateu. Así, un diseño hecho con el kit oficial de Redwood se importa directamente.
 
 ## P8 · Operaciones, resúmenes y apariencia (M–L)
 
