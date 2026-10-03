@@ -100,6 +100,14 @@ public class YamlAppLoader {
     text(root, "style", builder::style);
     text(root, "cssClasses", builder::cssClasses);
     text(root, "route", builder::route);
+    text(root, "accentColor", builder::accentColor);
+    if (root.hasNonNull("backLink")) {
+      builder.backLink(
+          enumValue(
+              io.mateu.uidl.annotations.BackLink.class,
+              root.get("backLink").asText(),
+              io.mateu.uidl.annotations.BackLink.BREADCRUMBS));
+    }
 
     if (root.hasNonNull("variant")) {
       builder.variant(enumValue(AppVariant.class, root.get("variant").asText(), AppVariant.AUTO));

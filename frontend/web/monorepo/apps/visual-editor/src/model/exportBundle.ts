@@ -49,7 +49,7 @@ export function buildBundleManifest(files: ProjectFile[], generatedAt: string): 
 /** How many routes would render with NO backend (definition-only), for the export summary. */
 export function clientRenderableRouteCount(manifest: BundleManifest): number {
     const routes = (manifest.routes?.routes ?? []) as Record<string, unknown>[]
-    return routes.filter((r) => r && (r.definition != null) && r.viewModel == null && (r as Record<string, unknown>).modelView == null).length
+    return routes.filter((r) => r && (r.definition != null || r.layout != null) && r.viewModel == null && (r as Record<string, unknown>).modelView == null).length
 }
 
 function basename(path: string): string {
