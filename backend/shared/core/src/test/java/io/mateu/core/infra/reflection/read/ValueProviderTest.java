@@ -75,4 +75,51 @@ class ValueProviderTest {
         ValueProvider.getValueOrNewInstance(new EmptyBeanProvider(), field("initialized"), holder);
     assertThat(value).isSameAs(holder.initialized);
   }
+
+  @SuppressWarnings("unused")
+  static class GetterAndSameNamedMethod {
+    private String total = "field";
+
+    public String getTotal() {
+      return "via-getter";
+    }
+
+    public String total() {
+      return "same-named-method";
+    }
+  }
+
+  @SuppressWarnings("unused")
+  static class OnlySameNamedMethod {
+    String refresh = "field";
+
+    public String refresh() {
+      throw new IllegalStateException("an action must not be invoked to read a field");
+    }
+  }
+
+  record Amount(String total) {
+    @Override
+    public String total() {
+      return "accessor:" + total;
+    }
+  }
+
+  @Test
+  void aGetterIsNotBypassedByASameNamedMethod() throws Exception {
+    var f = GetterAndSameNamedMethod.class.getDeclaredField("total");
+    assertThat(ValueProvider.getValue(f, new GetterAndSameNamedMethod())).isEqualTo("via-getter");
+  }
+
+  @Test
+  void aSameNamedMethodOnAPlainClassIsNeverInvoked() throws Exception {
+    var f = OnlySameNamedMethod.class.getDeclaredField("refresh");
+    assertThat(ValueProvider.getValue(f, new OnlySameNamedMethod())).isEqualTo("field");
+  }
+
+  @Test
+  void aRecordIsReadThroughItsAccessor() throws Exception {
+    var f = Amount.class.getDeclaredField("total");
+    assertThat(ValueProvider.getValue(f, new Amount("7"))).isEqualTo("accessor:7");
+  }
 }
