@@ -266,10 +266,15 @@ public final class WireTypes {
 
   /** Where the framework's own artifacts (core, uidl, dtos) were loaded from. */
   private static final Set<String> FRAMEWORK_CODE_SOURCES =
-      Set.of(
-          codeSourceOf(WireTypes.class),
-          codeSourceOf(io.mateu.uidl.annotations.UI.class),
-          codeSourceOf(io.mateu.dtos.UIIncrementDto.class));
+      new HashSet<>(
+          List.of(
+              codeSourceOf(WireTypes.class),
+              codeSourceOf(io.mateu.uidl.annotations.UI.class),
+              codeSourceOf(io.mateu.dtos.UIIncrementDto.class)));
+
+  /** The framework's own packages (core, uidl, dtos). */
+  private static final List<String> FRAMEWORK_PREFIXES =
+      List.of("io.mateu.core.", "io.mateu.uidl.", "io.mateu.dtos.");
 
   private static String codeSourceOf(Class<?> c) {
     try {
@@ -288,7 +293,11 @@ public final class WireTypes {
    * {@code io.mateu} namespace is not mistaken for the framework.
    */
   public static boolean isFramework(Class<?> c) {
-    if (c == null || !c.getName().startsWith("io.mateu.")) {
+    if (c == null) {
+      return false;
+    }
+    var name = c.getName();
+    if (FRAMEWORK_PREFIXES.stream().noneMatch(name::startsWith)) {
       return false;
     }
     var source = codeSourceOf(c);
