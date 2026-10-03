@@ -45,6 +45,23 @@ interface GlobalSearchHit { label: string, description?: string, route: string, 
 export const reachableBaseUrl = (app: App, reachedAt: string | undefined): string | undefined =>
     (app.homeBaseUrl ?? '').includes('://') ? app.homeBaseUrl : (reachedAt || app.homeBaseUrl)
 
+/**
+ * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell,
+ * which its styles use in two places only (a line under the menu band, the console name in light
+ * theme). Only what the shell set itself is ever removed: an app may set --mateu-accent in its own
+ * CSS instead. A value that is not a plain colour (it would end the declaration) is ignored.
+ */
+export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined) => {
+    const value = accent && /^[#\w\s(),.%-]+$/.test(accent.trim()) ? accent.trim() : undefined
+    if (value) {
+        host.style.setProperty('--mateu-accent', value)
+        host._mateuAccent = value
+    } else if (host._mateuAccent) {
+        host.style.removeProperty('--mateu-accent')
+        host._mateuAccent = undefined
+    }
+}
+
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
 
@@ -778,6 +795,7 @@ export class MateuApp extends ComponentElement {
                             .catch(e => console.error('app-scope data source fetch failed', e))
                     }
                 }
+                applyAccent(this, app.accentColor)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
@@ -912,6 +930,10 @@ export class MateuApp extends ComponentElement {
             background-color: var(--lumo-base-color);
             color: var(--lumo-body-text-color);
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            /* The app's brand accent (--mateu-accent, @App(accentColor)): a 3px line along the
+               band's bottom. Not the primary colour — it marks whose app this is, never something
+               to click. With no accent there is no line. */
+            box-shadow: inset 0 -3px 0 var(--mateu-accent, transparent);
         }
         .mateu-app-band-title {
             flex: 0 0 auto;
@@ -919,6 +941,9 @@ export class MateuApp extends ComponentElement {
             font-size: var(--lumo-font-size-l, 1.125rem);
             font-weight: 600;
             color: var(--lumo-header-text-color, inherit);
+            /* the app's accent (@App(accentColor) → --mateu-accent) in the light theme only: on the
+               dark base a brand red loses contrast, so there it stays the header text colour */
+            color: light-dark(var(--mateu-accent, var(--lumo-header-text-color, currentColor)), var(--lumo-header-text-color, currentColor));
             text-decoration: none;
             white-space: nowrap;
         }
