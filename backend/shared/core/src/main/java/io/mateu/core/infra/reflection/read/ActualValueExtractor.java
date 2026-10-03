@@ -61,6 +61,10 @@ public class ActualValueExtractor {
     if (entry.getValue() != null) {
       if (entry.getValue() instanceof Component) return null;
       if (HolderFieldChecker.isNonDataHolder(f)) return null;
+      if (SearchableIdsConverter.applies(f, entry.getValue())) {
+        return SearchableIdsConverter.convert(
+            f, (java.util.Collection<?>) entry.getValue(), instanceFactory, httpRequest);
+      }
       if (List.class.isAssignableFrom(f.getType())) {
         return convertListValue(f, entry.getValue(), instanceFactory, httpRequest);
       }
