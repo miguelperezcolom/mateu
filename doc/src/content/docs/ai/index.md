@@ -114,9 +114,9 @@ there instead of navigating away.
 
 ### Response
 
-The response is a stream of Server-Sent Events, and the contract is **line-oriented**: every `data:` event carries **one line of the reply**. `mateu-chat` appends a newline after each data payload, so markdown structure (headings, lists, code fences, tables) survives streaming. Don't stream token-by-token in separate events — buffer until you have a full line.
+The response is a stream of Server-Sent Events, read as SSE: an event ends at a blank line, its `data:` lines are joined with a newline, only the single optional space after `data:` is dropped (indentation survives), and comment lines (`: keep-alive`) are ignored. Plain-text events are **line-oriented**: each one is **one line of the reply**, and the lines are joined with newlines, so markdown structure (headings, lists, code fences, tables) survives. To stream token by token, use `agent-delta` events instead (below).
 
-Each `data:` payload is interpreted, in order of precedence, as:
+Each event's data is interpreted, in order of precedence, as:
 
 1. **Token usage** — a JSON object with any of `inputTokens`, `outputTokens`, `totalTokens`. It is not shown as text; the values are merged into the token bar under the message list:
 
@@ -131,7 +131,35 @@ Each `data:` payload is interpreted, in order of precedence, as:
    data: {"event": "agent-error", "detail": {"message": "The agent timed out."}}
    ```
 
-3. **Text** — anything else is one line of the agent's markdown reply, appended to the current bubble.
+3. **Text** — anything else is one line of the agent's markdown reply, appended to the current bubble. After `agent-delta` events, the next text event is instead the **whole, final reply** and replaces what was streamed (so the server can send the answer cleaned up — without markers, after a guardrail — once it is complete).
+
+#### Streaming and progress (optional)
+
+An agent that wants the user to see the answer as it is written, and what it is doing until then, sends these reserved events. All are optional, and a client that predates them just dispatches them as DOM events and ignores them.
+
+| Event | `detail` | What the chat does |
+|---|---|---|
+| `agent-delta` | `{"text": "…"}` | Appends a piece of the reply (any size, newlines included — it is JSON, so a piece is never cut at a line). |
+| `agent-status` | `{"phase": "resolving \| guardrails \| connecting \| thinking", "text": "…"}` | Shows `text` in the progress line under the conversation, with the seconds spent in that phase. |
+| `agent-tool` | `{"name", "server", "kind", "phase": "start \| end", "ms", "error"}` | While a tool runs, the progress line reads «Llamando a `name`… N s»; the turn's tool calls are listed under the reply, with their duration or error. |
+
+```
+data: {"event":"agent-status","detail":{"phase":"thinking","text":"Pensando…"}}
+
+data: {"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"start"}}
+
+data: {"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"end","ms":1510}}
+
+data: {"event":"agent-delta","detail":{"text":"Tienes 3 "}}
+
+data: {"event":"agent-delta","detail":{"text":"reservas."}}
+
+data: {"inputTokens":250,"outputTokens":30,"totalTokens":280}
+
+data: Tienes 3 reservas.
+```
+
+Usage objects whose counters are all zero are ignored (older agents sent them as placeholders while working). The token bar shows the last usage received; it is not summed across replies.
 
 There is no end-of-stream sentinel (no `[DONE]`): the reply is finished when the server closes the stream. If the stream closes without any text, the chat shows a warning suggesting the LLM is not configured.
 
@@ -333,7 +361,7 @@ Only emit one event per response. Never show the raw JSON to the user.
 - Annotate your root UI class with `@AI(sse = "<url>")`.
 - Implement an SSE endpoint at that URL — or, for local development, add `io.mateu:agent-cli` and point at `/mateu/agent/stream` (no API key needed).
 - Mateu handles the rest: button, panel, streaming UI.
-- Stream the reply line by line; replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
+- Stream the reply line by line, or token by token with `agent-delta` events (and `agent-status` / `agent-tool` to show progress); replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
 - Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM; emit token-usage JSON to feed the token bar.
 
 **Related:** the [command center](/ux-patterns/command-center/) (`@App(commandCenter=true)`) adds an always-present palette that unifies navigation, global search and an AI hand-off — an AI-adjacent entry point alongside the IA button.

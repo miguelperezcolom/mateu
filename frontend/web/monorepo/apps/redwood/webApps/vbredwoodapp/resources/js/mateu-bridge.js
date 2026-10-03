@@ -5508,11 +5508,147 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return ((result && result.files) || []).filter((f) => f && f.path)
   }
 
+  // ── El stream SSE, leído como SSE ──────────────────────────────────────────────────────────────
+  // Por EVENTO, no por línea: las líneas `data:` de un evento se unen con '\n' y una línea en blanco lo
+  // cierra; de `data:` sólo se quita el espacio opcional (la sangría del markdown sobrevive); los
+  // comentarios (`:keep-alive`) y los demás campos se ignoran. Misma lógica que el chat compartido
+  // (libs/mateu/.../chatStream.ts) — mantener las dos a la par.
+
+  /** Un lector SSE incremental: `push(texto)` devuelve los `data` de los eventos que se han cerrado;
+   *  `end()` el que el stream dejó sin línea en blanco detrás. */
+  function createSseParser() {
+    let buffer = ''
+    let data = []
+    let hasData = false
+    const dispatch = (out) => {
+      if (hasData) out.push(data.join('\n'))
+      data = []
+      hasData = false
+    }
+    const line = (l, out) => {
+      if (l === '') { dispatch(out); return }
+      if (l.startsWith(':')) return
+      const colon = l.indexOf(':')
+      const field = colon < 0 ? l : l.slice(0, colon)
+      if (field !== 'data') return
+      let value = colon < 0 ? '' : l.slice(colon + 1)
+      if (value.startsWith(' ')) value = value.slice(1)
+      data.push(value)
+      hasData = true
+    }
+    return {
+      push(text) {
+        buffer += text
+        const out = []
+        for (;;) {
+          const m = /\r\n|\r|\n/.exec(buffer)
+          if (!m) break
+          // un '\r' al final puede ser la primera mitad de un '\r\n' partido entre trozos
+          if (m[0] === '\r' && m.index === buffer.length - 1) break
+          const l = buffer.slice(0, m.index)
+          buffer = buffer.slice(m.index + m[0].length)
+          line(l, out)
+        }
+        return out
+      },
+      end() {
+        const out = []
+        if (buffer) { line(buffer.replace(/\r$/, ''), out); buffer = '' }
+        dispatch(out)
+        return out
+      },
+    }
+  }
+
   /**
-   * Postea un mensaje al stream del chat y consume la respuesta SSE. Idéntico al bucle del chat
-   * compartido: parte por líneas, cada `data:` es uso de tokens, un evento personalizado, o texto que
-   * se ACUMULA en el mensaje del asistente. `agent-error` se muestra como el texto del asistente.
-   * Devuelve el texto acumulado. `fetchImpl` es inyectable para tests.
+   * Qué es el `data` de un evento: uso de tokens, un trozo de la respuesta (agent-delta), una fase
+   * (agent-status), una herramienta (agent-tool), un error (agent-error), otro evento de UI, o texto.
+   */
+  function classifyChatPayload(payload) {
+    const usage = tryParseTokenUsage(payload)
+    if (usage) return { kind: 'usage', usage }
+    const ev = tryParseCustomEvent(payload)
+    if (ev) {
+      const detail = ev.detail || {}
+      if (ev.event === 'agent-delta') return { kind: 'delta', text: typeof detail.text === 'string' ? detail.text : '' }
+      if (ev.event === 'agent-status') return { kind: 'status', detail }
+      if (ev.event === 'agent-tool') return { kind: 'tool', detail }
+      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || 'Error desconocido del agente') }
+      return { kind: 'event', event: ev.event, detail: ev.detail }
+    }
+    return { kind: 'text', text: payload ?? '' }
+  }
+
+  /** Un uso que no dice nada: todos sus contadores a cero (los marcadores de agentes anteriores). */
+  function isEmptyUsage(usage) {
+    if (!usage) return true
+    const values = ['inputTokens', 'outputTokens', 'totalTokens'].map((k) => usage[k]).filter((v) => typeof v === 'number' && Number.isFinite(v))
+    return values.length === 0 || values.every((v) => v === 0)
+  }
+
+  /**
+   * Lo que el agente dice que está haciendo en esta respuesta: la fase, las herramientas (la que corre
+   * y las ya hechas, con su duración o su error) y si ya está escribiendo. `line(now)` es la fila de
+   * estado: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
+   * null si el agente no ha informado de nada (agentes anteriores: el panel sigue con «Pensando… N s»).
+   */
+  function createChatProgress(now = Date.now()) {
+    const p = {
+      phase: undefined, statusText: undefined, since: now, steps: [], answering: false, reported: false,
+      status(detail, at) {
+        p.reported = true
+        const text = typeof (detail && detail.text) === 'string' ? detail.text : undefined
+        if ((detail && detail.phase) !== p.phase || text !== p.statusText || p.answering) p.since = at
+        p.phase = detail && detail.phase
+        p.statusText = text
+        p.answering = false
+      },
+      tool(detail, at) {
+        p.reported = true
+        const d = detail || {}
+        const name = d.name || 'herramienta'
+        if (d.phase === 'start') {
+          p.steps = [...p.steps, { name, server: d.server, kind: d.kind, running: true }]
+          p.since = at
+          p.answering = false
+          return
+        }
+        const steps = p.steps.slice()
+        let i = steps.length - 1
+        while (i >= 0 && !(steps[i].running && steps[i].name === name)) i--
+        const done = { name, server: d.server, kind: d.kind, ms: d.ms, error: d.error, running: false }
+        if (i >= 0) steps[i] = done; else steps.push(done)
+        p.steps = steps
+        p.since = at
+      },
+      text(at) {
+        if (!p.answering) p.since = at
+        p.answering = true
+      },
+      runningTool() {
+        for (let i = p.steps.length - 1; i >= 0; i--) if (p.steps[i].running) return p.steps[i]
+        return undefined
+      },
+      line(at) {
+        const secs = Math.max(0, Math.floor((at - p.since) / 1000))
+        const withSecs = (s) => (secs > 0 ? `${s} ${secs} s` : s)
+        const running = p.runningTool()
+        if (running) return withSecs(`Llamando a ${running.name}…`)
+        if (p.answering) return 'Respondiendo…'
+        if (!p.reported) return null
+        return withSecs(p.statusText || 'Pensando…')
+      },
+    }
+    return p
+  }
+
+  /**
+   * Postea un mensaje al stream del chat y consume la respuesta SSE, por eventos (ver
+   * createSseParser). Cada `data` es uso de tokens, un evento personalizado, progreso del agente, un
+   * trozo de la respuesta (agent-delta: se AÑADE), o texto: tras trozos, el primero es la respuesta
+   * entera y LOS SUSTITUYE (el agente la manda limpia al final); sin trozos, cada texto es una línea
+   * — el contrato de siempre de los agentes que mandan la respuesta línea a línea. `agent-error` se
+   * muestra como el texto del asistente. Devuelve el texto final. `fetchImpl` es inyectable para tests.
    *
    * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
    * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
@@ -5525,11 +5661,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
    * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
    *
-   * @param onText   (accumulatedText) => void   — en cada trozo de texto (para repintar el mensaje)
-   * @param onEvent  ({event, detail}) => void   — evento personalizado del agente (≠ agent-error)
-   * @param onUsage  (usage) => void             — objeto de uso de tokens
+   * @param onText     (accumulatedText) => void   — en cada cambio del texto (para repintar el mensaje)
+   * @param onDelta    (piece, accumulatedText) => void — en cada trozo que llega en streaming
+   * @param onProgress (progress) => void          — en cada fase/herramienta (createChatProgress)
+   * @param onEvent    ({event, detail}) => void   — evento personalizado del agente (≠ agent-*)
+   * @param onUsage    (usage) => void             — objeto de uso de tokens (los todo-cero no llegan)
    */
-  async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
+  async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onDelta, onProgress, onEvent, onUsage, now = () => Date.now() }) {
     const payload = typeof body === 'string' ? body : JSON.stringify(body)
     const send = () => fetchImpl(url, {
       method: 'POST',
@@ -5551,42 +5689,58 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (!reader) throw new Error('No se pudo obtener el reader del stream.')
 
     const decoder = new TextDecoder()
-    let buffer = ''
+    const parser = createSseParser()
+    const progress = createChatProgress(now())
     let accumulated = ''
+    // hubo trozos desde el último texto entero: el siguiente texto los sustituye
+    let streamed = false
 
-    // `line`: el payload venía en una línea terminada (lo normal), y lleva su salto — el agente manda
-    // cada línea de la respuesta en su propio `data:`, así que sin él el markdown llega de una pieza
-    // («…plataforma:### Lista…»). Mismo criterio que el chat compartido (mateu-chat.ts): + '\n'.
-    const handlePayload = (payload, line = false) => {
-      const usage = tryParseTokenUsage(payload)
-      const customEvent = !usage && tryParseCustomEvent(payload)
-      if (usage) {
-        if (onUsage) onUsage(usage)
-      } else if (customEvent) {
-        if (customEvent.event === 'agent-error') {
-          accumulated = '⚠️ ' + ((customEvent.detail && customEvent.detail.message) || 'Error desconocido del agente')
+    const handlePayload = (data) => {
+      const msg = classifyChatPayload(data)
+      switch (msg.kind) {
+        case 'usage':
+          if (!isEmptyUsage(msg.usage) && onUsage) onUsage(msg.usage)
+          return
+        case 'delta':
+          accumulated += msg.text
+          streamed = true
+          progress.text(now())
+          if (onDelta) onDelta(msg.text, accumulated)
           if (onText) onText(accumulated)
-        } else if (onEvent) {
-          onEvent(customEvent)
-        }
-      } else {
-        accumulated += line ? payload + '\n' : payload
-        if (onText) onText(accumulated)
+          if (onProgress) onProgress(progress)
+          return
+        case 'text':
+          if (streamed) { accumulated = msg.text; streamed = false } else accumulated = accumulated ? accumulated + '\n' + msg.text : msg.text
+          progress.text(now())
+          if (onText) onText(accumulated)
+          if (onProgress) onProgress(progress)
+          return
+        case 'error':
+          accumulated = '⚠️ ' + msg.message
+          streamed = false
+          if (onText) onText(accumulated)
+          return
+        case 'status':
+          progress.status(msg.detail, now())
+          if (onProgress) onProgress(progress)
+          return
+        case 'tool':
+          progress.tool(msg.detail, now())
+          if (onProgress) onProgress(progress)
+          return
+        default:
+          if (onEvent) onEvent({ event: msg.event, detail: msg.detail })
       }
     }
 
     while (true) {
       const { done, value } = await reader.read()
       if (done) {
-        if (buffer.trim().startsWith('data:')) handlePayload(buffer.trim().slice(5).trim())
+        parser.push(decoder.decode())
+        parser.end().forEach(handlePayload)
         break
       }
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      for (const line of lines) {
-        if (line.trim().startsWith('data:')) handlePayload(line.trim().slice(5).trim(), true)
-      }
+      parser.push(decoder.decode(value, { stream: true })).forEach(handlePayload)
     }
     return accumulated
   }
@@ -5602,7 +5756,23 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
-   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada. Solo los
+   * El uso que enseña el panel tras una respuesta: el de ESA respuesta, que es lo que el agente manda
+   * como total de la conversación (el ia-agent de ec-demo1 manda el acumulado de la sesión; sumarlo
+   * contaba cada respuesta otra vez en cada respuesta siguiente). Una respuesta sin uso deja el que
+   * había. Mismo criterio que el chat compartido: se sustituye, no se suma.
+   */
+  function latestUsage(previous, turn) {
+    const keys = ['inputTokens', 'outputTokens', 'totalTokens']
+    const has = turn && keys.some((k) => typeof turn[k] === 'number' && Number.isFinite(turn[k]))
+    if (!has) return previous || null
+    const out = {}
+    for (const k of keys) if (typeof turn[k] === 'number' && Number.isFinite(turn[k])) out[k] = turn[k]
+    return out
+  }
+
+  /**
+   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada — para un agente que
+   * manda el uso de cada respuesta suelta. El panel ya no la usa (ver latestUsage). Solo los
    * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
    */
   function addUsage(total, turn) {
@@ -5620,12 +5790,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
-   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; «Pensando…»
-   * con los segundos mientras no ha llegado nada (la espera larga es la que inquieta); «Respondiendo…»
-   * en cuanto llega el primer texto.
+   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; lo que el agente
+   * dice que hace, si lo dice (`progress`, de createChatProgress: la herramienta que llama con sus
+   * segundos, la fase, «Respondiendo…»); si no — agentes que no informan —, «Pensando…» con los
+   * segundos mientras no ha llegado nada (la espera larga es la que inquieta) y «Respondiendo…» en
+   * cuanto llega el primer texto.
    */
-  function chatStatusText({ busy, hasText, elapsedSeconds }) {
+  function chatStatusText({ busy, hasText, elapsedSeconds, progress, now }) {
     if (!busy) return ''
+    const line = progress && progress.line ? progress.line(typeof now === 'number' ? now : Date.now()) : null
+    if (line) return line
     if (hasText) return 'Respondiendo…'
     const s = Math.max(0, Math.floor(elapsedSeconds || 0))
     return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
@@ -5944,7 +6118,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
+    latestUsage,
     chatStatusText,
+    createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
     transcriptOf,
