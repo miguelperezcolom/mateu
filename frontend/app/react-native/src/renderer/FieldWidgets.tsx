@@ -270,9 +270,10 @@ const stripHtml = (html: string): string =>
     .replace(/<li[^>]*>/gi, '• ')
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+    // &amp; LAST: decoding it first turned a literal "&amp;lt;" into "<" (double unescaping)
+    .replace(/&amp;/g, '&')
     .trim();
 
 /** Light markdown/HTML rendering: headings, bold-only lines, bullets — enough for @Help texts

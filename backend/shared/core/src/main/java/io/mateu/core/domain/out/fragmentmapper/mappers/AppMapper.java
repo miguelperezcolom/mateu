@@ -356,7 +356,7 @@ public final class AppMapper {
       var resolver =
           io.mateu.uidl.di.MateuBeanProvider.getBean(
               io.mateu.core.application.RoutedClassResolver.class);
-      var path = appRoute == null ? "" : appRoute.replaceAll("/+$", "");
+      var path = io.mateu.core.infra.Slashes.trimTrailing(appRoute);
       while (resolver != null && path.lastIndexOf('/') > 0) {
         path = path.substring(0, path.lastIndexOf('/'));
         var baseUrl = (String) httpRequest.getAttribute("baseUrl");
