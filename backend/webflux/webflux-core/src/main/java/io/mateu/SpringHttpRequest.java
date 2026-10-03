@@ -22,7 +22,9 @@ public class SpringHttpRequest implements HttpRequest {
 
   @Override
   public List<String> getParameterValues(String name) {
-    return delegate.getQueryParams().get(name);
+    // absent → empty list, not null (same contract as the other adapters)
+    var values = delegate.getQueryParams().get(name);
+    return values != null ? values : List.of();
   }
 
   @Override
@@ -42,7 +44,8 @@ public class SpringHttpRequest implements HttpRequest {
 
   @Override
   public List<String> getHeaderValues(String key) {
-    return delegate.getHeaders().get(key);
+    var values = delegate.getHeaders().get(key);
+    return values != null ? values : List.of();
   }
 
   @Override

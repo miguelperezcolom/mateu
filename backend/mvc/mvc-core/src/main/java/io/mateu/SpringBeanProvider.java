@@ -23,15 +23,23 @@ public class SpringBeanProvider implements BeanProvider {
     // when a subclass is also registered as a bean.
     String beanName =
         Character.toLowerCase(clazz.getSimpleName().charAt(0)) + clazz.getSimpleName().substring(1);
+    //
+    // Most lookups are for classes that are NOT beans (every view model and nested object Mateu
+    // instantiates asks first), so ask without throwing: the two NoSuchBeanDefinitionExceptions
+    // this
+    // used to build and swallow per instantiation were pure overhead on the request path.
     try {
-      Object candidate = applicationContext.getBean(beanName);
-      if (candidate.getClass() == clazz) {
-        return clazz.cast(candidate);
+      if (applicationContext.containsBean(beanName)) {
+        Object candidate = applicationContext.getBean(beanName);
+        if (candidate.getClass() == clazz) {
+          return clazz.cast(candidate);
+        }
       }
     } catch (Exception ignored) {
     }
     try {
-      return applicationContext.getBean(clazz);
+      // null when there is none, or several without a primary — what the catch below answered
+      return applicationContext.getBeanProvider(clazz).getIfUnique();
     } catch (Exception ignored) {
       return null;
     }
