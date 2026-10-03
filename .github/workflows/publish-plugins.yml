@@ -21,6 +21,10 @@ on:
   release:
     types: [published]
 
+# Publishing uses the marketplace tokens; the GitHub token only needs to check the repo out.
+permissions:
+  contents: read
+
 jobs:
   intellij:
     if: startsWith(github.event.release.tag_name, 'plugins-v')
