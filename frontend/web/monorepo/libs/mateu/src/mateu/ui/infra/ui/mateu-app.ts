@@ -569,9 +569,14 @@ export class MateuApp extends ComponentElement {
             let targetUrl = new URL(baseUrl + route)
             if (consumedRoute && targetUrl.pathname.startsWith(consumedRoute)) {
                 const pathAfterConsumed = targetUrl.pathname.substring(consumedRoute.length)
-                targetUrl = new URL(targetUrl.origin + (pathAfterConsumed || '/'))
+                // the query is part of where we are going (a listing's filters): keep it
+                targetUrl = new URL(targetUrl.origin + (pathAfterConsumed || '/') + targetUrl.search)
             }
-            if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
+            // The same path with another query is another place: /bookings?status=Cancelled is not
+            // /bookings. Comparing paths alone left the address bar on the old query, and the
+            // listing — which reads its filters off the URL — showed the old rows.
+            if ((window.location.pathname || targetUrl.pathname)
+                && (window.location.pathname != targetUrl.pathname || window.location.search != targetUrl.search)) {
                 let pathname = targetUrl.pathname
                 if (targetUrl.search) {
                     pathname += targetUrl.search

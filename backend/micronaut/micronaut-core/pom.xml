@@ -44,6 +44,14 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- ExceptionHandler, to answer a refused request (MateuForbiddenException) with 403 -->
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-http-server</artifactId>
+      <version>${micronaut.core.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>io.micronaut.serde</groupId>
       <artifactId>micronaut-serde-api</artifactId>

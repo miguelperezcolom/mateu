@@ -1,6 +1,7 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
+import { IDS_PARAM, idsChip } from './idSetFilter'
 // side-effect element registrations kept from the previous incarnation of this bar — other
 // templates may rely on this module having registered them
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -158,6 +159,8 @@ export class MateuFilterBar extends LitElement {
             this.isRangeFilter(filter)
                 ? [`${filter.fieldId}_from`, `${filter.fieldId}_to`]
                 : [filter.fieldId])
+        // the id set (?ids=…) is a condition like any other: «Clear filters» clears it too
+        fieldIds.push(IDS_PARAM)
         const cleared: Record<string, any> = { searchText: undefined }
         fieldIds.forEach(id => { cleared[id] = undefined })
         this.state = { ...this.state, ...cleared }
@@ -488,6 +491,12 @@ export class MateuFilterBar extends LitElement {
         const chips: { fieldId: string, label: string, display: string }[] = []
         if (this.state.searchText) {
             chips.push({ fieldId: 'searchText', label: 'Text', display: String(this.state.searchText) })
+        }
+        // the reserved id set (?ids=A,B): a removable chip like a declared filter's, unless the
+        // listing declares a filter of its own under that name (then that one shows it)
+        const ids = this.filters.some(field => field.fieldId === IDS_PARAM) ? undefined : idsChip(this.state[IDS_PARAM])
+        if (ids) {
+            chips.push({ fieldId: IDS_PARAM, label: ids.label, display: ids.display })
         }
         this.filters.forEach(field => {
             if (this.isSet(field)) {

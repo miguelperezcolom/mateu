@@ -95,7 +95,10 @@ public final class AppMapper {
             .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
             .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
             .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
-            .accentColor(appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor))
+            .accentColor(
+                notBlank(app.accentColor())
+                    ? app.accentColor().trim()
+                    : appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
@@ -330,6 +333,8 @@ public final class AppMapper {
 
   /** {@code @App(backLink = PARENT)} on the app's class. */
   static boolean backLinkParent(AppShell app) {
+    // A shell that declares its own back link (a data-authored `type: AppShell`) decides.
+    if (app.backLink() != null) return app.backLink() == io.mateu.uidl.annotations.BackLink.PARENT;
     if (app.serverSideType() == null) return false;
     try {
       var appClass = forName(app.serverSideType());
@@ -356,7 +361,7 @@ public final class AppMapper {
       var resolver =
           io.mateu.uidl.di.MateuBeanProvider.getBean(
               io.mateu.core.application.RoutedClassResolver.class);
-      var path = appRoute == null ? "" : appRoute.replaceAll("/+$", "");
+      var path = io.mateu.core.infra.Slashes.trimTrailing(appRoute);
       while (resolver != null && path.lastIndexOf('/') > 0) {
         path = path.substring(0, path.lastIndexOf('/'));
         var baseUrl = (String) httpRequest.getAttribute("baseUrl");

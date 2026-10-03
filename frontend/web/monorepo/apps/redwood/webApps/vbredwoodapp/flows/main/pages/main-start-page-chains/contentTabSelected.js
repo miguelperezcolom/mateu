@@ -54,15 +54,21 @@ define([
         }
       }
 
-      const reg = $application.variables.mateuRegistry;
+      let reg = $application.variables.mateuRegistry;
       const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
       if (!host) {
         return;
       }
-      const blocks = bridge.hostContentOf(host, null, {
+      const projected = bridge.hostContentOf(host, null, {
         title: $application.variables.mateuHostTitle || '',
         activeTabs: $application.variables.mateuActiveTabs,
       }) || [];
+      // la pestaña ya se ve; sus @Subresource (lazy: se cargan al abrirla) llegan después
+      $application.variables.mateuHostContent = bridge.withSubresources(projected, reg.contexts);
+      reg = await bridge.loadSubresources(bridge.baseOf(reg) || $application.constants.mateuBaseUrl,
+        reg, projected, { appState: $application.variables.mateuAppState || {} });
+      $application.variables.mateuRegistry = reg;
+      const blocks = bridge.withSubresources(projected, reg.contexts);
       $application.variables.mateuHostContent = blocks;
       bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
       // una barra anidada aparece/cambia al cambiar de pestaña: se refrescan todas

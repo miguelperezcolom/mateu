@@ -501,7 +501,7 @@ public final class MateuBundleExporter {
   }
 
   static String normalizedRoute(String route) {
-    return route == null ? "" : route.replaceAll("^/+", "").replaceAll("/+$", "");
+    return io.mateu.core.infra.Slashes.trim(route);
   }
 
   /**

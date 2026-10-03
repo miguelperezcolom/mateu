@@ -36,6 +36,7 @@ public class RunActionUseCase {
   private final ActionInstanceCreator actionInstanceCreator;
   private final YamlUidlLoader yamlUidlLoader;
   private final RestSourceRegistry restSourceRegistry;
+  private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
 
   // ── Public static helpers (used by other classes in the framework) ────────
 
@@ -87,6 +88,15 @@ public class RunActionUseCase {
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {}", command.actionId());
+    // The client names the server-side type it is talking to; only types the application exposes
+    // may be resolved (C1). Refused here, before anything loads, instantiates or asks the
+    // container for the class — every path below (contract, preview, rest proxy, actions) and
+    // every entry point (the generated controllers, /mateu/mcp) goes through this method.
+    try {
+      wireTypePolicy.check(command.serverSideType(), command.route(), command.httpRequest());
+    } catch (io.mateu.core.application.security.MateuForbiddenException e) {
+      return Flux.error(e);
+    }
     if (CONTRACT_ACTION.equals(command.actionId())) {
       return handleContract(command);
     }
@@ -116,16 +126,25 @@ public class RunActionUseCase {
                             command.httpRequest())
                         .run(instance, command)))
         .flatMap(result -> mapToUiIncrement(result, command))
-        .doOnError(e -> log.error("Error handling action {}", command.actionId(), e))
+        .doOnError(
+            e -> {
+              if (io.mateu.core.application.security.MateuForbiddenException.find(e) == null) {
+                log.error("Error handling action {}", command.actionId(), e);
+              }
+            })
         .onErrorResume(
             error ->
-                mapToUiIncrement(
-                    Message.builder()
-                        .variant(NotificationVariant.error)
-                        .title(extractTitle(error))
-                        .text(extractText(error))
-                        .build(),
-                    command))
+                io.mateu.core.application.security.MateuForbiddenException.find(error) != null
+                    // a refused request is not an application error to show: it answers 403
+                    ? Mono.error(
+                        io.mateu.core.application.security.MateuForbiddenException.find(error))
+                    : mapToUiIncrement(
+                        Message.builder()
+                            .variant(NotificationVariant.error)
+                            .title(extractTitle(error))
+                            .text(extractText(error))
+                            .build(),
+                        command))
         .switchIfEmpty(
             mapToUiIncrement(
                 Text.builder().text("Not found.").style("color: red;").build(), command));
@@ -442,7 +461,37 @@ public class RunActionUseCase {
         // Stamp each routed component with a structure hash (ETag) and, when the client echoed a
         // still-matching hash, omit the structure so only state/data travel (phase b of the client
         // structure cache). This is the single chokepoint every increment mapper flows through.
-        .map(increment -> StructureHashPostProcessor.apply(increment, knownStructureHash(command)));
+        .map(increment -> StructureHashPostProcessor.apply(increment, knownStructureHash(command)))
+        .doOnNext(RunActionUseCase::recordEmittedTypes);
+  }
+
+  /**
+   * Remembers the server-side types this response hands to the client, which will name them back on
+   * its next request (see {@link io.mateu.core.application.security.WireTypePolicy}).
+   */
+  private static void recordEmittedTypes(UIIncrementDto increment) {
+    if (increment == null || increment.fragments() == null) {
+      return;
+    }
+    for (var fragment : increment.fragments()) {
+      if (fragment != null) {
+        recordEmittedTypes(fragment.component(), 0);
+      }
+    }
+  }
+
+  private static void recordEmittedTypes(io.mateu.dtos.ComponentDto component, int depth) {
+    if (component == null || depth > 64) {
+      return;
+    }
+    if (component instanceof ServerSideComponentDto serverSide) {
+      io.mateu.core.application.security.WireTypes.emitted(serverSide.serverSideType());
+    }
+    if (component.children() != null) {
+      for (var child : component.children()) {
+        recordEmittedTypes(child, depth + 1);
+      }
+    }
   }
 
   private static String knownStructureHash(RunActionCommand command) {
@@ -452,9 +501,11 @@ public class RunActionUseCase {
 
   // ── Routing ───────────────────────────────────────────────────────────────
 
-  private static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
+  static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
     if (instance instanceof Mono<?> mono) {
-      return mono.map(i -> routeIfNeeded(command, i));
+      // flatMap, not map: routeIfNeeded answers a Mono, and map would emit that Mono itself as the
+      // "instance" — the action would then run against a MonoJust instead of the view model.
+      return mono.flatMap(i -> routeIfNeeded(command, i));
     }
     if (instance instanceof RouteHandler handlesRoute) {
       return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));

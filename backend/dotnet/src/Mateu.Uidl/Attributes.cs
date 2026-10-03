@@ -121,6 +121,16 @@ public sealed class ButtonAttribute(string? label = null) : Attribute
     public string? Label { get; } = label;
 }
 
+/// <summary>Declares a method as a server-side ACTION without rendering a button for it: the
+/// target of an undoable toast (Message.Undoable's undo action id), of a returned RunAction flow
+/// step, a drawer/dialog opener fired from client code… Only declared actions can be invoked
+/// from the wire — a public method that is neither marked ([Action]/[Button]/[Fab],
+/// [ListToolbarButton] for bulk row actions) nor advertised by the view (an [OnRowSelected]
+/// value, a [SubscribeTo] action, an ActionId of its component tree) is NOT an action.
+/// (C# analogue of Java's @Action.)</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class ActionAttribute : Attribute;
+
 /// <summary>
 /// Per-action transport knobs. Composes with [Button]/[Toolbar]/[Fab] on the same method — it
 /// declares nothing about the UI, only how the CLIENT should call this action.

@@ -1,0 +1,61 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "_invoices_list",
+      "component": null,
+      "state": null,
+      "data": {
+        "crud": {
+          "page": {
+            "searchSignature": "",
+            "pageSize": 10,
+            "pageNumber": 0,
+            "totalElements": 4,
+            "content": [
+              {
+                "date": "2026-01-28",
+                "total": 103,
+                "_rowNumber": 0,
+                "customerId": "3",
+                "id": "F3-1"
+              },
+              {
+                "date": "2026-02-28",
+                "total": 203,
+                "_rowNumber": 1,
+                "customerId": "3",
+                "id": "F3-2"
+              },
+              {
+                "date": "2026-03-28",
+                "total": 303,
+                "_rowNumber": 2,
+                "customerId": "3",
+                "id": "F3-3"
+              },
+              {
+                "date": "2026-04-28",
+                "total": 403,
+                "_rowNumber": 3,
+                "customerId": "3",
+                "id": "F3-4"
+              }
+            ]
+          },
+          "emptyStateMessage": null,
+          "aggregates": null,
+          "groups": null
+        }
+      },
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}

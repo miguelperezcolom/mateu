@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parse } from 'yaml'
 import {
-    isRoutesYaml, parseRoutes, serializeRoutes, parseParams, formatParams,
+    isRoutesYaml, parseRoutes, serializeRoutes, parseParams, formatParams, flattenRoutes, dataRef, masterWithTabs,
 } from './routesModel'
 
 describe('isRoutesYaml', () => {
@@ -57,5 +57,46 @@ routes:
         expect(parseParams('status=open, page=1, live=true')).toEqual({ status: 'open', page: 1, live: true })
         expect(formatParams({ status: 'open', page: 1 })).toBe('status=open, page=1')
         expect(parseParams('')).toEqual({})
+    })
+})
+
+describe('routes the table used to drop', () => {
+    const src = `type: Routes
+routes:
+  - route: people/:id
+    definition: person.yaml
+    data: swapi-person
+  - route: customers/:customerId
+    layout: master.yaml
+    defaultChild: orders
+    state: {tab: orders}
+    children:
+      - route: orders
+        layout: orders.yaml
+        show: audit
+`
+    it('keeps data, the layout key as authored, defaultChild, children and unknown keys', () => {
+        const out = parse(serializeRoutes(parseRoutes(src)))
+        expect(out.routes[0]).toEqual({ route: 'people/:id', definition: 'person.yaml', data: 'swapi-person' })
+        expect(out.routes[1].layout).toBe('master.yaml')
+        expect(out.routes[1].definition).toBeUndefined()
+        expect(out.routes[1].defaultChild).toBe('orders')
+        expect(out.routes[1].state).toEqual({ tab: 'orders' })
+        expect(out.routes[1].children).toEqual([{ route: 'orders', layout: 'orders.yaml', show: 'audit' }])
+    })
+
+    it('flattens children to absolute routes and reads a data ref', () => {
+        const flat = flattenRoutes(parseRoutes(src).routes)
+        expect(flat.map((r) => r.absolute)).toEqual(['people/:id', 'customers/:customerId', 'customers/:customerId/orders'])
+        expect(dataRef('swapi-person')).toBe('swapi-person')
+        expect(dataRef({ ref: 'x', url: 'y' })).toBe('x')
+        expect(dataRef({ url: 'y' })).toBe('')
+    })
+
+    it('scaffolds a master with routed tabs', () => {
+        const m = masterWithTabs('customers/:id', ['orders', 'addresses'])
+        const out = parse(serializeRoutes({ routes: [m], enveloped: true, preamble: {} }))
+        expect(out.routes[0]).toMatchObject({ route: 'customers/:id', layout: 'master.yaml', defaultChild: 'orders' })
+        expect(out.routes[0].children.map((c: any) => c.route)).toEqual(['orders', 'addresses'])
     })
 })
