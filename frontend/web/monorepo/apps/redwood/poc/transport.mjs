@@ -6,6 +6,7 @@
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
+import { labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
 export async function callMateu(base, body, options = {}) {
@@ -455,20 +456,28 @@ function spliceRemote(menu, answers) {
       // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
       // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
       // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
+      // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
+      // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
+      // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
+      // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
       if (option.visible === false) {
-        if (app) adoptRemote(app.menu, option, app)
+        if (app) {
+          adoptRemote(app.menu, option, app)
+          out.push(...markHidden(app.menu))
+        } else {
+          out.push(option)
+        }
         continue
       }
       if (app) {
         adoptRemote(app.menu, option, app)
-        out.push(...app.menu)
+        // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
+        out.push(...labelledByShell(app.menu, option))
       } else {
-        // El pod no contestó. Se queda el rótulo: una sección vacía se entiende, una que
-        // desaparece parece que nunca existió.
-        out.push(option)
+        // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
+        // vacía se entiende, una que desaparece parece que nunca existió.
+        out.push(unavailableMount(option))
       }
-    } else if (option.visible === false) {
-      continue
     } else if (childrenOf(option).length) {
       out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
     } else {
