@@ -39,7 +39,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function unavailableHint(label, lang) {
     const language = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
-    const name = String(label == null ? '' : label).replace(/<[^<>]*>/g, '').trim()
+    // Strip markup until nothing is left, then any stray angle bracket (as navTree.ts does): one pass of
+    // the tag pattern can leave a tag behind (CodeQL js/incomplete-multi-character-sanitization).
+    let name = String(label == null ? '' : label)
+    for (let before = ''; before !== name;) {
+      before = name
+      name = name.replace(/<[^<>]*>/g, '')
+    }
+    name = name.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
     return String(language).toLowerCase().startsWith('es')
       ? `${name} no está disponible ahora. Se volverá a intentar.`
       : `${name} is not available right now. It will be retried.`
