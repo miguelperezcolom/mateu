@@ -23,6 +23,10 @@ export interface AppFields {
     style?: string
     cssClasses?: string
     route?: string
+    /** The brand accent, a CSS colour (`@App(accentColor)`): a line under the menu band + the console name. */
+    accentColor?: string
+    /** `PARENT`: a single "← Parent" link instead of breadcrumbs (`@App(backLink)`, a record master). */
+    backLink?: string
 }
 
 export type AppMenuItem =
@@ -44,7 +48,7 @@ export interface AppDoc {
 
 const SCALARS: (keyof AppFields)[] = [
     'title', 'subtitle', 'pageTitle', 'logo', 'favicon', 'homeRoute',
-    'variant', 'layout', 'drawerClosed', 'style', 'cssClasses', 'route',
+    'variant', 'layout', 'drawerClosed', 'style', 'cssClasses', 'route', 'accentColor', 'backLink',
 ]
 
 /** Whether this YAML is an app-shell definition (`type: AppShell`). */
