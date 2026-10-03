@@ -93,6 +93,15 @@ describe('fetchExternalJson', () => {
         expect(getByPath(json, 'address.city')).toBe('Madrid')
     })
 
+    it('a 204 / empty body is a success with nothing to merge, not a parse error (a REST DELETE)', async () => {
+        const noContent = (async () => ({ ok: true, status: 204, json: async () => { throw new SyntaxError('Unexpected end of JSON input') }, text: async () => '' })) as unknown as typeof fetch
+        await expect(fetchExternalJson({ url: 'https://x/vcns/7', method: 'DELETE' } as RestDataSource, (t) => t, noContent)).resolves.toBeNull()
+        const emptyOk = (async () => ({ ok: true, status: 200, text: async () => '  ' })) as unknown as typeof fetch
+        await expect(fetchExternalJson({ url: 'https://x/vcns/7', method: 'DELETE' } as RestDataSource, (t) => t, emptyOk)).resolves.toBeNull()
+        const withBody = (async () => ({ ok: true, status: 200, text: async () => '{"id":"7"}' })) as unknown as typeof fetch
+        await expect(fetchExternalJson({ url: 'https://x/vcns/7' } as RestDataSource, (t) => t, withBody)).resolves.toEqual({ id: '7' })
+    })
+
     it('a registered mock short-circuits the fetch (or falls through on undefined)', async () => {
         let called = 0
         const fetchImpl = (async () => { called++; return { ok: true, status: 200, json: async () => ({ live: true }) } }) as unknown as typeof fetch

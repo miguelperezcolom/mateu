@@ -75,4 +75,12 @@ public @interface RestListing {
    * {@code ${secret.X}} auth is injected server-side from a {@code SecretsProvider}. Default false.
    */
   boolean proxy() default false;
+
+  /**
+   * Where a row click goes, as a template over the row: {@code "orders/${row.id}"} — the record's
+   * own, shareable URL. The client navigates by itself (no server round trip), so it is how a
+   * listing over a REST API opens a record in a static bundle. Blank (the default) keeps a row
+   * click doing nothing. The same as a YAML {@code Listing}'s {@code rowRoute}.
+   */
+  String rowRoute() default "";
 }

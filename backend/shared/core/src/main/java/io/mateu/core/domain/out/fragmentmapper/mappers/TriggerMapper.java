@@ -96,8 +96,14 @@ public class TriggerMapper {
     // A listing loads its rows when it opens. The load trigger used to come only from the CRUD
     // mediator, so a listing declaring no interaction capability (and so never promoted to one)
     // opened empty until the user searched, with nothing saying why.
+    //
+    // Not for a @RestListing: its rows come from the REST source, which the renderer fetches by
+    // itself when the table mounts. A server "search" on top of that is a round trip to a search()
+    // that is never meant to run — and in a static bundle, a call to a server that does not exist.
     if (serverSideObject instanceof io.mateu.uidl.interfaces.Listing<?> listing
         && listing.searchesOnOpening()
+        && !MetaAnnotations.isPresent(
+            serverSideObject.getClass(), io.mateu.uidl.annotations.RestListing.class)
         && triggers.stream()
             .noneMatch(t -> t instanceof OnLoadTrigger load && "search".equals(load.actionId()))) {
       triggers.add(new OnLoadTrigger("search", 0, 1, null));

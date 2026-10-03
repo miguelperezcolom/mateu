@@ -63,6 +63,11 @@ const ENVELOPE_FIELDS = new Set([
 // whatever the renderer makes of the metadata, and never silently drops a child into the void
 // because a stray `content` on a non-container also lands in metadata verbatim.
 const CONTAINER_TYPES = new Set([
+    // A page `type: Form` (title/subtitle/toolbar/buttons in metadata, its `content` as children) and
+    // the FormLayout inside it — the read-only record page of a static UI. Pinned by the server wire
+    // of a definition-only Form route (see expandForm.test.ts).
+    'Form',
+    'FormLayout',
     'VerticalLayout',
     'HorizontalLayout',
     'Div',
@@ -115,7 +120,17 @@ export function expandComponent(node: FluentNode): Component {
     const metadata: Record<string, unknown> = { type }
     for (const [key, value] of Object.entries(fields)) {
         if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
-        else metadata[key] = value
+        else if ((key === 'toolbar' || key === 'buttons') && Array.isArray(value)) {
+            metadata[key] = (value as FluentNode[]).map(expandButton)
+        } else metadata[key] = value
+    }
+    if (type === 'FormField') {
+        // The authored key for a field's id is `id`; the wire calls it `fieldId` (and keeps `id` on
+        // the node, as the server does). The two defaults the renderer cannot do without.
+        if (fields.id !== undefined) metadata.fieldId = fields.id
+        delete metadata.id
+        metadata.dataType = metadata.dataType ?? 'string'
+        metadata.stereotype = metadata.stereotype ?? 'regular'
     }
 
     let kids: FluentNode[] = []
@@ -163,13 +178,25 @@ function expandListing(node: FluentNode): Component {
     const metadata: Record<string, unknown> = {
         type: 'Crud',
         crudlType: (fields.crudlType as string) ?? (fields.listingType as string) ?? 'table',
+        // LOAD-BEARING defaults (the explicit-defaults table of the render-parity rule): the server
+        // always sends them, and the renderer does not default them — with no pageSize a REST
+        // listing painted every row EMPTY and no pager. Values from the fluent Listing's accessors.
+        pageSize: 10,
+        searchOnEnter: true,
+        autoFocusOnSearchText: true,
+        filtersLayout: 'auto',
+        gridLayout: 'auto',
     }
     for (const [key, value] of Object.entries(fields)) {
         if (key === 'crudlType' || key === 'listingType') continue
         if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
         else if (key === 'columns' && Array.isArray(value)) {
             metadata[key] = (value as FluentNode[]).map(expandColumn)
-        } else metadata[key] = value // toolbar/filters/rowsSource/title/rowRoute pass through
+        } else if (key === 'toolbar' && Array.isArray(value)) {
+            metadata[key] = (value as FluentNode[]).map(expandButton)
+        } else if (key === 'filters' && Array.isArray(value)) {
+            metadata[key] = (value as FluentNode[]).map(expandFilter)
+        } else metadata[key] = value // filters/rowsSource/title/rowRoute pass through
     }
 
     return {
@@ -189,4 +216,35 @@ function expandColumn(node: FluentNode): Component {
     }
     if (node.id !== undefined && wire.metadata) wire.metadata.id = node.id
     return wire as unknown as Component
+}
+
+/** camelCase of a label — the server's Humanizer.toCamelCase, for an action id nobody declared. */
+const toCamelCase = (label: string): string => {
+    const words = label.replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(/\s+/).filter(Boolean)
+    return words.map((w, i) => i === 0
+        ? w.charAt(0).toLowerCase() + w.slice(1)
+        : w.charAt(0).toUpperCase() + w.slice(1)).join('')
+}
+
+/**
+ * An authored toolbar/footer Button → its wire shape, as the server's ButtonMapper does it: a
+ * Button whose `actionable` is a RouteLink NAVIGATES on the client, so the link's route becomes the
+ * button's `route`; a button with no `actionId` gets one from its label. A Button is not
+ * ClientSide-wrapped on the wire. Anything else passes through as authored.
+ */
+export function expandButton(node: FluentNode): Record<string, unknown> {
+    if (!node || node.type !== 'Button') return node as unknown as Record<string, unknown>
+    const { actionable, ...button } = node as FluentNode & { actionable?: { type?: string, route?: string } }
+    const out: Record<string, unknown> = { ...button }
+    if (actionable?.type === 'RouteLink' && actionable.route) out.route = actionable.route
+    if (!out.actionId && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+    return out
+}
+
+/** A listing filter is a FormField on the wire too: `id` → `fieldId`, with the type defaults. */
+function expandFilter(node: FluentNode): Record<string, unknown> {
+    if (!node || node.type !== 'FormField') return node as unknown as Record<string, unknown>
+    const { id, ...rest } = node
+    return { ...rest, fieldId: (rest as Record<string, unknown>).fieldId ?? id, dataType: rest.dataType ?? 'string',
+        stereotype: rest.stereotype ?? 'regular' }
 }

@@ -1,0 +1,11 @@
+# The app shell, as data: title and a one-entry menu.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Networking (static)
+subtitle: A 100% static Mateu UI — definitions read by the browser, data straight from a REST API
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Virtual cloud networks
+    route: vcns
+    icon: vaadin:cluster

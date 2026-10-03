@@ -30,6 +30,34 @@ public final class RouteRegistrations {
     return new ArrayList<>(byRoute.values());
   }
 
+  /**
+   * Every class the index registers, the ROOT one included. {@link #read} keys by route and leaves
+   * out a blank path, but a blank path is the mount root ({@code @UI("")}) — the app shell, the
+   * natural home of app-wide declarations such as {@code @RestSource}. A reader that wants the
+   * classes rather than the routes must not lose it.
+   */
+  public static List<String> classes(ClassLoader cl) {
+    var out = new java.util.LinkedHashSet<String>();
+    try {
+      var urls = cl.getResources("META-INF/mateu/ui-registrations");
+      while (urls.hasMoreElements()) {
+        String text;
+        try (InputStream in = urls.nextElement().openStream()) {
+          text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
+        for (String block : text.split("(?m)^---\\s*$")) {
+          var cls = parseBlock(block).get("class");
+          if (cls != null && !cls.isBlank()) {
+            out.add(cls.trim());
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return new ArrayList<>(out);
+  }
+
   /** Whether a route can be pre-rendered without a runtime value (no {@code :param} segment). */
   public static boolean isStatic(String route) {
     return route != null && !route.contains(":");

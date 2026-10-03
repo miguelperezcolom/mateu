@@ -97,14 +97,16 @@ public class RestSourceRegistry {
   RestSourceCatalog derivedFrom(ClassLoader classLoader) {
     var cl = classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader;
     var byName = new LinkedHashMap<String, RestSourceEntry>();
-    for (var ref : RouteRegistrations.read(cl)) {
+    // Every registered class, the ROOT one (@UI("")) included: the app shell is where an app-wide
+    // catalogue is naturally declared, and reading the routes instead of the classes skipped it.
+    for (var className : RouteRegistrations.classes(cl)) {
       Class<?> viewClass;
       try {
-        viewClass = Class.forName(ref.className(), false, cl);
+        viewClass = Class.forName(className, false, cl);
       } catch (Throwable t) {
         // A class we cannot load contributes nothing; route resolution reports the same problem
         // already, so failing here would just be a second, noisier voice.
-        log.debug("REST source catalogue: skipping {} ({})", ref.className(), t.toString());
+        log.debug("REST source catalogue: skipping {} ({})", className, t.toString());
         continue;
       }
       for (var declared : declarationsOn(viewClass)) {
