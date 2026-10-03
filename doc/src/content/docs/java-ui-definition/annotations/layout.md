@@ -224,6 +224,10 @@ public @interface Tab {
 |---|---|---|---|
 | `value` | `String` | `""` | Tab label |
 | `order` | `int` | `0` | Display order among tabs |
+| `shortcut` | `String` | `""` | Keyboard shortcut that selects the tab (`alt+1`) |
+| `open` | `boolean` | `false` | Selected when the strip first renders |
+| `key` | `String` | `""` | The tab's **route key**: `/vcns/7/gateways` opens the tab with `key = "gateways"`, and selecting it pushes that URL (back/forward walk the tabs) |
+| `show` | `String` | `""` | A feature flag (`flag` or `!flag`) answered by `FeatureFlags` beans; the tab is left out when it is off. A strip left with one tab is not drawn |
 
 ### Example
 
@@ -248,6 +252,26 @@ public class AccountPage {
 Each `@Tab` annotation starts a new tab. Fields without `@Tab` fall into a default tab.
 
 ![Tabs layout — Personal and Address tabs](/images/docs/components/tabs.png)
+
+### Sub-resources: listings in tabs (`@Subresource`)
+
+A field whose type is a listing or crud, annotated `@Subresource`, is embedded as a sub-listing with
+the record as its **context** — the route's path parameters, the host's same-named fields and the
+`context = "listingField=hostField"` bindings are seeded into it and shown as its fixed scope:
+
+| Attribute | Default | Description |
+|---|---|---|
+| `tab` | the field name | The tab it goes in (matched by key or label; a new tab otherwise). Several stack in one tab |
+| `order` | `0` | Position among the sub-resources of its tab |
+| `help` | `""` | One line under its title |
+| `load` | `ON_OPEN` | `ON_OPEN` fetches it when its tab is opened; `EAGER` with the page, and puts the row count on the tab |
+| `show` | `""` | A feature flag, as on `@Tab` |
+| `showTitle` | `true` | `false` hides its title; it is also dropped when it repeats the tab or the page |
+| `context` | `{}` | Extra bindings `listingField=hostField` |
+
+An embedded orchestrator **without** `@Subresource` must have a route of its own (`@UI` or a
+`routes.yaml` entry): one without fails with a message instead of loading the app's root inside
+itself.
 
 ### Nested tabs
 

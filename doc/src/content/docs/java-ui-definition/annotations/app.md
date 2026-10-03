@@ -57,6 +57,11 @@ public @interface App {
 | `value` | `AppVariant` | `AUTO` | Navigation layout variant for the shell |
 | `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
 | `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode |
+| `backLink` | `BackLink` | `BREADCRUMBS` | `PARENT` draws a single «← Parent» link (labelled with the title of the nearest screen above the app's route) and drops the breadcrumb trail inside the app — the console style for a record master |
+
+An `@App` with **no menu of its own** that answers a `routes.yaml` route with `children` offers
+those children as its options — the tabs of a record master. See the
+[recipe](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
 
 **`AppVariant` values:**
 
