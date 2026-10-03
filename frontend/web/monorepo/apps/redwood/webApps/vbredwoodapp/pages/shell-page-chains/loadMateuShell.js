@@ -222,6 +222,19 @@ define([
         });
       }
 
+      // En modo path el historial es SOLO de Mateu, y el router de VB no puede verlo. Toma por
+      // «application URL» la ruta con que arrancó la página (/customers → /customers/) y lee
+      // cualquier URL por debajo de ella como una página suya (/customers/5 → la página «5»): en
+      // un atrás sale de la shell (vbExit), deja «disposed» el context de las chains y no vuelve a
+      // entrar, así que la pantalla no se repintaba. Pasaba al entrar al maestro desde una fila
+      // del listado; con un enlace directo no, porque las pestañas no quedan POR DEBAJO de la ruta
+      // de arranque (/customers/3/orders → /customers/3/addresses). VB escucha con
+      // window.onpopstate, que corre antes que cualquier listener añadido después (también en
+      // captura), así que se le quita: es una sola página de VB, no tiene navegación propia.
+      if (pathMode) {
+        window.onpopstate = null;
+      }
+
       // 1.5: back/forward — el listener reutiliza el context del chain (los scopes de VB
       // siguen vivos tras el vbEnter); popstate en modo path, hashchange en modo hash
       if (!window.__mateuHashWired) {

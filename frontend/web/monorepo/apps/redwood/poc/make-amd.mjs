@@ -62,6 +62,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     tabBarIdsOf,
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
+    hostContentShown,
+    withSubresources,
+    loadSubresources,
     appLevelOf,
     rowRouteOf,
     listingOf,

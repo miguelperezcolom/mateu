@@ -1,2 +1,0 @@
-"use strict";define(["resources/js/mateu-bridge"],bridge=>{"use strict";return class{subheaderItemClass(node,tree,selectedRoute){const active=bridge.activeSectionOf(tree,selectedRoute)===node.id;return active?"mateu-subheader-item mateu-nav-active":"mateu-subheader-item";}chatMessageDom(text){const template=document.createElement("template");return template.innerHTML=bridge.chatMarkdownToHtml(text),{view:Array.from(template.content.childNodes),data:{}};}};});
-//# sourceMappingURL=shell-page.js.map

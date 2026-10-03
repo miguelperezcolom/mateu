@@ -3811,6 +3811,122 @@ atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no 
   } finally { globalThis.fetch = original }
 })
 
+// ── P1 en Redwood: páginas-formulario con pestañas y @Subresource, y páginas de solo lectura ────
+import {
+  subresourceIslandOf as p1SubresourceIslandOf, pendingSubresourcesOf as p1PendingSubresourcesOf,
+  withSubresources as p1WithSubresources, hostContentShown as p1HostContentShown,
+} from './reduceContexts.mjs'
+import { loadSubresources as p1LoadSubresources } from './transport.mjs'
+
+const p1Overview = () => reduceContexts(empty(), fx('p1-overview-billing'))
+const p1Atoms = (blocks) => (blocks || []).flatMap((b) => b.items)
+
+test('P1: un @Subresource es su propia superficie, no la isla de la pantalla', () => {
+  const host = p1Overview().contexts[HOST_ID]
+  const subs = []
+  const walk = (n) => { if (!n || typeof n !== 'object') return; const s = p1SubresourceIslandOf(n); if (s) { subs.push(s); return } Object.values(n).forEach((v) => (Array.isArray(v) ? v.forEach(walk) : walk(v))) }
+  ;(host.tree.children || []).forEach(walk)
+  assert.deepEqual(subs.map((s) => [s.id, s.lazy]), [['_orders', false], ['_invoices', true], ['_payments', true]])
+  const invoices = subs[1]
+  assert.equal(invoices.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+  assert.equal(invoices.consumedRoute, '/_subresource/CustomerOverview/invoices')
+  // el padre le siembra el id del maestro, y la marca de ámbito viaja con él (como en Vaadin)
+  assert.equal(invoices.componentState.customerId, '3')
+  assert.equal(invoices.componentState._scope, 'customerId')
+  // el baile de la isla (mateuIsland) no los toca: los carga loadSubresources
+  assert.deepEqual(collectIslands(host.tree), [])
+  // el documento del check-in (un mediador embebido que no es sub-recurso) sigue siendo isla
+  assert.ok(collectIslands(reduceContexts(empty(), fx('fo-checkin-wizard')).contexts[HOST_ID].tree).some((i) => i.id === '_documento'))
+})
+
+test('P1: una página-formulario con la pestaña de los @Subresource activa conserva la barra y sus huecos', () => {
+  const host = p1Overview().contexts[HOST_ID]
+  // enlace directo a /customer-overview/3/billing: el servidor marca Billing activa
+  const blocks = hostContentOf(host, null, { title: 'Customer 3' })
+  const atoms = p1Atoms(blocks)
+  const bar = atoms.find((a) => a.isTabs)
+  assert.ok(bar, 'la barra de pestañas sigue ahí')
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
+  assert.equal(bar.selectedId, 'tab-2')
+  // sólo los de la pestaña a la vista, apilados con su título y su ayuda
+  assert.deepEqual(atoms.filter((a) => a.isSubresource).map((a) => a.islandId), ['_invoices', '_payments'])
+  assert.ok(atoms.some((a) => a.isText && a.text === 'Invoices issued to this customer'))
+  assert.ok(!blocks.some((b) => b.isNestedBlock), 'no se confunden con la isla anidada (que vaciaba el bloque)')
+  assert.equal(p1HostContentShown(blocks, summarizeHost(p1Overview(), '/customer-overview/3/billing')), true,
+    'el contenido manda sobre el form genérico')
+  // con la pestaña Orders elegida a mano, su listado; Billing espera a que se abra
+  const orders = p1Atoms(hostContentOf(host, null, { title: 'Customer 3', activeTab: 'tab-1' }))
+  assert.deepEqual(orders.filter((a) => a.isSubresource).map((a) => a.islandId), ['_orders'])
+})
+
+test('P1: un @Subresource cargado se pinta como su tabla; el que falta se queda como hueco', () => {
+  let reg = p1Overview()
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Customer 3' })
+  assert.deepEqual(p1PendingSubresourcesOf(blocks, reg.contexts).map((s) => s.id), ['_invoices', '_payments'])
+  reg = reduceContexts(reg, fx('p1-subresource-invoices-load'))
+  reg = reduceContexts(reg, fx('p1-subresource-invoices-search'))
+  assert.deepEqual(p1PendingSubresourcesOf(blocks, reg.contexts).map((s) => s.id), ['_payments'])
+  const atoms = p1Atoms(p1WithSubresources(blocks, reg.contexts))
+  const grid = atoms.find((a) => a.isGrid && a.fieldId === '_invoices')
+  assert.ok(grid, 'Invoices es una tabla')
+  assert.deepEqual(grid.columns.map((c) => c.field), ['id', 'customerId', 'date', 'total'])
+  assert.deepEqual(grid.rows.map((r) => r.id), ['F3-1', 'F3-2', 'F3-3', 'F3-4'])
+  assert.equal(grid.isEmpty, false)
+  assert.ok(atoms.some((a) => a.isSubresource && a.islandId === '_payments'), 'Payments aún sin cargar: hueco')
+})
+
+atest('P1: loadSubresources carga cada @Subresource a la vista por su tipo, con el id del maestro, y busca', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push(body)
+    const inv = String(body.route).includes('/invoices')
+    const res = body.actionId === 'search'
+      ? (inv ? fx('p1-subresource-invoices-search') : { fragments: [] })
+      : (inv ? fx('p1-subresource-invoices-load') : { fragments: [] })
+    return { ok: true, json: async () => res }
+  }
+  try {
+    let reg = p1Overview()
+    const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Customer 3' })
+    reg = await p1LoadSubresources('http://x', reg, blocks, { appState: {} })
+    const loadInv = seen.find((b) => b.actionId === '' && b.initiatorComponentId === '_invoices')
+    assert.equal(loadInv.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+    assert.equal(loadInv.consumedRoute, '/_subresource/CustomerOverview/invoices')
+    assert.equal(loadInv.componentState.customerId, '3')
+    const search = seen.find((b) => b.actionId === 'search')
+    assert.equal(search.componentState.customerId, '3')
+    assert.equal(search.componentState.page, 0)
+    assert.equal(search.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
+    assert.ok(!seen.some((b) => String(b.route).includes('/orders')), 'Orders, en otra pestaña, no se carga')
+    const grid = p1Atoms(p1WithSubresources(blocks, reg.contexts)).find((a) => a.isGrid && a.fieldId === '_invoices')
+    assert.equal(grid.rows.length, 4)
+  } finally { globalThis.fetch = original }
+})
+
+test('P1: en modo path el historial es solo de Mateu — la shell le quita a VB su onpopstate', () => {
+  // VB toma la ruta de arranque por «application URL» (/customers → /customers/) y lee lo que
+  // cuelga de ella como una página suya: tras entrar al maestro desde una fila (/customers/5), un
+  // atrás le hacía salir de la shell y dejaba «disposed» el contexto de las chains (no repintaba).
+  // Guardia de regresión sobre la chain (en Node no hay VB que arrancar): ver e2e/master-tabs-check.mjs
+  const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'loadMateuShell.js'), 'utf8')
+  assert.match(chain, /if \(pathMode\) \{\s*window\.onpopstate = null;\s*\}/)
+  // y antes de cablear el listener propio del popstate
+  assert.ok(chain.indexOf('window.onpopstate = null') < chain.indexOf("addEventListener(pathMode ? 'popstate'"))
+})
+
+test('P1: una página de solo lectura (sus campos son textos) se pinta, no sale vacía', () => {
+  const reg = reduceContexts(empty(), fx('p1-history'))
+  const summary = summarizeHost(reg, '/customers/3/history')
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
+  assert.deepEqual(p1Atoms(blocks).filter((a) => a.isText).map((a) => a.text), ['3', 'Customer 3 created 2026-01-01'])
+  assert.equal(p1HostContentShown(blocks, summary), true)
+  // pero si el form genérico tiene campos, unos textos sueltos no le quitan el sitio
+  assert.equal(p1HostContentShown(blocks, { ...summary, fields: [{ fieldId: 'x' }] }), false)
+  assert.equal(p1HostContentShown(null, summary), false)
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
