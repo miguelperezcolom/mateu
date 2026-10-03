@@ -55,17 +55,21 @@ con URL propia, recibe el id del maestro, se carga al abrirla, tiene sus accione
 funcionan la recarga, el enlace directo y atrás/adelante. La prueba está en el worktree `mateu-mdtabs`,
 rama `probe/master-detail-tabs`.
 
-- [ ] Resolver la **cadena de rutas** padre → hijo con `RouteEntry.parent`: el padre consume su prefijo y pinta al hijo en su hueco. Afecta a `RouteInstanceCreator`, `AbsoluteRouteDispatcher`, `AppMenuResolver` y `DirectClassResolver`.
-- [ ] **Pestaña por defecto:** la primera hija, o `defaultChild:` en la entrada. Quitar el fallo de `HomeRouteResolver` y `ViewRouteResolver`.
-- [ ] **Parámetros** aplicados en cada petición, también cuando el cliente ya conoce la clase (`ActionInstanceCreator.instantiateWithKnownType`).
-- [ ] Los **parámetros del padre** llegan como contexto, no como filtros que se pueden quitar. En el listado se ven como una etiqueta de ámbito fija.
-- [ ] **CRUD dentro de una pestaña:** `/new` e `/{id}` relativos a su hueco, sin URL duplicada (`MultiView.pathForHistory`, `NavigateToViewActionHandler`).
-- [ ] `@Tab(key)` → `TabDto.routeKey`: cambiar de pestaña añade una entrada al historial también en las pestañas de la página.
-- [ ] `@Subresource(tab, order, help, load = EAGER | ON_OPEN)`: varios listados apilados en una pestaña, con el contexto del padre y un contador en la pestaña cuando son EAGER.
-- [ ] `@App/@Page(backLink = PARENT)`, con el título del padre como texto (D3).
-- [ ] **Redwood:** una app anidada es contenido, no la shell (`reduceContexts.mjs` ~2722), con una barra de pestañas por nivel de app.
-- [ ] Desactivar las trampas de `@Inline` (recarga infinita): fallar si el tipo embebido no tiene ruta y no caer al camino `DtoSupplier` dentro de un `@Tab`.
-- [ ] e2e con los escenarios de la prueba en los dos renderers. Demo «Record master with page tabs» y receta en `route-registry.md`.
+- [x] Resolver la **cadena de rutas** padre → hijo con `RouteEntry.parent`: el padre consume su prefijo y pinta al hijo en su hueco. Afecta a `RouteInstanceCreator`, `AbsoluteRouteDispatcher`, `AppMenuResolver` y `DirectClassResolver`.
+- [x] **Pestaña por defecto:** la primera hija, o `defaultChild:` en la entrada. Quitar el fallo de `HomeRouteResolver` y `ViewRouteResolver`.
+- [x] **Parámetros** aplicados en cada petición, también cuando el cliente ya conoce la clase (`ActionInstanceCreator.instantiateWithKnownType`).
+- [x] Los **parámetros del padre** llegan como contexto, no como filtros que se pueden quitar. En el listado se ven como una etiqueta de ámbito fija.
+- [x] **CRUD dentro de una pestaña:** `/new` e `/{id}` relativos a su hueco, sin URL duplicada (`MultiView.pathForHistory`, `NavigateToViewActionHandler`).
+- [x] `@Tab(key)` → `TabDto.routeKey`: cambiar de pestaña añade una entrada al historial también en las pestañas de la página.
+- [x] `@Subresource(tab, order, help, load = EAGER | ON_OPEN)`: varios listados apilados en una pestaña, con el contexto del padre y un contador en la pestaña cuando son EAGER.
+- [x] `@App/@Page(backLink = PARENT)`, con el título del padre como texto (D3).
+- [x] **Redwood:** una app anidada es contenido, no la shell (`reduceContexts.mjs` ~2722), con una barra de pestañas por nivel de app.
+- [x] Desactivar las trampas de `@Inline` (recarga infinita): fallar si el tipo embebido no tiene ruta y no caer al camino `DtoSupplier` dentro de un `@Tab`.
+- [x] e2e con los escenarios de la prueba en los dos renderers. Demo «Record master with page tabs» y receta en `route-registry.md`.
+- [x] Composición sin títulos repetidos (pantalla 10 de OCI): sin barra con una sola pestaña visible (conserva su clave y su URL); el título de una sección o listado embebido se omite si repite la pestaña o la página (`@Subresource(showTitle)`); pestañas con condición `show` (flag) y pestaña por defecto declarada. El `show` es por ahora un nombre de flag que contestan los beans `FeatureFlags` (desconocido = activo); P4 lo convertirá en expresión.
+- [ ] Redwood, pendiente: un atrás entre pestañas después de entrar al maestro desde una fila del listado no repinta (VB da por «disposed» el contexto de la cadena; desde un enlace directo funciona); una página-formulario con `@Tab(key)`/`@Subresource` se proyecta como formulario plano (sin barra ni islas); una página de solo lectura (`CustomerHistory`) sale vacía.
+
+Hecho en `feat/routed-master-tabs`: núcleo (`RouteRegistry.chain`, `RouteChains`, `ActionInstanceCreator.mountOf`), Vaadin, Redwood y la demo `demo-vb` (paquete `mastertabs`); comprobación con `e2e/master-tabs-check.mjs`.
 
 ## P2 · Retoques de listados (S cada uno)
 
@@ -197,3 +201,4 @@ los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si está
 | Fecha | Qué |
 |---|---|
 | 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
+| 2026-10-03 | P1 en `feat/routed-master-tabs`: cadena de rutas, pestaña por defecto, parámetros en cada petición, ámbito fijo, CRUD dentro de una pestaña, `@Tab(key)`, `@Subresource`, `backLink = PARENT`, `@RowRoute`, flags de pestaña, Redwood con niveles de app, trampas de `@Inline`. Quedan tres huecos de Redwood (ver P1). |
