@@ -1,2 +1,0 @@
-"use strict";define(["resources/js/mateu-bridge"],bridge=>{"use strict";return class{chatMessageDom(text){const template=document.createElement("template");return template.innerHTML=bridge.chatMarkdownToHtml(text),{view:Array.from(template.content.childNodes),data:{}};}};});
-//# sourceMappingURL=shell-page.js.map

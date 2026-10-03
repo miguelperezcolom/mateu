@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { activeSectionOf, accentColorOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -540,6 +541,76 @@ test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un g
   const group = nav.menuTree[0]
   assert.deepEqual(group.children.map((c) => c.label), ['Bookings'])
   assert.equal(group.hasChildren, true)
+})
+
+test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título + acento); TABS con grupos sigue en la cabecera', () => {
+  const menu = [
+    { label: 'Call center', path: '/callcenter', submenus: [{ label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' }] },
+    { label: 'Avisos', route: '/inbox' },
+  ]
+  const onTop = shellNavOf({ shell: { variant: 'MENU_ON_TOP', title: 'Consola de datos', accentColor: '#D2232A', menu } })
+  assert.equal(onTop.mode, 'subheader')
+  assert.equal(onTop.title, 'Consola de datos')
+  assert.equal(onTop.accentColor, '#D2232A')
+  // TABS con grupos (no caben en la barra inferior): siguen en la cabecera oscura, como antes
+  assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
+  // TABS plano (el front office): la barra inferior, intacta
+  assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
+  assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
+  // sin acento declarado no hay acento
+  assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).accentColor, '')
+})
+
+test('reduceContexts: el App trae su @App(accentColor) a la shell', () => {
+  const { shell } = reduceContexts(empty(), { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', variant: 'MENU_ON_TOP', title: 'X', menu: [], accentColor: '#D2232A' }, children: [] } }] })
+  assert.equal(shell.accentColor, '#D2232A')
+  assert.equal(shellNavOf({ shell }).accentColor, '#D2232A')
+})
+
+test('accentColorOf: sólo un color CSS reconocible; lo demás, sin acento', () => {
+  assert.equal(accentColorOf(' #D2232A '), '#D2232A')
+  assert.equal(accentColorOf('rgb(210, 35, 42)'), 'rgb(210, 35, 42)')
+  assert.equal(accentColorOf('red; background: url(x)'), '')
+  assert.equal(accentColorOf('</style>'), '')
+  assert.equal(accentColorOf(null), '')
+})
+
+test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la contiene a cualquier profundidad', () => {
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Call center', path: '/callcenter', submenus: [
+      { label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' },
+      // oculta: una pantalla bajo ella sigue siendo de Call center
+      { label: 'Nueva', route: '/booking/new', baseUrl: '/_booking', visible: false },
+    ] },
+    { label: 'Admin', path: '/admin', submenus: [
+      // tercer nivel (shell federada): grupo del pod con sus pantallas
+      { label: 'Workflow', path: '/workflow', remote: false, submenus: [{ label: 'Processes', route: '/workflow/processes', baseUrl: '/_workflow' }] },
+    ] },
+    // remota que aún no contestó: cuenta por su prefijo
+    { label: 'ERP', path: '/erp', remote: true, routePrefix: '/erp' },
+    { label: 'Avisos', route: '/inbox' },
+    { label: 'Llegadas', route: '/reservas?vista=LLEGADAS_HOY' },
+  ] } })
+  const tree = nav.menuTree
+  const ids = tree.map((n) => n.id)
+  assert.equal(activeSectionOf(tree, '/booking/bookings'), ids[0])
+  assert.equal(activeSectionOf(tree, '/booking/bookings/36K69K'), ids[0], 'el detalle de un registro sigue en su sección')
+  assert.equal(activeSectionOf(tree, '/booking/new'), ids[0])
+  assert.equal(activeSectionOf(tree, '/workflow/processes?status=RUNNING'), ids[1])
+  assert.equal(activeSectionOf(tree, '/erp/partners'), ids[2])
+  assert.equal(activeSectionOf(tree, '/inbox'), ids[3])
+  assert.equal(activeSectionOf(tree, '/reservas?vista=LLEGADAS_HOY'), ids[4])
+  // la home (o una ruta de nadie): ninguna marcada
+  assert.equal(activeSectionOf(tree, '/inicio'), null)
+  assert.equal(activeSectionOf(tree, ''), null)
+  assert.equal(activeSectionOf(tree, null), null)
+  // un prefijo más corto no se queda con las pantallas de otra sección
+  const overlap = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Clientes', route: '/customers' },
+    { label: 'Cambios', route: '/customers/changes' },
+  ] } }).menuTree
+  assert.equal(activeSectionOf(overlap, '/customers/changes/7'), overlap[1].id)
+  assert.equal(activeSectionOf(overlap, '/customers/7'), overlap[0].id)
 })
 
 test('shellNavOf: grupos con rutas terminales + selectores de contexto + header actions', () => {
