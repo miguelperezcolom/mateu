@@ -9,13 +9,21 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The theme toggle's explicit light theme wins over an OS in dark mode: `light dark` above would
+   otherwise keep the used colour scheme dark (light-dark() picks, e.g. the accent's console name). */
+:root[theme~='light'] {
+  color-scheme: light;
+}
+
+/* Links in the page's light DOM take the theme's link colour (it follows dark mode). Links drawn
+   inside Mateu's shadow roots get the same from linkStyles.ts. */
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--lumo-primary-text-color);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--lumo-primary-color);
 }
 
 body {

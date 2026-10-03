@@ -792,3 +792,52 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
 .mateu-element table {
   max-width: 100%;
 }
+
+/* @Searchable: los ids como chips (con ✕) y el botón que abre su selector */
+.mateu-searchable {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-height: 2.25rem;
+}
+.mateu-searchable-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0 0.25rem 0 0.75rem;
+  min-height: 1.75rem;
+  border-radius: 1rem;
+  background: rgb(var(--oj-palette-neutral-rgb-30, 228 225 221));
+  color: rgb(var(--oj-core-text-color-primary, 22 21 19));
+  font-size: 0.875rem;
+}
+.mateu-searchable-chip .mateu-searchable-remove {
+  --oj-button-height: 1.5rem;
+  --oj-button-icon-size: 1rem;
+}
+/* el selector: ancho de listado, alto acotado (la tabla hace scroll) */
+#mateuPicker {
+  width: min(48rem, 92vw);
+  max-width: 92vw;
+}
+.mateu-picker-body {
+  width: 100%;
+  box-sizing: border-box;
+}
+.mateu-picker-table {
+  max-height: 55vh;
+  width: 100%;
+}
+
+/* obligatorio vacío en un campo que no es un componente JET (bridge.showFieldErrors) */
+.mateu-field-error {
+  border-left: 2px solid rgb(var(--oj-palette-danger-rgb-100, 179 31 48));
+  padding-left: 0.5rem;
+}
+.mateu-field-error::after {
+  content: attr(data-error);
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: rgb(var(--oj-palette-danger-rgb-100, 179 31 48));
+}

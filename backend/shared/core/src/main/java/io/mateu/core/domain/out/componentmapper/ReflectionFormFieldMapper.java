@@ -151,6 +151,8 @@ public class ReflectionFormFieldMapper {
           httpRequest);
     }
     if (!isBasic(fieldType)
+        // a @Searchable holds ids (a UUID, a Set or an array of them…), never a nested form
+        && !MetaAnnotations.isPresent(field, Searchable.class)
         && !fieldType.isEnum()
         && !List.class.isAssignableFrom(fieldType)
         && !Map.class.isAssignableFrom(fieldType)

@@ -95,7 +95,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
       // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
-      if (f.dataType === 'array' || (f.columns || []).length) continue
+      // (un @Searchable de varios ids sí es un campo: sus chips)
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
       metadata[f.fieldId] = {
         type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
           : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -143,8 +144,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
-      if (f.dataType === 'array' || (f.columns || []).length) continue
-      const raw = s[f.fieldId]
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
+      const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
       // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
       // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
@@ -2824,7 +2826,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   let overlaySeq = 0
   /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
-  function buildOverlay(fr) {
+  function buildOverlay(fr, opener) {
     const md = metaOf(fr)
     const id = 'overlay-' + ++overlaySeq
     // Un formulario EMBEBIDO (EmbeddedView: el «Cancel booking» de una reserva) llega como un
@@ -2845,6 +2847,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       width: md.width,
       size: md.size,
       dirty: false,
+      // quien lo abrió: a él van los value-changed/data-changed del overlay (applyOverlayEvent)
+      opener: opener || HOST_ID,
     }
   }
 
@@ -2915,7 +2919,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
 
       if (fr.action === 'Add') {
-        const ctx = buildOverlay(fr)
+        const ctx = buildOverlay(fr, opts.initiator)
         contexts[ctx.id] = ctx
         stack.push(ctx.id)
         continue
@@ -2976,6 +2980,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           break
         }
         case 'DispatchEvent':
+          // lo que un componente del overlay devuelve a quien lo abrió (el selector de un
+          // @Searchable: el valor elegido, su rótulo, y cerrarse)
+          if (applyOverlayEvent(contexts, stack, c.data)) break
           emit(c.data)
           break
         case 'MarkAsClean': {
@@ -3176,7 +3183,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
-    if (!fieldId || (md.columns || []).length || md.propertyRow || !LAYOUT_TYPES[md.dataType]) return null
+    if (!fieldId || (md.columns || []).length || md.propertyRow
+      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
     const s = state || {}
     const d = data || {}
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -3196,6 +3204,210 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  // ── @Searchable: el selector en un diálogo ─────────────────────────────────────────────────
+  //
+  // Un @Searchable (un id, o una List/Set/array de ids) se pinta como chips — uno por id, con su
+  // rótulo de data `<campo>-labels` ({id → rótulo}; en uno simple, `<campo>-label`) — y un botón
+  // que abre su selector (`codesearch-<campo>`): un listado en un Dialog. Elegir una fila
+  // (`action-on-row-select`) o «Add selected» (`action-on-row-select-selected`, con las filas
+  // marcadas en crud_selected_items) contesta value-changed / data-changed / close-modal-requested,
+  // que aquí se aplican al contexto que abrió el diálogo. El servidor fusiona: un campo de varios
+  // valores AÑADE a los que tenía. Quitar un chip es sólo del cliente. Vaadin hace lo mismo
+  // (libs/mateu searchableMulti.ts).
+
+  /** ¿Es un @Searchable editable como tal? (la vista de detalle lo manda como `<campo>-label`:
+   *  su texto, que se pinta como cualquier valor de sólo lectura) */
+  function isSearchableField(f) {
+    return !!f && f.stereotype === 'searchable' && !/-label$/.test(String(f.fieldId || ''))
+  }
+
+  /** Los ids de un campo, lleguen como lleguen (lista, un id suelto, nada). */
+  function searchableIdsOf(value) {
+    if (value == null || value === '') return []
+    const list = Array.isArray(value) ? value : [value]
+    return list.filter((id) => id != null && id !== '')
+  }
+
+  /**
+   * Los chips de un @Searchable: uno por id, rotulado (o el propio id si no hay rótulo). Cada chip
+   * lleva lo que queda al quitarlo (`remaining`: en uno simple, null) — precomputado (CSP de VB).
+   */
+  function searchableChipsOf(fieldId, ids, labels, opts = {}) {
+    const map = labels && typeof labels === 'object' ? labels : {}
+    return ids.map((id) => {
+      const raw = opts.singleLabel != null && opts.singleLabel !== '' ? opts.singleLabel : map[String(id)]
+      const label = raw != null && raw !== '' ? String(raw) : String(id)
+      return {
+        fieldId,
+        id,
+        label,
+        removeLabel: 'Remove ' + label,
+        removable: !opts.readonly,
+        remaining: opts.multi ? ids.filter((other) => String(other) !== String(id)) : null,
+      }
+    })
+  }
+
+  /** El widget de un @Searchable: sus chips y el botón que abre el selector. */
+  function searchableWidgetOf(f, data, value) {
+    const fieldId = f.fieldId
+    const multi = f.dataType === 'array'
+    const ids = searchableIdsOf(plainValueOf(value))
+    const d = data || {}
+    const readonly = !!f.readOnly
+    const chips = searchableChipsOf(fieldId, multi ? ids : ids.slice(0, 1),
+      multi ? d[fieldId + '-labels'] : null,
+      { multi, readonly, singleLabel: multi ? null : d[fieldId + '-label'] })
+    return {
+      fieldId,
+      label: f.label || fieldId,
+      required: !!f.required,
+      readonly,
+      editable: !readonly,
+      isSearchable: true,
+      isSearchableMulti: multi,
+      chips,
+      hasChips: chips.length > 0,
+      // el botón despacha como cualquier bloque del host (hostBlockAction: actionId + parameters)
+      actionId: 'codesearch-' + fieldId,
+      parameters: {},
+      addLabel: multi ? 'Add' : 'Search',
+      isSelect: false,
+      isLookup: false,
+      lookupActionId: '',
+      options: [],
+      isBoolean: false,
+      isDate: false,
+      isDateTime: false,
+      isNumber: false,
+      isTextArea: false,
+      isText: false,
+    }
+  }
+
+  /** ¿Es el overlay el diálogo de un selector (un listado cuyo ServerSide atiende la elección)? */
+  function isPickerOverlay(ctx) {
+    const surface = ctx && ctx.surface
+    if (!surface || !findByType(surface, 'Crud')) return false
+    return ((surface.actions || []).some((a) => a && a.id === SEARCHABLE_PICK_ACTION))
+  }
+
+  const SEARCHABLE_PICK_ACTION = 'action-on-row-select'
+  const SEARCHABLE_ADD_ACTION = 'action-on-row-select-selected'
+
+  /**
+   * El SELECTOR de un @Searchable abierto (el overlay superior, si lo es), listo para el oj-dialog
+   * del selector: título, columnas (sin la columna-botón «Select»: elegir es pulsar la fila),
+   * filas, búsqueda, paginación y — en un campo de varios valores — la selección múltiple y el
+   * botón «Add selected». null si el overlay superior no es un selector.
+   */
+  function searchPickerOf(reg) {
+    const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    const ctx = id && reg.contexts ? reg.contexts[id] : null
+    if (!isPickerOverlay(ctx)) return null
+    const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
+    const state = ctx.state || {}
+    const multi = state._searchableMulti === true || state._searchableMulti === 'true'
+      || !!listing.rowsSelectionEnabled
+    const addButton = (listing.toolbar || []).find((b) => b.actionId === SEARCHABLE_ADD_ACTION)
+    // sin título propio, el del campo que lo abrió (su rótulo)
+    const opener = reg.contexts[ctx.opener || HOST_ID]
+    const field = opener && opener.tree && state._searchableField
+      ? collectFields(opener.tree).find((f) => f.fieldId === state._searchableField) : null
+    return {
+      id,
+      title: ctx.title || (field && field.label) || 'Search',
+      multi,
+      searchable: !!listing.searchable,
+      searchText: state.searchText || '',
+      columns: (listing.columns || []).filter((c) => c.id !== 'select'),
+      rows: listing.rows || [],
+      isEmpty: !!listing.isEmpty,
+      emptyText: listing.emptyStateMessage || 'No data.',
+      selectionMode: { row: multi ? 'multiple' : 'none' },
+      pageSize: listing.pageSize || 20,
+      paging: listing.paging,
+      pickActionId: SEARCHABLE_PICK_ACTION,
+      addActionId: SEARCHABLE_ADD_ACTION,
+      addLabel: (addButton && addButton.label) || 'Add selected',
+    }
+  }
+
+  /** El estado de la búsqueda del selector: lo que su `search` lleva en componentState. */
+  function pickerSearchStateOf(picker, opts = {}) {
+    const size = (picker && picker.pageSize) || 20
+    return {
+      searchText: opts.searchText != null ? opts.searchText : ((picker && picker.searchText) || ''),
+      page: opts.page != null ? opts.page : 0,
+      size,
+    }
+  }
+
+  /**
+   * Aplica al contexto que abrió el overlay superior los eventos con los que un componente del
+   * overlay le devuelve un valor — value-changed {fieldId, value}, data-changed {key, value} — y
+   * close-modal-requested (cierra el overlay). Es lo que en Vaadin hace el mateu-event-interceptor
+   * del diálogo al reenviarlos a su dueño. true si el evento se aplicó; sin overlay, false (el
+   * evento sigue al bus, como siempre).
+   */
+  function applyOverlayEvent(contexts, stack, data) {
+    const name = data && data.eventName
+    if (name !== 'value-changed' && name !== 'data-changed' && name !== 'close-modal-requested') return false
+    const topId = stack.length ? stack[stack.length - 1] : null
+    const top = topId ? contexts[topId] : null
+    if (!top) return false
+    if (name === 'close-modal-requested') {
+      delete contexts[topId]
+      stack.pop()
+      return true
+    }
+    const detail = data.detail || data.payload || {}
+    const openerId = top.opener && contexts[top.opener] ? top.opener : HOST_ID
+    const opener = contexts[openerId]
+    if (!opener) return false
+    if (name === 'value-changed' && detail.fieldId) {
+      contexts[openerId] = { ...opener, state: { ...(opener.state || {}), [detail.fieldId]: detail.value } }
+      return true
+    }
+    if (name === 'data-changed' && detail.key) {
+      contexts[openerId] = { ...opener, data: { ...(opener.data || {}), [detail.key]: detail.value } }
+      return true
+    }
+    return false
+  }
+
+  /** El registro con `values` fundidos en el estado del contexto `id` (p.ej. el borrador del
+   *  formulario al abrir un selector: lo escrito no se pierde cuando el diálogo se cierra). */
+  function withContextState(reg, id, values) {
+    const ctx = reg && reg.contexts && reg.contexts[id]
+    if (!ctx || !values || !Object.keys(values).length) return reg
+    return { ...reg, contexts: { ...reg.contexts, [id]: { ...ctx, state: { ...(ctx.state || {}), ...values } } } }
+  }
+
+  /**
+   * Una proyección (secciones del formulario, bloques del host…) con los chips del @Searchable
+   * `fieldId` rehechos para `ids` — al quitar un chip, sin volver al servidor. Los rótulos salen
+   * de los chips que ya había.
+   */
+  function withSearchableIds(projection, fieldId, ids) {
+    const visit = (node) => {
+      if (Array.isArray(node)) return node.map(visit)
+      if (!node || typeof node !== 'object') return node
+      if (node.isSearchable && node.fieldId === fieldId) {
+        const labels = {}
+        for (const chip of node.chips || []) labels[String(chip.id)] = chip.label
+        const list = searchableIdsOf(ids)
+        const chips = searchableChipsOf(fieldId, node.isSearchableMulti ? list : list.slice(0, 1), labels,
+          { multi: node.isSearchableMulti, readonly: node.readonly })
+        return { ...node, chips, hasChips: chips.length > 0 }
+      }
+      const out = {}
+      for (const key of Object.keys(node)) out[key] = visit(node[key])
+      return out
+    }
+    return visit(projection)
+  }
+
   /**
    * El WIDGET que le toca a un FormField (flags PRECOMPUTADOS: el CSP de VB no evalúa
    * expresiones), compartido por el editor de fila y los formularios de página/drawer/isla:
@@ -3203,6 +3415,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
    */
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+    if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
     let options = optionsOf(f, data)
     // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -4333,9 +4546,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
         }
         if (!invalid) {
-          try {
-            el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
-          } catch (ignored) { /* no es un componente JET */ }
+          if ('messagesCustom' in el || typeof el.validate === 'function') {
+            try {
+              el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
+            } catch (ignored) { /* no es un componente JET */ }
+          } else {
+            // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
+            // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
+            el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
+            el.classList.add('mateu-field-error')
+          }
         }
         marked++
         if (!first) first = el
@@ -4347,6 +4567,17 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       try { (input || first).focus() } catch (ignored) { /* sin caja */ }
     }
     return marked
+  }
+
+  /** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
+  function clearFieldErrorMarks(fieldId) {
+    if (typeof document === 'undefined') return
+    for (const el of document.querySelectorAll('.mateu-field-error')) {
+      if (fieldId == null || el.getAttribute('data-field-id') === String(fieldId)) {
+        el.classList.remove('mateu-field-error')
+        el.removeAttribute('data-error')
+      }
+    }
   }
 
   /** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */
@@ -6217,6 +6448,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     overlayOf,
     eventTriggersOf,
     dismissOverlay,
+    // @Searchable: el selector en su diálogo, y los chips del campo
+    searchPickerOf,
+    pickerSearchStateOf,
+    withContextState,
+    withSearchableIds,
     shellNavOf,
     ojIconOf,
     ojIconOrGenericOf,
@@ -6307,6 +6543,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
     clearFieldError,
+    clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
     effectiveChatUrl,

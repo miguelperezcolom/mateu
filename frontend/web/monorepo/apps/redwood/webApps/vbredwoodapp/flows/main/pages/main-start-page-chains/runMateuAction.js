@@ -296,6 +296,14 @@ define([
         reg = await bridge.loadLookups(base, reg, bridge.HOST_ID, { appState, route, draft: $page.variables.mateuDraft });
       } catch (ignored) { /* sin opciones se quedan como estaban */ }
 
+      // El SELECTOR de un @Searchable que se acaba de abrir: lo escrito en el formulario se funde
+      // en su estado — el borrador se vacía al cerrarse el diálogo, y lo elegido vuelve al estado
+      const pickerOpened = !!bridge.searchPickerOf(reg) && !bridge.searchPickerOf(before);
+      if (pickerOpened) {
+        reg = bridge.withContextState(reg, bridge.HOST_ID, $page.variables.mateuDraft);
+        bridge.clearFieldErrorMarks(id.indexOf('codesearch-') === 0 ? id.substring('codesearch-'.length) : null);
+      }
+
       $application.variables.mateuRegistry = reg;
 
       // Una respuesta que SÓLO trae mensajes (p.ej. el «falta la tarifa» con el que un wizard
@@ -315,9 +323,11 @@ define([
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
       $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} };
-      // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer
-      const esModal = !!(overlayNow && overlayNow.isDialog);
-      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal;
+      // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer — salvo
+      // el selector de un @Searchable, que tiene su propio diálogo (#mateuPicker)
+      const pickerNow = bridge.searchPickerOf(reg);
+      const esModal = !!(overlayNow && overlayNow.isDialog) && !pickerNow;
+      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal && !pickerNow;
       if (esModal && !$page.variables.mateuModalOpen) {
         $page.variables.mateuModalOpen = true;
         await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'open' });
@@ -327,6 +337,15 @@ define([
       }
       if (!overlayNow || !overlayBefore || overlayNow.id !== overlayBefore.id) {
         $page.variables.mateuDrawerDraft = {};
+      }
+      if (pickerNow) {
+        $page.variables.mateuPicker = pickerNow;
+        $page.variables.mateuPickerRows = pickerNow.rows;
+      } else if ($page.variables.mateuPickerOpen) {
+        // elegido (o cerrado por el servidor): la marca baja ANTES del close — su ojBeforeClose
+        // no es un descarte del usuario
+        $page.variables.mateuPickerOpen = false;
+        await Actions.callComponentMethod(context, { selector: '#mateuPicker', method: 'close' });
       }
 
       const hostAfter = reg.contexts[bridge.HOST_ID];
@@ -706,6 +725,15 @@ define([
       }
       if (effects.docTitle) {
         document.title = effects.docTitle;
+      }
+      // el selector recién abierto: el diálogo y la primera página de su listado (su `search`,
+      // contra SU ServerSide — lo que en Vaadin hace el listado al montarse)
+      if (pickerNow && !$page.variables.mateuPickerOpen) {
+        $page.variables.mateuPickerOpen = true;
+        $page.variables.mateuPickerSelection = { all: false, keys: [], except: [] };
+        await Actions.callComponentMethod(context, { selector: '#mateuPicker', method: 'open' });
+        $page.variables.mateuDrawerDraft = bridge.pickerSearchStateOf(pickerNow);
+        await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: 'search' } });
       }
       if (effects.navigate && (effects.navigate.route || effects.navigate.url)) {
         if ($page.variables.mateuModalOpen) {

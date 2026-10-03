@@ -45,6 +45,12 @@ export default interface App extends ComponentMetadata {
     chromeless?: boolean
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
     noBreadcrumbs?: boolean
+    /** @App(askLabel): the brand of the shell's "ask" entry; absent = the renderer's own */
+    askLabel?: string
+    /** @App(askIcon): its icon (an initial, an image or an icon name); absent = the renderer's own */
+    askIcon?: string
+    /** @App(accentColor): the app's brand accent, a CSS colour (not the primary colour); absent = none */
+    accentColor?: string
 
     /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
     backRoute?: string

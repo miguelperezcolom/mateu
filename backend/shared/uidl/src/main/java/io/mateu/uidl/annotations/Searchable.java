@@ -7,7 +7,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Created by miguel on 18/1/17. */
+/**
+ * A field whose value is picked in a modal: a «Search» button opens the {@link #selector()} —
+ * typically a {@code Listing} that implements {@link Selector} — and the picked row's id is set on
+ * the field, displayed through {@link #label()}.
+ *
+ * <p>On a MULTI-valued field — a {@code List}, {@code Set} or array of ids — the ids show as
+ * removable chips and the modal opens with row selection and «Add selected»: the picked rows are
+ * added to the field (in order, without duplicates). The selector maps the checked rows with {@link
+ * Selector#selectedItems}, which by default reuses {@link Selector#selected}.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 // ANNOTATION_TYPE so it can be used as a meta-annotation on a semantic annotation,
 // resolved via MetaAnnotations.

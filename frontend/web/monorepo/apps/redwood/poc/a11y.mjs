@@ -313,9 +313,16 @@ export async function showFieldErrors(fieldIds, fallbackMessage) {
         try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
       }
       if (!invalid) {
-        try {
-          el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
-        } catch (ignored) { /* no es un componente JET */ }
+        if ('messagesCustom' in el || typeof el.validate === 'function') {
+          try {
+            el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
+          } catch (ignored) { /* no es un componente JET */ }
+        } else {
+          // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
+          // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
+          el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
+          el.classList.add('mateu-field-error')
+        }
       }
       marked++
       if (!first) first = el
@@ -327,6 +334,17 @@ export async function showFieldErrors(fieldIds, fallbackMessage) {
     try { (input || first).focus() } catch (ignored) { /* sin caja */ }
   }
   return marked
+}
+
+/** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
+export function clearFieldErrorMarks(fieldId) {
+  if (typeof document === 'undefined') return
+  for (const el of document.querySelectorAll('.mateu-field-error')) {
+    if (fieldId == null || el.getAttribute('data-field-id') === String(fieldId)) {
+      el.classList.remove('mateu-field-error')
+      el.removeAttribute('data-error')
+    }
+  }
 }
 
 /** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */

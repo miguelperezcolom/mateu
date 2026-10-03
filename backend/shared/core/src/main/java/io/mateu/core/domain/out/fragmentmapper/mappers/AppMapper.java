@@ -95,6 +95,7 @@ public final class AppMapper {
             .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
             .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
             .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
+            .accentColor(appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
