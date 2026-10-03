@@ -55,10 +55,33 @@ public final class MateuBundleExporter {
       boolean ok,
       String skipReason,
       String routePattern,
-      List<String> paramNames) {
+      List<String> paramNames,
+      /**
+       * The route's CONTENT load, when it differs from {@link #json()}: the increment the server
+       * answers when an app shell asks for what goes in its content slot ({@code consumedRoute} =
+       * the shell's, not {@code "_empty"}). Under a mount whose root is an app shell, {@link
+       * #json()} is the fresh-load answer — the SHELL — and a sub-route's own screen only exists as
+       * this second increment. Shipping only the shell is what made every bundled sub-route render
+       * the shell again inside the shell (#557: a deep link "rendered HOME", or nested shells until
+       * the tab died). Null when the route is not under an app shell, where the two loads are the
+       * same increment.
+       */
+      String contentJson) {
     /** Plain (non-template) entry. */
     public BundleEntry(String route, String syncPath, String json, boolean ok, String skipReason) {
-      this(route, syncPath, json, ok, skipReason, null, null);
+      this(route, syncPath, json, ok, skipReason, null, null, null);
+    }
+
+    /** Pre-content shape: a template (or plain) entry whose content load is its shell. */
+    public BundleEntry(
+        String route,
+        String syncPath,
+        String json,
+        boolean ok,
+        String skipReason,
+        String routePattern,
+        List<String> paramNames) {
+      this(route, syncPath, json, ok, skipReason, routePattern, paramNames, null);
     }
   }
 
@@ -216,7 +239,12 @@ public final class MateuBundleExporter {
               .sorted(java.util.Comparator.comparing(e -> String.valueOf(e.route())))
               .map(
                   e ->
-                      e.route() + "\u0000" + e.ok() + "\u0000" + (e.json() == null ? "" : e.json()))
+                      e.route()
+                          + "\u0000"
+                          + e.ok()
+                          + "\u0000"
+                          + (e.json() == null ? "" : e.json())
+                          + (e.contentJson() == null ? "" : "\u0000" + e.contentJson()))
               .collect(java.util.stream.Collectors.joining("\u0001"));
       try {
         var digest = java.security.MessageDigest.getInstance("SHA-256");
@@ -287,6 +315,23 @@ public final class MateuBundleExporter {
    */
   public BundleManifest exportAll(
       String baseUrl, ClassLoader cl, boolean staticOnly, boolean includeParamRoutes) {
+    return exportAll(baseUrl, cl, staticOnly, includeParamRoutes, false);
+  }
+
+  /**
+   * As {@link #exportAll(String, ClassLoader, boolean, boolean)}, and when {@code specsOnly} a
+   * definition-only route the browser can expand (see {@link #isClientExpandable}) is NOT
+   * pre-rendered: it travels only as its raw definition in {@link BundleManifest#definitions()},
+   * and the client-side expander turns it into the wire at runtime. That is the "edit a definition,
+   * refresh" static site — and the only way the expander is exercised at all, because the client
+   * prefers a pre-rendered increment whenever there is one.
+   */
+  public BundleManifest exportAll(
+      String baseUrl,
+      ClassLoader cl,
+      boolean staticOnly,
+      boolean includeParamRoutes,
+      boolean specsOnly) {
     // collect param routes too when templating them; otherwise keep the static-only filter
     boolean onlyStatic = staticOnly && !includeParamRoutes;
     var routes = new LinkedHashSet<>(routesFromBeans(onlyStatic));
@@ -300,9 +345,8 @@ public final class MateuBundleExporter {
     // Entries with no VIEW MODEL are exported too. It looks as if there were nothing to pre-render
     // for them, but there is: the YAML loader resolves the entry's definition, and a definition
     // that declares no model view renders as a bare layout through the ordinary sync path. So the
-    // statically served screen is pre-rendered by the server like any other — no special
-    // client-side
-    // path is needed to show it with no backend.
+    // statically served screen is pre-rendered by the server like any other — unless specsOnly
+    // asks for it to be expanded in the browser instead.
     var authored = new RouteRegistry().authoredFrom(cl);
     authored.routes().stream()
         .map(entry -> "/" + entry.route())
@@ -310,18 +354,26 @@ public final class MateuBundleExporter {
         .forEach(routes::add);
     // Which class answers each route, so an identity-dependent screen is recognised BEFORE it is
     // rendered (see identityRestriction).
-    var classByRoute = new java.util.HashMap<String, String>(classesFromBeans());
-    for (var ref : RouteRegistrations.read(cl)) {
-      classByRoute.putIfAbsent(normalizedRoute(ref.route()), ref.className());
-    }
-    for (var entry : authored.routes()) {
-      if (entry.viewModel() != null && !entry.viewModel().isBlank()) {
-        classByRoute.put(normalizedRoute(entry.route()), entry.viewModel());
+    var classByRoute = classesByRoute(cl, authored);
+    var definitions = collectDefinitions(cl, authored);
+    var expandedInBrowser = new java.util.HashSet<String>();
+    if (specsOnly) {
+      for (var entry : authored.routes()) {
+        var def = entry.definition();
+        if (def != null
+            && (entry.viewModel() == null || entry.viewModel().isBlank())
+            && isClientExpandable(definitions.get(def))) {
+          expandedInBrowser.add(normalizedRoute(entry.route()));
+        }
       }
     }
 
     var entries = new ArrayList<BundleEntry>();
     for (String route : routes) {
+      if (expandedInBrowser.contains(normalizedRoute(route))) {
+        log.info("bundle: {} ships as its raw definition (expanded in the browser)", route);
+        continue;
+      }
       var restriction = identityRestriction(classByRoute.get(normalizedRoute(route)), cl);
       if (restriction != null) {
         entries.add(new BundleEntry(route, toSyncPath(route), null, false, restriction));
@@ -339,7 +391,64 @@ public final class MateuBundleExporter {
         entries,
         authored,
         restSourceCatalogue(),
-        collectDefinitions(cl, authored));
+        definitions);
+  }
+
+  /**
+   * The top-level definition types the client-side expander ({@code libs/mateu/.../expander}) knows
+   * how to turn into the wire. A deliberate mirror of the TS side: a definition of any other type
+   * is pre-rendered even in specs mode, because shipping it raw would paint a blank screen. Grow it
+   * together with the expander.
+   */
+  static final java.util.Set<String> CLIENT_EXPANDABLE_TYPES =
+      java.util.Set.of(
+          "AppShell",
+          "Listing",
+          "Crudl",
+          "Crud",
+          "Form",
+          "VerticalLayout",
+          "HorizontalLayout",
+          "Div",
+          "FlexLayout",
+          "Card",
+          "CustomComponent");
+
+  /**
+   * True when the browser can expand this raw definition (see {@link #CLIENT_EXPANDABLE_TYPES}).
+   */
+  static boolean isClientExpandable(JsonNode definition) {
+    if (definition == null || !definition.isObject()) {
+      return false;
+    }
+    var root = definition.has("layout") ? definition.get("layout") : definition;
+    return root.isObject() && CLIENT_EXPANDABLE_TYPES.contains(root.path("type").asText());
+  }
+
+  /**
+   * Which class answers each route: the live beans, then the compiled index, then the authored
+   * table's view models (authored wins).
+   */
+  Map<String, String> classesByRoute(ClassLoader cl, RouteTable authored) {
+    var classByRoute = new java.util.HashMap<String, String>(classesFromBeans());
+    for (var ref : RouteRegistrations.read(cl)) {
+      classByRoute.putIfAbsent(normalizedRoute(ref.route()), ref.className());
+    }
+    for (var entry : authored.routes()) {
+      if (entry.viewModel() != null && !entry.viewModel().isBlank()) {
+        classByRoute.put(normalizedRoute(entry.route()), entry.viewModel());
+      }
+    }
+    return classByRoute;
+  }
+
+  /**
+   * The STATIC-SAFETY report: every way the bundled routes still need a server. Empty means the
+   * bundle runs with no backend at all. The build goal fails on a non-empty report when the bundle
+   * is declared static ({@code staticOnly}) — see {@link StaticSafetyCheck} for the rules.
+   */
+  public List<StaticSafetyCheck.Violation> staticSafety(BundleManifest manifest, ClassLoader cl) {
+    return StaticSafetyCheck.check(manifest, classesByRoute(cl, manifest.routes()), cl);
   }
 
   /**
@@ -391,7 +500,7 @@ public final class MateuBundleExporter {
     }
   }
 
-  private static String normalizedRoute(String route) {
+  static String normalizedRoute(String route) {
     return route == null ? "" : route.replaceAll("^/+", "").replaceAll("/+$", "");
   }
 
@@ -545,40 +654,92 @@ public final class MateuBundleExporter {
     return new BundleManifest(baseUrl, java.time.Instant.now().toString(), true, entries);
   }
 
-  /** Render a single route's initial load; a skip (throw / empty) yields {@code ok=false}. */
+  /**
+   * Render a single route's initial load; a skip (throw / empty) yields {@code ok=false}.
+   *
+   * <p>Two loads, when the route lives under an app shell: the FRESH load (what a deep link or a
+   * reload asks first, {@code consumedRoute = "_empty"}) answers the shell, and the shell then asks
+   * for its content slot with its own consumed route — a second, different increment. Both are
+   * exported ({@link BundleEntry#json()} and {@link BundleEntry#contentJson()}); the client picks
+   * by the request's consumed route.
+   */
   public BundleEntry exportRoute(String baseUrl, String route) {
     var syncPath = toSyncPath(route);
+    String json;
     try {
-      var rq = RunActionRqDto.builder().route(route).actionId("").build();
-      var httpRequest =
-          requestFactory != null
-              ? requestFactory.get()
-              : new HeadlessHttpRequest(rq)
-                  .withAttribute("baseUrl", baseUrl == null ? "" : baseUrl);
-      // A custom requestFactory may not carry the rq/baseUrl — the HeadlessHttpRequest default
-      // does.
-      var increment =
-          service.runAction("", rq, baseUrl == null ? "" : baseUrl, httpRequest).blockFirst();
-      if (increment == null) {
-        return new BundleEntry(route, syncPath, null, false, "empty increment");
-      }
-      // A load that failed server-side does NOT throw — RunActionUseCase.onErrorResume maps it to
-      // an
-      // increment carrying an error message and NO fragments. A renderable screen always has at
-      // least
-      // one fragment, so treat "no fragments" as a skip (the route stays backend-served), surfacing
-      // the error message as the reason.
-      if (increment.fragments() == null || increment.fragments().isEmpty()) {
-        var reason =
-            increment.messages() != null && !increment.messages().isEmpty()
-                ? increment.messages().get(0).text()
-                : "no fragments";
-        return new BundleEntry(route, syncPath, null, false, reason);
-      }
-      return new BundleEntry(route, syncPath, wireMapper.writeValueAsString(increment), true, null);
+      json = render(baseUrl, route, null);
+    } catch (SkipException skip) {
+      return new BundleEntry(route, syncPath, null, false, skip.getMessage());
     } catch (Throwable t) {
       log.warn("skipping route {} (export failed): {}", route, t.toString());
       return new BundleEntry(route, syncPath, null, false, t.toString());
+    }
+    String contentJson = null;
+    var shellConsumedRoute = appShellConsumedRoute(json);
+    if (shellConsumedRoute != null && !normalizedRoute(route).isEmpty()) {
+      try {
+        contentJson = render(baseUrl, route, shellConsumedRoute);
+      } catch (Throwable t) {
+        // The shell still bundles; the content slot falls through to a backend, if there is one.
+        log.warn("route {}: its content load could not be exported: {}", route, t.toString());
+      }
+    }
+    return new BundleEntry(route, syncPath, json, true, null, null, null, contentJson);
+  }
+
+  /** A load that rendered nothing usable: the route stays backend-served, for this reason. */
+  private static final class SkipException extends RuntimeException {
+    SkipException(String reason) {
+      super(reason, null, false, false);
+    }
+  }
+
+  /**
+   * One {@code actionId=""} load of {@code route}, as wire JSON. {@code consumedRoute} null is a
+   * fresh load (the server reads it as {@code "_empty"}); otherwise the load an app shell makes for
+   * its content slot.
+   */
+  private String render(String baseUrl, String route, String consumedRoute) throws Throwable {
+    var rq =
+        RunActionRqDto.builder().route(route).consumedRoute(consumedRoute).actionId("").build();
+    var httpRequest =
+        requestFactory != null
+            ? requestFactory.get()
+            : new HeadlessHttpRequest(rq).withAttribute("baseUrl", baseUrl == null ? "" : baseUrl);
+    // A custom requestFactory may not carry the rq/baseUrl — the HeadlessHttpRequest default does.
+    var increment =
+        service.runAction("", rq, baseUrl == null ? "" : baseUrl, httpRequest).blockFirst();
+    if (increment == null) {
+      throw new SkipException("empty increment");
+    }
+    // A load that failed server-side does NOT throw — RunActionUseCase.onErrorResume maps it to an
+    // increment carrying an error message and NO fragments. A renderable screen always has at least
+    // one fragment, so treat "no fragments" as a skip (the route stays backend-served), surfacing
+    // the error message as the reason.
+    if (increment.fragments() == null || increment.fragments().isEmpty()) {
+      throw new SkipException(
+          increment.messages() != null && !increment.messages().isEmpty()
+              ? increment.messages().get(0).text()
+              : "no fragments");
+    }
+    return wireMapper.writeValueAsString(increment);
+  }
+
+  /**
+   * The consumed route an app shell sends when it loads its content slot, or {@code null} when the
+   * increment is not an app shell (a plain page is its own content). Read off the wire rather than
+   * the DTO so it survives the shell moving within the tree.
+   */
+  private String appShellConsumedRoute(String json) {
+    try {
+      var component = wireMapper.readTree(json).at("/fragments/0/component");
+      if (!"App".equals(component.at("/metadata/type").asText())) {
+        return null;
+      }
+      var consumed = component.at("/metadata/homeConsumedRoute");
+      return consumed.isTextual() ? consumed.asText() : "";
+    } catch (Exception e) {
+      return null;
     }
   }
 
@@ -608,7 +769,8 @@ public final class MateuBundleExporter {
         rendered.ok(),
         rendered.skipReason(),
         pattern,
-        paramNames);
+        paramNames,
+        rendered.contentJson());
   }
 
   /**
