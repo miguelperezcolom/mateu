@@ -37,7 +37,6 @@ flowchart TD
 Route parameters and query parameters are injected before any UI logic is evaluated. When your action runs, the ViewModel already holds the correct field values from the URL and the browser state.
 
 ```java
-@Route("/products/:id")
 public class ProductForm {
 
     String id;   // already populated when save() runs
@@ -49,6 +48,14 @@ public class ProductForm {
     }
 
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/:id
+    viewModel: com.example.ProductForm
 ```
 
 ### Fluent components

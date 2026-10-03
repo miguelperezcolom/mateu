@@ -79,7 +79,6 @@ constructor injection. If you do, it **must** be prototype-scoped:
 ```java
 @Component
 @Scope("prototype")
-@Route("/products/new")
 public class NewProductForm {
 
     private final ProductRepository productRepository;
@@ -91,6 +90,14 @@ public class NewProductForm {
         this.productRepository = productRepository;
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/new
+    viewModel: com.example.NewProductForm
 ```
 
 :::caution

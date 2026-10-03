@@ -252,7 +252,6 @@ public List<Trigger> triggers(HttpRequest httpRequest) {
 This example wires together a radio selector, a `<model-viewer>` web component, a runtime-injected script, and event listeners:
 
 ```java
-@Route(value = "/demo/model-viewer", parentRoute = "")
 public class ModelViewerPage
         implements ComponentTreeSupplier, ActionHandler, CommandSupplier, TriggersSupplier {
 
@@ -326,6 +325,14 @@ public class ModelViewerPage
         };
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: demo/model-viewer
+    viewModel: com.example.ModelViewerPage
 ```
 
 ---

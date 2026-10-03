@@ -48,6 +48,28 @@ public class HelidonMPBeanProvider implements BeanProvider {
    * (Helidon MP).
    */
   private Collection<Bean<?>> resolve(Class<?> clazz) {
+    // The set of beans is fixed once the container is up, and this runs on the request path many
+    // times per render (every form field asks for its ComponentAdapter, every mapping for the
+    // exporters). The fallback below scans EVERY bean in the application, and it is the path taken
+    // precisely when nothing matches — the common case for those optional SPIs. Resolve once per
+    // type. A lookup that FAILED (null: e.g. asked before the container finished booting) is not
+    // remembered, so it is retried.
+    var cached = resolved.get(clazz);
+    if (cached != null) {
+      return cached;
+    }
+    var beans = resolveUncached(clazz);
+    if (beans == null) {
+      return List.of();
+    }
+    resolved.putIfAbsent(clazz, beans);
+    return beans;
+  }
+
+  private final java.util.Map<Class<?>, Collection<Bean<?>>> resolved =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  private Collection<Bean<?>> resolveUncached(Class<?> clazz) {
     try {
       var beanManager = beanManager();
       var direct = beanManager.getBeans(clazz);
@@ -59,7 +81,7 @@ public class HelidonMPBeanProvider implements BeanProvider {
           .<Bean<?>>map(bean -> bean)
           .toList();
     } catch (Exception ignored) {
-      return List.of();
+      return null;
     }
   }
 

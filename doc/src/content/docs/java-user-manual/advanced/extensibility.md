@@ -69,10 +69,17 @@ The framework picks up `@Primary` beans and uses them in place of the defaults. 
 Implement a `@Primary` `RouteResolver` bean to intercept and rewrite routes before they are dispatched. Combined with a custom resolver, you can implement dynamic routing based on tenant, feature flags, or external configuration:
 
 ```java
-@Route(value = "/custom-resolver", parentRoute = "")
 public class CustomRouteResolverPage implements ComponentTreeSupplier {
     // page loaded via a custom routing strategy
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: custom-resolver
+    viewModel: com.example.CustomRouteResolverPage
 ```
 
 ---

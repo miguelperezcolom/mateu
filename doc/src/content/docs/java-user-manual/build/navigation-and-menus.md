@@ -37,7 +37,7 @@ A `@Menu` field of type `String` generates a navigation link to that path.
 String page3 = "/page3";
 ```
 
-Use this when the target already has a `@UI` or `@Route` elsewhere, and you only want a link to it.
+Use this when the target already has a `@UI` mount or a `routes.yaml` route elsewhere, and you only want a link to it.
 
 ---
 
@@ -181,14 +181,13 @@ public class Home2 {
 
 ---
 
-## Nesting menus with @Route and parentRoute
+## Nesting menus with routes.yaml
 
 When a class is navigated to from a menu, Mateu needs to know where it sits in the route tree.
 
-Use `parentRoute` to declare the parent:
+Declare it as an inner route of the parent mount — a [`type: Routes`](/java-ui-definition/route-registry/) file tagged with the mount's `basePath` (routes are relative to it; use `children` to nest a route in another route's slot):
 
 ```java
-@Route(value = "/xxx", parentRoute = "/home2")
 public class NestedApp {
 
     @Menu
@@ -199,8 +198,17 @@ public class NestedApp {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/home2-routes.yaml — the inner routes of the @UI("/home2") mount
+type: Routes
+basePath: /home2
+routes:
+  - route: xxx
+    viewModel: com.example.NestedApp
+```
+
 This tells Mateu:
-- `/xxx` is a child of `/home2`
+- `/home2/xxx` is a child of `/home2` (it renders in the parent's slot)
 - breadcrumbs and back navigation are generated accordingly
 - `Page1` and `Page2` appear as sub-items under `NestedApp` in the sidebar
 
@@ -211,7 +219,6 @@ This tells Mateu:
 Routes can contain parameters:
 
 ```java
-@Route("/example/:name")
 public class ExampleParametersViewModel {
 
     String name;      // populated from :name in the URL
@@ -228,25 +235,40 @@ public class ExampleParametersViewModel {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: example/:name
+    viewModel: com.example.ExampleParametersViewModel
+```
+
 Mateu populates `name` from the URL segment automatically when the page is navigated to.
 
 ---
 
-## @UI vs @Route
+## @UI vs routes.yaml
 
-Both annotations declare that a class is a navigable page. The difference is in context:
+`@UI` is the only routing annotation; inner routes are data. The difference is in context:
 
-| Annotation | Use when |
+| Declared with | Use when |
 |---|---|
-| `@UI("/path")` | Top-level entry point of the application or a module |
-| `@Route("/path")` | A page nested under another `@UI`, or bound to a CRUD flow |
+| `@UI("/path")` | Top-level entry point (mount) of the application or a module |
+| a `routes.yaml` entry | A page nested under a `@UI` mount, or bound to a CRUD flow |
 
 ```java
 @UI("/users")                          // top-level
 public class UsersPage extends AutoCrud<User> {}
 
-@Route(value = "/:id/edit", uis = {"/users"})   // bound to /users CRUD
-public class UserEditorPage {}
+public class UserEditorPage {}           // bound to the /users CRUD in routes.yaml
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id/edit
+    viewModel: com.example.UserEditorPage
 ```
 
 ---
@@ -290,7 +312,7 @@ overriding the static declarations; a field the shell leaves unset falls back to
 ## Mental model
 
 - `@Menu` field type determines what kind of entry is generated
-- `@Route(parentRoute = ...)` declares where a page sits in the route tree
+- `routes.yaml` (`basePath`, `children`) declares where a page sits in the route tree
 - `@UI` declares a top-level entry point
 - Nesting is achieved by pointing `@Menu` fields at classes that themselves have `@Menu` fields
 - `RemoteMenu` lets the shell pull navigation from another service at runtime

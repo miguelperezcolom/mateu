@@ -2,7 +2,7 @@
 title: "Model vs Pages"
 ---
 
-Most Mateu UIs should be defined at the model level. Explicit `@Route` pages are the exception, not the default.
+Most Mateu UIs should be defined at the model level. Explicit routed pages (a class bound to a URL by a [`routes.yaml` entry](/java-ui-definition/route-registry/)) are the exception, not the default.
 
 ---
 
@@ -18,10 +18,17 @@ Instead of creating a separate editor page for a related entity:
 
 ```java
 // Not recommended for standard relationships
-@Route("/products/:id/categories/edit")
 public class ProductCategoryEditor {
     // lots of wiring...
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/:id/categories/edit
+    viewModel: com.example.ProductCategoryEditor
 ```
 
 Express the relationship directly in the model with an annotation:
@@ -55,7 +62,7 @@ Mateu renders the radio group in the existing form. No extra page needed.
 
 ## When NOT to create a page
 
-You usually do not need a `@Route` page when:
+You usually do not need a routed page when:
 
 - you are doing standard CRUD
 - the UI can be inferred from the model type and annotations
@@ -66,7 +73,7 @@ You usually do not need a `@Route` page when:
 
 ## When to create a page
 
-Create an explicit `@Route` class when:
+Create an explicit page class (and give it a `routes.yaml` entry) when:
 
 - you need a multi-step wizard or guided flow
 - you need a custom dashboard or composite layout
@@ -74,7 +81,6 @@ Create an explicit `@Route` class when:
 - you need a standalone URL for deep linking or sharing
 
 ```java
-@Route("/products/onboarding")
 public class ProductOnboardingWizard {
 
     // Step 1
@@ -98,13 +104,21 @@ public class ProductOnboardingWizard {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/onboarding
+    viewModel: com.example.ProductOnboardingWizard
+```
+
 ---
 
 ## Mental model
 
 - model = source of truth for data and default UI
 - annotations = UI intent and behavior
-- `@Route` page = escape hatch for custom flows
+- routed page (`routes.yaml` entry) = escape hatch for custom flows
 
 Push as much as possible into the model. Reach for explicit pages only when the model cannot express the required behavior.
 

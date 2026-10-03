@@ -112,7 +112,7 @@ public class HelloForm {
 | `@Help("...")` | Tooltip / helper text |
 | `@H1` – `@H5` | Render a `String` field as a heading |
 | `@Trigger(type=TriggerType.OnLoad, actionId="load")` | Fire an action on lifecycle event |
-| `@Rule(filter="...", field="...", attribute=..., value="...")` | Conditional show/hide/enable rule |
+| `@Rule(filter="...", action=..., fieldName="...", fieldAttribute=..., value="...", expression="...", actionId="", result=...)` | Conditional show/hide/enable rule |
 
 ---
 
@@ -147,7 +147,7 @@ record Product(
 ) implements Identifiable {}
 ```
 
-`CrudRepository<T>` methods: `findById`, `save`, `findAll`, `deleteAllById`, and the **default**
+`CrudStore<T>` (returned by `store()`) methods: `findById`, `save`, `findAll`, `deleteAllById`, and the **default**
 `Page<T> find(String searchText, T filters, Pageable pageable)` — search + filter + sort + paginate;
 default impl runs in memory over `findAll()` (override for DB-side paging). `Page<T>` carries
 `totalElements`, so no separate `count()` is needed. `AutoCrud` calls `find` to fill the listing.
@@ -158,13 +158,12 @@ default impl runs in memory over `findAll()` (override for DB-side paging). `Pag
 
 ```java
 @UI("/orders")
-public class Orders extends Listing<OrderFilters, OrderRow> {
+public class Orders implements Listing<OrderRow>, Searchable, Filterable<OrderFilters> {
 
     @Override
-    public ListingData<OrderRow> search(
-            String searchText, OrderFilters filters,
-            Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(repository.findAll(searchText, pageable));
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
+        OrderFilters filters = filters(request);   // typed, from Filterable
+        return ListingData.of(repository.findAll(request.searchText(), filters, request.pageable()));
     }
 
     @Override
@@ -320,11 +319,11 @@ AutoEditableView; categories side-by-side → Foldout.
 @UI("/stock") @InlineEditing                 // class-level: cells edit in place
 public class StockCrud extends AutoCrud<StockItem> {
     @Override public GridLayout gridLayout() { return GridLayout.table; }
-    @Override public CrudRepository<StockItem> repository() { /* … */ }
+    @Override public CrudStore<StockItem> store() { /* … */ }
 }
 ```
 
-Each committed cell persists its row via repository().save (update-row action).
+Each committed cell persists its row via store().save (update-row action).
 `@ReadOnly` fields stay display-only. (For form collections use `@InlineEditing`
 on the `List` field — see Editable table.)
 
@@ -427,8 +426,8 @@ public class CheckInForm {
 | Interface | When to use |
 |---|---|
 | `Identifiable` | Mark ID field for CRUD (`id()` method) |
-| `ListingBackend<F,R>` | Custom searchable grid |
-| `CrudRepository<T>` | Data port for AutoCrud |
+| `Listing<Row>` (+ `Searchable`, `Filterable<F>`, …) | Custom searchable grid — `search(SearchRequest, HttpRequest)` |
+| `CrudStore<T>` | Data port for AutoCrud (`store()`) |
 | `Hydratable` | `hydrate(HttpRequest)` called before each render |
 | `BannerSupplier` | Programmatic page banners (replaces `@Banner` methods) |
 | `BadgeSupplier` | Programmatic header badges |

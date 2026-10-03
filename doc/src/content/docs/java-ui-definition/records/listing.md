@@ -76,7 +76,6 @@ public record Listing(
 ## Basic usage
 
 ```java
-@Route("/customers")
 public class CustomerListing implements ComponentTreeSupplier, Listing<CustomerRow>,
         Searchable, Filterable<CustomerFilters> {
 
@@ -96,6 +95,14 @@ public class CustomerListing implements ComponentTreeSupplier, Listing<CustomerR
         // return data
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: customers
+    viewModel: com.example.CustomerListing
 ```
 
 ## With explicit columns

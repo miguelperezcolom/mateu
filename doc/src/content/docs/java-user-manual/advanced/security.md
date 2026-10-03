@@ -117,7 +117,7 @@ The browser is untrusted, so the server decides what a request may touch — nev
 
 **Server-side types.** Every request names the view it talks to (`serverSideType`). Mateu only resolves types the application exposes:
 
-- registered ones: `@UI` and `@Route` classes, `viewModel`s of `routes.yaml` / a `RouteEntrySupplier`, the `modelView` of the route's YAML page, types a `ComponentAdapter` is registered for;
+- registered ones: `@UI` classes, `viewModel`s of `routes.yaml` / a `RouteEntrySupplier`, the `modelView` of the route's YAML page, types a `ComponentAdapter` is registered for;
 - types reachable from those: nested views (fields), rows of cruds and listings, what an annotated method returns, member classes;
 - types this server itself sent to the browser (a view an action returned);
 - classes shaped like a view model: they carry Mateu annotations, implement a view interface (`Listing`, `ComponentTreeSupplier`, …) or extend a Mateu orchestrator.

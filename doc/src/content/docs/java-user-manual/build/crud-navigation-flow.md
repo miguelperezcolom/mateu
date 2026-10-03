@@ -62,11 +62,10 @@ This is intentional: the read-only view serves as a safe preview before the user
 
 ## Binding a custom editor page
 
-You can replace the auto-generated edit form with a custom page using `@Route` and the `uis` parameter.
+You can replace the auto-generated edit form with a custom page by declaring a [`routes.yaml`](/java-ui-definition/route-registry/) entry at the CRUD's edit sub-route (`users/:id/edit`).
 
 ```java
 @Service
-@Route(value = "/:id/edit", uis = {"/users"})
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {
@@ -101,10 +100,17 @@ public class UserEditorPage {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id/edit
+    viewModel: com.example.UserEditorPage
+```
+
 Key points:
 
-- `value = "/:id/edit"` defines the sub-route pattern
-- `uis = {"/users"}` tells Mateu that this page is the edit form for the `/users` CRUD
+- `route: users/:id/edit` is the edit sub-route of the `/users` CRUD, so this page becomes its edit form (routes are relative to the mount, no leading slash)
 - The `:id` parameter is populated automatically from the URL
 - The page replaces the auto-generated edit form; everything else in the CRUD flow stays the same
 
@@ -119,7 +125,6 @@ If the route is `/:id/edit` and the page has a field `String id`, Mateu sets it 
 This works for any parameter name:
 
 ```java
-@Route("/example/:name")
 public class ExampleParametersViewModel {
 
     String name;       // populated from :name
@@ -133,6 +138,14 @@ public class ExampleParametersViewModel {
         assessment = "name= " + name + ", version=" + version;
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: example/:name
+    viewModel: com.example.ExampleParametersViewModel
 ```
 
 ---
@@ -153,7 +166,7 @@ Without a custom editor, Mateu auto-generates the edit and create forms from the
 
 You can replace only the editor while keeping the auto-generated list, detail view, and create form. Or vice versa.
 
-Use `@Route(value = "...", uis = {"/route"})` to bind any custom page into the CRUD flow.
+Declare a `routes.yaml` entry at the CRUD's sub-route (e.g. `users/:id/edit`) to bind any custom page into the CRUD flow.
 
 ---
 
@@ -196,7 +209,7 @@ Add `@NotNavigable` to remove the View button too, for a plain flat list with no
 - `AutoCrud` generates the full flow: list, view, edit, create
 - `AutoCrud + @ReadOnly` generates a read-only subset: list + view only
 - Default navigation goes: list → readonly detail → edit (not directly to edit)
-- Custom pages bind into the flow with `@Route(uis = "/route")`
+- Custom pages bind into the flow with a `routes.yaml` entry at the CRUD's sub-route (`users/:id/edit`)
 - URL parameters are mapped to same-named fields automatically
 - You can replace any part of the flow while keeping the rest auto-generated
 

@@ -24,7 +24,6 @@ This gives you the layout flexibility of YAML without losing the server-side log
 ## Usage
 
 ```java
-@Route("customer-form")
 @UISpec("specs/ui/customer-form.yaml")
 public class CustomerFormViewModel {
 
@@ -37,6 +36,14 @@ public class CustomerFormViewModel {
         // server-side logic here
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: customer-form
+    viewModel: com.example.CustomerFormViewModel
 ```
 
 `specs/ui/customer-form.yaml` (place under `src/main/resources`):

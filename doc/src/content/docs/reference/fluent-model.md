@@ -127,7 +127,6 @@ Core types include:
 - `OnSuccessTrigger`
 - `OnErrorTrigger`
 - `OnValueChangeTrigger`
-- `OnEnterTrigger`
 - `OnCustomEventTrigger`
 
 Use the fluent trigger model when dynamic interaction behavior should be described directly in code instead of only via annotations.

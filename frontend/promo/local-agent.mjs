@@ -69,7 +69,7 @@ const server = createServer(async (req, res) => {
     try { message = JSON.parse(raw).message || ""; } catch { /* ignore */ }
     if (plain) {
       try { const yaml = await authorYaml(message); res.writeHead(200, { ...cors, "content-type": "text/plain" }); return res.end(yaml); }
-      catch (e) { res.writeHead(500, cors); return res.end(String(e.message || e)); }
+      catch (e) { console.error(e); res.writeHead(500, cors); return res.end("The agent could not author the screen."); }
     }
     res.writeHead(200, { ...cors, "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
     try {
@@ -77,7 +77,8 @@ const server = createServer(async (req, res) => {
       res.write("data: Here's the screen you asked for — rendering it now.\n\n");
       res.write("data: " + JSON.stringify({ event: "render-screen", detail: { yaml } }) + "\n\n");
     } catch (e) {
-      res.write("data: " + JSON.stringify({ event: "agent-error", detail: { message: String(e.message || e) } }) + "\n\n");
+      console.error(e); // the details stay in this console, not in the browser
+      res.write("data: " + JSON.stringify({ event: "agent-error", detail: { message: "The agent could not author the screen." } }) + "\n\n");
     }
     res.end();
   });

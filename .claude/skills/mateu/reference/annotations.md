@@ -7,8 +7,8 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | Annotation | Use |
 |---|---|
 | `@UI("/path")` | register a class as a routed screen |
-| `@Route("/p/:id")`, `@Routes` | extra / parameterised routes |
-| `@HomeRoute`, `@BaseRoute` | mark home / base route |
+| `routes.yaml` entry (`route: p/:id`, `viewModel: <FQCN>`) | extra / parameterised / nested inner routes — `@Route`/`@Routes` were **removed** (see doc `java-ui-definition/route-registry.md`) |
+| `HomeRouteSupplier` (interface on the app class) | home route — `@HomeRoute` was **removed**; default home = first menu item. (`@BaseRoute` exists but nothing reads it) |
 | `@App(...)` | app-level layout/variant/theme toggle |
 | `@Title`, `@Subtitle`, `@PageTitle` | titles |
 | `@Logo`, `@FavIcon` | branding |
@@ -106,4 +106,4 @@ public @interface ProveedorId {}
 
 Also works for methods (`@Toolbar @Label("Guardar") @interface AccionGuardar {}`) and
 classes (`@Compact @interface PantallaCompacta {}`). Exception: routing annotations
-(`@UI`/`@Route`/`@HomeRoute`) are resolved at compile time and are **not** composable.
+(`@UI`, the only one left) is resolved at compile time and are **not** composable.

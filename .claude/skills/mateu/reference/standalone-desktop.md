@@ -28,9 +28,9 @@ changing `baseUrl` — no screen-code changes.
 
 Package the app so a user just launches it — with or without a browser.
 
-- **Native desktop renderer (no browser):** the JavaFX / Compose Multiplatform renderers
-  (see `doc/.../native/`) render a real native window; the backend runs embedded in the same
-  process. A genuine desktop app.
+- **Native desktop renderer (no browser):** the IntelliJ plugin renderer
+  (`frontend/app/intellij-plugin`, see `doc/.../native/`) renders inside a bundled IDE window
+  (`./gradlew buildInstaller`). The JavaFX / Compose renderers were removed.
 - **Web shell:** run the normal web service on `localhost` and open the default browser at it
   (`Desktop.getDesktop().browse(...)` on `ApplicationReadyEvent`). Here it is a *local*
   server, not "no server" — the browser is the UI shell over loopback HTTP.

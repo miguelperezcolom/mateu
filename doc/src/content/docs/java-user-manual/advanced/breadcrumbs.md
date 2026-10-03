@@ -15,13 +15,20 @@ Mateu supports two approaches: declarative annotations for static paths, and a s
 Use `@Breadcrumbs` and `@Breadcrumb` when the path is always the same regardless of the current record:
 
 ```java
-@Route("/users/123")
 @Breadcrumbs({
     @Breadcrumb(label = "Home", url = "/"),
     @Breadcrumb(label = "Users", url = "/users"),
     @Breadcrumb(label = "Detail", url = "/users/123")
 })
 public class UserDetail {}
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id
+    viewModel: com.example.UserDetail
 ```
 
 This is the simplest option. Use it for fixed hierarchy levels where the labels and URLs do not depend on data.
@@ -33,7 +40,6 @@ This is the simplest option. Use it for fixed hierarchy levels where the labels 
 Implement `BreadcrumbsSupplier` when the breadcrumb labels depend on the current record — for example, showing the entity name instead of a generic "Detail":
 
 ```java
-@Route("/users/:id")
 public class UserDetail implements BreadcrumbsSupplier {
 
     @Override
