@@ -133,7 +133,7 @@ try {
         await win.waitForTimeout(1000)
         for (const f of win.frames()) {
             const c = await f.evaluate(() => document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') ?? '').catch(() => '')
-            if (c.split(/[\s;]+/).includes('https://api.example.org')) { added = true; break } // an exact CSP source token, not a substring
+            if (c.split(/[\s;]+/).some((src) => src === 'https://api.example.org')) { added = true; break } // an exact CSP source token, not a substring
         }
     }
     check('declaring a new REST source widens the CSP to its origin (webview rebuilt)', added)
