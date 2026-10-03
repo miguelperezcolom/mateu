@@ -253,7 +253,7 @@
       on-oj-action="[[ $listeners.mateuPickerCancel ]]">Cancel</oj-button>
     <oj-bind-if test="[[ $variables.mateuPicker.multi ]]">
       <oj-button id="mateuPickerAdd" chroming="callToAction" class="oj-sm-margin-1x-start"
-        on-oj-action="[[ $listeners.mateuPickerAdd ]]"><oj-bind-text value="[[ $variables.mateuPicker.addLabel ]]"></oj-bind-text></oj-button>
+        on-oj-action="[[ $listeners.mateuPickerAdd ]]" label="[[ $variables.mateuPicker.addLabel ]]"></oj-button>
     </oj-bind-if>
   </div>
 </oj-dialog>
@@ -271,10 +271,13 @@
     <div class="oj-typography-body-md"><oj-bind-text value="[[ $variables.mateuConfirm.message ]]"></oj-bind-text></div>
   </div>
   <div slot="footer">
+    <!-- Los textos van en `label`, no en un oj-bind-text hijo: oj-button toma su etiqueta del hijo al
+         crearse, cuando mateuConfirm aún está vacío, y no la vuelve a leer — el diálogo se abría con
+         título y mensaje y los dos botones en blanco. Igual en el «Añadir» del selector. -->
     <oj-button id="mateuConfirmDeny" chroming="outlined" class="oj-sm-margin-1x-start"
-      on-oj-action="[[ $listeners.mateuConfirmDeny ]]"><oj-bind-text value="[[ $variables.mateuConfirm.denyText ]]"></oj-bind-text></oj-button>
+      on-oj-action="[[ $listeners.mateuConfirmDeny ]]" label="[[ $variables.mateuConfirm.denyText ]]"></oj-button>
     <oj-button id="mateuConfirmAccept" chroming="callToAction" class="oj-sm-margin-1x-start"
-      on-oj-action="[[ $listeners.mateuConfirmAccept ]]"><oj-bind-text value="[[ $variables.mateuConfirm.confirmText ]]"></oj-bind-text></oj-button>
+      on-oj-action="[[ $listeners.mateuConfirmAccept ]]" label="[[ $variables.mateuConfirm.confirmText ]]"></oj-button>
   </div>
 </oj-dialog>
 
