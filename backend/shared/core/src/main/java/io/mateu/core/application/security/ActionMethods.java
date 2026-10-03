@@ -238,11 +238,46 @@ public final class ActionMethods {
 
   /** {@link #findInvocable} + {@link #checkAccess}: the method to run, or null if none is named. */
   public static Method resolve(Object instance, String name, HttpRequest httpRequest) {
-    var method = findInvocable(instance.getClass(), name);
+    var declared = declaredByAdapter(instance, name, httpRequest);
+    var method = declared != null ? declared : findInvocable(instance.getClass(), name);
     if (method != null) {
       checkAccess(method, instance.getClass(), httpRequest);
     }
     return method;
+  }
+
+  /**
+   * A domain object rendered through a {@code ComponentAdapter} declares its actions in the {@code
+   * AdaptedView} the adapter returns: those ids are actions by declaration, whatever the method's
+   * (non-private) visibility. Null when there is no adapter or it does not declare {@code name}.
+   */
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private static Method declaredByAdapter(Object instance, String name, HttpRequest httpRequest) {
+    io.mateu.uidl.interfaces.ComponentAdapter adapter;
+    try {
+      adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(instance.getClass());
+    } catch (RuntimeException e) {
+      return null;
+    }
+    if (adapter == null) {
+      return null;
+    }
+    var view = adapter.adapt(instance, httpRequest);
+    if (view == null || view.actions() == null || !view.actions().contains(name)) {
+      return null;
+    }
+    for (var m : AllMethodsProvider.getAllMethods(instance.getClass())) {
+      int modifiers = m.getModifiers();
+      if (m.getName().equals(name)
+          && !Modifier.isPrivate(modifiers)
+          && !Modifier.isStatic(modifiers)
+          && !m.isSynthetic()
+          && !hasSimpleNamedAnnotation(m, LIFECYCLE_ANNOTATIONS)
+          && !WireTypes.isDeniedPackage(m.getDeclaringClass().getName())) {
+        return m;
+      }
+    }
+    return null;
   }
 
   static MateuForbiddenException refused(Class<?> instanceClass, String name, String reason) {
