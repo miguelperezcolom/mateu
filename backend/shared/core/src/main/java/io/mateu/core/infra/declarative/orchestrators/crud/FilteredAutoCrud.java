@@ -189,10 +189,20 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @Override
   @SuppressWarnings("unchecked")
   public ListingData<T> search(io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+    var criteria = request.criteria();
+    if (request.hasIds()) {
+      // the store applies the id-set filter like any other list condition: on its id field
+      criteria = new java.util.ArrayList<>(criteria);
+      criteria.add(
+          new io.mateu.uidl.data.FilterCriterion(
+              getIdFieldForRow(),
+              io.mateu.uidl.data.FilterOperator.in,
+              List.copyOf(request.ids())));
+    }
     return fetchRows(
         request.searchText(),
         (Filters) request.filters(),
-        request.criteria(),
+        criteria,
         request.pageable(),
         httpRequest);
   }

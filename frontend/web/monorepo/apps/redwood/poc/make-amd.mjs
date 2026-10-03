@@ -81,6 +81,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     multiValuesOf,
     queryFiltersOf,
     navTargetOf,
+    IDS_PARAM,
+    idsChipLabelOf,
+    splitListingQuery,
+    listingQueryOf,
+    listingUrlOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -226,6 +231,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
+    chatRouteOfLink,
     transcriptOf,
   };
 });

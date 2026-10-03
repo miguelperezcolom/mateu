@@ -2409,7 +2409,7 @@ export function filterDescriptorOf(f, data) {
  */
 export function filterChipsOf(filters, values) {
   const v = values || {}
-  return (filters || []).map((f) => {
+  const chips = (filters || []).map((f) => {
     if (f.isRange) {
       const from = v[f.fromKey]
       const to = v[f.toKey]
@@ -2437,6 +2437,11 @@ export function filterChipsOf(filters, values) {
     }
     return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
   })
+  // la selección por ids (?ids=…): sólo cuando está aplicada — no es un filtro que se ofrezca
+  if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
+    chips.unshift({ fieldId: IDS_PARAM, label: 'Ids', text: idsChipLabelOf(v[IDS_PARAM]), applied: true, keys: [IDS_PARAM] })
+  }
+  return chips
 }
 
 /**
@@ -2479,6 +2484,76 @@ export function queryFiltersOf(query) {
 
 // la página y el orden también viajan en la URL de un listado de Vaadin, pero no son filtros
 const PAGING_PARAMS = { page: true, size: true, sort: true }
+
+// ── Filtros por URL: los declarados, el texto libre y la selección por ids ─────────────────────
+// Cualquier filtro declarado de un listado se pone desde la URL con su nombre de campo (un rango,
+// con <campo>_from / <campo>_to; un multi-select, separado por comas). Además, dos que no declara
+// nadie: el texto libre (`searchText`, o `q` como alias al leer) y `ids`, la SELECCIÓN — un
+// conjunto concreto de filas por su id (`?ids=4MBZS7,JXD3G6`), que el framework aplica en el
+// server a cualquier listado. Todos salen como chips que se quitan, y la URL los refleja.
+
+/** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
+export const IDS_PARAM = 'ids'
+
+const IDS_TEXTS = {
+  en: { few: 'Selection: ', many: (n) => n + ' selected items' },
+  es: { few: 'Selección: ', many: (n) => n + ' elementos seleccionados' },
+}
+
+function idsTextsOf(lang) {
+  const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+    || (typeof navigator !== 'undefined' && navigator.language) || ''
+  return IDS_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || IDS_TEXTS.en
+}
+
+/** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
+export function idsChipLabelOf(ids, lang) {
+  const list = multiValuesOf(ids)
+  const texts = idsTextsOf(lang)
+  return list.length <= 3 ? texts.few + list.join(', ') : texts.many(list.length)
+}
+
+/**
+ * Los filtros de una query (queryFiltersOf) separados en el texto libre y el resto: `searchText`
+ * (o su alias `q`, si no viene searchText) es lo que se busca, no un filtro — va al chip keyword.
+ */
+export function splitListingQuery(filters) {
+  const values = Object.assign({}, filters || {})
+  let searchText = ''
+  if (!isBlank(values.searchText)) searchText = String(values.searchText)
+  else if (!isBlank(values.q)) searchText = String(values.q)
+  delete values.searchText
+  delete values.q
+  return { searchText, values }
+}
+
+/**
+ * La query que refleja los filtros aplicados de un listado (sin '?'): cada valor con su clave, las
+ * listas separadas por comas (como las escribe Vaadin), el texto libre como `searchText`. Las comas
+ * se dejan legibles; el resto, codificado.
+ */
+export function listingQueryOf(values, searchText) {
+  const enc = (s) => encodeURIComponent(String(s)).replace(/%2C/gi, ',')
+  const parts = []
+  const v = values || {}
+  for (const key of Object.keys(v)) {
+    const value = v[key]
+    if (isBlank(value) || PAGING_PARAMS[key]) continue
+    parts.push(enc(key) + '=' + enc(Array.isArray(value) ? value.join(',') : value))
+  }
+  const text = searchText == null ? '' : String(searchText).trim()
+  if (text) parts.push('searchText=' + enc(text))
+  return parts.join('&')
+}
+
+/** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. */
+export function listingUrlOf(route, values, searchText) {
+  const bare = String(route || '').split('?')[0]
+  const query = listingQueryOf(values, searchText)
+  return query ? bare + '?' + query : bare
+}
+
+const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)
 
 /** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
 export function multiValuesOf(value) {
@@ -2544,6 +2619,11 @@ export function smartFiltersMetadataOf(filters) {
   for (const f of filters || []) {
     polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
   }
+  // el chip de la selección por ids también puede abrir su editor: un texto (ids separados por comas)
+  if (!declaresIds(filters)) {
+    polymorphicTypes[IDS_PARAM] = { type: 'object',
+      properties: { value: { type: 'string', componentType: 'oj-input-text', labelHint: 'Ids' } } }
+  }
   return {
     type: 'object',
     properties: { filter: { type: 'string' }, label: { type: 'string' } },
@@ -2575,6 +2655,12 @@ export function smartFilterValueOf(filters, values, searchText) {
   const out = []
   const text = searchText == null ? '' : String(searchText).trim()
   if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
+  // la selección por ids: un chip más, que se quita como cualquiera (sin filterLabel: el rótulo
+  // ya dice qué es)
+  if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
+    const ids = multiValuesOf(v[IDS_PARAM])
+    if (ids.length) out.push({ filter: IDS_PARAM, label: idsChipLabelOf(ids), value: ids.join(',') })
+  }
   for (const f of filters || []) {
     if (f.isRange) {
       const from = v[f.fromKey]
@@ -2616,6 +2702,11 @@ export function filterStateOfSmartFilters(filters, chips) {
     if (!chip) continue
     if (chip.filter === KEYWORD_FILTER) {
       if (!isBlank(chip.value)) keywords.push(String(chip.value))
+      continue
+    }
+    if (chip.filter === IDS_PARAM && !byId[IDS_PARAM]) {
+      const ids = multiValuesOf(chip.value)
+      if (ids.length) values[IDS_PARAM] = ids.join(',')
       continue
     }
     const f = byId[chip.filter]
@@ -2700,8 +2791,12 @@ export function setMetadataProviderFactory(factory) { metadataProviderFactory = 
  */
 export async function smartFiltersOf(filters, values, searchText) {
   const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
-  if (!filters || !filters.length) return config
-  config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+  const hasIds = !isBlank((values || {})[IDS_PARAM])
+  if ((!filters || !filters.length) && !hasIds) return config
+  // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
+  if (filters && filters.length) {
+    config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+  }
   if (metadataProviderFactory) {
     config.filtersMetadata = await metadataProviderFactory(smartFiltersMetadataOf(filters))
   }
