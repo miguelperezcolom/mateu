@@ -191,6 +191,8 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     logo: shell.logo,
                     favicon: shell.favicon,
                     themeToggle: Boolean(shell.themeToggle),
+                    // The brand accent (`accentColor:`), as the server's AppMapper sends it: blank → none.
+                    accentColor: typeof shell.accentColor === 'string' && shell.accentColor.trim() ? shell.accentColor.trim() : undefined,
                     menu: menu.map(menuOption),
                     totalMenuOptions: menu.length,
                     homeRoute: firstRoute(menu) ?? '',

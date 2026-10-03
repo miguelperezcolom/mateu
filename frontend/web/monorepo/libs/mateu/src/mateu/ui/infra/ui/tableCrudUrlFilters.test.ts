@@ -44,6 +44,8 @@ const crud = (over: Record<string, any> = {}): any => ({
     _initStateFromUrl: (MateuTableCrud.prototype as any)._initStateFromUrl,
     _filterIds: (MateuTableCrud.prototype as any)._filterIds,
     _restoreUrlFiltersIfMissing: (MateuTableCrud.prototype as any)._restoreUrlFiltersIfMissing,
+    _urlParams: (MateuTableCrud.prototype as any)._urlParams,
+    _appliedUrl: undefined,
     component: META,
     ...over,
 })
@@ -118,5 +120,71 @@ describe('a listing restores its filters from the URL', () => {
         run(element)
         // no needless new object -> no needless render
         expect(element.state).toBe(before)
+    })
+})
+
+describe('a listing shows what its URL asks for, whatever it declares', () => {
+
+    let priorWindow: any
+    beforeEach(() => { priorWindow = (globalThis as any).window })
+    afterEach(() => { (globalThis as any).window = priorWindow })
+
+    const at = (pathname: string, search: string) => {
+        (globalThis as any).window = { location: { pathname, search }, innerHeight: 900 }
+    }
+
+    it('takes the reserved id set (?ids=…) into the state and searches with it', () => {
+        at('/things', '?ids=4MBZS7,JXD3G6')
+        const element = crud()
+        run(element)
+        expect(element.state.ids).toBe('4MBZS7,JXD3G6')
+        expect(element.handleSearchRequested).toHaveBeenCalled()
+    })
+
+    it('reads ?q= as the search text', () => {
+        at('/things', '?q=Duarte')
+        const element = crud()
+        run(element)
+        expect(element.state.searchText).toBe('Duarte')
+    })
+
+    it('starts over from the URL when the same listing is reached with another query', () => {
+        // On /things?status=PAUSED, the assistant opens /things?ids=A,B: the listing is already
+        // there (same key), the pushed state still says PAUSED. The new query wins, whole.
+        at('/things', '?ids=A,B')
+        const element = crud({
+            _initializedForKey: 'c1|',
+            _appliedUrl: '/things?status=PAUSED',
+            state: { status: 'PAUSED', idFieldForRow: 'id' },
+        })
+        run(element)
+        expect(element.state.status).toBeUndefined()
+        expect(element.state.ids).toBe('A,B')
+        expect(element.state.idFieldForRow).toBe('id')
+        expect(element.handleSearchRequested).toHaveBeenCalled()
+    })
+
+    it('a menu click back to the bare listing clears what the query had narrowed', () => {
+        at('/things', '')
+        const element = crud({
+            _initializedForKey: 'c1|',
+            _appliedUrl: '/things?status=Cancelled',
+            state: { status: 'Cancelled' },
+        })
+        run(element)
+        expect(element.state.status).toBeUndefined()
+        expect(element.handleSearchRequested).toHaveBeenCalled()
+    })
+
+    it('keeps the old behaviour when the PATH moved (a listing embedded in a record page)', () => {
+        at('/orders/7/lines', '?status=PAUSED')
+        const element = crud({
+            _initializedForKey: 'c1|',
+            _appliedUrl: '/orders/7?status=RUNNING',
+            state: { status: 'RUNNING' },
+        })
+        run(element)
+        expect(element.state.status).toBe('RUNNING')
+        expect(element.handleSearchRequested).not.toHaveBeenCalled()
     })
 })

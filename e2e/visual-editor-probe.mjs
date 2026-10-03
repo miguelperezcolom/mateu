@@ -31,13 +31,13 @@ await page.goto(URL, { waitUntil: 'domcontentloaded' })
 await page.waitForSelector('mateu-visual-editor', { timeout: 20000 })
 await page.waitForTimeout(800)
 
-// 1. The toolbar carries the surfaces we shipped this session.
+// 1. The toolbar and the bottom dock carry the editor's surfaces.
 const buttons = await page.evaluate(() => {
     const ed = document.querySelector('mateu-visual-editor')
-    return [...ed.renderRoot.querySelectorAll('.toolbar button')].map((b) => b.textContent.trim())
+    return [...ed.renderRoot.querySelectorAll('.toolbar button, .dock-tabs button')].map((b) => b.textContent.trim())
 })
-for (const label of ['Export bundle', 'Flows', 'Sync', 'AI', 'Quick Start', 'Templates']) {
-    check(`toolbar has "${label}"`, buttons.some((b) => b.startsWith(label)))
+for (const label of ['Export bundle', 'Undo', 'Redo', 'Actions', 'Triggers', 'Sync', 'AI', 'Quick start', 'Templates', 'YAML']) {
+    check(`editor has "${label}"`, buttons.some((b) => b.startsWith(label)))
 }
 
 // 2. Switch the preview source to `client` (offline render, no backend). Count backend calls that
@@ -74,9 +74,8 @@ const canvasText = await page.evaluate(() => {
 const wanted = ['New page', 'Save', 'Cancel']
 check('client mode renders the sample offline in the canvas', wanted.every((t) => canvasText.includes(t)), `canvas shows: ${wanted.filter((t) => canvasText.includes(t)).join(', ') || '(nothing)'}`)
 check('no backend sync call after switching to client', backendCalls - callsBeforeSwitch === 0, `${backendCalls - callsBeforeSwitch} call(s) after switch`)
-// Informational (not a gate): the FormLayout expander increment is not shipped yet.
-const fieldsRender = ['Name', 'Email'].every((t) => canvasText.includes(t))
-console.log(`ℹ FormLayout offline increment ${fieldsRender ? 'SHIPPED (fields render)' : 'pending (form fields need a backend for now)'}`)
+// The FormLayout expander increment shipped (PR #672): a classless form's fields render offline too.
+check('client mode renders the form fields offline', ['Name', 'Email'].every((t) => canvasText.includes(t)))
 
 // 4. Export bundle downloads a valid specs-mode manifest.
 const [download] = await Promise.all([

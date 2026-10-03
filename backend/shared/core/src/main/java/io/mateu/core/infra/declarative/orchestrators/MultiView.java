@@ -342,8 +342,9 @@ public abstract class MultiView
     if (known instanceof String knownMount
         && !knownMount.isBlank()
         && withoutQuery(requested).startsWith(knownMount)) {
-      var mountPath = knownMount.replaceAll("/+$", "");
-      var consumedPath = consumed == null ? "" : withoutQuery(consumed).replaceAll("/+$", "");
+      var mountPath = io.mateu.core.infra.Slashes.trimTrailing(knownMount);
+      var consumedPath =
+          consumed == null ? "" : io.mateu.core.infra.Slashes.trimTrailing(withoutQuery(consumed));
       return mountPath.equals(consumedPath) ? "" : mountPath;
     }
     // Its app's root: the browser prepends the base url itself.

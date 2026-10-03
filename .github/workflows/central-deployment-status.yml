@@ -15,6 +15,9 @@ on:
         description: 'deploymentId from the publish log ("Uploaded bundle successfully, deploymentId: …")'
         required: true
 
+# Only calls the Central Publisher API with its own secrets; needs no GitHub token scope at all.
+permissions: {}
+
 jobs:
   status:
     runs-on: ubuntu-latest

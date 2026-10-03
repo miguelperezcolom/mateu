@@ -75,6 +75,8 @@ from mateu_uidl import components as fluent
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from . import action_guard
+from .action_guard import MateuForbiddenException  # noqa: F401 - re-exported for adapters
 from .mapper import (
     ReflectionMapper,
     capability_class,
@@ -416,7 +418,7 @@ class SyncHandler:
         if isinstance(instance, DataManagement) and rq.action_id in ("switchToGrid", "switchToGantt"):
             instance.view = "gantt" if rq.action_id == "switchToGantt" else "grid"
             return self.render(type_, instance, rq)
-        return self.run_action(type_, instance, rq)
+        return self.run_action(type_, instance, rq, layout_override)
 
     @staticmethod
     def _clicked_event_id(rq: RunActionRq) -> str | None:
@@ -658,10 +660,12 @@ class SyncHandler:
         """A @list_toolbar_button bulk action on a capability listing: runs the named method
         with the grid's selected rows rebuilt as typed Row objects; a None result re-runs the
         search so the listing reflects the changes."""
-        name = self._resolve_action(cls, rq.action_id[len("action-on-row-"):])
-        if name is None:
+        # Only a @list_toolbar_button method is a bulk row action (security: the id is wire input).
+        fn = action_guard.resolve_row_action(cls, rq.action_id[len("action-on-row-"):])
+        if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
-        method = getattr(view, name)
+        action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)
+        method = fn.__get__(view, cls)
         result = method(*self._build_bulk_arguments(method, row_type, rq))
         if result is not None:
             return self.map_result(result, rq)
@@ -755,10 +759,13 @@ class SyncHandler:
         ``list[Row]``-annotated parameter receives them. A None result re-runs the search so the
         listing reflects the changes; anything else maps as a regular action result (mirrors
         Java's ActionOnRowActionHandler)."""
-        name = self._resolve_action(crud_type, rq.action_id[len("action-on-row-"):])
-        if name is None:
+        # Only a @list_toolbar_button method is a bulk row action — never save/delete/any other
+        # method of the crud (security: the id is wire input).
+        fn = action_guard.resolve_row_action(crud_type, rq.action_id[len("action-on-row-"):])
+        if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
-        method = getattr(crud, name)
+        action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
+        method = fn.__get__(crud, crud_type)
         result = method(*self._build_bulk_arguments(method, element, rq))
         if result is not None:
             return self.map_result(result, rq)
@@ -1738,11 +1745,18 @@ class SyncHandler:
                     if isinstance(item, (ClientSideComponent, ServerSideComponent)):
                         self._collect_fields(item, fields, seen)
 
-    def run_action(self, type_, instance, rq: RunActionRq) -> UIIncrement:
-        name = self._resolve_action(type_, rq.action_id)
-        if name is None:
+    def run_action(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
+        """Runs a view action. The action id comes from the wire, so it only reaches a method
+        DECLARED as an action (see :mod:`mateu_core.action_guard`) and only when the caller
+        passes its access gates; anything else is "Action not found" / 403."""
+        fn = action_guard.resolve_action(
+            type_, rq.action_id,
+            lambda: action_guard.advertised_ids(self.mapper, type_, instance, layout_override),
+        )
+        if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
-        method = getattr(instance, name)
+        action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
+        method = fn.__get__(instance, type_)
         return self.map_result(method(*self._build_arguments(method, rq)), rq)
 
     def _build_arguments(self, method, rq: RunActionRq) -> list:
@@ -1772,14 +1786,6 @@ class SyncHandler:
             else:
                 args.append(None)
         return args
-
-    @staticmethod
-    def _resolve_action(type_, action_id):
-        for klass in type_.__mro__:
-            for name, val in vars(klass).items():
-                if not name.startswith("__") and callable(val) and camel_case(name) == action_id:
-                    return name
-        return None
 
     def map_result(self, result, rq: RunActionRq | None = None) -> UIIncrement:
         if result is None:
@@ -1986,6 +1992,10 @@ class SyncHandler:
 
     def bind_state(self, instance, state: dict[str, Any]) -> None:
         for f in view_fields(type(instance)):
+            # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
+            # caller is never written from the wire — it keeps its server-side value.
+            if not action_guard.may_write(self.mapper, f):
+                continue
             key = camel_case(f.name)
             if key not in state or state[key] is None:
                 continue

@@ -70,5 +70,12 @@ describe('client-side expander — the app shell', () => {
         expect(app).toMatchObject({ type: 'App', title: 'Networking', variant: 'MENU_ON_TOP', homeRoute: 'vcns', route: '' })
         expect(app.menu[0]).toMatchObject({ label: 'Virtual cloud networks', path: '/vcns', route: '/vcns', consumedRoute: '', visible: true })
         expect(app.menu[1].submenus[0]).toMatchObject({ label: 'Subnets', route: '/subnets' })
+        expect(app.accentColor).toBeUndefined()
+    })
+
+    it('carries the brand accent (`accentColor:`), as the server does', () => {
+        const app = (expandAppShell({ type: 'AppShell', title: 'X', accentColor: ' #D2232A ' } as FluentNode)
+            .fragments![0].component as any).metadata
+        expect(app.accentColor).toBe('#D2232A')
     })
 })

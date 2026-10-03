@@ -14,7 +14,7 @@
 // "unsupported" apart from "broke".
 export const SUPPORTED_TYPES = [
   'ServerSide', 'Page', 'Div', 'VerticalLayout', 'HorizontalLayout',
-  'Card', 'FormLayout', 'FormRow', 'FormField', 'Text', 'Button', 'Crudl',
+  'Card', 'FormLayout', 'FormRow', 'FormField', 'Text', 'Button', 'Crud', 'Crudl',
 ];
 if (typeof window !== 'undefined') window.__mateuRendererInfo = { supportedTypes: SUPPORTED_TYPES };
 
@@ -114,6 +114,7 @@ function renderNode(ctx, node) {
     case 'FormField': return renderField(ctx, md);
     case 'Text': { const p = el('div', 'mateu-text'); p.textContent = md.text ?? node.text ?? ''; return p; }
     case 'Button': return renderButton(ctx, md);
+    case 'Crud': // the wire component type (ComponentMetadataDto: name = "Crud")
     case 'Crudl': return renderListing(ctx, node, md);
     default: return unsupported(t);
   }

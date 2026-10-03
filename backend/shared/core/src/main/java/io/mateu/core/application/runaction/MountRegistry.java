@@ -183,6 +183,6 @@ public final class MountRegistry {
 
   /** A base path is stored without leading/trailing slashes, so it composes as a route prefix. */
   static String normalizeBasePath(String basePath) {
-    return basePath == null ? "" : basePath.replaceAll("^/+", "").replaceAll("/+$", "");
+    return io.mateu.core.infra.Slashes.trim(basePath);
   }
 }

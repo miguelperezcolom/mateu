@@ -39,7 +39,9 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         .forEach(
             paramName -> {
               try {
-                if (!data.containsKey(paramName)) {
+                // newData, not data: data may be null, and the NPE was swallowed below — so a
+                // request with no state silently lost every query parameter
+                if (!newData.containsKey(paramName)) {
                   newData.put(paramName, httpRequest.getParameterValue(paramName));
                 }
               } catch (Exception ignored) {

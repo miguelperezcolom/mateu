@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
-import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
@@ -33,7 +32,8 @@ public class AddActionHandler {
     var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
     var rowClass =
         stateRowClass != null
-            ? forName(stateRowClass.toString())
+            ? io.mateu.core.application.security.WireTypes.rowClass(
+                stateRowClass.toString(), field.getDeclaringClass())
             : getGenericClass(field, field.getType(), "E");
 
     // Inline-editing grids render no detail form (the container the form would target does not

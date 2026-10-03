@@ -1,7 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import {
-    RoutesDoc, RouteRow, parseRoutes, serializeRoutes, parseParams, formatParams,
+    RoutesDoc, RouteRow, parseRoutes, serializeRoutes, parseParams, formatParams, dataRef, masterWithTabs,
 } from '../model/routesModel'
 import type { ProjectIndex } from '../model/projectIndex'
 
@@ -14,24 +14,35 @@ import type { ProjectIndex } from '../model/projectIndex'
 @customElement('routes-editor')
 export class RoutesEditor extends LitElement {
     static styles = css`
-        :host { display: block; height: 100%; overflow: auto; background: #fff; font: 13px system-ui; }
+        :host { display: block; height: 100%; overflow: auto; background: var(--ve-base, #fff); color: inherit; font: 13px var(--ve-font, system-ui); }
         .head { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem 0.4rem; }
-        .head h2 { margin: 0; font-size: 15px; color: #111827; }
-        .head .sub { color: #9ca3af; font-size: 12px; }
+        .head h2 { margin: 0; font-size: 15px; color: var(--ve-text, #111827); }
+        .head .sub { color: var(--ve-tertiary, #9ca3af); font-size: 12px; }
         table { width: calc(100% - 2rem); margin: 0.5rem 1rem 1rem; border-collapse: collapse; }
-        th { text-align: left; font: 600 11px system-ui; text-transform: uppercase; letter-spacing: .03em;
-             color: #6b7280; padding: 0.4rem 0.5rem; border-bottom: 1px solid #e3e5e8; }
-        td { padding: 0.2rem 0.35rem; border-bottom: 1px solid #f0f1f3; vertical-align: middle; }
-        input { width: 100%; padding: 0.35rem 0.45rem; font: 13px system-ui; border: 1px solid #d7dade;
-                border-radius: 6px; box-sizing: border-box; background: #fff; }
-        input::placeholder { color: #b8bec6; }
+        th { text-align: left; font: 600 11px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .03em;
+             color: var(--ve-secondary, #6b7280); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--ve-border, #e3e5e8); }
+        td { padding: 0.2rem 0.35rem; border-bottom: 1px solid var(--ve-border, #f0f1f3); vertical-align: middle; }
+        input { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
+                border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
+        input::placeholder { color: var(--ve-tertiary, #b8bec6); }
         td.mono input { font-family: ui-monospace, monospace; font-size: 12px; }
-        .del { border: 1px solid #f2c2c8; color: #b00020; background: #fff; border-radius: 6px;
+        .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px;
                width: 26px; height: 28px; cursor: pointer; }
-        .add { margin: 0 1rem 1.5rem; padding: 0.45rem 0.8rem; font: 13px system-ui; background: #fff;
-               border: 1px solid #d7dade; border-radius: 6px; cursor: pointer; }
-        .add:hover { background: #eef4ff; border-color: #b7ccf7; }
-        .empty { padding: 1rem; color: #9ca3af; }
+        .add { margin: 0 1rem 1.5rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit;
+               border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
+        .add:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
+        .empty { padding: 1rem; color: var(--ve-tertiary, #9ca3af); }
+        .route-cell { display: flex; align-items: center; gap: 0.25rem; }
+        .route-cell .nest { color: var(--ve-tertiary, #c2c8d0); font-family: ui-monospace, monospace; white-space: pre; }
+        .row-actions { display: flex; gap: 0.2rem; }
+        .mini { border: 1px solid var(--ve-input-border, #d7dade); color: var(--ve-text, #374151); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 28px;
+                padding: 0 0.45rem; cursor: pointer; font: 12px var(--ve-font, system-ui); white-space: nowrap; }
+        .defchild { display: flex; align-items: center; gap: 0.3rem; font-size: 11px; color: var(--ve-secondary, #6b7280); margin-top: 0.15rem; }
+        .defchild select { font: 11px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 4px; padding: 0.1rem 0.2rem; }
+        .buttons { display: flex; gap: 0.5rem; margin: 0 1rem 1.5rem; }
+        .buttons .add { margin: 0; }
+        .help { margin: 0 1rem 1rem; color: var(--ve-tertiary, #9ca3af); font-size: 12px; }
+        input.missing { border-color: hsl(30, 100%, 50%); background: hsla(30, 100%, 50%, 0.06); }
     `
 
     @property() yaml = ''
@@ -51,90 +62,161 @@ export class RoutesEditor extends LitElement {
 
     render() {
         const rows = this.doc.routes
+        const count = countRows(rows)
         return html`
             <div class="head">
                 <h2>Routes</h2>
-                <span class="sub">${rows.length} route${rows.length === 1 ? '' : 's'} · relative to the mount${Object.keys(this.doc.preamble).length ? ' · app: preserved' : ''}</span>
+                <span class="sub">${count} route${count === 1 ? '' : 's'} · relative to the mount${'app' in this.doc.preamble ? ' · app: preserved' : ''}</span>
             </div>
             <datalist id="ve-definitions">${this.definitionOptions.map((d) => html`<option value=${d}></option>`)}</datalist>
             <datalist id="ve-viewmodels">${(this.project?.viewModels ?? []).map((v) => html`<option value=${v}></option>`)}</datalist>
+            <datalist id="ve-sources">${(this.project?.sources ?? []).map((s) => html`<option value=${s.name}>${s.description ?? ''}</option>`)}</datalist>
             <table>
                 <thead>
                     <tr>
-                        <th style="width:18%">Route</th>
-                        <th style="width:20%">Definition</th>
-                        <th style="width:26%">View model</th>
-                        <th style="width:16%">Fixed params</th>
-                        <th style="width:16%">Default params</th>
-                        <th style="width:26px"></th>
+                        <th style="width:20%">Route</th>
+                        <th style="width:16%">Layout</th>
+                        <th style="width:20%">View model</th>
+                        <th style="width:13%" title="A named REST source that loads the record on entry (the route's data:)">Data</th>
+                        <th style="width:11%">Fixed params</th>
+                        <th style="width:11%">Default params</th>
+                        <th style="width:70px"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${rows.map((row, i) => this.rowView(row, i))}
+                    ${this.rowsView(rows, [])}
                 </tbody>
             </table>
             ${rows.length === 0 ? html`<div class="empty">No routes yet. Add one below.</div>` : ''}
-            <button class="add" @click=${this.addRow}>+ Add route</button>
+            <div class="buttons">
+                <button class="add" @click=${this.addRow}>+ Add route</button>
+                <button class="add" @click=${this.addMaster} title="A record page whose tabs are pages of their own (children + defaultChild)">+ Master with routed tabs</button>
+            </div>
+            <div class="help">A child route is relative to its parent and renders in its slot — a record master's tabs. Indented rows are children.</div>
         `
     }
 
-    private rowView(row: RouteRow, i: number) {
+    private rowsView(rows: RouteRow[], at: number[]): unknown[] {
+        return rows.flatMap((row, i) => [
+            this.rowView(row, [...at, i]),
+            ...(row.children?.length ? this.rowsView(row.children, [...at, i]) : []),
+        ])
+    }
+
+    private rowView(row: RouteRow, at: number[]) {
+        const depth = at.length - 1
+        const children = row.children ?? []
         return html`
             <tr>
-                <td><input .value=${row.route ?? ''} placeholder="(root)"
-                    @change=${(e: Event) => this.set(i, 'route', (e.target as HTMLInputElement).value)} /></td>
+                <td>
+                    <div class="route-cell">
+                        ${depth ? html`<span class="nest">${'  '.repeat(depth - 1)}└</span>` : ''}
+                        <input .value=${row.route ?? ''} placeholder=${depth ? 'child' : '(root)'}
+                            @change=${(e: Event) => this.patchRow(at, { route: (e.target as HTMLInputElement).value })} />
+                    </div>
+                    ${children.length ? html`<div class="defchild">opens
+                        <select @change=${(e: Event) => this.patchRow(at, { defaultChild: (e.target as HTMLSelectElement).value || undefined })}>
+                            <option value="" ?selected=${!row.defaultChild}>first child</option>
+                            ${children.map((c) => html`<option value=${c.route} ?selected=${c.route === row.defaultChild}>${c.route}</option>`)}
+                        </select></div>` : ''}
+                </td>
                 <td class="mono"><input list="ve-definitions" .value=${row.definition ?? ''} placeholder="orders.yaml"
-                    @change=${(e: Event) => this.setOpt(i, 'definition', (e.target as HTMLInputElement).value)} /></td>
+                    class=${this.isMissing(row.definition) ? 'missing' : ''}
+                    title=${this.isMissing(row.definition) ? `No ${row.definition} in specs/ui yet — create it, then open it here to lay it out` : ''}
+                    @change=${(e: Event) => this.patchRow(at, { definition: clean((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono"><input list="ve-viewmodels" .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
-                    @change=${(e: Event) => this.setOpt(i, 'viewModel', (e.target as HTMLInputElement).value)} /></td>
+                    @change=${(e: Event) => this.patchRow(at, { viewModel: clean((e.target as HTMLInputElement).value) })} /></td>
+                <td class="mono">${typeof row.data === 'object' && row.data && !dataRef(row.data)
+                    ? html`<span title=${JSON.stringify(row.data)}>inline source</span>`
+                    : html`<input list="ve-sources" .value=${dataRef(row.data)} placeholder="source name"
+                        @change=${(e: Event) => this.setData(at, row, (e.target as HTMLInputElement).value)} />`}</td>
                 <td class="mono"><input .value=${formatParams(row.fixedParams)} placeholder="k=v, k2=v2"
-                    @change=${(e: Event) => this.setParams(i, 'fixedParams', (e.target as HTMLInputElement).value)} /></td>
+                    @change=${(e: Event) => this.patchRow(at, { fixedParams: params((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono"><input .value=${formatParams(row.defaultParams)} placeholder="k=v"
-                    @change=${(e: Event) => this.setParams(i, 'defaultParams', (e.target as HTMLInputElement).value)} /></td>
-                <td><button class="del" title="Delete route" @click=${() => this.removeRow(i)}>✕</button></td>
+                    @change=${(e: Event) => this.patchRow(at, { defaultParams: params((e.target as HTMLInputElement).value) })} /></td>
+                <td><div class="row-actions">
+                    <button class="mini" title="Add a child route (renders in this route's slot — a tab)" @click=${() => this.addChild(at)}>+ child</button>
+                    <button class="del" title="Delete route" @click=${() => this.removeRow(at)}>✕</button>
+                </div></td>
             </tr>
         `
     }
 
-    private set(i: number, key: 'route', value: string) {
-        this.doc.routes[i] = { ...this.doc.routes[i], [key]: value }
+    /** A layout file the route names that the project does not have (only when the project is known). */
+    private isMissing(file: string | undefined): boolean {
+        if (!file || !this.project || !this.definitionOptions.length) return false
+        return !this.definitionOptions.includes(file)
+    }
+
+    /** The list holding the row at `at`, and its index there. */
+    private holder(at: number[]): { list: RouteRow[]; index: number } {
+        let list = this.doc.routes
+        for (let d = 0; d < at.length - 1; d++) list = list[at[d]].children ??= []
+        return { list, index: at[at.length - 1] }
+    }
+
+    private patchRow(at: number[], patch: Partial<RouteRow>) {
+        const { list, index } = this.holder(at)
+        const row: RouteRow = { ...list[index], ...patch }
+        for (const k of Object.keys(patch) as (keyof RouteRow)[]) if (row[k] === undefined) delete row[k]
+        list[index] = row
         this.commit()
     }
 
-    /** An optional string field: an empty value drops the key so the YAML stays clean. */
-    private setOpt(i: number, key: 'definition' | 'viewModel', value: string) {
-        const row = { ...this.doc.routes[i] }
-        if (value.trim()) row[key] = value.trim()
-        else delete row[key]
-        this.doc.routes[i] = row
-        this.commit()
-    }
-
-    private setParams(i: number, key: 'fixedParams' | 'defaultParams', value: string) {
-        const row = { ...this.doc.routes[i] }
-        const params = parseParams(value)
-        if (Object.keys(params).length) row[key] = params
-        else delete row[key]
-        this.doc.routes[i] = row
-        this.commit()
+    private setData(at: number[], row: RouteRow, name: string) {
+        const v = name.trim()
+        // Keep an object descriptor's other keys when only its ref changes.
+        const data = !v ? undefined : (row.data && typeof row.data === 'object' ? { ...row.data, ref: v } : v)
+        this.patchRow(at, { data })
     }
 
     private addRow() {
-        this.doc.routes = [...this.doc.routes, { route: '' }]
+        this.doc.routes = [...this.doc.routes, { route: '', layoutKey: 'layout' }]
         this.commit()
     }
 
-    private removeRow(i: number) {
-        this.doc.routes = this.doc.routes.filter((_, j) => j !== i)
+    private addMaster() {
+        const route = window.prompt('Master route (the record page), e.g. customers/:id', 'customers/:id')?.trim()
+        if (!route) return
+        const tabs = (window.prompt('Its tabs — each a page with its own URL (comma-separated)', 'overview, orders')
+            ?? '').split(',').map((t) => t.trim()).filter(Boolean)
+        if (!tabs.length) return
+        this.doc.routes = [...this.doc.routes, masterWithTabs(route, tabs)]
+        this.commit()
+    }
+
+    private addChild(at: number[]) {
+        const { list, index } = this.holder(at)
+        const parent = list[index]
+        list[index] = { ...parent, children: [...(parent.children ?? []), { route: '', layoutKey: 'layout' }] }
+        this.commit()
+    }
+
+    private removeRow(at: number[]) {
+        const { list, index } = this.holder(at)
+        list.splice(index, 1)
         this.commit()
     }
 
     private commit() {
-        this.doc = { ...this.doc }
+        this.doc = { ...this.doc, routes: [...this.doc.routes] }
         const yaml = serializeRoutes(this.doc)
         this.lastEmitted = yaml
         this.dispatchEvent(new CustomEvent('routes-save', { detail: { yaml }, bubbles: true, composed: true }))
     }
+}
+
+function clean(v: string): string | undefined {
+    return v.trim() || undefined
+}
+
+function params(text: string): Record<string, unknown> | undefined {
+    const p = parseParams(text)
+    return Object.keys(p).length ? p : undefined
+}
+
+function countRows(rows: RouteRow[]): number {
+    return rows.reduce((n, r) => n + 1 + countRows(r.children ?? []), 0)
 }
 
 declare global {
