@@ -99,6 +99,10 @@ define([
       // Un pod que no conteste deja su rótulo y no impide arrancar.
       if (reg.shell && reg.shell.menu) {
         reg.shell.menu = await bridge.expandRemoteMenus(reg.shell.menu);
+        // El chat necesita el menú YA expandido (las pantallas de cada pod, con su descriptor de
+        // listado) para el menuContext del agente. mateuRegistry se asignó antes de expandir y VB
+        // guarda una copia, así que el menú expandido no llega a la variable: se deja aquí.
+        window.__mateuShellMenu = reg.shell.menu;
       }
 
       const nav = bridge.shellNavOf(reg);

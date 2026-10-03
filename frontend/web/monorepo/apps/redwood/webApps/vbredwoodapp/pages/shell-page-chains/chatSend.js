@@ -46,7 +46,7 @@ define([
       const sessionId = $application.variables.mateuChatSessionId;
       const registry = $application.variables.mateuRegistry || {};
       const menuContext = window.__mateuChatMenuSentFor === sessionId ? undefined
-        : bridge.buildChatMenuContext((registry.shell && registry.shell.menu) || []);
+        : bridge.buildChatMenuContext(window.__mateuShellMenu || (registry.shell && registry.shell.menu) || []);
       window.__mateuChatMenuSentFor = sessionId;
 
       const startedAt = Date.now();
