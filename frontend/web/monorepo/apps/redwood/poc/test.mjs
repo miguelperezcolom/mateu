@@ -28,7 +28,7 @@ import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -49,6 +49,7 @@ import {
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
   searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
+  IDS_PARAM, idsChipLabelOf, splitListingQuery, listingQueryOf, listingUrlOf,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -4146,4 +4147,141 @@ test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta c
   const tree = { type: 'ServerSide', children: [{ metadata: { type: 'FormField', fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' } }] }
   const listed = fieldListOf(tree, {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
   assert.deepEqual(listed.map((f) => [f.isText, f.value]), [[true, 'Hotel 3, Hotel 5']])
+})
+
+
+// ── Filtros por URL (declarados, texto libre y selección por ids) y enlaces del chat ──────────────
+
+test('url filters: cada tipo de filtro declarado se pone desde la query, y sale como chip aplicado', () => {
+  const q = queryFiltersOf('status=Pending,Confirmed&hotel=Riu&arrival_from=2026-11-01&arrival_to=2026-11-30&vip=true&nights_from=2&vista=IN_HOUSE')
+  const chips = smartFilterValueOf(BOOKING_FILTERS, q, '')
+  const by = (id) => chips.filter((c) => c.filter === id)[0]
+  assert.deepEqual(by('status').value, ['Pending', 'Confirmed'], 'un Set<Enum>: la lista separada por comas')
+  assert.equal(by('hotel').value, 'Riu')
+  assert.deepEqual(by('arrival').value, { gte: '2026-11-01', lte: '2026-11-30' })
+  assert.equal(by('vip').value, 'true')
+  assert.deepEqual(by('nights').value, { gte: '2', lte: null })
+  assert.equal(by('vista').label, 'In house')
+})
+
+test('url filters: searchText (o su alias q) es el buscador, no un filtro', () => {
+  assert.deepEqual(splitListingQuery({ q: 'garcía', status: 'Cancelled' }), { searchText: 'garcía', values: { status: 'Cancelled' } })
+  assert.deepEqual(splitListingQuery({ searchText: 'a', q: 'b' }), { searchText: 'a', values: {} }, 'searchText manda sobre q')
+  assert.deepEqual(splitListingQuery({}), { searchText: '', values: {} })
+})
+
+test('url filters: ?ids=… es la selección — un chip que se quita, y viaja al server como ids', () => {
+  assert.equal(IDS_PARAM, 'ids')
+  const values = queryFiltersOf('ids=4MBZS7,JXD3G6')
+  const chips = smartFilterValueOf(BOOKING_FILTERS, values, '')
+  assert.deepEqual(chips, [{ filter: 'ids', label: idsChipLabelOf('4MBZS7,JXD3G6'), value: '4MBZS7,JXD3G6' }])
+  assert.equal(idsChipLabelOf('4MBZS7,JXD3G6', 'es'), 'Selección: 4MBZS7, JXD3G6')
+  assert.equal(idsChipLabelOf(['a', 'b', 'c', 'd'], 'es-ES'), '4 elementos seleccionados')
+  assert.equal(idsChipLabelOf('a', 'en'), 'Selection: a')
+  assert.equal(idsChipLabelOf('a,b,c,d', 'en'), '4 selected items')
+  // vuelve del componente: con el chip, ids; sin él (quitado con la ✕), nada
+  assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, chips).values, { ids: '4MBZS7,JXD3G6' })
+  assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, []).values, {})
+  // en el search, en el componentState como cualquier filtro
+  assert.equal(listingSearchStateOf({}, { filters: values }).ids, '4MBZS7,JXD3G6')
+  // y el chip puede abrir su editor: tiene metadata, también en un listado sin filtros declarados
+  assert.ok(smartFiltersMetadataOf(BOOKING_FILTERS).polymorphicTypes.ids)
+  assert.deepEqual(filterChipsOf(BOOKING_FILTERS, values)[0].keys, ['ids'])
+  // un listado que DECLARA su propio filtro ids lo trata como suyo (sin chip doble)
+  const own = [filterDescriptorOf({ fieldId: 'ids', label: 'Ids', dataType: 'string' })]
+  assert.equal(smartFilterValueOf(own, { ids: 'x' }, '').length, 1)
+})
+
+atest('url filters: un listado sin filtros declarados también pinta el chip de la selección', async () => {
+  const config = await smartFiltersOf([], { ids: 'a,b' }, '')
+  assert.deepEqual(config.value.map((c) => c.filter), ['ids'])
+  assert.equal(config.suggestionFilters, undefined)
+  const plain = await smartFiltersOf([], {}, '')
+  assert.deepEqual(Object.keys(plain).sort(), ['askHint', 'value'])
+})
+
+test('url filters: la URL refleja los filtros aplicados (comas legibles, el resto codificado)', () => {
+  assert.equal(listingUrlOf('/booking/bookings', { status: ['Cancelled'] }, ''), '/booking/bookings?status=Cancelled')
+  assert.equal(listingUrlOf('/booking/bookings?status=Pending', { status: ['Pending', 'Confirmed'], ids: '' }, ''),
+    '/booking/bookings?status=Pending,Confirmed')
+  assert.equal(listingUrlOf('/booking/bookings?ids=a', {}, ''), '/booking/bookings', 'quitar el último chip deja la ruta limpia')
+  assert.equal(listingQueryOf({ ids: '4MBZS7,JXD3G6', arrival_from: '2026-11-01' }, 'Nora D'),
+    'ids=4MBZS7,JXD3G6&arrival_from=2026-11-01&searchText=Nora%20D')
+  // ida y vuelta por la query
+  const back = splitListingQuery(queryFiltersOf(listingQueryOf({ status: 'Cancelled', ids: 'a,b' }, 'x y')))
+  assert.deepEqual(back, { searchText: 'x y', values: { status: 'Cancelled', ids: 'a,b' } })
+})
+
+test('url filters: ir al MISMO listado con otra query aplica exactamente la nueva', () => {
+  const a = navTargetOf('/booking/bookings?status=Cancelled', '/booking/bookings')
+  assert.equal(a.same, false)
+  assert.deepEqual(a.filters, { status: 'Cancelled' })
+  const b = navTargetOf('/booking/bookings?ids=4MBZS7,JXD3G6', '/booking/bookings?status=Cancelled')
+  assert.equal(b.same, false)
+  assert.deepEqual(b.filters, { ids: '4MBZS7,JXD3G6' })
+  // la navegación pedida (chat) se compara con lo CARGADO, no con la entrada del menú
+  const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
+  assert.match(nav, /window\.__mateuLoadedFull/)
+  assert.match(nav, /bridge\.splitListingQuery\(target\.filters\)/)
+  // un deep-link con query la conserva en la URL (el router de VB la quitaba al arrancar)
+  assert.match(nav, /history\.replaceState\(window\.history\.state, '', target\.full\)/)
+  // cambiar filtros reescribe la URL
+  assert.match(webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js'), /bridge\.listingUrlOf\(/)
+})
+
+test('chat: un enlace a una ruta de la app se pinta como enlace (no texto, no vacío) y navega dentro', () => {
+  const html = chatMarkdownToHtml('Nora Duarte: [4MBZS7](/booking/bookings/4MBZS7)')
+  assert.equal(html, '<p>Nora Duarte: <a href="/booking/bookings/4MBZS7" class="mateu-chat-route" data-mateu-route="/booking/bookings/4MBZS7">4MBZS7</a></p>')
+  // la query (& escapado en el atributo) y los _ del href no se rompen con la cursiva
+  assert.equal(chatMarkdownToHtml('[ver](/booking/bookings?ids=A_B,C_D&status=Cancelled) _ok_'),
+    '<p><a href="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled" class="mateu-chat-route" data-mateu-route="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled">ver</a> <em>ok</em></p>')
+  // //host no es una ruta de la app
+  assert.equal(chatMarkdownToHtml('[x](//evil.com/a)'), '<p>[x](//evil.com/a)</p>')
+  // el clic: sólo uno normal sobre un enlace nuestro
+  const anchor = { getAttribute: (n) => (n === 'data-mateu-route' ? '/booking/bookings/4MBZS7' : null) }
+  assert.equal(chatRouteOfLink(anchor, { button: 0 }), '/booking/bookings/4MBZS7')
+  assert.equal(chatRouteOfLink(anchor, { button: 0, metaKey: true }), null, 'Cmd-clic: otra pestaña, lo hace el navegador')
+  assert.equal(chatRouteOfLink({ getAttribute: () => null }, { button: 0 }), null)
+  assert.equal(chatRouteOfLink({ getAttribute: () => '//evil.com' }, { button: 0 }), null)
+  const page = webApp('pages/shell-page.js')
+  assert.match(page, /bridge\.chatRouteOfLink\(anchor, event\)/)
+  assert.match(page, /new CustomEvent\('navigation-requested'/)
+})
+
+atest('chat: la respuesta en stream con enlaces a fichas llega entera y se pinta con texto y href', async () => {
+  const texts = []
+  const ev = (o) => 'data:' + JSON.stringify(o) + '\n\n'
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse([
+      ev({ event: 'agent-delta', detail: { text: 'Fichas: Nora Duarte: [4MBZS7](/booking/' } }),
+      ev({ event: 'agent-delta', detail: { text: 'bookings/4MBZS7), Giulia Okafor: [JXD3G6](/booking/bookings/JXD3G6)' } }),
+      'data:Fichas: Nora Duarte: [4MBZS7](/booking/bookings/4MBZS7), Giulia Okafor: [JXD3G6](/booking/bookings/JXD3G6)\n\n',
+    ]),
+    onText: (t) => texts.push(t),
+  })
+  const html = chatMarkdownToHtml(out)
+  assert.match(html, /<a href="\/booking\/bookings\/4MBZS7"[^>]*>4MBZS7<\/a>/)
+  assert.match(html, /<a href="\/booking\/bookings\/JXD3G6"[^>]*>JXD3G6<\/a>/)
+  assert.doesNotMatch(html, /<a [^>]*><\/a>/, 'ningún enlace vacío')
+})
+
+test('chat: el menuContext lleva el descriptor de listado de cada entrada (filtros por URL, id, ids)', () => {
+  const listing = { idField: 'id', idsParam: 'ids', searchParam: 'searchText',
+    filters: [{ param: 'status', label: 'Status', type: 'enum', multiple: true, values: ['Pending', 'Confirmed', 'Cancelled'] }] }
+  const ctx = buildChatMenuContext([
+    { label: 'Call center', submenus: [
+      { label: 'Bookings', route: '/booking/bookings', consumedRoute: '', baseUrl: '/_booking',
+        serverSideType: 'x.BookingHome', uriPrefix: '', description: 'Las reservas del CRS', listing },
+      { label: 'New booking', route: '/booking/newBooking', baseUrl: '/_booking' },
+    ] },
+  ])
+  assert.deepEqual(ctx[0].listing, listing)
+  assert.equal(ctx[0].description, 'Las reservas del CRS')
+  assert.deepEqual(ctx[0].path, ['Call center', 'Bookings'])
+  assert.equal(ctx[1].listing, undefined)
+  // el chat de Redwood lo manda en el primer mensaje de la sesión (antes no lo mandaba nunca)
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /bridge\.buildChatMenuContext\(/)
+  assert.match(send, /menuContext: menuContext/)
 })

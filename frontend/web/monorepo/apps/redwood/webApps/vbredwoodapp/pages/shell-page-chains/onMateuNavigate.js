@@ -87,12 +87,24 @@ define([
       // «Llegadas» es /reservas?vista=LLEGADAS_HOY y «Reservas» es /reservas — la misma pantalla
       // con OTROS filtros. Comparando sólo el path, ir de una a otra parecía el eco del writeback
       // de la selección y no recargaba: el chip de la vista anterior se quedaba puesto.
-      const target = bridge.navTargetOf(route,
-        $application.variables.mateuSelectedNavId || $application.variables.mateuSelectedRoute);
+      // ¿Es la pantalla que ya hay? Para el eco del writeback de la selección del menú se compara
+      // con la entrada seleccionada; para una navegación PEDIDA (el chat, un enlace, un widget:
+      // detail.route) con lo que de verdad está cargado — ruta y filtros que hay ahora, que el
+      // usuario puede haber cambiado quitando chips. Si no, el agente que vuelve a pedir
+      // «/booking/bookings?status=Cancelled» tras quitar el chip no conseguía nada.
+      const requested = detail.currentId == null && detail.selectedValue == null && detail.value == null;
+      const current = (requested && window.__mateuLoadedFull != null)
+        ? window.__mateuLoadedFull
+        : ($application.variables.mateuSelectedNavId || $application.variables.mateuSelectedRoute);
+      const target = bridge.navTargetOf(route, current);
       route = target.route;
-      if (Object.keys(target.filters).length) {
-        $application.variables.mateuFilterValues = target.filters;
+      // el texto libre (?searchText= o ?q=) va al buscador como chip keyword, no como filtro
+      const fromQuery = bridge.splitListingQuery(target.filters);
+      let pendingSearchText = null;
+      if (Object.keys(fromQuery.values).length || fromQuery.searchText) {
+        $application.variables.mateuFilterValues = fromQuery.values;
         $application.variables.mateuFiltersPending = true;
+        pendingSearchText = fromQuery.searchText;
       }
       // el eco del writeback de selection tras cada navegación — no recargar
       if (!force && target.same) {
@@ -154,6 +166,7 @@ define([
         for (const key of Object.keys(quickNav)) {
           componentState[key] = quickNav[key];
         }
+        if (pendingSearchText) componentState.searchText = pendingSearchText;
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
@@ -205,6 +218,17 @@ define([
       $application.variables.mateuSelectedRoute = route;
       // la selección del menú lleva la ruta COMPLETA (las entradas con ?query son otras)
       $application.variables.mateuSelectedNavId = target.full;
+      // lo que hay cargado AHORA (ruta + filtros): contra esto se compara la siguiente navegación
+      // pedida, y es lo que la URL debe decir
+      window.__mateuLoadedFull = target.full;
+      // un deep-link con filtros (/booking/bookings?status=Cancelled): el router de VB quita la
+      // query de la URL al arrancar; se repone, para que la dirección diga lo que se ve (y una
+      // recarga o un enlace copiado lo conserven). Sólo la query: el path es el mismo.
+      if (fromUrl && window.__mateuUrlPathMode && target.full.indexOf('?') >= 0
+          && window.location.pathname === target.route
+          && window.location.pathname + (window.location.search || '') !== target.full) {
+        window.history.replaceState(window.history.state, '', target.full);
+      }
 
       const host = reg.contexts[bridge.HOST_ID];
       const listingSummary = bridge.listingOf(host);
@@ -481,6 +505,7 @@ define([
       // Ask Oracle lo haya dejado pendiente para ESTA carga
       if ($application.variables.mateuFiltersPending) {
         $application.variables.mateuFiltersPending = false;
+        if (pendingSearchText != null) $application.variables.mateuLastSearchText = pendingSearchText;
       } else {
         $application.variables.mateuFilterValues = {};
         $application.variables.mateuLastSearchText = '';

@@ -22,6 +22,19 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     chatMessageDom(text) {
       const template = document.createElement('template');
       template.innerHTML = bridge.chatMarkdownToHtml(text);
+      // un enlace a una ruta de la app ([4MBZS7](/booking/bookings/4MBZS7)) navega DENTRO de la
+      // consola: el mismo navigation-requested que escucha la shell (loadMateuShell), que resuelve
+      // a qué pod va la ruta por su prefijo. Ctrl/Cmd-clic sigue abriéndolo en otra pestaña.
+      template.content.querySelectorAll('a.mateu-chat-route').forEach((anchor) => {
+        anchor.addEventListener('click', (event) => {
+          const route = bridge.chatRouteOfLink(anchor, event);
+          if (!route) return;
+          event.preventDefault();
+          anchor.dispatchEvent(new CustomEvent('navigation-requested', {
+            detail: { route }, bubbles: true, composed: true,
+          }));
+        });
+      });
       return { view: Array.from(template.content.childNodes), data: {} };
     }
   }
