@@ -3,6 +3,7 @@ import { jsonSafe } from '@infra/http/jsonTemplate.ts'
 import { resolveRestSource } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 import './mateu-map'
 import './mateu-markdown'
 import "@fabricelements/skeleton-carousel"
@@ -1158,7 +1159,7 @@ export class MateuComponent extends ComponentElement {
             padding-block: var(--lumo-space-xs);
             box-shadow: 0 1px 0 0 var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
         }
-  `, fabStyles('.page-fab')]
+  `, fabStyles('.page-fab'), linkStyles]
 }
 
 declare global {
