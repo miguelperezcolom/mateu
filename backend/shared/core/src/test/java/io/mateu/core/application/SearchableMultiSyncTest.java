@@ -263,6 +263,8 @@ class SearchableMultiSyncTest {
     assertThat(labels.path("h3").asText()).isEqualTo("Hotel Three");
     assertThat(dataChange(commands, "hotels-label").asText()).isEqualTo("Hotel One, Hotel Three");
     assertThat(event(commands, "close-modal-requested")).isNotNull();
+    // the commands are behaviour, not a page: no window title made of their toString()
+    assertThat(commands.toString()).doesNotContain("SetWindowTitle");
   }
 
   @Test
