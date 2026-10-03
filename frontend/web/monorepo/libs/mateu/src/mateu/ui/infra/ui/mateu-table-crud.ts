@@ -489,7 +489,7 @@ export class MateuTableCrud extends LitElement {
     search = () => {
         this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
-        this.state = { ...this.state, size: metadata.pageSize, page: 0, crud_selected_items: [] }
+        this.state = { ...this.state, size: this._pageSizeOf(metadata), page: 0, crud_selected_items: [] }
         this._syncStateToUrl(metadata)
         // This is what the filter bar calls — Enter on the search box, a chip added or removed,
         // Apply on a range. A listing reading an external endpoint has no server `search` action to
@@ -598,9 +598,26 @@ export class MateuTableCrud extends LitElement {
         this.handleSearchRequested(undefined)
     }
 
+    /**
+     * The page size every search of this listing asks for. The pager numbers its pages with the
+     * size the listing was served at, so a request for "page 2" without a size is a request for a
+     * different page: the server falls back to ITS default (often 20), answers rows 20–39 under a
+     * pager that now reads "Page 2 of 3". The state lost `size` whenever the parent re-bound it
+     * with a fresh server state (a listing re-entered from the menu keeps this element and its
+     * init key), so it is taken from the listing's declaration first and never left out.
+     */
+    private _pageSizeOf(metadata: Crud | undefined): number | undefined {
+        const declared = Number(metadata?.pageSize)
+        if (declared > 0) return declared
+        const asked = Number(this.state?.size)
+        if (asked > 0) return asked
+        const served = Number((this.data?.[this.id] as any)?.page?.pageSize)
+        return served > 0 ? served : undefined
+    }
+
     handleSearchRequested = (callback: (() => void) | undefined) => {
-        this.state = { ...this.state, crud_selected_items: [] }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
+        this.state = { ...this.state, size: this._pageSizeOf(metadata), crud_selected_items: [] }
         this._syncStateToUrl(metadata)
         // @RestListing: fetch the rows CLIENT-SIDE from the external endpoint instead of dispatching
         // the server `search` action — the listing surface of consuming non-Mateu endpoints.
