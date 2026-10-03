@@ -114,4 +114,22 @@ class YamlUidlLoaderTest {
     var spec = loader.loadSpec(route);
     return spec == null ? null : spec.layout();
   }
+
+  @Test
+  void theRouteCacheIsBoundedByConcreteRoutes() {
+    // the cache is keyed by the CONCRETE route: one entry per record id would grow forever
+    var loader = new YamlUidlLoader();
+    for (int i = 0; i < YamlUidlLoader.MAX_CACHED_ROUTES + 500; i++) {
+      assertThat(loader.loadSpec("customers/" + i)).isNull();
+    }
+    assertThat(loader.cachedRoutes()).isEqualTo(YamlUidlLoader.MAX_CACHED_ROUTES);
+  }
+
+  @Test
+  void aUiSpecIsParsedOnceAndReused() {
+    var loader = new YamlUidlLoader();
+    assertThat(loader.loadFromSpec("specs/ui/demo/hello.yaml"))
+        .isNotNull()
+        .isSameAs(loader.loadFromSpec("specs/ui/demo/hello.yaml"));
+  }
 }
