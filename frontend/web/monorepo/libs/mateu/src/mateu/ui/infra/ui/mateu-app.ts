@@ -842,17 +842,19 @@ export class MateuApp extends ComponentElement {
            the content row's START (order -1: the left), under the header, which it never covers
            or moves; the header's chat toggle (appRenderer, renderChatToggle) opens and closes it.
            On a wide viewport it pushes the content aside; on a narrow one it covers the content
-           area, full width — a 24rem column would leave the page nothing. Its own full-screen mode
-           ([expanded], mateu-chat's styles) is left alone. */
+           area, full width (in either mode) — a side column would leave the page nothing. */
         mateu-chat[slot="detail-hidden"] { display: none; }
-        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; order: -1; box-sizing: border-box; padding-top: 0.5rem; border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 var(--mateu-chat-width, 460px); min-width: 0; max-width: calc(100% - 20rem); order: -1; box-sizing: border-box; padding-top: 0.5rem; border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        /* its width is the user's (mateu-chat: 460px by default, 320–720 dragging its edge,
+           remembered); ⤢ widens it to ~60% of the viewport, the page still beside it */
+        mateu-chat[slot="detail"][expanded] { flex-basis: var(--mateu-chat-wide, 60vw); max-width: none; }
         /* pushed aside, a fixed-width page fills what is left and would touch the panel: keep a gutter */
         @media (min-width: 601px) {
             .m-md:has(> mateu-chat[slot="detail"]) > .m-scroll { padding-inline: var(--lumo-space-m, 1rem); }
         }
         @media (max-width: 600px) {
             .m-md:has(> mateu-chat[slot="detail"]) { position: relative; }
-            mateu-chat[slot="detail"]:not([expanded]) { position: absolute; inset: 0; z-index: 1000; width: 100%; border-inline-end: none; }
+            mateu-chat[slot="detail"] { position: absolute; inset: 0; z-index: 1000; width: 100%; max-width: none; border-inline-end: none; }
         }
         /* The header's icon buttons (appRenderer, renderHeaderIconButton: the chat and theme toggles —
            a tertiary icon vaadin-button in the Vaadin renderer, .app-chrome-icon-btn otherwise). One
