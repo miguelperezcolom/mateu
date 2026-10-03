@@ -104,4 +104,24 @@ class YamlAppLoaderTest {
             """);
     assertThat(app).isNull();
   }
+
+  @Test
+  void accentColorAndBackLinkAreAuthorableOnAnAppShellDefinition() throws Exception {
+    var app =
+        parse(
+            """
+            type: AppShell
+            title: Customer
+            variant: TABS
+            accentColor: "#D2232A"
+            backLink: PARENT
+            """);
+    assertThat(app.accentColor()).isEqualTo("#D2232A");
+    assertThat(app.backLink()).isEqualTo(io.mateu.uidl.annotations.BackLink.PARENT);
+
+    var plain = parse("type: AppShell\ntitle: X\nbackLink: nonsense\n");
+    assertThat(plain.accentColor()).isNull();
+    assertThat(plain.backLink()).isEqualTo(io.mateu.uidl.annotations.BackLink.BREADCRUMBS);
+    assertThat(parse("type: AppShell\ntitle: X\n").backLink()).isNull();
+  }
 }

@@ -1,10 +1,12 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
 import { styleMap } from 'lit/directives/style-map.js'
+import { keyed } from 'lit/directives/keyed.js'
 import { parse } from 'yaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
-import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer } from '../model/pageModel'
+import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer, presentSlots, scalarProps } from '../model/pageModel'
+import type { CanvasRendererId } from './canvasRenderer'
 
 // Mateu custom events the live renderer fires on interaction. In edit mode the canvas must be
 // inert — swallow them so clicking a button selects it instead of running its action / navigating.
@@ -44,28 +46,31 @@ type DragSession = {
 export class EditorCanvas extends LitElement {
     static styles = css`
         :host { display: block; height: 100%; overflow: auto; background: var(--ve-canvas-bg, #fff); }
-        .host { min-height: 100%; position: relative; }
-        .status { padding: 0.5rem 0.75rem; font: 12px system-ui; color: #b00; background: #fff3f3; }
+        .host { min-height: 100%; position: relative; box-sizing: border-box;
+                /* The Vaadin shell's content gutters (mateu-app --mateu-shell-gutter*), so a page sits where it will ship. */
+                padding: var(--ve-page-gutter-top, 1.5rem) var(--ve-page-gutter, 2rem); }
+        .status { padding: 0.45rem 0.75rem; font: 12px var(--ve-font, system-ui); color: var(--ve-error, #b00); background: var(--ve-error-10, #fff3f3); }
+        .status.info { color: var(--ve-warning, #8a5a00); background: var(--ve-warning-10, #fff7e6); }
         mateu-ux { display: block; }
-        .drop-line { position: absolute; background: #4f8cff; border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
+        .drop-line { position: absolute; background: var(--ve-primary, #4f8cff); border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
         /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
            style), positioned relative to the scrolling .host so it stays glued without per-scroll work. */
         .overlay { position: absolute; pointer-events: none; z-index: 20; box-sizing: border-box; }
         .overlay.hover { border: 1px solid #9ec1ff; }
-        .overlay.sel { border: 2px solid #4f8cff; }
-        .tag { position: absolute; top: -18px; left: -2px; font: 600 10px/1.4 system-ui; padding: 1px 5px;
+        .overlay.sel { border: 2px solid var(--ve-primary, #4f8cff); }
+        .tag { position: absolute; top: -18px; left: -2px; font: 600 10px/1.4 var(--ve-font, system-ui); padding: 1px 5px;
                border-radius: 4px 4px 0 0; white-space: nowrap; color: #fff; }
         .overlay.hover .tag { background: #9ec1ff; }
-        .overlay.sel .tag { background: #4f8cff; }
+        .overlay.sel .tag { background: var(--ve-primary, #4f8cff); }
         .tag.below { top: auto; bottom: -18px; border-radius: 0 0 4px 4px; }
         .toolbar { position: absolute; top: -30px; right: -2px; display: flex; gap: 1px; pointer-events: auto;
-                   background: #4f8cff; border-radius: 6px; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+                   background: var(--ve-primary, #4f8cff); border-radius: 6px; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
         .toolbar.below { top: auto; bottom: -30px; }
         .toolbar button { border: none; background: transparent; color: #fff; cursor: pointer; font-size: 12px;
                           line-height: 1; padding: 3px 5px; border-radius: 4px; }
         .toolbar button:hover { background: rgba(255,255,255,.25); }
         .empty-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-                      pointer-events: none; color: #9aa2ad; font: 13px system-ui; text-align: center; padding: 2rem; }
+                      pointer-events: none; color: var(--ve-tertiary, var(--ve-tertiary, #9aa2ad)); font: 13px var(--ve-font, system-ui); text-align: center; padding: 2rem; }
     `
 
     @property({ attribute: false }) doc?: PageDoc
@@ -73,8 +78,14 @@ export class EditorCanvas extends LitElement {
     /** True when the preview source is `client` (no render backend yet — Phase 7). Show a placeholder. */
     @property({ type: Boolean }) clientRender = false
     @property({ attribute: false }) selectedPath: NodePath | null = null
+    /** The design system the canvas paints with; a change re-renders the current page. */
+    @property() renderer: CanvasRendererId = 'neutral'
+    /** Light/dark: set on the renderer's root, where Lumo's scoped tokens are declared. */
+    @property() theme: 'light' | 'dark' = 'light'
 
     @state() private error?: string
+    /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
+    @state() private info?: string
     @state() private dropIndicator: IndicatorBox | null = null
     @state() private selBox: IndicatorBox | null = null
     @state() private selTag = ''
@@ -86,6 +97,14 @@ export class EditorCanvas extends LitElement {
     @state() private selBelow = false
     @state() private hoverBelow = false
     private previewTimer?: number
+    /**
+     * Bumped when the page's STRUCTURE changes (a column added, a source re-pointed, a node moved), so
+     * the renderer is mounted afresh: live components such as a grid keep state across a re-applied
+     * fragment (its rows, its column cache) that would otherwise go stale. Label/text edits keep the
+     * same element, so typing does not flicker.
+     */
+    @state() private uxKey = 0
+    private lastShape?: string
     private repositionRaf = 0
     private lastYaml?: string
     private drag: DragSession | null = null
@@ -95,6 +114,7 @@ export class EditorCanvas extends LitElement {
     render() {
         return html`
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
+            ${this.info && !this.error ? html`<div class="status info">${this.info}</div>` : ''}
             <div class="host" @click=${this.onClick} @mousedown=${this.onMouseDown}
                  @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
                 <!-- preventNavigation stops mateu-ux from firing its OWN route-load. That load runs on the
@@ -102,7 +122,7 @@ export class EditorCanvas extends LitElement {
                      no backend behind the editor, paints a "Not found" fragment that overwrites our render.
                      The canvas is the sole driver via applyFragment; it passes baseUrl straight to runAction,
                      so the ux never needs a route of its own. -->
-                <mateu-ux .preventNavigation=${true}></mateu-ux>
+                ${keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true} theme=${this.theme}></mateu-ux>`)}
                 ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
                 ${this.hoverBox && !this.drag ? this.renderHoverOverlay() : ''}
                 ${this.selBox ? this.renderSelectionOverlay() : ''}
@@ -152,8 +172,8 @@ export class EditorCanvas extends LitElement {
 
     updated(changed: PropertyValues) {
         // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
-        if (changed.has('baseUrl') || changed.has('clientRender')) this.lastYaml = ''
-        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender')) this.schedulePreview()
+        if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.lastYaml = ''
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.schedulePreview()
         if (changed.has('selectedPath')) this.applyHighlight()
     }
 
@@ -168,6 +188,8 @@ export class EditorCanvas extends LitElement {
 
     private async preview(yaml: string) {
         if (this.clientRender) { this.renderClientSide(yaml); return }
+        // A bare re-render (applyFragment) of the same component tree would keep the previous
+        // renderer's DOM; clear it first so a renderer switch really repaints.
         try {
             const increment: any = await mateuApiClient.runAction(
                 this.baseUrl, '', '', '__preview__', 've-canvas',
@@ -177,11 +199,36 @@ export class EditorCanvas extends LitElement {
             const fragment = increment?.fragments?.[0]
             if (!fragment) { this.error = 'backend returned no fragment'; return }
             this.error = undefined
-            this.ux?.applyFragment(fragment)
-            requestAnimationFrame(() => this.applyHighlight())
+            this.info = undefined
+            this.paint(fragment)
+            this.status('ok', `Rendered by the backend at ${this.baseUrl || 'this origin'}`)
         } catch (e: any) {
-            this.error = e?.message ?? String(e)
+            // No backend (or it is down): a classless page still renders in the browser — say so,
+            // instead of leaving the author staring at an error with nothing on the canvas.
+            const reason = e?.message ?? String(e)
+            if (this.renderClientSide(yaml, true)) {
+                this.info = `The backend did not answer (${reason}) — showing the offline render. Server-only behaviour (view models) is not previewed.`
+                this.status('fallback', this.info)
+            } else {
+                this.error = reason
+                this.status('error', reason)
+            }
         }
+    }
+
+    private async paint(fragment: unknown) {
+        const shape = this.doc ? shapeOf(this.doc.layout) + '|' + this.renderer : ''
+        if (this.lastShape !== undefined && shape !== this.lastShape) {
+            this.uxKey++
+            await this.updateComplete
+        }
+        this.lastShape = shape
+        this.ux?.applyFragment(fragment as never)
+        requestAnimationFrame(() => this.applyHighlight())
+    }
+
+    private status(kind: 'ok' | 'fallback' | 'error' | 'client', text: string) {
+        this.dispatchEvent(new CustomEvent('preview-status', { detail: { kind, text }, bubbles: true, composed: true }))
     }
 
     /**
@@ -189,24 +236,28 @@ export class EditorCanvas extends LitElement {
      * all. Works for a classless (backend-free) definition; a view-model-bound page still needs a backend
      * for its inferred fields, so it falls back to an honest message.
      */
-    private renderClientSide(yaml: string) {
+    private renderClientSide(yaml: string, fallback = false): boolean {
         try {
             const tree = parse(yaml) as Record<string, unknown>
             const spec: DefinitionSpec = this.doc?.modelView
                 ? { modelView: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
                 : (tree as DefinitionSpec)
             if (!isClientExpandable(spec)) {
+                if (fallback) return false
                 this.error =
                     'Client render is backend-free — it needs a classless definition, but this page binds a view model. Use remote/local/mock to preview it.'
-                return
+                this.status('error', this.error)
+                return false
             }
             const fragment = expandDefinition(spec, 'preview')?.fragments?.[0]
-            if (!fragment) { this.error = 'the client expander returned no fragment'; return }
+            if (!fragment) { if (!fallback) this.error = 'the client expander returned no fragment'; return false }
             this.error = undefined
-            this.ux?.applyFragment(fragment as any)
-            requestAnimationFrame(() => this.applyHighlight())
+            if (!fallback) { this.info = undefined; this.status('client', 'Rendered in the browser by the client-side expander — no backend') }
+            this.paint(fragment)
+            return true
         } catch (e: any) {
-            this.error = e?.message ?? String(e)
+            if (!fallback) { this.error = e?.message ?? String(e); this.status('error', this.error!) }
+            return false
         }
     }
 
@@ -220,10 +271,16 @@ export class EditorCanvas extends LitElement {
         this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
     }
 
-    /** True when the page's root container has no children — show the drop hint. */
+    /**
+     * True when the page really is empty — a bare container with no children and nothing else set —
+     * so the drop hint shows. A Listing or a Form has no `content` children yet is anything but empty.
+     */
     private isEmptyPage(): boolean {
         const root = this.doc?.layout
-        return !!root && (!Array.isArray(root.content) || root.content.length === 0)
+        if (!root || !isContainer(root)) return false
+        if (Array.isArray(root.content) && root.content.length) return false
+        if (presentSlots(root).length) return false
+        return scalarProps(root).every((k) => ['id', '$schema', 'style', 'cssClasses', 'spacing', 'padding'].includes(k))
     }
 
     /** Recompute the selection overlay box + tag from the current selectedPath and rendered DOM. */
@@ -380,11 +437,14 @@ export class EditorCanvas extends LitElement {
             return this.dropIntoContainer(path, node.type === 'HorizontalLayout' ? 'row' : 'column', x, y)
         }
         const parentPath = path.slice(0, -1)
+        const last = path[path.length - 1]
+        // A slot item (a toolbar button, a tab…) is reordered from the Layers panel, not dropped around.
+        if (typeof last !== 'number') return null
         const parent = parentPath.length ? nodeAt(this.doc, parentPath) : this.doc.layout
         const orient: Orient = parent?.type === 'HorizontalLayout' ? 'row' : 'column'
         const r = el.getBoundingClientRect()
         const after = orient === 'row' ? x > r.left + r.width / 2 : y > r.top + r.height / 2
-        const index = path[path.length - 1] + (after ? 1 : 0)
+        const index = last + (after ? 1 : 0)
         return { parentPath, index, indicator: this.lineFor(parentPath, orient, index) }
     }
 
@@ -444,6 +504,20 @@ export class EditorCanvas extends LitElement {
         const xx = r ? (index < count ? r.left : r.right) : pRect.left
         return { left: xx - hostRect.left - 1, top: pRect.top - hostRect.top, width: 2, height: pRect.height }
     }
+}
+
+/** A node tree's structure — types, bindings, data sources and nesting, not its labels or texts. */
+function shapeOf(node: unknown): string {
+    if (Array.isArray(node)) return '[' + node.map(shapeOf).join(',') + ']'
+    if (!node || typeof node !== 'object') return ''
+    const n = node as Record<string, unknown>
+    const parts: string[] = [String(n.type ?? '')]
+    if (typeof n.id === 'string') parts.push('#' + n.id)
+    for (const k of ['rowsSource', 'optionsSource', 'stereotype', 'dataType', 'gridLayout', 'listingType']) {
+        if (n[k] !== undefined) parts.push(k + '=' + JSON.stringify(n[k]))
+    }
+    for (const [k, v] of Object.entries(n)) if (Array.isArray(v) && v.some((c) => c && typeof c === 'object')) parts.push(k + shapeOf(v))
+    return parts.join(' ')
 }
 
 /** The first element in a composed event path carrying a `ve-*` id (nearest tagged ancestor). */

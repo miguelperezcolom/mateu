@@ -62,8 +62,11 @@ object MateuVisualEditorServer {
      * before the JCEF query pipe is wired are queued in `__mateuOutbox` and drained on load end.
      */
     private fun injectHostBootstrap(indexHtml: ByteArray): ByteArray {
+        // The IDE's theme, so the editor (chrome + Lumo canvas) follows a dark IDE. Read per page load.
+        val theme = try { if (com.intellij.ui.JBColor.isBright()) "light" else "dark" } catch (_: Throwable) { "light" }
         val bootstrap = """
             <script>
+              window.__mateuTheme = '$theme';
               window.__mateuBaseUrl = '';
               window.__mateuOutbox = [];
               window.__mateuHost = { postMessage: function (m) { window.__mateuOutbox.push(m); }, addEventListener: function () {} };
