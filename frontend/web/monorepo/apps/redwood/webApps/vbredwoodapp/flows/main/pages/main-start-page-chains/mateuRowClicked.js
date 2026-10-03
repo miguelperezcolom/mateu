@@ -8,9 +8,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -63,6 +65,12 @@ define([
           text: value == null ? '' : (typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)),
         };
         $application.variables.mateuRowDetailOpen = true;
+        return;
+      }
+      // @RowRoute: la fila abre una RUTA (el maestro de un registro con pestañas que son páginas)
+      const rowRoute = listing && listing.rowRoute ? bridge.rowRouteOf(listing.rowRoute, row) : '';
+      if (rowRoute) {
+        await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: rowRoute } });
         return;
       }
       await Actions.callChain(context, {

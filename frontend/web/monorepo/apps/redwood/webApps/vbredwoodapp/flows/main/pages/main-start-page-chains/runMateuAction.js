@@ -395,6 +395,11 @@ define([
       $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
       $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
       const summary = bridge.summarizeHost(reg, route);
+      // dentro de un maestro (P1): la cabecera lleva su título cuando la pestaña no trae uno
+      const levels = reg.appLevels || [];
+      if (!summary.title && levels.length) {
+        summary.title = levels[levels.length - 1].title;
+      }
       $application.variables.mateuHostTitle = summary.title;
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;

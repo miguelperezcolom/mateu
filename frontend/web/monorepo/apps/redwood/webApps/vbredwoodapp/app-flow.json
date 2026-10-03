@@ -284,6 +284,11 @@
       "type": "string",
       "defaultValue": ""
     },
+    "mateuAppLevels": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "los NIVELES de app de la pantalla (P1: el maestro de un registro con pesta\u00f1as que son p\u00e1ginas): [{id, title, tabs:[{id,label,route}], showTabs, selected, backRoute, backLabel}] \u2014 una barra de pesta\u00f1as por nivel"
+    },
     "mateuActiveTabs": {
       "type": "any",
       "defaultValue": {},

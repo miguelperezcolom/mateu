@@ -14,7 +14,8 @@ import {mountSkipLink} from "@infra/ui/mateu-skip-link.ts";
 import {loadBundleManifest} from "@infra/http/bundleStore.ts";
 import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
-import { nextHistoryUrl } from './navigationUrl'
+import { nextHistoryUrl, isScreenChange } from './navigationUrl'
+import { keyed } from 'lit/directives/keyed.js'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -69,6 +70,10 @@ export class MateuUi extends LitElement {
 
     @state()
     instant: string | undefined
+
+    /** Changes on a back/forward to another screen, so the top-level ux is rebuilt from scratch. */
+    @state()
+    navigationKey = 'initial'
 
     @property({ type: Boolean })
     debug = false
@@ -160,6 +165,11 @@ export class MateuUi extends LitElement {
                 return
             }
             const w = e.target as Window
+            // Back/forward to another screen is a fresh load: rebuild the tree instead of letting
+            // the top-level ux keep a nested screen whose URL it never knew (see isScreenChange).
+            if (isScreenChange(this._lastUrl, w.location)) {
+                this.navigationKey = nanoid()
+            }
             this.loadUrl(w)
         };
 
@@ -264,7 +274,7 @@ export class MateuUi extends LitElement {
     render() {
        return html`
            <mateu-api-caller>
-                <mateu-ux id="_ux"
+                ${keyed(this.navigationKey, html`<mateu-ux id="_ux"
                           baseurl="${this.baseUrl}"
                           route="${this.route}"
                           consumedRoute="${this.consumedRoute}"
@@ -274,7 +284,7 @@ export class MateuUi extends LitElement {
                           @app-data-updated="${() => this.requestUpdate()}"
                           .appData="${appData.value}"
                           .appState="${appState.value}"
-                ></mateu-ux>
+                ></mateu-ux>`)}
            </mateu-api-caller>
            ${this.debug ? html`
                <mateu-debug-overlay

@@ -9,4 +9,10 @@ export default interface Tab extends ComponentMetadata {
     /** When true this tab is the one selected when the strip first renders. */
     active?: boolean
 
+    /** The URL segment that opens this tab (@Tab(key)); selecting it pushes a history entry. */
+    routeKey?: string
+
+    /** A count drawn on the tab (the rows of its eager @Subresource listings). */
+    badge?: string
+
 }

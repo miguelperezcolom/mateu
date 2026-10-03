@@ -74,6 +74,166 @@ public class RouteRegistry {
   }
 
   /**
+   * One level of a route chain: an authored entry, the concrete path it answers in this request
+   * (its pattern with the {@code :params} filled in from the URL, with a leading slash) and the
+   * path parameters read off that path.
+   */
+  public record ChainLink(RouteEntry entry, String path, Map<String, Object> pathParams) {}
+
+  /**
+   * The route CHAIN answering {@code path}: the authored entry that matches it, preceded by its
+   * {@link RouteEntry#parent} ancestors, outermost first. A route with no parent is a chain of one;
+   * a path the authored table does not know is an empty chain.
+   *
+   * <p>This is what makes {@code parent} real at runtime: a child route ({@code
+   * customers/:customerId/orders}) is not a page of its own but the content of its parent's slot,
+   * so whoever resolves it has to render the outermost ancestor not yet on screen and let that one
+   * render the rest. Each ancestor's concrete path is the request path cut to the ancestor's
+   * segment count — a parent's route is always a prefix of its child's, because the child is
+   * authored relative to it.
+   */
+  public List<ChainLink> chain(String path) {
+    var normalized = normalize(stripQuery(path));
+    var table = authored();
+    var segments = normalized.isEmpty() ? new String[0] : normalized.split("/");
+    var leaf = table.match(normalized).orElse(null);
+    var leafPath = normalized;
+    if (leaf == null) {
+      // Past a CHILD route the path is that child's own business — a crud's record
+      // (orders/7-2), its /new — not another level: the leaf is the longest prefix the table
+      // answers. Only for a child, so a top-level route keeps resolving exactly as before.
+      for (int n = segments.length - 1; n > 0 && leaf == null; n--) {
+        var prefix = String.join("/", java.util.Arrays.copyOf(segments, n));
+        var match = table.match(prefix).orElse(null);
+        if (match != null) {
+          if (!match.entry().hasParent()) {
+            return List.of();
+          }
+          leaf = match;
+          leafPath = prefix;
+        }
+      }
+      if (leaf == null) {
+        return List.of();
+      }
+    }
+    var links = new ArrayList<ChainLink>();
+    links.add(new ChainLink(leaf.entry(), "/" + leafPath, leaf.pathParams()));
+    var current = leaf.entry();
+    var guard = 0;
+    while (current.hasParent() && guard++ < 32) {
+      var parentRoute = normalize(current.parent());
+      var parent = entryAt(table, parentRoute);
+      if (parent == null) {
+        break;
+      }
+      var depth = parentRoute.isEmpty() ? 0 : parentRoute.split("/").length;
+      if (depth > segments.length) {
+        break;
+      }
+      var concrete = String.join("/", java.util.Arrays.copyOf(segments, depth));
+      var params =
+          table.match(concrete).map(RouteTable.Match::pathParams).orElse(Map.<String, Object>of());
+      links.add(0, new ChainLink(parent, "/" + concrete, params));
+      current = parent;
+    }
+    return links;
+  }
+
+  /**
+   * The outermost link of {@code path}'s chain that is NOT already on screen, i.e. whose concrete
+   * path reaches beyond {@code consumedRoute} (the part of the URL an enclosing app already
+   * rendered). Empty when the path has no authored chain or every level is consumed.
+   */
+  public Optional<ChainLink> outermostPending(String path, String consumedRoute) {
+    var consumed =
+        consumedRoute == null || "_empty".equals(consumedRoute)
+            ? ""
+            : normalize(stripQuery(consumedRoute));
+    for (var link : chain(path)) {
+      var linkPath = normalize(link.path());
+      if (linkPath.length() > consumed.length()
+          && (consumed.isEmpty() || linkPath.startsWith(consumed))) {
+        return Optional.of(link);
+      }
+    }
+    return Optional.empty();
+  }
+
+  /** The authored children of the entry at {@code route} (absolute pattern), in authored order. */
+  public List<RouteEntry> childrenOf(String route) {
+    var normalized = normalize(route);
+    return authored().routes().stream()
+        .filter(entry -> entry.hasParent() && normalize(entry.parent()).equals(normalized))
+        .toList();
+  }
+
+  /**
+   * The child that opens when the entry at {@code route} is reached on its own: the one its {@code
+   * defaultChild} names, else the first one authored. Empty for a route without children.
+   */
+  public Optional<RouteEntry> defaultChildOf(String route) {
+    var normalized = normalize(route);
+    var children = childrenOf(normalized);
+    if (children.isEmpty()) {
+      return Optional.empty();
+    }
+    var parent = entryAt(authored(), normalized);
+    if (parent != null && parent.defaultChild() != null && !parent.defaultChild().isBlank()) {
+      var wanted =
+          normalized.isEmpty() ? parent.defaultChild() : normalized + "/" + parent.defaultChild();
+      for (var child : children) {
+        if (normalize(child.route()).equals(normalize(wanted))) {
+          return Optional.of(child);
+        }
+      }
+      log.warn(
+          "Route '{}' declares defaultChild '{}', which is not one of its children; using the first"
+              + " child",
+          normalized,
+          parent.defaultChild());
+    }
+    return Optional.of(children.get(0));
+  }
+
+  /**
+   * The concrete path of the default child of the entry answering {@code concretePath} — {@code
+   * /customers/7/orders} for {@code /customers/7} — or empty when that entry has no children.
+   */
+  public Optional<String> defaultChildPath(String concretePath) {
+    var normalized = normalize(stripQuery(concretePath));
+    var match = authored().match(normalized).orElse(null);
+    if (match == null) {
+      return Optional.empty();
+    }
+    var parentRoute = normalize(match.entry().route());
+    return defaultChildOf(parentRoute)
+        .map(
+            child -> {
+              var suffix = normalize(child.route()).substring(parentRoute.length());
+              return "/" + normalized + (suffix.startsWith("/") ? suffix : "/" + suffix);
+            })
+        .map(p -> p.replaceAll("/+", "/"));
+  }
+
+  private static RouteEntry entryAt(RouteTable table, String normalizedRoute) {
+    for (var entry : table.routes()) {
+      if (normalize(entry.route()).equals(normalizedRoute)) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  private static String stripQuery(String path) {
+    if (path == null) {
+      return "";
+    }
+    var q = path.indexOf('?');
+    return q >= 0 ? path.substring(0, q) : path;
+  }
+
+  /**
    * The authored half alone (absolute routes across all mounts), cached. Route resolution consults
    * only this one: the derived (annotation) half is what the {@code RoutedClassProvider}s already
    * carry, and they carry it better (they also serve the CRUD sub-routes). The merged {@link
@@ -270,7 +430,9 @@ public class RouteRegistry {
             node.state(),
             node.appState(),
             node.data(),
-            node.appData()));
+            node.appData(),
+            node.defaultChild(),
+            node.show()));
     for (var child : node.children()) {
       flattenEntry(child, full, full, out);
     }
@@ -457,7 +619,9 @@ public class RouteRegistry {
             paramsOf(node, "state"),
             paramsOf(node, "appState"),
             dataSourceOf(node, "data"),
-            dataSourceOf(node, "appData")));
+            dataSourceOf(node, "appData"),
+            node.hasNonNull("defaultChild") ? normalize(node.get("defaultChild").asText()) : null,
+            node.hasNonNull("show") ? node.get("show").asText() : null));
     var childrenNode = node.get("children");
     if (childrenNode != null && childrenNode.isArray()) {
       for (var child : childrenNode) {
@@ -496,7 +660,9 @@ public class RouteRegistry {
         entry.state(),
         entry.appState(),
         entry.data(),
-        entry.appData());
+        entry.appData(),
+        entry.defaultChild(),
+        entry.show());
   }
 
   /**

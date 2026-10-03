@@ -10,10 +10,22 @@ public record Tab(
     String style,
     String cssClasses,
     String shortcut,
-    boolean active)
+    boolean active,
+    String routeKey,
+    String badge)
     implements Component {
 
   public Tab(String label, Component content) {
-    this(label, content, "", "", "", false);
+    this(label, content, "", "", "", false, null, null);
+  }
+
+  public Tab(
+      String label,
+      Component content,
+      String style,
+      String cssClasses,
+      String shortcut,
+      boolean active) {
+    this(label, content, style, cssClasses, shortcut, active, null, null);
   }
 }

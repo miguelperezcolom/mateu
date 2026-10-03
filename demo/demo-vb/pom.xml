@@ -19,6 +19,7 @@
         abierto para que la app VB en desarrollo (grunt vb-serve) pueda consumirla desde otro
         origen.</description>
     <properties>
+        <mateu.renderer>redwood</mateu.renderer>
         <java.version>21</java.version>
     </properties>
     <dependencies>
@@ -52,7 +53,7 @@
         <!-- el renderer VB/Redwood empaquetado: sirve la app VB optimizada en la raíz -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood</artifactId>
+            <artifactId>${mateu.renderer}</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>

@@ -28,6 +28,17 @@ public final class FormDetector {
   public static boolean isForm(Class<?> type) {
     // A class is a form if it has at least one editable data field.
     // @Button/@Toolbar methods are not required — a read-only / action-free form is still a form.
+    // A routed orchestrator field (an embedded crud / editable view, @Inline or @Subresource) is
+    // rendered BY the form builder, as an island: a class holding one is a form even when its
+    // other fields are all read-only. Left to the non-form path, the orchestrator was mapped as a
+    // component in the HOST's route context and re-rendered the host inside itself, forever.
+    if (getAllFields(type).stream()
+        .anyMatch(
+            field ->
+                !Modifier.isStatic(field.getModifiers())
+                    && EmbeddedOrchestratorFieldBuilder.isOrchestrator(field.getType()))) {
+      return true;
+    }
     return getAllFields(type).stream()
         .anyMatch(
             field ->

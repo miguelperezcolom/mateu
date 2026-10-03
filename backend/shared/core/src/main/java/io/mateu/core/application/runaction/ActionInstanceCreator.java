@@ -2,6 +2,7 @@ package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
@@ -28,6 +29,7 @@ public class ActionInstanceCreator {
   private final YamlAppLoader yamlAppLoader;
   private final RouteRegistry routeRegistry;
   private final RestSourceRegistry restSourceRegistry;
+  private final io.mateu.core.application.RoutedClassResolver routedClassResolver;
 
   Mono<?> createInstance(RunActionCommand command) {
     log.info("createInstance {}", command);
@@ -218,13 +220,40 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     setResolvedRoute(command.httpRequest(), command.consumedRoute());
+    // The client already knows the class, but the ROUTE still says where it is mounted and what
+    // its path parameters are. Those have to be applied on every request, not only on the first
+    // resolution: a tab of a record master (/customers/7/orders, sst = the orders listing) is
+    // loaded straight by its type, and without this it ran with no customerId at all.
+    var mount = mountOf(command);
+    // An APP the client names by type but that is not on screen yet — the record master a deep
+    // link to one of its tabs is homed on — renders ITSELF: its chrome (title, tabs) with the rest
+    // of the path as its home. Resolving its menu here would answer the tab alone, and resolving
+    // the route from scratch would answer the enclosing app all over again.
+    var appNotOnScreen =
+        mount != null
+            && isApp(mount.resolvedClass(), mount.route())
+            && longerThanConsumed(mount.route(), command.consumedRoute());
+    if (appNotOnScreen) {
+      setResolvedRoute(command.httpRequest(), mount.route());
+    }
+    if (mount != null) {
+      command.httpRequest().setAttribute(KNOWN_TYPE_MOUNT, mount.route());
+      command =
+          command.withComponentState(
+              RouteSegmentUtils.addParameterValues(
+                  command.componentState(), mount.route(), mount, command.httpRequest()));
+      if (command.httpRequest().getAttribute("resolvedPath") == null) {
+        setResolvedPath(command.httpRequest(), mount.route());
+      }
+    }
     if (command.httpRequest().getAttribute("resolvedPath") == null) {
       setResolvedPath(command.httpRequest(), command.route());
     }
+    var request = command.httpRequest();
     var mono =
         createInstanceAndPostHydrate(command.serverSideType(), command)
-            .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-    if (isTerminalRoute(command.route()) || isAppLevelAction(command)) {
+            .doOnNext(app -> request.setAttribute("resolvedApp", app));
+    if (isTerminalRoute(command.route()) || isAppLevelAction(command) || appNotOnScreen) {
       return mono;
     }
     RunActionCommand finalCommand = command;
@@ -233,6 +262,53 @@ public class ActionInstanceCreator {
             appMenuResolver
                 .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
                 .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand)));
+  }
+
+  /**
+   * Where the known server-side type is mounted inside the request route: the SHORTEST prefix of
+   * the route that resolves to that very class, with the pattern it matched (shortest, because a
+   * crud also answers its own sub-routes — {@code /items/1/edit} — and those are not its mount).
+   * {@code null} when no prefix does (an action on a component reached by another channel — a
+   * field, a method link).
+   */
+  private io.mateu.core.application.ResolvedRoute mountOf(RunActionCommand command) {
+    var route = command.route();
+    if (route == null || route.isBlank() || isTerminalRoute(route)) {
+      return null;
+    }
+    var path = stripQuery(route);
+    if (path.isEmpty()) {
+      return null;
+    }
+    var segments = path.replaceAll("^/+", "").split("/");
+    for (int n = 1; n <= segments.length; n++) {
+      var prefix = "/" + String.join("/", java.util.Arrays.copyOf(segments, n));
+      try {
+        var resolved = routedClassResolver.resolve(prefix, command).orElse(null);
+        if (resolved != null
+            && resolved.resolvedClass() != null
+            && resolved.resolvedClass().getName().equals(command.serverSideType())) {
+          return new io.mateu.core.application.ResolvedRoute(
+              prefix, resolved.pattern(), resolved.resolvedClass(), resolved.entry());
+        }
+      } catch (Throwable t) {
+        log.debug("mountOf {}: {}", prefix, t.toString());
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Request attribute: where the server-side type the client named is mounted in the request route
+   * (see {@link #mountOf}), when some prefix of the route resolves to it.
+   */
+  public static final String KNOWN_TYPE_MOUNT = "_knownTypeMount";
+
+  public static boolean longerThanConsumed(String path, String consumedRoute) {
+    var p = stripQuery(path);
+    var c =
+        consumedRoute == null || "_empty".equals(consumedRoute) ? "" : stripQuery(consumedRoute);
+    return p.length() > c.length();
   }
 
   private boolean isTerminalRoute(String route) {

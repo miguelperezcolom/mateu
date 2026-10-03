@@ -56,6 +56,11 @@ export default interface App extends ComponentMetadata {
     askIcon?: string
     /** @App(accentColor): the app's brand accent, a CSS colour (not the primary colour); absent = none */
     accentColor?: string
+
+    /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
+    backRoute?: string
+
+    backLabel?: string
     /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it arrives with the shell rather than on every response. */
     restSources?: RestSourceEntry[] | undefined

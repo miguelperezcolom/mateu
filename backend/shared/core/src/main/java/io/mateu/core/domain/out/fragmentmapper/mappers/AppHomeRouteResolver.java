@@ -123,7 +123,9 @@ final class AppHomeRouteResolver {
     // is byte-identical.
     var homeClass =
         resolveHomeScreenClass(
-            getHomeRoute(app, route, appRoute, httpRequest, selectedOption), httpRequest);
+            getHomeRoute(app, route, appRoute, httpRequest, selectedOption),
+            appRoute != null && !appRoute.isEmpty() ? appRoute : app.route(),
+            httpRequest);
     if (homeClass != null && !homeClass.equals(app.serverSideType())) {
       return homeClass;
     }
@@ -142,12 +144,24 @@ final class AppHomeRouteResolver {
    * _no_home_route}), a blank route, or a route no routed class answers. Never throws: a home that
    * cannot be typed must not break the app render, it just keeps the App's own type.
    */
-  private static String resolveHomeScreenClass(String homeRoute, HttpRequest httpRequest) {
+  private static String resolveHomeScreenClass(
+      String homeRoute, String appRoute, HttpRequest httpRequest) {
     if (homeRoute == null
         || homeRoute.isBlank()
         || homeRoute.endsWith("_page")
         || homeRoute.endsWith("_no_home_route")) {
       return null;
+    }
+    // The route CHAIN: when the home is a child route (customers/:id/orders) whose parent is an app
+    // that is not on screen yet, the home Screen is that PARENT — it renders the child in its slot.
+    // Typing the home with the child skipped the record master entirely, which is why a deep link
+    // to a tab opened the bare tab with no master around it (and with no :id).
+    // A path running past a tab's own route (a record inside the tab's crud) is the tab's to
+    // resolve too.
+    var chained = io.mateu.core.application.runaction.RouteChains.screenFor(homeRoute, appRoute);
+
+    if (chained != null) {
+      return chained;
     }
     try {
       var resolver = MateuBeanProvider.getBean(RoutedClassResolver.class);

@@ -122,6 +122,14 @@ public class HomeRouteResolver {
 
   static String getHomeRoute(
       Object instance, Optional<Actionable> selectedOption, HttpRequest httpRequest) {
+    return getHomeRoute(instance, selectedOption, httpRequest, null);
+  }
+
+  static String getHomeRoute(
+      Object instance,
+      Optional<Actionable> selectedOption,
+      HttpRequest httpRequest,
+      String appRoute) {
     var prefix = "";
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
       prefix = remoteMenu.path();
@@ -135,6 +143,14 @@ public class HomeRouteResolver {
     }
     if (instance instanceof AppSupplier appSupplier) {
       return appSupplier.getApp(httpRequest).homeRoute();
+    }
+    // A record master declared as a route with CHILDREN in the registry: reached on its own
+    // (/customers/7) it opens its default tab — the child its `defaultChild:` names, else the
+    // first one — instead of an empty slot.
+    var defaultChild =
+        io.mateu.core.application.runaction.RouteChains.defaultChildPath(appRoute, httpRequest);
+    if (defaultChild != null) {
+      return defaultChild;
     }
     return "_no_home_route";
   }

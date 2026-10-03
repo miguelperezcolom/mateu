@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextHistoryUrl } from './navigationUrl'
+import { nextHistoryUrl, isScreenChange } from './navigationUrl'
 
 const at = (url: string) => {
     const [pathname, search] = url.split('?')
@@ -44,5 +44,20 @@ describe('nextHistoryUrl', () => {
 
     it('leads with a slash even when the target does not', () => {
         expect(nextHistoryUrl(at('/orders'), at('processes'))).toBe('/processes')
+    })
+})
+
+describe('isScreenChange', () => {
+    it('is a screen change when the path differs (a nested crud form back to its listing)', () => {
+        expect(isScreenChange('http://h/customers/3/orders/new', { pathname: '/customers/3/orders', search: '' })).toBe(true)
+    })
+    it('is a screen change when only the query differs', () => {
+        expect(isScreenChange('http://h/orders?status=OPEN', { pathname: '/orders', search: '' })).toBe(true)
+    })
+    it('is not a screen change when only the hash differs', () => {
+        expect(isScreenChange('http://h/booking#expand=pax', { pathname: '/booking', search: '' })).toBe(false)
+    })
+    it('is not a screen change with no previous url', () => {
+        expect(isScreenChange(undefined, { pathname: '/x', search: '' })).toBe(false)
     })
 })

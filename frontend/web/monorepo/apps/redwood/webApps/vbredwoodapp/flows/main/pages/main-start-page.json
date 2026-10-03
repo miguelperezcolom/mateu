@@ -348,6 +348,27 @@
         }
       ]
     },
+    "mateuAppTabChanged": {
+      "chains": [
+        {
+          "chain": "appTabSelected",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
+    "mateuAppBack": {
+      "chains": [
+        {
+          "chain": "appTabSelected",
+          "parameters": {
+            "event": "{{ $event }}",
+            "back": "{{ true }}"
+          }
+        }
+      ]
+    },
     "mateuContentTabChanged": {
       "chains": [
         {

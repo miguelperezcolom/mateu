@@ -38,6 +38,22 @@ define([
       }
       $application.variables.mateuActiveTabs = bridge.withActiveTab(activeTabs, tabId);
 
+      // @Tab(key): la pestaña es una URL — elegirla deja una entrada en el historial, así
+      // atrás/adelante recorren las pestañas y recargar abre la misma (el server la marca activa)
+      const bar = ($application.variables.mateuHostContent || [])
+        .reduce((out, block) => out.concat(block.items || []), [])
+        .find((a) => a && a.isTabs && (a.tabs || []).some((t) => t.id === tabId));
+      const picked = bar ? bar.tabs.find((t) => t.id === tabId) : null;
+      if (picked && picked.routeKey && window.__mateuUrlPathMode) {
+        const keys = bar.tabs.map((t) => t.routeKey).filter((k) => !!k);
+        const path = bridge.tabRoutePath(window.location.pathname, keys, picked.routeKey);
+        if (path !== window.location.pathname) {
+          window.history.pushState(null, '', path);
+          $application.variables.mateuSelectedRoute = path;
+          $application.variables.mateuSelectedNavId = path;
+        }
+      }
+
       const reg = $application.variables.mateuRegistry;
       const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
       if (!host) {

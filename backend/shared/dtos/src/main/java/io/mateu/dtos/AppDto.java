@@ -84,7 +84,14 @@ public record AppDto(
      * travels with the shell — and it is what lets a reference resolve with no backend (the
      * client-side expander looks a name up here). Empty for an app that declares none.
      */
-    List<ComponentEntryDto> components)
+    List<ComponentEntryDto> components,
+    /**
+     * {@code @App(backLink = PARENT)}: the route of the "← Parent" link (the nearest route above
+     * the app's own that answers a screen). Null when the app keeps its breadcrumbs.
+     */
+    String backRoute,
+    /** The label of the "← Parent" link: the parent screen's title. */
+    String backLabel)
     implements ComponentMetadataDto {
 
   public AppDto {

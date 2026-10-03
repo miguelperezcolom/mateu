@@ -516,7 +516,9 @@ export class MateuTableCrud extends LitElement {
         // must survive URL sync
         return new Set([
             'searchText',
-            ...(metadata.filters ?? []).flatMap(f =>
+            // a read-only filter is the listing's scope (fixed by the route path), not a condition:
+            // it is already in the URL's path and must not be echoed into the query string
+            ...(metadata.filters ?? []).filter(f => !(f as { readOnly?: boolean }).readOnly).flatMap(f =>
                 f.stereotype === 'dateRange' || f.stereotype === 'numberRange'
                     ? [`${f.fieldId}_from`, `${f.fieldId}_to`]
                     : [f.fieldId])

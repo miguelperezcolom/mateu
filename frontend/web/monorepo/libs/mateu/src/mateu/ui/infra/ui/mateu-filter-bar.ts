@@ -74,8 +74,14 @@ export class MateuFilterBar extends LitElement {
         this.detachOutsideClick()
     }
 
+    // The filters the user can set. A read-only one is the listing's SCOPE — fixed by the route it
+    // is mounted at (a record master's :id) — so it is shown, but never offered or removed.
     private get filters(): FormField[] {
-        return (this.metadata?.filters ?? []) as unknown as FormField[]
+        return ((this.metadata?.filters ?? []) as unknown as FormField[]).filter(f => !f.readOnly)
+    }
+
+    private get scopeFilters(): FormField[] {
+        return ((this.metadata?.filters ?? []) as unknown as FormField[]).filter(f => f.readOnly)
     }
 
     // ── panel open/close ─────────────────────────────────────────────────────
@@ -503,6 +509,10 @@ export class MateuFilterBar extends LitElement {
                     <svg aria-hidden="true" class="magnifier" width="16" height="16" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
                     </svg>
+                    ${this.scopeFilters.filter(field => this.isSet(field)).map(field => html`
+                        <span theme="badge pill" class="chip chip-scope" title="Fixed by the page">
+                            <span class="chip-label">${this.labelOf(field)}:</span> ${this.conditionDisplay(field)}
+                        </span>`)}
                     ${chips.map(chip => html`
                         <span theme="badge contrast pill" class="chip">
                             <span class="chip-label">${chip.label}:</span> ${chip.display}
@@ -586,6 +596,11 @@ export class MateuFilterBar extends LitElement {
             align-items: center;
             gap: 0.3rem;
             white-space: nowrap;
+        }
+        .chip-scope {
+            /* the listing's scope: no remove button, and a distinct, quieter look than a condition */
+            padding-inline-end: var(--lumo-space-s, 0.5rem);
+            background: var(--lumo-primary-color-10pct, #e6efff);
         }
         .chip-label {
             opacity: 0.7;

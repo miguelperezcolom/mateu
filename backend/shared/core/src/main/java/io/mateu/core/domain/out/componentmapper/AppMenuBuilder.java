@@ -34,6 +34,39 @@ class AppMenuBuilder {
     if (instance instanceof AppSupplier appSupplier) {
       return appSupplier.getApp(httpRequest).menu();
     }
+    var declared = declaredActionables(appRoute, instance, route, httpRequest);
+    if (declared.isEmpty()) {
+      return childRouteTabs(appRoute, instance, httpRequest);
+    }
+    return declared;
+  }
+
+  /**
+   * An app that declares no menu of its own but answers a registry route with {@code children}
+   * offers those children as its options — the tabs of a record master, each one a page with its
+   * own URL. The label is the child's {@code @Title}, else its route segment humanized.
+   */
+  static List<Actionable> childRouteTabs(
+      String appRoute, Object instance, HttpRequest httpRequest) {
+    return io.mateu.core.application.runaction.RouteChains.visibleChildrenOf(appRoute, httpRequest)
+        .stream()
+        .map(
+            child ->
+                (Actionable)
+                    new io.mateu.uidl.data.RouteLink(child.path(), labelOf(child))
+                        .withPath(child.relative())
+                        .withServerSideType(instance.getClass().getName())
+                        .withConsumedRoute(appRoute))
+        .toList();
+  }
+
+  private static String labelOf(io.mateu.core.application.runaction.RouteChains.ChildRoute child) {
+    return io.mateu.core.application.runaction.RouteChains.tabLabel(
+        child.entry(), child.relative());
+  }
+
+  private static List<Actionable> declaredActionables(
+      String appRoute, Object instance, String route, HttpRequest httpRequest) {
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
                 .filter(

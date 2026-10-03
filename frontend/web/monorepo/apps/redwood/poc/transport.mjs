@@ -3,7 +3,7 @@
 // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
@@ -277,25 +277,46 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
   // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
   // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
-  const firstIncrement = await loadRoute(base, route, targetId, extra)
-  let next = reduceContexts(reg, firstIncrement)
+  let firstIncrement = await loadRoute(base, route, targetId, extra)
   const ctxId = targetId === '' ? HOST_ID : targetId
   let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
+  // La CADENA de rutas (P1): un registro con pestañas que son páginas llega como uno o varios Apps
+  // ANIDADOS (el maestro) antes de la pantalla de su hueco. Cada uno es un NIVEL (título +
+  // pestañas), no la shell; se sigue su home hasta llegar al contenido.
+  const shellType = reg && reg.shell ? reg.shell.serverSideType : undefined
+  const appLevels = []
+  // la ruta que de verdad se carga: un maestro alcanzado solo (/customers/7) abre su pestaña
+  // por defecto (/customers/7/orders)
+  let effectiveRoute = route
+  for (let hop = 0; hop < 4; hop++) {
+    const split = splitNestedApps(firstIncrement, shellType, route)
+    if (!split.levels.length) break
+    appLevels.push(...split.levels)
+    const home = split.levels[split.levels.length - 1].home
+    effectiveRoute = home.route || effectiveRoute
+    outbound = { route: effectiveRoute, consumedRoute: home.consumedRoute || '', serverSideType: home.serverSideType, baseUrl: base }
+    firstIncrement = await loadRoute(base, effectiveRoute, targetId, {
+      ...extra,
+      consumedRoute: outbound.consumedRoute,
+      serverSideType: outbound.serverSideType,
+    })
+  }
+  let next = reduceContexts(reg, firstIncrement)
   // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
   // la carga de contenido las pierde, así que se conservan aquí
   const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
   const wrapperActions = (wrapperTree && wrapperTree.actions) || []
-  const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, route)
+  const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
   if (info) {
     outbound = {
-      route,
-      consumedRoute: info.rootRoute || route,
+      route: effectiveRoute,
+      consumedRoute: info.rootRoute || effectiveRoute,
       serverSideType: info.serverSideType,
       baseUrl: base,
     }
     next = reduceContexts(
       next,
-      await loadRoute(base, route, targetId, {
+      await loadRoute(base, effectiveRoute, targetId, {
         ...extra,
         consumedRoute: outbound.consumedRoute,
         serverSideType: outbound.serverSideType,
@@ -316,6 +337,8 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
       },
     },
   }
+  // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
+  if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }
   return next
 }
 

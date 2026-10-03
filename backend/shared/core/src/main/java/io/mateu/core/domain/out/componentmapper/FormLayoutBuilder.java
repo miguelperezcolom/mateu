@@ -180,6 +180,13 @@ class FormLayoutBuilder {
     List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
     List<Field> noTabFields = new ArrayList<>();
     arrangeInTabs(section.fields(), fieldsPerTab, noTabFields, readOnly, forCreationForm);
+    // @Subresource fields go to the tab they name (stacked after its own fields, in order)
+    Subresources.place(fieldsPerTab, noTabFields, httpRequest);
+    // a tab whose `show` flag is off is not offered at all (its fields go with it)
+    fieldsPerTab.removeIf(
+        pair -> !io.mateu.core.domain.FeatureFlagGate.shows(pair.first().show(), httpRequest));
+    // the tab the URL names (its @Tab(key) as the route's last segment) is the open one
+    var routedKey = routedTabKey(fieldsPerTab, httpRequest);
     var content = new ArrayList<Component>();
     if (!noTabFields.isEmpty()) {
 
@@ -243,26 +250,87 @@ class FormLayoutBuilder {
                               io.mateu.uidl.data.Tab.builder()
                                   .label(getTabName(pair))
                                   .shortcut(pair.first().shortcut())
-                                  .active(pair.first().open())
+                                  .routeKey(pair.first().key())
+                                  .badge(
+                                      Subresources.badge(
+                                          pair.second(),
+                                          instance instanceof Class ? null : instance,
+                                          httpRequest))
+                                  .active(
+                                      routedKey != null
+                                          ? routedKey.equals(pair.first().key())
+                                          : pair.first().open())
                                   .content(
-                                      TabFormLayoutBuilder.toFormLayout(
-                                          new TabFields(
-                                              pair.first().value(), pair.second(), maxColumns),
-                                          prefix,
-                                          instance,
-                                          baseUrl,
-                                          route,
-                                          consumedRoute,
-                                          initiatorComponentId,
+                                      tabContent(
+                                          pair,
                                           httpRequest,
-                                          forCreationForm,
-                                          readOnly,
-                                          level))
+                                          () ->
+                                              TabFormLayoutBuilder.toFormLayout(
+                                                  new TabFields(
+                                                      pair.first().value(),
+                                                      pair.second(),
+                                                      maxColumns),
+                                                  prefix,
+                                                  instance,
+                                                  baseUrl,
+                                                  route,
+                                                  consumedRoute,
+                                                  initiatorComponentId,
+                                                  httpRequest,
+                                                  forCreationForm,
+                                                  readOnly,
+                                                  level)))
                                   .build())
                       .toList())
               .build());
     }
     return VerticalLayout.builder().content(content).style("width: 100%;").build();
+  }
+
+  /**
+   * The {@code @Tab(key)} the request route ends with, or {@code null}: {@code /vcns/7/gateways}
+   * opens the Gateways tab of the page answering {@code /vcns/7}.
+   */
+  private static String routedTabKey(
+      List<Pair<Tab, List<Field>>> fieldsPerTab, HttpRequest httpRequest) {
+    if (httpRequest == null || httpRequest.runActionRq() == null) {
+      return null;
+    }
+    var route = httpRequest.runActionRq().route();
+    if (route == null || route.isBlank()) {
+      return null;
+    }
+    var path = route.contains("?") ? route.substring(0, route.indexOf('?')) : route;
+    path = path.replaceAll("/+$", "");
+    var last = path.substring(path.lastIndexOf('/') + 1);
+    return fieldsPerTab.stream()
+        .map(pair -> pair.first().key())
+        .filter(key -> key != null && !key.isBlank() && key.equals(last))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Builds a tab's content with the tab in hand: its sub-resources need to know the label they sit
+   * under (not to repeat it as their title) and whether they are alone in it.
+   */
+  private static Component tabContent(
+      Pair<Tab, List<Field>> pair,
+      HttpRequest httpRequest,
+      java.util.function.Supplier<Component> content) {
+    if (httpRequest == null) {
+      return content.get();
+    }
+    var previous = httpRequest.getAttribute(Subresources.CURRENT_TAB);
+    httpRequest.setAttribute(
+        Subresources.CURRENT_TAB,
+        new Subresources.CurrentTab(
+            getTabName(pair), Subresources.count(pair.second()), pair.second().size()));
+    try {
+      return content.get();
+    } finally {
+      httpRequest.setAttribute(Subresources.CURRENT_TAB, previous);
+    }
   }
 
   /**
