@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context,route=$application.variables.mateuHomeRoute;route&&(await Actions.callChain(context,{chain:"onMateuNavigate",params:{event:{detail:{route}}}}))}};});
+//# sourceMappingURL=onMateuSubheaderHome.js.map

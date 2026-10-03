@@ -12,16 +12,16 @@ import { SCHEMA } from '../model/schemaCatalog'
 @customElement('editor-palette')
 export class EditorPalette extends LitElement {
     static styles = css`
-        :host { display: block; height: 100%; overflow: auto; background: #f7f8fa; border-right: 1px solid #e3e5e8; }
-        .title { padding: 0.6rem 0.75rem 0.4rem; font: 600 12px system-ui; color: #374151; border-bottom: 1px solid #e3e5e8; }
-        .search { position: sticky; top: 0; background: #f7f8fa; padding: 0.5rem; border-bottom: 1px solid #e3e5e8; z-index: 1; }
-        .search input { width: 100%; padding: 0.35rem 0.5rem; font: 13px system-ui; border: 1px solid #d7dade;
+        :host { display: block; height: 100%; overflow: auto; background: var(--ve-surface, #f7f8fa); border-right: 1px solid var(--ve-border, #e3e5e8); }
+        .title { padding: 0.6rem 0.75rem 0.4rem; font: 600 12px var(--ve-font, system-ui); color: var(--ve-text, #374151); border-bottom: 1px solid var(--ve-border, #e3e5e8); }
+        .search { position: sticky; top: 0; background: var(--ve-surface, #f7f8fa); padding: 0.5rem; border-bottom: 1px solid var(--ve-border, #e3e5e8); z-index: 1; }
+        .search input { width: 100%; padding: 0.35rem 0.5rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                         border-radius: 6px; box-sizing: border-box; }
-        h3 { margin: 0.6rem 0.75rem 0.15rem; font: 600 11px system-ui; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; }
+        h3 { margin: 0.6rem 0.75rem 0.15rem; font: 600 11px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-secondary, #6b7280); }
         button { display: block; width: calc(100% - 1rem); margin: 0.2rem 0.5rem; padding: 0.35rem 0.6rem; text-align: left;
-                 font: 13px system-ui; background: #fff; border: 1px solid #d7dade; border-radius: 6px; cursor: pointer; }
-        button:hover { background: #eef4ff; border-color: #b7ccf7; }
-        .none { padding: 0.75rem; font: 12px system-ui; color: #9ca3af; }
+                 font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
+        button:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
+        .none { padding: 0.75rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #9ca3af); }
     `
 
     @state() private query = ''

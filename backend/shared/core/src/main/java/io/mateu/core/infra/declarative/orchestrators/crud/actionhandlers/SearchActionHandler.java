@@ -2,9 +2,11 @@ package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.IdSetFilter;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
   }
 
   @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
     Pageable pageable =
@@ -39,9 +42,25 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
             io.mateu.uidl.interfaces.FilterStateAssembler.assemble(
                 orchestrator.filtersClass(), extracted.exampleState()),
             httpRequest);
+    // ?ids=… — the framework's id-set filter, on every listing without declaring it
+    var ids = IdSetFilter.from(httpRequest.runActionRq().componentState());
     var request =
-        new io.mateu.uidl.data.SearchRequest(searchText, filters, extracted.criteria(), pageable);
-    return new Data(Map.of("crud", orchestrator.search(request, httpRequest)));
+        new io.mateu.uidl.data.SearchRequest(
+            searchText, filters, extracted.criteria(), pageable, ids);
+    var found = orchestrator.search(request, httpRequest);
+    if (!ids.isEmpty() && found instanceof ListingData<?> listing) {
+      // a hand-written search that did not honour request.ids() still shows only those rows
+      found = IdSetFilter.narrow((ListingData<Object>) listing, ids, idField(orchestrator));
+    }
+    return new Data(Map.of("crud", found));
+  }
+
+  private static String idField(Crud orchestrator) {
+    try {
+      return orchestrator.getIdFieldForRow();
+    } catch (RuntimeException e) {
+      return "id";
+    }
   }
 
   /**

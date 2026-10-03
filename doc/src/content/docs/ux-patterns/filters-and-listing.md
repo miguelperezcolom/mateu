@@ -218,8 +218,9 @@ The URL captures the full listing state:
 
 | Parameter | What it stores |
 |---|---|
-| Filter field names | The value of each filter field (e.g. `name=widget`) |
-| `searchText` | The free-text search box value |
+| Filter field names | The value of each filter field (e.g. `name=widget`; a multi-select comma-joined, `status=Pending,Cancelled`; a range as `<field>_from` / `<field>_to`) |
+| `searchText` | The free-text search box value (a hand-written link may use `q` instead) |
+| `ids` | The framework's **id-set filter**: exactly these rows (e.g. `ids=4MBZS7,JXD3G6`) — see below |
 | `page` | Current page number (omitted when 0) |
 | `sort` | Active sort as `field:direction` pairs (e.g. `sort=name:ascending,date:descending`) |
 
@@ -234,6 +235,30 @@ This gives three capabilities for free:
 - **Browser history** — the back button returns to the previous filter state.
 
 No server-side persistence of views is needed. The browser's native bookmark manager is the saved-views feature.
+
+Whatever opens the listing — a pasted link, the menu, the chat assistant — the URL wins: reaching a
+listing that is already on screen with another query (`/bookings` → `/bookings?status=Cancelled`)
+applies exactly the new query, and URL filters show as normal removable chips.
+
+### The id-set filter (`?ids=…`)
+
+`ids` works on **every** listing without declaring anything: `/bookings?ids=4MBZS7,JXD3G6` shows
+exactly those two rows, with a removable «Selection: 4MBZS7, JXD3G6» chip («N selected items» beyond
+three). It is how a link — or an assistant that found some records with its tools, by any criterion
+the listing has no filter for — shows a concrete set of records in their listing. It combines with the
+declared filters and the search text.
+
+- **AutoCrud / CrudStore**: applied by the store, as an `in` criterion on the row's id field.
+- **Hand-written `search`**: read it from `request.ids()` (empty when not set) and narrow your query
+  (`WHERE id IN (:ids)`). If you don't, the framework narrows the page your search returned to those
+  ids — exact only when they all fit in that page, so honour it in the query for large listings.
+
+### What the menu says about each listing
+
+A menu entry that opens a listing carries a `listing` descriptor: its row id field, the `ids` param,
+the search param and each declared filter as the query param it reads (type, enum values, range
+bounds). The chat sends it in its menu context, so the assistant can open a listing already
+narrowed instead of only the bare screen.
 
 ## Known gaps
 

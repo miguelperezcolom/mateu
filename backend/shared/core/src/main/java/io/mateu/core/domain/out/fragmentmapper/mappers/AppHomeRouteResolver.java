@@ -223,7 +223,10 @@ final class AppHomeRouteResolver {
   }
 
   static String addQueryParams(String route, HttpRequest httpRequest) {
-    if (httpRequest.getParameterNames().isEmpty()) {
+    // A route that already carries its query (the client sends "/bookings?status=Cancelled" as
+    // both the URL and the route) must not get it twice: "?status=Cancelled?status=Cancelled"
+    // reached the remote, which read the filter as "Cancelled?status=Cancelled" — no such value.
+    if (httpRequest.getParameterNames().isEmpty() || (route != null && route.contains("?"))) {
       return route;
     }
     return route

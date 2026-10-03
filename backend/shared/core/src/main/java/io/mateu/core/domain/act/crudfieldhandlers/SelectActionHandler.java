@@ -3,7 +3,6 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
-import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;
@@ -51,7 +50,8 @@ public class SelectActionHandler {
     var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
     var rowClass =
         stateRowClass != null
-            ? forName(stateRowClass.toString())
+            ? io.mateu.core.application.security.WireTypes.rowClass(
+                stateRowClass.toString(), field.getDeclaringClass())
             : getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
 
     Map<String, Object> filteredState =

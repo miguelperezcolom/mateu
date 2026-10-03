@@ -1,3 +1,4 @@
+import { pageActions } from './pageActions'
 import { describe, it, expect } from 'vitest'
 import { parse } from 'yaml'
 import { pageActionIds, actionSteps, setActionSteps, addFlowAction, removeAction, stepParam } from './flowEditor'
@@ -52,15 +53,15 @@ actions:
         doc = addFlowAction(doc, 'go')
         expect(pageActionIds(doc)).toEqual(['go'])
         doc = setActionSteps(doc, 'go', [{ type: 'MarkDirty', extra: {} }])
-        expect((doc.rest!.actions as any)[0].steps).toHaveLength(1)
+        expect((pageActions(doc) as any)[0].steps).toHaveLength(1)
         doc = setActionSteps(doc, 'go', [])
-        expect((doc.rest!.actions as any)[0].steps).toBeUndefined()
+        expect((pageActions(doc) as any)[0].steps).toBeUndefined()
     })
 
     it('removes an action (clearing the actions key when last)', () => {
         let doc = addFlowAction(page('type: VerticalLayout\ncontent: []\n'), 'only')
         doc = removeAction(doc, 'only')
-        expect(doc.rest?.actions).toBeUndefined()
+        expect(pageActions(doc)).toEqual([])
     })
 
     it('maps each verb to its param field', () => {

@@ -89,6 +89,7 @@ final class WizardStateSerializer {
                 return;
               }
               parentData.put(prefix + field.getName() + "_rowClass", rowType.getName());
+              io.mateu.core.application.security.WireTypes.emitted(rowType.getName());
               var list = data.get(field.getName()) instanceof List<?> l ? l : null;
               if (list != null) {
                 for (int i = 0; i < list.size(); i++) {

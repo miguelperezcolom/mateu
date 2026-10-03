@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler
+from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.mcp import handle_jsonrpc
 
 
@@ -39,7 +39,16 @@ def add_mateu(
         if not rq.route:
             rq.route = route
         request_base_url = str(request.base_url).rstrip("/") + (f"/{base_url.strip('/')}" if base_url else "")
-        increment = handler.handle(rq, request_base_url)
+        try:
+            increment = handler.handle(rq, request_base_url)
+        except MateuForbiddenException:
+            # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a
+            # generic error message; the reason was logged by the guard and the method never ran.
+            return JSONResponse(
+                status_code=403,
+                content={"messages": [{"variant": "error", "position": "middle", "title": "",
+                                       "text": "Forbidden", "duration": 5000}]},
+            )
         return JSONResponse(increment.model_dump(by_alias=True, mode="json"))
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])

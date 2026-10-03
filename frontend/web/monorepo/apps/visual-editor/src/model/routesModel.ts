@@ -12,10 +12,21 @@ import { parse, stringify } from 'yaml'
  */
 export interface RouteRow {
     route: string
+    /** The layout file this route renders — authored as `layout:` (canonical) or `definition:` (alias). */
     definition?: string
+    /** Which key the layout was authored under, so a round trip never renames it. New rows use `layout`. */
+    layoutKey?: 'layout' | 'definition'
     viewModel?: string
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    /** The route's `data:` — a named source (`swapi-person`) or an inline `{ ref | url, … }` descriptor. */
+    data?: string | Record<string, unknown>
+    /** On a route with children: the child (relative) that opens when the parent is reached alone. */
+    defaultChild?: string
+    /** Nested routes rendered in this route's slot — a record master's routed tabs. */
+    children?: RouteRow[]
+    /** Every other key of the entry (`state`, `appData`, `show`, `parent`, a future one…), kept verbatim. */
+    extra?: Record<string, unknown>
 }
 
 export interface RoutesDoc {
@@ -37,12 +48,26 @@ export function isRoutesYaml(yaml: string): boolean {
     return type === 'Routes' || Array.isArray((root as any).routes)
 }
 
+const KNOWN = ['route', 'definition', 'layout', 'viewModel', 'fixedParams', 'defaultParams', 'data', 'defaultChild', 'children']
+
 function toRow(entry: any): RouteRow {
     const row: RouteRow = { route: typeof entry?.route === 'string' ? entry.route : '' }
-    if (typeof entry?.definition === 'string') row.definition = entry.definition
+    // `layout` is canonical and wins over its deprecated alias when both are present (as the loader does).
+    if (typeof entry?.layout === 'string') { row.definition = entry.layout; row.layoutKey = 'layout' }
+    else if (typeof entry?.definition === 'string') { row.definition = entry.definition; row.layoutKey = 'definition' }
     if (typeof entry?.viewModel === 'string') row.viewModel = entry.viewModel
     if (entry?.fixedParams && typeof entry.fixedParams === 'object') row.fixedParams = entry.fixedParams
     if (entry?.defaultParams && typeof entry.defaultParams === 'object') row.defaultParams = entry.defaultParams
+    if (typeof entry?.data === 'string' || (entry?.data && typeof entry.data === 'object')) row.data = entry.data
+    if (typeof entry?.defaultChild === 'string') row.defaultChild = entry.defaultChild
+    if (Array.isArray(entry?.children)) row.children = entry.children.map(toRow)
+    const extra: Record<string, unknown> = {}
+    if (entry && typeof entry === 'object') {
+        for (const k of Object.keys(entry)) if (!KNOWN.includes(k)) extra[k] = entry[k]
+        // An entry carrying BOTH keys keeps the alias it also had (the loader ignores it; we don't drop it).
+        if (typeof entry.layout === 'string' && 'definition' in entry) extra.definition = entry.definition
+    }
+    if (Object.keys(extra).length) row.extra = extra
     return row
 }
 
@@ -63,19 +88,50 @@ export function parseRoutes(yaml: string): RoutesDoc {
     return { routes: [], enveloped: true, preamble: {} }
 }
 
+function rowToRaw(row: RouteRow): Record<string, unknown> {
+    const out: Record<string, unknown> = { route: row.route ?? '' }
+    if (row.definition) out[row.layoutKey ?? 'layout'] = row.definition
+    if (row.viewModel) out.viewModel = row.viewModel
+    if (row.data !== undefined && row.data !== '') out.data = row.data
+    if (row.fixedParams && Object.keys(row.fixedParams).length) out.fixedParams = row.fixedParams
+    if (row.defaultParams && Object.keys(row.defaultParams).length) out.defaultParams = row.defaultParams
+    if (row.defaultChild) out.defaultChild = row.defaultChild
+    if (row.children?.length) out.children = row.children.map(rowToRaw)
+    return { ...out, ...(row.extra ?? {}) }
+}
+
 /** Serialize back, omitting empty fields and empty param maps, and preserving the preamble. */
 export function serializeRoutes(doc: RoutesDoc): string {
-    const entries = doc.routes.map((row) => {
-        const out: Record<string, unknown> = { route: row.route ?? '' }
-        if (row.definition) out.definition = row.definition
-        if (row.viewModel) out.viewModel = row.viewModel
-        if (row.fixedParams && Object.keys(row.fixedParams).length) out.fixedParams = row.fixedParams
-        if (row.defaultParams && Object.keys(row.defaultParams).length) out.defaultParams = row.defaultParams
-        return out
-    })
     // Always the `type: Routes` envelope so every route file is discriminated uniformly with the
     // mount (UI) and app (AppShell) files.
-    return stringify({ type: 'Routes', ...doc.preamble, routes: entries })
+    return stringify({ type: 'Routes', ...doc.preamble, routes: doc.routes.map(rowToRaw) })
+}
+
+/** The name a route's `data:` refers to (a bare name or `{ ref }`), for the picker; '' when inline/absent. */
+export function dataRef(data: RouteRow['data']): string {
+    if (typeof data === 'string') return data
+    if (data && typeof data.ref === 'string') return data.ref
+    return ''
+}
+
+/** Every route of the tree with its ABSOLUTE path (children joined to their parent), depth-first. */
+export function flattenRoutes(rows: RouteRow[], prefix = ''): (RouteRow & { absolute: string })[] {
+    const out: (RouteRow & { absolute: string })[] = []
+    for (const r of rows) {
+        const absolute = prefix ? (r.route ? `${prefix}/${r.route}` : prefix) : r.route
+        out.push({ ...r, absolute })
+        if (r.children?.length) out.push(...flattenRoutes(r.children, absolute))
+    }
+    return out
+}
+
+/**
+ * A record master whose tabs are pages: the parent route plus one child per tab, the first opening
+ * by default — the routes half of the «master with routed tabs» recipe (route-registry.md).
+ */
+export function masterWithTabs(route: string, tabs: string[]): RouteRow {
+    const children: RouteRow[] = tabs.map((t) => ({ route: t, definition: `${t}.yaml`, layoutKey: 'layout' }))
+    return { route, definition: 'master.yaml', layoutKey: 'layout', defaultChild: tabs[0], children }
 }
 
 /** Parse a `key=value, key2=value2` string into a param map, coercing obvious booleans/numbers. */

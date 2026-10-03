@@ -11,6 +11,7 @@ public class FakeHttpRequest implements HttpRequest {
 
   private final RunActionRqDto rq;
   private final Map<String, Object> attributes = new HashMap<>();
+  private final Map<String, String> headers = new HashMap<>();
 
   public FakeHttpRequest(RunActionRqDto rq) {
     this.rq = rq;
@@ -18,6 +19,11 @@ public class FakeHttpRequest implements HttpRequest {
 
   public FakeHttpRequest withAttribute(String key, Object value) {
     attributes.put(key, value);
+    return this;
+  }
+
+  public FakeHttpRequest withHeader(String key, String value) {
+    headers.put(key, value);
     return this;
   }
 
@@ -48,12 +54,13 @@ public class FakeHttpRequest implements HttpRequest {
 
   @Override
   public String getHeaderValue(String key) {
-    return null;
+    return headers.get(key);
   }
 
   @Override
   public List<String> getHeaderValues(String key) {
-    return List.of();
+    var value = headers.get(key);
+    return value == null ? List.of() : List.of(value);
   }
 
   @Override

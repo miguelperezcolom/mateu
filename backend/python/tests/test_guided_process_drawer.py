@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from mateu_core import RunActionRq  # noqa: E402
 from mateu_core import MateuRegistry, SyncHandler  # noqa: E402
 from mateu_dtos import ServerSideComponent  # noqa: E402
-from mateu_uidl import PlainText, Step, Wizard, title, ui  # noqa: E402
+from mateu_uidl import PlainText, Step, Wizard, action, title, ui  # noqa: E402
 from mateu_uidl import components as fluent  # noqa: E402
 
 
@@ -32,6 +32,7 @@ class SignupWizard(Wizard):
 class Host:
     x: str = "hi"
 
+    @action  # a declared action without a button (only declared actions run)
     def open_wizard(self) -> fluent.Drawer:
         return fluent.Drawer(
             id="gpd",
