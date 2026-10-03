@@ -452,9 +452,11 @@ public class RunActionUseCase {
 
   // ── Routing ───────────────────────────────────────────────────────────────
 
-  private static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
+  static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
     if (instance instanceof Mono<?> mono) {
-      return mono.map(i -> routeIfNeeded(command, i));
+      // flatMap, not map: routeIfNeeded answers a Mono, and map would emit that Mono itself as the
+      // "instance" — the action would then run against a MonoJust instead of the view model.
+      return mono.flatMap(i -> routeIfNeeded(command, i));
     }
     if (instance instanceof RouteHandler handlesRoute) {
       return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
